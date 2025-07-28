@@ -52,8 +52,8 @@ class _WalletSwitcherButton extends StatelessWidget {
         iconSize: 18.6,
         borderRadius: 8,
       ),
-      leadingIconOffset: 11.0.s,
-      trailingIconOffset: 0.0.s,
+      // leadingIconOffset: 6.0.s,
+      // trailingIconOffset: 6.0.s,
       backgroundColor: context.theme.appColors.tertiaryBackground,
       label: Text(
         title,

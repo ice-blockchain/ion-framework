@@ -35,8 +35,8 @@ class _ButtonDropdown extends Button {
                       ? null
                       : leadingIcon != null
                           ? EdgeInsetsDirectional.only(
-                              start: 4.0.s,
-                              end: 10.0.s,
+                              start: leadingIconOffset ?? 6.0.s,
+                              end: trailingIconOffset ?? 10.0.s,
                             )
                           : EdgeInsets.symmetric(horizontal: 14.0.s)),
             ),
@@ -44,7 +44,7 @@ class _ButtonDropdown extends Button {
           leadingIconOffset: leadingIconOffset ?? 10.0.s,
           trailingIcon: Row(
             children: [
-              (opened ? Assets.svg.iconArrowUp : Assets.svg.iconArrowDown).icon(),
+              (opened ? Assets.svg.iconArrowUp : Assets.svg.iconArrowDown).icon(size: 12.0.s),
               if (showClearButton)
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,

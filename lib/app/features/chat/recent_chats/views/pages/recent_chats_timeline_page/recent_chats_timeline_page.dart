@@ -60,7 +60,7 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     });
 
     return PullToRefreshBuilder(
-      sliverAppBar: SliverAppBar(
+      collapsibleChild: SliverAppBar(
         pinned: true,
         backgroundColor: context.theme.appColors.secondaryBackground,
         surfaceTintColor: context.theme.appColors.secondaryBackground,

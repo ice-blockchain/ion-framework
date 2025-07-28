@@ -37,6 +37,7 @@ class CollapsingAppBar extends StatelessWidget {
       toolbarHeight: 0,
       backgroundColor: context.theme.appColors.onPrimaryAccent,
       surfaceTintColor: context.theme.appColors.onPrimaryAccent,
+      
       flexibleSpace: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           final overlayOpacity = ((totalHeight - constraints.maxHeight) / fadeOffset).clamp(0, 1);

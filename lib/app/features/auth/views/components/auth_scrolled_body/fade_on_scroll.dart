@@ -44,7 +44,7 @@ class FadeOnScroll extends HookWidget {
       [],
     );
 
-    return Opacity(
+    return Opacity(//TODO: check
       opacity: opacity.value,
       child: child,
     );

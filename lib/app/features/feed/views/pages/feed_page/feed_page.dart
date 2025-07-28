@@ -64,7 +64,7 @@ class FeedPage extends HookConsumerWidget {
         onLoadMore: () => _onLoadMore(ref),
         builder: (context, slivers) {
           return PullToRefreshBuilder(
-            sliverAppBar: CollapsingAppBar(
+            collapsibleChild: CollapsingAppBar(
               height: FeedControls.height,
               topOffset: ScreenTopOffset.defaultMargin - FeedNotificationsButton.counterOffset,
               child: FeedControls(scrollController: scrollController),
