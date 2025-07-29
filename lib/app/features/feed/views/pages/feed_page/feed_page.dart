@@ -21,10 +21,12 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/article_c
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/components/feed_navigation/feed_notifications_button.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/feed_controls.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_posts_list/feed_posts_list.dart';
+import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_item_content.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/stories.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/trending_videos.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
+import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 
 class FeedPage extends HookConsumerWidget {
   const FeedPage({super.key});
@@ -45,29 +47,35 @@ class FeedPage extends HookConsumerWidget {
         (feedCategory == FeedCategory.feed || feedCategory == FeedCategory.videos);
 
     final slivers = [
-      SliverToBoxAdapter(
-        child: Column(
-          children: [
-            if (feedCategory == FeedCategory.articles) const ArticleCategoriesMenu(),
-            if (showStories) const Stories(),
-            if (showTrendingVideos) const TrendingVideos(),
-          ],
+      if (showTrendingVideos)
+        const SliverToBoxAdapter(
+          child: TrendingVideos(),
         ),
-      ),
       const FeedPostsList(),
     ];
 
     return Scaffold(
+      appBar: NavigationAppBar.root(
+        title: const FeedControls(),
+        scrollController: scrollController,
+        applyHitSlop: false,
+      ),
       body: LoadMoreBuilder(
         slivers: slivers,
         hasMore: hasMorePosts,
         onLoadMore: () => _onLoadMore(ref),
         builder: (context, slivers) {
           return PullToRefreshBuilder(
-            collapsibleChild: CollapsingAppBar(
-              height: FeedControls.height,
-              topOffset: ScreenTopOffset.defaultMargin - FeedNotificationsButton.counterOffset,
-              child: FeedControls(scrollController: scrollController),
+            sliverAppBar: CollapsingAppBar(
+              height: Stories.height,
+              topOffset: 20.0.s,
+              bottomOffset: 18.0.s,
+              child: Column(
+                children: [
+                  if (feedCategory == FeedCategory.articles) const ArticleCategoriesMenu(),
+                  if (showStories) const Stories(),
+                ],
+              ),
             ),
             slivers: slivers,
             onRefresh: () =>

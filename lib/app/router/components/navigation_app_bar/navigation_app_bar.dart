@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_top_offset.dart';
 import 'package:ion/app/constants/ui.dart';
@@ -10,15 +12,17 @@ import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 
-class NavigationAppBar extends StatelessWidget implements PreferredSizeWidget {
+class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget {
   const NavigationAppBar({
     required this.useScreenTopOffset,
     this.title,
     this.showBackButton = true,
     this.hideKeyboardOnBack = false,
+    this.applyHitSlop = true,
     this.onBackPress,
     this.actions,
     this.leading,
+    this.scrollController,
     this.backgroundColor,
     super.key,
   });
@@ -63,6 +67,21 @@ class NavigationAppBar extends StatelessWidget implements PreferredSizeWidget {
         key: key,
       );
 
+  factory NavigationAppBar.root({
+    Widget? title,
+    List<Widget>? actions,
+    bool applyHitSlop = true,
+    ScrollController? scrollController,
+  }) =>
+      NavigationAppBar(
+        title: title,
+        actions: actions,
+        useScreenTopOffset: true,
+        showBackButton: false,
+        applyHitSlop: applyHitSlop,
+        scrollController: scrollController,
+      );
+
   static double get modalHeaderHeight => 60.0.s;
 
   static double get screenHeaderHeight => 56.0.s;
@@ -72,14 +91,34 @@ class NavigationAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? title;
   final bool showBackButton;
   final bool hideKeyboardOnBack;
+  final bool applyHitSlop;
   final VoidCallback? onBackPress;
   final List<Widget>? actions;
   final bool useScreenTopOffset;
   final Widget? leading;
   final Color? backgroundColor;
+  final ScrollController? scrollController;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasScrolled = useState(false);
+    if (scrollController != null) {
+      useEffect(
+        () {
+          void scrollListener() {
+            final newHasScrolled = scrollController!.offset > 0;
+            if (hasScrolled.value != newHasScrolled) {
+              hasScrolled.value = newHasScrolled;
+            }
+          }
+
+          scrollController!.addListener(scrollListener);
+          return () => scrollController!.removeListener(scrollListener);
+        },
+        [scrollController],
+      );
+    }
+
     final Widget? titleWidget = title != null
         ? DefaultTextStyle(
             textAlign: TextAlign.center,
@@ -99,6 +138,7 @@ class NavigationAppBar extends StatelessWidget implements PreferredSizeWidget {
         : null;
 
     final Widget appBarContent = NavigationToolbar(
+      middleSpacing: 0,
       leading: leading ??
           (showBackButton
               ? NavigationBackButton(
@@ -111,9 +151,27 @@ class NavigationAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
 
     final Widget appBar = Container(
-      color: backgroundColor ?? context.theme.appColors.secondaryBackground,
       height: useScreenTopOffset ? screenHeaderHeight : modalHeaderHeight,
-      child: appBarContent,
+      decoration: BoxDecoration(
+        color: backgroundColor ?? context.theme.appColors.secondaryBackground,
+        boxShadow: hasScrolled.value
+            ? [
+                BoxShadow(
+                  color: context.theme.appColors.onTertiaryBackground.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : [],
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: applyHitSlop
+              ? ScreenSideOffset.defaultSmallMargin - UiConstants.hitSlop
+              : ScreenSideOffset.defaultSmallMargin,
+        ),
+        child: appBarContent,
+      ),
     );
 
     return useScreenTopOffset

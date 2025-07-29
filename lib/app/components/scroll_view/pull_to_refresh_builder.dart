@@ -16,14 +16,14 @@ class PullToRefreshBuilder extends HookWidget {
     required this.onRefresh,
     Widget Function(BuildContext context, List<Widget> slivers)? builder,
     this.refreshIndicatorEdgeOffset = 0,
-    this.collapsibleChild,
+    this.sliverAppBar,
     super.key,
   }) : builder = builder ??
             ((BuildContext context, List<Widget> slivers) => CustomScrollView(slivers: slivers));
 
   final Widget Function(BuildContext context, List<Widget> slivers) builder;
 
-  final Widget? collapsibleChild;
+  final Widget? sliverAppBar;
 
   final List<Widget> slivers;
 
@@ -35,7 +35,7 @@ class PullToRefreshBuilder extends HookWidget {
   Widget build(BuildContext context) {
     if (!kIsWeb && Platform.isIOS) {
       return builder(context, [
-        if (collapsibleChild != null) collapsibleChild!,
+        if (sliverAppBar != null) sliverAppBar!,
         CupertinoSliverRefreshControl(
           onRefresh: _onRefresh,
           builder: (_, refreshState, pulledExtent, refreshTriggerPullDistance, ___) =>
@@ -61,7 +61,7 @@ class PullToRefreshBuilder extends HookWidget {
         );
       },
       child: builder(context, [
-        if (collapsibleChild != null) collapsibleChild!,
+        if (sliverAppBar != null) sliverAppBar!,
         ...slivers,
       ]),
     );

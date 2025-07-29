@@ -23,6 +23,8 @@ import 'package:ion/app/features/wallets/views/pages/wallet_page/components/nfts
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/tabs/tabs_header.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/tab_type.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
+import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
+import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 
 class WalletPage extends HookConsumerWidget {
   const WalletPage({super.key});
@@ -33,34 +35,27 @@ class WalletPage extends HookConsumerWidget {
     useScrollTopOnTabPress(context, scrollController: scrollController);
 
     final activeTab = useState<WalletTabType>(WalletTabType.coins);
-    final hasScrolled = useState(false);
-
-    useEffect(() {
-      void scrollListener() {
-        final newHasScrolled = scrollController.offset > 0;
-        if (hasScrolled.value != newHasScrolled) {
-          hasScrolled.value = newHasScrolled;
-        }
-      }
-
-      scrollController.addListener(scrollListener);
-      return () => scrollController.removeListener(scrollListener);
-    }, [scrollController]);
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(FeedControls.height + 16.0.s),
-        child: SafeArea(
-          child: WalletHeader(hasScrolled: hasScrolled.value),
-        ),
+      appBar: NavigationAppBar.root(
+        title: WalletHeader(),
+        applyHitSlop: false,
+        actions: [
+          const ScanButton(),
+        ],
+        // useScreenTopOffset: true,
       ),
+      // appBar: PreferredSize(
+      //   preferredSize: Size.fromHeight(FeedControls.height + 16.0.s),
+      //   child: SafeArea(
+      //     child: WalletHeader(hasScrolled: hasScrolled.value),
+      //   ),
+      // ),
       body: PullToRefreshBuilder(
-        collapsibleChild: SliverAppBar(
-          backgroundColor: Colors.white,
-          expandedHeight: Balance.height,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Balance(tab: activeTab.value),
-          ),
+        sliverAppBar: CollapsingAppBar(
+          height: Balance.height,
+          bottomOffset: 0,
+          child: Balance(tab: activeTab.value),
         ),
         slivers: [
           SliverToBoxAdapter(
