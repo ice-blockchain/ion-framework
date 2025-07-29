@@ -64,12 +64,17 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
       return;
     }
 
+    final avatar = parsedData?.avatar;
+    final media = parsedData?.media;
+
     final notificationsService = await ref.read(localNotificationsServiceProvider.future);
     await notificationsService.showNotification(
       id: generateUuid().hashCode,
       title: title,
       body: body,
       payload: jsonEncode(response.data),
+      iconFilePath: avatar,
+      attachmentFilePath: media,
     );
   }
 

@@ -18,6 +18,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'image_compressor.r.g.dart';
 
+enum ImageCompressionType {
+  webp,
+  jpg,
+}
+
 class ImageCompressionSettings {
   const ImageCompressionSettings({
     this.quality = 70,
@@ -43,10 +48,12 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
   @override
   Future<MediaFile> compress(
     MediaFile file, {
+    ImageCompressionType to = ImageCompressionType.webp,
     ImageCompressionSettings settings = const ImageCompressionSettings(),
   }) async {
     try {
-      final isWebP = file.mimeType == 'image/webp' || file.path.toLowerCase().endsWith('.webp');
+      final isWebP = to == ImageCompressionType.webp &&
+          (file.mimeType == 'image/webp' || file.path.toLowerCase().endsWith('.webp'));
       if (isWebP) {
         if (file.width == null || file.height == null) {
           final imageDimensions = await getImageDimension(path: file.path);
@@ -59,24 +66,35 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
         return file;
       }
 
-      final output = await generateOutputPath();
+      final output = await generateOutputPath(extension: to.name);
 
       final isGif = file.mimeType == 'image/gif' && file.path.isGif && settings.shouldCompressGif;
 
       List<String> command;
-      if (isGif) {
-        command = FFmpegCommands.gifToAnimatedWebP(
-          inputPath: file.path,
-          outputPath: output,
-          quality: settings.quality,
-        );
-      } else {
-        command = FFmpegCommands.imageToWebP(
-          inputPath: file.path,
-          outputPath: output,
-          quality: settings.quality,
-          scaleResolution: settings.scaleResolution.resolution,
-        );
+
+      switch (to) {
+        case ImageCompressionType.webp:
+          if (isGif) {
+            command = FFmpegCommands.gifToAnimatedWebP(
+              inputPath: file.path,
+              outputPath: output,
+              quality: settings.quality,
+            );
+          } else {
+            command = FFmpegCommands.imageToWebP(
+              inputPath: file.path,
+              outputPath: output,
+              quality: settings.quality,
+              scaleResolution: settings.scaleResolution.resolution,
+            );
+          }
+        case ImageCompressionType.jpg:
+          command = FFmpegCommands.webpToJpeg(
+            inputPath: file.path,
+            outputPath: output,
+            quality: settings.quality,
+            scaleResolution: settings.scaleResolution.resolution,
+          );
       }
 
       final session = await compressExecutor.execute(command);
@@ -95,7 +113,10 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
 
       return MediaFile(
         path: output,
-        mimeType: isGif ? 'image/gif+webp' : 'image/webp',
+        mimeType: switch (to) {
+          ImageCompressionType.jpg => 'image/jpeg',
+          ImageCompressionType.webp => isGif ? 'image/gif+webp' : 'image/webp',
+        },
         width: outputDimension.width,
         height: outputDimension.height,
       );

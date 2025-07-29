@@ -39,12 +39,17 @@ class LocalNotificationsService {
     required String title,
     required String body,
     String? payload,
+    String? iconFilePath,
+    String? attachmentFilePath,
   }) async {
     await _plugin.show(
       id,
       title,
       body,
-      _notificationDetails,
+      _notificationDetails(
+        iconFilePath: iconFilePath,
+        attachmentFilePath: attachmentFilePath,
+      ),
       payload: payload,
     );
   }
@@ -74,16 +79,20 @@ class LocalNotificationsService {
     );
   }
 
-  static NotificationDetails get _notificationDetails {
-    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
+  static NotificationDetails _notificationDetails({
+    String? iconFilePath,
+    String? attachmentFilePath,
+  }) {
+    final androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'ion_miscellaneous',
       'Miscellaneous',
-      color: Color(0xFF0166FF),
+      color: const Color(0xFF0166FF),
       importance: Importance.max,
       priority: Priority.high,
+      largeIcon: iconFilePath != null ? DrawableResourceAndroidBitmap(iconFilePath) : null,
     );
     const iOSPlatformChannelSpecifics = DarwinNotificationDetails();
-    return const NotificationDetails(
+    return NotificationDetails(
       android: androidPlatformChannelSpecifics,
       iOS: iOSPlatformChannelSpecifics,
     );

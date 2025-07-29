@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
@@ -24,6 +25,12 @@ import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
+import 'package:ion/app/services/compressors/compress_executor.r.dart';
+import 'package:ion/app/services/compressors/image_compressor.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 part 'ion_connect_push_data_payload.f.freezed.dart';
 part 'ion_connect_push_data_payload.f.g.dart';
@@ -33,13 +40,13 @@ class IonConnectPushDataPayload {
     required this.event,
     required this.relevantEvents,
     this.decryptedEvent,
-    this.decryptedPlaceholders,
+    this.decryptedUserMetadata,
   });
 
   final EventMessage event;
   final List<EventMessage> relevantEvents;
   final EventMessage? decryptedEvent;
-  final Map<String, String>? decryptedPlaceholders;
+  final UserMetadataEntity? decryptedUserMetadata;
 
   static Future<IonConnectPushDataPayload> fromEncoded(
     Map<String, dynamic> data, {
@@ -76,12 +83,7 @@ class IonConnectPushDataPayload {
       event: parsedEvent,
       relevantEvents: parsedRelevantEvents,
       decryptedEvent: decryptedEvent,
-      decryptedPlaceholders: userMetadata != null
-          ? {
-              'username': userMetadata.data.name,
-              'displayName': userMetadata.data.displayName,
-            }
-          : null,
+      decryptedUserMetadata: userMetadata,
     );
   }
 
@@ -201,8 +203,11 @@ class IonConnectPushDataPayload {
         'username': mainEntityUserMetadata.data.name,
         'displayName': mainEntityUserMetadata.data.displayName,
       });
-    } else {
-      data.addAll(decryptedPlaceholders ?? {});
+    } else if (decryptedUserMetadata != null) {
+      data.addAll({
+        'username': decryptedUserMetadata!.data.name,
+        'displayName': decryptedUserMetadata!.data.displayName,
+      });
     }
 
     if (decryptedEvent != null) {
@@ -254,6 +259,43 @@ class IonConnectPushDataPayload {
     }
 
     return data;
+  }
+
+  Future<(String? avatar, String? attachment)> getMediaPlaceholders() async {
+    final mainEntityUserMetadata = _getUserMetadata(pubkey: mainEntity.masterPubkey);
+    final avatarUrl = mainEntityUserMetadata?.data.picture ?? decryptedUserMetadata?.data.picture;
+
+    String? avatarFilePath;
+    if (avatarUrl != null) {
+      final avatarFile = await _downloadFile(avatarUrl);
+      final compressor = ImageCompressor(compressExecutor: CompressExecutor());
+      if (avatarFile != null) {
+        final compressedAvatar = await compressor.compress(
+          MediaFile(path: avatarFile),
+          to: ImageCompressionType.jpg,
+        );
+        avatarFilePath = compressedAvatar.path;
+      }
+    }
+
+    String? attachmentFilePath;
+    final entity = mainEntity;
+    if (entity is IonConnectGiftWrapEntity &&
+        entity.data.kinds
+            .any((list) => list.contains(ReplaceablePrivateDirectMessageEntity.kind.toString()))) {
+      if (decryptedEvent == null) return (avatarFilePath, null);
+
+      final message = ReplaceablePrivateDirectMessageEntity.fromEventMessage(decryptedEvent!);
+      if (message.data.messageType == MessageType.visualMedia &&
+          message.data.visualMedias.isNotEmpty) {
+        final attachmentUrl = message.data.visualMedias.first.thumb;
+        if (attachmentUrl != null) {
+          attachmentFilePath = await _downloadFile(attachmentUrl);
+        }
+      }
+    }
+
+    return (avatarFilePath, attachmentFilePath);
   }
 
   Future<bool> validate({required String currentPubkey}) async {
@@ -341,6 +383,29 @@ class IonConnectPushDataPayload {
       }
     }
     return null;
+  }
+
+  Future<String?> _downloadFile(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      final response = await Dio().getUri<List<int>>(
+        uri,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      final directory = await getTemporaryDirectory();
+
+      final data = response.data;
+      if (data == null) {
+        return null;
+      }
+
+      final filePath = '${directory.path}/${uri.pathSegments.last}';
+      await File(filePath).writeAsBytes(data);
+      return filePath;
+    } catch (e) {
+      Logger.log('Failed to download file: $e');
+      return null;
+    }
   }
 }
 
