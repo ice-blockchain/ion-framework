@@ -18,44 +18,62 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_button/navigation_button.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class Header extends ConsumerWidget {
-  const Header({super.key});
+class WalletHeader extends ConsumerWidget {
+  const WalletHeader({required this.hasScrolled, super.key});
+
+  final bool hasScrolled;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dappsEnabled =
         ref.watch(featureFlagsProvider.notifier).get(WalletFeatureFlag.dappsEnabled);
-
-    return ScreenSideOffset.small(
-      child: SizedBox(
-        height: NavigationButton.defaultSize,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            const Expanded(
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: WalletSwitcher(),
-              ),
-            ),
-            if (dappsEnabled) ...[
-              SizedBox(width: 12.0.s),
-              NavigationButton(
-                onPressed: () => DAppsRoute().push<void>(context),
-                icon: Assets.svg.iconDappOff.icon(
-                  color: context.theme.appColors.primaryText,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: hasScrolled
+            ? [
+                BoxShadow(
+                  color: context.theme.appColors.onTertiaryBackground.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
-              ),
-            ],
-            SizedBox(width: 12.0.s),
-            NavigationButton(
-              onPressed: () => _onScanPressed(ref),
-              icon: Assets.svg.iconHeaderScan1.icon(
-                color: context.theme.appColors.primaryText,
-              ),
+              ]
+            : [],
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 8.0.s),
+        child: ScreenSideOffset.small(
+          child: SizedBox(
+            height: NavigationButton.defaultSize,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const Expanded(
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: WalletSwitcher(),
+                  ),
+                ),
+                if (dappsEnabled) ...[
+                  SizedBox(width: 12.0.s),
+                  NavigationButton(
+                    onPressed: () => DAppsRoute().push<void>(context),
+                    icon: Assets.svg.iconDappOff.icon(
+                      color: context.theme.appColors.primaryText,
+                    ),
+                  ),
+                ],
+                SizedBox(width: 12.0.s),
+                NavigationButton(
+                  onPressed: () => _onScanPressed(ref),
+                  icon: Assets.svg.iconHeaderScan1.icon(
+                    color: context.theme.appColors.primaryText,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

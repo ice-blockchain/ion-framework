@@ -17,13 +17,12 @@ import 'package:ion/app/features/wallets/views/pages/wallet_page/components/bala
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/coins/coins_tab.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/coins/coins_tab_header.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/friends/friends_list.dart';
-import 'package:ion/app/features/wallets/views/pages/wallet_page/components/header/header.dart';
+import 'package:ion/app/features/wallets/views/pages/wallet_page/components/header/wallet_header.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/nfts/nfts_tab.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/nfts/nfts_tab_header.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/tabs/tabs_header.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/tab_type.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
-import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
 
 class WalletPage extends HookConsumerWidget {
   const WalletPage({super.key});
@@ -52,40 +51,18 @@ class WalletPage extends HookConsumerWidget {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(FeedControls.height + 16.0.s),
         child: SafeArea(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: hasScrolled.value
-                  ? [
-                      BoxShadow(
-                        color: context.theme.appColors.onTertiaryBackground.withValues(alpha: 0.03),
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
-                      ),
-                    ]
-                  : [],
-            ),
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0.s),
-              child: Header(),
-            ),
-          ),
+          child: WalletHeader(hasScrolled: hasScrolled.value),
         ),
       ),
-      body: Column(
-        children: [
-          // Fixed header that never scrolls
-          // Scrollable content with collapsible balance
-          Expanded(
-            child: PullToRefreshBuilder(
-              collapsibleChild: SliverAppBar(
-                backgroundColor: Colors.white,
-                expandedHeight: 147.0.s,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Balance(tab: activeTab.value),
-                ),
-              ),
-              slivers: [
+      body: PullToRefreshBuilder(
+        collapsibleChild: SliverAppBar(
+          backgroundColor: Colors.white,
+          expandedHeight: Balance.height,
+          flexibleSpace: FlexibleSpaceBar(
+            background: Balance(tab: activeTab.value),
+          ),
+        ),
+        slivers: [
           SliverToBoxAdapter(
             child: Column(
               children: [
@@ -115,25 +92,21 @@ class WalletPage extends HookConsumerWidget {
           if (currentUserFollowList != null) {
             ref.read(ionConnectCacheProvider.notifier).remove(currentUserFollowList.cacheKey);
           }
-      
+
           await ref
               .read(syncTransactionsServiceProvider.future)
               .then((service) => service.syncAll());
-      
+
           ref
             ..invalidate(walletViewsDataNotifierProvider)
             ..invalidate(manageCoinsNotifierProvider);
-      
+
           await ref.read(syncedCoinsBySymbolGroupNotifierProvider.notifier).refresh();
         },
-              builder: (context, slivers) => CustomScrollView(
-                controller: scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: slivers,
-              ),
-            ),
-          ),
-        ],
+        builder: (context, slivers) => CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: slivers,
+        ),
       ),
     );
   }
