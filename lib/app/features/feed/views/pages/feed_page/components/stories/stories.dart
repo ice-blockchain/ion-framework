@@ -17,7 +17,7 @@ import 'package:ion/app/hooks/use_on_init.dart';
 class Stories extends HookConsumerWidget {
   const Stories({super.key});
 
-  static double get height => StoryItemContent.height;
+  static double get height => StoryItemContent.height + 8.0.s + SectionSeparator.defaultHeight;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,6 +38,7 @@ class Stories extends HookConsumerWidget {
 
     return Column(
       children: [
+        SizedBox(height: 8.0.s),
         if (stories == null)
           const StoryListSkeleton()
         else
@@ -71,7 +72,7 @@ class Stories extends HookConsumerWidget {
               );
             },
           ),
-        SizedBox(height: 16.0.s),
+        SizedBox(height: 8.0.s),
         const SectionSeparator(),
       ],
     );

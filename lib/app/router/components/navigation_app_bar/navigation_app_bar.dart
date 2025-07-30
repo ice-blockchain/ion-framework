@@ -129,12 +129,7 @@ class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget
         : null;
 
     final effectiveTrailing = actions != null && actions!.isNotEmpty
-        ? Padding(
-            padding: EdgeInsetsDirectional.only(
-              end: ScreenSideOffset.defaultSmallMargin - UiConstants.hitSlop,
-            ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: actions!),
-          )
+        ? Row(mainAxisSize: MainAxisSize.min, children: actions!)
         : null;
 
     final Widget appBarContent = NavigationToolbar(

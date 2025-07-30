@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_top_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
+import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
@@ -18,10 +19,10 @@ import 'package:ion/app/features/feed/stories/providers/current_user_story_provi
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/article_categories_menu/article_categories_menu.dart';
+import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/components/feed_filters/feed_filters_menu_button.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/components/feed_navigation/feed_notifications_button.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/feed_controls.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_posts_list/feed_posts_list.dart';
-import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_item_content.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/stories.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/trending_videos.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
@@ -57,6 +58,12 @@ class FeedPage extends HookConsumerWidget {
     return Scaffold(
       appBar: NavigationAppBar.root(
         title: const FeedControls(),
+        actions: [
+          SizedBox(width: 12.0.s),
+          const FeedNotificationsButton(),
+          SizedBox(width: 12.0.s),
+          FeedFiltersMenuButton(scrollController: scrollController),
+        ],
         scrollController: scrollController,
         applyHitSlop: false,
       ),
@@ -68,8 +75,8 @@ class FeedPage extends HookConsumerWidget {
           return PullToRefreshBuilder(
             sliverAppBar: CollapsingAppBar(
               height: Stories.height,
-              topOffset: 20.0.s,
-              bottomOffset: 18.0.s,
+              bottomOffset: 0,
+              topOffset: 8.0.s,
               child: Column(
                 children: [
                   if (feedCategory == FeedCategory.articles) const ArticleCategoriesMenu(),
