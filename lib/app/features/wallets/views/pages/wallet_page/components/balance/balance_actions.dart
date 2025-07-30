@@ -54,10 +54,12 @@ class BalanceActions extends HookConsumerWidget {
             ),
             style: ButtonStyle(
               backgroundColor: WidgetStateProperty.all(context.theme.appColors.tertiaryBackground),
-              side: WidgetStateProperty.all(BorderSide(
-                color: context.theme.appColors.onTertiaryFill,
-                width: 1.0.s,
-              )),
+              side: WidgetStateProperty.all(
+                BorderSide(
+                  color: context.theme.appColors.onTertiaryFill,
+                  width: 1.0.s,
+                ),
+              ),
             ),
             onPressed: isLoading ? () {} : onReceiveFlow,
           ),

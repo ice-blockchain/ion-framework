@@ -38,19 +38,12 @@ class WalletPage extends HookConsumerWidget {
 
     return Scaffold(
       appBar: NavigationAppBar.root(
-        title: WalletHeader(),
+        title: const WalletHeader(),
         applyHitSlop: false,
-        actions: [
-          const ScanButton(),
+        actions: const [
+          ScanButton(),
         ],
-        // useScreenTopOffset: true,
       ),
-      // appBar: PreferredSize(
-      //   preferredSize: Size.fromHeight(FeedControls.height + 16.0.s),
-      //   child: SafeArea(
-      //     child: WalletHeader(hasScrolled: hasScrolled.value),
-      //   ),
-      // ),
       body: PullToRefreshBuilder(
         sliverAppBar: CollapsingAppBar(
           height: Balance.height,
@@ -62,7 +55,6 @@ class WalletPage extends HookConsumerWidget {
             child: Column(
               children: [
                 const FriendsList(),
-                const SectionSeparator(),
                 WalletTabsHeader(
                   activeTab: activeTab.value,
                   onTabSwitch: (WalletTabType newTab) {

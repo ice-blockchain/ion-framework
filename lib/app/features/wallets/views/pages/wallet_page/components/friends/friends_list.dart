@@ -32,8 +32,13 @@ class FriendsList extends ConsumerWidget {
     );
     final isLoading = isPageLoading || friendsPubkeys == null;
 
-    final footer = SizedBox(
-      height: ScreenSideOffset.defaultSmallMargin,
+    final footer = Column(
+      children: [
+        const SectionSeparator(),
+        SizedBox(
+          height: ScreenSideOffset.defaultSmallMargin,
+        ),
+      ],
     );
 
     return Column(

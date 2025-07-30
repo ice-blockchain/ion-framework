@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
+import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/skeleton/container_skeleton.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
@@ -82,6 +83,7 @@ class Balance extends ConsumerWidget {
               onNeedToEnable2FA: () => SecureAccountModalRoute().push<void>(context),
             ),
           ),
+          const SectionSeparator(),
         ],
       ),
     );
