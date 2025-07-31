@@ -103,7 +103,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       postContent: const Color(0xFF0F1419),
       lossRed: const Color(0xFFFF396E),
       anakiwa: const Color(0xFF91D4FF),
-      shadow: const Color(0x0862D908),
+      shadow: const Color(0x1A62D908),
     );
   }
 

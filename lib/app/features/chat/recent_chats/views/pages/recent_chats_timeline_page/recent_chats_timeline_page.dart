@@ -112,12 +112,7 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
         await _forceSyncUserMetadata(ref);
       },
       builder: (context, slivers) => CustomScrollView(
-        // primary: false,
         physics: const AlwaysScrollableScrollPhysics(),
-        // scrollBehavior: ScrollConfiguration.of(context).copyWith(
-        //   overscroll: false,
-        //   physics: const BouncingScrollPhysics(),
-        // ),
         controller: scrollController,
         slivers: slivers,
       ),

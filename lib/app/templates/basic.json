@@ -30,7 +30,8 @@
         "medBlue": "#4340FF",
         "postContent": "#0F1419",
         "lossRed": "#FF396E",
-        "anakiwa": "#91D4FF"
+        "anakiwa": "#91D4FF",
+        "shadow": "#0862D908"
       },
       "dark": {
         "primaryAccent": "#0166FF",
@@ -61,7 +62,8 @@
         "medBlue": "#4340FF",
         "postContent": "#0F1419",
         "lossRed": "#FF396E",
-        "anakiwa": "#91D4FF"
+        "anakiwa": "#91D4FF",
+        "shadow": "#1A62D908"
       }
     },
     "textThemes": {

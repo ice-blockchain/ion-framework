@@ -160,7 +160,7 @@ class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget
                 BoxShadow(
                   color: context.theme.appColors.shadow,
                   blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  offset: const Offset(0, 3),
                 ),
               ]
             : [],
