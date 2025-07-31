@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/constants/ui.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
@@ -37,6 +36,12 @@ class ChatMainAppBar extends ConsumerWidget implements PreferredSizeWidget {
               ? context.theme.appColors.primaryAccent
               : context.theme.appColors.sheetLine,
         ),
+        onPressed: hasConversations
+            ? () {
+                ref.read(conversationsEditModeProvider.notifier).editMode = !editMode;
+                ref.read(selectedConversationsProvider.notifier).clear();
+              }
+            : null,
       ),
       title: GestureDetector(
         onDoubleTap: () {

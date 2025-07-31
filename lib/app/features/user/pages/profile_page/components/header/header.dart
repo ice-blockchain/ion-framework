@@ -22,7 +22,7 @@ class Header extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
-        if (!showBackButton) SizedBox(width: 56.0.s),
+        if (!showBackButton) SizedBox(width: 52.0.s),
         Expanded(
           child: UseListItem(
             pubkey: pubkey,

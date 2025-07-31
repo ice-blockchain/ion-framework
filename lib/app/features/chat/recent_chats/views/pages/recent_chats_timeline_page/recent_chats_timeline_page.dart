@@ -67,8 +67,8 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     return PullToRefreshBuilder(
       sliverAppBar: CollapsingAppBar(
         height: SearchInput.height,
-        topOffset: 0.0.s,
-        bottomOffset: 0.0.s,
+        topOffset: 0,
+        bottomOffset: 0,
         child: FlexibleSpaceBar(
           background: GestureDetector(
             behavior: HitTestBehavior.opaque,

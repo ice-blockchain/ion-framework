@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_top_offset.dart';
 import 'package:ion/app/constants/ui.dart';
@@ -12,7 +11,7 @@ import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 
-class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget {
+class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
   const NavigationAppBar({
     required this.useScreenTopOffset,
     this.title,
@@ -106,7 +105,7 @@ class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget
   final ScrollController? scrollController;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final hasScrolled = useState(false);
     if (scrollController != null) {
       useEffect(
