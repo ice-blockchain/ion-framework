@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_top_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
@@ -20,6 +21,7 @@ import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/article_categories_menu/article_categories_menu.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/components/feed_filters/feed_filters_menu_button.dart';
+import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/components/feed_navigation/feed_navigation.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/components/feed_navigation/feed_notifications_button.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/feed_controls.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_posts_list/feed_posts_list.dart';
@@ -57,7 +59,7 @@ class FeedPage extends HookConsumerWidget {
 
     return Scaffold(
       appBar: NavigationAppBar.root(
-        title: const FeedControls(),
+        title: const FeedNavigation(),
         actions: [
           SizedBox(width: 12.0.s),
           const FeedNotificationsButton(),
@@ -65,7 +67,7 @@ class FeedPage extends HookConsumerWidget {
           FeedFiltersMenuButton(scrollController: scrollController),
         ],
         scrollController: scrollController,
-        applyHitSlop: false,
+        horizontalPadding: ScreenSideOffset.defaultSmallMargin,
       ),
       body: LoadMoreBuilder(
         slivers: slivers,

@@ -18,7 +18,7 @@ class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget
     this.title,
     this.showBackButton = true,
     this.hideKeyboardOnBack = false,
-    this.applyHitSlop = true,
+    this.horizontalPadding,
     this.onBackPress,
     this.actions,
     this.leading,
@@ -31,10 +31,12 @@ class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget
     Widget? title,
     bool showBackButton = true,
     VoidCallback? onBackPress,
+    double? horizontalPadding,
     List<Widget>? actions,
     Widget? leading,
     Color? backgroundColor,
     Key? key,
+    ScrollController? scrollController,
   }) =>
       NavigationAppBar(
         title: title,
@@ -45,12 +47,15 @@ class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget
         leading: leading,
         backgroundColor: backgroundColor,
         key: key,
+        scrollController: scrollController,
+        horizontalPadding: horizontalPadding,
       );
 
   factory NavigationAppBar.modal({
     Widget? title,
     bool showBackButton = true,
     VoidCallback? onBackPress,
+    double? horizontalPadding,
     List<Widget>? actions,
     bool hideKeyboardOnBack = true,
     Widget? leading,
@@ -65,12 +70,13 @@ class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget
         hideKeyboardOnBack: hideKeyboardOnBack,
         leading: leading,
         key: key,
+        horizontalPadding: horizontalPadding,
       );
 
   factory NavigationAppBar.root({
     Widget? title,
     List<Widget>? actions,
-    bool applyHitSlop = true,
+    double? horizontalPadding,
     ScrollController? scrollController,
   }) =>
       NavigationAppBar(
@@ -78,7 +84,7 @@ class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget
         actions: actions,
         useScreenTopOffset: true,
         showBackButton: false,
-        applyHitSlop: applyHitSlop,
+        horizontalPadding: horizontalPadding,
         scrollController: scrollController,
       );
 
@@ -91,7 +97,7 @@ class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget
   final Widget? title;
   final bool showBackButton;
   final bool hideKeyboardOnBack;
-  final bool applyHitSlop;
+  final double? horizontalPadding;
   final VoidCallback? onBackPress;
   final List<Widget>? actions;
   final bool useScreenTopOffset;
@@ -152,7 +158,7 @@ class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget
         boxShadow: hasScrolled.value
             ? [
                 BoxShadow(
-                  color: context.theme.appColors.onTertiaryBackground.withValues(alpha: 0.03),
+                  color: context.theme.appColors.shadow,
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -161,9 +167,8 @@ class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: applyHitSlop
-              ? ScreenSideOffset.defaultSmallMargin - UiConstants.hitSlop
-              : ScreenSideOffset.defaultSmallMargin,
+          horizontal:
+              horizontalPadding ?? ScreenSideOffset.defaultSmallMargin - UiConstants.hitSlop,
         ),
         child: appBarContent,
       ),

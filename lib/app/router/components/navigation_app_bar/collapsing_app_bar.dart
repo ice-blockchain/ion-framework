@@ -25,7 +25,9 @@ class CollapsingAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final safeAreaOffset = MediaQuery.paddingOf(context).top;
     final totalHeight = height + topOffset + bottomOffset + safeAreaOffset;
+    print('CollapsingAppBar totalHeight: $totalHeight');
     final fadeOffset = totalHeight - topOffset - safeAreaOffset;
+    print('CollapsingAppBar fadeOffset: $fadeOffset');
 
     return SliverAppBar(
       floating: true,
@@ -39,17 +41,20 @@ class CollapsingAppBar extends StatelessWidget {
       flexibleSpace: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           final overlayOpacity = ((totalHeight - constraints.maxHeight) / fadeOffset).clamp(0, 1);
+          print('CollapsingAppBar overlayOpacity: $overlayOpacity');
           return Align(
             alignment: Alignment.bottomCenter,
             child: FlexibleSpaceBar(
               collapseMode: CollapseMode.pin,
-              background: Stack(
+              background: //.child,
+                  Stack(
                 clipBehavior: Clip.none,
                 children: [
                   Padding(
                     padding: EdgeInsetsDirectional.only(bottom: bottomOffset),
                     child: IgnorePointer(
-                      ignoring: overlayOpacity < 0.95,
+                      // ignoring: false,
+                      ignoring: overlayOpacity > 0.5,
                       child: child,
                     ),
                   ),

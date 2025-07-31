@@ -34,14 +34,18 @@ import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class RecentChatsTimelinePage extends HookConsumerWidget {
-  const RecentChatsTimelinePage({required this.conversations, super.key});
+  const RecentChatsTimelinePage({
+    required this.conversations,
+    required this.scrollController,
+    super.key,
+  });
 
   final List<ConversationListItem> conversations;
+  final ScrollController scrollController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final archiveVisible = useState(false);
-    final scrollController = useScrollController();
     useScrollTopOnTabPress(context, scrollController: scrollController);
     final archivedConversations = ref.watch(archivedConversationsProvider);
     final isArchivedConversationsEmpty = archivedConversations.valueOrNull?.isEmpty ?? true;

@@ -34,10 +34,10 @@ class FriendsList extends ConsumerWidget {
 
     final footer = Column(
       children: [
-        const SectionSeparator(),
         SizedBox(
           height: ScreenSideOffset.defaultSmallMargin,
         ),
+        const SectionSeparator(),
       ],
     );
 

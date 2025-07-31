@@ -83,7 +83,6 @@ class Balance extends ConsumerWidget {
               onNeedToEnable2FA: () => SecureAccountModalRoute().push<void>(context),
             ),
           ),
-          const SectionSeparator(),
         ],
       ),
     );
