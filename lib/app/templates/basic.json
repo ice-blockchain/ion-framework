@@ -31,7 +31,7 @@
         "postContent": "#0F1419",
         "lossRed": "#FF396E",
         "anakiwa": "#91D4FF",
-        "shadow": "#0862D908"
+        "shadow": "#2D62D9"
       },
       "dark": {
         "primaryAccent": "#0166FF",
@@ -63,7 +63,7 @@
         "postContent": "#0F1419",
         "lossRed": "#FF396E",
         "anakiwa": "#91D4FF",
-        "shadow": "#1A62D908"
+        "shadow": "#2D62D9"
       }
     },
     "textThemes": {

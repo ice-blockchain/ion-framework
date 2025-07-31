@@ -158,7 +158,7 @@ class NavigationAppBar extends HookConsumerWidget implements PreferredSizeWidget
         boxShadow: hasScrolled.value
             ? [
                 BoxShadow(
-                  color: context.theme.appColors.shadow,
+                  color: context.theme.appColors.shadow.withValues(alpha: 0.03),
                   blurRadius: 10,
                   offset: const Offset(0, 3),
                 ),
