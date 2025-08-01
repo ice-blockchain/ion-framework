@@ -314,14 +314,3 @@ Future<ProfileBadgesData?> updateProfileBadgesWithUsernameProofs(
     ).future,
   );
 }
-
-// @riverpod
-// ({bool isVerified, bool isNicknameProven}) cachedUserBadgeVerificationState(
-//   Ref ref,
-//   String pubkey,
-// ) {
-//   final isVerified = ref.watch(isUserVerifiedProvider(pubkey)).valueOrNull ?? false;
-//   final isNicknameProven = ref.watch(isNicknameProvenProvider(pubkey));
-
-//   return (isVerified: isVerified, isNicknameProven: isNicknameProven);
-// }
