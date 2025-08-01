@@ -76,8 +76,9 @@ class TokenInfo with _$TokenInfo {
 @freezed
 class TargetNftCollectionData with _$TargetNftCollectionData {
   const factory TargetNftCollectionData({
+    required String name,
     required String collectionAddress,
-    required String creatorAddress, // TODO: clarify where to get the actual creator address
+    required String creatorAddress,
     required NftCollection collection,
   }) = _TargetNftCollectionData;
 

@@ -3,6 +3,7 @@
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/providers/dio_provider.r.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/nft/model/nft_collection_response.f.dart';
 import 'package:ion/app/features/feed/nft/model/nft_collections_query.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -11,15 +12,25 @@ part 'indexers_nfts_repository.r.g.dart';
 
 @riverpod
 IndexersNftsRepository indexersNftsRepository(Ref ref) {
-  return IndexersNftsRepository(ref.watch(dioProvider));
+  final env = ref.watch(envProvider.notifier);
+  final baseUrl = env.get<String>(EnvVariable.INDEXER_BASE_URL);
+
+  return IndexersNftsRepository(
+    baseUrl,
+    ref.watch(dioProvider),
+  );
 }
 
 class IndexersNftsRepository {
-  const IndexersNftsRepository(this._dio);
+  const IndexersNftsRepository(
+    this.baseUrl,
+    this._dio,
+  );
 
+  final String baseUrl;
   final Dio _dio;
-  static const String baseUrl = 'https://api.mainnet.ice.io/indexer/v3';
-  static const String nftCollectionsPath = '/nft/collections';
+
+  String get nftCollectionsPath => '${baseUrl}v3/nft/collections';
 
   /// Fetches NFT collections from the indexer API
   Future<NftCollectionResponse> getNftCollections({
@@ -27,7 +38,7 @@ class IndexersNftsRepository {
     CancelToken? cancelToken,
   }) async {
     final response = await _dio.get<Map<String, dynamic>>(
-      baseUrl + nftCollectionsPath,
+      nftCollectionsPath,
       queryParameters: query.toJson(),
       cancelToken: cancelToken,
     );

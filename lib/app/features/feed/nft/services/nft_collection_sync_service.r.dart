@@ -70,6 +70,8 @@ class NftCollectionSyncService {
           final creatorAddress = _extractCreatorAddress(response, collection.address);
 
           return TargetNftCollectionData(
+            // TODO: clarify the name when available
+            name: tokenInfo.name ?? targetCollectionName,
             collectionAddress: collection.address,
             creatorAddress: creatorAddress,
             collection: collection,
@@ -88,7 +90,7 @@ class NftCollectionSyncService {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 NftCollectionSyncService nftCollectionSyncService(Ref ref) {
   final repository = ref.watch(indexersNftsRepositoryProvider);
   return NftCollectionSyncService(repository: repository);
