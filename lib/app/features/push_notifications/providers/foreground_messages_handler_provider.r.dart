@@ -38,7 +38,8 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
         final giftUnwrapService = await ref.read(giftUnwrapServiceProvider.future);
 
         final event = await giftUnwrapService.unwrap(eventMassage);
-        final userMetadata = ref.read(userMetadataFromDbProvider(event.masterPubkey));
+        final userMetadata =
+            await ref.read(userMetadataFromDbOnceProvider(event.masterPubkey).future);
 
         return (event, userMetadata);
       },

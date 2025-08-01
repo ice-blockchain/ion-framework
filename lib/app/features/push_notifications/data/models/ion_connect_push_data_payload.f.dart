@@ -43,7 +43,7 @@ class IonConnectPushDataPayload {
 
   static Future<IonConnectPushDataPayload> fromEncoded(
     Map<String, dynamic> data, {
-    required Future<(EventMessage, UserMetadataEntity?)> Function(EventMessage eventMassage)
+    required Future<(EventMessage?, UserMetadataEntity?)> Function(EventMessage eventMassage)
         unwrapGift,
   }) async {
     final EncodedIonConnectPushData(:event, :relevantEvents, :compression) =

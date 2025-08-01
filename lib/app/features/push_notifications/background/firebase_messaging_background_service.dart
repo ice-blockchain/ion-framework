@@ -16,8 +16,11 @@ import 'package:ion/app/features/push_notifications/data/models/ion_connect_push
 import 'package:ion/app/features/push_notifications/providers/notification_data_parser_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/features/user_profile/providers/user_profile_database_provider.r.dart';
 import 'package:ion/app/services/ion_connect/encrypted_message_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_gift_wrap_service.r.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_seal_service.r.dart';
 import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
@@ -25,77 +28,117 @@ import 'package:ion/app/services/uuid/uuid.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  final riverpodContainer = ProviderContainer(
+  final backgroundContainer = ProviderContainer(
     observers: [Logger.talkerRiverpodObserver],
   );
+
   final notificationsService =
-      await riverpodContainer.read(localNotificationsServiceProvider.future);
+      await backgroundContainer.read(localNotificationsServiceProvider.future);
 
   IonConnect.initialize(null);
 
   if (message.notification != null) {
+    backgroundContainer.dispose();
     return;
   }
 
   final data = await IonConnectPushDataPayload.fromEncoded(
     message.data,
     unwrapGift: (eventMassage) async {
-      riverpodContainer.updateOverrides([
-        currentUserIonConnectEventSignerProvider.overrideWith((ref) async {
-          final savedIdentityKeyName = await ref.watch(currentIdentityKeyNameStoreProvider.future);
-          if (savedIdentityKeyName != null) {
-            return ref.watch(ionConnectEventSignerProvider(savedIdentityKeyName).future);
-          }
+      final sharedPreferencesFoundation =
+          await backgroundContainer.read(sharedPreferencesFoundationProvider.future);
+      final currentUserPubkeyFromStorage =
+          await sharedPreferencesFoundation.getString(CurrentPubkeySelector.persistenceKey);
 
-          return null;
-        }),
-        encryptedMessageServiceProvider.overrideWith((ref) async {
-          final eventSigner = await ref.watch(currentUserIonConnectEventSignerProvider.future);
+      final messageContainer = ProviderContainer(
+        observers: [Logger.talkerRiverpodObserver],
+        overrides: [
+          currentPubkeySelectorProvider.overrideWith(
+            () {
+              if (currentUserPubkeyFromStorage == null) {
+                throw UserMasterPubkeyNotFoundException();
+              }
 
-          if (eventSigner == null) {
-            throw EventSignerNotFoundException();
-          }
+              return _BackgroundCurrentPubkeySelector(currentUserPubkeyFromStorage);
+            },
+          ),
+          currentUserIonConnectEventSignerProvider.overrideWith((ref) async {
+            final savedIdentityKeyName =
+                await ref.watch(currentIdentityKeyNameStoreProvider.future);
+            if (savedIdentityKeyName != null) {
+              return ref.watch(ionConnectEventSignerProvider(savedIdentityKeyName).future);
+            }
+            return null;
+          }),
+          encryptedMessageServiceProvider.overrideWith((ref) async {
+            final eventSigner = await ref.watch(currentUserIonConnectEventSignerProvider.future);
 
-          final sharedPreferencesFoundation =
-              await ref.read(sharedPreferencesFoundationProvider.future);
-          final currentUserPubkeyFromStorage =
-              await sharedPreferencesFoundation.getString(CurrentPubkeySelector.persistenceKey);
+            if (eventSigner == null) {
+              throw EventSignerNotFoundException();
+            }
 
-          if (currentUserPubkeyFromStorage == null) {
-            throw UserMasterPubkeyNotFoundException();
-          }
+            if (currentUserPubkeyFromStorage == null) {
+              throw UserMasterPubkeyNotFoundException();
+            }
 
-          return EncryptedMessageService(
-            eventSigner: eventSigner,
-            currentUserPubkey: currentUserPubkeyFromStorage,
-          );
-        }),
-        userDelegationProvider(eventMassage.pubkey).overrideWith((ref) async {
-          return ref.watch(userDelegationFromDbProvider(eventMassage.pubkey));
-        }),
-      ]);
+            return EncryptedMessageService(
+              eventSigner: eventSigner,
+              currentUserPubkey: currentUserPubkeyFromStorage,
+            );
+          }),
+        ],
+      );
+      try {
+        final eventSigner =
+            await messageContainer.read(currentUserIonConnectEventSignerProvider.future);
+        final sealService = await messageContainer.read(ionConnectSealServiceProvider.future);
+        final giftWrapService =
+            await messageContainer.read(ionConnectGiftWrapServiceProvider.future);
 
-      final giftUnwrapService = await riverpodContainer.read(giftUnwrapServiceProvider.future);
-      final event = await giftUnwrapService.unwrap(eventMassage);
-      final userMetadata = riverpodContainer.read(userMetadataFromDbProvider(event.masterPubkey));
+        if (eventSigner == null) {
+          throw EventSignerNotFoundException();
+        }
 
-      return (event, userMetadata);
+        final giftUnwrapService = GiftUnwrapService(
+          sealService: sealService,
+          giftWrapService: giftWrapService,
+          privateKey: eventSigner.privateKey,
+          verifyDelegationCallback: (String pubkey) async {
+            return messageContainer.read(userDelegationFromDbOnceProvider(pubkey).future);
+          },
+        );
+
+        final event = await giftUnwrapService.unwrap(eventMassage);
+
+        final userMetadata =
+            await messageContainer.read(userMetadataFromDbOnceProvider(event.masterPubkey).future);
+
+        return (event, userMetadata);
+      } catch (e) {
+        Logger.error('Background push notification unwrapGift: $e');
+        return (null, null);
+      } finally {
+        // Close database connection which we use inside providers to prevent isolate leaks
+        await messageContainer.read(userProfileDatabaseProvider).close();
+        messageContainer.dispose();
+      }
     },
   );
 
-  final parser = await riverpodContainer.read(notificationDataParserProvider.future);
+  final parser = await backgroundContainer.read(notificationDataParserProvider.future);
   final parsedData = await parser.parse(
     data,
     getFundsRequestData: (eventMessage) =>
-        riverpodContainer.read(fundsRequestDisplayDataProvider(eventMessage).future),
+        backgroundContainer.read(fundsRequestDisplayDataProvider(eventMessage).future),
     getTransactionData: (eventMessage) =>
-        riverpodContainer.read(transactionDisplayDataProvider(eventMessage).future),
+        backgroundContainer.read(transactionDisplayDataProvider(eventMessage).future),
   );
 
   final title = parsedData?.title ?? message.notification?.title;
   final body = parsedData?.body ?? message.notification?.body;
 
   if (title == null || body == null) {
+    backgroundContainer.dispose();
     return;
   }
 
@@ -105,10 +148,24 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     body: body,
     payload: jsonEncode(message.data),
   );
+
+  backgroundContainer.dispose();
 }
 
 void initFirebaseMessagingBackgroundHandler() {
   if (!kIsWeb && Platform.isAndroid) {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  }
+}
+
+// Wrapper for CurrentPubkeySelector to be used in provider containers with overrideWith
+class _BackgroundCurrentPubkeySelector extends CurrentPubkeySelector {
+  _BackgroundCurrentPubkeySelector(this._pubkey);
+
+  final String _pubkey;
+
+  @override
+  String build() {
+    return _pubkey;
   }
 }
