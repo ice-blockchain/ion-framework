@@ -15,7 +15,6 @@ import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
 import 'package:ion/app/features/user/model/badges/verified_badge_data.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/service_pubkeys_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -146,15 +145,21 @@ bool isValidNicknameProofBadgeDefinition(
 }
 
 @riverpod
-Future<bool> isUserVerified(
+bool isUserVerified(
   Ref ref,
-  String pubkey, {
-  bool useCache = false,
-}) async {
-  final profileBadgesData = useCache
-      ? ref.watch(cachedProfileBadgesDataProvider(pubkey))?.data
-      : await ref.watch(profileBadgesDataProvider(pubkey).future);
-  final pubkeys = await ref.watch(servicePubkeysProvider.future);
+  String pubkey,
+) {
+  var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(pubkey))?.data;
+
+  if (profileBadgesData == null) {
+    final res = ref.watch(profileBadgesDataProvider(pubkey));
+    if (res.isLoading) {
+      return false;
+    }
+    profileBadgesData = res.valueOrNull;
+  }
+
+  final pubkeys = ref.watch(servicePubkeysProvider).valueOrNull ?? [];
 
   return profileBadgesData?.entries.any((entry) {
         final isBadgeAwardValid =
@@ -167,29 +172,26 @@ Future<bool> isUserVerified(
 }
 
 @riverpod
-Future<bool> isNicknameProven(
-  Ref ref,
-  String pubkey, {
-  bool useCache = false,
-}) async {
-  final [
-    profileBadgesData as ProfileBadgesData?,
-    userMetadata as UserMetadataEntity?,
-    pubkeys as List<String>
-  ] = await Future.wait([
-    if (useCache) ...[
-      Future.value(ref.watch(cachedProfileBadgesDataProvider(pubkey))),
-      Future.value(ref.watch(cachedUserMetadataProvider(pubkey))),
-    ] else ...[
-      ref.watch(profileBadgesDataProvider(pubkey).future),
-      ref.watch(userMetadataProvider(pubkey).future),
-    ],
-    ref.watch(servicePubkeysProvider.future),
-  ]);
+bool isNicknameProven(Ref ref, String pubkey) {
+  var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(pubkey))?.data;
+  var userMetadata = ref.watch(cachedUserMetadataProvider(pubkey));
 
-  if (userMetadata == null) {
-    return false;
+  if (profileBadgesData == null) {
+    final res = ref.watch(profileBadgesDataProvider(pubkey));
+    if (res.isLoading) {
+      return true;
+    }
+    profileBadgesData = res.valueOrNull;
   }
+  if (userMetadata == null) {
+    final res = ref.watch(userMetadataProvider(pubkey, cache: false));
+    if (res.isLoading) {
+      return true;
+    }
+    userMetadata = res.valueOrNull;
+  }
+
+  final pubkeys = ref.watch(servicePubkeysProvider).valueOrNull ?? [];
 
   return profileBadgesData?.entries.any((entry) {
         final isBadgeAwardValid =
@@ -198,7 +200,7 @@ Future<bool> isNicknameProven(
             ref.watch(isValidNicknameProofBadgeDefinitionProvider(entry.definitionRef, pubkeys));
         return isBadgeDefinitionValid &&
             isBadgeAwardValid &&
-            entry.definitionRef.dTag.endsWith('~${userMetadata.data.name}');
+            entry.definitionRef.dTag.endsWith('~${userMetadata!.data.name}');
       }) ??
       false;
 }
@@ -210,7 +212,7 @@ bool isCurrentUserVerified(Ref ref) {
     return false;
   }
 
-  return ref.watch(isUserVerifiedProvider(currentPubkey)).valueOrNull ?? false;
+  return ref.watch(isUserVerifiedProvider(currentPubkey));
 }
 
 @riverpod
@@ -313,14 +315,13 @@ Future<ProfileBadgesData?> updateProfileBadgesWithUsernameProofs(
   );
 }
 
-@riverpod
-({bool isVerified, bool isNicknameProven}) cachedUserBadgeVerificationState(
-  Ref ref,
-  String pubkey,
-) {
-  final isVerified = ref.watch(isUserVerifiedProvider(pubkey, useCache: true)).valueOrNull ?? false;
-  final isNicknameProven =
-      ref.watch(isNicknameProvenProvider(pubkey, useCache: true)).valueOrNull ?? true;
+// @riverpod
+// ({bool isVerified, bool isNicknameProven}) cachedUserBadgeVerificationState(
+//   Ref ref,
+//   String pubkey,
+// ) {
+//   final isVerified = ref.watch(isUserVerifiedProvider(pubkey)).valueOrNull ?? false;
+//   final isNicknameProven = ref.watch(isNicknameProvenProvider(pubkey));
 
-  return (isVerified: isVerified, isNicknameProven: isNicknameProven);
-}
+//   return (isVerified: isVerified, isNicknameProven: isNicknameProven);
+// }

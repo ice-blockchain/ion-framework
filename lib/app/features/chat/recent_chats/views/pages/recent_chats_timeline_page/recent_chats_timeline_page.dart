@@ -261,8 +261,7 @@ class E2eeRecentChatTile extends HookConsumerWidget {
       conversation.latestMessage!,
     ).toEventReference();
 
-    final isUserVerified =
-        ref.watch(isUserVerifiedProvider(receiverMasterPubkey)).valueOrNull.falseOrValue;
+    final isUserVerified = ref.watch(isUserVerifiedProvider(receiverMasterPubkey));
 
     final isDeleted =
         ref.watch(isUserDeletedProvider(receiverMasterPubkey)).valueOrNull.falseOrValue;
