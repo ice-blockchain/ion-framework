@@ -14,8 +14,8 @@ import 'package:ion/app/features/chat/recent_chats/providers/money_message_provi
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/push_notifications/data/models/ion_connect_push_data_payload.f.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_data_parser_provider.r.dart';
-import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/features/user_profile/database/dao/user_delegation_dao.m.dart';
+import 'package:ion/app/features/user_profile/database/dao/user_metadata_dao.m.dart';
 import 'package:ion/app/features/user_profile/providers/user_profile_database_provider.r.dart';
 import 'package:ion/app/services/ion_connect/encrypted_message_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect.dart';
@@ -104,14 +104,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           giftWrapService: giftWrapService,
           privateKey: eventSigner.privateKey,
           verifyDelegationCallback: (String pubkey) async {
-            return messageContainer.read(userDelegationFromDbOnceProvider(pubkey).future);
+            return messageContainer.read(userDelegationDaoProvider).get(pubkey);
           },
         );
 
         final event = await giftUnwrapService.unwrap(eventMassage);
 
         final userMetadata =
-            await messageContainer.read(userMetadataFromDbOnceProvider(event.masterPubkey).future);
+            await messageContainer.read(userMetadataDaoProvider).get(event.masterPubkey);
 
         return (event, userMetadata);
       } catch (e) {

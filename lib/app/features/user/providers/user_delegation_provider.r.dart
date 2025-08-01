@@ -126,13 +126,3 @@ class UserDelegationFromDb extends _$UserDelegationFromDb {
     return null;
   }
 }
-
-// One-time read provider for push notifications and other one-off operations
-@riverpod
-Future<UserDelegationEntity?> userDelegationFromDbOnce(
-  Ref ref,
-  String masterPubkey,
-) async {
-  final userDelegationDao = ref.read(userDelegationDaoProvider);
-  return userDelegationDao.get(masterPubkey);
-}

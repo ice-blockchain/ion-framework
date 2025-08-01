@@ -94,13 +94,3 @@ class UserMetadataFromDb extends _$UserMetadataFromDb {
     return null;
   }
 }
-
-// One-time read provider for push notifications and other one-off operations
-@riverpod
-Future<UserMetadataEntity?> userMetadataFromDbOnce(
-  Ref ref,
-  String masterPubkey,
-) async {
-  final userMetadataDao = ref.read(userMetadataDaoProvider);
-  return userMetadataDao.get(masterPubkey);
-}
