@@ -27,9 +27,7 @@ class PollVoteItem extends StatelessWidget {
           border: Border.all(
             color: context.theme.appColors.onTertiaryFill,
           ),
-          color: isSelected
-              ? context.theme.appColors.secondaryBackground
-              : context.theme.appColors.onPrimaryAccent,
+          color: context.theme.appColors.tertiaryBackground,
         ),
         child: Padding(
           padding: EdgeInsets.symmetric(

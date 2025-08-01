@@ -25,7 +25,7 @@ class PollVote extends HookConsumerWidget {
         return List.generate(
           pollData.options.length,
           (index) => PollVoteItem(
-            key: ValueKey('poll_option_${pollData.options[index]}'),
+            key: ValueKey('poll_option_${pollData.options[index]}_$index'),
             text: pollData.options[index],
             isSelected: selectedOptionIndex == index,
             onTap: () => onVote(index),
