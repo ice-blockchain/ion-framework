@@ -21,6 +21,7 @@ import com.banuba.sdk.veui.data.EditorConfig
 import com.banuba.sdk.veui.di.VeUiSdkKoinModule
 import com.banuba.sdk.veui.domain.CoverProvider
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -33,34 +34,47 @@ class VideoEditorModule {
         maxVideoDurationMs: Long? = 60_000,
         coverSelectionEnabled: Boolean = true,
     ) {
-        startKoin {
-            androidContext(application)
-            allowOverride(true)
+        // Check if Koin is already started to avoid KoinAppAlreadyStartedException
+        if (GlobalContext.getOrNull() == null) {
+            startKoin {
+                androidContext(application)
+                allowOverride(true)
 
-            // IMPORTANT! order of modules is required
-            modules(
-                VeSdkKoinModule().module,
-                VeExportKoinModule().module,
-                VePlaybackSdkKoinModule().module,
+                // IMPORTANT! order of modules is required
+                modules(
+                    VeSdkKoinModule().module,
+                    VeExportKoinModule().module,
+                    VePlaybackSdkKoinModule().module,
 
-                // Use AudioBrowserKoinModule ONLY if your contract includes this feature.
-                AudioBrowserKoinModule().module,
+                    // Use AudioBrowserKoinModule ONLY if your contract includes this feature.
+                    AudioBrowserKoinModule().module,
 
-                // IMPORTANT! ArCloudKoinModule should be set before TokenStorageKoinModule to get effects from the cloud
-                ArCloudKoinModule().module,
+                    // IMPORTANT! ArCloudKoinModule should be set before TokenStorageKoinModule to get effects from the cloud
+                    ArCloudKoinModule().module,
 
-                VeUiSdkKoinModule().module,
-                VeFlowKoinModule().module,
-                BanubaEffectPlayerKoinModule().module,
-                GalleryKoinModule().module,
+                    VeUiSdkKoinModule().module,
+                    VeFlowKoinModule().module,
+                    BanubaEffectPlayerKoinModule().module,
+                    GalleryKoinModule().module,
 
-                // Sample integration module
+                    // Sample integration module
+                    SampleIntegrationVeKoinModule(
+                        videoAspectRatio,
+                        maxVideoDurationMs,
+                        coverSelectionEnabled,
+                    ).module,
+                )
+            }
+        } else {
+            // Koin is already started, just load the additional modules
+            android.util.Log.d("VideoEditorModule", "Koin already started, loading additional modules only")
+            GlobalContext.get().loadModules(listOf(
                 SampleIntegrationVeKoinModule(
                     videoAspectRatio,
                     maxVideoDurationMs,
                     coverSelectionEnabled,
-                ).module,
-            )
+                ).module
+            ))
         }
     }
 }
