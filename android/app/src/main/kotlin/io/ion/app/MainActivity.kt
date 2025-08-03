@@ -181,36 +181,54 @@ class MainActivity : FlutterFragmentActivity() {
     // Observe export video results
     override fun onActivityResult(requestCode: Int, result: Int, intent: Intent?) {
         super.onActivityResult(requestCode, result, intent)
-        if (requestCode == VIDEO_EDITOR_REQUEST_CODE) {
-            if (result == RESULT_OK) {
-                val exportResult =
-                    intent?.getParcelableExtra(EXTRA_EXPORTED_SUCCESS) as? ExportResult.Success
+        
+        when (requestCode) {
+            VIDEO_EDITOR_REQUEST_CODE -> handleVideoEditorResult(result, intent)
+            PHOTO_EDITOR_REQUEST_CODE -> handlePhotoEditorResult(result, intent)
+        }
+    }
+    
+    private fun handleVideoEditorResult(result: Int, intent: Intent?) {
+        when (result) {
+            RESULT_OK -> {
+                val exportResult = intent?.getParcelableExtra(EXTRA_EXPORTED_SUCCESS) as? ExportResult.Success
                 if (exportResult == null) {
-                    this.exportResult?.error(
-                        "ERR_MISSING_EXPORT_RESULT",
-                        "",
-                        null
-                    )
+                    sendExportError("ERR_MISSING_EXPORT_RESULT", "")
                 } else {
                     val data = prepareVideoExportData(exportResult)
-                    this.exportResult?.success(data)
+                    sendExportSuccess(data)
                 }
-
                 cleanupCurrentEditingFile()
-            } else if (result == RESULT_CANCELED) {
+            }
+            RESULT_CANCELED -> {
                 cleanupCurrentEditingFile()
                 // User cancelled video editing - return null to indicate cancellation
-                this.exportResult?.success(null)
-            }
-        } else if (requestCode == PHOTO_EDITOR_REQUEST_CODE) {
-            if (result == RESULT_OK) {
-                val data = preparePhotoExportData(intent)
-                exportResult?.success(data)
-            } else if (result == RESULT_CANCELED) {
-                // User cancelled photo editing - return null to indicate cancellation
-                exportResult?.success(null)
+                sendExportSuccess(null)
             }
         }
+    }
+    
+    private fun handlePhotoEditorResult(result: Int, intent: Intent?) {
+        when (result) {
+            RESULT_OK -> {
+                val data = preparePhotoExportData(intent)
+                sendExportSuccess(data)
+            }
+            RESULT_CANCELED -> {
+                // User cancelled photo editing - return null to indicate cancellation
+                sendExportSuccess(null)
+            }
+        }
+    }
+    
+    private fun sendExportSuccess(data: Any?) {
+        exportResult?.success(data)
+        exportResult = null // Cleaning to avoid sending duplicates
+    }
+    
+    private fun sendExportError(code: String, message: String) {
+        exportResult?.error(code, message, null)
+        exportResult = null
     }
 
     // Customize photo export data results to meet your requirements.
