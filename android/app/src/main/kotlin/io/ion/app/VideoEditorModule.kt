@@ -67,7 +67,6 @@ class VideoEditorModule {
             }
         } else {
             // Koin is already started, just load the additional modules
-            android.util.Log.d("VideoEditorModule", "Koin already started, loading additional modules only")
             GlobalContext.get().loadModules(listOf(
                 SampleIntegrationVeKoinModule(
                     videoAspectRatio,

@@ -204,7 +204,9 @@ class VideoPlayerControllerFactory {
       );
       if (player.dataSourceType == DataSourceType.file &&
           e.runtimeType == PlatformException &&
-          forceNetworkDataSource != true) {
+          forceNetworkDataSource != true &&
+          _isNetworkSource(sourcePath)) {
+        // Only retry with network fallback if the source is actually a network URL
         return createController(
           options: options,
           forceNetworkDataSource: true,
