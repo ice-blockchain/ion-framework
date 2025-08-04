@@ -123,8 +123,12 @@ class SignInStep extends HookConsumerWidget {
                         switch (registrationRestrictionType) {
                           case RegistrationRestrictionType.fullyAllowed:
                             if (isPasskeyAvailable) {
-                              unawaited(SignUpPasskeyRoute().push<void>(context));
-                            } else {
+                              final result = await SignUpPasskeyRoute().push<bool>(context);
+                              if (result == null || result) {
+                                return;
+                              }
+                            }
+                            if (context.mounted) {
                               unawaited(SignUpPasswordRoute().push<void>(context));
                             }
                           case RegistrationRestrictionType.earlyAccessOnly:
