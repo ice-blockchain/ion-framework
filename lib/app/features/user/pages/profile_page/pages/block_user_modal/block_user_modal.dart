@@ -46,7 +46,7 @@ class BlockUserModal extends ConsumerWidget {
                   type: ButtonType.outlined,
                   label: Text(context.i18n.button_cancel),
                   minimumSize: minSize,
-                  onPressed: () => rootNavigatorKey.currentState?.pop(),
+                  onPressed: () => rootNavigatorKey.currentState?.pop(false),
                 ),
               ),
               SizedBox(
@@ -59,7 +59,7 @@ class BlockUserModal extends ConsumerWidget {
                   backgroundColor: context.theme.appColors.attentionRed,
                   onPressed: () {
                     ref.read(toggleBlockNotifierProvider.notifier).toggle(pubkey);
-                    rootNavigatorKey.currentState?.pop();
+                    rootNavigatorKey.currentState?.pop(true);
                   },
                 ),
               ),

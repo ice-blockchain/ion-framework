@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/overlay_menu/components/overlay_menu_item.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu.dart';
@@ -81,6 +84,7 @@ class UserInfoMenu extends ConsumerWidget {
                     pubkey: eventReference.masterPubkey,
                     username: userMetadata.data.name,
                     closeMenu: closeMenu,
+                    onBlocked: context.canPop() ? context.pop : null,
                   ),
                   OverlayMenuItem(
                     label: isArticle
@@ -151,11 +155,13 @@ class _BlockUserMenuItem extends ConsumerWidget {
     required this.pubkey,
     required this.username,
     required this.closeMenu,
+    this.onBlocked,
   });
 
   final String pubkey;
   final String username;
   final VoidCallback closeMenu;
+  final VoidCallback? onBlocked;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -165,15 +171,18 @@ class _BlockUserMenuItem extends ConsumerWidget {
           ? context.i18n.post_menu_unblock_nickname(username)
           : context.i18n.post_menu_block_nickname(username),
       icon: Assets.svg.iconBlock.icon(size: UserInfoMenu.menuIconSize),
-      onPressed: () {
+      onPressed: () async {
         closeMenu();
         if (!isBlocked) {
-          showSimpleBottomSheet<void>(
+          final confirmed = await showSimpleBottomSheet<bool>(
             context: context,
             child: BlockUserModal(pubkey: pubkey),
           );
+          if (confirmed ?? false) {
+            onBlocked?.call();
+          }
         } else {
-          ref.read(toggleBlockNotifierProvider.notifier).toggle(pubkey);
+          unawaited(ref.read(toggleBlockNotifierProvider.notifier).toggle(pubkey));
         }
       },
     );

@@ -25,7 +25,11 @@ class BlockedUsersAppBar extends ConsumerWidget {
       toolbarHeight: NavigationAppBar.modalHeaderHeight,
       flexibleSpace: NavigationAppBar.modal(
         onBackPress: () => context.pop(true),
-        actions: const [NavigationCloseButton()],
+        actions: [
+          NavigationCloseButton(
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
+          ),
+        ],
         title: Text(
           blockedUsers == null
               ? context.i18n.settings_blocked_users

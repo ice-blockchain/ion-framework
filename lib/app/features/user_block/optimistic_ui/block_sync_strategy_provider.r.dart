@@ -100,25 +100,30 @@ SyncStrategy<BlockedUser> blockSyncStrategy(Ref ref) {
       );
     },
     deleteBlockEvent: (blockedUserMasterPubkey) async {
-      var eventReference = await ref.read(blockEventDaoProvider).getBlockEventReference(
-            masterPubkey: currentUserMasterPubkey,
-            blockedUserMasterPubkey: blockedUserMasterPubkey,
-          );
+      final blockEventDao = ref.read(blockEventDaoProvider);
+      final blockEventReferences = await blockEventDao.getBlockEventReferences(
+        currentUserMasterPubkey: currentUserMasterPubkey,
+        blockedUserMasterPubkey: blockedUserMasterPubkey,
+      );
 
-      if (eventReference != null && eventReference is ImmutableEventReference) {
-        eventReference = eventReference.copyWith(kind: BlockedUserEntity.kind);
-      } else {
-        throw UnsupportedEventReference(eventReference);
-      }
+      if (blockEventReferences.isEmpty) return;
 
       final participantsMasterPubkeys = [currentUserMasterPubkey, blockedUserMasterPubkey];
-
       final participantsPubkeysMap =
           await devicePubkeysProvider.fetchUsersKeys(participantsMasterPubkeys);
 
-      final eventToDelete = EventToDelete(eventReference: eventReference);
+      final eventsToDelete = blockEventReferences
+          .whereType<ImmutableEventReference>()
+          .map(
+            (e) => EventToDelete(
+              eventReference: e.copyWith(kind: BlockedUserEntity.kind),
+            ),
+          )
+          .toList();
 
-      final deleteRequest = DeletionRequest(events: [eventToDelete]);
+      if (eventsToDelete.isEmpty) return;
+
+      final deleteRequest = DeletionRequest(events: eventsToDelete);
 
       final eventMessage = await deleteRequest.toEventMessage(
         NoPrivateSigner(eventSigner.publicKey),
@@ -128,16 +133,19 @@ SyncStrategy<BlockedUser> blockSyncStrategy(Ref ref) {
       await Future.wait(
         participantsMasterPubkeys.map((receiverMasterPubkey) async {
           final pubkeyDevices = participantsPubkeysMap[receiverMasterPubkey];
-
-          if (pubkeyDevices == null) throw UserPubkeyNotFoundException(receiverMasterPubkey);
-
-          for (final receiverPubkey in pubkeyDevices) {
-            await sendWrappedEvent(
-              pubkey: receiverPubkey,
-              eventMessage: eventMessage,
-              masterPubkey: receiverMasterPubkey,
-            );
+          if (pubkeyDevices == null || pubkeyDevices.isEmpty) {
+            throw UserPubkeyNotFoundException(receiverMasterPubkey);
           }
+
+          await Future.wait(
+            pubkeyDevices.map((receiverPubkey) async {
+              await sendWrappedEvent(
+                pubkey: receiverPubkey,
+                eventMessage: eventMessage,
+                masterPubkey: receiverMasterPubkey,
+              );
+            }),
+          );
         }),
       );
     },
