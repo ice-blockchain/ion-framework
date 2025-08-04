@@ -349,7 +349,7 @@ final class _QuotedPost extends ConsumerWidget {
                 UserInfo(
                   pubkey: eventReference.masterPubkey,
                   padding: EdgeInsetsDirectional.only(
-                    start: ScreenSideOffset.defaultSmallMargin,
+                    start: 16.0.s,
                     top: 12.0.s,
                   ),
                   createdAt: postEntity is ModifiablePostEntity
