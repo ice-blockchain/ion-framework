@@ -77,19 +77,29 @@ class FeedBookmarksNotifier extends _$FeedBookmarksNotifier {
   }
 
   Future<void> toggleBookmark(EventReference eventReference) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-      final bookmarksCollection = state.valueOrNull;
-      if (currentPubkey == null || bookmarksCollection == null) {
-        return state.value;
-      }
-      final newAllBookmarksRefs = <EventReference>[];
-      if (bookmarksCollection.data.eventReferences.contains(eventReference)) {
-        newAllBookmarksRefs
-          ..addAll(bookmarksCollection.data.eventReferences)
-          ..remove(eventReference);
+    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+    final bookmarksCollection = state.valueOrNull;
+    if (currentPubkey == null || bookmarksCollection == null) {
+      return;
+    }
+    final newAllBookmarksRefs = <EventReference>[];
+    if (bookmarksCollection.data.eventReferences.contains(eventReference)) {
+      newAllBookmarksRefs
+        ..addAll(bookmarksCollection.data.eventReferences)
+        ..remove(eventReference);
+    } else {
+      newAllBookmarksRefs
+        ..add(eventReference)
+        ..addAll(bookmarksCollection.data.eventReferences);
+    }
 
+    state = AsyncValue.data(
+      bookmarksCollection.copyWith(
+        data: bookmarksCollection.data.copyWith(eventReferences: newAllBookmarksRefs),
+      ),
+    );
+    try {
+      if (bookmarksCollection.data.eventReferences.contains(eventReference)) {
         // If toggling off in the default collection, also remove from all other collections
         if (bookmarksCollection.data.type == BookmarksSetType.homeFeedCollectionsAll.dTagName) {
           final collectionsRefs = await ref.read(
@@ -126,12 +136,6 @@ class FeedBookmarksNotifier extends _$FeedBookmarksNotifier {
           );
         }
       } else {
-        newAllBookmarksRefs
-          ..add(eventReference)
-          ..addAll(bookmarksCollection.data.eventReferences);
-        if (bookmarksCollection.data.type == BookmarksSetType.homeFeedCollectionsAll.dTagName) {
-          unawaited(ref.read(ionConnectDbCacheProvider.notifier).saveRef(eventReference));
-        }
         if (bookmarksCollection.data.type != BookmarksSetType.homeFeedCollectionsAll.dTagName) {
           final isIncluded = (await ref.read(
                 feedBookmarksNotifierProvider(
@@ -152,6 +156,9 @@ class FeedBookmarksNotifier extends _$FeedBookmarksNotifier {
                 .toggleBookmark(eventReference);
           }
         }
+        if (bookmarksCollection.data.type == BookmarksSetType.homeFeedCollectionsAll.dTagName) {
+          unawaited(ref.read(ionConnectDbCacheProvider.notifier).saveRef(eventReference));
+        }
       }
 
       final newBookmarksCollectionData = BookmarksSetData(
@@ -159,13 +166,15 @@ class FeedBookmarksNotifier extends _$FeedBookmarksNotifier {
         eventReferences: newAllBookmarksRefs.toList(),
         title: bookmarksCollection.data.title,
       );
-
-      final result = await ref.read(ionConnectNotifierProvider.notifier).sendEntityData(
+      await ref.read(ionConnectNotifierProvider.notifier).sendEntityData(
             newBookmarksCollectionData,
           );
-      final data = result as BookmarksSetEntity?;
-      return data;
-    });
+    } catch (e) {
+      state = AsyncValue.data(
+        bookmarksCollection,
+      );
+      rethrow;
+    }
   }
 }
 
