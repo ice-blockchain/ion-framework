@@ -23,10 +23,10 @@ final class FeedFeatureFlag extends FeatureFlag {
 final class LoggerFeatureFlag extends FeatureFlag {
   const LoggerFeatureFlag._({required super.key});
 
-  static const logApp = FeedFeatureFlag._(key: 'logApp');
-  static const logRouters = FeedFeatureFlag._(key: 'logRouters');
-  static const logIonConnect = FeedFeatureFlag._(key: 'logIonConnect');
-  static const logIonIdentityClient = FeedFeatureFlag._(key: 'logIonIdentityClient');
+  static const logApp = LoggerFeatureFlag._(key: 'logApp');
+  static const logRouters = LoggerFeatureFlag._(key: 'logRouters');
+  static const logIonConnect = LoggerFeatureFlag._(key: 'logIonConnect');
+  static const logIonIdentityClient = LoggerFeatureFlag._(key: 'logIonIdentityClient');
 }
 
 final class ChatFeatureFlag extends FeatureFlag {

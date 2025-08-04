@@ -66,7 +66,7 @@ class GiftUnwrapService {
 
       return rumor;
     } catch (e) {
-      throw DecodeE2EMessageException(giftWrap.id);
+      throw DecodeE2EMessageException(giftWrap.id, error: e);
     }
   }
 }
@@ -81,15 +81,13 @@ Future<GiftUnwrapService> giftUnwrapService(Ref ref) async {
     throw EventSignerNotFoundException();
   }
 
-  Future<UserDelegationEntity?> verifyDelegationCallback(String pubkey) async {
-    return ref.read(userDelegationProvider(pubkey).future);
-  }
-
   return GiftUnwrapService(
     sealService: sealService,
     giftWrapService: giftWrapService,
     privateKey: eventSigner.privateKey,
-    verifyDelegationCallback: verifyDelegationCallback,
+    verifyDelegationCallback: (pubkey) async {
+      return ref.read(userDelegationProvider(pubkey).future);
+    },
   );
 }
 
