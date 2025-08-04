@@ -93,7 +93,6 @@ private class SampleIntegrationVeKoinModule(
         single<ArEffectsRepositoryProvider>(createdAtStart = true) {
             ArEffectsRepositoryProvider(
                 arEffectsRepository = get(named("backendArEffectsRepository")),
-                ioDispatcher = get(named("ioDispatcher"))
             )
         }
 
