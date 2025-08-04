@@ -348,6 +348,10 @@ final class _QuotedPost extends ConsumerWidget {
             header: header ??
                 UserInfo(
                   pubkey: eventReference.masterPubkey,
+                  padding: EdgeInsetsDirectional.only(
+                    start: ScreenSideOffset.defaultSmallMargin,
+                    top: 12.0.s,
+                  ),
                   createdAt: postEntity is ModifiablePostEntity
                       ? postEntity.data.publishedAt.value
                       : postEntity?.createdAt,
