@@ -144,7 +144,7 @@ class _MessagesList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (conversationId == null) {
       return Expanded(
-        child: Container(
+        child: ColoredBox(
           color: context.theme.appColors.primaryBackground,
         ),
       );
@@ -162,7 +162,7 @@ class _MessagesList extends ConsumerWidget {
           return OneToOneMessageList(messages);
         },
         orElse: () {
-          return Container(
+          return ColoredBox(
             color: context.theme.appColors.primaryBackground,
           );
         },
