@@ -11,6 +11,8 @@ import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
+import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
+import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/interest_set.f.dart';
 import 'package:ion/app/features/user/model/interests.f.dart';
@@ -46,6 +48,8 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
         try {
           final userDelegationEvent =
               await _buildUserDelegation(onVerifyIdentity: onVerifyIdentity);
+          // Set delay to attach published 10100 and 10002 during the connection authorization
+          ref.read(relaysReplicaDelayProvider.notifier).setDelay();
           await ref
               .read(ionConnectNotifierProvider.notifier)
               .sendEvents([userDelegationEvent, userRelaysEvent]);
@@ -57,24 +61,19 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
 
         final userMetadata =
             await _buildUserMetadata(avatarAttachment: uploadedAvatar?.mediaAttachment);
-        final updateUserSocialProfileResponse = await ref.read(
-          updateUserSocialProfileProvider(
-            data: UserSocialProfileData(
-              username: userMetadata.name,
-              displayName: userMetadata.displayName,
-              referral: ref.read(onboardingDataProvider).referralName,
-            ),
-          ).future,
-        );
-        final usernameProofsJsonPayloads = updateUserSocialProfileResponse.usernameProof ?? [];
+
         final (:interestSetData, :interestsData) = _buildUserLanguages();
+
+        final updateUserSocialProfileResponse =
+            await _updateUserSocialProfile(userMetadata: userMetadata);
+
+        final usernameProofsEvents = _buildUsernameProofsEvents(updateUserSocialProfileResponse);
+
+        final updatedProfileBadges =
+            await _buildProfileBadges(usernameProofsEvents: usernameProofsEvents);
 
         final followList = _buildFollowList(updateUserSocialProfileResponse.referralMasterKey);
 
-        final usernameProofsEvents =
-            usernameProofsJsonPayloads.map(EventMessage.fromPayloadJson).toList();
-        final updatedProfileBadges = await ref
-            .read(updateProfileBadgesWithUsernameProofsProvider(usernameProofsEvents).future);
         await ref.read(ionConnectNotifierProvider.notifier).sendEntitiesData(
           [
             userMetadata,
@@ -151,6 +150,34 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
       media: avatarAttachment != null ? {avatarAttachment.url: avatarAttachment} : {},
       wallets: wallets,
     );
+  }
+
+  Future<UpdateUserSocialProfileResponse> _updateUserSocialProfile({
+    required UserMetadata userMetadata,
+  }) {
+    return ref.read(
+      updateUserSocialProfileProvider(
+        data: UserSocialProfileData(
+          username: userMetadata.name,
+          displayName: userMetadata.displayName,
+          referral: ref.read(onboardingDataProvider).referralName,
+        ),
+      ).future,
+    );
+  }
+
+  List<EventMessage> _buildUsernameProofsEvents(
+    UpdateUserSocialProfileResponse updateUserSocialProfileResponse,
+  ) {
+    final usernameProofsJsonPayloads = updateUserSocialProfileResponse.usernameProof ?? [];
+
+    return usernameProofsJsonPayloads.map(EventMessage.fromPayloadJson).toList();
+  }
+
+  Future<ProfileBadgesData?> _buildProfileBadges({
+    required List<EventMessage> usernameProofsEvents,
+  }) {
+    return ref.read(updateProfileBadgesWithUsernameProofsProvider(usernameProofsEvents).future);
   }
 
   Future<Map<String, String>> _buildUserWallets() async {

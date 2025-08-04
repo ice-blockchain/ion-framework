@@ -11,6 +11,7 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart' hide requestEvent
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/auth_event.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -32,20 +33,33 @@ class RelayAuth extends _$RelayAuth {
         final delegation = await ref.read(currentUserCachedDelegationProvider.future);
         final userRelays = await ref.read(currentUserRelaysProvider.future);
         final userAgent = await ref.read(currentUserAgentProvider.future);
+        final relaysReplicaDelay = ref.read(relaysReplicaDelayProvider);
 
         final isRelayInUserRelays = userRelays?.urls.contains(relay.url) ?? false;
+        final attachDelegation = delegationComplete.falseOrValue &&
+            (!isRelayInUserRelays || relaysReplicaDelay.isDelayed);
+        final attachUserRelays = isRelayInUserRelays && relaysReplicaDelay.isDelayed;
 
         final authEvent = AuthEvent(
           challenge: challenge,
           relay: relayUrl,
           userAgent: userAgent,
-          userDelegation:
-              (delegationComplete.falseOrValue && !isRelayInUserRelays) ? delegation : null,
+          userDelegation: attachDelegation ? delegation : null,
+          userRelays: attachUserRelays ? userRelays : null,
         );
 
         return ref
             .read(ionConnectNotifierProvider.notifier)
             .sign(authEvent, includeMasterPubkey: delegationComplete.falseOrValue);
+      },
+      onError: (error) async {
+        // In case of relay not authoritative error, we set the replica delay to attach
+        // current user 10100 and 10002 events to the Auth event and attempting to re-authenticate.
+        if (RelayAuthService.isRelayNotAuthoritativeError(error)) {
+          ref.read(relaysReplicaDelayProvider.notifier).setDelay();
+          return true;
+        }
+        return false;
       },
     );
 
@@ -64,6 +78,7 @@ class RelayAuthService {
   RelayAuthService({
     required this.relay,
     required this.createAuthEvent,
+    required this.onError,
     this.completer,
   });
 
@@ -71,6 +86,8 @@ class RelayAuthService {
 
   final Future<EventMessage> Function({required String challenge, required String relayUrl})
       createAuthEvent;
+
+  final Future<bool> Function(Object? error) onError;
 
   Completer<void>? completer;
 
@@ -113,7 +130,7 @@ class RelayAuthService {
     }
   }
 
-  Future<void> authenticateRelay() async {
+  Future<void> authenticateRelay({bool isRetry = false}) async {
     if (challenge == null || challenge!.isEmpty) throw AuthChallengeIsEmptyException();
 
     // Cases when we need to re-authenticate the relay:
@@ -146,6 +163,10 @@ class RelayAuthService {
 
       completer?.complete();
     } catch (error) {
+      final shouldRetry = await onError(error);
+      if (shouldRetry && !isRetry) {
+        return authenticateRelay(isRetry: true);
+      }
       completer?.completeError(error);
     }
   }
@@ -157,5 +178,9 @@ class RelayAuthService {
     final isSendEventAuthRequired =
         error is SendEventException && error.code.startsWith('auth-required');
     return isSubscriptionAuthRequired || isSendEventAuthRequired;
+  }
+
+  static bool isRelayNotAuthoritativeError(Object? error) {
+    return error is SendEventException && error.code.startsWith('relay-is-not-authoritative');
   }
 }

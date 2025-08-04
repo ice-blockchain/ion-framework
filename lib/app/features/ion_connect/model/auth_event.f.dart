@@ -8,6 +8,7 @@ import 'package:ion/app/features/core/model/user_agent.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
+import 'package:ion/app/features/user/model/user_relays.f.dart';
 
 part 'auth_event.f.freezed.dart';
 
@@ -19,6 +20,7 @@ class AuthEvent with _$AuthEvent implements EventSerializable {
     required String relay,
     required UserAgent userAgent,
     UserDelegationEntity? userDelegation,
+    UserRelaysEntity? userRelays,
   }) = _AuthEvent;
 
   const AuthEvent._();
@@ -38,6 +40,11 @@ class AuthEvent with _$AuthEvent implements EventSerializable {
       ['user-agent', userAgent.toString()],
       if (userDelegation != null)
         ['attestation', jsonEncode((await userDelegation!.toEntityEventMessage()).toJson().last)],
+      if (userRelays != null)
+        [
+          'relay-list-metadata',
+          jsonEncode((await userRelays!.toEntityEventMessage()).toJson().last),
+        ],
       ...tags,
     ];
 
