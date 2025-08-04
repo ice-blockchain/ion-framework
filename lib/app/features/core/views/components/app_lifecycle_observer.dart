@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/permissions/providers/permissions_provider.r.dart';
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 
 class AppLifecycleObserver extends HookConsumerWidget {
   const AppLifecycleObserver({required this.child, super.key});
@@ -13,8 +14,11 @@ class AppLifecycleObserver extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useOnAppLifecycleStateChange((_, AppLifecycleState current) {
+    useOnAppLifecycleStateChange((AppLifecycleState? previous, AppLifecycleState current) {
       ref.read(appLifecycleProvider.notifier).newState = current;
+      Logger.log(
+        '[LIFECYCLE] App lifecycle changed from: $previous to: $current',
+      );
 
       if (current == AppLifecycleState.resumed) {
         ref.read(permissionsProvider.notifier).checkAllPermissions();
