@@ -72,9 +72,7 @@ class CanReply extends _$CanReply {
         if (!isBadgeDefinitionValid) {
           return false;
         }
-        return await ref.watch(
-          isUserVerifiedProvider(currentPubkey).future,
-        );
+        return ref.watch(isUserVerifiedProvider(currentPubkey));
       },
       mentionedAccounts: () async {
         final mentions = ref.read(postMentionsPubkeysProvider(entity: entity));

@@ -31,9 +31,9 @@ class OneToOneMessagingHeader extends ConsumerWidget {
         ref.watch(isBlockedNotifierProvider(receiverMasterPubkey)).valueOrNull ?? true;
     final isBlockedBy =
         ref.watch(isBlockedByNotifierProvider(receiverMasterPubkey)).valueOrNull ?? true;
-    final isVerified = ref.watch(isUserVerifiedProvider(receiverMasterPubkey)).valueOrNull ?? false;
+    final isVerified = ref.watch(isUserVerifiedProvider(receiverMasterPubkey));
     final isNicknameProven =
-        ref.watch(isNicknameProvenProvider(receiverMasterPubkey)).valueOrNull ?? true;
+        ref.watch(isNicknameProvenProvider(receiverMasterPubkey));
     final isDeleted = ref.watch(isUserDeletedProvider(receiverMasterPubkey)).valueOrNull ?? false;
 
     final userMetadata = ref.watch(userMetadataFromDbProvider(receiverMasterPubkey))?.data;

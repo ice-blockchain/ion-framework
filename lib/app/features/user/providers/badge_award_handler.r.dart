@@ -32,8 +32,8 @@ class BadgeAwardHandler extends GlobalSubscriptionEventHandler {
       return;
     }
 
-    final isVerified = ref.read(isUserVerifiedProvider(currentPubkey)).valueOrNull;
-    if (isVerified == null || isVerified) {
+    final isVerified = ref.read(isUserVerifiedProvider(currentPubkey));
+    if (isVerified) {
       return;
     }
 

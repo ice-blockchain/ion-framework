@@ -17,8 +17,7 @@ class ContactItemName extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isVerified =
-        ref.watch(isUserVerifiedProvider(userMetadata.masterPubkey)).valueOrNull.falseOrValue;
+    final isVerified = ref.watch(isUserVerifiedProvider(userMetadata.masterPubkey));
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
