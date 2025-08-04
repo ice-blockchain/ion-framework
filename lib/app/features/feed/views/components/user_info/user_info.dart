@@ -33,6 +33,7 @@ class UserInfo extends HookConsumerWidget {
   final TimestampFormat timeFormat;
   final BoxShadow? shadow;
   final EdgeInsetsDirectional? padding;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userMetadata = ref.watch(userMetadataProvider(pubkey));
@@ -43,17 +44,19 @@ class UserInfo extends HookConsumerWidget {
         if (userMetadataEntity == null) {
           return const SizedBox.shrink();
         }
-        return GestureDetector(
-          onTap: openProfile,
-          behavior: HitTestBehavior.opaque,
-          child: Padding(
-            padding: padding ?? EdgeInsets.zero,
-            child: BadgesUserListItem(
-              title: Text(
+        return Padding(
+          padding: padding ?? EdgeInsets.zero,
+          child: BadgesUserListItem(
+            title: GestureDetector(
+              onTap: openProfile,
+              child: Text(
                 userMetadataEntity.data.displayName,
                 style: textStyle,
               ),
-              subtitle: Row(
+            ),
+            subtitle: GestureDetector(
+              onTap: openProfile,
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
@@ -75,15 +78,18 @@ class UserInfo extends HookConsumerWidget {
                   ],
                 ],
               ),
-              pubkey: pubkey,
-              leading: IonConnectAvatar(
+            ),
+            pubkey: pubkey,
+            leading: GestureDetector(
+              onTap: openProfile,
+              child: IonConnectAvatar(
                 size: ListItem.defaultAvatarSize,
                 pubkey: pubkey,
                 shadow: shadow,
               ),
-              trailing: trailing,
-              trailingPadding: EdgeInsetsDirectional.only(start: 34.0.s),
             ),
+            trailing: trailing,
+            trailingPadding: EdgeInsetsDirectional.only(start: 34.0.s),
           ),
         );
       },
