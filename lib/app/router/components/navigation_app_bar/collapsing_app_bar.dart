@@ -50,13 +50,11 @@ class CollapsingAppBar extends StatelessWidget {
                     padding: EdgeInsetsDirectional.only(bottom: bottomOffset),
                     child: child,
                   ),
+                  if (overlayOpacity > 0.2)
                   Positioned.fill(
-                    child: IgnorePointer(
-                      ignoring: overlayOpacity > 0.5,
-                      child: ColoredBox(
-                        color: context.theme.appColors.onPrimaryAccent
-                            .withValues(alpha: overlayOpacity.toDouble()),
-                      ),
+                    child: ColoredBox(
+                      color: context.theme.appColors.onPrimaryAccent
+                          .withValues(alpha: overlayOpacity.toDouble()),
                     ),
                   ),
                 ],
