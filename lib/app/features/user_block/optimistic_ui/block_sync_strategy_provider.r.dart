@@ -133,8 +133,10 @@ SyncStrategy<BlockedUser> blockSyncStrategy(Ref ref) {
       await Future.wait(
         participantsMasterPubkeys.map((receiverMasterPubkey) async {
           final pubkeyDevices = participantsPubkeysMap[receiverMasterPubkey];
-          if (pubkeyDevices == null || pubkeyDevices.isEmpty) {
+          if (pubkeyDevices == null) {
             throw UserPubkeyNotFoundException(receiverMasterPubkey);
+          } else if (pubkeyDevices.isEmpty) {
+            return;
           }
 
           await Future.wait(
