@@ -158,8 +158,8 @@ class ConversationMessageDataDao extends DatabaseAccessor<ChatDatabase>
   }
 
   Future<MessageDeliveryStatus?> checkMessageStatus({
-    required EventReference eventReference,
     required String masterPubkey,
+    required EventReference eventReference,
   }) async {
     final existingDeviceStatuses = await (select(messageStatusTable)
           ..where((table) => table.messageEventReference.equalsValue(eventReference))

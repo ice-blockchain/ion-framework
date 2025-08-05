@@ -203,8 +203,8 @@ class SendE2eeChatMessageService {
               if (eventReference != null) {
                 await ref.read(conversationMessageDataDaoProvider).addOrUpdateStatus(
                       pubkey: pubkey,
-                      messageEventReference: eventReference,
                       masterPubkey: masterPubkey,
+                      messageEventReference: eventReference,
                       status:
                           isCurrentUser ? MessageDeliveryStatus.read : MessageDeliveryStatus.sent,
                     );

@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_message_reaction_data.f.dart';
@@ -26,6 +27,7 @@ Future<SendE2eeMessageStatusService> sendE2eeMessageStatusService(Ref ref) async
     sendE2eeChatMessageService: sendE2eeChatMessageService,
     currentUserMasterPubkey: ref.watch(currentPubkeySelectorProvider) ?? '',
     conversationPubkeysNotifier: ref.watch(conversationPubkeysProvider.notifier),
+    conversationMessageDataDaoProvider: ref.watch(conversationMessageDataDaoProvider),
   );
 }
 
@@ -33,12 +35,14 @@ class SendE2eeMessageStatusService {
   SendE2eeMessageStatusService({
     required this.eventSigner,
     required this.sendE2eeChatMessageService,
+    required this.conversationMessageDataDaoProvider,
     required this.currentUserMasterPubkey,
     required this.conversationPubkeysNotifier,
   });
 
   final EventSigner? eventSigner;
   final SendE2eeChatMessageService sendE2eeChatMessageService;
+  final ConversationMessageDataDao conversationMessageDataDaoProvider;
   final String currentUserMasterPubkey;
   final ConversationPubkeys conversationPubkeysNotifier;
 
@@ -62,11 +66,11 @@ class SendE2eeMessageStatusService {
       masterPubkey: currentUserMasterPubkey,
     );
 
+    final participantsKeysMap = await conversationPubkeysNotifier
+        .fetchUsersKeys(messageEventMessage.participantsMasterPubkeys);
+
     await Future.wait(
       messageEventMessage.participantsMasterPubkeys.map((masterPubkey) async {
-        final participantsKeysMap = await conversationPubkeysNotifier
-            .fetchUsersKeys(messageEventMessage.participantsMasterPubkeys);
-
         final pubkeys = participantsKeysMap[masterPubkey];
 
         if (pubkeys == null) {
@@ -75,6 +79,18 @@ class SendE2eeMessageStatusService {
 
         await Future.wait(
           pubkeys.map((pubkey) async {
+            // It that is read status for the current user mark it as read to 
+            // make UX more optimistic
+            if (masterPubkey == currentUserMasterPubkey && status == MessageDeliveryStatus.read) {
+              await conversationMessageDataDaoProvider.addOrUpdateStatus(
+                status: status,
+                pubkey: pubkeys.first,
+                masterPubkey: masterPubkey,
+                messageEventReference: eventReference,
+                updateAllBefore: messageEventMessage.createdAt.toDateTime,
+              );
+            }
+
             await sendE2eeChatMessageService.sendWrappedMessage(
               pubkey: pubkey,
               eventSigner: eventSigner!,
