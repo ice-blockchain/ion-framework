@@ -33,7 +33,7 @@ on:
         type: bool
 
 env:
-  APP_ENV: ${{ inputs.environment || (startsWith(github.ref, 'refs/heads/release/') && 'production') || 'staging' }}
+  APP_ENV: ${{ inputs.environment || (startsWith(github.ref, 'refs/heads/release/') && 'testnet') || 'staging' }}
   DEPLOYMENT_TYPE: ${{ inputs.deployment || (startsWith(github.ref, 'refs/heads/release/') && 'store') || 'firebase' }}
 
 jobs:
@@ -197,7 +197,7 @@ jobs:
           steps: ${{ '{}' }}
   ios-cicd:
     name: iOS -- build, deploy
-    needs: [flutter]
+    needs: [ flutter ]
     runs-on: macos-15
     env:
       FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 180
@@ -284,7 +284,7 @@ jobs:
           steps: ${{ '{}' }}
   android-cicd:
     name: Android -- build, deploy
-    needs: [flutter]
+    needs: [ flutter ]
     runs-on: macos-15
     env:
       APP_VERSION: ${{ needs.flutter.outputs.app_version }}
