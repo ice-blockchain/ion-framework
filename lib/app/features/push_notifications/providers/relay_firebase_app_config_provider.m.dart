@@ -39,9 +39,14 @@ class RelayFirebaseAppConfig extends _$RelayFirebaseAppConfig {
 
     final relayUrls = [for (final userRelay in userRelays) userRelay.url];
 
+    // Use cached config if:
+    // 1. We have a saved config
+    // 2. The saved relay is still in user's relay list
+    // 3. writeRelay is null (at startup) OR matches the saved relay
+    // This prevents circular dependency when writeRelay is null at app startup
     if (savedConfig != null &&
         relayUrls.contains(savedConfig.relayUrl) &&
-        writeRelay == savedConfig.relayUrl) {
+        (writeRelay == null || writeRelay == savedConfig.relayUrl)) {
       return savedConfig;
     }
 
