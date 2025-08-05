@@ -196,7 +196,7 @@ class VideoPlayerControllerFactory {
       return player.controller;
     } catch (e, stackTrace) {
       Logger.log(
-        'Error during video player initialisation'
+        'Error during video player initialization'
         ' | dataSourceType: ${player.dataSourceType}'
         ' | dataSource: ${player.dataSource}',
         error: e,
