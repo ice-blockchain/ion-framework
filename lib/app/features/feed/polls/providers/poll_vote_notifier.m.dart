@@ -70,7 +70,13 @@ class PollVoteNotifier extends _$PollVoteNotifier {
   FutureOr<void> build() {}
 
   Future<bool> vote(EventReference postReference, String optionId) async {
+    if (state.isLoading) {
+      return false;
+    }
+
     try {
+      state = const AsyncValue.loading();
+
       final masterPubkey = ref.read(currentPubkeySelectorProvider);
       if (masterPubkey == null) {
         throw Exception('User must be logged in to vote');
@@ -110,12 +116,16 @@ class PollVoteNotifier extends _$PollVoteNotifier {
           ..invalidate(userVotedOptionIndexProvider(postReference))
           ..invalidate(hasUserVotedProvider(postReference))
           ..invalidate(pollVoteCountsProvider);
+
+        state = const AsyncValue.data(null);
         return true;
       }
 
+      state = const AsyncValue.data(null);
       return false;
     } catch (e, stackTrace) {
       Logger.error(e, stackTrace: stackTrace, message: 'Failed to vote on poll');
+      state = AsyncValue.error(e, stackTrace);
       return false;
     }
   }
