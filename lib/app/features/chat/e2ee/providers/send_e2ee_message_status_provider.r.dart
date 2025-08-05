@@ -79,7 +79,7 @@ class SendE2eeMessageStatusService {
 
         await Future.wait(
           pubkeys.map((pubkey) async {
-            // It that is read status for the current user mark it as read to 
+            // It that is read status for the current user mark it as read to
             // make UX more optimistic
             if (masterPubkey == currentUserMasterPubkey && status == MessageDeliveryStatus.read) {
               await conversationMessageDataDaoProvider.addOrUpdateStatus(
