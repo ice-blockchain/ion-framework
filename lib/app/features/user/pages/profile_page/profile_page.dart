@@ -149,7 +149,7 @@ class ProfilePage extends HookConsumerWidget {
             Opacity(
               opacity: opacity,
               child: NavigationAppBar(
-                showBackButton: false,
+                showBackButton: showBackButton,
                 useScreenTopOffset: true,
                 scrollController: scrollController,
                 horizontalPadding: 0,
