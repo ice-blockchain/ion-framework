@@ -30,18 +30,24 @@ class CurrentUserBlockListNotifier extends _$CurrentUserBlockListNotifier {
 
     final blockEventDao = ref.watch(blockEventDaoProvider);
 
-    final initialEvents = await blockEventDao.getBlockedUsersEvents(currentUserMasterPubkey);
-    final initialEntities = initialEvents.map(BlockedUserEntity.fromEventMessage).toList();
-    state = AsyncValue.data(initialEntities);
-
     final subscription =
         blockEventDao.watchBlockedUsersEvents(currentUserMasterPubkey).listen((blockEvents) {
       final entities = blockEvents.map(BlockedUserEntity.fromEventMessage).toList();
-      state = AsyncValue.data(entities);
+
+      // Ensure unique entities based on blocked master pubkey, this can happen
+      // if multiple block events are received for the same blocked user
+      final uniqueEntities = <String, BlockedUserEntity>{};
+      for (final entity in entities) {
+        final pubkey = entity.data.blockedMasterPubkeys.single;
+        uniqueEntities[pubkey] = entity;
+      }
+
+      state = AsyncValue.data(uniqueEntities.values.toList());
     });
+
     ref.onDispose(subscription.cancel);
 
-    return initialEntities;
+    return [];
   }
 }
 

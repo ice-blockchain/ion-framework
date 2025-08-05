@@ -18,13 +18,4 @@ class UnblockEventDao extends DatabaseAccessor<BlockUserDatabase> with _$Unblock
       mode: InsertMode.insertOrReplace,
     );
   }
-
-  Future<bool> isUnblocked(EventReference eventReference) async {
-    final query = select(db.unblockEventTable)
-      ..limit(1)
-      ..where((table) => table.eventReference.equalsValue(eventReference));
-
-    final result = await query.getSingleOrNull();
-    return result != null;
-  }
 }

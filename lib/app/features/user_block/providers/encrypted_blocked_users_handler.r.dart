@@ -44,10 +44,14 @@ class EncryptedBlockedUserHandler extends GlobalSubscriptionEncryptedEventMessag
     final eventsToDelete = DeletionRequest.fromEventMessage(rumor).events;
 
     final eventToDeleteReferences =
-        eventsToDelete.map((event) => (event as EventToDelete).eventReference).toList();
-    if (eventToDeleteReferences.length == 1) {
-      await unblockEventDao.add(eventToDeleteReferences.single);
-    }
+        eventsToDelete.whereType<EventToDelete>().map((event) => event.eventReference).toList();
+
+    if (eventToDeleteReferences.isEmpty) return;
+
+    // Use Future.wait for concurrent async operations
+    await Future.wait(
+      eventToDeleteReferences.map(unblockEventDao.add),
+    );
   }
 }
 

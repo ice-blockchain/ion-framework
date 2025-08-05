@@ -24,36 +24,25 @@ Future<List<BlockedUser>> loadInitialBlockedUsers(Ref ref) async {
   }
 
   final blockEventDao = ref.watch(blockEventDaoProvider);
-  final blockEvents = await blockEventDao.getBlockedUsersEvents(currentMasterPubkey);
+  final blockEvents = await blockEventDao.getBlockEvents(currentMasterPubkey);
   final blockEventEntities = blockEvents.map(BlockedUserEntity.fromEventMessage).toList();
 
-  final unblockEventDao = ref.watch(unblockEventDaoProvider);
+  // Ensure unique entities based on blocked master pubkey, this can happen
+  // if multiple block events are received for the same blocked user
+  final uniqueEntities = <String, BlockedUserEntity>{};
+  for (final entity in blockEventEntities) {
+    final pubkey = entity.data.blockedMasterPubkeys.single;
+    uniqueEntities[pubkey] = entity;
+  }
 
   return Future.wait(
-    blockEventEntities.map((blockEntity) async {
-      final isUnblocked = await unblockEventDao.isUnblocked(blockEntity.toEventReference());
-
+    uniqueEntities.values.toList().map((blockEntity) async {
       return BlockedUser(
-        isBlocked: !isUnblocked,
+        isBlocked: true,
         masterPubkey: blockEntity.data.blockedMasterPubkeys.single,
       );
     }),
   );
-}
-
-@riverpod
-OptimisticService<BlockedUser> blockUserService(Ref ref) {
-  final manager = ref.watch(blockUserManagerProvider);
-  final service = OptimisticService<BlockedUser>(manager: manager);
-
-  return service;
-}
-
-@riverpod
-Stream<BlockedUser?> blockedUserWatch(Ref ref, String masterPubkey) {
-  final service = ref.watch(blockUserServiceProvider)..initialize(loadInitialBlockedUsers(ref));
-
-  return service.watch(masterPubkey);
 }
 
 @riverpod
@@ -70,6 +59,21 @@ OptimisticOperationManager<BlockedUser> blockUserManager(Ref ref) {
   ref.onDispose(manager.dispose);
 
   return manager;
+}
+
+@riverpod
+OptimisticService<BlockedUser> blockUserService(Ref ref) {
+  final manager = ref.watch(blockUserManagerProvider);
+  final service = OptimisticService<BlockedUser>(manager: manager);
+
+  return service;
+}
+
+@riverpod
+Stream<BlockedUser?> blockedUserWatch(Ref ref, String masterPubkey) {
+  final service = ref.watch(blockUserServiceProvider)..initialize(loadInitialBlockedUsers(ref));
+
+  return service.watch(masterPubkey);
 }
 
 @riverpod
