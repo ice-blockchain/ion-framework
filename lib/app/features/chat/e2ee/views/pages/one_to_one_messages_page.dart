@@ -143,7 +143,11 @@ class _MessagesList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (conversationId == null) {
-      return const Expanded(child: E2eeConversationEmptyView());
+      return Expanded(
+        child: ColoredBox(
+          color: context.theme.appColors.primaryBackground,
+        ),
+      );
     }
 
     final messages =
@@ -157,7 +161,11 @@ class _MessagesList extends ConsumerWidget {
           }
           return OneToOneMessageList(messages);
         },
-        orElse: E2eeConversationEmptyView.new,
+        orElse: () {
+          return ColoredBox(
+            color: context.theme.appColors.primaryBackground,
+          );
+        },
       ),
     );
   }
