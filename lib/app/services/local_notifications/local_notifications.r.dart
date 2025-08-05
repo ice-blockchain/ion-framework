@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:flutter/services.dart' show rootBundle;
 
-import 'package:dio/dio.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/services/compressors/compress_executor.r.dart';
