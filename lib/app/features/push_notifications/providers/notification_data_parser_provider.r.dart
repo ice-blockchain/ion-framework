@@ -19,12 +19,14 @@ class NotificationParsedData {
     required this.body,
     required this.avatar,
     required this.media,
+    required this.notificationType,
   });
 
   final String title;
   final String body;
   final String? avatar;
   final String? media;
+  final PushNotificationType notificationType;
 }
 
 class NotificationDataParser {
@@ -93,6 +95,7 @@ class NotificationDataParser {
       body: result.body,
       avatar: avatar,
       media: media,
+      notificationType: notificationType,
     );
   }
 

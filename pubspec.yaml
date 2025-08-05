@@ -73,7 +73,11 @@ dependencies:
   flutter_hooks: ^0.20.5
   flutter_inappwebview: ^6.1.5
   flutter_keyboard_visibility: ^6.0.0
-  flutter_local_notifications: ^19.1.0
+  flutter_local_notifications:
+    git:
+      url: https://github.com/ice-blockchain/flutter_local_notifications.git
+      path: flutter_local_notifications
+      ref: feature/rich-push-notifications
   flutter_localizations:
     sdk: flutter
   flutter_quill:

@@ -24,7 +24,6 @@ import 'package:ion/app/services/ion_connect/ion_connect_seal_service.r.dart';
 import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
-import 'package:ion/app/services/uuid/uuid.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -146,12 +145,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final media = parsedData?.media;
 
   await notificationsService.showNotification(
-    id: generateUuid().hashCode,
     title: title,
     body: body,
     payload: jsonEncode(message.data),
     iconFilePath: avatar,
     attachmentFilePath: media,
+    isConversationPush: parsedData?.notificationType.isConversationPush ?? false,
   );
 
   backgroundContainer.dispose();
