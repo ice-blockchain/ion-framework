@@ -7,7 +7,7 @@ import 'package:flutter/widgets.dart';
 
 bool isKeyboardVisible(BuildContext context) {
   if (context.mounted) {
-    return MediaQuery.of(context).viewInsets.bottom > 0;
+    return MediaQuery.viewInsetsOf(context).bottom > 0;
   }
   return false;
 }

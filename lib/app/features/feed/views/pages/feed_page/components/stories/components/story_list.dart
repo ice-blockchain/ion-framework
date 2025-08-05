@@ -19,7 +19,7 @@ class StoryList extends ConsumerWidget {
     super.key,
   });
 
-  final List<String> pubkeys;
+  final Set<String> pubkeys;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
