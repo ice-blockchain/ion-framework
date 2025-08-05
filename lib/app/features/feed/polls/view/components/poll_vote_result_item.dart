@@ -18,6 +18,18 @@ class PollResultItem extends HookWidget {
   final int totalVotes;
   final bool isSelected;
 
+  String _getPercentageString(double percentage) {
+    String result;
+
+    if (percentage % 1 == 0) {
+      result = percentage.toInt().toString();
+    } else {
+      result = percentage.toStringAsFixed(1);
+    }
+
+    return '$result%';
+  }
+
   @override
   Widget build(BuildContext context) {
     final percentage = useMemoized(
@@ -27,7 +39,7 @@ class PollResultItem extends HookWidget {
       },
       [votes, totalVotes],
     );
-    final percentageInt = (percentage * 100).round();
+    final percentageValue = percentage * 100;
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: 4.0.s),
@@ -42,7 +54,7 @@ class PollResultItem extends HookWidget {
           ),
 
           // 0% progress indicator placeholder
-          if (percentageInt == 0)
+          if (percentageValue < 1)
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: Container(
@@ -58,7 +70,7 @@ class PollResultItem extends HookWidget {
             ),
 
           // Progress indicator
-          if (percentageInt > 0)
+          if (percentageValue > 0)
             ClipRRect(
               borderRadius: BorderRadius.circular(12.0.s),
               child: Align(
@@ -97,7 +109,7 @@ class PollResultItem extends HookWidget {
                     ),
                   ),
                   Text(
-                    '$percentageInt%',
+                    _getPercentageString(percentageValue),
                     style: context.theme.appTextThemes.caption2.copyWith(
                       color: context.theme.appColors.primaryText,
                       fontSize: 12.0.s,
