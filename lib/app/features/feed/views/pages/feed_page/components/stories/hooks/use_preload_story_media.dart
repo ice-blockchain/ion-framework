@@ -14,6 +14,7 @@ void usePreloadStoryMedia(WidgetRef ref, ModifiablePostEntity? story) {
       final media = story.data.primaryMedia;
       if (media == null) return;
       if (media.mediaType == MediaType.image) {
+        print('STORY URL CACHE - ${media.url}');
         ref.read(storyImageCacheManagerProvider).downloadFile(media.url);
       } else if (media.mediaType == MediaType.video) {
         ref.read(

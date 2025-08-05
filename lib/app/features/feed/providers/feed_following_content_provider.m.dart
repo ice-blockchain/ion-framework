@@ -45,7 +45,7 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
     bool autoFetch = true,
   }) {
     if (autoFetch) {
-      Future.microtask(fetchEntities);
+      Future(fetchEntities);
     }
     return FeedFollowingContentState(
       items: null,
