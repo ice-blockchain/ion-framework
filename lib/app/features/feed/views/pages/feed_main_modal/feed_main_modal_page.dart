@@ -36,7 +36,7 @@ class FeedMainModalPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasNftCollectionState = ref.watch(ionContentNftCollectionStateProvider);
+    final hasNftCollectionState = ref.watch(hasIonContentNftCollectionProvider);
 
     final body = hasNftCollectionState.whenOrNull(
           data: (hasNftCollection) =>
@@ -138,7 +138,7 @@ class _ContentCreationBlockedModal extends HookConsumerWidget {
                 onPressed: () async {
                   try {
                     isLoading.value = true;
-                    final _ = await ref.refresh(ionContentNftCollectionStateProvider.future);
+                    final _ = await ref.refresh(hasIonContentNftCollectionProvider.future);
                     await Future<void>.delayed(const Duration(milliseconds: 500));
                   } finally {
                     isLoading.value = false;
