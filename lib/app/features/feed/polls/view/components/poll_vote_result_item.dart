@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/utils/num.dart';
 
 class PollResultItem extends HookWidget {
   const PollResultItem({
@@ -19,13 +20,7 @@ class PollResultItem extends HookWidget {
   final bool isSelected;
 
   String _getPercentageString(double percentage) {
-    String result;
-
-    if (percentage % 1 == 0) {
-      result = percentage.toInt().toString();
-    } else {
-      result = percentage.toStringAsFixed(1);
-    }
+    final result = formatDouble(percentage, maximumFractionDigits: 1, minimumFractionDigits: 0);
 
     return '$result%';
   }
@@ -77,8 +72,7 @@ class PollResultItem extends HookWidget {
                 alignment: AlignmentDirectional.centerStart,
                 child: Container(
                   height: 34.0.s,
-                  width:
-                      (MediaQuery.sizeOf(context).width * percentage).clamp(4.0.s, double.infinity),
+                  width: (MediaQuery.sizeOf(context).width * percentage).clamp(4.0.s, double.infinity),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? context.theme.appColors.primaryAccent.withValues(alpha: 0.3)
