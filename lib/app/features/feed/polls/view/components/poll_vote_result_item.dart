@@ -65,7 +65,8 @@ class PollResultItem extends HookWidget {
                 alignment: AlignmentDirectional.centerStart,
                 child: Container(
                   height: 34.0.s,
-                  width: (MediaQuery.sizeOf(context).width * percentage).clamp(4.0.s, double.infinity),
+                  width:
+                      (MediaQuery.sizeOf(context).width * percentage).clamp(4.0.s, double.infinity),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? context.theme.appColors.primaryAccent.withValues(alpha: 0.3)
