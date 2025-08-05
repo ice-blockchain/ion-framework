@@ -656,3 +656,7 @@ class FailedToInitVideoPlayer extends IONException {
   final DataSourceType dataSourceType;
   final String dataSource;
 }
+
+class CurrentUserMetadataNotFoundException extends IONException {
+  CurrentUserMetadataNotFoundException() : super(10125, 'Current user metadata not found');
+}

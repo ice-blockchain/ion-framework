@@ -23,7 +23,7 @@ class NftCollectionSync extends _$NftCollectionSync {
       return;
     }
 
-    final hasCollection = await ref.watch(ionContentNftCollectionStateProvider.future);
+    final hasCollection = await ref.watch(hasIonContentNftCollectionProvider.future);
     if (hasCollection) {
       return;
     }

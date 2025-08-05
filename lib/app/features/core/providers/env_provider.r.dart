@@ -38,6 +38,7 @@ enum EnvVariable {
   AF_BASE_HOST,
   OPTIMISTIC_UI_ENABLED,
   INDEXER_BASE_URL,
+  NFT_IDENTITY_BASE_URL,
 }
 
 @Riverpod(keepAlive: true)
@@ -111,6 +112,8 @@ class Env extends _$Env {
       EnvVariable.AF_BASE_HOST => const String.fromEnvironment('AF_BASE_HOST') as T,
       EnvVariable.OPTIMISTIC_UI_ENABLED => const bool.fromEnvironment('OPTIMISTIC_UI_ENABLED') as T,
       EnvVariable.INDEXER_BASE_URL => const String.fromEnvironment('INDEXER_BASE_URL') as T,
+      EnvVariable.NFT_IDENTITY_BASE_URL =>
+        const String.fromEnvironment('NFT_IDENTITY_BASE_URL') as T,
     };
   }
 }

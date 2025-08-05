@@ -3,19 +3,18 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/feed/nft/model/nft_collection_response.f.dart';
+import 'package:ion/app/features/feed/nft/providers/ion_content_nft_collection_notifier.r.dart';
 import 'package:ion/app/features/feed/nft/services/nft_collection_sync_service.r.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
-import 'package:ion/app/features/user/providers/update_user_metadata_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nft_collection_sync_controller.r.g.dart';
+
+const ionContentNftCollectionName = 'ion-content-nft-collection';
 
 enum _SyncStatus { idle, running, syncing, completed }
 
@@ -23,16 +22,16 @@ enum _SyncStatus { idle, running, syncing, completed }
 /// Manages timer, calls the service, and exposes start/stop/dispose methods.
 class NftCollectionSyncController {
   NftCollectionSyncController({
+    required this.ionContentNftCollectionNotifier,
     required this.service,
     required this.userMasterKey,
-    required this.onSuccess,
     this.syncInterval = const Duration(seconds: 15),
   });
 
+  final IonContentNftCollectionNotifier ionContentNftCollectionNotifier;
   final NftCollectionSyncService service;
   final String userMasterKey;
   final Duration syncInterval;
-  final ValueChanged<TargetNftCollectionData> onSuccess;
 
   Timer? _timer;
   CancelToken? _cancelToken;
@@ -67,13 +66,13 @@ class NftCollectionSyncController {
     _status = _SyncStatus.syncing;
     _cancelToken = CancelToken();
     try {
-      final result = await service.fetchAndFindTargetCollection(
+      final nftCollection = await service.getNftCollectionData(
         userMasterKey: userMasterKey,
         cancelToken: _cancelToken,
       );
-      if (result != null) {
+      if (nftCollection != null) {
         _status = _SyncStatus.completed;
-        onSuccess(result);
+        await ionContentNftCollectionNotifier.updateUserMetadata(nftCollection);
         stopSync();
       }
     } catch (e, st) {
@@ -94,17 +93,18 @@ class NftCollectionSyncController {
 @Riverpod(keepAlive: true)
 NftCollectionSyncController nftCollectionSyncController(Ref ref) {
   final userMasterKey = ref.watch(currentPubkeySelectorProvider);
-  final service = ref.watch(nftCollectionSyncServiceProvider);
-  final notifier = ref.watch(ionContentNftCollectionStateProvider.notifier);
-
   if (userMasterKey == null) {
-    throw Exception('User master key is required for NFT collection sync');
+    throw const CurrentUserNotFoundException();
   }
+
+  final service = ref.watch(nftCollectionSyncServiceProvider);
+  final ionContentNftCollectionNotifier =
+      ref.watch(ionContentNftCollectionNotifierProvider.notifier);
 
   final controller = NftCollectionSyncController(
     service: service,
     userMasterKey: userMasterKey,
-    onSuccess: notifier.setIonContentNftCollection,
+    ionContentNftCollectionNotifier: ionContentNftCollectionNotifier,
   );
 
   ref.onDispose(controller.dispose);
@@ -113,42 +113,17 @@ NftCollectionSyncController nftCollectionSyncController(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
-class IonContentNftCollectionState extends _$IonContentNftCollectionState {
-  @override
-  Future<bool> build() async {
-    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-    if (currentPubkey == null) {
-      throw const CurrentUserNotFoundException();
-    }
+Future<bool> hasIonContentNftCollection(Ref ref) async {
+  final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+  if (currentPubkey == null) {
+    throw const CurrentUserNotFoundException();
+  }
 
-    final userMetadata = await ref.watch(userMetadataProvider(currentPubkey, cache: false).future);
-    final nftCollections = userMetadata?.data.ionContentNftCollections;
-    if (nftCollections == null) {
-      return false;
-    }
-
-    // TODO: check if nftCollections has a proper collection
+  final userMetadata = await ref.watch(userMetadataProvider(currentPubkey, cache: false).future);
+  final nftCollections = userMetadata?.data.ionContentNftCollections;
+  if (nftCollections == null) {
     return false;
   }
 
-  Future<void> setIonContentNftCollection(TargetNftCollectionData data) async {
-    final currentUserMetadata = await ref.read(currentUserMetadataProvider.future);
-    if (currentUserMetadata == null) {
-      throw Exception('Current user metadata not found');
-    }
-
-    final newCollection = IonContentNftCollection(
-      createdBy: data.creatorAddress,
-      address: data.collectionAddress,
-    );
-
-    final updatedMetadata = currentUserMetadata.data.copyWith(
-      ionContentNftCollections: {
-        ...currentUserMetadata.data.ionContentNftCollections ?? {},
-        data.name: newCollection,
-      },
-    );
-
-    await ref.read(updateUserMetadataNotifierProvider.notifier).publish(updatedMetadata);
-  }
+  return nftCollections.containsKey(ionContentNftCollectionName);
 }
