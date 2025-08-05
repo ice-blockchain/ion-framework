@@ -17,16 +17,16 @@ class NotificationParsedData {
   const NotificationParsedData({
     required this.title,
     required this.body,
-    required this.avatar,
-    required this.media,
     required this.notificationType,
+    this.avatar,
+    this.media,
   });
 
   final String title;
   final String body;
+  final PushNotificationType notificationType;
   final String? avatar;
   final String? media;
-  final PushNotificationType notificationType;
 }
 
 class NotificationDataParser {
