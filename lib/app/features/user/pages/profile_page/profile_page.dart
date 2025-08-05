@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/separated/separator.dart';
@@ -25,6 +26,7 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
+import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 
 class ProfilePage extends HookConsumerWidget {
   const ProfilePage({
@@ -147,7 +149,7 @@ class ProfilePage extends HookConsumerWidget {
             Opacity(
               opacity: opacity,
               child: NavigationAppBar(
-                showBackButton: showBackButton,
+                showBackButton: false,
                 useScreenTopOffset: true,
                 scrollController: scrollController,
                 horizontalPadding: 0,
@@ -178,6 +180,11 @@ class ProfilePage extends HookConsumerWidget {
                 ),
               ),
             ),
+            if (showBackButton)
+              Align(
+                alignment: AlignmentDirectional.topStart,
+                child: NavigationBackButton(context.pop),
+              ),
           ],
         ),
       ),
