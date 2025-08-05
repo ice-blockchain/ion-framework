@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -16,6 +17,7 @@ import 'package:ion_identity_client/ion_identity.dart';
 
 const excludedPasskeyExceptions = {
   PasskeyCancelledException,
+  PlatformException,
 };
 
 Future<void> guardPasskeyDialog(

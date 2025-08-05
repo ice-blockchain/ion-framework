@@ -33,8 +33,6 @@ class SignUpPasswordPage extends HookConsumerWidget {
 
     final formKey = useRef(GlobalKey<FormState>());
 
-    final registerActionState = ref.watch(registerActionNotifierProvider);
-
     ref.displayErrors(registerActionNotifierProvider);
 
     final passwordsError = useState<String?>(null);
@@ -79,7 +77,6 @@ class SignUpPasswordPage extends HookConsumerWidget {
                   children: [
                     SizedBox(height: 60.0.s),
                     IdentityKeyNameInput(
-                      errorText: registerActionState.error?.toString(),
                       controller: identityKeyNameController,
                       textInputAction: TextInputAction.next,
                       scrollPadding: EdgeInsetsDirectional.only(bottom: 250.0.s),

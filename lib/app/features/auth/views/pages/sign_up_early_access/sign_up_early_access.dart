@@ -73,8 +73,12 @@ class SignUpEarlyAccessPage extends HookConsumerWidget {
                             return;
                           }
                           if (isPasskeyAvailable) {
-                            unawaited(SignUpPasskeyRoute().push<void>(context));
-                          } else {
+                            final result = await SignUpPasskeyRoute().push<bool>(context);
+                            if (result == null || result) {
+                              return;
+                            }
+                          }
+                          if (context.mounted) {
                             unawaited(SignUpPasswordRoute().push<void>(context));
                           }
                         }
