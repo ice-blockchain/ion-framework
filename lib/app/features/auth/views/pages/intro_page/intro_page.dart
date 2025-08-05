@@ -53,7 +53,7 @@ class IntroPage extends HookConsumerWidget {
           PositionedDirectional(
             start: 40.0.s,
             end: 40.0.s,
-            bottom: MediaQuery.of(context).padding.bottom + 46.0.s,
+            bottom: MediaQuery.paddingOf(context).bottom + 46.0.s,
             child: Animate(
               effects: [
                 ScaleEffect(
