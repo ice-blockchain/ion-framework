@@ -7,6 +7,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/views/pages/unfollow_user_page.dart';
+import 'package:ion/app/features/optimistic_ui/features/follow/follow_provider.r.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 
@@ -26,7 +27,7 @@ class FollowUserButton extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    ref.displayErrors(followListManagerProvider, excludedExceptions: {UserRelaysNotFoundException});
+    ref.displayErrors(toggleFollowNotifierProvider, excludedExceptions: {UserRelaysNotFoundException});
 
     final following = ref.watch(isCurrentUserFollowingSelectorProvider(pubkey));
     final isCurrentUserFollowed = ref.watch(isCurrentUserFollowedProvider(pubkey));
@@ -41,7 +42,7 @@ class FollowUserButton extends ConsumerWidget {
             ),
           );
         } else {
-          ref.read(followListManagerProvider.notifier).toggleFollow(pubkey);
+          ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
         }
       },
       following: following,
