@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_top_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
@@ -18,6 +19,8 @@ import 'package:ion/app/features/feed/stories/providers/current_user_story_provi
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/article_categories_menu/article_categories_menu.dart';
+import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/components/feed_filters/feed_filters_menu_button.dart';
+import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/components/feed_navigation/feed_navigation.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/components/feed_navigation/feed_notifications_button.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/feed_controls.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_posts_list/feed_posts_list.dart';
@@ -25,6 +28,7 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/s
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/trending_videos.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
+import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 
 class FeedPage extends HookConsumerWidget {
   const FeedPage({super.key});
@@ -45,19 +49,25 @@ class FeedPage extends HookConsumerWidget {
         (feedCategory == FeedCategory.feed || feedCategory == FeedCategory.videos);
 
     final slivers = [
-      SliverToBoxAdapter(
-        child: Column(
-          children: [
-            if (feedCategory == FeedCategory.articles) const ArticleCategoriesMenu(),
-            if (showStories) const Stories(),
-            if (showTrendingVideos) const TrendingVideos(),
-          ],
+      if (showTrendingVideos)
+        const SliverToBoxAdapter(
+          child: TrendingVideos(),
         ),
-      ),
       const FeedPostsList(),
     ];
 
     return Scaffold(
+      appBar: NavigationAppBar.root(
+        title: const FeedNavigation(),
+        actions: [
+          SizedBox(width: 12.0.s),
+          const FeedNotificationsButton(),
+          SizedBox(width: 12.0.s),
+          FeedFiltersMenuButton(scrollController: scrollController),
+        ],
+        scrollController: scrollController,
+        horizontalPadding: ScreenSideOffset.defaultSmallMargin,
+      ),
       body: LoadMoreBuilder(
         slivers: slivers,
         hasMore: hasMorePosts,
@@ -65,9 +75,15 @@ class FeedPage extends HookConsumerWidget {
         builder: (context, slivers) {
           return PullToRefreshBuilder(
             sliverAppBar: CollapsingAppBar(
-              height: FeedControls.height,
-              topOffset: ScreenTopOffset.defaultMargin - FeedNotificationsButton.counterOffset,
-              child: FeedControls(scrollController: scrollController),
+              height: Stories.height,
+              bottomOffset: 0,
+              topOffset: 8.0.s,
+              child: Column(
+                children: [
+                  if (feedCategory == FeedCategory.articles) const ArticleCategoriesMenu(),
+                  if (showStories) const Stories(),
+                ],
+              ),
             ),
             slivers: slivers,
             onRefresh: () =>

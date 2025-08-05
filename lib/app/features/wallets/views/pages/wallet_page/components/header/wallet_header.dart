@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
@@ -18,15 +17,17 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_button/navigation_button.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class Header extends ConsumerWidget {
-  const Header({super.key});
+class WalletHeader extends ConsumerWidget {
+  const WalletHeader({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dappsEnabled =
         ref.watch(featureFlagsProvider.notifier).get(WalletFeatureFlag.dappsEnabled);
-
-    return ScreenSideOffset.small(
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+      ),
       child: SizedBox(
         height: NavigationButton.defaultSize,
         child: Row(
@@ -49,14 +50,22 @@ class Header extends ConsumerWidget {
               ),
             ],
             SizedBox(width: 12.0.s),
-            NavigationButton(
-              onPressed: () => _onScanPressed(ref),
-              icon: Assets.svg.iconHeaderScan1.icon(
-                color: context.theme.appColors.primaryText,
-              ),
-            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class ScanButton extends ConsumerWidget {
+  const ScanButton({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return NavigationButton(
+      onPressed: () => _onScanPressed(ref),
+      icon: Assets.svg.iconHeaderScan1.icon(
+        color: context.theme.appColors.primaryText,
       ),
     );
   }

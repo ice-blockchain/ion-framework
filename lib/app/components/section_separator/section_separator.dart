@@ -13,7 +13,7 @@ class SectionSeparator extends StatelessWidget {
 
   final double? height;
 
-  static const double _defaultHeight = 4;
+  static double defaultHeight = 4.0.s;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class SectionSeparator extends StatelessWidget {
       color: context.theme.appColors.primaryBackground,
       child: ConstrainedBox(
         constraints: BoxConstraints.tight(
-          Size.fromHeight(height ?? _defaultHeight.s),
+          Size.fromHeight(height ?? defaultHeight),
         ),
       ),
     );

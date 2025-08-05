@@ -7,11 +7,8 @@ import 'package:ion/app/router/components/navigation_button/navigation_button.da
 
 class FeedControls extends StatelessWidget {
   const FeedControls({
-    this.scrollController,
     super.key,
   });
-
-  final ScrollController? scrollController;
 
   static double get height => NavigationButton.defaultSize + FeedNotificationsButton.counterOffset;
 
@@ -19,7 +16,7 @@ class FeedControls extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: height,
-      child: FeedNavigation(scrollController: scrollController),
+      child: const FeedNavigation(),
     );
   }
 }

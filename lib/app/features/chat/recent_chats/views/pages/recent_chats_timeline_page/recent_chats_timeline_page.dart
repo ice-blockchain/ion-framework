@@ -29,18 +29,23 @@ import 'package:ion/app/features/user_profile/providers/user_profile_sync_provid
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
 import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class RecentChatsTimelinePage extends HookConsumerWidget {
-  const RecentChatsTimelinePage({required this.conversations, super.key});
+  const RecentChatsTimelinePage({
+    required this.conversations,
+    required this.scrollController,
+    super.key,
+  });
 
   final List<ConversationListItem> conversations;
+  final ScrollController scrollController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final archiveVisible = useState(false);
-    final scrollController = useScrollController();
     useScrollTopOnTabPress(context, scrollController: scrollController);
     final archivedConversations = ref.watch(archivedConversationsProvider);
     final isArchivedConversationsEmpty = archivedConversations.valueOrNull?.isEmpty ?? true;
@@ -60,11 +65,11 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     });
 
     return PullToRefreshBuilder(
-      sliverAppBar: SliverAppBar(
-        pinned: true,
-        backgroundColor: context.theme.appColors.secondaryBackground,
-        surfaceTintColor: context.theme.appColors.secondaryBackground,
-        flexibleSpace: FlexibleSpaceBar(
+      sliverAppBar: CollapsingAppBar(
+        height: SearchInput.height,
+        topOffset: 0,
+        bottomOffset: 0,
+        child: FlexibleSpaceBar(
           background: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => ChatQuickSearchRoute().push<void>(context),
@@ -73,7 +78,6 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
             ),
           ),
         ),
-        toolbarHeight: SearchInput.height,
       ),
       slivers: [
         SliverToBoxAdapter(
@@ -108,12 +112,7 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
         await _forceSyncUserMetadata(ref);
       },
       builder: (context, slivers) => CustomScrollView(
-        primary: false,
         physics: const AlwaysScrollableScrollPhysics(),
-        scrollBehavior: ScrollConfiguration.of(context).copyWith(
-          overscroll: false,
-          physics: const BouncingScrollPhysics(),
-        ),
         controller: scrollController,
         slivers: slivers,
       ),

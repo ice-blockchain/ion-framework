@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
@@ -21,17 +22,24 @@ class ChatMainPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     _useCheckDeviceKeypairDialog(ref);
 
+    final scrollController = useScrollController();
+
     final conversations = ref.watch(conversationsProvider);
 
     return Scaffold(
-      appBar: const ChatMainAppBar(),
+      appBar: ChatMainAppBar(
+        scrollController: scrollController,
+      ),
       body: ScreenSideOffset.small(
         child: conversations.when(
           data: (data) {
             if (data.isEmpty) {
               return const RecentChatsEmptyPage();
             }
-            return RecentChatsTimelinePage(conversations: data);
+            return RecentChatsTimelinePage(
+              conversations: data,
+              scrollController: scrollController,
+            );
           },
           error: (error, stackTrace) => const SizedBox(),
           loading: () => const RecentChatSkeleton(),

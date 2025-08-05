@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_top_offset.dart';
@@ -10,15 +11,17 @@ import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 
-class NavigationAppBar extends StatelessWidget implements PreferredSizeWidget {
+class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
   const NavigationAppBar({
     required this.useScreenTopOffset,
     this.title,
     this.showBackButton = true,
     this.hideKeyboardOnBack = false,
+    this.horizontalPadding,
     this.onBackPress,
     this.actions,
     this.leading,
+    this.scrollController,
     this.backgroundColor,
     super.key,
   });
@@ -27,10 +30,12 @@ class NavigationAppBar extends StatelessWidget implements PreferredSizeWidget {
     Widget? title,
     bool showBackButton = true,
     VoidCallback? onBackPress,
+    double? horizontalPadding,
     List<Widget>? actions,
     Widget? leading,
     Color? backgroundColor,
     Key? key,
+    ScrollController? scrollController,
   }) =>
       NavigationAppBar(
         title: title,
@@ -41,12 +46,15 @@ class NavigationAppBar extends StatelessWidget implements PreferredSizeWidget {
         leading: leading,
         backgroundColor: backgroundColor,
         key: key,
+        scrollController: scrollController,
+        horizontalPadding: horizontalPadding,
       );
 
   factory NavigationAppBar.modal({
     Widget? title,
     bool showBackButton = true,
     VoidCallback? onBackPress,
+    double? horizontalPadding,
     List<Widget>? actions,
     bool hideKeyboardOnBack = true,
     Widget? leading,
@@ -61,6 +69,22 @@ class NavigationAppBar extends StatelessWidget implements PreferredSizeWidget {
         hideKeyboardOnBack: hideKeyboardOnBack,
         leading: leading,
         key: key,
+        horizontalPadding: horizontalPadding,
+      );
+
+  factory NavigationAppBar.root({
+    Widget? title,
+    List<Widget>? actions,
+    double? horizontalPadding,
+    ScrollController? scrollController,
+  }) =>
+      NavigationAppBar(
+        title: title,
+        actions: actions,
+        useScreenTopOffset: true,
+        showBackButton: false,
+        horizontalPadding: horizontalPadding,
+        scrollController: scrollController,
       );
 
   static double get modalHeaderHeight => 60.0.s;
@@ -72,14 +96,34 @@ class NavigationAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? title;
   final bool showBackButton;
   final bool hideKeyboardOnBack;
+  final double? horizontalPadding;
   final VoidCallback? onBackPress;
   final List<Widget>? actions;
   final bool useScreenTopOffset;
   final Widget? leading;
   final Color? backgroundColor;
+  final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context) {
+    final hasScrolled = useState(false);
+    useEffect(
+      () {
+        if (scrollController == null) return () {};
+        
+        void scrollListener() {
+          final newHasScrolled = scrollController!.offset > 0;
+          if (hasScrolled.value != newHasScrolled) {
+            hasScrolled.value = newHasScrolled;
+          }
+        }
+
+        scrollController!.addListener(scrollListener);
+        return () => scrollController!.removeListener(scrollListener);
+      },
+      [scrollController],
+    );
+
     final Widget? titleWidget = title != null
         ? DefaultTextStyle(
             textAlign: TextAlign.center,
@@ -90,15 +134,11 @@ class NavigationAppBar extends StatelessWidget implements PreferredSizeWidget {
         : null;
 
     final effectiveTrailing = actions != null && actions!.isNotEmpty
-        ? Padding(
-            padding: EdgeInsetsDirectional.only(
-              end: ScreenSideOffset.defaultSmallMargin - UiConstants.hitSlop,
-            ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: actions!),
-          )
+        ? Row(mainAxisSize: MainAxisSize.min, children: actions!)
         : null;
 
     final Widget appBarContent = NavigationToolbar(
+      middleSpacing: 0,
       leading: leading ??
           (showBackButton
               ? NavigationBackButton(
@@ -111,9 +151,26 @@ class NavigationAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
 
     final Widget appBar = Container(
-      color: backgroundColor ?? context.theme.appColors.secondaryBackground,
       height: useScreenTopOffset ? screenHeaderHeight : modalHeaderHeight,
-      child: appBarContent,
+      decoration: BoxDecoration(
+        color: backgroundColor ?? context.theme.appColors.secondaryBackground,
+        boxShadow: hasScrolled.value
+            ? [
+                BoxShadow(
+                  color: context.theme.appColors.shadow.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ]
+            : [],
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal:
+              horizontalPadding ?? ScreenSideOffset.defaultSmallMargin - UiConstants.hitSlop,
+        ),
+        child: appBarContent,
+      ),
     );
 
     return useScreenTopOffset
