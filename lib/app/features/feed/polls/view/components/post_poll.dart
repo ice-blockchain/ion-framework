@@ -39,10 +39,17 @@ class PostPoll extends ConsumerWidget {
         pollData: pollData,
         selectedOptionIndex: userVotedOptionIndex,
         onVote: (optionIndex) async {
-          await ref.read(pollVoteNotifierProvider.notifier).vote(
-                postReference,
-                optionIndex.toString(),
-              );
+          final voteNotifier = ref.read(pollVoteNotifierProvider.notifier);
+          final isLoading = ref.read(pollVoteNotifierProvider).isLoading;
+
+          if (isLoading) {
+            return;
+          }
+
+          await voteNotifier.vote(
+            postReference,
+            optionIndex.toString(),
+          );
         },
       );
     }
