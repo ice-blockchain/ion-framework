@@ -5,10 +5,12 @@ import 'package:ion/app/services/file_cache/limited_concurrent_http_file_service
 
 class FeedImagesCacheManager {
   static late final CacheManager instance;
+  static bool _initialized = false;
 
   static const key = 'feedImagesCacheKey';
 
   static void init({required int maxConcurrentDownloads}) {
+    if (_initialized) return;
     final config = Config(
       key,
       fileService: LimitedConcurrentHttpFileService(concurrentFetches: maxConcurrentDownloads),
@@ -19,5 +21,6 @@ class FeedImagesCacheManager {
     instance = CacheManager(
       config,
     );
+    _initialized = true;
   }
 }
