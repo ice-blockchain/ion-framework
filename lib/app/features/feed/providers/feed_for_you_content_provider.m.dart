@@ -36,7 +36,6 @@ part 'feed_for_you_content_provider.m.g.dart';
 class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   @override
   FeedForYouContentState build(FeedType feedType, {FeedModifier? feedModifier}) {
-    Future.microtask(fetchEntities);
     ref.listen(
       feedFollowingContentProvider(
         feedType,
@@ -46,6 +45,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       ),
       noop,
     );
+    Future(fetchEntities);
     return const FeedForYouContentState(
       items: null,
       isLoading: false,
