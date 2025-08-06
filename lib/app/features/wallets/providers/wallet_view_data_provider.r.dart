@@ -8,6 +8,7 @@ import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/wallet_views/wallet_views_service.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
+import 'package:ion/app/features/wallets/model/transaction_crypto_asset.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
@@ -27,23 +28,56 @@ class WalletViewsDataNotifier extends _$WalletViewsDataNotifier {
 
   @override
   Future<List<WalletViewData>> build() async {
+    final startTime = DateTime.now();
+    Logger.info('[WalletViewsDataNotifier] Provider build started at $startTime');
+
     // Wait until all preparations are completed
     await ref.watch(walletsInitializerNotifierProvider.future);
+    Logger.info('[WalletViewsDataNotifier] WalletsInitializer completed');
 
     final walletViewsService = await ref.watch(walletViewsServiceProvider.future);
+    Logger.info('[WalletViewsDataNotifier] WalletViewsService obtained');
 
     final walletViews = await walletViewsService.fetch();
+    Logger.info('[WalletViewsDataNotifier] Fetched ${walletViews.length} wallet views');
+
+    // Log initial balances
+    for (final walletView in walletViews) {
+      for (final coinGroup in walletView.coinGroups) {
+        Logger.info(
+            '[WalletViewsDataNotifier] Initial balance for ${coinGroup.symbolGroup}: ${coinGroup.totalAmount} (USD: \$${coinGroup.totalBalanceUSD.toStringAsFixed(2)})');
+      }
+    }
+
     walletViewsService.walletViews.listen((walletViews) {
+      Logger.info(
+          '[WalletViewsDataNotifier] Received wallet views update from service - ${walletViews.length} views');
+
+      // Log updated balances
+      for (final walletView in walletViews) {
+        for (final coinGroup in walletView.coinGroups) {
+          Logger.info(
+              '[WalletViewsDataNotifier] Updated balance from service for ${coinGroup.symbolGroup}: ${coinGroup.totalAmount} (USD: \$${coinGroup.totalBalanceUSD.toStringAsFixed(2)})');
+        }
+      }
+
       state = AsyncData(walletViews);
+      Logger.info('[WalletViewsDataNotifier] State updated with new wallet views');
     });
 
     await _setupBroadcastedTransfersListener(walletViews);
 
     ref.onDispose(() {
+      Logger.info('[WalletViewsDataNotifier] Provider disposed');
       _subscription?.cancel();
       _broadcastedTransfersSubscription?.cancel();
       _walletViewTransactions.clear();
     });
+
+    final endTime = DateTime.now();
+    final duration = endTime.difference(startTime).inMilliseconds;
+    Logger.info(
+        '[WalletViewsDataNotifier] Provider build completed in ${duration}ms, returning ${walletViews.length} wallet views');
 
     return walletViews;
   }
@@ -74,16 +108,51 @@ class WalletViewsDataNotifier extends _$WalletViewsDataNotifier {
   }
 
   Future<void> _onBroadcastedTransfersUpdate(List<TransactionData> transactions) async {
+    final timestamp = DateTime.now();
+    Logger.info(
+        '[WalletViewDataNotifier] _onBroadcastedTransfersUpdate called at $timestamp with ${transactions.length} transactions');
+
+    // Log detailed transaction information
+    for (final transaction in transactions) {
+      final asset = transaction.cryptoAsset;
+      if (asset is CoinTransactionAsset) {
+        Logger.info('[WalletViewDataNotifier] Transaction update: ${transaction.txHash}');
+        Logger.info('[WalletViewDataNotifier]   - Status: ${transaction.status}');
+        Logger.info('[WalletViewDataNotifier]   - Coin: ${asset.coin.abbreviation}');
+        Logger.info('[WalletViewDataNotifier]   - Amount: ${asset.amount}');
+        Logger.info('[WalletViewDataNotifier]   - Sender: ${transaction.senderWalletAddress}');
+        Logger.info('[WalletViewDataNotifier]   - WalletViewId: ${transaction.walletViewId}');
+      }
+    }
+
     final currentTransactionsByWalletView = _groupTransactionsByWalletView(transactions);
+    Logger.info(
+        '[WalletViewDataNotifier] Grouped transactions by wallet view: ${currentTransactionsByWalletView.keys.length} wallet views affected');
+
+    for (final entry in currentTransactionsByWalletView.entries) {
+      final walletViewId = entry.key;
+      final txHashes = entry.value;
+      Logger.info(
+          '[WalletViewDataNotifier] Wallet view $walletViewId has ${txHashes.length} transactions: ${txHashes.join(", ")}');
+    }
+
     final affectedWalletViewIds = _findAffectedWalletViews(currentTransactionsByWalletView);
+    Logger.info(
+        '[WalletViewDataNotifier] Found ${affectedWalletViewIds.length} affected wallet view IDs: ${affectedWalletViewIds.join(", ")}');
 
     if (affectedWalletViewIds.isNotEmpty) {
+      Logger.info(
+          '[WalletViewDataNotifier] Refreshing ${affectedWalletViewIds.length} affected wallet views');
       await _refreshAffectedWalletViews(affectedWalletViewIds);
+      Logger.info('[WalletViewDataNotifier] Finished refreshing affected wallet views');
+    } else {
+      Logger.info('[WalletViewDataNotifier] No wallet views need refreshing');
     }
   }
 
   /// Finds wallet view IDs that have transaction changes compared to cached state
   Set<String> _findAffectedWalletViews(Map<String, Set<String>> currentTransactionsByWalletView) {
+    Logger.info('[WalletViewDataNotifier] _findAffectedWalletViews checking for changes');
     final affectedWalletViewIds = <String>{};
 
     final allWalletViewIds = <String>{
@@ -91,23 +160,57 @@ class WalletViewsDataNotifier extends _$WalletViewsDataNotifier {
       ..._walletViewTransactions.keys,
     };
 
+    Logger.info(
+        '[WalletViewDataNotifier] Checking ${allWalletViewIds.length} total wallet view IDs for transaction changes');
+
     for (final walletViewId in allWalletViewIds) {
       final currentTxs = currentTransactionsByWalletView[walletViewId] ?? <String>{};
       final cachedTxs = _walletViewTransactions[walletViewId] ?? <String>{};
 
-      if (!const SetEquality<String>().equals(currentTxs, cachedTxs)) {
+      Logger.info('[WalletViewDataNotifier] Comparing transactions for wallet view $walletViewId:');
+      Logger.info(
+          '[WalletViewDataNotifier]   - Current transactions (${currentTxs.length}): ${currentTxs.isEmpty ? 'none' : currentTxs.join(', ')}');
+      Logger.info(
+          '[WalletViewDataNotifier]   - Cached transactions (${cachedTxs.length}): ${cachedTxs.isEmpty ? 'none' : cachedTxs.join(', ')}');
+
+      final isEqual = const SetEquality<String>().equals(currentTxs, cachedTxs);
+      Logger.info('[WalletViewDataNotifier]   - Sets are equal: $isEqual');
+
+      if (!isEqual) {
         affectedWalletViewIds.add(walletViewId);
+
+        // Log what changed
+        final addedTxs = currentTxs.difference(cachedTxs);
+        final removedTxs = cachedTxs.difference(currentTxs);
+
+        if (addedTxs.isNotEmpty) {
+          Logger.info('[WalletViewDataNotifier]   - Added transactions: ${addedTxs.join(', ')}');
+        }
+        if (removedTxs.isNotEmpty) {
+          Logger.info(
+              '[WalletViewDataNotifier]   - Removed transactions: ${removedTxs.join(', ')}');
+        }
+
+        // Update cache
+        final previousCache = Set<String>.from(cachedTxs);
         _walletViewTransactions[walletViewId] = currentTxs;
+        Logger.info(
+            '[WalletViewDataNotifier]   - Updated cache from ${previousCache.length} to ${currentTxs.length} transactions');
 
         Logger.info(
-          '[WalletViewDataNotifier] Wallet view affected | '
+          '[WalletViewDataNotifier] ✓ Wallet view affected | '
           'ID: $walletViewId | '
           'Current TXs: ${currentTxs.length} | '
-          'Cached TXs: ${cachedTxs.length}',
+          'Previous Cached TXs: ${cachedTxs.length}',
         );
+      } else {
+        Logger.info(
+            '[WalletViewDataNotifier]   - No changes detected for wallet view $walletViewId');
       }
     }
 
+    Logger.info(
+        '[WalletViewDataNotifier] Transaction comparison complete: ${affectedWalletViewIds.length} wallet views affected');
     return affectedWalletViewIds;
   }
 

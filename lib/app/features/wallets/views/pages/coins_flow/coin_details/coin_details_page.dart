@@ -26,6 +26,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/pro
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/date.dart';
 
 class CoinDetailsPage extends HookConsumerWidget {
@@ -149,13 +150,30 @@ class CoinDetailsPage extends HookConsumerWidget {
         onLoadMore: historyNotifier.loadMore,
         builder: (context, slivers) => PullToRefreshBuilder(
           onRefresh: () async {
+            final startTime = DateTime.now().millisecondsSinceEpoch;
+            Logger.info('[CoinDetailsPage] Pull-to-refresh started for $symbolGroup at ${DateTime.now()}');
+            
+            // Log current balance before refresh
+            final currentWalletView = ref.read(currentWalletViewDataProvider).requireValue;
+            final currentCoinsGroup = currentWalletView.coinGroups.firstWhere((e) => e.symbolGroup == symbolGroup);
+            Logger.info('[CoinDetailsPage] Current balance before refresh: ${currentCoinsGroup.totalAmount} ${currentCoinsGroup.abbreviation} (USD: \$${currentCoinsGroup.totalBalanceUSD.toStringAsFixed(2)})');
+
+            Logger.info('[CoinDetailsPage] Invalidating providers...');
             ref
               ..invalidate(walletViewsDataNotifierProvider)
               ..invalidate(coinTransactionHistoryNotifierProvider(symbolGroup: symbolGroup));
 
-            // Sync transactions for this specific coin across all networks
+            Logger.info('[CoinDetailsPage] Starting transaction sync for $symbolGroup...');
             final syncService = await ref.read(syncTransactionsServiceProvider.future);
             await syncService.syncCoinTransactions(symbolGroup);
+            
+            final endTime = DateTime.now().millisecondsSinceEpoch;
+            Logger.info('[CoinDetailsPage] Pull-to-refresh completed for $symbolGroup in ${endTime - startTime}ms');
+            
+            // Log balance after refresh
+            final refreshedWalletView = ref.read(currentWalletViewDataProvider).requireValue;
+            final refreshedCoinsGroup = refreshedWalletView.coinGroups.firstWhere((e) => e.symbolGroup == symbolGroup);
+            Logger.info('[CoinDetailsPage] Balance after refresh: ${refreshedCoinsGroup.totalAmount} ${refreshedCoinsGroup.abbreviation} (USD: \$${refreshedCoinsGroup.totalBalanceUSD.toStringAsFixed(2)})');
           },
           slivers: slivers,
         ),

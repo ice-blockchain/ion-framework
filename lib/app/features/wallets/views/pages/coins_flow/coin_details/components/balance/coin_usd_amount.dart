@@ -12,6 +12,7 @@ import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/wallet_user_preferences_provider.r.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -22,11 +23,17 @@ class CoinUsdAmount extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final timestamp = DateTime.now();
+    Logger.info('[CoinUsdAmount] Component rebuilding at $timestamp for ${coinsGroup.symbolGroup}');
+    Logger.info('[CoinUsdAmount] Balance data: ${coinsGroup.totalAmount} ${coinsGroup.abbreviation} (USD: \$${coinsGroup.totalBalanceUSD.toStringAsFixed(2)})');
+    
     final coinText = '${formatCrypto(coinsGroup.totalAmount)} ${coinsGroup.abbreviation}';
     final usdText = context.i18n.wallet_approximate_in_usd(
       formatUSD(coinsGroup.totalBalanceUSD),
     );
     final displayOrder = ref.watch(balanceDisplayOrderProvider);
+    
+    Logger.info('[CoinUsdAmount] Display texts - Coin: "$coinText", USD: "$usdText", Order: $displayOrder');
 
     return Column(
       children: [
