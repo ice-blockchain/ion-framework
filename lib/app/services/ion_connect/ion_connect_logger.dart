@@ -14,8 +14,7 @@ enum NostrMessageType {
   notice('NOTICE'),
   closed('CLOSED'),
   eose('EOSE'),
-  auth('AUTH'),
-  unsubscribe('UNSUBSCRIBE');
+  auth('AUTH');
 
   const NostrMessageType(this.value);
   final String value;
@@ -448,9 +447,12 @@ class IonConnectLogger implements NostrDartLogger {
 
     setEventId(relayUrl, event.id);
     startRequestTimer(relayUrl);
-    final subscriptionId = getSubscriptionId(relayUrl) ?? 'event:${event.id}';
 
-    final groupKey = '$relayUrl:$subscriptionId';
+    // Enhanced ID fallback chain: sessionId -> subscriptionId -> event.subscriptionId -> event.sig -> event.id
+    final subscriptionId = getSubscriptionId(relayUrl);
+    final id = subscriptionId ?? event.subscriptionId ?? event.sig ?? 'event:${event.id}';
+
+    final groupKey = '$relayUrl:$id';
     final showPrefix = !_loggedGroups.contains(groupKey);
     if (showPrefix) {
       _loggedGroups.add(groupKey);
@@ -460,7 +462,7 @@ class IonConnectLogger implements NostrDartLogger {
       relayUrl: relayUrl,
       messageType: NostrMessageType.event,
       message: jsonEncode(event.toJson()),
-      subscriptionId: subscriptionId,
+      subscriptionId: id,
       showPrefix: showPrefix,
     );
   }
@@ -516,8 +518,11 @@ class IonConnectLogger implements NostrDartLogger {
 
     logPendingRequest(relayUrl);
 
+    // Enhanced ID fallback chain: sessionId -> subscriptionId -> event.subscriptionId -> event.sig -> event.id
     final subscriptionId = getSubscriptionId(relayUrl);
-    final groupKey = '$relayUrl:$subscriptionId';
+    final id = subscriptionId ?? event.subscriptionId ?? event.sig ?? 'event:${event.id}';
+
+    final groupKey = '$relayUrl:$id';
     final showPrefix = !_loggedGroups.contains(groupKey);
     if (showPrefix) {
       _loggedGroups.add(groupKey);
@@ -527,7 +532,7 @@ class IonConnectLogger implements NostrDartLogger {
       relayUrl: relayUrl,
       messageType: NostrMessageType.event,
       message: jsonEncode(event.toJson()),
-      subscriptionId: getSubscriptionId(relayUrl),
+      subscriptionId: id,
       eventId: event.id,
       showPrefix: showPrefix,
     );

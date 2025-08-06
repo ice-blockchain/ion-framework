@@ -43,7 +43,7 @@ class RelayLoggingWrapper implements IonConnectRelay {
     IonConnectLogger.startSessionWithId(sessionId);
 
     // Log REQ immediately since this is a persistent subscription
-    IonConnectLogger.trackComponent(sessionId, 'REQ');
+    IonConnectLogger.trackComponent(sessionId, NostrMessageType.req.name);
     IonConnectLogger.logNetworkCallWithSession(
       relayUrl: _relayUrl,
       messageType: NostrMessageType.req,
@@ -78,58 +78,63 @@ class RelayLoggingWrapper implements IonConnectRelay {
     }
 
     if (message is EventMessage) {
-      if (sessionId != null) {
+      // Enhanced ID fallback chain for each event: subscriptionId -> event.subscriptionId -> event.sig -> event.id
+      final eventId = message.subscriptionId ?? message.sig ?? message.id;
+
+      // For subscription flows, only track the first EVENT component (regardless of EVENT ID)
+      final isSubscriptionFlow = _subscriptionToSession.containsKey(message.subscriptionId);
+
+      if (isSubscriptionFlow) {
         // For subscription flows, only track the first EVENT component (regardless of EVENT ID)
-        final isSubscriptionFlow = _subscriptionToSession.containsKey(message.subscriptionId);
+        final hasTrackedAnyEvent =
+            IonConnectLogger.hasComponent(eventId, NostrMessageType.event.name);
 
-        if (isSubscriptionFlow) {
-          // For subscription flows, only track the first EVENT component (regardless of EVENT ID)
-          final hasTrackedAnyEvent = IonConnectLogger.hasComponent(sessionId, 'EVENT');
-
-          // Debug logging
-          Logger.log(
-            '[DEBUG] Session $sessionId - EVENT ID: ${message.id}, Has tracked any EVENT: $hasTrackedAnyEvent',
-          );
-
-          if (!hasTrackedAnyEvent) {
-            IonConnectLogger.trackComponent(sessionId, 'EVENT');
-            Logger.log(
-              '[DEBUG] Session $sessionId - Tracking first EVENT component for ID: ${message.id}',
-            );
-          } else {
-            Logger.log(
-              '[DEBUG] Session $sessionId - Skipping EVENT component for ID: ${message.id} (already tracked first EVENT)',
-            );
-          }
-        } else {
-          // For write flows, track every EVENT component
-          IonConnectLogger.trackComponent(sessionId, 'EVENT');
-        }
-
-        IonConnectLogger.logNetworkCallWithSession(
-          relayUrl: _relayUrl,
-          messageType: NostrMessageType.event,
-          message: jsonEncode(message.toJson()),
-          sessionId: sessionId,
-          eventId: message.id,
-          isOutgoing: false, // We're receiving this event
+        // Debug logging
+        Logger.log(
+          '[DEBUG] Session $eventId - EVENT ID: ${message.id}, Has tracked any EVENT: $hasTrackedAnyEvent',
         );
+
+        if (!hasTrackedAnyEvent) {
+          IonConnectLogger.trackComponent(eventId, NostrMessageType.event.name);
+          Logger.log(
+            '[DEBUG] Session $eventId - Tracking first EVENT component for ID: ${message.id}',
+          );
+        } else {
+          Logger.log(
+            '[DEBUG] Session $eventId - Skipping EVENT component for ID: ${message.id} (already tracked first EVENT)',
+          );
+        }
+      } else {
+        // For write flows, track every EVENT component
+        IonConnectLogger.trackComponent(eventId, NostrMessageType.event.name);
       }
+
+      IonConnectLogger.logNetworkCallWithSession(
+        relayUrl: _relayUrl,
+        messageType: NostrMessageType.event,
+        message: jsonEncode(message.toJson()),
+        sessionId: eventId,
+        eventId: message.id,
+        isOutgoing: false, // We're receiving this event
+      );
     } else if (message is OkMessage) {
-      if (sessionId != null) {
+      // For OK messages, use the event ID as the session ID for unique identification
+      final okSessionId = message.eventId;
+
+      if (okSessionId.isNotEmpty) {
         // Check if this is a duplicate OK response before logging
         final isDuplicate =
-            IonConnectLogger.isDuplicateOkResponse(sessionId, _relayUrl, message.eventId);
+            IonConnectLogger.isDuplicateOkResponse(sessionId ?? '', _relayUrl, message.eventId);
 
         if (!isDuplicate) {
           // Track OK component only for non-duplicates
-          IonConnectLogger.trackComponent(sessionId, 'OK');
+          IonConnectLogger.trackComponent(okSessionId, NostrMessageType.ok.name);
 
           IonConnectLogger.logNetworkCallWithSession(
             relayUrl: _relayUrl,
             messageType: NostrMessageType.ok,
             message: jsonEncode(message.toJson()),
-            sessionId: sessionId,
+            sessionId: okSessionId,
             eventId: message.eventId,
             accepted: message.accepted,
             errorMessage: message.message,
@@ -139,13 +144,13 @@ class RelayLoggingWrapper implements IonConnectRelay {
 
         // Check if we can end the session (all relays have responded)
         final canEndSession = IonConnectLogger.trackOkReceivedFromRelay(
-          sessionId,
+          sessionId ?? '',
           _relayUrl,
           message.eventId,
         );
 
         if (canEndSession) {
-          IonConnectLogger.endSession(sessionId);
+          IonConnectLogger.endSession(sessionId ?? '');
           _subscriptionToSession.remove(sessionId);
           if (_currentSessionId == sessionId) {
             _currentSessionId = null;
@@ -165,7 +170,7 @@ class RelayLoggingWrapper implements IonConnectRelay {
     } else if (message is ClosedMessage) {
       if (sessionId != null) {
         // Track CLOSED component
-        IonConnectLogger.trackComponent(sessionId, 'CLOSED');
+        IonConnectLogger.trackComponent(sessionId, NostrMessageType.closed.name);
 
         IonConnectLogger.logNetworkCallWithSession(
           relayUrl: _relayUrl,
@@ -185,7 +190,7 @@ class RelayLoggingWrapper implements IonConnectRelay {
     } else if (message is EoseMessage) {
       if (sessionId != null) {
         // Track EOSE component
-        IonConnectLogger.trackComponent(sessionId, 'EOSE');
+        IonConnectLogger.trackComponent(sessionId, NostrMessageType.eose.name);
 
         IonConnectLogger.logNetworkCallWithSession(
           relayUrl: _relayUrl,
@@ -213,7 +218,8 @@ class RelayLoggingWrapper implements IonConnectRelay {
   Future<void> sendEvents(List<EventMessage> events) async {
     // Use existing session ID if set, otherwise create one from first event
     if (_currentSessionId == null && events.isNotEmpty) {
-      _currentSessionId = events.first.id; // Use first event ID as session ID
+      final firstEvent = events.first;
+      _currentSessionId = firstEvent.subscriptionId ?? firstEvent.sig ?? firstEvent.id;
       IonConnectLogger.startSessionWithId(_currentSessionId!);
     }
 
@@ -227,15 +233,19 @@ class RelayLoggingWrapper implements IonConnectRelay {
 
     for (var i = 0; i < events.length; i++) {
       final event = events[i];
-      if (_currentSessionId != null) {
-        IonConnectLogger.trackComponent(_currentSessionId!, 'EVENT');
-      }
       final showPrefix = i == 0; // Only show prefix for the first event
+
+      // Enhanced ID fallback chain for each event: subscriptionId -> event.subscriptionId -> event.sig -> event.id
+      final eventId = event.subscriptionId ?? event.sig ?? event.id;
+
+      // Use the enhanced ID for session tracking as well
+      IonConnectLogger.trackComponent(eventId, NostrMessageType.event.name);
+
       IonConnectLogger.logNetworkCallWithSession(
         relayUrl: _relayUrl,
         messageType: NostrMessageType.event,
         message: jsonEncode(event.toJson()),
-        sessionId: _currentSessionId ?? '',
+        sessionId: eventId,
         eventId: event.id,
         showPrefix: showPrefix,
         isOutgoing: true, // We're sending this event
@@ -251,17 +261,20 @@ class RelayLoggingWrapper implements IonConnectRelay {
     _currentSessionId ??= '';
 
     if (message is EventMessage) {
-      IonConnectLogger.trackComponent(_currentSessionId!, 'EVENT');
+      // Enhanced ID fallback chain for each event: subscriptionId -> event.subscriptionId -> event.sig -> event.id
+      final eventId = message.subscriptionId ?? message.sig ?? message.id;
+
+      IonConnectLogger.trackComponent(_currentSessionId!, NostrMessageType.event.name);
       IonConnectLogger.logNetworkCallWithSession(
         relayUrl: _relayUrl,
         messageType: NostrMessageType.event,
         message: jsonEncode(message.toJson()),
-        sessionId: _currentSessionId!,
+        sessionId: eventId,
         eventId: message.id,
         isOutgoing: false, // We're receiving this event
       );
     } else if (message is RequestMessage) {
-      IonConnectLogger.trackComponent(_currentSessionId!, 'REQ');
+      IonConnectLogger.trackComponent(_currentSessionId!, NostrMessageType.req.name);
       IonConnectLogger.logNetworkCallWithSession(
         relayUrl: _relayUrl,
         messageType: NostrMessageType.req,
@@ -269,16 +282,23 @@ class RelayLoggingWrapper implements IonConnectRelay {
         sessionId: _currentSessionId!,
       );
     } else if (message is AuthMessage) {
-      IonConnectLogger.trackComponent(_currentSessionId!, 'AUTH');
-      IonConnectLogger.logNetworkCallWithSession(
-        relayUrl: _relayUrl,
-        messageType: NostrMessageType.auth,
-        message: jsonEncode(message.toJson()),
-        sessionId: _currentSessionId!,
-      );
-    }
+      try {
+        final sig = (jsonDecode(message.challenge) as Map<String, dynamic>)['sig'] as String?;
+        if (sig != null) {
+          IonConnectLogger.trackComponent(sig, NostrMessageType.auth.name);
 
-    _relay.sendMessage(message);
+          IonConnectLogger.logNetworkCallWithSession(
+            relayUrl: _relayUrl,
+            messageType: NostrMessageType.auth,
+            message: jsonEncode(message.toJson()),
+            sessionId: sig,
+          );
+          _relay.sendMessage(message);
+        }
+      } catch (e) {
+        Logger.log('[DEBUG] Error decoding challenge: $e');
+      }
+    }
   }
 
   /// Wraps the unsubscribe method
@@ -290,7 +310,7 @@ class RelayLoggingWrapper implements IonConnectRelay {
     if (sessionId != null) {
       IonConnectLogger.logNetworkCallWithSession(
         relayUrl: _relayUrl,
-        messageType: NostrMessageType.unsubscribe,
+        messageType: NostrMessageType.closed,
         message: 'Unsubscribing subscription: $subscriptionId',
         sessionId: sessionId,
         showPrefix: false,
@@ -299,7 +319,7 @@ class RelayLoggingWrapper implements IonConnectRelay {
     } else {
       IonConnectLogger.logNetworkCall(
         relayUrl: _relayUrl,
-        messageType: NostrMessageType.unsubscribe,
+        messageType: NostrMessageType.closed,
         message: 'Unsubscribing subscription: $subscriptionId',
         subscriptionId: subscriptionId,
         showPrefix: false,
@@ -337,7 +357,7 @@ class RelayLoggingWrapper implements IonConnectRelay {
   @override
   Future<void> sendEvent(EventMessage event) async {
     if (_currentSessionId == null) {
-      _currentSessionId = event.id; // Use event ID as session ID
+      _currentSessionId = event.subscriptionId ?? event.sig ?? event.id;
       IonConnectLogger.startSessionWithId(_currentSessionId!);
     }
 
@@ -346,12 +366,17 @@ class RelayLoggingWrapper implements IonConnectRelay {
       IonConnectLogger.trackEventSentToRelay(_currentSessionId!, _relayUrl, event.id);
     }
 
-    IonConnectLogger.trackComponent(_currentSessionId!, 'EVENT');
+    // Enhanced ID fallback chain for each event: subscriptionId -> event.subscriptionId -> event.sig -> event.id
+    final eventId = event.subscriptionId ?? event.sig ?? event.id;
+
+    // Use the enhanced ID for session tracking as well
+    IonConnectLogger.trackComponent(eventId, NostrMessageType.event.name);
+
     IonConnectLogger.logNetworkCallWithSession(
       relayUrl: _relayUrl,
       messageType: NostrMessageType.event,
       message: jsonEncode(event.toJson()),
-      sessionId: _currentSessionId!,
+      sessionId: eventId,
       eventId: event.id,
       isOutgoing: true, // We're sending this event
     );

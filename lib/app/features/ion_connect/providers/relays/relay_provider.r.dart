@@ -8,8 +8,8 @@ import 'package:ion/app/features/ion_connect/providers/mixins/relay_auth_mixin.d
 import 'package:ion/app/features/ion_connect/providers/mixins/relay_closed_mixin.dart';
 import 'package:ion/app/features/ion_connect/providers/mixins/relay_create_mixin.dart';
 import 'package:ion/app/features/ion_connect/providers/mixins/relay_timer_mixin.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_logging_wrapper.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'relay_provider.r.g.dart';
