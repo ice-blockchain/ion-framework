@@ -9,6 +9,7 @@ import 'package:ion/app/features/feed/data/models/bookmarks/bookmarks_set.f.dart
 import 'package:ion/app/features/feed/providers/feed_bookmarks_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
+import 'package:ion/app/features/optimistic_ui/features/bookmark/bookmark_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -62,13 +63,10 @@ class BookmarkButton extends HookConsumerWidget {
       onTap: isLoading
           ? null
           : () {
-              ref
-                  .read(
-                    feedBookmarksNotifierProvider(
-                      collectionDTag: BookmarksSetType.homeFeedCollectionsAll.dTagName,
-                    ).notifier,
-                  )
-                  .toggleBookmark(eventReference);
+              ref.read(toggleBookmarkNotifierProvider.notifier).toggle(
+                    eventReference: eventReference,
+                    collectionDTag: BookmarksSetType.homeFeedCollectionsAll.dTagName,
+                  );
               if (!isBookmarked) {
                 AddBookmarkRoute(eventReference: eventReference.encode()).push<void>(context);
               }

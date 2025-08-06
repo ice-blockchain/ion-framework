@@ -15,6 +15,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/repository/event_messages_repository.r.dart';
+import 'package:ion/app/features/optimistic_ui/features/bookmark/bookmark_provider.r.dart';
 import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -77,87 +78,68 @@ class FeedBookmarksNotifier extends _$FeedBookmarksNotifier {
   }
 
   Future<void> toggleBookmark(EventReference eventReference) async {
-    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-    final bookmarksCollection = state.valueOrNull;
-    if (currentPubkey == null || bookmarksCollection == null) {
-      return;
-    }
-    final newAllBookmarksRefs = <EventReference>[];
-    if (bookmarksCollection.data.eventReferences.contains(eventReference)) {
-      newAllBookmarksRefs
-        ..addAll(bookmarksCollection.data.eventReferences)
-        ..remove(eventReference);
-    } else {
-      newAllBookmarksRefs
-        ..add(eventReference)
-        ..addAll(bookmarksCollection.data.eventReferences);
-    }
-
-    state = AsyncValue.data(
-      bookmarksCollection.copyWith(
-        data: bookmarksCollection.data.copyWith(eventReferences: newAllBookmarksRefs),
-      ),
-    );
-    try {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+      final bookmarksCollection = state.valueOrNull;
+      if (currentPubkey == null || bookmarksCollection == null) {
+        return state.value;
+      }
+      final newAllBookmarksRefs = <EventReference>[];
       if (bookmarksCollection.data.eventReferences.contains(eventReference)) {
+        newAllBookmarksRefs
+          ..addAll(bookmarksCollection.data.eventReferences)
+          ..remove(eventReference);
+
         // If toggling off in the default collection, also remove from all other collections
         if (bookmarksCollection.data.type == BookmarksSetType.homeFeedCollectionsAll.dTagName) {
-          final collectionsRefs = await ref.read(
-            feedBookmarkCollectionsNotifierProvider.future,
-          );
-          final collectionsDTags = collectionsRefs
+          final collectionsRefs = ref
+                  .read(
+                    feedBookmarkCollectionsNotifierProvider,
+                  )
+                  .value ??
+              [];
+          collectionsRefs
               .map((collectionRef) => collectionRef.dTag)
               .whereType<String>()
               .where((dTag) => dTag != BookmarksSetType.homeFeedCollectionsAll.dTagName)
-              .toList();
-          await Future.wait(
-            collectionsDTags.map(
-              (dTag) async {
-                final isIncluded = (await ref.read(
-                      feedBookmarksNotifierProvider(
+              .forEach(
+            (dTag) {
+              final isIncluded =
+                  ref.read(isBookmarkedInCollectionProvider(eventReference, collectionDTag: dTag));
+              if (isIncluded) {
+                unawaited(
+                  ref.read(toggleBookmarkNotifierProvider.notifier).toggle(
+                        eventReference: eventReference,
                         collectionDTag: dTag,
-                      ).future,
-                    ))
-                        ?.data
-                        .eventReferences
-                        .contains(eventReference) ??
-                    false;
-                if (isIncluded) {
-                  await ref
-                      .read(
-                        feedBookmarksNotifierProvider(
-                          collectionDTag: dTag,
-                        ).notifier,
-                      )
-                      .toggleBookmark(eventReference);
-                }
-              },
-            ),
+                      ),
+                );
+              }
+            },
           );
         }
       } else {
-        if (bookmarksCollection.data.type != BookmarksSetType.homeFeedCollectionsAll.dTagName) {
-          final isIncluded = (await ref.read(
-                feedBookmarksNotifierProvider(
-                  collectionDTag: BookmarksSetType.homeFeedCollectionsAll.dTagName,
-                ).future,
-              ))
-                  ?.data
-                  .eventReferences
-                  .contains(eventReference) ??
-              false;
-          if (!isIncluded) {
-            await ref
-                .read(
-                  feedBookmarksNotifierProvider(
-                    collectionDTag: BookmarksSetType.homeFeedCollectionsAll.dTagName,
-                  ).notifier,
-                )
-                .toggleBookmark(eventReference);
-          }
-        }
+        newAllBookmarksRefs
+          ..add(eventReference)
+          ..addAll(bookmarksCollection.data.eventReferences);
         if (bookmarksCollection.data.type == BookmarksSetType.homeFeedCollectionsAll.dTagName) {
           unawaited(ref.read(ionConnectDbCacheProvider.notifier).saveRef(eventReference));
+        }
+        if (bookmarksCollection.data.type != BookmarksSetType.homeFeedCollectionsAll.dTagName) {
+          final isIncluded = ref.read(
+            isBookmarkedInCollectionProvider(
+              eventReference,
+              collectionDTag: BookmarksSetType.homeFeedCollectionsAll.dTagName,
+            ),
+          );
+          if (!isIncluded) {
+            unawaited(
+              ref.read(toggleBookmarkNotifierProvider.notifier).toggle(
+                    eventReference: eventReference,
+                    collectionDTag: BookmarksSetType.homeFeedCollectionsAll.dTagName,
+                  ),
+            );
+          }
         }
       }
 
@@ -166,15 +148,13 @@ class FeedBookmarksNotifier extends _$FeedBookmarksNotifier {
         eventReferences: newAllBookmarksRefs.toList(),
         title: bookmarksCollection.data.title,
       );
-      await ref.read(ionConnectNotifierProvider.notifier).sendEntityData(
+
+      final result = await ref.read(ionConnectNotifierProvider.notifier).sendEntityData(
             newBookmarksCollectionData,
           );
-    } catch (e) {
-      state = AsyncValue.data(
-        bookmarksCollection,
-      );
-      rethrow;
-    }
+      final data = result as BookmarksSetEntity?;
+      return data;
+    });
   }
 }
 
@@ -184,6 +164,10 @@ bool isBookmarkedInCollection(
   EventReference eventReference, {
   required String collectionDTag,
 }) {
+  final optimistic = ref.watch(bookmarkWatchProvider(collectionDTag, eventReference)).valueOrNull;
+  if (optimistic != null) {
+    return optimistic.bookmarked;
+  }
   final feedBookmarksNotifierState =
       ref.watch(feedBookmarksNotifierProvider(collectionDTag: collectionDTag));
   return feedBookmarksNotifierState.valueOrNull?.data.eventReferences.contains(eventReference) ??
