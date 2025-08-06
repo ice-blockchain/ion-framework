@@ -63,8 +63,6 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
       return null;
     }
 
-    Logger.log('FCM Token: $fcmToken');
-
     final encryptedMessageService = await ref.watch(encryptedMessageServiceProvider.future);
     return encryptedMessageService.encryptMessage(fcmToken, publicKey: relayPubkey);
   }
