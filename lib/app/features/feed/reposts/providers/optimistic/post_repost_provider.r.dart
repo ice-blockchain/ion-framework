@@ -2,6 +2,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
@@ -137,7 +138,16 @@ OptimisticOperationManager<PostRepost> postRepostManager(Ref ref) {
 
   final manager = OptimisticOperationManager<PostRepost>(
     syncCallback: strategy.send,
-    onError: (_, __) async => true,
+    onError: (_, error) async {
+      if (error is RepostCreationFailedException ||
+          error is EntityNotFoundException ||
+          error is FormatException ||
+          error is UnsupportedRepostException) {
+        return false;
+      }
+
+      return true;
+    },
   );
 
   ref.onDispose(manager.dispose);
