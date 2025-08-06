@@ -3,6 +3,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 
 import 'package:ion/app/features/optimistic_ui/core/operation_manager.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_service.dart';
@@ -50,10 +51,12 @@ OptimisticOperationManager<BlockedUser> blockUserManager(Ref ref) {
   keepAliveWhenAuthenticated(ref);
 
   final strategy = ref.watch(blockSyncStrategyProvider);
+  final localEnabled = ref.watch(envProvider.notifier).get<bool>(EnvVariable.OPTIMISTIC_UI_ENABLED);
 
   final manager = OptimisticOperationManager<BlockedUser>(
     syncCallback: strategy.send,
     onError: (_, __) async => true,
+    enableLocal: localEnabled,
   );
 
   ref.onDispose(manager.dispose);

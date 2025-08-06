@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/optimistic_ui/core/operation_manager.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_service.dart';
 import 'package:ion/app/features/optimistic_ui/features/follow/follow_sync_strategy_provider.r.dart';
@@ -29,13 +31,17 @@ Stream<UserFollow?> followWatch(Ref ref, String pubkey) {
   return service.watch(pubkey);
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 OptimisticOperationManager<UserFollow> followManager(Ref ref) {
+  keepAliveWhenAuthenticated(ref);
+
   final strategy = ref.watch(followSyncStrategyProvider);
+  final localEnabled = ref.watch(envProvider.notifier).get<bool>(EnvVariable.OPTIMISTIC_UI_ENABLED);
 
   final manager = OptimisticOperationManager<UserFollow>(
     syncCallback: strategy.send,
     onError: (_, __) async => true,
+    enableLocal: localEnabled,
   );
 
   ref.onDispose(manager.dispose);

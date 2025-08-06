@@ -36,6 +36,7 @@ enum EnvVariable {
   AF_DEV_KEY,
   AF_BRAND_DOMAIN,
   AF_BASE_HOST,
+  OPTIMISTIC_UI_ENABLED,
 }
 
 @Riverpod(keepAlive: true)
@@ -107,6 +108,7 @@ class Env extends _$Env {
       EnvVariable.AF_DEV_KEY => const String.fromEnvironment('AF_DEV_KEY') as T,
       EnvVariable.AF_BRAND_DOMAIN => const String.fromEnvironment('AF_BRAND_DOMAIN') as T,
       EnvVariable.AF_BASE_HOST => const String.fromEnvironment('AF_BASE_HOST') as T,
+      EnvVariable.OPTIMISTIC_UI_ENABLED => const bool.fromEnvironment('OPTIMISTIC_UI_ENABLED') as T,
     };
   }
 }

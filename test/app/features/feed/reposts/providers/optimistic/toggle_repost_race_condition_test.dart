@@ -2,6 +2,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/reposts/models/post_repost.f.dart';
 import 'package:ion/app/features/feed/reposts/providers/optimistic/post_repost_provider.r.dart';
 import 'package:ion/app/features/feed/reposts/providers/optimistic/repost_sync_strategy_provider.r.dart';
@@ -27,13 +28,17 @@ void main() {
 
     late ProviderContainer container;
     late MockRepostSyncStrategy mockStrategy;
+    late Env mockEnv;
 
     setUpAll(registerRepostFallbackValues);
 
     setUp(() {
       SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
       mockStrategy = MockRepostSyncStrategy();
+      mockEnv = MockEnv();
 
+      when(() => mockEnv.get<bool>(EnvVariable.OPTIMISTIC_UI_ENABLED)).thenReturn(true);
+      when(() => mockEnv.get<String>(EnvVariable.FOUNDATION_APP_GROUP)).thenReturn('');
       when(() => mockStrategy.send(any(), any())).thenAnswer((invocation) async {
         final optimistic = invocation.positionalArguments[1] as PostRepost;
 
@@ -55,6 +60,7 @@ void main() {
       container = createContainer(
         overrides: [
           repostSyncStrategyProvider.overrideWith((_) => mockStrategy),
+          envProvider.overrideWith(() => mockEnv),
         ],
       );
     });
@@ -239,6 +245,7 @@ void main() {
             return OptimisticOperationManager<PostRepost>(
               syncCallback: strategy.send,
               onError: (_, __) async => false,
+              enableLocal: true,
               maxRetries: 0,
             );
           }),

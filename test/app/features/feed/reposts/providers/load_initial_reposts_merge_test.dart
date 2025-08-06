@@ -3,6 +3,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/reposts/models/post_repost.f.dart';
 import 'package:ion/app/features/feed/reposts/providers/optimistic/post_repost_provider.r.dart';
@@ -37,6 +38,14 @@ void main() {
       kind: GenericRepostEntity.kind,
     );
 
+    late Env mockEnv;
+
+    setUp(() {
+      mockEnv = MockEnv();
+
+      when(() => mockEnv.get<bool>(EnvVariable.OPTIMISTIC_UI_ENABLED)).thenReturn(true);
+    });
+
     test('finds specific repost in cache', () async {
       final cacheData = {
         repostRef1.toString(): CacheEntry(
@@ -59,6 +68,7 @@ void main() {
         overrides: [
           currentPubkeySelectorProvider.overrideWith(() => FakeCurrentPubkeySelector(testPubkey)),
           ionConnectCacheProvider.overrideWith(() => FakeIonConnectCache(cacheData)),
+          envProvider.overrideWith(() => mockEnv),
         ],
       );
 
@@ -95,6 +105,7 @@ void main() {
         overrides: [
           currentPubkeySelectorProvider.overrideWith(() => FakeCurrentPubkeySelector(testPubkey)),
           ionConnectCacheProvider.overrideWith(() => FakeIonConnectCache(cacheData)),
+          envProvider.overrideWith(() => mockEnv),
         ],
       );
 
@@ -119,6 +130,7 @@ void main() {
           currentPubkeySelectorProvider.overrideWith(() => FakeCurrentPubkeySelector(testPubkey)),
           ionConnectCacheProvider.overrideWith(() => FakeIonConnectCache({})),
           repostSyncStrategyProvider.overrideWith((ref) => mockSyncStrategy),
+          envProvider.overrideWith(() => mockEnv),
         ],
       );
 
@@ -201,6 +213,7 @@ void main() {
           currentPubkeySelectorProvider.overrideWith(() => FakeCurrentPubkeySelector(testPubkey)),
           ionConnectCacheProvider.overrideWith(() => FakeIonConnectCache(cacheData)),
           repostSyncStrategyProvider.overrideWith((ref) => mockSyncStrategy),
+          envProvider.overrideWith(() => mockEnv),
         ],
       )..read(postRepostServiceProvider);
 
@@ -252,6 +265,7 @@ void main() {
         overrides: [
           currentPubkeySelectorProvider.overrideWith(() => FakeCurrentPubkeySelector(testPubkey)),
           ionConnectCacheProvider.overrideWith(() => FakeIonConnectCache({})),
+          envProvider.overrideWith(() => mockEnv),
         ],
       )..read(postRepostServiceProvider);
 

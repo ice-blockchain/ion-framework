@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
@@ -71,10 +72,12 @@ Stream<PostLike?> postLikeWatch(Ref ref, String id) {
 @Riverpod(keepAlive: true)
 OptimisticOperationManager<PostLike> postLikeManager(Ref ref) {
   final strategy = ref.watch(likeSyncStrategyProvider);
+  final localEnabled = ref.watch(envProvider.notifier).get<bool>(EnvVariable.OPTIMISTIC_UI_ENABLED);
 
   final manager = OptimisticOperationManager<PostLike>(
     syncCallback: strategy.send,
     onError: (_, __) async => true,
+    enableLocal: localEnabled,
   );
 
   ref.onDispose(manager.dispose);

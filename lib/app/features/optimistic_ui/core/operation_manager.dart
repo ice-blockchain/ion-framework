@@ -24,6 +24,7 @@ class OptimisticOperationManager<T extends OptimisticModel> {
   OptimisticOperationManager({
     required this.syncCallback,
     required this.onError,
+    required this.enableLocal,
     this.maxRetries = 3,
   })  : _state = [],
         _pending = Queue<OptimisticOperation<T>>();
@@ -31,6 +32,7 @@ class OptimisticOperationManager<T extends OptimisticModel> {
   final SyncCallback<T> syncCallback;
   final ErrorCallback onError;
   final int maxRetries;
+  final bool enableLocal;
 
   final _controller = StreamController<List<T>>.broadcast();
   Stream<List<T>> get stream => _controller.stream;
@@ -68,7 +70,7 @@ class OptimisticOperationManager<T extends OptimisticModel> {
     Logger.info(
       '[Optimistic UI - ${optimisticOperation.type}] Performing operation: ${optimisticOperation.id}, Optimistic ID: ${previous.optimisticId}',
     );
-    _applyLocal(optimisticOperation);
+    if (enableLocal) _applyLocal(optimisticOperation);
     _pending.add(optimisticOperation);
 
     if (!_busy) await _next();
@@ -112,6 +114,18 @@ class OptimisticOperationManager<T extends OptimisticModel> {
       Logger.info(
         '[Optimistic UI - ${optimisticOperation.type}] Sync successful for operation: ${optimisticOperation.id}, Optimistic ID: ${optimisticOperation.previousState.optimisticId}',
       );
+
+      if (!enableLocal) {
+        final stateIndex =
+        _state.indexWhere((model) => model.optimisticId == backendState.optimisticId);
+        if (stateIndex == -1) {
+          _state.add(backendState);
+        } else {
+          _state[stateIndex] = backendState;
+        }
+
+        return;
+      }
 
       final stateIndex =
           _state.indexWhere((model) => model.optimisticId == backendState.optimisticId);

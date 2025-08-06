@@ -70,6 +70,7 @@ void main() {
           return opt;
         },
         onError: (_, __) async => false,
+        enableLocal: true,
       );
 
       subscription = listen();
@@ -102,6 +103,7 @@ void main() {
           return TestModel(opt.optimisticId, 'B');
         },
         onError: (_, __) async => false,
+        enableLocal: true,
       );
 
       subscription = listen();
@@ -127,6 +129,7 @@ void main() {
           throw Exception('permanent');
         },
         onError: (_, __) async => true, // always retry
+        enableLocal: true,
       );
 
       subscription = listen();
@@ -152,6 +155,7 @@ void main() {
           return opt;
         },
         onError: (_, __) async => false,
+        enableLocal: true,
       );
 
       subscription = listen();
@@ -181,6 +185,7 @@ void main() {
       operationManager = OptimisticOperationManager<TestModel>(
         syncCallback: (prev, opt) async => opt,
         onError: (_, __) async => false,
+        enableLocal: true,
       );
 
       subscription = listen();
@@ -203,6 +208,7 @@ void main() {
       final manager = OptimisticOperationManager<TestModel>(
         syncCallback: DummySyncStrategy(const Duration(milliseconds: 200)).send,
         onError: (_, __) async => false,
+        enableLocal: true,
       );
 
       await manager.initialize([const TestModel('1', 'A')]);
