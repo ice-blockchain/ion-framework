@@ -74,8 +74,8 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
       title: title,
       body: body,
       payload: jsonEncode(response.data),
-      iconFilePath: avatar,
-      attachmentFilePath: media,
+      icon: avatar,
+      attachment: media,
       isConversationPush: parsedData?.notificationType.isChat ?? false,
     );
   }

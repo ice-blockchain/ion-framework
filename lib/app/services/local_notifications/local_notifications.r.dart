@@ -49,8 +49,8 @@ class LocalNotificationsService {
     required String title,
     required String body,
     String? payload,
-    String? iconFilePath,
-    String? attachmentFilePath,
+    String? icon,
+    String? attachment,
     bool isConversationPush = false,
   }) async {
     await _plugin.show(
@@ -59,8 +59,8 @@ class LocalNotificationsService {
       body,
       isConversationPush
           ? await _messageNotificationDetails(
-              avatarUrl: iconFilePath,
-              attachmentUrl: attachmentFilePath,
+              avatarUrl: icon,
+              attachmentUrl: attachment,
               userName: title,
               textMessage: body,
             )
@@ -146,6 +146,7 @@ class LocalNotificationsService {
       color: AppColorsExtension.defaultColors().primaryAccent,
       importance: Importance.max,
       priority: Priority.high,
+      largeIcon: attachmentFilePath != null ? FilePathAndroidBitmap(attachmentFilePath) : null,
       styleInformation: styleInformation,
       shortcutId: const Uuid().v4(),
     );
