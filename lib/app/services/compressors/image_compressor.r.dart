@@ -20,7 +20,12 @@ part 'image_compressor.r.g.dart';
 
 enum ImageCompressionType {
   webp,
-  jpg,
+  jpeg;
+
+  String get mimeType => switch (this) {
+        webp => 'image/webp',
+        jpeg => 'image/jpeg',
+      };
 }
 
 class ImageCompressionSettings {
@@ -53,14 +58,15 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
   }) async {
     try {
       final isWebP = to == ImageCompressionType.webp &&
-          (file.mimeType == 'image/webp' || file.path.toLowerCase().endsWith('.webp'));
+          (file.mimeType == ImageCompressionType.webp.mimeType ||
+              file.path.toLowerCase().endsWith('.webp'));
       if (isWebP) {
         if (file.width == null || file.height == null) {
           final imageDimensions = await getImageDimension(path: file.path);
           return file.copyWith(
             width: imageDimensions.width,
             height: imageDimensions.height,
-            mimeType: file.mimeType ?? 'image/webp',
+            mimeType: file.mimeType ?? ImageCompressionType.webp.mimeType,
           );
         }
         return file;
@@ -88,7 +94,7 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
               scaleResolution: settings.scaleResolution.resolution,
             );
           }
-        case ImageCompressionType.jpg:
+        case ImageCompressionType.jpeg:
           command = FFmpegCommands.webpToJpeg(
             inputPath: file.path,
             outputPath: output,
@@ -111,12 +117,12 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
       // For images, we can easily decode to get actual width/height
       final outputDimension = await getImageDimension(path: output);
 
+      // If it's a gif, we need to indicate that it's a webp with the gif extension
+      final mimeType = isGif ? 'image/gif+webp' : to.mimeType;
+
       return MediaFile(
         path: output,
-        mimeType: switch (to) {
-          ImageCompressionType.jpg => 'image/jpeg',
-          ImageCompressionType.webp => isGif ? 'image/gif+webp' : 'image/webp',
-        },
+        mimeType: mimeType,
         width: outputDimension.width,
         height: outputDimension.height,
       );

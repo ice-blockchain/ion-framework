@@ -133,7 +133,7 @@ class LocalNotificationsService {
             textMessage ?? '',
             DateTime.now(),
             messagePerson,
-            dataMimeType: attachmentFilePath != null ? 'image/jpg' : null,
+            dataMimeType: attachmentFilePath != null ? ImageCompressionType.jpeg.mimeType : null,
             dataUri: attachmentFilePath,
           ),
         ],
@@ -162,13 +162,15 @@ class LocalNotificationsService {
     try {
       final directory = await getTemporaryDirectory();
 
+      final compressionTypeName = ImageCompressionType.jpeg.name;
+
       final urlHash = uri.hashCode.abs().toString();
-      final cachedFileName = '${urlHash}_compressed.jpg';
+      final cachedFileName = '${urlHash}_compressed.$compressionTypeName';
       final cachedFilePath = '${directory.path}/$cachedFileName';
 
       final originalFileName = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : 'image';
       final originalExtension =
-          originalFileName.contains('.') ? originalFileName.split('.').last : 'jpg';
+          originalFileName.contains('.') ? originalFileName.split('.').last : compressionTypeName;
 
       final cachedFile = File(cachedFilePath);
       final cachedFileExists = cachedFile.existsSync();
@@ -210,7 +212,7 @@ class LocalNotificationsService {
       final compressor = ImageCompressor(compressExecutor: CompressExecutor());
       final compressedMedia = await compressor.compress(
         MediaFile(path: tempFilePath),
-        to: ImageCompressionType.jpg,
+        to: ImageCompressionType.jpeg,
       );
 
       final compressedFile = File(compressedMedia.path);
