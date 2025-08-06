@@ -167,7 +167,7 @@
   "two_fa_warning": "If you delete two-step authentication, it may put the security of your data at risk.",
   "sign_up_passkey_title": "Register with a passkey",
   "sign_up_passkey_advantage_1_title": "No passwords to remember",
-  "sign_up_passkey_advantage_1_description": "Use your fingerprint or face to sign in — no password needed",
+  "sign_up_passkey_advantage_1_description": "Use your fingerprint or face to sign in easily and securely",
   "sign_up_passkey_advantage_2_title": "Works across your devices",
   "sign_up_passkey_advantage_2_description": "Your passkey is available automatically on all synced devices",
   "sign_up_passkey_advantage_3_title": "Stronger account protection",

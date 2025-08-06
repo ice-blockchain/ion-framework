@@ -159,7 +159,7 @@
   "two_fa_warning": "إذا حذفت التحقق بخطوتين، قد يعرض ذلك أمان بياناتك للخطر",
   "sign_up_passkey_title": "التسجيل باستخدام مفتاح المرور",
   "sign_up_passkey_advantage_1_title": "لا حاجة لتذكر كلمات المرور",
-  "sign_up_passkey_advantage_1_description": "استخدم بصمة إصبعك أو وجهك لتسجيل الدخول – دون الحاجة إلى كلمة مرور",
+  "sign_up_passkey_advantage_1_description": "استخدم بصمة إصبعك أو وجهك لتسجيل الدخول بسهولة وأمان",
   "sign_up_passkey_advantage_2_title": "يعمل على جميع أجهزتك",
   "sign_up_passkey_advantage_2_description": "مفتاح المرور الخاص بك متاح تلقائيًا على جميع الأجهزة المتزامنة",
   "sign_up_passkey_advantage_3_title": "حماية أقوى للحساب",
