@@ -53,8 +53,10 @@ class MessageReactionContextMenu extends HookConsumerWidget {
     final canEdit = entityData.editingEndedAt.value.toDateTime.isAfter(DateTime.now());
     final hideChatBookmark =
         ref.watch(featureFlagsProvider.notifier).get(ChatFeatureFlag.hideChatBookmark);
-    final canCopy =
-        entityData.messageType == MessageType.text || entityData.messageType == MessageType.emoji;
+
+    final canCopy = entityData.messageType == MessageType.text ||
+        entityData.messageType == MessageType.emoji ||
+        entityData.messageType == MessageType.sharedPost && entityData.content.isNotEmpty;
 
     return Padding(
       padding: EdgeInsetsDirectional.only(top: 6.0.s),
