@@ -36,8 +36,8 @@ class EncryptedDirectMessageStatusHandler extends GlobalSubscriptionEncryptedEve
       messageEventReference: entity.data.reference,
       pubkey: rumor.pubkey,
       masterPubkey: rumor.masterPubkey,
-      status: MessageDeliveryStatus.values.byName(entity.data.content),
       updateAllBefore: rumor.createdAt.toDateTime,
+      status: MessageDeliveryStatus.values.byName(entity.data.content),
     );
   }
 }
