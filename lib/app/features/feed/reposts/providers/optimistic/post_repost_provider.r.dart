@@ -138,11 +138,11 @@ OptimisticOperationManager<PostRepost> postRepostManager(Ref ref) {
 
   final manager = OptimisticOperationManager<PostRepost>(
     syncCallback: strategy.send,
-    onError: (_, e) async {
-      if (e is RepostCreationFailedException ||
-          e is EntityNotFoundException ||
-          e is FormatException ||
-          e is UnsupportedRepostException) {
+    onError: (_, error) async {
+      if (error is RepostCreationFailedException ||
+          error is EntityNotFoundException ||
+          error is FormatException ||
+          error is UnsupportedRepostException) {
         return false;
       }
 
