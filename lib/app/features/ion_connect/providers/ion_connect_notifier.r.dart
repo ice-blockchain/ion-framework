@@ -244,17 +244,9 @@ class IonConnectNotifier extends _$IonConnectNotifier {
               event: event,
             );
           } else if (event is EventMessage) {
-            // Session-based logging is handled by RelayLoggingWrapper
             yield event;
           } else if (event is EoseMessage && onEose != null) {
-            // Session-based logging is handled by RelayLoggingWrapper
             onEose();
-          } else if (event is OkMessage) {
-            // Session-based logging is handled by RelayLoggingWrapper
-          } else if (event is NoticeMessage) {
-            // Session-based logging is handled by RelayLoggingWrapper
-          } else if (event is ClosedMessage) {
-            // Session-based logging is handled by RelayLoggingWrapper
           }
         }
       },
