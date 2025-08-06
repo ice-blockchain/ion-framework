@@ -19,6 +19,7 @@ import 'package:ion/app/features/feed/views/components/user_info/user_info.dart'
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/views/hooks/use_parsed_media_content.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
@@ -60,12 +61,19 @@ class SharedPostMessage extends HookConsumerWidget {
       },
     );
 
+    final postFromNetwork = ref
+        .watch(
+          ionConnectEntityProvider(eventReference: postEntity.toEventReference(), cache: false),
+        )
+        .valueOrNull;
+
     final isDeleted = useMemoized(
-      () => switch (postEntity) {
+      () => switch (postFromNetwork) {
         final ArticleEntity article => article.isDeleted,
         final ModifiablePostEntity post => post.isDeleted,
         _ => false,
       },
+      [postFromNetwork],
     );
 
     if (postData is! EntityDataWithMediaContent || isDeleted) {

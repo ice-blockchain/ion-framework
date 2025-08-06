@@ -27,7 +27,10 @@ class FollowUserButton extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    ref.displayErrors(toggleFollowNotifierProvider, excludedExceptions: {UserRelaysNotFoundException});
+    ref.displayErrors(
+      toggleFollowNotifierProvider,
+      excludedExceptions: {UserRelaysNotFoundException},
+    );
 
     final following = ref.watch(isCurrentUserFollowingSelectorProvider(pubkey));
     final isCurrentUserFollowed = ref.watch(isCurrentUserFollowedProvider(pubkey));

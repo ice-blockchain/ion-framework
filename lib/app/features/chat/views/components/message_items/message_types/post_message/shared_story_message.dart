@@ -20,6 +20,7 @@ import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -73,13 +74,20 @@ class SharedStoryMessage extends HookConsumerWidget {
       },
     );
 
-    final storyBelongsToCurrentUser = storyEntity.masterPubkey != currentUserMasterPubkey;
+    final storyBelongsToCurrentUser = storyEntity.masterPubkey == currentUserMasterPubkey;
+
+    final storyFromNetwork = ref
+        .watch(
+          ionConnectEntityProvider(eventReference: storyEntity.toEventReference(), cache: false),
+        )
+        .valueOrNull;
 
     final storyDeleted = useMemoized(
-      () => switch (storyEntity) {
+      () => switch (storyFromNetwork) {
         final ModifiablePostEntity post => post.isDeleted,
         _ => false,
       },
+      [storyFromNetwork],
     );
 
     final isReplyToStory =
@@ -94,7 +102,7 @@ class SharedStoryMessage extends HookConsumerWidget {
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () async {
-                if (storyExpired) return;
+                if (storyExpired || storyDeleted) return;
 
                 var storyViewerState = ref.read(
                   userStoriesViewingNotifierProvider(
