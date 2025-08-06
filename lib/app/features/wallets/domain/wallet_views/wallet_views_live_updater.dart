@@ -46,11 +46,6 @@ class WalletViewsLiveUpdater {
   final CoinsRepository _coinsRepository;
   final List<Wallet> _userWallets;
 
-  // Cache to prevent repeated processing of same transactions
-  final Map<String, Map<String, String>> _processedTransactions = {};
-  // Key format: "walletViewId:coinId" -> Map<txHash, txSignature>
-  // txSignature includes status, amount, and other key properties
-
   /// Watches for live updates to wallet views.
   /// Returns a stream of fully updated wallet views.
   Stream<List<WalletViewData>> watchWalletViews(
@@ -169,36 +164,13 @@ class WalletViewsLiveUpdater {
     Stream<List<TransactionData>> nftTransactionsStream,
     Stream<List<CoinData>> coinsStream,
   ) async* {
-    Logger.info(
-        '[WalletViewsLiveUpdater] _combineStreams starting - setting up stream combination');
 
     // Wrap each stream to enable combineLatestAll
-    final wrappedCoinTransactions = coinTransactionsStream.map((data) {
-      Logger.info(
-          '[WalletViewsLiveUpdater] Coin transactions stream update: ${data.length} transaction groups');
-      for (final entry in data.entries) {
-        final coin = entry.key;
-        final txs = entry.value;
-        Logger.info(
-            '[WalletViewsLiveUpdater]   - ${coin.abbreviation}: ${txs.length} transactions');
-      }
-      return _StreamResult.coinTransactions(data);
-    });
+    final wrappedCoinTransactions = coinTransactionsStream.map(_StreamResult.coinTransactions);
 
-    final wrappedNftTransactions = nftTransactionsStream.map((data) {
-      Logger.info(
-          '[WalletViewsLiveUpdater] NFT transactions stream update: ${data.length} transactions');
-      return _StreamResult.nftTransactions(data);
-    });
+    final wrappedNftTransactions = nftTransactionsStream.map(_StreamResult.nftTransactions);
 
-    final wrappedCoins = coinsStream.map((data) {
-      Logger.info('[WalletViewsLiveUpdater] Coins stream update: ${data.length} coins');
-      for (final coin in data) {
-        Logger.info(
-            '[WalletViewsLiveUpdater]   - ${coin.abbreviation}: \$${coin.priceUSD.toStringAsFixed(6)}');
-      }
-      return _StreamResult.coins(data);
-    });
+    final wrappedCoins = coinsStream.map(_StreamResult.coins);
 
     await for (final results in wrappedCoinTransactions
         .combineLatestAll([
@@ -220,53 +192,9 @@ class WalletViewsLiveUpdater {
               _compareTransactionLists(prev.nftTransactions, current.nftTransactions);
           final coinsEqual = _compareCoinLists(prev.coins, current.coins);
 
-          final isDistinct = !(coinTxsEqual && nftTxsEqual && coinsEqual);
-
-          if (isDistinct) {
-            Logger.info(
-                '[WalletViewsLiveUpdater] Stream data changed - passing through distinct filter:');
-            Logger.info('[WalletViewsLiveUpdater]   - Coin transactions changed: ${!coinTxsEqual}');
-            Logger.info('[WalletViewsLiveUpdater]   - NFT transactions changed: ${!nftTxsEqual}');
-            Logger.info('[WalletViewsLiveUpdater]   - Coins changed: ${!coinsEqual}');
-
-            if (!coinTxsEqual) {
-              _logTransactionMapDifferences(prev.coinTransactions, current.coinTransactions);
-            }
-          } else {
-            Logger.info(
-                '[WalletViewsLiveUpdater] Stream data unchanged - filtered out by distinct');
-          }
-
-          return !isDistinct;
+          return !(coinTxsEqual && nftTxsEqual && coinsEqual);
         })
         .debounce(const Duration(milliseconds: 300))) {
-      final timestamp = DateTime.now();
-      Logger.info(
-        '[WalletViewsLiveUpdater] Emitting update at $timestamp - ${results.coins.length} coins, '
-        '${results.coinTransactions.length} coin transactions, '
-        '${results.nftTransactions.length} NFT transactions',
-      );
-
-      // Log detailed coin information
-      for (final coin in results.coins) {
-        Logger.info(
-            '[WalletViewsLiveUpdater] Updated coin: ${coin.abbreviation} (${coin.name}) - Price: \$${coin.priceUSD.toStringAsFixed(6)} on ${coin.network.displayName}');
-      }
-
-      // Log transaction details
-      for (final entry in results.coinTransactions.entries) {
-        final coin = entry.key;
-        final transactions = entry.value;
-        Logger.info(
-            '[WalletViewsLiveUpdater] ${transactions.length} transactions for ${coin.abbreviation}:');
-        for (final tx in transactions) {
-          final asset = tx.cryptoAsset;
-          if (asset is CoinTransactionAsset) {
-            Logger.info(
-                '[WalletViewsLiveUpdater]   - ${tx.txHash}: ${asset.amount} ${coin.abbreviation} (${tx.status}) from ${tx.senderWalletAddress}');
-          }
-        }
-      }
 
       yield WalletViewUpdate(
         updatedCoins: results.coins,
@@ -280,43 +208,21 @@ class WalletViewsLiveUpdater {
     List<WalletViewData> views,
     WalletViewUpdate update,
   ) {
-    final timestamp = DateTime.now();
-    Logger.info(
-        '[WalletViewsLiveUpdater] _applyWalletViewUpdates called at $timestamp for ${views.length} wallet views');
-    Logger.info(
-        '[WalletViewsLiveUpdater] Update contains: ${update.updatedCoins.length} coins, ${update.coinTransactions.length} coin transaction groups, ${update.nftTransactions.length} NFT transactions');
+    // Log USDT balances before applying updates
+    _logUsdtBalances(views, '[WalletViewsLiveUpdater] Before applying updates');
 
-    // Clean up transaction cache to prevent memory leaks
-    _cleanupTransactionCache(views);
-
-    return views.map((walletView) {
-      Logger.info(
-          '[WalletViewsLiveUpdater] Processing wallet view ${walletView.id} (${walletView.name})');
-
-      // Log original balances
-      for (final group in walletView.coinGroups) {
-        Logger.info(
-            '[WalletViewsLiveUpdater] Original balance for ${group.symbolGroup}: ${group.totalAmount} (USD: \$${group.totalBalanceUSD.toStringAsFixed(2)})');
-      }
+    final updatedViews = views.map((walletView) {
       final updatedGroups = walletView.coinGroups.map((group) {
-        Logger.info('[WalletViewsLiveUpdater] Processing coin group ${group.symbolGroup}');
         var totalGroupAmount = 0.0;
         var totalGroupBalanceUSD = 0.0;
 
         final updatedCoinsInGroup = group.coins.map((coinInWallet) {
-          Logger.info(
-              '[WalletViewsLiveUpdater] Processing coin ${coinInWallet.coin.abbreviation} in group ${group.symbolGroup}');
-          Logger.info('[WalletViewsLiveUpdater]   - Original amount: ${coinInWallet.amount}');
 
           var modifiedCoin = _applyUpdatedCoinPrice(
             coinInWallet: coinInWallet,
             updatedCoins: update.updatedCoins,
           );
 
-          if (modifiedCoin.amount != coinInWallet.amount) {
-            Logger.info(
-                '[WalletViewsLiveUpdater]   - After price update: ${modifiedCoin.amount} (price changed)');
-          }
 
           final beforeTransactions = modifiedCoin.amount;
           modifiedCoin = _applyExecutingTransactions(
@@ -325,25 +231,13 @@ class WalletViewsLiveUpdater {
             walletViewId: walletView.id,
           );
 
-          if (modifiedCoin.amount != beforeTransactions) {
-            Logger.info(
-                '[WalletViewsLiveUpdater]   - After transaction processing: ${modifiedCoin.amount} (was $beforeTransactions)');
-          }
 
           totalGroupAmount += modifiedCoin.amount;
           totalGroupBalanceUSD += modifiedCoin.balanceUSD;
 
-          Logger.info('[WalletViewsLiveUpdater]   - Final amount: ${modifiedCoin.amount}');
-          Logger.info('[WalletViewsLiveUpdater]   - Running group total: $totalGroupAmount');
-
           return modifiedCoin;
         }).toList();
 
-        Logger.info('[WalletViewsLiveUpdater] Group ${group.symbolGroup} processing complete:');
-        Logger.info('[WalletViewsLiveUpdater]   - Original total: ${group.totalAmount}');
-        Logger.info('[WalletViewsLiveUpdater]   - New total: $totalGroupAmount');
-        Logger.info(
-            '[WalletViewsLiveUpdater]   - Balance changed: ${totalGroupAmount != group.totalAmount}');
 
         return group.copyWith(
           coins: updatedCoinsInGroup,
@@ -365,14 +259,13 @@ class WalletViewsLiveUpdater {
         usdBalance: updatedGroups.fold(0, (sum, group) => sum + group.totalBalanceUSD),
       );
 
-      // Log updated balances
-      for (final group in updatedWalletView.coinGroups) {
-        Logger.info(
-            '[WalletViewsLiveUpdater] Updated balance for ${group.symbolGroup}: ${group.totalAmount} (USD: \$${group.totalBalanceUSD.toStringAsFixed(2)})');
-      }
-
       return updatedWalletView;
     }).toList();
+
+    // Log USDT balances after applying updates
+    _logUsdtBalances(updatedViews, '[WalletViewsLiveUpdater] After applying updates');
+
+    return updatedViews;
   }
 
   CoinInWalletData _applyUpdatedCoinPrice({
@@ -402,110 +295,43 @@ class WalletViewsLiveUpdater {
     required CoinInWalletData coinInWallet,
     required Map<CoinData, List<TransactionData>> transactions,
   }) {
-    final timestamp = DateTime.now();
-    Logger.info(
-        '[WalletViewsLiveUpdater] _applyExecutingTransactions called at $timestamp for ${coinInWallet.coin.abbreviation} in wallet view $walletViewId');
-    Logger.info(
-        '[WalletViewsLiveUpdater] Initial balance: ${coinInWallet.amount} ${coinInWallet.coin.abbreviation} (Raw: ${coinInWallet.rawAmount})');
-
     var updatedCoin = coinInWallet;
+    final isUsdtCoin = coinInWallet.coin.abbreviation.toUpperCase() == 'USDT';
 
     if (transactions.isEmpty) {
-      Logger.info(
-          '[WalletViewsLiveUpdater] No transactions provided - returning original balance: ${coinInWallet.amount} ${coinInWallet.coin.abbreviation}');
       return updatedCoin;
     }
-
-    Logger.info('[WalletViewsLiveUpdater] Processing ${transactions.length} transaction groups');
 
     final key = transactions.keys.firstWhereOrNull(
       (key) => key.id == coinInWallet.coin.id,
     );
 
     if (key == null) {
-      Logger.info(
-          '[WalletViewsLiveUpdater] No transactions found for coin ${coinInWallet.coin.id} (${coinInWallet.coin.abbreviation}) - returning original balance');
       return updatedCoin;
     }
 
     final coinTransactions = transactions[key] ?? [];
-    Logger.info(
-        '[WalletViewsLiveUpdater] Found ${coinTransactions.length} transactions for coin ${coinInWallet.coin.abbreviation}');
 
     final wallet = _userWallets.firstWhereOrNull(
       (w) => w.id == coinInWallet.walletId,
     );
 
     if (wallet == null) {
-      Logger.info(
-          '[WalletViewsLiveUpdater] Wallet not found for walletId: ${coinInWallet.walletId} - returning original balance');
       return updatedCoin;
     }
 
-    Logger.info(
-        '[WalletViewsLiveUpdater] Found wallet ${wallet.id} with address: ${wallet.address}');
-
-    var adjustedRawAmount = BigInt.parse(coinInWallet.rawAmount);
-    Logger.info('[WalletViewsLiveUpdater] Starting raw amount: $adjustedRawAmount');
-
-    if (coinTransactions.isNotEmpty) {
-      Logger.info(
-        '[WalletViewsLiveUpdater] Apply broadcasted transactions(${coinTransactions.length}) '
-        'for ${coinInWallet.coin.abbreviation}(${coinInWallet.coin.name}). '
-        'Network: ${coinInWallet.coin.network.id}. Initial balance: ${coinInWallet.amount}.',
-      );
+    if (isUsdtCoin) {
+      Logger.info('[WalletViewsLiveUpdater] USDT Transaction Processing - Original amount: ${coinInWallet.amount}, Network: ${coinInWallet.coin.network.displayName}, Transactions: ${coinTransactions.length}');
     }
 
+    var adjustedRawAmount = BigInt.parse(coinInWallet.rawAmount);
     var balanceHackApplied = false;
     var totalReduction = BigInt.zero;
 
-    final cacheKey = '$walletViewId:${coinInWallet.coin.id}';
-    final currentTransactionSignatures = <String, String>{};
-
-    // Generate signatures for current transactions
     for (final transaction in coinTransactions) {
-      final signature = _generateTransactionSignature(transaction);
-      currentTransactionSignatures[transaction.txHash] = signature;
-    }
-
-    // Check if we've already processed these exact transactions
-    final previousSignatures = _processedTransactions[cacheKey] ?? <String, String>{};
-    final signaturesEqual = const MapEquality<String, String>().equals(
-      previousSignatures,
-      currentTransactionSignatures,
-    );
-
-    if (signaturesEqual && currentTransactionSignatures.isNotEmpty) {
-      Logger.info(
-          '[WalletViewsLiveUpdater] 🔄 TRANSACTION CACHE HIT - Same transactions already processed for $cacheKey');
-      Logger.info(
-          '[WalletViewsLiveUpdater] Transactions: ${currentTransactionSignatures.keys.join(', ')}');
-      Logger.info(
-          '[WalletViewsLiveUpdater] Skipping repeated processing - returning original balance: ${coinInWallet.amount}');
-      return updatedCoin;
-    }
-
-    // Update cache with current transaction signatures
-    _processedTransactions[cacheKey] = currentTransactionSignatures;
-    Logger.info(
-        '[WalletViewsLiveUpdater] 🆕 TRANSACTION CACHE MISS - Processing new/changed transactions for $cacheKey');
-
-    for (final transaction in coinTransactions) {
-      Logger.info('[WalletViewsLiveUpdater] Processing transaction ${transaction.txHash}:');
-      Logger.info('[WalletViewsLiveUpdater]   - Status: ${transaction.status}');
-      Logger.info('[WalletViewsLiveUpdater]   - Sender: ${transaction.senderWalletAddress}');
-      Logger.info('[WalletViewsLiveUpdater]   - Wallet Address: ${wallet.address}');
-      Logger.info('[WalletViewsLiveUpdater]   - WalletViewId: ${transaction.walletViewId}');
-      Logger.info('[WalletViewsLiveUpdater]   - Target WalletViewId: $walletViewId');
-
       final isTransactionRelatedToCoin = transaction.senderWalletAddress == wallet.address;
       final isTransactionRelatedToWalletView = transaction.walletViewId == walletViewId;
       final transactionCoin = transaction.cryptoAsset;
-
-      Logger.info('[WalletViewsLiveUpdater]   - Related to coin: $isTransactionRelatedToCoin');
-      Logger.info(
-          '[WalletViewsLiveUpdater]   - Related to wallet view: $isTransactionRelatedToWalletView');
-      Logger.info('[WalletViewsLiveUpdater]   - Crypto asset type: ${transactionCoin.runtimeType}');
 
       if (isTransactionRelatedToCoin &&
           transactionCoin is CoinTransactionAsset &&
@@ -513,26 +339,10 @@ class WalletViewsLiveUpdater {
         final reductionAmount = BigInt.parse(transactionCoin.rawAmount);
         adjustedRawAmount -= reductionAmount;
         totalReduction += reductionAmount;
-
         balanceHackApplied = true;
-        Logger.info(
-          '[WalletViewsLiveUpdater] ✓ APPLYING BALANCE REDUCTION: '
-          'amount: ${transactionCoin.amount} (raw: ${transactionCoin.rawAmount}) '
-          'txHash: ${transaction.txHash}, '
-          'network: ${transaction.network.id}, '
-          'coin: ${transactionCoin.coin.abbreviation}',
-        );
-        Logger.info('[WalletViewsLiveUpdater]   - Raw amount after reduction: $adjustedRawAmount');
-      } else {
-        Logger.info('[WalletViewsLiveUpdater] ✗ SKIPPING TRANSACTION (conditions not met)');
-        if (!isTransactionRelatedToCoin) {
-          Logger.info('[WalletViewsLiveUpdater]   - Reason: Transaction not from wallet address');
-        }
-        if (transactionCoin is! CoinTransactionAsset) {
-          Logger.info('[WalletViewsLiveUpdater]   - Reason: Not a coin transaction asset');
-        }
-        if (!isTransactionRelatedToWalletView) {
-          Logger.info('[WalletViewsLiveUpdater]   - Reason: Transaction not for this wallet view');
+
+        if (isUsdtCoin) {
+          Logger.info('[WalletViewsLiveUpdater] USDT Transaction Applied - TxHash: ${transaction.txHash}, Reduction: ${transactionCoin.amount}, Status: ${transaction.status}');
         }
       }
     }
@@ -543,59 +353,15 @@ class WalletViewsLiveUpdater {
     );
     final adjustedBalanceUSD = adjustedAmount * coinInWallet.coin.priceUSD;
 
-    Logger.info('[WalletViewsLiveUpdater] Balance calculation complete:');
-    Logger.info('[WalletViewsLiveUpdater]   - Original amount: ${coinInWallet.amount}');
-    Logger.info('[WalletViewsLiveUpdater]   - Total reduction (raw): $totalReduction');
-    Logger.info('[WalletViewsLiveUpdater]   - Final raw amount: $adjustedRawAmount');
-    Logger.info('[WalletViewsLiveUpdater]   - Final adjusted amount: $adjustedAmount');
-    Logger.info('[WalletViewsLiveUpdater]   - Balance hack applied: $balanceHackApplied');
-
-    if (adjustedAmount != coinInWallet.amount) {
-      Logger.info(
-          '[WalletViewsLiveUpdater] 🔄 BALANCE CHANGED from ${coinInWallet.amount} to $adjustedAmount ${coinInWallet.coin.abbreviation}');
-    } else {
-      Logger.info(
-          '[WalletViewsLiveUpdater] ➡️  BALANCE UNCHANGED: ${coinInWallet.amount} ${coinInWallet.coin.abbreviation}');
-    }
-
-    if (adjustedAmount > 0 && balanceHackApplied) {
-      Logger.info(
-        '[WalletViewsLiveUpdater] The reduction is complete. Adjusted amount: $adjustedAmount',
-      );
-    }
-
     updatedCoin = coinInWallet.copyWith(
       amount: adjustedAmount,
       balanceUSD: adjustedBalanceUSD,
       rawAmount: adjustedRawAmount.toString(),
     );
 
-    // Defensive balance state tracking
-    final balanceChangeKey = '$walletViewId:${coinInWallet.coin.id}:balance';
-    final expectedBalanceAfterReductions = coinInWallet.amount -
-        (totalReduction.toDouble() / BigInt.from(10).pow(coinInWallet.coin.decimals).toDouble());
-
-    // Check if the calculated balance matches expected balance after reductions
-    if (balanceHackApplied &&
-        (adjustedAmount - expectedBalanceAfterReductions).abs() > 0.000000001) {
-      Logger.info('[WalletViewsLiveUpdater] ⚠️  BALANCE INCONSISTENCY DETECTED:');
-      Logger.info('[WalletViewsLiveUpdater]   - Original balance: ${coinInWallet.amount}');
-      Logger.info('[WalletViewsLiveUpdater]   - Total reduction (raw): $totalReduction');
-      Logger.info('[WalletViewsLiveUpdater]   - Expected balance: $expectedBalanceAfterReductions');
-      Logger.info('[WalletViewsLiveUpdater]   - Actual calculated: $adjustedAmount');
-      Logger.info(
-          '[WalletViewsLiveUpdater]   - Difference: ${adjustedAmount - expectedBalanceAfterReductions}');
+    if (isUsdtCoin && balanceHackApplied) {
+      Logger.info('[WalletViewsLiveUpdater] USDT Transaction Result - Original: ${coinInWallet.amount}, Adjusted: ${adjustedAmount}, Total Reduction: ${parseCryptoAmount(totalReduction.toString(), coinInWallet.coin.decimals)}, Network: ${coinInWallet.coin.network.displayName}');
     }
-
-    // Log final balance state with cache key for tracking
-    Logger.info('[WalletViewsLiveUpdater] 💰 FINAL BALANCE STATE for $balanceChangeKey:');
-    Logger.info(
-        '[WalletViewsLiveUpdater]   - Input: ${coinInWallet.amount} ${coinInWallet.coin.abbreviation}');
-    Logger.info(
-        '[WalletViewsLiveUpdater]   - Output: ${adjustedAmount} ${coinInWallet.coin.abbreviation}');
-    Logger.info(
-        '[WalletViewsLiveUpdater]   - Change: ${adjustedAmount - coinInWallet.amount} ${coinInWallet.coin.abbreviation}');
-    Logger.info('[WalletViewsLiveUpdater]   - Transactions processed: ${coinTransactions.length}');
 
     return updatedCoin;
   }
@@ -662,25 +428,14 @@ class WalletViewsLiveUpdater {
     Map<CoinData, List<TransactionData>> map1,
     Map<CoinData, List<TransactionData>> map2,
   ) {
-    if (map1.length != map2.length) {
-      Logger.info(
-          '[WalletViewsLiveUpdater] Transaction maps have different sizes: ${map1.length} vs ${map2.length}');
-      return false;
-    }
+    if (map1.length != map2.length) return false;
 
     for (final entry in map1.entries) {
       final coin = entry.key;
       final txs1 = entry.value;
       final txs2 = map2[coin];
 
-      if (txs2 == null) {
-        Logger.info('[WalletViewsLiveUpdater] Coin ${coin.abbreviation} not found in second map');
-        return false;
-      }
-
-      if (!_compareTransactionLists(txs1, txs2)) {
-        Logger.info(
-            '[WalletViewsLiveUpdater] Transaction lists differ for coin ${coin.abbreviation}');
+      if (txs2 == null || !_compareTransactionLists(txs1, txs2)) {
         return false;
       }
     }
@@ -763,93 +518,17 @@ class WalletViewsLiveUpdater {
     return '${transaction.status}:${transaction.senderWalletAddress}:${transaction.walletViewId}:$assetSignature';
   }
 
-  /// Clears transaction cache for completed/confirmed transactions to prevent memory leaks
-  void _cleanupTransactionCache(List<WalletViewData> walletViews) {
-    final activeKeys = <String>{};
-
-    // Collect all active cache keys from current wallet views
+  void _logUsdtBalances(List<WalletViewData> walletViews, String context) {
     for (final walletView in walletViews) {
-      for (final group in walletView.coinGroups) {
-        for (final coin in group.coins) {
-          activeKeys.add('${walletView.id}:${coin.coin.id}');
-        }
-      }
-    }
-
-    // Remove cache entries for wallet views/coins that no longer exist
-    final keysToRemove = _processedTransactions.keys
-        .where((key) => !activeKeys.contains(key.split(':balance')[0]))
-        .toList();
-
-    if (keysToRemove.isNotEmpty) {
-      Logger.info(
-          '[WalletViewsLiveUpdater] 🧹 Cleaning up transaction cache: removing ${keysToRemove.length} old entries');
-      for (final key in keysToRemove) {
-        _processedTransactions.remove(key);
-      }
-    }
-  }
-
-  /// Logs detailed differences between transaction maps
-  void _logTransactionMapDifferences(
-    Map<CoinData, List<TransactionData>> prev,
-    Map<CoinData, List<TransactionData>> current,
-  ) {
-    Logger.info('[WalletViewsLiveUpdater] Transaction map differences detected:');
-
-    // Check for added/removed coins
-    final prevCoins = prev.keys.toSet();
-    final currentCoins = current.keys.toSet();
-
-    final addedCoins = currentCoins.difference(prevCoins);
-    final removedCoins = prevCoins.difference(currentCoins);
-    final commonCoins = prevCoins.intersection(currentCoins);
-
-    if (addedCoins.isNotEmpty) {
-      Logger.info(
-          '[WalletViewsLiveUpdater] Added coins: ${addedCoins.map((c) => c.abbreviation).join(', ')}');
-    }
-    if (removedCoins.isNotEmpty) {
-      Logger.info(
-          '[WalletViewsLiveUpdater] Removed coins: ${removedCoins.map((c) => c.abbreviation).join(', ')}');
-    }
-
-    // Check for changes in transaction lists for common coins
-    for (final coin in commonCoins) {
-      final prevTxs = prev[coin] ?? [];
-      final currentTxs = current[coin] ?? [];
-
-      if (prevTxs.length != currentTxs.length) {
-        Logger.info(
-            '[WalletViewsLiveUpdater] ${coin.abbreviation} transaction count changed: ${prevTxs.length} → ${currentTxs.length}');
-      } else if (!_compareTransactionLists(prevTxs, currentTxs)) {
-        Logger.info('[WalletViewsLiveUpdater] ${coin.abbreviation} transaction content changed:');
-
-        for (int i = 0; i < prevTxs.length && i < currentTxs.length; i++) {
-          final prevTx = prevTxs[i];
-          final currentTx = currentTxs[i];
-
-          if (prevTx.txHash != currentTx.txHash) {
-            Logger.info(
-                '[WalletViewsLiveUpdater]   [${i}] Hash: ${prevTx.txHash} → ${currentTx.txHash}');
-          }
-          if (prevTx.status != currentTx.status) {
-            Logger.info(
-                '[WalletViewsLiveUpdater]   [${i}] Status: ${prevTx.status} → ${currentTx.status}');
-          }
-
-          final prevAsset = prevTx.cryptoAsset;
-          final currentAsset = currentTx.cryptoAsset;
-          if (prevAsset is CoinTransactionAsset && currentAsset is CoinTransactionAsset) {
-            if (prevAsset.amount != currentAsset.amount) {
-              Logger.info(
-                  '[WalletViewsLiveUpdater]   [${i}] Amount: ${prevAsset.amount} → ${currentAsset.amount}');
-            }
-            if (prevAsset.rawAmount != currentAsset.rawAmount) {
-              Logger.info(
-                  '[WalletViewsLiveUpdater]   [${i}] Raw Amount: ${prevAsset.rawAmount} → ${currentAsset.rawAmount}');
+      for (final coinGroup in walletView.coinGroups) {
+        if (coinGroup.symbolGroup.toUpperCase() == 'USDT' && coinGroup.totalAmount > 0) {
+          final networksWithBalance = <String>[];
+          for (final coinInWallet in coinGroup.coins) {
+            if (coinInWallet.amount > 0) {
+              networksWithBalance.add('${coinInWallet.coin.network.displayName}: ${coinInWallet.amount}');
             }
           }
+          Logger.info('$context - USDT Total: ${coinGroup.totalAmount}, Networks: [${networksWithBalance.join(', ')}], WalletView: ${walletView.id}');
         }
       }
     }

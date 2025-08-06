@@ -221,46 +221,15 @@ class TransactionsRepository {
       type: TransactionType.send,
     )
         .map((transactions) {
-      final timestamp = DateTime.now();
-      Logger.info('[TransactionsRepository] Received transaction update at $timestamp - ${transactions.length} transactions with in-progress statuses');
-      
-      // Log detailed transaction information
-      for (final transaction in transactions) {
-        final asset = transaction.cryptoAsset;
-        if (asset is CoinTransactionAsset) {
-          Logger.info('[TransactionsRepository] Transaction ${transaction.txHash}: ${asset.coin.abbreviation} ${asset.amount} - Status: ${transaction.status} - From: ${transaction.senderWalletAddress}');
-        }
-      }
-
       final filtered = transactions.where((tx) {
-        final isValidCryptoAsset = tx.cryptoAsset is CoinTransactionAsset;
-        final hasId = tx.id != null;
-        
-        if (!hasId) {
-          Logger.info('[TransactionsRepository] Filtering out transaction ${tx.txHash} - no ID');
-        }
-        if (!isValidCryptoAsset) {
-          Logger.info('[TransactionsRepository] Filtering out transaction ${tx.txHash} - not coin transaction');
-        }
-        
-        return hasId && isValidCryptoAsset;
+        return tx.id != null && tx.cryptoAsset is CoinTransactionAsset;
       }).toList();
-
-      Logger.info('[TransactionsRepository] After filtering: ${filtered.length} valid coin transactions');
 
       final transactionsByCoin = <CoinData, List<TransactionData>>{};
 
       for (final transaction in filtered) {
         final coin = (transaction.cryptoAsset as CoinTransactionAsset).coin;
         transactionsByCoin.putIfAbsent(coin, () => []).add(transaction);
-        Logger.info('[TransactionsRepository] Grouped transaction ${transaction.txHash} under coin ${coin.abbreviation} (${coin.name})');
-      }
-
-      Logger.info('[TransactionsRepository] Final result: ${transactionsByCoin.length} coins with transactions');
-      for (final entry in transactionsByCoin.entries) {
-        final coin = entry.key;
-        final txs = entry.value;
-        Logger.info('[TransactionsRepository] Coin ${coin.abbreviation}: ${txs.length} transactions - ${txs.map((tx) => '${tx.txHash} (${tx.status})').join(', ')}');
       }
 
       return transactionsByCoin;

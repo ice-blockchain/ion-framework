@@ -153,12 +153,6 @@ class CoinDetailsPage extends HookConsumerWidget {
             final startTime = DateTime.now().millisecondsSinceEpoch;
             Logger.info('[CoinDetailsPage] Pull-to-refresh started for $symbolGroup at ${DateTime.now()}');
             
-            // Log current balance before refresh
-            final currentWalletView = ref.read(currentWalletViewDataProvider).requireValue;
-            final currentCoinsGroup = currentWalletView.coinGroups.firstWhere((e) => e.symbolGroup == symbolGroup);
-            Logger.info('[CoinDetailsPage] Current balance before refresh: ${currentCoinsGroup.totalAmount} ${currentCoinsGroup.abbreviation} (USD: \$${currentCoinsGroup.totalBalanceUSD.toStringAsFixed(2)})');
-
-            Logger.info('[CoinDetailsPage] Invalidating providers...');
             ref
               ..invalidate(walletViewsDataNotifierProvider)
               ..invalidate(coinTransactionHistoryNotifierProvider(symbolGroup: symbolGroup));
@@ -170,10 +164,6 @@ class CoinDetailsPage extends HookConsumerWidget {
             final endTime = DateTime.now().millisecondsSinceEpoch;
             Logger.info('[CoinDetailsPage] Pull-to-refresh completed for $symbolGroup in ${endTime - startTime}ms');
             
-            // Log balance after refresh
-            final refreshedWalletView = ref.read(currentWalletViewDataProvider).requireValue;
-            final refreshedCoinsGroup = refreshedWalletView.coinGroups.firstWhere((e) => e.symbolGroup == symbolGroup);
-            Logger.info('[CoinDetailsPage] Balance after refresh: ${refreshedCoinsGroup.totalAmount} ${refreshedCoinsGroup.abbreviation} (USD: \$${refreshedCoinsGroup.totalBalanceUSD.toStringAsFixed(2)})');
           },
           slivers: slivers,
         ),
