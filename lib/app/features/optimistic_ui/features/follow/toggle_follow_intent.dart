@@ -7,8 +7,8 @@ import 'package:ion/app/features/optimistic_ui/features/follow/model/user_follow
 final class ToggleFollowIntent implements OptimisticIntent<UserFollow> {
   @override
   UserFollow optimistic(UserFollow current) => current.copyWith(
-    following: !current.following,
-  );
+        following: !current.following,
+      );
 
   @override
   Future<UserFollow> sync(UserFollow prev, UserFollow next) =>
