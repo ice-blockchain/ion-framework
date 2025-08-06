@@ -150,7 +150,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     payload: jsonEncode(message.data),
     iconFilePath: avatar,
     attachmentFilePath: media,
-    isConversationPush: parsedData?.notificationType.isConversationPush ?? false,
+    isConversationPush: parsedData?.notificationType.isChat ?? false,
   );
 
   backgroundContainer.dispose();

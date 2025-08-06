@@ -430,24 +430,25 @@ enum PushNotificationType {
   chatPaymentRequestMessage,
   chatPaymentReceivedMessage;
 
-  bool get isConversationPush =>
-      this == PushNotificationType.chatDocumentMessage ||
-      this == PushNotificationType.chatEmojiMessage ||
-      this == PushNotificationType.chatPhotoMessage ||
-      this == PushNotificationType.chatProfileMessage ||
-      this == PushNotificationType.chatReaction ||
-      this == PushNotificationType.chatSharePostMessage ||
-      this == PushNotificationType.chatShareStoryMessage ||
-      this == PushNotificationType.chatSharedStoryReplyMessage ||
-      this == PushNotificationType.chatTextMessage ||
-      this == PushNotificationType.chatVideoMessage ||
-      this == PushNotificationType.chatVoiceMessage ||
-      this == PushNotificationType.chatFirstContactMessage ||
-      this == PushNotificationType.chatGifMessage ||
-      this == PushNotificationType.chatMultiGifMessage ||
-      this == PushNotificationType.chatMultiMediaMessage ||
-      this == PushNotificationType.chatMultiPhotoMessage ||
-      this == PushNotificationType.chatMultiVideoMessage ||
-      this == PushNotificationType.chatPaymentRequestMessage ||
-      this == PushNotificationType.chatPaymentReceivedMessage;
+  bool get isChat => const {
+        chatDocumentMessage,
+        chatEmojiMessage,
+        chatPhotoMessage,
+        chatProfileMessage,
+        chatReaction,
+        chatSharePostMessage,
+        chatShareStoryMessage,
+        chatSharedStoryReplyMessage,
+        chatTextMessage,
+        chatVideoMessage,
+        chatVoiceMessage,
+        chatFirstContactMessage,
+        chatGifMessage,
+        chatMultiGifMessage,
+        chatMultiMediaMessage,
+        chatMultiPhotoMessage,
+        chatMultiVideoMessage,
+        chatPaymentRequestMessage,
+        chatPaymentReceivedMessage,
+      }.contains(this);
 }
