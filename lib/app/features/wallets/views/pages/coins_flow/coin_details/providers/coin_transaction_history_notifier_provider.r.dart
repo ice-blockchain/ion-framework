@@ -42,6 +42,10 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
   Future<CoinTransactionHistoryState> build({required String symbolGroup}) async {
     await _cancelWatchers();
 
+    ref.onDispose(() async {
+      await _cancelWatchers();
+    });
+
     try {
       await _initializeData(symbolGroup);
       final initialState = await _loadInitialTransactions();
@@ -72,10 +76,6 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
     );
 
     _reset();
-
-    ref.onDispose(() async {
-      await _cancelWatchers();
-    });
   }
 
   void _reset() {
