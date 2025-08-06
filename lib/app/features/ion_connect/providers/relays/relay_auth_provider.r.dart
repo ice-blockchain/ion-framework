@@ -152,7 +152,6 @@ class RelayAuthService {
         challenge: jsonEncode(signedAuthEvent.toJson().last),
       );
 
-      // Log the AUTH message being sent
       IonConnectLogger.logAuthSent(relay.url, authMessage);
 
       relay.sendMessage(authMessage);

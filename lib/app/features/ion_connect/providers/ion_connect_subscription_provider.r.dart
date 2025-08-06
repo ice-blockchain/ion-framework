@@ -24,7 +24,6 @@ Raw<Stream<EventMessage>> ionConnectEventsSubscription(
     subscriptionBuilder: (requestMessage, relay) {
       final subscription = relay.subscribe(requestMessage);
 
-      // Log the subscription creation with timing
       IonConnectLogger.startRequestTimer(relay.url);
       IonConnectLogger.logRequestSent(
         relay.url,

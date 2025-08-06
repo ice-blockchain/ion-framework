@@ -57,7 +57,6 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     final eventKinds = events.map((event) => event.kind).toSet();
     Logger.log('[RELAY] Sending events with kinds: $eventKinds');
 
-    // Create session at the notifier level for multi-relay tracking
     final sessionId = events.isNotEmpty ? events.first.id : null;
     if (sessionId != null) {
       IonConnectLogger.startSessionWithId(sessionId);
@@ -85,8 +84,6 @@ class IonConnectNotifier extends _$IonConnectNotifier {
             .read(relayAuthProvider(relay))
             .handleRelayAuthOnAction(actionSource: actionSource, error: error);
 
-        // Set session ID on relay wrapper if it's a RelayLoggingWrapper
-        // This ensures ALL relay instances (including retries) get the session ID
         if (relay is RelayLoggingWrapper && sessionId != null) {
           relay.sessionId = sessionId;
         }
@@ -223,14 +220,12 @@ class IonConnectNotifier extends _$IonConnectNotifier {
             .read(relayAuthProvider(relay))
             .handleRelayAuthOnAction(actionSource: actionSource, error: error);
 
-        // Start timing the request
         IonConnectLogger.startRequestTimer(relay.url);
 
         final events = subscriptionBuilder != null
             ? subscriptionBuilder(requestMessage, relay)
             : ion.requestEvents(requestMessage, relay);
 
-        // Log the REQ message if using default requestEvents (not subscriptionBuilder)
         if (subscriptionBuilder == null) {
           IonConnectLogger.logRequestSent(
             relay.url,

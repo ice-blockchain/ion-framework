@@ -24,7 +24,6 @@ class Relay extends _$Relay
     try {
       final relay = await createRelay(ref, url);
 
-      // Wrap the relay with logging functionality
       final wrappedRelay = RelayLoggingWrapper(relay);
 
       trackRelayAsActive(wrappedRelay, ref);

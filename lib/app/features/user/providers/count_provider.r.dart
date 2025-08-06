@@ -88,7 +88,6 @@ class Count extends _$Count {
 
     final subscription = relay.subscribe(subscriptionMessage);
 
-    // Log the subscription creation with timing
     IonConnectLogger.startRequestTimer(relay.url);
     IonConnectLogger.logRequestSent(
       relay.url,
