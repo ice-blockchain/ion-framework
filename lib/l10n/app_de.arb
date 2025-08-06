@@ -167,7 +167,7 @@
   "two_fa_warning": "Wenn Sie die Zwei-Faktor-Authentifizierung löschen, kann dies die Sicherheit Ihrer Daten gefährden.",
   "sign_up_passkey_title": "Registrieren mit einem Passkey",
   "sign_up_passkey_advantage_1_title": "Keine Passwörter zum Merken",
-  "sign_up_passkey_advantage_1_description": "Nutze deinen Fingerabdruck oder dein Gesicht zum Anmelden – kein Passwort erforderlich",
+  "sign_up_passkey_advantage_1_description": "Melden Sie sich einfach und sicher mit Ihrem Fingerabdruck oder Ihrem Gesicht an",
   "sign_up_passkey_advantage_2_title": "Funktioniert auf all deinen Geräten",
   "sign_up_passkey_advantage_2_description": "Dein Passkey ist automatisch auf allen synchronisierten Geräten verfügbar",
   "sign_up_passkey_advantage_3_title": "Stärkerer Kontoschutz",

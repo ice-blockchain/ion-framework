@@ -110,7 +110,7 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
     useEffect(
       () {
         if (scrollController == null) return () {};
-        
+
         void scrollListener() {
           final newHasScrolled = scrollController!.offset > 0;
           if (hasScrolled.value != newHasScrolled) {
