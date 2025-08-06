@@ -18,6 +18,7 @@ import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'relay_firebase_app_config_provider.m.freezed.dart';
+
 part 'relay_firebase_app_config_provider.m.g.dart';
 
 @Riverpod(keepAlive: true)

@@ -13,6 +13,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/views/pages/unfollow_user_page.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/optimistic_ui/features/follow/follow_provider.r.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/block_user_modal/block_user_modal.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
@@ -125,7 +126,7 @@ class _FollowUserMenuItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.displayErrors(followListManagerProvider);
+    ref.displayErrors(toggleFollowNotifierProvider);
     final following = ref.watch(isCurrentUserFollowingSelectorProvider(pubkey));
     return OverlayMenuItem(
       label: following
@@ -143,7 +144,7 @@ class _FollowUserMenuItem extends ConsumerWidget {
             child: UnfollowUserModal(pubkey: pubkey),
           );
         } else {
-          ref.read(followListManagerProvider.notifier).toggleFollow(pubkey);
+          ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
         }
       },
     );

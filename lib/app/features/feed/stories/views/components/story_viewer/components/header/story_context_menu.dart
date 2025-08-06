@@ -12,6 +12,7 @@ import 'package:ion/app/features/feed/data/models/delete/delete_confirmation_typ
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/entity_delete_confirmation_modal/entity_delete_confirmation_modal.dart';
+import 'package:ion/app/features/optimistic_ui/features/follow/follow_provider.r.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/header/context_menu_item.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/header/context_menu_item_divider.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
@@ -201,7 +202,7 @@ class _OtherUserMenuItems extends ConsumerWidget {
                 ),
               );
             } else {
-              ref.read(followListManagerProvider.notifier).toggleFollow(pubkey);
+              ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
             }
           },
         ),
