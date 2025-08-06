@@ -282,16 +282,15 @@ class IonConnectPushDataPayload {
         );
 
         final imageMedia = message.data.visualMedias
-            .where((media) => media.mediaType == MediaType.image)
-            .firstOrNull;
+            .firstWhereOrNull((media) => media.mediaType == MediaType.image);
 
-        final mediaToDecrypt = imageMedia ?? message.data.visualMedias.first;
-
-        final encreptedMedia = await mediaEncryptionService.retrieveEncryptedMedia(
-          mediaToDecrypt,
-          authorPubkey: message.pubkey,
-        );
-        attachmentUrl = encreptedMedia.path;
+        if (imageMedia != null) {
+          final decryptedMedia = await mediaEncryptionService.retrieveEncryptedMedia(
+            imageMedia,
+            authorPubkey: message.pubkey,
+          );
+          attachmentUrl = decryptedMedia.path;
+        }
       }
     }
 
