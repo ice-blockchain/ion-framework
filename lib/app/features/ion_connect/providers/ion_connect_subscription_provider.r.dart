@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_logger.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -22,6 +23,15 @@ Raw<Stream<EventMessage>> ionConnectEventsSubscription(
     actionSource: actionSource,
     subscriptionBuilder: (requestMessage, relay) {
       final subscription = relay.subscribe(requestMessage);
+
+      // Log the subscription creation with timing
+      IonConnectLogger.startRequestTimer(relay.url);
+      IonConnectLogger.logRequestSent(
+        relay.url,
+        requestMessage,
+        subscriptionId: subscription.id,
+      );
+
       try {
         ref.onDispose(() => relay.unsubscribe(subscription.id));
       } on Exception catch (ex) {

@@ -24,12 +24,14 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/long_living_subscription_relay_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_auth_provider.r.dart';
+import 'package:ion/app/features/ion_connect/providers/relays/relay_logging_wrapper.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_picker_provider.r.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/providers/relays/current_user_write_relay.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_logger.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/retry.dart';
@@ -55,6 +57,12 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     final eventKinds = events.map((event) => event.kind).toSet();
     Logger.log('[RELAY] Sending events with kinds: $eventKinds');
 
+    // Create session at the notifier level for multi-relay tracking
+    final sessionId = events.isNotEmpty ? events.first.id : null;
+    if (sessionId != null) {
+      IonConnectLogger.startSessionWithId(sessionId);
+    }
+
     final dislikedRelaysUrls = <String>{};
 
     IonConnectRelay? triedRelay;
@@ -76,6 +84,12 @@ class IonConnectNotifier extends _$IonConnectNotifier {
         await ref
             .read(relayAuthProvider(relay))
             .handleRelayAuthOnAction(actionSource: actionSource, error: error);
+
+        // Set session ID on relay wrapper if it's a RelayLoggingWrapper
+        // This ensures ALL relay instances (including retries) get the session ID
+        if (relay is RelayLoggingWrapper && sessionId != null) {
+          relay.sessionId = sessionId;
+        }
 
         await relay.sendEvents(events).timeout(
               _defaultTimeout,
@@ -209,9 +223,21 @@ class IonConnectNotifier extends _$IonConnectNotifier {
             .read(relayAuthProvider(relay))
             .handleRelayAuthOnAction(actionSource: actionSource, error: error);
 
+        // Start timing the request
+        IonConnectLogger.startRequestTimer(relay.url);
+
         final events = subscriptionBuilder != null
             ? subscriptionBuilder(requestMessage, relay)
             : ion.requestEvents(requestMessage, relay);
+
+        // Log the REQ message if using default requestEvents (not subscriptionBuilder)
+        if (subscriptionBuilder == null) {
+          IonConnectLogger.logRequestSent(
+            relay.url,
+            requestMessage,
+            subscriptionId: requestMessage.subscriptionId,
+          );
+        }
 
         await for (final event in events) {
           // Note: The ion.requestEvents method automatically handles unsubscription for certain messages.
@@ -223,9 +249,17 @@ class IonConnectNotifier extends _$IonConnectNotifier {
               event: event,
             );
           } else if (event is EventMessage) {
+            // Session-based logging is handled by RelayLoggingWrapper
             yield event;
           } else if (event is EoseMessage && onEose != null) {
+            // Session-based logging is handled by RelayLoggingWrapper
             onEose();
+          } else if (event is OkMessage) {
+            // Session-based logging is handled by RelayLoggingWrapper
+          } else if (event is NoticeMessage) {
+            // Session-based logging is handled by RelayLoggingWrapper
+          } else if (event is ClosedMessage) {
+            // Session-based logging is handled by RelayLoggingWrapper
           }
         }
       },
@@ -407,6 +441,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       BadgeDefinitionEntity.kind,
       EventCountRequestEntity.kind,
     ];
+
     for (final event in events) {
       if (!excludedKinds.contains(event.kind) &&
           !event.tags.any((tag) => tag[0] == MasterPubkeyTag.tagName)) {

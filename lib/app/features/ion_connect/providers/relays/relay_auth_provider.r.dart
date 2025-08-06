@@ -14,6 +14,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.da
 import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'relay_auth_provider.r.g.dart';
@@ -150,6 +151,10 @@ class RelayAuthService {
       final authMessage = AuthMessage(
         challenge: jsonEncode(signedAuthEvent.toJson().last),
       );
+
+      // Log the AUTH message being sent
+      IonConnectLogger.logAuthSent(relay.url, authMessage);
+
       relay.sendMessage(authMessage);
 
       final okMessages = await relay.messages
