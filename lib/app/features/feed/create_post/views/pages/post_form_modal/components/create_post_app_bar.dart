@@ -38,7 +38,9 @@ class CreatePostAppBar extends HookWidget {
         title: context.i18n.cancel_creation_post_title,
         onCancel: () => {
           focusNode.unfocus(),
-          textEditorController.clearContent(),
+          textEditorController.clearContent(
+            ignoreFocus: false,
+          ),
           Navigator.of(context).pop(finishedEditing),
         },
       ),
