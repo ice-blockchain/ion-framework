@@ -33,7 +33,7 @@ GoRouter goRouter(Ref ref) {
   return GoRouter(
     refreshListenable: AppRouterNotifier(ref),
     redirect: (context, state) async {
-      final initState = ref.read(initAppProvider);
+      final initState = ref.watch(initAppProvider);
       final isSplashAnimationCompleted = ref.read(splashProvider);
       final forceUpdateRequired = ref.read(forceUpdateProvider).valueOrNull.falseOrValue;
       final isOnSplash = state.matchedLocation.startsWith(SplashRoute().location);
