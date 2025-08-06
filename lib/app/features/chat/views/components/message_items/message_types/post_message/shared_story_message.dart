@@ -141,7 +141,11 @@ class SharedStoryMessage extends HookConsumerWidget {
               child: Column(
                 crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
-                  if (isReplyToStory) _SenderReceiverLabel(isMe: isMe),
+                  if (isReplyToStory)
+                    _StoryReplyAndReactionLabel(isMe: isMe)
+                  else
+                    _StoryShareLabel(isMe: isMe),
+                  SizedBox(height: 3.0.s),
                   if (storyBelongsToCurrentUser ||
                       (storyUrl.isNotEmpty && !storyDeleted && !storyExpired))
                     _StoryPreviewImage(
@@ -175,8 +179,8 @@ class SharedStoryMessage extends HookConsumerWidget {
   }
 }
 
-class _SenderReceiverLabel extends StatelessWidget {
-  const _SenderReceiverLabel({required this.isMe});
+class _StoryReplyAndReactionLabel extends StatelessWidget {
+  const _StoryReplyAndReactionLabel({required this.isMe});
 
   final bool isMe;
 
@@ -184,6 +188,22 @@ class _SenderReceiverLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       isMe ? context.i18n.story_reply_sender : context.i18n.story_reply_receiver,
+      style: context.theme.appTextThemes.caption3.copyWith(
+        color: context.theme.appColors.quaternaryText,
+      ),
+    );
+  }
+}
+
+class _StoryShareLabel extends StatelessWidget {
+  const _StoryShareLabel({required this.isMe});
+
+  final bool isMe;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      isMe ? context.i18n.story_share_sender : context.i18n.story_share_receiver,
       style: context.theme.appTextThemes.caption3.copyWith(
         color: context.theme.appColors.quaternaryText,
       ),
@@ -211,14 +231,23 @@ class _StoryPreviewImage extends HookConsumerWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12.0.s),
       child: IonConnectNetworkImage(
-        cacheManager: cacheManager,
         imageUrl: storyUrl,
-        height: 220.0.s,
+        cacheManager: cacheManager,
         authorPubkey: replyEventMessage.masterPubkey,
         imageBuilder: (_, imageProvider) => Stack(
           alignment: AlignmentDirectional.center,
           children: [
-            Image(image: imageProvider),
+            Container(
+              color: context.theme.appColors.postContent,
+              constraints: BoxConstraints.expand(
+                width: 140.0.s,
+                height: 220.0.s,
+              ),
+              child: Image(
+                image: imageProvider,
+                fit: BoxFit.fitWidth,
+              ),
+            ),
             if (isThumb)
               Assets.svg.iconVideoPlay.icon(
                 color: context.theme.appColors.onPrimaryAccent,
