@@ -47,7 +47,7 @@
 //       WITH DailyLikes AS (
 //           SELECT
 //               DATE(datetime(
-//                 CASE 
+//                 CASE
 //                   WHEN LENGTH(created_at) > 13 THEN created_at / 1000000
 //                   ELSE created_at
 //                 END, 'unixepoch', 'localtime')) AS event_date,
@@ -55,10 +55,10 @@
 //               pubkey,
 //               created_at,
 //               ROW_NUMBER() OVER (PARTITION BY DATE(datetime(
-//                 CASE 
+//                 CASE
 //                   WHEN LENGTH(created_at) > 13 THEN created_at / 1000000
 //                   ELSE created_at
-//                 END, 'unixepoch', 'localtime')), event_reference 
+//                 END, 'unixepoch', 'localtime')), event_reference
 //                   ORDER BY created_at DESC) AS rn
 //           FROM
 //               likes_table
@@ -80,17 +80,17 @@
 //       WITH DailyFollowers AS (
 //           SELECT
 //               DATE(datetime(
-//                 CASE 
+//                 CASE
 //                   WHEN LENGTH(created_at) > 13 THEN created_at / 1000000
 //                   ELSE created_at
 //                 END, 'unixepoch', 'localtime')) AS event_date,
 //               pubkey,
 //               created_at,
 //               ROW_NUMBER() OVER (PARTITION BY DATE(datetime(
-//                 CASE 
+//                 CASE
 //                   WHEN LENGTH(created_at) > 13 THEN created_at / 1000000
 //                   ELSE created_at
-//                 END, 'unixepoch', 'localtime')) 
+//                 END, 'unixepoch', 'localtime'))
 //                   ORDER BY created_at DESC) AS rn
 //           FROM
 //               followers_table
