@@ -40,7 +40,7 @@ class ConfigureFirebaseApp extends _$ConfigureFirebaseApp {
         resetPrevFcmToken: savedRelayFirebaseAppConfig != null,
       );
       if (initialized) {
-        ref.watch(savedRelayFirebaseAppConfigProvider.notifier).config = relayFirebaseAppConfig;
+        ref.read(savedRelayFirebaseAppConfigProvider.notifier).config = relayFirebaseAppConfig;
         return true;
       }
     }
