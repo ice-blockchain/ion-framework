@@ -90,7 +90,9 @@ class ToggleLikeNotifier extends _$ToggleLikeNotifier {
   final _processingOperations = <String>{};
 
   @override
-  void build() {}
+  void build() {
+    keepAliveWhenAuthenticated(ref);
+  }
 
   Future<void> toggle(EventReference eventReference) async {
     final key = eventReference.toString();
