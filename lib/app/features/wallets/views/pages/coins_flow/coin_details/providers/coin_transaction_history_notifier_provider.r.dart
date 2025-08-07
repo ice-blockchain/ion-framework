@@ -148,7 +148,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
           confirmedSince: _lastLoadTime,
         )
         .distinct((list1, list2) => const ListEquality<TransactionData>().equals(list1, list2))
-        .listen(_onTransactionsUpdated);
+        .listen(_onTransactionsUpdated, onError: _onWatcherError);
 
     // Stream 2: Watch for in-progress transaction status updates
     _inProgressTransactionsWatcher = repository
@@ -161,7 +161,9 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
           limit: 100, // 100 for rare cases, on average no more than 20 is expected
         )
         .distinct((list1, list2) => const ListEquality<TransactionData>().equals(list1, list2))
-        .listen(_onTransactionsUpdated);
+        .listen(_onTransactionsUpdated, onError: _onWatcherError);
+
+    Logger.info('$_tag Started real-time watching for new and in-progress transactions');
   }
 
   void _onTransactionsUpdated(List<TransactionData> transactions) {
@@ -206,6 +208,10 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
 
   bool _hasTransactionStatusChanged(CoinTransactionData existing, CoinTransactionData updated) {
     return existing.origin.status != updated.origin.status;
+  }
+
+  void _onWatcherError(Object error, StackTrace stackTrace) {
+    Logger.error('$_tag Real-time transactions watcher error: $error', stackTrace: stackTrace);
   }
 
   Future<void> loadMore() async {

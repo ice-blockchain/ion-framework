@@ -14,6 +14,7 @@ import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 import 'package:ion/app/features/wallets/providers/selected_wallet_view_id_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallets_initializer_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'wallet_view_data_provider.r.g.dart';
@@ -26,7 +27,9 @@ class WalletViewsDataNotifier extends _$WalletViewsDataNotifier {
 
   @override
   Future<List<WalletViewData>> build() async {
+    // Wait until all preparations are completed
     await ref.watch(walletsInitializerNotifierProvider.future);
+
     final walletViewsService = await ref.watch(walletViewsServiceProvider.future);
     final walletViews = await walletViewsService.fetch();
 
@@ -96,6 +99,13 @@ class WalletViewsDataNotifier extends _$WalletViewsDataNotifier {
       if (!const SetEquality<String>().equals(currentTxs, cachedTxs)) {
         affectedWalletViewIds.add(walletViewId);
         _walletViewTransactions[walletViewId] = currentTxs;
+
+        Logger.info(
+          '[WalletViewDataNotifier] Wallet view affected | '
+          'ID: $walletViewId | '
+          'Current TXs: ${currentTxs.length} | '
+          'Cached TXs: ${cachedTxs.length}',
+        );
       }
     }
 
@@ -121,6 +131,7 @@ class WalletViewsDataNotifier extends _$WalletViewsDataNotifier {
     final walletViewsService = await ref.read(walletViewsServiceProvider.future);
 
     for (final walletViewId in affectedWalletViewIds) {
+      Logger.info('[WalletViewDataNotifier] Refreshing wallet view: $walletViewId');
       await walletViewsService.refresh(walletViewId);
     }
   }
