@@ -148,6 +148,13 @@ class ArticlePreviewModal extends HookConsumerWidget {
 
                       if (!ref.read(createArticleProvider(type)).hasError && ref.context.mounted) {
                         context.pop();
+
+                        // We need also close ArticleFormModal after article is created or changed
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (context.mounted) {
+                            context.pop();
+                          }
+                        });
                       }
                     },
                     label: Text(context.i18n.button_publish),
