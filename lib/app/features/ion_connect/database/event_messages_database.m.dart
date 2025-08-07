@@ -159,6 +159,7 @@ class EventMessagesDatabase extends _$EventMessagesDatabase {
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
+      //TODO: remove
       beforeOpen: (openingDetails) async {
         final m = createMigrator(); // changed to this
         for (final table in allTables) {
