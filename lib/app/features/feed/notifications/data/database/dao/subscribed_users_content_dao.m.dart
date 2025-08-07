@@ -3,19 +3,19 @@
 import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/subscribed_users_content_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'subscribed_users_content_dao.m.g.dart';
 
 @Riverpod(keepAlive: true)
 SubscribedUsersContentDao subscribedUsersContentDao(Ref ref) =>
-    SubscribedUsersContentDao(ref.watch(notificationsDatabaseProvider));
+    SubscribedUsersContentDao(ref.watch(eventMessagesDatabaseProvider));
 
 @DriftAccessor(tables: [SubscribedUsersContentTable])
-class SubscribedUsersContentDao extends DatabaseAccessor<NotificationsDatabase>
+class SubscribedUsersContentDao extends DatabaseAccessor<EventMessagesDatabase>
     with _$SubscribedUsersContentDaoMixin {
   SubscribedUsersContentDao(super.db);
 

@@ -2,19 +2,19 @@
 
 import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/account_notification_sync_state_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'account_notification_sync_state_dao.m.g.dart';
 
 @Riverpod(keepAlive: true)
 AccountNotificationSyncStateDao accountNotificationSyncStateDao(Ref ref) =>
-    AccountNotificationSyncStateDao(ref.watch(notificationsDatabaseProvider));
+    AccountNotificationSyncStateDao(ref.watch(eventMessagesDatabaseProvider));
 
 @DriftAccessor(tables: [AccountNotificationSyncStateTable])
-class AccountNotificationSyncStateDao extends DatabaseAccessor<NotificationsDatabase>
+class AccountNotificationSyncStateDao extends DatabaseAccessor<EventMessagesDatabase>
     with _$AccountNotificationSyncStateDaoMixin {
   AccountNotificationSyncStateDao(super.db);
 

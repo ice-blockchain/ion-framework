@@ -3,18 +3,18 @@
 import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/followers_table.d.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'followers_dao.m.g.dart';
 
 @Riverpod(keepAlive: true)
-FollowersDao followersDao(Ref ref) => FollowersDao(db: ref.watch(notificationsDatabaseProvider));
+FollowersDao followersDao(Ref ref) => FollowersDao(db: ref.watch(eventMessagesDatabaseProvider));
 
 @DriftAccessor(tables: [FollowersTable])
-class FollowersDao extends DatabaseAccessor<NotificationsDatabase> with _$FollowersDaoMixin {
-  FollowersDao({required NotificationsDatabase db}) : super(db);
+class FollowersDao extends DatabaseAccessor<EventMessagesDatabase> with _$FollowersDaoMixin {
+  FollowersDao({required EventMessagesDatabase db}) : super(db);
 
   Future<void> insert(Follower follower) async {
     await into(db.followersTable).insert(follower, mode: InsertMode.insertOrReplace);

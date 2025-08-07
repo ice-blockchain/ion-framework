@@ -3,18 +3,18 @@
 import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/converters/feed_modifier_converter.d.dart';
-import 'package:ion/app/features/feed/data/database/following_feed_database/following_feed_database.m.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/tables/user_fetch_states_table.d.dart';
 import 'package:ion/app/features/feed/data/models/feed_modifier.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_fetch_states_dao.m.g.dart';
 
 @DriftAccessor(tables: [UserFetchStatesTable])
-class UserFetchStatesDao extends DatabaseAccessor<FollowingFeedDatabase>
+class UserFetchStatesDao extends DatabaseAccessor<EventMessagesDatabase>
     with _$UserFetchStatesDaoMixin {
-  UserFetchStatesDao({required FollowingFeedDatabase db}) : super(db);
+  UserFetchStatesDao({required EventMessagesDatabase db}) : super(db);
 
   Future<void> insertOrUpdate(
     String pubkey, {
@@ -63,4 +63,4 @@ class UserFetchStatesDao extends DatabaseAccessor<FollowingFeedDatabase>
 
 @Riverpod(keepAlive: true)
 UserFetchStatesDao userFetchStatesDao(Ref ref) =>
-    UserFetchStatesDao(db: ref.watch(followingFeedDatabaseProvider));
+    UserFetchStatesDao(db: ref.watch(eventMessagesDatabaseProvider));

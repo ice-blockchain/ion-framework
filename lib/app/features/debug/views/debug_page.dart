@@ -10,8 +10,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/core/providers/app_info_provider.r.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
-import 'package:ion/app/features/feed/data/database/following_feed_database/following_feed_database.m.dart';
-import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
 import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -272,9 +270,7 @@ class DebugPage extends ConsumerWidget {
     return switch (dbType) {
       _DebugPageDatabaseType.wallets => ref.read(walletsDatabaseProvider),
       _DebugPageDatabaseType.chat => ref.read(chatDatabaseProvider),
-      _DebugPageDatabaseType.notifications => ref.read(notificationsDatabaseProvider),
       _DebugPageDatabaseType.eventMessages => ref.read(eventMessagesDatabaseProvider),
-      _DebugPageDatabaseType.followingFeed => ref.read(followingFeedDatabaseProvider),
     };
   }
 }
@@ -282,9 +278,7 @@ class DebugPage extends ConsumerWidget {
 enum _DebugPageDatabaseType {
   wallets('Wallets Database'),
   chat('Chat Database'),
-  notifications('Notifications Database'),
-  eventMessages('Event Messages Database'),
-  followingFeed('Following Feed Database');
+  eventMessages('Event Messages Database');
 
   const _DebugPageDatabaseType(this.displayName);
   final String displayName;

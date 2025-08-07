@@ -3,18 +3,18 @@
 import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/likes_table.d.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'likes_dao.m.g.dart';
 
 @Riverpod(keepAlive: true)
-LikesDao likesDao(Ref ref) => LikesDao(db: ref.watch(notificationsDatabaseProvider));
+LikesDao likesDao(Ref ref) => LikesDao(db: ref.watch(eventMessagesDatabaseProvider));
 
 @DriftAccessor(tables: [LikesTable])
-class LikesDao extends DatabaseAccessor<NotificationsDatabase> with _$LikesDaoMixin {
-  LikesDao({required NotificationsDatabase db}) : super(db);
+class LikesDao extends DatabaseAccessor<EventMessagesDatabase> with _$LikesDaoMixin {
+  LikesDao({required EventMessagesDatabase db}) : super(db);
 
   Future<void> insert(Like like) async {
     await into(db.likesTable).insert(like, mode: InsertMode.insertOrReplace);

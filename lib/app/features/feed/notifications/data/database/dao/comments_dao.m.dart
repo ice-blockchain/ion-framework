@@ -3,18 +3,18 @@
 import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/comments_table.d.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'comments_dao.m.g.dart';
 
 @Riverpod(keepAlive: true)
-CommentsDao commentsDao(Ref ref) => CommentsDao(db: ref.watch(notificationsDatabaseProvider));
+CommentsDao commentsDao(Ref ref) => CommentsDao(db: ref.watch(eventMessagesDatabaseProvider));
 
 @DriftAccessor(tables: [CommentsTable])
-class CommentsDao extends DatabaseAccessor<NotificationsDatabase> with _$CommentsDaoMixin {
-  CommentsDao({required NotificationsDatabase db}) : super(db);
+class CommentsDao extends DatabaseAccessor<EventMessagesDatabase> with _$CommentsDaoMixin {
+  CommentsDao({required EventMessagesDatabase db}) : super(db);
 
   Future<void> insert(Comment comment) async {
     await into(db.commentsTable).insert(comment, mode: InsertMode.insertOrReplace);
