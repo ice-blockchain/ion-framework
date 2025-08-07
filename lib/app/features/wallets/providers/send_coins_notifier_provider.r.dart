@@ -106,7 +106,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
 
       unawaited(
         ref.read(syncedCoinsBySymbolGroupNotifierProvider.notifier).refresh(
-          [coinAssetData.coinsGroup.symbolGroup],
+          symbolGroups: [coinAssetData.coinsGroup.symbolGroup],
         ),
       );
 
