@@ -91,7 +91,7 @@ class _CancelMoneyRequestButton extends ConsumerWidget {
         label: isLoading
             ? const IONLoadingIndicator(type: IndicatorType.dark)
             : Text(
-                context.i18n.button_cancel,
+                isDeleted ? context.i18n.chat_money_message_cancelled : context.i18n.button_cancel,
                 style: context.theme.appTextThemes.caption2.copyWith(
                   color: context.theme.appColors.primaryText,
                 ),

@@ -740,6 +740,7 @@
   "chat_learn_more_modal_title": "Privacy First, Always",
   "chat_learn_more_modal_description": "Your chats are private and encrypted by default. We prioritize your privacy, and your conversations are protected with end-to-end encryption.",
   "chat_add_poll_title": "New poll",
+  "chat_money_message_cancelled": "Cancelled",
   "channel_create_title": "Create a new channel",
   "channel_create_type": "Channel type",
   "channel_create_admins": "Channel admins",
