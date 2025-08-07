@@ -4,11 +4,11 @@ import 'package:drift/drift.dart';
 import 'package:ion/app/extensions/event_message.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_tags_converter.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
-import 'package:ion/app/features/user_profile/database/user_profile_database.d.dart';
 
 @DataClassName('EventMessageBadgeDbModel')
 class UserBadgeInfoTable extends Table {

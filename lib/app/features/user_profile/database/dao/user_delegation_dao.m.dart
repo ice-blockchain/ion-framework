@@ -3,10 +3,9 @@
 import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user_profile/database/tables/user_delegation_table.d.dart';
-import 'package:ion/app/features/user_profile/database/user_profile_database.d.dart';
-import 'package:ion/app/features/user_profile/providers/user_profile_database_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_delegation_dao.m.g.dart';
@@ -14,13 +13,13 @@ part 'user_delegation_dao.m.g.dart';
 @riverpod
 UserDelegationDao userDelegationDao(Ref ref) {
   keepAliveWhenAuthenticated(ref);
-  return UserDelegationDao(db: ref.watch(userProfileDatabaseProvider));
+  return UserDelegationDao(db: ref.watch(eventMessagesDatabaseProvider));
 }
 
 @DriftAccessor(tables: [UserDelegationTable])
-class UserDelegationDao extends DatabaseAccessor<UserProfileDatabase>
+class UserDelegationDao extends DatabaseAccessor<EventMessagesDatabase>
     with _$UserDelegationDaoMixin {
-  UserDelegationDao({required UserProfileDatabase db}) : super(db);
+  UserDelegationDao({required EventMessagesDatabase db}) : super(db);
 
   Future<void> insertAll(List<UserDelegationEntity> usersDelegation) async {
     final databaseModels = await Future.wait<EventMessageDelegationDbModel>(

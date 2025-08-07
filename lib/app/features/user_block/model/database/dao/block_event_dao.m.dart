@@ -1,15 +1,28 @@
 // SPDX-License-Identifier: ice License 1.0
 
-part of '../block_user_database.m.dart';
+import 'package:drift/drift.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/user_block/extensions/event_message.dart';
+import 'package:ion/app/features/user_block/model/database/tables/block_event_table.d.dart';
+import 'package:ion/app/features/user_block/model/database/tables/unblock_event_table.d.dart';
+import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'block_event_dao.m.g.dart';
 
 @riverpod
 BlockEventDao blockEventDao(Ref ref) {
   keepAliveWhenAuthenticated(ref);
-  return BlockEventDao(ref.watch(blockedUsersDatabaseProvider));
+  return BlockEventDao(ref.watch(eventMessagesDatabaseProvider));
 }
 
 @DriftAccessor(tables: [BlockEventTable, UnblockEventTable])
-class BlockEventDao extends DatabaseAccessor<BlockUserDatabase> with _$BlockEventDaoMixin {
+class BlockEventDao extends DatabaseAccessor<EventMessagesDatabase> with _$BlockEventDaoMixin {
   BlockEventDao(super.db);
 
   Future<void> add(EventMessage event) async {

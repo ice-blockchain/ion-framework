@@ -8,7 +8,8 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_encrypted_event_message_handler.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
-import 'package:ion/app/features/user_block/model/database/block_user_database.m.dart';
+import 'package:ion/app/features/user_block/model/database/dao/block_event_dao.m.dart';
+import 'package:ion/app/features/user_block/model/database/dao/unblock_event_dao.m.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

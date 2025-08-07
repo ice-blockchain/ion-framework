@@ -13,7 +13,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_sync_strategy.dart';
-import 'package:ion/app/features/user_block/model/database/block_user_database.m.dart';
+import 'package:ion/app/features/user_block/model/database/dao/block_event_dao.m.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/block_sync_strategy.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';

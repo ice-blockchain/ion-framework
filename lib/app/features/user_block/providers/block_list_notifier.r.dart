@@ -9,7 +9,7 @@ import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/user_block/model/database/block_user_database.m.dart';
+import 'package:ion/app/features/user_block/model/database/dao/block_event_dao.m.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/block_user_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

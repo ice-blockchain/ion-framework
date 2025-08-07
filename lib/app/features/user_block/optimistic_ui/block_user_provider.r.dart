@@ -3,10 +3,9 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-
 import 'package:ion/app/features/optimistic_ui/core/operation_manager.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_service.dart';
-import 'package:ion/app/features/user_block/model/database/block_user_database.m.dart';
+import 'package:ion/app/features/user_block/model/database/dao/block_event_dao.m.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/block_sync_strategy_provider.r.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';
