@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/extensions/object.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/chat/e2ee/providers/coin_group_provider.r.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
 import 'package:ion/app/features/chat/model/money_message_type.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
@@ -114,6 +115,7 @@ class _RequestedMoneyMessage extends ConsumerWidget {
         eventMessage: eventMessage,
       ),
       onTapReply: onTapReply,
+      assetId: assetId,
     );
   }
 }
@@ -145,6 +147,7 @@ class _SentMoneyMessage extends ConsumerWidget {
     final asset = transactionData.cryptoAsset.mapOrNull(coin: (asset) => asset);
 
     final coin = asset?.coin;
+    final assetId = asset?.coin.id;
 
     final amount = asset?.amount ?? 0.0;
     final equivalentUsd = asset?.amountUSD ?? 0.0;
@@ -161,6 +164,7 @@ class _SentMoneyMessage extends ConsumerWidget {
       eventId: eventReference.eventId,
       button: ViewTransactionButton(transactionData: transactionData),
       onTapReply: onTapReply,
+      assetId: assetId,
     );
   }
 }
@@ -178,6 +182,7 @@ class _MoneyMessageContent extends HookConsumerWidget {
     required this.button,
     required this.margin,
     this.onTapReply,
+    this.assetId,
   });
 
   final bool isMe;
@@ -191,9 +196,12 @@ class _MoneyMessageContent extends HookConsumerWidget {
   final String eventId;
   final Widget button;
   final VoidCallback? onTapReply;
+  final String? assetId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final coinGroup = ref.watch(coinGroupByAssetIdProvider(assetId)).valueOrNull;
+
     final textColor = switch (isMe) {
       true => context.theme.appColors.onPrimaryAccent,
       false => context.theme.appColors.primaryText,
@@ -241,9 +249,12 @@ class _MoneyMessageContent extends HookConsumerWidget {
               SizedBox(height: 10.0.s),
               Row(
                 children: [
-                  NetworkIconWidget(
-                    imageUrl: network?.image ?? '',
-                    size: 36.0.s,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10.0.s),
+                    child: NetworkIconWidget(
+                      imageUrl: coinGroup?.iconUrl ?? coin?.iconUrl ?? '',
+                      size: 36.0.s,
+                    ),
                   ),
                   SizedBox(width: 8.0.s),
                   _AmountDisplay(
