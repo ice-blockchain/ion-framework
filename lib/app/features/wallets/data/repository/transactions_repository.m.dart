@@ -212,8 +212,6 @@ class TransactionsRepository {
   Stream<Map<CoinData, List<TransactionData>>> watchBroadcastedTransfersByCoins(
     List<String> coinIds,
   ) {
-    Logger.info('[TransactionsRepository] Starting to watch broadcasted transfers for coin IDs: ${coinIds.join(", ")}');
-    
     return _transactionsDao
         .watchTransactions(
       coinIds: coinIds,

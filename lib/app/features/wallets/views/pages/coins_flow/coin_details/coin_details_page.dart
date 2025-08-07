@@ -26,7 +26,6 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/pro
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/date.dart';
 
 class CoinDetailsPage extends HookConsumerWidget {
@@ -150,20 +149,12 @@ class CoinDetailsPage extends HookConsumerWidget {
         onLoadMore: historyNotifier.loadMore,
         builder: (context, slivers) => PullToRefreshBuilder(
           onRefresh: () async {
-            final startTime = DateTime.now().millisecondsSinceEpoch;
-            Logger.info('[CoinDetailsPage] Pull-to-refresh started for $symbolGroup at ${DateTime.now()}');
-            
             ref
               ..invalidate(walletViewsDataNotifierProvider)
               ..invalidate(coinTransactionHistoryNotifierProvider(symbolGroup: symbolGroup));
 
-            Logger.info('[CoinDetailsPage] Starting transaction sync for $symbolGroup...');
             final syncService = await ref.read(syncTransactionsServiceProvider.future);
             await syncService.syncCoinTransactions(symbolGroup);
-            
-            final endTime = DateTime.now().millisecondsSinceEpoch;
-            Logger.info('[CoinDetailsPage] Pull-to-refresh completed for $symbolGroup in ${endTime - startTime}ms');
-            
           },
           slivers: slivers,
         ),
