@@ -6,6 +6,7 @@ import 'package:ion/app/features/feed/providers/delete_entity_provider.r.dart';
 import 'package:ion/app/features/feed/providers/repost_notifier.r.dart';
 import 'package:ion/app/features/feed/reposts/models/post_repost.f.dart';
 import 'package:ion/app/features/feed/reposts/providers/optimistic/repost_sync_strategy.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_sync_strategy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -40,6 +41,38 @@ SyncStrategy<PostRepost> repostSyncStrategy(Ref ref) {
       cacheNotifier
         ..remove(repostsCacheKey)
         ..remove(quotesCacheKey);
+    },
+    updateRepostCache: (EventReference eventReference, int delta) {
+      final repostsCacheKey = EventCountResultEntity.cacheKeyBuilder(
+        key: eventReference.toString(),
+        type: EventCountResultType.reposts,
+      );
+      
+      // Get the existing cache entry
+      final existingEntity = ref.read(
+        ionConnectCacheProvider.select(
+          cacheSelector<EventCountResultEntity>(repostsCacheKey),
+        ),
+      );
+      
+      if (existingEntity != null) {
+        // Update the count by adding the delta
+        final currentCount = existingEntity.data.content as int;
+        final newCount = (currentCount + delta).clamp(0, double.infinity).toInt();
+        
+        if (newCount == 0) {
+          // Remove the cache entry if count reaches 0
+          cacheNotifier.remove(repostsCacheKey);
+        } else {
+          // Create updated entity with new count
+          final updatedEntity = existingEntity.copyWith(
+            data: existingEntity.data.copyWith(
+              content: newCount,
+            ),
+          );
+          cacheNotifier.cache(updatedEntity);
+        }
+      }
     },
   );
 }

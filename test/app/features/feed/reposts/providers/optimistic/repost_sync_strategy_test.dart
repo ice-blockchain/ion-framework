@@ -19,11 +19,16 @@ class MockInvalidateCacheFunction extends Mock {
   void call(EventReference ref);
 }
 
+class MockUpdateRepostCacheFunction extends Mock {
+  void call(EventReference ref, int delta);
+}
+
 void main() {
   group('RepostSyncStrategy', () {
     late MockCreateRepostFunction mockCreateRepost;
     late MockDeleteRepostFunction mockDeleteRepost;
     late MockInvalidateCacheFunction mockInvalidateCache;
+    late MockUpdateRepostCacheFunction mockUpdateRepostCache;
     late RepostSyncStrategy strategy;
 
     const eventRef = ImmutableEventReference(
@@ -42,11 +47,12 @@ void main() {
       mockCreateRepost = MockCreateRepostFunction();
       mockDeleteRepost = MockDeleteRepostFunction();
       mockInvalidateCache = MockInvalidateCacheFunction();
-
+      mockUpdateRepostCache = MockUpdateRepostCacheFunction();
       strategy = RepostSyncStrategy(
         createRepost: mockCreateRepost.call,
         deleteRepost: mockDeleteRepost.call,
         invalidateCounterCache: mockInvalidateCache.call,
+        updateRepostCache: mockUpdateRepostCache.call,
       );
 
       registerFallbackValue(eventRef);
