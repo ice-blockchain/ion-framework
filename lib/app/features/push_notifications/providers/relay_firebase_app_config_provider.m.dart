@@ -99,12 +99,12 @@ class RelayFirebaseAppConfig extends _$RelayFirebaseAppConfig {
 class SavedRelayFirebaseAppConfig extends _$SavedRelayFirebaseAppConfig {
   @override
   RelayFirebaseConfig? build() {
-    listenSelf((_, next) => _saveConfig(next));
     return _loadConfig();
   }
 
   set config(RelayFirebaseConfig config) {
     state = config;
+    _saveConfig(config);
   }
 
   Future<void> _saveConfig(RelayFirebaseConfig? relayFirebaseConfig) async {
