@@ -111,13 +111,15 @@ mixin _Interceptors {
   }) {
     return RetryInterceptor(
       dio: dio,
-      retries: 5,
-      retryDelays: [
-        const Duration(milliseconds: 200),
-        const Duration(milliseconds: 400),
-        const Duration(milliseconds: 600),
-        const Duration(milliseconds: 800),
-        const Duration(seconds: 1),
+      retries: 7,
+      retryDelays: const [
+        Duration(milliseconds: 200),
+        Duration(milliseconds: 400),
+        Duration(milliseconds: 600),
+        Duration(milliseconds: 800),
+        Duration(seconds: 1),
+        Duration(seconds: 2),
+        Duration(seconds: 3),
       ],
     );
   }

@@ -618,7 +618,7 @@ packages:
     source: hosted
     version: "5.8.0+1"
   dio_smart_retry:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dio_smart_retry
       sha256: c8e20da5f49289fa7dce5c9c6b5b120928e3661aefa0fa2d206ea6d93f580928
