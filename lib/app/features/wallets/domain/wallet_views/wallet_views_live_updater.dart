@@ -164,7 +164,6 @@ class WalletViewsLiveUpdater {
     Stream<List<TransactionData>> nftTransactionsStream,
     Stream<List<CoinData>> coinsStream,
   ) async* {
-
     // Wrap each stream to enable combineLatestAll
     final wrappedCoinTransactions = coinTransactionsStream.map(_StreamResult.coinTransactions);
 
@@ -185,16 +184,18 @@ class WalletViewsLiveUpdater {
           ),
         )
         .distinct((prev, current) {
-          // Enhanced comparison for coin transactions
-          final coinTxsEqual =
-              _compareTransactionMaps(prev.coinTransactions, current.coinTransactions);
-          final nftTxsEqual =
-              _compareTransactionLists(prev.nftTransactions, current.nftTransactions);
-          final coinsEqual = _compareCoinLists(prev.coins, current.coins);
-
-          return !(coinTxsEqual && nftTxsEqual && coinsEqual);
+          return const MapEquality<CoinData, List<TransactionData>>()
+                  .equals(prev.coinTransactions, current.coinTransactions) &&
+              const UnorderedIterableEquality<TransactionData>()
+                  .equals(prev.nftTransactions, current.nftTransactions) &&
+              const UnorderedIterableEquality<CoinData>().equals(prev.coins, current.coins);
         })
         .debounce(const Duration(milliseconds: 300))) {
+      Logger.info(
+        '[WalletViewsLiveUpdater] Emitting update - ${results.coins.length} coins, '
+        '${results.coinTransactions.length} coin transactions, '
+        '${results.nftTransactions.length} NFT transactions',
+      );
 
       yield WalletViewUpdate(
         updatedCoins: results.coins,
@@ -208,36 +209,28 @@ class WalletViewsLiveUpdater {
     List<WalletViewData> views,
     WalletViewUpdate update,
   ) {
-    // Log USDT balances before applying updates
-    _logUsdtBalances(views, '[WalletViewsLiveUpdater] Before applying updates');
-
-    final updatedViews = views.map((walletView) {
+    return views.map((walletView) {
       final updatedGroups = walletView.coinGroups.map((group) {
         var totalGroupAmount = 0.0;
         var totalGroupBalanceUSD = 0.0;
 
         final updatedCoinsInGroup = group.coins.map((coinInWallet) {
-
           var modifiedCoin = _applyUpdatedCoinPrice(
             coinInWallet: coinInWallet,
             updatedCoins: update.updatedCoins,
           );
 
-
-          final beforeTransactions = modifiedCoin.amount;
           modifiedCoin = _applyExecutingTransactions(
             coinInWallet: modifiedCoin,
             transactions: update.coinTransactions,
             walletViewId: walletView.id,
           );
 
-
           totalGroupAmount += modifiedCoin.amount;
           totalGroupBalanceUSD += modifiedCoin.balanceUSD;
 
           return modifiedCoin;
         }).toList();
-
 
         return group.copyWith(
           coins: updatedCoinsInGroup,
@@ -261,11 +254,6 @@ class WalletViewsLiveUpdater {
 
       return updatedWalletView;
     }).toList();
-
-    // Log USDT balances after applying updates
-    _logUsdtBalances(updatedViews, '[WalletViewsLiveUpdater] After applying updates');
-
-    return updatedViews;
   }
 
   CoinInWalletData _applyUpdatedCoinPrice({
@@ -296,71 +284,63 @@ class WalletViewsLiveUpdater {
     required Map<CoinData, List<TransactionData>> transactions,
   }) {
     var updatedCoin = coinInWallet;
-    final isUsdtCoin = coinInWallet.coin.abbreviation.toUpperCase() == 'USDT';
 
-    if (transactions.isEmpty) {
-      return updatedCoin;
-    }
+    if (transactions.isNotEmpty) {
+      final key = transactions.keys.firstWhereOrNull(
+        (key) => key.id == coinInWallet.coin.id,
+      );
+      final coinTransactions = transactions[key] ?? [];
+      final wallet = _userWallets.firstWhereOrNull(
+        (w) => w.id == coinInWallet.walletId,
+      );
 
-    final key = transactions.keys.firstWhereOrNull(
-      (key) => key.id == coinInWallet.coin.id,
-    );
+      var adjustedRawAmount = BigInt.parse(coinInWallet.rawAmount);
 
-    if (key == null) {
-      return updatedCoin;
-    }
+      if (coinTransactions.isNotEmpty) {
+        Logger.info(
+          '[WalletViewsLiveUpdater] Apply broadcasted transactions(${transactions.length}) '
+          'for ${coinInWallet.coin.abbreviation}(${coinInWallet.coin.name}). '
+          'Network: ${coinInWallet.coin.network.id}. Initial balance: ${coinInWallet.amount}.',
+        );
+      }
 
-    final coinTransactions = transactions[key] ?? [];
+      var balanceHackApplied = false;
+      for (final transaction in coinTransactions) {
+        final isTransactionRelatedToCoin = transaction.senderWalletAddress == wallet?.address;
+        final isTransactionRelatedToWalletView = transaction.walletViewId == walletViewId;
+        final transactionCoin = transaction.cryptoAsset;
 
-    final wallet = _userWallets.firstWhereOrNull(
-      (w) => w.id == coinInWallet.walletId,
-    );
+        if (isTransactionRelatedToCoin &&
+            transactionCoin is CoinTransactionAsset &&
+            isTransactionRelatedToWalletView) {
+          adjustedRawAmount -= BigInt.parse(transactionCoin.rawAmount);
 
-    if (wallet == null) {
-      return updatedCoin;
-    }
-
-    if (isUsdtCoin) {
-      Logger.info('[WalletViewsLiveUpdater] USDT Transaction Processing - Original amount: ${coinInWallet.amount}, Network: ${coinInWallet.coin.network.displayName}, Transactions: ${coinTransactions.length}');
-    }
-
-    var adjustedRawAmount = BigInt.parse(coinInWallet.rawAmount);
-    var balanceHackApplied = false;
-    var totalReduction = BigInt.zero;
-
-    for (final transaction in coinTransactions) {
-      final isTransactionRelatedToCoin = transaction.senderWalletAddress == wallet.address;
-      final isTransactionRelatedToWalletView = transaction.walletViewId == walletViewId;
-      final transactionCoin = transaction.cryptoAsset;
-
-      if (isTransactionRelatedToCoin &&
-          transactionCoin is CoinTransactionAsset &&
-          isTransactionRelatedToWalletView) {
-        final reductionAmount = BigInt.parse(transactionCoin.rawAmount);
-        adjustedRawAmount -= reductionAmount;
-        totalReduction += reductionAmount;
-        balanceHackApplied = true;
-
-        if (isUsdtCoin) {
-          Logger.info('[WalletViewsLiveUpdater] USDT Transaction Applied - TxHash: ${transaction.txHash}, Reduction: ${transactionCoin.amount}, Status: ${transaction.status}');
+          balanceHackApplied = true;
+          Logger.info(
+            '[WalletViewsLiveUpdater] Reduce coin amount according to the next transactions: '
+            'amount: ${transactionCoin.amount} txHash: ${transaction.txHash}, '
+            'network: ${transaction.network.id}, coin: ${transactionCoin.coin}',
+          );
         }
       }
-    }
 
-    final adjustedAmount = parseCryptoAmount(
-      (adjustedRawAmount.isNegative ? 0 : adjustedRawAmount).toString(),
-      coinInWallet.coin.decimals,
-    );
-    final adjustedBalanceUSD = adjustedAmount * coinInWallet.coin.priceUSD;
+      final adjustedAmount = parseCryptoAmount(
+        (adjustedRawAmount.isNegative ? 0 : adjustedRawAmount).toString(),
+        coinInWallet.coin.decimals,
+      );
+      final adjustedBalanceUSD = adjustedAmount * coinInWallet.coin.priceUSD;
 
-    updatedCoin = coinInWallet.copyWith(
-      amount: adjustedAmount,
-      balanceUSD: adjustedBalanceUSD,
-      rawAmount: adjustedRawAmount.toString(),
-    );
+      if (adjustedAmount > 0 && balanceHackApplied) {
+        Logger.info(
+          '[WalletViewsLiveUpdater] The reduction is complete. Adjusted amount: $adjustedAmount',
+        );
+      }
 
-    if (isUsdtCoin && balanceHackApplied) {
-      Logger.info('[WalletViewsLiveUpdater] USDT Transaction Result - Original: ${coinInWallet.amount}, Adjusted: ${adjustedAmount}, Total Reduction: ${parseCryptoAmount(totalReduction.toString(), coinInWallet.coin.decimals)}, Network: ${coinInWallet.coin.network.displayName}');
+      updatedCoin = coinInWallet.copyWith(
+        amount: adjustedAmount,
+        balanceUSD: adjustedBalanceUSD,
+        rawAmount: adjustedRawAmount.toString(),
+      );
     }
 
     return updatedCoin;
@@ -421,116 +401,5 @@ class WalletViewsLiveUpdater {
     }
 
     return filteredNfts;
-  }
-
-  /// Enhanced comparison for transaction maps that includes transaction metadata
-  bool _compareTransactionMaps(
-    Map<CoinData, List<TransactionData>> map1,
-    Map<CoinData, List<TransactionData>> map2,
-  ) {
-    if (map1.length != map2.length) return false;
-
-    for (final entry in map1.entries) {
-      final coin = entry.key;
-      final txs1 = entry.value;
-      final txs2 = map2[coin];
-
-      if (txs2 == null || !_compareTransactionLists(txs1, txs2)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /// Enhanced comparison for transaction lists that includes status, timestamps, and amounts
-  bool _compareTransactionLists(List<TransactionData> list1, List<TransactionData> list2) {
-    if (list1.length != list2.length) {
-      return false;
-    }
-
-    for (int i = 0; i < list1.length; i++) {
-      final tx1 = list1[i];
-      final tx2 = list2[i];
-
-      // Compare transaction hash, status, amount, and key metadata
-      if (tx1.txHash != tx2.txHash ||
-          tx1.status != tx2.status ||
-          tx1.senderWalletAddress != tx2.senderWalletAddress ||
-          tx1.walletViewId != tx2.walletViewId) {
-        return false;
-      }
-
-      // Compare crypto asset details
-      final asset1 = tx1.cryptoAsset;
-      final asset2 = tx2.cryptoAsset;
-
-      if (asset1.runtimeType != asset2.runtimeType) {
-        return false;
-      }
-
-      if (asset1 is CoinTransactionAsset && asset2 is CoinTransactionAsset) {
-        if (asset1.amount != asset2.amount ||
-            asset1.rawAmount != asset2.rawAmount ||
-            asset1.coin.id != asset2.coin.id) {
-          return false;
-        }
-      }
-    }
-
-    return true;
-  }
-
-  /// Enhanced comparison for coin lists that includes prices and metadata
-  bool _compareCoinLists(List<CoinData> list1, List<CoinData> list2) {
-    if (list1.length != list2.length) {
-      return false;
-    }
-
-    for (int i = 0; i < list1.length; i++) {
-      final coin1 = list1[i];
-      final coin2 = list2[i];
-
-      if (coin1.id != coin2.id ||
-          coin1.priceUSD != coin2.priceUSD ||
-          coin1.name != coin2.name ||
-          coin1.abbreviation != coin2.abbreviation) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /// Generates a signature for a transaction including key properties that affect balance
-  String _generateTransactionSignature(TransactionData transaction) {
-    final asset = transaction.cryptoAsset;
-    String assetSignature = '';
-
-    if (asset is CoinTransactionAsset) {
-      assetSignature = '${asset.coin.id}:${asset.amount}:${asset.rawAmount}';
-    } else if (asset is NftTransactionAsset) {
-      assetSignature = 'nft:${asset.nft.identifier.value}';
-    } else if (asset is NftIdentifierTransactionAsset) {
-      assetSignature = 'nft_id:${asset.nftIdentifier.value}';
-    }
-
-    return '${transaction.status}:${transaction.senderWalletAddress}:${transaction.walletViewId}:$assetSignature';
-  }
-
-  void _logUsdtBalances(List<WalletViewData> walletViews, String context) {
-    for (final walletView in walletViews) {
-      for (final coinGroup in walletView.coinGroups) {
-        if (coinGroup.symbolGroup.toUpperCase() == 'USDT' && coinGroup.totalAmount > 0) {
-          final networksWithBalance = <String>[];
-          for (final coinInWallet in coinGroup.coins) {
-            if (coinInWallet.amount > 0) {
-              networksWithBalance.add('${coinInWallet.coin.network.displayName}: ${coinInWallet.amount}');
-            }
-          }
-          Logger.info('$context - USDT Total: ${coinGroup.totalAmount}, Networks: [${networksWithBalance.join(', ')}], WalletView: ${walletView.id}');
-        }
-      }
-    }
   }
 }

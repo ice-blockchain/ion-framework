@@ -126,7 +126,7 @@ class WalletViewsService {
 
     await _updateEmittedWalletViews(walletViews: _originWalletViews);
 
-    return _originWalletViews;
+    return _modifiedWalletViews;
   }
 
   Future<void> refresh(String walletViewId) async {
@@ -155,56 +155,25 @@ class WalletViewsService {
     bool updatePeriodicCoinsSync = true,
     bool applyCurrentFiltering = true,
   }) async {
-    final timestamp = DateTime.now();
-    Logger.info('[WalletViewsService] _updateEmittedWalletViews called at $timestamp - refreshSub: $refreshSubscriptions, updateSync: $updatePeriodicCoinsSync, applyFilter: $applyCurrentFiltering');
-    
     if (updatePeriodicCoinsSync) {
-      Logger.info('[WalletViewsService] Starting periodic coins sync...');
       final coins = _originWalletViews.expand((wv) => wv.coins).map((c) => c.coin).toList();
       await _syncWalletViewCoinsService.start(coins);
-      Logger.info('[WalletViewsService] Periodic coins sync completed');
     }
 
     if (walletViews != null) {
-      // Log balance before filtering
-      for (final walletView in walletViews) {
-        for (final coinGroup in walletView.coinGroups) {
-          Logger.info('[WalletViewsService] Wallet ${walletView.id} - ${coinGroup.symbolGroup} balance before filtering: ${coinGroup.totalAmount} (USD: \$${coinGroup.totalBalanceUSD.toStringAsFixed(2)})');
-        }
-      }
-      
       _modifiedWalletViews =
           applyCurrentFiltering ? await _liveUpdater.applyFiltering(walletViews) : walletViews;
-          
-      // Log balance after filtering
-      for (final walletView in _modifiedWalletViews) {
-        for (final coinGroup in walletView.coinGroups) {
-          Logger.info('[WalletViewsService] Wallet ${walletView.id} - ${coinGroup.symbolGroup} balance after filtering: ${coinGroup.totalAmount} (USD: \$${coinGroup.totalBalanceUSD.toStringAsFixed(2)})');
-        }
-      }
     }
 
-    Logger.info('[WalletViewsService] Emitting wallet views update to controller');
     _walletViewsController.add(_modifiedWalletViews);
 
-    if (refreshSubscriptions) {
-      unawaited(
-        _refreshUpdateSubscription(),
-      );
-    }
+    if (refreshSubscriptions) _refreshUpdateSubscription();
   }
 
-  Future<void> _refreshUpdateSubscription() async {
+  void _refreshUpdateSubscription() {
     if (_originWalletViews.isEmpty) return;
 
-    await _updatesSubscription?.cancel();
-
-    // Add small delay to ensure clean subscription transitions
-    // await Future<void>.delayed(const Duration(milliseconds: 50));
-
-    // Check again after delay in case object was disposed
-    if (_originWalletViews.isEmpty) return;
-
+    _updatesSubscription?.cancel();
     _updatesSubscription =
         _liveUpdater.watchWalletViews(_originWalletViews).listen((updatedViews) async {
       if (_originWalletViews.isEmpty) return;
