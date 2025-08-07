@@ -117,7 +117,7 @@ class OptimisticOperationManager<T extends OptimisticModel> {
 
       if (!enableLocal) {
         final stateIndex =
-        _state.indexWhere((model) => model.optimisticId == backendState.optimisticId);
+            _state.indexWhere((model) => model.optimisticId == backendState.optimisticId);
         if (stateIndex == -1) {
           _state.add(backendState);
         } else {
