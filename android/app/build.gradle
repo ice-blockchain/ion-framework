@@ -55,7 +55,7 @@ android {
         applicationId "io.ion.app"
         minSdkVersion 26
         targetSdkVersion flutter.targetSdkVersion
-        versionCode 1920
+        versionCode flutterVersionCode
         versionName flutterVersionName
     }
 

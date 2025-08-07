@@ -50,7 +50,6 @@ class IONApp extends ConsumerWidget {
       child: AppLifecycleObserver(
         child: SheetScope(
           child: MaterialApp.router(
-            showPerformanceOverlay: true,
             localizationsDelegates: const [
               ...I18n.localizationsDelegates,
               FlutterQuillLocalizations.delegate,
