@@ -46,6 +46,7 @@ void main() {
             return OptimisticOperationManager<PostRepost>(
               syncCallback: mockStrategy.send,
               onError: (_, __) async => false,
+              enableLocal: true,
             );
           }),
         ],

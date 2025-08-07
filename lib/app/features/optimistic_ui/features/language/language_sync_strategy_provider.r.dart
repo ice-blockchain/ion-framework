@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/optimistic_ui/core/operation_manager.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_service.dart';
@@ -27,10 +28,12 @@ LanguageSyncStrategy languageSyncStrategy(Ref ref) {
 @Riverpod(keepAlive: true)
 OptimisticOperationManager<ContentLangSet> contentLanguageManager(Ref ref) {
   final strategy = ref.watch(languageSyncStrategyProvider);
+  final localEnabled = ref.watch(envProvider.notifier).get<bool>(EnvVariable.OPTIMISTIC_UI_ENABLED);
 
   final manager = OptimisticOperationManager<ContentLangSet>(
     syncCallback: strategy.send,
     onError: (_, err) async => err is TimeoutException,
+    enableLocal: localEnabled,
   );
 
   ref.onDispose(manager.dispose);
