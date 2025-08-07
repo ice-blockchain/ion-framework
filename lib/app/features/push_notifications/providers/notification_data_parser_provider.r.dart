@@ -13,6 +13,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 part 'notification_data_parser_provider.r.g.dart';
 
+class NotificationParsedData {
+  const NotificationParsedData({
+    required this.title,
+    required this.body,
+    required this.notificationType,
+    this.avatar,
+    this.media,
+  });
+
+  final String title;
+  final String body;
+  final PushNotificationType notificationType;
+  final String? avatar;
+  final String? media;
+}
+
 class NotificationDataParser {
   NotificationDataParser({
     required Translator<PushNotificationTranslations> translator,
@@ -23,7 +39,7 @@ class NotificationDataParser {
   final SharedPreferencesAsync _prefs;
   final Translator<PushNotificationTranslations> _translator;
 
-  Future<({String title, String body})?> parse(
+  Future<NotificationParsedData?> parse(
     IonConnectPushDataPayload data, {
     required Future<MoneyDisplayData?> Function(EventMessage) getFundsRequestData,
     required Future<MoneyDisplayData?> Function(EventMessage) getTransactionData,
@@ -72,7 +88,15 @@ class NotificationDataParser {
       return null;
     }
 
-    return result;
+    final (avatar, media) = await data.getMediaPlaceholders();
+
+    return NotificationParsedData(
+      title: result.title,
+      body: result.body,
+      avatar: avatar,
+      media: media,
+      notificationType: notificationType,
+    );
   }
 
   Future<(String? title, String? body)> _getNotificationTranslation({

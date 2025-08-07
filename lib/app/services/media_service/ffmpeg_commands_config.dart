@@ -86,6 +86,27 @@ class FFmpegCommands {
         outputPath,
       ];
 
+  /// Commands for converting WebP to JPEG with custom dimensions
+  static List<String> webpToJpeg({
+    required String inputPath,
+    required String outputPath,
+    required int quality,
+    required String scaleResolution,
+  }) =>
+      [
+        '-i',
+        inputPath,
+        '-c:v',
+        'mjpeg',
+        '-vf',
+        scaleResolution,
+        '-q:v',
+        quality.toString(),
+        '-map_metadata',
+        '-1',
+        outputPath,
+      ];
+
   /// Commands for compressing audio to opus format
   static List<String> audioToOpus({
     required String inputPath,

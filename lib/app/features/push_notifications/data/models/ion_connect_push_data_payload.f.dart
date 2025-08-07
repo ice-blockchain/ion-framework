@@ -24,6 +24,10 @@ import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
+import 'package:ion/app/services/compressors/brotli_compressor.r.dart';
+import 'package:ion/app/services/file_cache/ion_cache_manager.dart';
+import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
+import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
 
 part 'ion_connect_push_data_payload.f.freezed.dart';
 part 'ion_connect_push_data_payload.f.g.dart';
@@ -33,13 +37,13 @@ class IonConnectPushDataPayload {
     required this.event,
     required this.relevantEvents,
     this.decryptedEvent,
-    this.decryptedPlaceholders,
+    this.decryptedUserMetadata,
   });
 
   final EventMessage event;
   final List<EventMessage> relevantEvents;
   final EventMessage? decryptedEvent;
-  final Map<String, String>? decryptedPlaceholders;
+  final UserMetadataEntity? decryptedUserMetadata;
 
   static Future<IonConnectPushDataPayload> fromEncoded(
     Map<String, dynamic> data, {
@@ -76,12 +80,7 @@ class IonConnectPushDataPayload {
       event: parsedEvent,
       relevantEvents: parsedRelevantEvents,
       decryptedEvent: decryptedEvent,
-      decryptedPlaceholders: userMetadata != null
-          ? {
-              'username': userMetadata.data.name,
-              'displayName': userMetadata.data.displayName,
-            }
-          : null,
+      decryptedUserMetadata: userMetadata,
     );
   }
 
@@ -201,8 +200,11 @@ class IonConnectPushDataPayload {
         'username': mainEntityUserMetadata.data.name,
         'displayName': mainEntityUserMetadata.data.displayName,
       });
-    } else {
-      data.addAll(decryptedPlaceholders ?? {});
+    } else if (decryptedUserMetadata != null) {
+      data.addAll({
+        'username': decryptedUserMetadata!.data.name,
+        'displayName': decryptedUserMetadata!.data.displayName,
+      });
     }
 
     if (decryptedEvent != null) {
@@ -254,6 +256,45 @@ class IonConnectPushDataPayload {
     }
 
     return data;
+  }
+
+  Future<(String? avatar, String? attachment)> getMediaPlaceholders() async {
+    final mainEntityUserMetadata = _getUserMetadata(pubkey: mainEntity.masterPubkey);
+    final avatarUrl = mainEntityUserMetadata?.data.picture ?? decryptedUserMetadata?.data.picture;
+
+    String? attachmentUrl;
+
+    final entity = mainEntity;
+    if (entity is IonConnectGiftWrapEntity &&
+        entity.data.kinds
+            .any((list) => list.contains(ReplaceablePrivateDirectMessageEntity.kind.toString())) &&
+        decryptedEvent != null) {
+      final message = ReplaceablePrivateDirectMessageEntity.fromEventMessage(decryptedEvent!);
+      if (message.data.messageType == MessageType.visualMedia &&
+          message.data.visualMedias.isNotEmpty) {
+        // Decrypt media
+        final mediaEncryptionService = MediaEncryptionService(
+          fileCacheService: FileCacheService(IONCacheManager.instance),
+          brotliCompressor: BrotliCompressor(),
+          generateMediaUrlFallback: (url, {required String authorPubkey}) async {
+            return null;
+          },
+        );
+
+        final imageMedia = message.data.visualMedias
+            .firstWhereOrNull((media) => media.mediaType == MediaType.image);
+
+        if (imageMedia != null) {
+          final decryptedMedia = await mediaEncryptionService.retrieveEncryptedMedia(
+            imageMedia,
+            authorPubkey: message.pubkey,
+          );
+          attachmentUrl = decryptedMedia.path;
+        }
+      }
+    }
+
+    return (avatarUrl, attachmentUrl);
   }
 
   Future<bool> validate({required String currentPubkey}) async {
@@ -387,5 +428,27 @@ enum PushNotificationType {
   chatMultiPhotoMessage,
   chatMultiVideoMessage,
   chatPaymentRequestMessage,
-  chatPaymentReceivedMessage,
+  chatPaymentReceivedMessage;
+
+  bool get isChat => const {
+        chatDocumentMessage,
+        chatEmojiMessage,
+        chatPhotoMessage,
+        chatProfileMessage,
+        chatReaction,
+        chatSharePostMessage,
+        chatShareStoryMessage,
+        chatSharedStoryReplyMessage,
+        chatTextMessage,
+        chatVideoMessage,
+        chatVoiceMessage,
+        chatFirstContactMessage,
+        chatGifMessage,
+        chatMultiGifMessage,
+        chatMultiMediaMessage,
+        chatMultiPhotoMessage,
+        chatMultiVideoMessage,
+        chatPaymentRequestMessage,
+        chatPaymentReceivedMessage,
+      }.contains(this);
 }

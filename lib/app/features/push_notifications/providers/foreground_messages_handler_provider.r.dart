@@ -14,7 +14,7 @@ import 'package:ion/app/features/push_notifications/providers/notification_data_
 import 'package:ion/app/features/user_profile/database/dao/user_metadata_dao.m.dart';
 import 'package:ion/app/services/firebase/firebase_messaging_service_provider.r.dart';
 import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
-import 'package:ion/app/services/uuid/uuid.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'foreground_messages_handler_provider.r.g.dart';
@@ -32,6 +32,8 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage response) async {
+    Logger.log('☁️ Foreground push notification received: ${response.data}');
+
     final data = await IonConnectPushDataPayload.fromEncoded(
       response.data,
       unwrapGift: (eventMassage) async {
@@ -64,12 +66,17 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
       return;
     }
 
+    final avatar = parsedData?.avatar;
+    final media = parsedData?.media;
+
     final notificationsService = await ref.read(localNotificationsServiceProvider.future);
     await notificationsService.showNotification(
-      id: generateUuid().hashCode,
       title: title,
       body: body,
       payload: jsonEncode(response.data),
+      icon: avatar,
+      attachment: media,
+      isConversationPush: parsedData?.notificationType.isChat ?? false,
     );
   }
 
