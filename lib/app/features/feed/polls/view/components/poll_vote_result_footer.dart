@@ -9,11 +9,13 @@ class PollVoteResultFooter extends StatelessWidget {
   const PollVoteResultFooter({
     required this.pollData,
     required this.totalVotes,
+    this.accentTheme = false,
     super.key,
   });
 
   final PollData pollData;
   final int totalVotes;
+  final bool accentTheme;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,9 @@ class PollVoteResultFooter extends StatelessWidget {
     return Text(
       footerText,
       style: context.theme.appTextThemes.caption2.copyWith(
-        color: context.theme.appColors.quaternaryText,
+        color: accentTheme
+            ? context.theme.appColors.strokeElements
+            : context.theme.appColors.quaternaryText,
         fontSize: 12.0.s,
       ),
     );

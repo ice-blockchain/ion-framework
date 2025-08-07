@@ -10,10 +10,12 @@ class PollVote extends HookConsumerWidget {
   const PollVote({
     required this.pollData,
     required this.onVote,
+    this.accentTheme = false,
     this.selectedOptionIndex,
     super.key,
   });
 
+  final bool accentTheme;
   final PollData pollData;
   final int? selectedOptionIndex;
   final void Function(int optionIndex) onVote;
@@ -25,6 +27,7 @@ class PollVote extends HookConsumerWidget {
         return List.generate(
           pollData.options.length,
           (index) => PollVoteItem(
+            accentTheme: accentTheme,
             key: ValueKey('poll_option_${pollData.options[index]}_$index'),
             text: pollData.options[index],
             isSelected: selectedOptionIndex == index,

@@ -12,10 +12,12 @@ class PollVoteResult extends ConsumerWidget {
   const PollVoteResult({
     required this.pollData,
     required this.voteCounts,
+    this.accentTheme = false,
     this.userVotedOptionIndex,
     super.key,
   });
 
+  final bool accentTheme;
   final PollData pollData;
   final List<int> voteCounts;
   final int? userVotedOptionIndex;
@@ -31,9 +33,10 @@ class PollVoteResult extends ConsumerWidget {
           pollData.options.length,
           (index) {
             return PollResultItem(
-              text: pollData.options[index],
-              votes: voteCounts[index],
               totalVotes: totalVotes,
+              accentTheme: accentTheme,
+              votes: voteCounts[index],
+              text: pollData.options[index],
               isSelected: userVotedOptionIndex == index,
             );
           },
@@ -42,6 +45,7 @@ class PollVoteResult extends ConsumerWidget {
         PollVoteResultFooter(
           pollData: pollData,
           totalVotes: totalVotes,
+          accentTheme: accentTheme,
         ),
       ],
     );

@@ -152,6 +152,7 @@ class PostBody extends HookConsumerWidget {
                     if (pollData != null)
                       PostPoll(
                         pollData: pollData,
+                        accentTheme: accentTheme,
                         postReference: entity.toEventReference(),
                       ),
                   ],
