@@ -153,6 +153,7 @@ class CoinDetailsPage extends HookConsumerWidget {
               ..invalidate(walletViewsDataNotifierProvider)
               ..invalidate(coinTransactionHistoryNotifierProvider(symbolGroup: symbolGroup));
 
+            // Sync transactions for this specific coin across all networks
             final syncService = await ref.read(syncTransactionsServiceProvider.future);
             await syncService.syncCoinTransactions(symbolGroup);
           },

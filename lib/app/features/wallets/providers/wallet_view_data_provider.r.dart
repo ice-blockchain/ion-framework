@@ -14,7 +14,6 @@ import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 import 'package:ion/app/features/wallets/providers/selected_wallet_view_id_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallets_initializer_provider.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'wallet_view_data_provider.r.g.dart';
@@ -77,9 +76,6 @@ class WalletViewsDataNotifier extends _$WalletViewsDataNotifier {
     final affectedWalletViewIds = _findAffectedWalletViews(currentTransactionsByWalletView);
 
     if (affectedWalletViewIds.isNotEmpty) {
-      Logger.info(
-        '[WalletViewsDataNotifier] Refreshing affected wallet views: $affectedWalletViewIds',
-      );
       await _refreshAffectedWalletViews(affectedWalletViewIds);
     }
   }

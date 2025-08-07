@@ -166,9 +166,7 @@ class WalletViewsLiveUpdater {
   ) async* {
     // Wrap each stream to enable combineLatestAll
     final wrappedCoinTransactions = coinTransactionsStream.map(_StreamResult.coinTransactions);
-
     final wrappedNftTransactions = nftTransactionsStream.map(_StreamResult.nftTransactions);
-
     final wrappedCoins = coinsStream.map(_StreamResult.coins);
 
     await for (final results in wrappedCoinTransactions
@@ -246,13 +244,11 @@ class WalletViewsLiveUpdater {
         walletViewId: walletView.id,
       );
 
-      final updatedWalletView = walletView.copyWith(
+      return walletView.copyWith(
         coinGroups: updatedGroups,
         nfts: filteredNfts,
         usdBalance: updatedGroups.fold(0, (sum, group) => sum + group.totalBalanceUSD),
       );
-
-      return updatedWalletView;
     }).toList();
   }
 

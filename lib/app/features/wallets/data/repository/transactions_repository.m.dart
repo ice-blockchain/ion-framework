@@ -220,7 +220,8 @@ class TransactionsRepository {
     )
         .map((transactions) {
       final filtered = transactions.where((tx) {
-        return tx.id != null && tx.cryptoAsset is CoinTransactionAsset;
+        final isValidCryptoAsset = tx.cryptoAsset is CoinTransactionAsset;
+        return tx.id != null && isValidCryptoAsset;
       }).toList();
 
       final transactionsByCoin = <CoinData, List<TransactionData>>{};
