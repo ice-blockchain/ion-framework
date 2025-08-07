@@ -23,7 +23,6 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_cont
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/components/feed_navigation/feed_navigation.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/components/feed_navigation/feed_notifications_button.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/feed_controls.dart';
-import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_posts_list/feed_posts_list.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/stories.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/trending_videos.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
@@ -48,14 +47,6 @@ class FeedPage extends HookConsumerWidget {
     final showTrendingVideos = showTrendingVideosFeatureFlag.value &&
         (feedCategory == FeedCategory.feed || feedCategory == FeedCategory.videos);
 
-    final slivers = [
-      if (showTrendingVideos)
-        const SliverToBoxAdapter(
-          child: TrendingVideos(),
-        ),
-      const FeedPostsList(),
-    ];
-
     return Scaffold(
       appBar: NavigationAppBar.root(
         title: const FeedNavigation(),
@@ -69,7 +60,13 @@ class FeedPage extends HookConsumerWidget {
         horizontalPadding: ScreenSideOffset.defaultSmallMargin,
       ),
       body: LoadMoreBuilder(
-        slivers: slivers,
+        slivers: [
+          if (showTrendingVideos)
+            const SliverToBoxAdapter(
+              child: TrendingVideos(),
+            ),
+          // const FeedPostsList(),
+        ],
         hasMore: hasMorePosts,
         onLoadMore: () => _onLoadMore(ref),
         builder: (context, slivers) {
@@ -81,7 +78,7 @@ class FeedPage extends HookConsumerWidget {
               child: Column(
                 children: [
                   if (feedCategory == FeedCategory.articles) const ArticleCategoriesMenu(),
-                  if (showStories) const Stories(),
+                  // if (showStories) const Stories(),
                 ],
               ),
             ),

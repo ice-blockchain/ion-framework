@@ -19,13 +19,13 @@ import 'package:ion/app/theme/theme.dart';
 import 'package:ion/generated/app_localizations.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-void main() async {
+void main() {
   SentryWidgetsFlutterBinding.ensureInitialized();
-  await SecureStorage().clearOnReinstall();
+  SecureStorage().clearOnReinstall();
 
   LoggerInitializer.initialize(riverpodContainer);
 
-  await SentryService.init(
+  SentryService.init(
     container: riverpodContainer,
     appRunner: () => runApp(
       UncontrolledProviderScope(
@@ -50,6 +50,7 @@ class IONApp extends ConsumerWidget {
       child: AppLifecycleObserver(
         child: SheetScope(
           child: MaterialApp.router(
+            showPerformanceOverlay: true,
             localizationsDelegates: const [
               ...I18n.localizationsDelegates,
               FlutterQuillLocalizations.delegate,

@@ -83,19 +83,19 @@ class Logger {
     Object? error,
     StackTrace? stackTrace,
   }) {
-    _talker?.log(message);
+    // _talker?.log(message);
 
     if (error != null) {
-      _talker?.error(error, stackTrace);
+      // _talker?.error(error, stackTrace);
     }
   }
 
   static void info(String message) {
-    _talker?.info(message);
+    // _talker?.info(message);
   }
 
   static void warning(String message) {
-    _talker?.warning(message);
+    // _talker?.warning(message);
   }
 
   static void error(
@@ -103,6 +103,6 @@ class Logger {
     StackTrace? stackTrace,
     String? message,
   }) {
-    _talker?.handle(error, stackTrace, message);
+    // _talker?.handle(error, stackTrace, message);
   }
 }

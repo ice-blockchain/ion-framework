@@ -15,7 +15,7 @@ class LoggerInitializer {
     final logApp = container.read(featureFlagsProvider.notifier).get(LoggerFeatureFlag.logApp);
 
     if (logApp) {
-      Logger.init(verbose: true);
+      // Logger.init(verbose: true);
     }
 
     // Handles Flutter-specific errors and exceptions
