@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -20,6 +21,8 @@ import 'package:ion/generated/app_localizations.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
+  // Ensure to instantiate AppLinks early to catch the very first link when the app is in cold state.
+  AppLinks();
   SentryWidgetsFlutterBinding.ensureInitialized();
   await SecureStorage().clearOnReinstall();
 

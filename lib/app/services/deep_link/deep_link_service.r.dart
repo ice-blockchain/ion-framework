@@ -3,11 +3,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:app_links/app_links.dart';
 import 'package:appsflyer_sdk/appsflyer_sdk.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -20,7 +22,32 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'deep_link_service.r.g.dart';
 
 @riverpod
-void deepLinkHandler(Ref ref) {
+Future<void> deepLinkHandler(Ref ref) async {
+  // used only first time when app is opened from closed state (cold start)
+  final appLinks = AppLinks();
+  try {
+    final initialLink = await appLinks.getInitialLinkString();
+
+    if (initialLink != null) {
+      final deepLinkService = ref.read(deepLinkServiceProvider);
+      // need to wait for splash animation to complete before navigating
+      final subscription = ref.listen(splashProvider, (prev, animationCompleted) {
+        if (animationCompleted) {
+          deepLinkService.resolveDeeplink(initialLink);
+        }
+      });
+      ref.onDispose(subscription.close);
+    }
+  } catch (e) {
+    Logger.error('Error getting initial link: $e');
+  }
+
+  // iOS handles warm start on AppDelegate level via AppsFlyer SDK
+  if (Platform.isAndroid) {
+    appLinks.stringLinkStream.listen(ref.read(deepLinkServiceProvider).resolveDeeplink);
+  }
+
+  // used when app is running in background (warm start)
   ref.listen<String?>(deeplinkPathProvider, (prev, next) {
     if (next != null) {
       final currentContext = rootNavigatorKey.currentContext;
@@ -80,10 +107,14 @@ Future<void> deeplinkInitializer(Ref ref) async {
   }
 
   bool isFallbackUrl(String eventReference) {
+    if (eventReference == service._fallbackUrl) {
+      return true;
+    }
     final fallbackUri = Uri.parse(service._fallbackUrl);
     final segments = fallbackUri.pathSegments;
     if (segments.isNotEmpty) {
       final lastSegment = segments.last;
+
       return '/$lastSegment' == eventReference;
     }
 
