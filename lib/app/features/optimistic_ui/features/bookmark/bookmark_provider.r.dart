@@ -3,6 +3,8 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_bookmarks_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/optimistic_ui/core/operation_manager.dart';
@@ -47,13 +49,19 @@ Stream<Bookmark?> bookmarkWatch(
   return service.watch(optimisticId);
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 OptimisticOperationManager<Bookmark> bookmarkManager(Ref ref, String collectionDTag) {
+  keepAliveWhenAuthenticated(ref);
+
   final strategy = ref.watch(bookmarkSyncStrategyProvider);
+  final localEnabled = ref.watch(envProvider.notifier).get<bool>(EnvVariable.OPTIMISTIC_UI_ENABLED);
+
   final manager = OptimisticOperationManager<Bookmark>(
     syncCallback: strategy.send,
     onError: (_, __) async => true,
+    enableLocal: localEnabled,
   );
+
   ref.onDispose(manager.dispose);
   return manager;
 }
