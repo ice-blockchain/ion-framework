@@ -13,9 +13,11 @@ class PostPoll extends ConsumerWidget {
   const PostPoll({
     required this.pollData,
     required this.postReference,
+    this.accentTheme = false,
     super.key,
   });
 
+  final bool accentTheme;
   final PollData pollData;
   final EventReference postReference;
 
@@ -32,11 +34,13 @@ class PostPoll extends ConsumerWidget {
       return PollVoteResult(
         pollData: pollData,
         voteCounts: voteCounts,
+        accentTheme: accentTheme,
         userVotedOptionIndex: userVotedOptionIndex,
       );
     } else {
       return PollVote(
         pollData: pollData,
+        accentTheme: accentTheme,
         selectedOptionIndex: userVotedOptionIndex,
         onVote: (optionIndex) async {
           final voteNotifier = ref.read(pollVoteNotifierProvider.notifier);

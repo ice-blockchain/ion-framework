@@ -11,6 +11,7 @@ class PollResultItem extends HookWidget {
     required this.votes,
     required this.totalVotes,
     this.isSelected = false,
+    this.accentTheme = false,
     super.key,
   });
 
@@ -18,6 +19,7 @@ class PollResultItem extends HookWidget {
   final int votes;
   final int totalVotes;
   final bool isSelected;
+  final bool accentTheme;
 
   String _getPercentageString(double percentage) {
     final result = formatDouble(percentage, maximumFractionDigits: 1, minimumFractionDigits: 0);
@@ -57,8 +59,12 @@ class PollResultItem extends HookWidget {
                 width: 4.0.s,
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? context.theme.appColors.primaryAccent.withValues(alpha: 0.3)
-                      : context.theme.appColors.onTertiaryFill,
+                      ? accentTheme
+                          ? context.theme.appColors.darkNight
+                          : context.theme.appColors.primaryAccent.withValues(alpha: 0.3)
+                      : accentTheme
+                          ? context.theme.appColors.darkBlue
+                          : context.theme.appColors.onTertiaryFill,
                   borderRadius: BorderRadius.circular(12.0.s),
                 ),
               ),
@@ -76,8 +82,12 @@ class PollResultItem extends HookWidget {
                       (MediaQuery.sizeOf(context).width * percentage).clamp(4.0.s, double.infinity),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? context.theme.appColors.primaryAccent.withValues(alpha: 0.3)
-                        : context.theme.appColors.onTertiaryFill,
+                        ? accentTheme
+                            ? context.theme.appColors.darkNight
+                            : context.theme.appColors.primaryAccent.withValues(alpha: 0.3)
+                        : accentTheme
+                            ? context.theme.appColors.darkBlue
+                            : context.theme.appColors.onTertiaryFill,
                     borderRadius: BorderRadius.circular(12.0.s),
                   ),
                 ),
@@ -96,7 +106,9 @@ class PollResultItem extends HookWidget {
                     child: Text(
                       text,
                       style: context.theme.appTextThemes.caption2.copyWith(
-                        color: context.theme.appColors.primaryText,
+                        color: accentTheme
+                            ? context.theme.appColors.onPrimaryAccent
+                            : context.theme.appColors.primaryText,
                         fontSize: 12.0.s,
                       ),
                       maxLines: 1,
@@ -106,7 +118,9 @@ class PollResultItem extends HookWidget {
                   Text(
                     _getPercentageString(percentageValue),
                     style: context.theme.appTextThemes.caption2.copyWith(
-                      color: context.theme.appColors.primaryText,
+                      color: accentTheme
+                          ? context.theme.appColors.onPrimaryAccent
+                          : context.theme.appColors.primaryText,
                       fontSize: 12.0.s,
                     ),
                   ),

@@ -26,6 +26,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     required this.purple,
     required this.raspberry,
     required this.darkBlue,
+    required this.darkNight,
     required this.lightBlue,
     required this.quaternaryText,
     required this.attentionBlock,
@@ -60,6 +61,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       purple: templateColors.purple,
       raspberry: templateColors.raspberry,
       darkBlue: templateColors.darkBlue,
+      darkNight: templateColors.darkNight,
       lightBlue: templateColors.lightBlue,
       quaternaryText: templateColors.quaternaryText,
       attentionBlock: templateColors.attentionBlock,
@@ -95,6 +97,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       purple: const Color(0xFF7D40FF),
       raspberry: const Color(0xFFEA3665),
       darkBlue: const Color(0xFF1D46EB),
+      darkNight: const Color(0xFF082FCC),
       lightBlue: const Color(0xFF1B9CF0),
       quaternaryText: const Color(0xFF727689),
       attentionBlock: const Color(0xFFEEF1FF),
@@ -128,6 +131,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   final Color purple;
   final Color raspberry;
   final Color darkBlue;
+  final Color darkNight;
   final Color lightBlue;
   final Color quaternaryText;
   final Color attentionBlock;
@@ -161,6 +165,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     Color? purple,
     Color? raspberry,
     Color? darkBlue,
+    Color? darkNight,
     Color? lightBlue,
     Color? quaternaryText,
     Color? attentionBlock,
@@ -193,6 +198,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       purple: purple ?? this.purple,
       raspberry: raspberry ?? this.raspberry,
       darkBlue: darkBlue ?? this.darkBlue,
+      darkNight: darkNight ?? this.darkNight,
       lightBlue: lightBlue ?? this.lightBlue,
       quaternaryText: quaternaryText ?? this.quaternaryText,
       attentionBlock: attentionBlock ?? this.attentionBlock,
@@ -236,6 +242,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       purple: Color.lerp(purple, other.purple, t)!,
       raspberry: Color.lerp(raspberry, other.raspberry, t)!,
       darkBlue: Color.lerp(darkBlue, other.darkBlue, t)!,
+      darkNight: Color.lerp(darkNight, other.darkNight, t)!,
       lightBlue: Color.lerp(lightBlue, other.lightBlue, t)!,
       quaternaryText: Color.lerp(quaternaryText, other.quaternaryText, t)!,
       attentionBlock: Color.lerp(attentionBlock, other.attentionBlock, t)!,

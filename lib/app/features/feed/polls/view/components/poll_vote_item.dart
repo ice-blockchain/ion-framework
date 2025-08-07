@@ -8,12 +8,14 @@ class PollVoteItem extends StatelessWidget {
     required this.text,
     required this.onTap,
     this.isSelected = false,
+    this.accentTheme = false,
     super.key,
   });
 
   final String text;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool accentTheme;
 
   @override
   Widget build(BuildContext context) {
@@ -39,11 +41,14 @@ class PollVoteItem extends StatelessWidget {
               Expanded(
                 child: Text(
                   text,
-                  style: context.theme.appTextThemes.body.copyWith(
-                    color: isSelected
-                        ? context.theme.appColors.primaryText
-                        : context.theme.appColors.secondaryText,
-                  ),
+                  style: accentTheme
+                      ? context.theme.appTextThemes.caption2
+                          .copyWith(color: context.theme.appColors.primaryText)
+                      : context.theme.appTextThemes.body.copyWith(
+                          color: isSelected
+                              ? context.theme.appColors.primaryText
+                              : context.theme.appColors.secondaryText,
+                        ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
