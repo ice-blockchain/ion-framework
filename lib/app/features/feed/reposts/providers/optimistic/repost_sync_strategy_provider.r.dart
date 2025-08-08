@@ -47,19 +47,19 @@ SyncStrategy<PostRepost> repostSyncStrategy(Ref ref) {
         key: eventReference.toString(),
         type: EventCountResultType.reposts,
       );
-      
+
       // Get the existing cache entry
       final existingEntity = ref.read(
         ionConnectCacheProvider.select(
           cacheSelector<EventCountResultEntity>(repostsCacheKey),
         ),
       );
-      
+
       if (existingEntity != null) {
         // Update the count by adding the delta
         final currentCount = existingEntity.data.content as int;
         final newCount = (currentCount + delta).clamp(0, double.infinity).toInt();
-        
+
         if (newCount == 0) {
           // Remove the cache entry if count reaches 0
           cacheNotifier.remove(repostsCacheKey);
