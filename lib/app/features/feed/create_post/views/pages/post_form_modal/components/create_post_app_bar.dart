@@ -5,7 +5,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/extensions/quill_controller.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/views/pages/cancel_creation_modal/cancel_creation_modal.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -39,13 +38,6 @@ class CreatePostAppBar extends HookWidget {
         onCancel: () => {
           focusNode.unfocus(),
           context.pop(finishedEditing),
-
-          // Clear content after 300ms to avoid the text editor being cleared before the modal is closed
-          Future.delayed(const Duration(milliseconds: 300), () {
-            textEditorController.clearContent(
-              ignoreFocus: false,
-            );
-          }),
         },
       ),
     );
