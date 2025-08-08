@@ -34,6 +34,7 @@ dependencies:
   custom_refresh_indicator: ^4.0.1
   device_info_plus: ^11.1.0
   dio: ^5.7.0
+  dio_smart_retry: ^7.0.1
   dlibphonenumber: ^1.1.26
   dotted_border: ^2.1.0
   drift: ^2.24.0
