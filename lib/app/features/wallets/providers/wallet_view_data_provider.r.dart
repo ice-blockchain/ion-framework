@@ -31,8 +31,8 @@ class WalletViewsDataNotifier extends _$WalletViewsDataNotifier {
     await ref.watch(walletsInitializerNotifierProvider.future);
 
     final walletViewsService = await ref.watch(walletViewsServiceProvider.future);
-
     final walletViews = await walletViewsService.fetch();
+
     walletViewsService.walletViews.listen((walletViews) {
       state = AsyncData(walletViews);
     });
@@ -70,6 +70,7 @@ class WalletViewsDataNotifier extends _$WalletViewsDataNotifier {
           walletViewIds: walletViewIds,
           statuses: TransactionStatus.inProgressStatuses,
         )
+        .distinct((list1, list2) => const ListEquality<TransactionData>().equals(list1, list2))
         .listen(_onBroadcastedTransfersUpdate);
   }
 

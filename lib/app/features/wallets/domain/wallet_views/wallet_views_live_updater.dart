@@ -187,7 +187,8 @@ class WalletViewsLiveUpdater {
               const UnorderedIterableEquality<TransactionData>()
                   .equals(prev.nftTransactions, current.nftTransactions) &&
               const UnorderedIterableEquality<CoinData>().equals(prev.coins, current.coins);
-        })) {
+        })
+        .debounce(const Duration(milliseconds: 300))) {
       Logger.info(
         '[WalletViewsLiveUpdater] Emitting update - ${results.coins.length} coins, '
         '${results.coinTransactions.length} coin transactions, '

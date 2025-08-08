@@ -126,7 +126,7 @@ class WalletViewsService {
 
     await _updateEmittedWalletViews(walletViews: _originWalletViews);
 
-    return _originWalletViews;
+    return _modifiedWalletViews;
   }
 
   Future<void> refresh(String walletViewId) async {
