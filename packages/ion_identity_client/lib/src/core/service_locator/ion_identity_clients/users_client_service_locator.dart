@@ -9,6 +9,8 @@ import 'package:ion_identity_client/src/users/get_content_creators/content_creat
 import 'package:ion_identity_client/src/users/get_content_creators/data_sources/get_content_creators_data_source.dart';
 import 'package:ion_identity_client/src/users/ion_connect_indexers/data_sources/ion_connect_indexers_data_source.dart';
 import 'package:ion_identity_client/src/users/ion_connect_indexers/get_user_connect_indexers_service.dart';
+import 'package:ion_identity_client/src/users/ion_connect_relays/data_sources/ion_connect_relays_data_source.dart';
+import 'package:ion_identity_client/src/users/ion_connect_relays/ion_connect_relays_service.dart';
 import 'package:ion_identity_client/src/users/ion_identity_users.dart';
 import 'package:ion_identity_client/src/users/search_users_social_profile/data_sources/search_users_social_profile_data_source.dart';
 import 'package:ion_identity_client/src/users/search_users_social_profile/search_users_social_profile_service.dart';
@@ -37,6 +39,10 @@ class UsersClientServiceLocator {
       IONIdentityUsers(
         username,
         _userDetails(
+          username: username,
+          config: config,
+        ),
+        _ionConnectRelays(
           username: username,
           config: config,
         ),
@@ -78,6 +84,18 @@ class UsersClientServiceLocator {
       UserDetailsService(
         username,
         UserDetailsDataSource(
+          IONIdentityServiceLocator.networkClient(config: config),
+          IONIdentityServiceLocator.tokenStorage(),
+        ),
+      );
+
+  IONConnectRelaysService _ionConnectRelays({
+    required String username,
+    required IONIdentityConfig config,
+  }) =>
+      IONConnectRelaysService(
+        username,
+        IONConnectRelaysDataSource(
           IONIdentityServiceLocator.networkClient(config: config),
           IONIdentityServiceLocator.tokenStorage(),
         ),

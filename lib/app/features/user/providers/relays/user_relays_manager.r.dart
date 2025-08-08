@@ -13,7 +13,6 @@ import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays_reachability_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_relays_manager.r.g.dart';
@@ -155,26 +154,19 @@ class UserRelaysManager extends _$UserRelaysManager {
 
   Future<List<UserRelaysEntity>> fetchRelaysFromIdentity(List<String> pubkeys) async {
     final ionIdentity = await ref.read(ionIdentityClientProvider.future);
-    final userDetails = await Future.wait(
-      pubkeys.map((pubkey) async {
-        try {
-          return await ionIdentity.users.details(userId: pubkey);
-        } catch (error, stackTrace) {
-          Logger.log('Error fetching user relays', error: error, stackTrace: stackTrace);
-        }
-      }),
-    );
+    final usersIdentityRelays = await ionIdentity.users.ionConnectRelays(masterPubkeys: pubkeys);
+
     final userRelays = [
-      for (final details in userDetails)
-        if (details != null && details.ionConnectRelays != null)
+      for (final relay in usersIdentityRelays)
+        if (relay.ionConnectRelays.isNotEmpty)
           UserRelaysEntity(
             id: '',
             signature: '',
-            masterPubkey: details.masterPubKey,
-            pubkey: details.masterPubKey,
+            masterPubkey: relay.masterPubKey,
+            pubkey: relay.masterPubKey,
             createdAt: DateTime.now().microsecondsSinceEpoch,
             data: UserRelaysData(
-              list: details.ionConnectRelays!.map((relay) => relay.toUserRelay()).toList(),
+              list: relay.ionConnectRelays.map((relay) => relay.toUserRelay()).toList(),
             ),
           ),
     ]..forEach(ref.read(ionConnectCacheProvider.notifier).cache);

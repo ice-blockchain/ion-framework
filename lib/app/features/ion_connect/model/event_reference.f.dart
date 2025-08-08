@@ -43,6 +43,8 @@ abstract class EventReference {
 
   String get masterPubkey;
 
+  int? get kind;
+
   String encode();
 
   List<String> toTag();

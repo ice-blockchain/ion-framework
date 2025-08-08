@@ -19,12 +19,12 @@ class VerifiedUserEventsMetadataBuilder implements EventsMetadataBuilder {
   final VerifiedBadgeEntities _verifiedBadgeData;
 
   @override
-  Future<List<EventsMetadata>> buildMetadata(List<EventReference> eventReferences) async {
-    final result = <EventsMetadata>[];
+  Future<List<EventsMetadataData>> buildMetadata(List<EventReference> eventReferences) async {
+    final result = <EventsMetadataData>[];
 
     if (_verifiedBadgeData.awardEntity != null) {
       result.add(
-        EventsMetadata(
+        EventsMetadataData(
           eventReferences: eventReferences,
           metadata: await _verifiedBadgeData.awardEntity!.toEntityEventMessage(),
         ),
@@ -32,7 +32,7 @@ class VerifiedUserEventsMetadataBuilder implements EventsMetadataBuilder {
     }
     if (_verifiedBadgeData.definitionEntity != null) {
       result.add(
-        EventsMetadata(
+        EventsMetadataData(
           eventReferences: eventReferences,
           metadata: await _verifiedBadgeData.definitionEntity!.toEntityEventMessage(),
         ),

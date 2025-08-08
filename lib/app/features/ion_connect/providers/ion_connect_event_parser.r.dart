@@ -17,6 +17,7 @@ import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_vote.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
+import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
@@ -77,6 +78,7 @@ class EventParser {
       ProfileBadgesEntity.kind => ProfileBadgesEntity.fromEventMessage(eventMessage),
       BadgeAwardEntity.kind => BadgeAwardEntity.fromEventMessage(eventMessage),
       PollVoteEntity.kind => PollVoteEntity.fromEventMessage(eventMessage),
+      EventsMetadataEntity.kind => EventsMetadataEntity.fromEventMessage(eventMessage),
       _ => throw UnknownEventException(eventId: eventMessage.id, kind: eventMessage.kind)
     };
   }
