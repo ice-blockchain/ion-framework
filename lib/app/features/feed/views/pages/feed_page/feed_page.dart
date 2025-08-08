@@ -9,9 +9,12 @@ import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
+import 'package:ion/app/features/feed/data/database/following_feed_database/following_feed_database.m.dart';
 import 'package:ion/app/features/feed/data/models/feed_category.dart';
+import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
 import 'package:ion/app/features/feed/providers/feed_current_filter_provider.m.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_trending_videos_provider.r.dart';
@@ -26,6 +29,10 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_cont
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_posts_list/feed_posts_list.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/stories.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/trending_videos.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
+import 'package:ion/app/features/user_block/providers/blocked_users_database_provider.r.dart';
+import 'package:ion/app/features/user_profile/providers/user_profile_database_provider.r.dart';
+import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -35,6 +42,56 @@ class FeedPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      floatingActionButton: FloatingActionButton.large(
+        onPressed: () async {
+          final chatDb = ref.read(chatDatabaseProvider);
+          final followingFeedDb = ref.read(followingFeedDatabaseProvider);
+          final notificationsDb = ref.read(notificationsDatabaseProvider);
+          final eventMessagesDb = ref.read(eventMessagesDatabaseProvider);
+          final blokckUserDb = ref.read(blockedUsersDatabaseProvider);
+          final userProfileDb = ref.read(userProfileDatabaseProvider);
+          final walletsDb = ref.read(walletsDatabaseProvider);
+
+          final allDbs = [
+            chatDb,
+            followingFeedDb,
+            notificationsDb,
+            eventMessagesDb,
+            blokckUserDb,
+            userProfileDb,
+            walletsDb,
+          ];
+          for (final db in allDbs) {
+            // Get DB name (if you store it somewhere in your DB class)
+            final dbName = db.runtimeType.toString();
+
+            final pageSizeRow = await db.customSelect('PRAGMA page_size;').getSingle();
+            final cacheSizeRow = await db.customSelect('PRAGMA cache_size;').getSingle();
+
+            final pageSize = pageSizeRow.data.values.first as int;
+            final cacheSetting = cacheSizeRow.data.values.first as int;
+
+            final cacheBytes = cacheSetting < 0
+                ? cacheSetting.abs() * 1024 // KB mode
+                : cacheSetting * pageSize; // Pages mode
+
+            final cacheKB = cacheBytes / 1024;
+            final cacheMB = cacheBytes / (1024 * 1024);
+
+            print('[DB: $dbName]');
+            print('  PRAGMA page_size  : $pageSize bytes');
+            print('  PRAGMA cache_size : $cacheSetting');
+            print(
+              '  Calculated cache  : ${cacheKB.toStringAsFixed(2)} KB (${cacheMB.toStringAsFixed(2)} MB)',
+            );
+            print(''); // empty line for spacing
+            await db.close();
+          }
+          return;
+        },
+      ),
+    );
     final feedCategory = ref.watch(feedCurrentFilterProvider.select((state) => state.category));
     final hasMorePosts = ref.watch(feedPostsProvider.select((state) => state.hasMore)).falseOrValue;
     final showTrendingVideosFeatureFlag = useRef(
