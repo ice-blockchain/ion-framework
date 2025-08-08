@@ -47,7 +47,7 @@ class NftHeaderSelectAction extends ConsumerWidget {
               children: [
                 Flexible(
                   child: Text(
-                    '${context.i18n.core_chain}: ${joinSelectedNetworks(selectedNftNetworks, context)}',
+                    '${context.i18n.core_networks}: ${joinSelectedNetworks(selectedNftNetworks, context)}',
                     style:
                         context.theme.appTextThemes.caption.copyWith(color: colors.secondaryText),
                     overflow: TextOverflow.ellipsis,
