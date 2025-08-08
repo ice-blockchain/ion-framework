@@ -134,6 +134,7 @@ void main() {
     late EventReference? deletedRepostRef;
     late EventReference? createdRepostRef;
     late List<EventReference> invalidatedCacheRefs;
+    late List<EventReference> updatedCacheRefs;
 
     RepostSyncStrategy strategy0() {
       return RepostSyncStrategy(
@@ -153,6 +154,9 @@ void main() {
         invalidateCounterCache: (ref) {
           invalidatedCacheRefs.add(ref);
         },
+        updateRepostCache: (ref, _) {
+          updatedCacheRefs.add(ref);
+        },
       );
     }
 
@@ -161,6 +165,7 @@ void main() {
       deletionSent = false;
       deletedRepostRef = null;
       invalidatedCacheRefs = [];
+      updatedCacheRefs = [];
     });
 
     const ref = ImmutableEventReference(
@@ -196,6 +201,9 @@ void main() {
         invalidateCounterCache: (ref) {
           invalidatedCacheRefs.add(ref);
         },
+        updateRepostCache: (ref, _) {
+          updatedCacheRefs.add(ref);
+        },
       );
 
       final result = await strategy.send(prev, opt);
@@ -207,7 +215,6 @@ void main() {
       expect(result.myRepostReference, createdRepostRef);
       expect(repostSent, isTrue);
       expect(deletionSent, isFalse);
-      expect(invalidatedCacheRefs, [ref]);
     });
 
     test('calls deleteRepost when unreposting', () async {
@@ -237,7 +244,6 @@ void main() {
       expect(repostSent, isFalse);
       expect(deletionSent, isTrue);
       expect(deletedRepostRef, repostRef);
-      expect(invalidatedCacheRefs, [ref, ref]);
     });
 
     test('handles null myRepostReference gracefully', () async {
@@ -299,6 +305,7 @@ void main() {
         },
         deleteRepost: (_) async {},
         invalidateCounterCache: (_) {},
+        updateRepostCache: (_, __) {},
       );
 
       expect(
@@ -328,6 +335,7 @@ void main() {
           throw Exception('Network error');
         },
         invalidateCounterCache: (_) {},
+        updateRepostCache: (_, __) {},
       );
 
       expect(
@@ -336,7 +344,7 @@ void main() {
       );
     });
 
-    test('invalidates cache after deletion', () async {
+    test('decreases cache count after deletion', () async {
       const repostRef = ImmutableEventReference(
         masterPubkey: 'mypubkey',
         eventId: 'repost123',
@@ -344,12 +352,12 @@ void main() {
       );
       const prev = PostRepost(
         eventReference: ref,
-        repostsCount: 1,
+        repostsCount: 6,
         quotesCount: 0,
         repostedByMe: true,
         myRepostReference: repostRef,
       );
-      final opt = prev.copyWith(repostedByMe: false, repostsCount: 0);
+      final opt = prev.copyWith(repostedByMe: false, repostsCount: 7);
 
       var deletionCallCount = 0;
       final strategy = RepostSyncStrategy(
@@ -360,15 +368,17 @@ void main() {
         invalidateCounterCache: (ref) {
           invalidatedCacheRefs.add(ref);
         },
+        updateRepostCache: (ref, _) {
+          updatedCacheRefs.add(ref);
+        },
       );
 
       await strategy.send(prev, opt);
-
-      expect(invalidatedCacheRefs, [ref, ref]);
+      expect(updatedCacheRefs, [ref]);
       expect(deletionCallCount, 1);
     });
 
-    test('invalidates cache twice when counter reaches 0 after deletion', () async {
+    test('invalidates cache once when counter reaches 0 after deletion', () async {
       const repostRef = ImmutableEventReference(
         masterPubkey: 'mypubkey',
         eventId: 'repost123',
@@ -384,9 +394,13 @@ void main() {
       final opt = prev.copyWith(repostedByMe: false, repostsCount: 0);
 
       var invalidateCacheCallCount = 0;
+      var updateCacheCallCount = 0;
       final strategy = RepostSyncStrategy(
         createRepost: (_) async => repostRef,
         deleteRepost: (_) async {},
+        updateRepostCache: (_, __) {
+          updateCacheCallCount++;
+        },
         invalidateCounterCache: (ref) {
           invalidateCacheCallCount++;
           invalidatedCacheRefs.add(ref);
@@ -395,11 +409,12 @@ void main() {
 
       await strategy.send(prev, opt);
 
-      expect(invalidateCacheCallCount, 2);
-      expect(invalidatedCacheRefs, [ref, ref]);
+      expect(invalidateCacheCallCount, 1);
+      expect(invalidatedCacheRefs, [ref]);
+      expect(updateCacheCallCount, 0);
     });
 
-    test('does not double-invalidate cache when counter is not 0', () async {
+    test('does not invalidate cache when counter is not 0', () async {
       const repostRef = ImmutableEventReference(
         masterPubkey: 'mypubkey',
         eventId: 'repost123',
@@ -418,6 +433,7 @@ void main() {
       final strategy = RepostSyncStrategy(
         createRepost: (_) async => repostRef,
         deleteRepost: (_) async {},
+        updateRepostCache: (_, __) {},
         invalidateCounterCache: (ref) {
           invalidateCacheCallCount++;
           invalidatedCacheRefs.add(ref);
@@ -426,11 +442,10 @@ void main() {
 
       await strategy.send(prev, opt);
 
-      expect(invalidateCacheCallCount, 1);
-      expect(invalidatedCacheRefs, [ref]);
+      expect(invalidateCacheCallCount, 0);
     });
 
-    test('invalidates cache twice when totalRepostsCount is 0 but quotesCount > 0', () async {
+    test('does not invalidate cache when totalRepostsCount is 0 but quotesCount > 0', () async {
       const repostRef = ImmutableEventReference(
         masterPubkey: 'mypubkey',
         eventId: 'repost123',
@@ -446,9 +461,13 @@ void main() {
       final opt = prev.copyWith(repostedByMe: false, repostsCount: 0);
 
       var invalidateCacheCallCount = 0;
+      var updateCacheCallCount = 0;
       final strategy = RepostSyncStrategy(
         createRepost: (_) async => repostRef,
         deleteRepost: (_) async {},
+        updateRepostCache: (_, __) {
+          updateCacheCallCount++;
+        },
         invalidateCounterCache: (ref) {
           invalidateCacheCallCount++;
         },
@@ -456,7 +475,8 @@ void main() {
 
       await strategy.send(prev, opt);
 
-      expect(invalidateCacheCallCount, 1);
+      expect(invalidateCacheCallCount, 0);
+      expect(updateCacheCallCount, 1);
     });
   });
 }

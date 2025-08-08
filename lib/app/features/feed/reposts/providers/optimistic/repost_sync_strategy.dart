@@ -10,11 +10,13 @@ class RepostSyncStrategy implements SyncStrategy<PostRepost> {
     required this.createRepost,
     required this.deleteRepost,
     required this.invalidateCounterCache,
+    required this.updateRepostCache,
   });
 
   final Future<EventReference> Function(EventReference) createRepost;
   final Future<void> Function(EventReference) deleteRepost;
   final void Function(EventReference) invalidateCounterCache;
+  final void Function(EventReference ref, int delta) updateRepostCache;
 
   @override
   Future<PostRepost> send(PostRepost previous, PostRepost optimistic) async {
@@ -24,18 +26,10 @@ class RepostSyncStrategy implements SyncStrategy<PostRepost> {
     if (toggledToRepost) {
       try {
         final createdRepostReference = await createRepost(optimistic.eventReference);
-        invalidateCounterCache(optimistic.eventReference);
-
         final result = optimistic.copyWith(
           myRepostReference: createdRepostReference,
         );
-
-        // Additional cache clearing if backend counter is 0
-        // This can happen if multiple users unrepost simultaneously
-        // Note: totalRepostsCount now returns minimum 1 if repostedByMe is true
-        if (result.repostsCount == 0 && result.quotesCount == 0) {
-          invalidateCounterCache(result.eventReference);
-        }
+        _increment(result);
 
         return result;
       } catch (e) {
@@ -44,17 +38,11 @@ class RepostSyncStrategy implements SyncStrategy<PostRepost> {
     } else if (toggledToUnrepost && previous.myRepostReference != null) {
       try {
         await deleteRepost(previous.myRepostReference!);
-        invalidateCounterCache(optimistic.eventReference);
 
         final result = optimistic.copyWith(
           myRepostReference: null,
         );
-
-        // Additional cache clearing if backend counter is 0
-        // This is necessary because backend doesn't send events when counter is 0
-        if (result.repostsCount == 0 && result.quotesCount == 0) {
-          invalidateCounterCache(result.eventReference);
-        }
+        _tryDecrement(result);
 
         return result;
       } catch (e) {
@@ -62,15 +50,10 @@ class RepostSyncStrategy implements SyncStrategy<PostRepost> {
         // This can happen if the repost was already deleted on another device
         // or if there was a sync issue
         if (e is EntityNotFoundException) {
-          invalidateCounterCache(optimistic.eventReference);
-
           final result = optimistic.copyWith(
             myRepostReference: null,
           );
-
-          if (result.repostsCount == 0 && result.quotesCount == 0) {
-            invalidateCounterCache(result.eventReference);
-          }
+          _tryDecrement(result);
 
           return result;
         }
@@ -80,5 +63,20 @@ class RepostSyncStrategy implements SyncStrategy<PostRepost> {
     }
 
     return optimistic;
+  }
+
+  void _increment(PostRepost result) {
+    updateRepostCache(result.eventReference, 1);
+  }
+
+  void _tryDecrement(PostRepost result) {
+    // Additional cache clearing if backend counter is 0
+    // This can happen if multiple users unrepost simultaneously
+    // Note: totalRepostsCount now returns minimum 1 if repostedByMe is true
+    if (result.repostsCount == 0 && result.quotesCount == 0) {
+      invalidateCounterCache(result.eventReference);
+    } else {
+      updateRepostCache(result.eventReference, -1);
+    }
   }
 }
