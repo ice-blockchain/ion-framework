@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/components/quick_page_swiper/quick_page_swiper.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
@@ -60,7 +61,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
     final onPrimaryAccentColor = appColors.onPrimaryAccent;
     final secondaryBackgroundColor = appColors.secondaryBackground;
     final rightPadding = 6.0.s;
-    final animationDuration = 300.ms;
+    final animationDuration = 100.ms;
 
     final ionConnectEntity =
         ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference));
@@ -165,32 +166,37 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
             ),
           ],
         ),
-        body: PageView.builder(
-          controller: userPageController,
-          itemCount: flattenedVideos.length,
-          scrollDirection: Axis.vertical,
-          onPageChanged: (index) {
-            _loadMore(ref, index, flattenedVideos.length);
-            currentEventReference.value = flattenedVideos[index].entity.toEventReference();
-          },
-          itemBuilder: (_, index) => VideoPage(
-            videoInfo: VideoPostInfo(videoPost: flattenedVideos[index].entity),
-            bottomOverlay:
-                VideoActions(eventReference: flattenedVideos[index].entity.toEventReference()),
-            videoUrl: flattenedVideos[index].media.url,
-            authorPubkey: eventReference.masterPubkey,
-            thumbnailUrl: flattenedVideos[index].media.thumb,
-            blurhash: flattenedVideos[index].media.blurhash,
-            aspectRatio: flattenedVideos[index].media.aspectRatio,
-            framedEventReference: index == initialPage ? framedEventReference : null,
-            onVideoEnded: () {
-              if (index < flattenedVideos.length - 1) {
-                userPageController.nextPage(
-                  duration: animationDuration,
-                  curve: Curves.easeInOut,
-                );
-              }
+        body: QuickPageSwiper(
+          pageController: userPageController,
+          swipeDuration: animationDuration,
+          child: PageView.builder(
+            controller: userPageController,
+            itemCount: flattenedVideos.length,
+            scrollDirection: Axis.vertical,
+            physics: const NeverScrollableScrollPhysics(),
+            onPageChanged: (index) {
+              _loadMore(ref, index, flattenedVideos.length);
+              currentEventReference.value = flattenedVideos[index].entity.toEventReference();
             },
+            itemBuilder: (_, index) => VideoPage(
+              videoInfo: VideoPostInfo(videoPost: flattenedVideos[index].entity),
+              bottomOverlay:
+                  VideoActions(eventReference: flattenedVideos[index].entity.toEventReference()),
+              videoUrl: flattenedVideos[index].media.url,
+              authorPubkey: eventReference.masterPubkey,
+              thumbnailUrl: flattenedVideos[index].media.thumb,
+              blurhash: flattenedVideos[index].media.blurhash,
+              aspectRatio: flattenedVideos[index].media.aspectRatio,
+              framedEventReference: index == initialPage ? framedEventReference : null,
+              onVideoEnded: () {
+                if (index < flattenedVideos.length - 1) {
+                  userPageController.nextPage(
+                    duration: animationDuration,
+                    curve: Curves.easeInOut,
+                  );
+                }
+              },
+            ),
           ),
         ),
       ),
