@@ -20,8 +20,10 @@ import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.d
 import 'package:ion/app/features/feed/reposts/providers/optimistic/post_repost_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
+import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/providers/relays/relevant_user_relays_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -30,6 +32,7 @@ import 'package:ion/app/utils/pagination.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'feed_for_you_content_provider.m.freezed.dart';
+
 part 'feed_for_you_content_provider.m.g.dart';
 
 @riverpod
@@ -342,6 +345,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }) async* {
     final requestsQueue = await ref.read(feedRequestQueueProvider.future);
     final resultsController = StreamController<IonConnectEntity>();
+    final missingEvents = <EventsMetadataEntity>[];
 
     final requests = [
       for (final relayUrl in relays)
@@ -359,12 +363,14 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
           final interestPagination = relayInterestsPagination[interest]!;
 
-          final entity = await _requestEntityFromRelay(
+          final (entity, missing) = await _requestEntityFromRelay(
             relayUrl: relayUrl,
             modifier: modifier,
             interest: interest,
             lastEventCreatedAt: interestPagination.lastEventCreatedAt,
           );
+
+          missingEvents.addAll(missing);
 
           if (entity != null) {
             if (_shouldShowEntity(entity)) {
@@ -405,7 +411,17 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
         }),
     ];
 
-    unawaited(Future.wait(requests).whenComplete(resultsController.close));
+    unawaited(
+      Future.wait(requests).whenComplete(() {
+        resultsController.close();
+        if (missingEvents.isNotEmpty) {
+          final refs = missingEvents.map((event) => event.data.metadataEventReference).nonNulls.toList();
+          ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
+            eventReferences: refs,
+          );
+        }
+      }),
+    );
 
     yield* resultsController.stream;
   }
@@ -458,7 +474,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     return interestsPicker.roll(availableInterests);
   }
 
-  Future<IonConnectEntity?> _requestEntityFromRelay({
+  Future<(IonConnectEntity?, List<EventsMetadataEntity>)> _requestEntityFromRelay({
     required String relayUrl,
     required FeedModifier modifier,
     required String interest,
@@ -497,7 +513,9 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
         .requestEntities(requestMessage, actionSource: dataSource.actionSource)
         .toList();
 
-    return responseFilter(entities).firstOrNull;
+    final missingEntities = entities.whereType<EventsMetadataEntity>().toList();
+
+    return (responseFilter(entities).firstOrNull, missingEntities);
   }
 
   FeedEntitiesDataSource _getDataSource({

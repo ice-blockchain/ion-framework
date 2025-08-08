@@ -4,5 +4,5 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 
 abstract class EventsMetadataBuilder {
-  Future<List<EventsMetadata>> buildMetadata(List<EventReference> eventReferences);
+  Future<List<EventsMetadataData>> buildMetadata(List<EventReference> eventReferences);
 }

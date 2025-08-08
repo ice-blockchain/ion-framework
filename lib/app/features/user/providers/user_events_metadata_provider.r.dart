@@ -19,10 +19,10 @@ class UserEventsMetadataBuilder implements EventsMetadataBuilder {
   final List<EventMessage> _metadataEvents;
 
   @override
-  Future<List<EventsMetadata>> buildMetadata(List<EventReference> eventReferences) async {
+  Future<List<EventsMetadataData>> buildMetadata(List<EventReference> eventReferences) async {
     return [
       for (final event in _metadataEvents)
-        EventsMetadata(
+        EventsMetadataData(
           eventReferences: eventReferences,
           metadata: event,
         ),
