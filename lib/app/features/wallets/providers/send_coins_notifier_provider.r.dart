@@ -100,7 +100,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
           senderAddress: senderWallet.address,
           receiverAddress: form.receiverAddress,
         );
-      } on SendEventException catch (e, stacktrace) {
+      } on Exception catch (e, stacktrace) {
         Logger.error('Failed to send event $e', stackTrace: stacktrace);
       }
 
