@@ -13,9 +13,12 @@ part 'report_notifier.m.g.dart';
 
 @freezed
 sealed class ReportReason with _$ReportReason {
-  const factory ReportReason.user({required String pubkey}) = ReportReasonUser;
-  const factory ReportReason.content({required EventReference eventReference}) =
-      ReportReasonContent;
+  const factory ReportReason.user({required String text, required String pubkey}) =
+      ReportReasonUser;
+  const factory ReportReason.content({
+    required String text,
+    required EventReference eventReference,
+  }) = ReportReasonContent;
 }
 
 @riverpod
@@ -48,8 +51,8 @@ class ReportNotifier extends _$ReportNotifier {
     };
 
     return switch (reason) {
-      ReportReasonUser() => 'This is a report for the user $encodedReason',
-      ReportReasonContent() => 'This is a report for the content $encodedReason',
+      ReportReasonUser() => '${reason.text} $encodedReason',
+      ReportReasonContent() => '${reason.text} $encodedReason',
     };
   }
 }

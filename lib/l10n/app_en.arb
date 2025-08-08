@@ -47,6 +47,8 @@
   "button_block": "Block",
   "button_unblock": "Unblock",
   "button_report": "Report",
+  "button_report_user": "Report user",
+  "button_report_content": "Report content",
   "button_publish": "Publish",
   "button_learn_more": "Learn More",
   "button_forward": "Forward",
@@ -881,5 +883,7 @@
   "wallet_address_confirmation_info": "Before sending cryptocurrency to this address, ensure that the wallet address and the selected network on the sender’s side exactly match the chosen coin and network. If they don’t, your funds will be permanently lost",
   "create_post_add_topic": "Add topic",
   "create_post_add_topic_tooltip_title": "Topic",
-  "create_post_add_topic_tooltip_description": "Adding a topic helps to improve visibility and engagement, making the platform more useful and attractive to users"
+  "create_post_add_topic_tooltip_description": "Adding a topic helps to improve visibility and engagement, making the platform more useful and attractive to users",
+  "report_user_description": "This is a report for the user",
+  "report_content_description": "This is a report for the content"
 }

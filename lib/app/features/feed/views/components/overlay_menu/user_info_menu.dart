@@ -94,9 +94,12 @@ class UserInfoMenu extends ConsumerWidget {
                     icon: Assets.svg.iconReport.icon(size: menuIconSize),
                     onPressed: () {
                       closeMenu();
-                      ref
-                          .read(reportNotifierProvider.notifier)
-                          .report(ReportReason.content(eventReference: eventReference));
+                      ref.read(reportNotifierProvider.notifier).report(
+                            ReportReason.content(
+                              text: context.i18n.report_content_description,
+                              eventReference: eventReference,
+                            ),
+                          );
                     },
                   ),
                 ],

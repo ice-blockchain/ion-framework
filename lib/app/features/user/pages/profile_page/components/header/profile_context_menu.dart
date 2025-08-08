@@ -117,7 +117,9 @@ class ProfileContextMenu extends ConsumerWidget {
           iconAsset: Assets.svg.iconReport,
           onPressed: () {
             closeMenu();
-            ref.read(reportNotifierProvider.notifier).report(ReportReason.user(pubkey: pubkey));
+            ref.read(reportNotifierProvider.notifier).report(
+                  ReportReason.user(text: context.i18n.report_user_description, pubkey: pubkey),
+                );
           },
         ),
       ];
