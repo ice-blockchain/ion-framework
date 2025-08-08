@@ -16,6 +16,9 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
     required super.ref,
   });
 
+  // Track last processed text to avoid heavy reformat on selection-only changes
+  String? _lastProcessedText;
+
   @override
   void onTextChanged(
     String text,
@@ -23,7 +26,13 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
     required bool isBackspace,
     required bool cursorMoved,
   }) {
-    _reapplyAllTags(text);
+    final didTextChange = _lastProcessedText != text;
+    _lastProcessedText = text;
+
+    // Only reapply attributes if text changed
+    if (didTextChange) {
+      _reapplyAllTags(text);
+    }
 
     final activeTag = _findActiveTagNearCursor(text, cursorIndex);
     if (activeTag == null) {
