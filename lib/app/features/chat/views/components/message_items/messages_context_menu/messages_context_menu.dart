@@ -60,18 +60,6 @@ class MessagingContextMenu extends ConsumerWidget {
                   ),
                   const OverlayMenuItemSeparator(),
                   OverlayMenuItem(
-                    label: context.i18n.button_report,
-                    icon: Assets.svg.iconBlockClose3
-                        .icon(size: iconSize, color: context.theme.appColors.quaternaryText),
-                    onPressed: () {
-                      closeMenu();
-                      ref
-                          .read(reportNotifierProvider.notifier)
-                          .report(ReportReason.conversation(conversationId: conversationId));
-                    },
-                  ),
-                  const OverlayMenuItemSeparator(),
-                  OverlayMenuItem(
                     label: context.i18n.button_delete,
                     labelColor: context.theme.appColors.attentionRed,
                     icon: Assets.svg.iconBlockDelete
