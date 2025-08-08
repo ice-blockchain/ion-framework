@@ -43,14 +43,16 @@ class FollowingUsers extends ConsumerWidget {
               canSendMessage = true;
             }
 
-            return SelectableUserListItem(
-              selectable: selectable,
-              pubkey: pubkeys[index],
-              masterPubkey: pubkeys[index],
-              onUserSelected: onUserSelected,
-              selectedPubkeys: selectedPubkeys,
-              canSendMessage: canSendMessage,
-            );
+            return canSendMessage
+                ? SelectableUserListItem(
+                    selectable: selectable,
+                    pubkey: pubkeys[index],
+                    masterPubkey: pubkeys[index],
+                    onUserSelected: onUserSelected,
+                    selectedPubkeys: selectedPubkeys,
+                    canSendMessage: canSendMessage,
+                  )
+                : const SizedBox.shrink();
           },
           itemCount: pubkeys.length,
         );

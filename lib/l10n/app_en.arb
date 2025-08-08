@@ -731,7 +731,7 @@
   "chat_message_delete_modal_description_single": "Are you sure you want to delete this message?",
   "chat_search_empty": "Search here for users, chats, groups, and channels...",
   "chat_search_no_community_empty": "Search here for users, chats...",
-  "chat_privacy_cant_send_message": "You can't message this user due to their privacy settings - they only allow messages from accounts they follow",
+  "chat_privacy_cant_send_message": "You can’t message this user due to their privacy settings.",
   "chat_money_request_title": "Money requested",
   "chat_money_received_title": "Money received",
   "chat_money_sent_title": "Money sent",
