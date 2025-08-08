@@ -17,6 +17,8 @@ class LinksHandler extends TextEditorTypingListener {
   final _urlMatcher = const UrlMatcher();
   bool _isFormatting = false;
   Timer? _debounceTimer;
+  // Track last processed text to avoid formatting on selection-only changes
+  String? _lastProcessedText;
 
   static const _autoLinkAttr = Attribute('autoLink', AttributeScope.inline, true);
   static const _clearAutoLinkAttr = Attribute('autoLink', AttributeScope.inline, null);
@@ -29,6 +31,11 @@ class LinksHandler extends TextEditorTypingListener {
     required bool cursorMoved,
   }) {
     if (_isFormatting) return;
+
+    // Only (re)format when text actually changed, not on selection-only changes
+    if (_lastProcessedText == text) return;
+    _lastProcessedText = text;
+
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 150), () {
       _formatLinks(text);
