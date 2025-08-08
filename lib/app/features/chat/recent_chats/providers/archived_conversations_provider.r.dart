@@ -7,9 +7,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/conversation_identifier.f.dart';
-import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/feed/data/models/bookmarks/bookmarks_set.f.dart';
 import 'package:ion/app/features/feed/providers/bookmarks_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:ion/app/services/ion_connect/encrypted_message_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

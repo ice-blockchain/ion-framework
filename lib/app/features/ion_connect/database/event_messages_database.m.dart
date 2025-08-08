@@ -1,15 +1,26 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/chat/community/models/entities/community_join_data.f.dart';
+import 'package:ion/app/features/chat/community/models/entities/tags/conversation_identifier.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/private_message_reaction_data.f.dart';
+import 'package:ion/app/features/chat/model/group_subject.f.dart';
+import 'package:ion/app/features/chat/model/message_reaction_group.f.dart';
+import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/converters/feed_modifier_converter.d.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/converters/feed_type_converter.d.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/tables/seen_events_table.d.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/tables/seen_reposts_table.d.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/tables/user_fetch_states_table.d.dart';
+import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_modifier.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/account_notification_sync_state_table.d.dart';
@@ -21,6 +32,8 @@ import 'package:ion/app/features/feed/notifications/data/model/content_type.dart
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_tags_converter.dart';
 import 'package:ion/app/features/ion_connect/database/tables/event_messages_table.d.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user_block/model/database/tables/block_event_table.d.dart';
 import 'package:ion/app/features/user_block/model/database/tables/unblock_event_table.d.dart';
@@ -29,7 +42,21 @@ import 'package:ion/app/features/user_profile/database/tables/user_delegation_ta
 import 'package:ion/app/features/user_profile/database/tables/user_metadata_table.d.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+part 'dao/conversation_dao.dart';
+part 'dao/conversation_event_message_dao.dart';
+part 'dao/conversation_message_dao.dart';
+part 'dao/conversation_message_data_dao.dart';
+part 'dao/conversation_message_reaction_dao.r.dart';
+part 'dao/event_message_dao.dart';
+part 'dao/event_messages_dao.m.dart';
+part 'dao/message_media_dao.r.dart';
 part 'event_messages_database.m.g.dart';
+part 'tables/chat_message_table.dart';
+part 'tables/conversation_table.dart';
+part 'tables/event_message_table.dart';
+part 'tables/message_media_table.dart';
+part 'tables/message_status_table.dart';
+part 'tables/reaction_table.dart';
 
 @Riverpod(keepAlive: true)
 EventMessagesDatabase eventMessagesDatabase(Ref ref) {
@@ -62,6 +89,12 @@ EventMessagesDatabase eventMessagesDatabase(Ref ref) {
     LikesTable,
     FollowersTable,
     AccountNotificationSyncStateTable,
+    ConversationTable,
+    EventMessageTable,
+    ConversationMessageTable,
+    MessageStatusTable,
+    ReactionTable,
+    MessageMediaTable,
   ],
   queries: {
     'getEventCreatedAts': '''

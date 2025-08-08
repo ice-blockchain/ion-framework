@@ -4,8 +4,8 @@ import 'dart:async';
 
 import 'package:async/async.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/compress_chat_media_provider.r.dart';
-import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_expiration.f.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';

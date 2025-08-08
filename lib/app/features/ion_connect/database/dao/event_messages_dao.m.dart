@@ -1,13 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:drift/drift.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
-import 'package:ion/app/features/ion_connect/database/tables/event_messages_table.d.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-part 'event_messages_dao.m.g.dart';
+part of '../event_messages_database.m.dart';
 
 @Riverpod(keepAlive: true)
 EventMessagesDao eventMessagesDao(Ref ref) =>

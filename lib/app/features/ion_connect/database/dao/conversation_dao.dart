@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
-part of '../chat_database.m.dart';
+part of '../event_messages_database.m.dart';
 
 @Riverpod(keepAlive: true)
-ConversationDao conversationDao(Ref ref) => ConversationDao(ref.watch(chatDatabaseProvider));
+ConversationDao conversationDao(Ref ref) =>
+    ConversationDao(ref.watch(eventMessagesDatabaseProvider));
 
 @DriftAccessor(
   tables: [
@@ -13,7 +14,7 @@ ConversationDao conversationDao(Ref ref) => ConversationDao(ref.watch(chatDataba
     ConversationMessageTable,
   ],
 )
-class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$ConversationDaoMixin {
+class ConversationDao extends DatabaseAccessor<EventMessagesDatabase> with _$ConversationDaoMixin {
   ConversationDao(super.db);
 
   /// Adds events to database and creates conversations

@@ -9,7 +9,7 @@ import 'package:ion/app/features/chat/community/models/entities/community_defini
 import 'package:ion/app/features/chat/community/providers/community_admins_provider.r.dart';
 import 'package:ion/app/features/chat/community/providers/invite_to_community_provider.r.dart';
 import 'package:ion/app/features/chat/community/providers/join_community_provider.r.dart';
-import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_setting.f.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';

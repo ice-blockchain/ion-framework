@@ -6,10 +6,10 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/community/channel/views/pages/channel_page/channel_messaging_page.dart';
 import 'package:ion/app/features/chat/e2ee/views/pages/group_messages_page.dart';
 import 'package:ion/app/features/chat/e2ee/views/pages/one_to_one_messages_page.dart';
-import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/conversation_type_provider.r.dart';
 import 'package:ion/app/features/chat/providers/message_status_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/replied_message_list_item_provider.r.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 
 class ConversationPage extends HookConsumerWidget {
   const ConversationPage({

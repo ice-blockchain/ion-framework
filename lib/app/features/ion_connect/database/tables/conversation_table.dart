@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
-part of '../chat_database.m.dart';
+part of '../event_messages_database.m.dart';
 
 class ConversationTable extends Table {
   late final id = text()();

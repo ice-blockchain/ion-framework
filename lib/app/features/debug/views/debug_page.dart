@@ -7,7 +7,6 @@ import 'package:drift_db_viewer/drift_db_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/core/providers/app_info_provider.r.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
@@ -269,7 +268,6 @@ class DebugPage extends ConsumerWidget {
   db.GeneratedDatabase _getDatabaseInstance(WidgetRef ref, _DebugPageDatabaseType dbType) {
     return switch (dbType) {
       _DebugPageDatabaseType.wallets => ref.read(walletsDatabaseProvider),
-      _DebugPageDatabaseType.chat => ref.read(chatDatabaseProvider),
       _DebugPageDatabaseType.eventMessages => ref.read(eventMessagesDatabaseProvider),
     };
   }
@@ -277,7 +275,6 @@ class DebugPage extends ConsumerWidget {
 
 enum _DebugPageDatabaseType {
   wallets('Wallets Database'),
-  chat('Chat Database'),
   eventMessages('Event Messages Database');
 
   const _DebugPageDatabaseType(this.displayName);

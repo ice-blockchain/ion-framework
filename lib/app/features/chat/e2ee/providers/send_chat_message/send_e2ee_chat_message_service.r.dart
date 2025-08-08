@@ -12,11 +12,11 @@ import 'package:ion/app/extensions/object.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_chat_media_provider.r.dart';
-import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/group_subject.f.dart';
 import 'package:ion/app/features/chat/providers/conversation_pubkeys_provider.r.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_editing_ended_at.f.dart';
@@ -415,7 +415,7 @@ class SendE2eeChatMessageService {
     final cacheKeys = await _generateCacheKeys(mediaFiles);
 
     var messageMediaIds = <int>[];
-    await ref.read(chatDatabaseProvider).transaction(() async {
+    await ref.read(eventMessagesDatabaseProvider).transaction(() async {
       await ref.read(conversationDaoProvider).add([localEventMessage]);
       await ref.read(conversationEventMessageDaoProvider).add(localEventMessage);
       await ref.read(conversationMessageDataDaoProvider).addOrUpdateStatus(

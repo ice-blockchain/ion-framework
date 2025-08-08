@@ -11,7 +11,7 @@ import 'package:ion/app/features/chat/community/models/entities/tags/community_v
 import 'package:ion/app/features/chat/community/models/entities/tags/conversation_identifier.f.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/description_tag.f.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/name_tag.f.dart';
-import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/event_setting.f.dart';
