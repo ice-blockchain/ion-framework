@@ -83,7 +83,7 @@ void main() {
         expect(result.myRepostReference, isNull);
         expect(result.repostsCount, 0);
 
-        verify(() => mockInvalidateCache.call(eventRef)).called(2);
+        verifyNever(() => mockUpdateRepostCache.call(eventRef, -1));
       });
 
       test('handles EntityNotFoundException with non-zero count', () async {
@@ -110,7 +110,8 @@ void main() {
         expect(result.myRepostReference, isNull);
         expect(result.repostsCount, 4);
 
-        verify(() => mockInvalidateCache.call(eventRef)).called(1);
+        verifyNever(() => mockInvalidateCache.call(eventRef));
+        verify(() => mockUpdateRepostCache.call(eventRef, -1)).called(1);
       });
 
       test('rethrows other exceptions', () async {
@@ -163,7 +164,8 @@ void main() {
         expect(result.myRepostReference, isNull);
         expect(result.repostsCount, 0);
 
-        verify(() => mockInvalidateCache.call(eventRef)).called(2);
+        verify(() => mockInvalidateCache.call(eventRef)).called(1);
+        verifyNever(() => mockUpdateRepostCache.call(eventRef, -1));
       });
     });
 
@@ -197,7 +199,7 @@ void main() {
         expect(result.myRepostReference, createdRef);
         expect(result.repostsCount, 1);
 
-        verify(() => mockInvalidateCache.call(eventRef)).called(1);
+        verify(() => mockUpdateRepostCache.call(eventRef, 1)).called(1);
       });
 
       test('create failure throws exception', () async {
