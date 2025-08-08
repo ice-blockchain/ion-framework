@@ -14,6 +14,7 @@ import 'package:ion/app/features/components/bookmarks/components/bookmarks_colle
 import 'package:ion/app/features/feed/data/models/bookmarks/bookmarks_set.f.dart';
 import 'package:ion/app/features/feed/providers/feed_bookmarks_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/optimistic_ui/features/bookmark/bookmark_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 enum BookmarksCollectionTileMode { select, edit }
@@ -63,9 +64,10 @@ class BookmarksCollectionTile extends ConsumerWidget {
       ),
       onTap: () {
         if (state.isLoading || eventReference == null) return;
-        ref
-            .read(feedBookmarksNotifierProvider(collectionDTag: collectionDTag).notifier)
-            .toggleBookmark(eventReference!);
+        ref.read(toggleBookmarkNotifierProvider.notifier).toggle(
+              eventReference: eventReference!,
+              collectionDTag: collectionDTag,
+            );
       },
       trailing: eventReference != null
           ? BookmarksCollectionTileSelectAction(
