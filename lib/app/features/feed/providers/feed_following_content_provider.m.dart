@@ -23,6 +23,7 @@ import 'package:ion/app/features/feed/providers/relevant_users_to_fetch_service.
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
@@ -259,6 +260,7 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
   }) async* {
     final requestsQueue = await ref.read(feedRequestQueueProvider.future);
     final resultsController = StreamController<IonConnectEntity>();
+    final missingEvents = <EventsMetadataEntity>[];
 
     final requests = [
       for (final pubkey in pubkeys)
@@ -266,10 +268,13 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
           if (retryCounter.isReached) return;
 
           final Pagination(:lastEvent) = _getPubkeyPagination(pubkey);
-          final entity = await _requestEntityFromPubkey(
+          final (entity, missing) = await _requestEntityFromPubkey(
             pubkey: pubkey,
             lastEventCreatedAt: lastEvent?.createdAt,
           );
+
+          missingEvents.addAll(missing);
+
           final valid = await _handleRequestedPubkeyEntity(
             pubkey: pubkey,
             entity: entity,
@@ -297,7 +302,17 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
         }),
     ];
 
-    unawaited(Future.wait(requests).whenComplete(resultsController.close));
+    unawaited(
+      Future.wait(requests).whenComplete(() {
+        resultsController.close();
+        if (missingEvents.isNotEmpty) {
+          final refs = missingEvents.map((event) => event.data.metadataEventReference).nonNulls.toList();
+          ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
+            eventReferences: refs,
+          );
+        }
+      }),
+    );
 
     yield* resultsController.stream;
   }
@@ -305,7 +320,7 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
   /// Requests a single entity for the given pubkey.
   ///
   /// Requests the most recent entity if pagination is empty or the next entity if not.
-  Future<IonConnectEntity?> _requestEntityFromPubkey({
+  Future<(IonConnectEntity?, List<EventsMetadataEntity>)> _requestEntityFromPubkey({
     required String pubkey,
     required int? lastEventCreatedAt,
   }) async {
@@ -333,7 +348,9 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
         .requestEntities(requestMessage, actionSource: dataSource.actionSource)
         .toList();
 
-    return responseFilter(entities).firstOrNull;
+    final missingEntities = entities.whereType<EventsMetadataEntity>().toList();
+
+    return (responseFilter(entities).firstOrNull, missingEntities);
   }
 
   Stream<IonConnectEntity> _requestEntitiesByReferences({
