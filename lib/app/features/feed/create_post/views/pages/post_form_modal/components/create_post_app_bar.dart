@@ -38,8 +38,14 @@ class CreatePostAppBar extends HookWidget {
         title: context.i18n.cancel_creation_post_title,
         onCancel: () => {
           focusNode.unfocus(),
-          textEditorController.clearContent(),
-          Navigator.of(context).pop(finishedEditing),
+          context.pop(finishedEditing),
+
+          // Clear content after 300ms to avoid the text editor being cleared before the modal is closed
+          Future.delayed(const Duration(milliseconds: 300), () {
+            textEditorController.clearContent(
+              ignoreFocus: false,
+            );
+          }),
         },
       ),
     );
