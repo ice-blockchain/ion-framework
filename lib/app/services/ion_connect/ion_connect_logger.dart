@@ -41,32 +41,40 @@ enum NostrMessageType {
 /// relayWrapper.clearSessionId();
 
 class IonConnectLogger implements NostrDartLogger {
-  static final Map<String, Stopwatch> _requestTimers = {};
-  static final Map<String, String> _subscriptionIds = {};
-  static final Map<String, String> _eventIds = {}; // Track event IDs for EVENT messages
-  static final Map<String, RequestMessage> _pendingRequests = {}; // Track pending REQ messages
-  static final Set<String> _loggedEventIds = {}; // Track logged EVENTs globally
-  static final Set<String> _loggedGroups = {}; // Track which groups have already shown prefix
+  factory IonConnectLogger() {
+    return _instance ??= IonConnectLogger._();
+  }
+
+  IonConnectLogger._();
+
+  static IonConnectLogger? _instance;
+  static const _prefix = '🦩 IonConnect:';
+
+  final Map<String, Stopwatch> _requestTimers = {};
+  final Map<String, String> _subscriptionIds = {};
+  final Map<String, String> _eventIds = {}; // Track event IDs for EVENT messages
+  final Map<String, RequestMessage> _pendingRequests = {}; // Track pending REQ messages
+  final Set<String> _loggedEventIds = {}; // Track logged EVENTs globally
+  final Set<String> _loggedGroups = {}; // Track which groups have already shown prefix
 
   // Session management
-  static final Map<String, DateTime> _sessions = {};
-  static final Map<String, Map<String, DateTime>> _componentTimings = {};
-  static final Map<String, int> _accumulatedComponentTimes = {}; // Track sum of all component times
-  static final Map<String, Set<String>> _trackedEventIds =
-      {}; // Track which EVENT IDs have been processed
+  final Map<String, DateTime> _sessions = {};
+  final Map<String, Map<String, DateTime>> _componentTimings = {};
+  final Map<String, int> _accumulatedComponentTimes = {}; // Track sum of all component times
+  final Map<String, Set<String>> _trackedEventIds = {}; // Track which EVENT IDs have been processed
 
   // Track which relays we're waiting for OK responses from
-  static final Map<String, Set<String>> _pendingRelays = {};
-  static final Map<String, Set<String>> _sentToRelays = {};
+  final Map<String, Set<String>> _pendingRelays = {};
+  final Map<String, Set<String>> _sentToRelays = {};
 
   // Track which events we sent to which relays
-  static final Map<String, Map<String, Set<String>>> _eventsPerRelay = {};
+  final Map<String, Map<String, Set<String>>> _eventsPerRelay = {};
 
   // Track which OK responses we've already received to avoid duplicates
-  static final Map<String, Set<String>> _receivedOkResponses = {};
+  final Map<String, Set<String>> _receivedOkResponses = {};
 
   // Start a session with existing ID (for subscription IDs)
-  static void startSessionWithId(String sessionId) {
+  void startSessionWithId(String sessionId) {
     _sessions[sessionId] = DateTime.now();
     _componentTimings[sessionId] = {};
     _accumulatedComponentTimes[sessionId] = 0; // Initialize accumulated time
@@ -81,7 +89,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   // End a session with timing
-  static void endSession(String sessionId) {
+  void endSession(String sessionId) {
     final startTime = _sessions[sessionId];
     if (startTime != null) {
       final accumulatedTime = _accumulatedComponentTimes[sessionId] ?? 0;
@@ -111,7 +119,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   // Track a component timing for a session and accumulate the time
-  static void trackComponent(String sessionId, String componentName) {
+  void trackComponent(String sessionId, String componentName) {
     final componentTimings = _componentTimings[sessionId];
     final accumulatedTimes = _accumulatedComponentTimes[sessionId];
 
@@ -141,19 +149,19 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   // Check if a component has been tracked for a session
-  static bool hasComponent(String sessionId, String componentName) {
+  bool hasComponent(String sessionId, String componentName) {
     final componentTimings = _componentTimings[sessionId];
     return componentTimings?.containsKey(componentName) ?? false;
   }
 
   // Check if an EVENT ID has been tracked for a session
-  static bool hasTrackedEventId(String sessionId, String eventId) {
+  bool hasTrackedEventId(String sessionId, String eventId) {
     final trackedEventIds = _trackedEventIds[sessionId];
     return trackedEventIds?.contains(eventId) ?? false;
   }
 
   // Mark an EVENT ID as tracked for a session
-  static void trackEventId(String sessionId, String eventId) {
+  void trackEventId(String sessionId, String eventId) {
     final trackedEventIds = _trackedEventIds[sessionId];
     if (trackedEventIds != null) {
       trackedEventIds.add(eventId);
@@ -161,7 +169,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   // Check if an OK response is a duplicate (before logging)
-  static bool isDuplicateOkResponse(String sessionId, String relayUrl, String eventId) {
+  bool isDuplicateOkResponse(String sessionId, String relayUrl, String eventId) {
     final receivedOkResponses = _receivedOkResponses[sessionId];
     if (receivedOkResponses != null) {
       final okResponseKey = '$relayUrl:$eventId';
@@ -171,7 +179,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   // Track that we sent an event to a relay
-  static void trackEventSentToRelay(String sessionId, String relayUrl, String eventId) {
+  void trackEventSentToRelay(String sessionId, String relayUrl, String eventId) {
     final sentToRelays = _sentToRelays[sessionId];
     final pendingRelays = _pendingRelays[sessionId];
     final eventsPerRelay = _eventsPerRelay[sessionId];
@@ -189,7 +197,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   // Track that we received an OK response from a relay for a specific event
-  static bool trackOkReceivedFromRelay(String sessionId, String relayUrl, String eventId) {
+  bool trackOkReceivedFromRelay(String sessionId, String relayUrl, String eventId) {
     final pendingRelays = _pendingRelays[sessionId];
     final eventsPerRelay = _eventsPerRelay[sessionId];
     final receivedOkResponses = _receivedOkResponses[sessionId];
@@ -223,7 +231,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   // End session with error (logs whatever we can)
-  static void endSessionWithError(String sessionId, [Object? error, StackTrace? stackTrace]) {
+  void endSessionWithError(String sessionId, [Object? error, StackTrace? stackTrace]) {
     final startTime = _sessions[sessionId];
     if (startTime != null) {
       final duration = DateTime.now().difference(startTime);
@@ -249,7 +257,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   // Log network call with session ID
-  static void logNetworkCallWithSession({
+  void logNetworkCallWithSession({
     required String relayUrl,
     required NostrMessageType messageType,
     required String message,
@@ -283,22 +291,22 @@ class IonConnectLogger implements NostrDartLogger {
 
   @override
   void info(String message, [Object? error, StackTrace? stackTrace]) {
-    Logger.info('🦩 IonConnect: $message');
+    Logger.info('$_prefix $message');
     if (error != null) {
-      Logger.error('🦩 IonConnect: $error', stackTrace: stackTrace);
+      Logger.error('$_prefix $error', stackTrace: stackTrace);
     }
   }
 
   @override
   void warning(String message, [Object? error, StackTrace? stackTrace]) {
-    Logger.warning('🦩 IonConnect: $message');
+    Logger.warning('$_prefix $message');
     if (error != null) {
-      Logger.error('🦩 IonConnect: $error', stackTrace: stackTrace);
+      Logger.error('$_prefix $error', stackTrace: stackTrace);
     }
   }
 
   /// Logs a network call to a relay with enhanced information
-  static void logNetworkCall({
+  void logNetworkCall({
     required String relayUrl,
     required NostrMessageType messageType,
     required String message,
@@ -369,12 +377,12 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   /// Starts timing a request to a relay
-  static void startRequestTimer(String relayUrl) {
+  void startRequestTimer(String relayUrl) {
     _requestTimers[relayUrl] = Stopwatch()..start();
   }
 
   /// Stops timing a request and logs the result
-  static void stopRequestTimer(String relayUrl) {
+  void stopRequestTimer(String relayUrl) {
     final stopwatch = _requestTimers.remove(relayUrl);
     if (stopwatch != null) {
       stopwatch.stop();
@@ -382,44 +390,44 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   /// Associates a subscription ID with a relay URL
-  static void setSubscriptionId(String relayUrl, String subscriptionId) {
+  void setSubscriptionId(String relayUrl, String subscriptionId) {
     _subscriptionIds[relayUrl] = subscriptionId;
   }
 
   /// Gets the subscription ID for a relay URL
-  static String? getSubscriptionId(String relayUrl) {
+  String? getSubscriptionId(String relayUrl) {
     return _subscriptionIds[relayUrl];
   }
 
   /// Clears subscription ID for a relay URL
-  static void clearSubscriptionId(String relayUrl) {
+  void clearSubscriptionId(String relayUrl) {
     _subscriptionIds.remove(relayUrl);
   }
 
   /// Associates an event ID with a relay URL for EVENT messages
-  static void setEventId(String relayUrl, String eventId) {
+  void setEventId(String relayUrl, String eventId) {
     _eventIds[relayUrl] = eventId;
   }
 
   /// Gets the event ID for a relay URL
-  static String? getEventId(String relayUrl) {
+  String? getEventId(String relayUrl) {
     return _eventIds[relayUrl];
   }
 
   /// Clears event ID for a relay URL
-  static void clearEventId(String relayUrl) {
+  void clearEventId(String relayUrl) {
     _eventIds.remove(relayUrl);
   }
 
   /// Stores a pending REQ message to be logged after first response
-  static void storePendingRequest(String relayUrl, RequestMessage request, String subscriptionId) {
+  void storePendingRequest(String relayUrl, RequestMessage request, String subscriptionId) {
     _pendingRequests[relayUrl] = request;
     setSubscriptionId(relayUrl, subscriptionId);
     startRequestTimer(relayUrl);
   }
 
   /// Logs a pending REQ message after receiving first response
-  static void logPendingRequest(String relayUrl) {
+  void logPendingRequest(String relayUrl) {
     final request = _pendingRequests.remove(relayUrl);
     if (request != null) {
       final subscriptionId = getSubscriptionId(relayUrl);
@@ -440,7 +448,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   /// Logs an EVENT message being sent
-  static void logEventSent(String relayUrl, EventMessage event) {
+  void logEventSent(String relayUrl, EventMessage event) {
     // Use event ID only for deduplication (not relay-specific)
     if (_loggedEventIds.contains(event.id)) return;
     _loggedEventIds.add(event.id);
@@ -468,7 +476,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   /// Logs a REQ message being sent (stores for later logging)
-  static void logRequestSent(
+  void logRequestSent(
     String relayUrl,
     RequestMessage request, {
     required String subscriptionId,
@@ -477,7 +485,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   /// Logs an OK message being received
-  static void logOkReceived(String relayUrl, OkMessage okMessage) {
+  void logOkReceived(String relayUrl, OkMessage okMessage) {
     stopRequestTimer(relayUrl);
 
     // Try to get subscription ID, fallback to event ID for EVENT responses
@@ -511,7 +519,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   /// Logs an EVENT message being received
-  static void logEventReceived(String relayUrl, EventMessage event) {
+  void logEventReceived(String relayUrl, EventMessage event) {
     // Use event ID only for deduplication (not relay-specific)
     if (_loggedEventIds.contains(event.id)) return;
     _loggedEventIds.add(event.id);
@@ -539,7 +547,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   /// Logs a NOTICE message being received
-  static void logNoticeReceived(String relayUrl, NoticeMessage notice) {
+  void logNoticeReceived(String relayUrl, NoticeMessage notice) {
     // Log pending REQ message if this is the first response
     logPendingRequest(relayUrl);
 
@@ -561,7 +569,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   /// Logs a CLOSED message being received
-  static void logClosedReceived(String relayUrl, ClosedMessage closed) {
+  void logClosedReceived(String relayUrl, ClosedMessage closed) {
     // Log pending REQ message if this is the first response
     logPendingRequest(relayUrl);
 
@@ -584,7 +592,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   /// Logs an EOSE message being received
-  static void logEoseReceived(String relayUrl, EoseMessage eose) {
+  void logEoseReceived(String relayUrl, EoseMessage eose) {
     // Log pending REQ message if this is the first response
     logPendingRequest(relayUrl);
 
@@ -606,7 +614,7 @@ class IonConnectLogger implements NostrDartLogger {
   }
 
   /// Logs an AUTH message being sent
-  static void logAuthSent(String relayUrl, AuthMessage auth) {
+  void logAuthSent(String relayUrl, AuthMessage auth) {
     startRequestTimer(relayUrl);
 
     final subscriptionId = getSubscriptionId(relayUrl);

@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_logger_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/mixins/relay_active_mixin.dart';
 import 'package:ion/app/features/ion_connect/providers/mixins/relay_auth_mixin.dart';
 import 'package:ion/app/features/ion_connect/providers/mixins/relay_closed_mixin.dart';
@@ -24,7 +25,7 @@ class Relay extends _$Relay
     try {
       final relay = await createRelay(ref, url);
 
-      final wrappedRelay = RelayLoggingWrapper(relay);
+      final wrappedRelay = RelayLoggingWrapper(relay, logger: ref.read(ionConnectLoggerProvider));
 
       trackRelayAsActive(wrappedRelay, ref);
       initializeRelayTimer(wrappedRelay, ref);

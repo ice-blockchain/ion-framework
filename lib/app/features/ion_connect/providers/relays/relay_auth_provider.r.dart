@@ -10,6 +10,7 @@ import 'package:ion/app/features/core/providers/current_user_agent.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart' hide requestEvents;
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/auth_event.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_logger_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
@@ -62,6 +63,7 @@ class RelayAuth extends _$RelayAuth {
         }
         return false;
       },
+      logger: ref.read(ionConnectLoggerProvider),
     );
 
     final authMessageSubscription = relay.messages.listen((message) {
@@ -80,6 +82,7 @@ class RelayAuthService {
     required this.relay,
     required this.createAuthEvent,
     required this.onError,
+    required this.logger,
     this.completer,
   });
 
@@ -89,6 +92,7 @@ class RelayAuthService {
       createAuthEvent;
 
   final Future<bool> Function(Object? error) onError;
+  final IonConnectLogger? logger;
 
   Completer<void>? completer;
 
@@ -152,7 +156,7 @@ class RelayAuthService {
         challenge: jsonEncode(signedAuthEvent.toJson().last),
       );
 
-      IonConnectLogger.logAuthSent(relay.url, authMessage);
+      logger?.logAuthSent(relay.url, authMessage);
 
       relay.sendMessage(authMessage);
 

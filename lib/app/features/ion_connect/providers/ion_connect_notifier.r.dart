@@ -22,6 +22,7 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart'
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_logger_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/long_living_subscription_relay_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_auth_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_logging_wrapper.dart';
@@ -31,7 +32,7 @@ import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/providers/relays/current_user_write_relay.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
-import 'package:ion/app/services/ion_connect/ion_connect_logger.dart';
+
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/retry.dart';
@@ -58,8 +59,9 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     Logger.log('[RELAY] Sending events with kinds: $eventKinds');
 
     final sessionId = events.isNotEmpty ? events.first.id : null;
+
     if (sessionId != null) {
-      IonConnectLogger.startSessionWithId(sessionId);
+      ref.read(ionConnectLoggerProvider)?.startSessionWithId(sessionId);
     }
 
     final dislikedRelaysUrls = <String>{};
@@ -220,14 +222,15 @@ class IonConnectNotifier extends _$IonConnectNotifier {
             .read(relayAuthProvider(relay))
             .handleRelayAuthOnAction(actionSource: actionSource, error: error);
 
-        IonConnectLogger.startRequestTimer(relay.url);
+        final logger = ref.read(ionConnectLoggerProvider);
+        logger?.startRequestTimer(relay.url);
 
         final events = subscriptionBuilder != null
             ? subscriptionBuilder(requestMessage, relay)
             : ion.requestEvents(requestMessage, relay);
 
         if (subscriptionBuilder == null) {
-          IonConnectLogger.logRequestSent(
+          logger?.logRequestSent(
             relay.url,
             requestMessage,
             subscriptionId: requestMessage.subscriptionId,
