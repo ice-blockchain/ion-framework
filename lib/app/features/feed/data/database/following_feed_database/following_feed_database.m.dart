@@ -3,7 +3,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/converters/feed_modifier_converter.d.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/converters/feed_type_converter.d.dart';
@@ -21,13 +20,7 @@ part 'following_feed_database.m.g.dart';
 
 @Riverpod(keepAlive: true)
 FollowingFeedDatabase followingFeedDatabase(Ref ref) {
-  final pubkey = ref.watch(currentPubkeySelectorProvider);
-
-  if (pubkey == null) {
-    throw UserMasterPubkeyNotFoundException();
-  }
-
-  final database = FollowingFeedDatabase(pubkey);
+  final database = FollowingFeedDatabase('test');
 
   onLogout(ref, database.close);
 

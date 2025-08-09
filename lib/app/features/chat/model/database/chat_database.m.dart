@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/database.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -42,13 +41,7 @@ part 'tables/reaction_table.dart';
 
 @Riverpod(keepAlive: true)
 ChatDatabase chatDatabase(Ref ref) {
-  final pubkey = ref.watch(currentPubkeySelectorProvider);
-
-  if (pubkey == null) {
-    throw UserMasterPubkeyNotFoundException();
-  }
-
-  final database = ChatDatabase(pubkey);
+  final database = ChatDatabase('test');
 
   onLogout(ref, database.close);
 
@@ -66,7 +59,7 @@ ChatDatabase chatDatabase(Ref ref) {
   ],
 )
 class ChatDatabase extends _$ChatDatabase {
-  ChatDatabase(this.pubkey) : super(_openConnection(pubkey));
+  ChatDatabase(this.pubkey, [QueryExecutor? executor]) : super(executor ?? _openConnection(pubkey));
 
   final String pubkey;
 

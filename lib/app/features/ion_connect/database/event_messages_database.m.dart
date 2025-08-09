@@ -3,7 +3,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
@@ -17,13 +16,7 @@ part 'event_messages_database.m.g.dart';
 
 @Riverpod(keepAlive: true)
 EventMessagesDatabase eventMessagesDatabase(Ref ref) {
-  final pubkey = ref.watch(currentPubkeySelectorProvider);
-
-  if (pubkey == null) {
-    throw UserMasterPubkeyNotFoundException();
-  }
-
-  final database = EventMessagesDatabase(pubkey);
+  final database = EventMessagesDatabase('test');
 
   onLogout(ref, database.close);
 

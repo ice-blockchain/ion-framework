@@ -3,7 +3,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/wallets/data/database/dao/transactions_visibility_status_dao.m.dart';
@@ -24,13 +23,7 @@ part 'wallets_database.m.g.dart';
 WalletsDatabase walletsDatabase(Ref ref) {
   keepAliveWhenAuthenticated(ref);
 
-  final pubkey = ref.watch(currentPubkeySelectorProvider);
-
-  if (pubkey == null) {
-    throw UserMasterPubkeyNotFoundException();
-  }
-
-  final database = WalletsDatabase(pubkey);
+  final database = WalletsDatabase('test');
 
   onLogout(ref, database.close);
 

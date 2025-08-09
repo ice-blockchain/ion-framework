@@ -18,10 +18,17 @@ import 'package:ion/app/features/auth/views/components/auth_footer/auth_footer.d
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
 import 'package:ion/app/features/auth/views/pages/get_started/components/login_form.dart';
 import 'package:ion/app/features/auth/views/pages/get_started/get_started.dart';
+import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/components/biometrics/hooks/use_on_suggest_biometrics.dart';
 import 'package:ion/app/features/components/passkey/hooks/use_on_suggest_to_create_local_passkey_creds.dart';
 import 'package:ion/app/features/components/passkey/no_local_passkey_creds_popup.dart';
+import 'package:ion/app/features/feed/data/database/following_feed_database/following_feed_database.m.dart';
+import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
+import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:ion/app/features/user/providers/user_verify_identity_provider.r.dart';
+import 'package:ion/app/features/user_block/providers/blocked_users_database_provider.r.dart';
+import 'package:ion/app/features/user_profile/providers/user_profile_database_provider.r.dart';
+import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
@@ -82,6 +89,27 @@ class SignInStep extends HookConsumerWidget {
               child: Column(
                 children: [
                   SizedBox(height: 56.0.s),
+                  TextButton(
+                      onPressed: () {
+                        final chatDb = ref.read(chatDatabaseProvider);
+                        final followingFeedDb = ref.read(followingFeedDatabaseProvider);
+                        final notificationsDb = ref.read(notificationsDatabaseProvider);
+                        final eventMessagesDb = ref.read(eventMessagesDatabaseProvider);
+                        final blokckUserDb = ref.read(blockedUsersDatabaseProvider);
+                        final userProfileDb = ref.read(userProfileDatabaseProvider);
+                        final walletsDb = ref.read(walletsDatabaseProvider);
+
+                        final allDbs = [
+                          chatDb,
+                          followingFeedDb,
+                          notificationsDb,
+                          eventMessagesDb,
+                          blokckUserDb,
+                          userProfileDb,
+                          walletsDb,
+                        ];
+                      },
+                      child: Text("INIT DBS")),
                   LoginForm(
                     onLogin: (username) {
                       usernameRef.value = username;

@@ -85,7 +85,10 @@ class FeedPage extends HookConsumerWidget {
             print(
               '  Calculated cache  : ${cacheKB.toStringAsFixed(2)} KB (${cacheMB.toStringAsFixed(2)} MB)',
             );
+            print("CLOSE CONNECTION");
             print(''); // empty line for spacing
+            await Future<void>.delayed(Duration(seconds: 10));
+
             await db.close();
           }
           return;
