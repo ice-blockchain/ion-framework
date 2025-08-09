@@ -3,9 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/coins/coin_icon.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/extensions/object.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/chat/e2ee/providers/coin_group_provider.r.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
 import 'package:ion/app/features/chat/model/money_message_type.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
@@ -22,7 +24,6 @@ import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.da
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
-import 'package:ion/app/features/wallets/views/components/network_icon_widget.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/num.dart';
 
@@ -194,6 +195,8 @@ class _MoneyMessageContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final coinGroup = ref.watch(coinGroupByCoinIdProvider(coin?.id)).valueOrNull;
+
     final textColor = switch (isMe) {
       true => context.theme.appColors.onPrimaryAccent,
       false => context.theme.appColors.primaryText,
@@ -241,10 +244,7 @@ class _MoneyMessageContent extends HookConsumerWidget {
               SizedBox(height: 10.0.s),
               Row(
                 children: [
-                  NetworkIconWidget(
-                    imageUrl: network?.image ?? '',
-                    size: 36.0.s,
-                  ),
+                  CoinIconWidget.big(coinGroup?.iconUrl ?? coin?.iconUrl ?? ''),
                   SizedBox(width: 8.0.s),
                   _AmountDisplay(
                     amount: amount,
