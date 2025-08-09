@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/nft/data/repositories/nft_identity_repository.r.dart';
 import 'package:ion/app/features/feed/nft/model/nft_collection_data.f.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nft_collection_sync_service.r.g.dart';
@@ -24,6 +25,19 @@ class NftCollectionSyncService {
       masterKey: userMasterKey,
       cancelToken: cancelToken,
     );
+  }
+
+  bool checkNftCollection(
+    Map<String, IonContentNftCollection> userNftCollections,
+    NftCollectionData indexerNftCollection,
+  ) {
+    final targetNftCollection = userNftCollections[indexerNftCollection.name];
+    if (targetNftCollection == null) {
+      return false;
+    }
+
+    return targetNftCollection.address == indexerNftCollection.collectionAddress &&
+        targetNftCollection.createdBy == indexerNftCollection.creatorAddress;
   }
 }
 

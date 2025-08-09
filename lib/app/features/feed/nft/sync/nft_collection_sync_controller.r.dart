@@ -120,10 +120,18 @@ Future<bool> hasIonContentNftCollection(Ref ref) async {
   }
 
   final userMetadata = await ref.watch(userMetadataProvider(currentPubkey, cache: false).future);
-  final nftCollections = userMetadata?.data.ionContentNftCollections;
-  if (nftCollections == null) {
+  final userNftCollections = userMetadata?.data.ionContentNftCollections;
+  if (userNftCollections == null) {
     return false;
   }
 
-  return nftCollections.containsKey(ionContentNftCollectionName);
+  final nftCollectionService = ref.watch(nftCollectionSyncServiceProvider);
+  final indexerNftCollection = await nftCollectionService.getNftCollectionData(
+    userMasterKey: currentPubkey,
+  );
+  if (indexerNftCollection == null) {
+    return false;
+  }
+
+  return nftCollectionService.checkNftCollection(userNftCollections, indexerNftCollection);
 }
