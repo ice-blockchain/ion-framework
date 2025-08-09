@@ -72,6 +72,7 @@ class UserMetadata with _$UserMetadata implements EventSerializable, Replaceable
     Map<String, String>? wallets,
     WhoCanSetting? whoCanMessageYou,
     WhoCanSetting? whoCanInviteYouToGroups,
+    Map<String, IonContentNftCollection>? ionContentNftCollections,
   }) = _UserMetadata;
 
   const UserMetadata._();
@@ -103,6 +104,7 @@ class UserMetadata with _$UserMetadata implements EventSerializable, Replaceable
       whoCanMessageYou: WhoCanSetting.fromString(userDataContent.whoCanMessageYou),
       whoCanInviteYouToGroups: WhoCanSetting.fromString(userDataContent.whoCanInviteYouToGroups),
       wallets: userDataContent.wallets,
+      ionContentNftCollections: userDataContent.ionContentNftCollections,
     );
   }
 
@@ -130,6 +132,7 @@ class UserMetadata with _$UserMetadata implements EventSerializable, Replaceable
           whoCanMessageYou: whoCanMessageYou?.name,
           whoCanInviteYouToGroups: whoCanInviteYouToGroups?.name,
           wallets: wallets,
+          ionContentNftCollections: ionContentNftCollections,
         ).toJson(),
       ),
       tags: [
@@ -163,6 +166,7 @@ class UserDataEventMessageContent {
     this.whoCanMessageYou,
     this.whoCanInviteYouToGroups,
     this.wallets,
+    this.ionContentNftCollections,
   });
 
   factory UserDataEventMessageContent.fromJson(Map<String, dynamic> json) =>
@@ -196,6 +200,9 @@ class UserDataEventMessageContent {
 
   final Map<String, String>? wallets;
 
+  @JsonKey(name: 'ion_content_nft_collections')
+  final Map<String, IonContentNftCollection>? ionContentNftCollections;
+
   Map<String, dynamic> toJson() => _$UserDataEventMessageContentToJson(this);
 }
 
@@ -209,4 +216,15 @@ enum WhoCanSetting {
           (element) => element.name == value,
           orElse: () => WhoCanSetting.everyone,
         );
+}
+
+@freezed
+class IonContentNftCollection with _$IonContentNftCollection {
+  const factory IonContentNftCollection({
+    @JsonKey(name: 'created_by') required String createdBy,
+    required String address,
+  }) = _IonContentNftCollection;
+
+  factory IonContentNftCollection.fromJson(Map<String, dynamic> json) =>
+      _$IonContentNftCollectionFromJson(json);
 }
