@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/coins/coin_icon.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/extensions/object.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -23,7 +24,6 @@ import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.da
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
-import 'package:ion/app/features/wallets/views/components/network_icon_widget.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/num.dart';
 
@@ -115,7 +115,6 @@ class _RequestedMoneyMessage extends ConsumerWidget {
         eventMessage: eventMessage,
       ),
       onTapReply: onTapReply,
-      assetId: assetId,
     );
   }
 }
@@ -147,7 +146,6 @@ class _SentMoneyMessage extends ConsumerWidget {
     final asset = transactionData.cryptoAsset.mapOrNull(coin: (asset) => asset);
 
     final coin = asset?.coin;
-    final assetId = asset?.coin.id;
 
     final amount = asset?.amount ?? 0.0;
     final equivalentUsd = asset?.amountUSD ?? 0.0;
@@ -164,7 +162,6 @@ class _SentMoneyMessage extends ConsumerWidget {
       eventId: eventReference.eventId,
       button: ViewTransactionButton(transactionData: transactionData),
       onTapReply: onTapReply,
-      assetId: assetId,
     );
   }
 }
@@ -182,7 +179,6 @@ class _MoneyMessageContent extends HookConsumerWidget {
     required this.button,
     required this.margin,
     this.onTapReply,
-    this.assetId,
   });
 
   final bool isMe;
@@ -196,11 +192,10 @@ class _MoneyMessageContent extends HookConsumerWidget {
   final String eventId;
   final Widget button;
   final VoidCallback? onTapReply;
-  final String? assetId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final coinGroup = ref.watch(coinGroupByAssetIdProvider(assetId)).valueOrNull;
+    final coinGroup = ref.watch(coinGroupByCoinIdProvider(coin?.id)).valueOrNull;
 
     final textColor = switch (isMe) {
       true => context.theme.appColors.onPrimaryAccent,
@@ -249,13 +244,7 @@ class _MoneyMessageContent extends HookConsumerWidget {
               SizedBox(height: 10.0.s),
               Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10.0.s),
-                    child: NetworkIconWidget(
-                      imageUrl: coinGroup?.iconUrl ?? coin?.iconUrl ?? '',
-                      size: 36.0.s,
-                    ),
-                  ),
+                  CoinIconWidget.big(coinGroup?.iconUrl ?? coin?.iconUrl ?? ''),
                   SizedBox(width: 8.0.s),
                   _AmountDisplay(
                     amount: amount,
