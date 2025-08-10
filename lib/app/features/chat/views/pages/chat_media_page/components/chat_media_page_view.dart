@@ -127,11 +127,20 @@ class _ChatMediaItem extends HookConsumerWidget {
               VideoControllerParams(
                 sourcePath: path,
                 authorPubkey: entity.masterPubkey,
-                autoPlay: true,
               ),
             ),
           )
           .valueOrNull;
+
+      useEffect(
+        () {
+          playerController?.play();
+          return () {
+            playerController?.pause();
+          };
+        },
+        [playerController],
+      );
 
       return Stack(
         children: [

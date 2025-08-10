@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -22,10 +23,20 @@ class IntroPage extends HookConsumerWidget {
         VideoControllerParams(
           sourcePath: Assets.videos.intro,
           looping: true,
-          autoPlay: true,
         ),
       ),
     );
+
+    useEffect(
+      () {
+        videoControllerProviderState.valueOrNull?.play();
+        return () {
+          videoControllerProviderState.valueOrNull?.pause();
+        };
+      },
+      [videoControllerProviderState.valueOrNull],
+    );
+
     final videoController = videoControllerProviderState.valueOrNull;
 
     return Scaffold(
@@ -53,7 +64,7 @@ class IntroPage extends HookConsumerWidget {
           PositionedDirectional(
             start: 40.0.s,
             end: 40.0.s,
-            bottom: MediaQuery.of(context).padding.bottom + 46.0.s,
+            bottom: MediaQuery.paddingOf(context).bottom + 46.0.s,
             child: Animate(
               effects: [
                 ScaleEffect(
