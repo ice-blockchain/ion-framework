@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -8,7 +10,6 @@ import 'package:ion/app/features/wallets/domain/coins/coins_service.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'synced_coins_by_symbol_group_provider.r.g.dart';
@@ -23,48 +24,60 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
   static const _debounceDuration = Duration(minutes: 1);
 
   /// Map to track last request time for each symbol group
+  /// to avoid re-request of the same symbol group in a short period of time
   final Map<String, DateTime> _lastRequestTimes = {};
+
+  /// Map to track active/pending requests to prevent
+  /// concurrent duplicate requests until the first one in the progress
+  final Map<String, Future<List<CoinInWalletData>>?> _activeRequests = {};
 
   @override
   FutureOr<SyncedCoinsCache> build() async {
     keepAliveWhenAuthenticated(ref);
 
-    // Reset state when isAuthenticated changes
     await ref.watch(authProvider.selectAsync((state) => state.isAuthenticated));
-    // Reset state each time the wallet view changes
     await ref.watch(currentWalletViewIdProvider.future);
 
-    // Clear debounce times when provider resets
-    Logger.info('Clear _lastRequestTimes');
+    // Clear debounce times when provider resets, but preserve active requests
+    // to prevent race conditions with in-flight HTTP requests
     _lastRequestTimes.clear();
 
     return {};
   }
 
-  /// Retrieves coins for a specific symbol group, using cache when available
   Future<List<CoinInWalletData>> getCoins(String symbolGroup) async {
     final cachedData = state.value?[symbolGroup];
 
-    // If we have cached data and should skip due to debounce, return cached data
     if (cachedData != null && _shouldSkipRequest(symbolGroup)) {
       return cachedData;
     }
 
-    // If no cached data, always fetch regardless of debounce
-    final updatedCoins = await _fetchAndProcessCoins(symbolGroup);
-    _updateRequestTime(symbolGroup);
-    _updateCache({symbolGroup: updatedCoins});
+    final activeRequest = _activeRequests[symbolGroup];
+    if (activeRequest != null) {
+      return activeRequest;
+    }
 
-    return updatedCoins;
+    final requestFuture = _fetchAndProcessCoins(symbolGroup);
+    _activeRequests[symbolGroup] = requestFuture;
+
+    try {
+      final updatedCoins = await requestFuture;
+      _updateRequestTime(symbolGroup);
+      _updateCache({symbolGroup: updatedCoins});
+      return updatedCoins;
+    } finally {
+      unawaited(_activeRequests.remove(symbolGroup));
+    }
   }
 
-  /// Refreshes coin data for specified symbol groups or all cached groups
-  ///
-  /// [symbolGroups] - specific groups to refresh, or null for all cached groups
-  /// [force] - bypass debounce mechanism (used before coin transactions)
   Future<void> refresh({List<String>? symbolGroups, bool force = false}) async {
     final currentCache = state.valueOrNull ?? {};
     final groupsToUpdate = symbolGroups ?? currentCache.keys.toList();
+
+    // Skip refresh if cache is empty and no specific symbol groups provided
+    if (symbolGroups == null && currentCache.isEmpty) {
+      return;
+    }
 
     final updates = await Future.wait(
       groupsToUpdate.map((group) async {
@@ -76,13 +89,37 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
           }
         }
 
-        final coins = await _fetchAndProcessCoins(group);
-        _updateRequestTime(group);
-        return MapEntry(group, coins);
+        // Force refresh: bypass deduplication and debounce
+        if (force) {
+          unawaited(_activeRequests.remove(group));
+          final coins = await _fetchAndProcessCoins(group);
+          _updateRequestTime(group);
+          return MapEntry(group, coins);
+        }
+
+        // Regular refresh: check for active requests to prevent duplicates
+        final activeRequest = _activeRequests[group];
+        if (activeRequest != null) {
+          return MapEntry(group, await activeRequest);
+        }
+
+        // Start new request and track it
+        final requestFuture = _fetchAndProcessCoins(group);
+        _activeRequests[group] = requestFuture;
+
+        try {
+          final coins = await requestFuture;
+          _updateRequestTime(group);
+          return MapEntry(group, coins);
+        } finally {
+          unawaited(_activeRequests.remove(group));
+        }
       }),
     );
 
-    _updateCache(Map.fromEntries(updates));
+    _updateCache(
+      Map.fromEntries(updates),
+    );
   }
 
   Future<List<CoinInWalletData>> _fetchAndProcessCoins(String symbolGroup) async {
@@ -109,7 +146,6 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
     return result..sort(_coinsComparator.compareCoins);
   }
 
-  /// Checks if a request should be skipped due to debounce
   bool _shouldSkipRequest(String symbolGroup) {
     final lastRequestTime = _lastRequestTimes[symbolGroup];
     if (lastRequestTime == null) return false;
@@ -118,7 +154,6 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
     return timeSinceLastRequest < _debounceDuration;
   }
 
-  /// Updates the last request time for a symbol group
   void _updateRequestTime(String symbolGroup) {
     _lastRequestTimes[symbolGroup] = DateTime.now();
   }
