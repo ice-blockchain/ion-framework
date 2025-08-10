@@ -8,6 +8,6 @@ dependencies:
   analyzer: any
   analyzer_plugin: any
   # custom_lint_builder will give us tools for writing lints
-  custom_lint_builder: ^0.6.10
+  custom_lint_builder: ^0.7.3
   flutter_test:
     sdk: flutter
