@@ -3,9 +3,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/extensions/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.steps.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/account_notification_sync_state_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/comments_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/followers_table.d.dart';
@@ -109,73 +107,6 @@ class NotificationsDatabase extends _$NotificationsDatabase {
 
   @override
   int get schemaVersion => 5;
-
-  @override
-  MigrationStrategy get migration {
-    return MigrationStrategy(
-      onUpgrade: stepByStep(
-        from1To2: (m, schema) async {
-          await Future.wait([
-            m.createTable(schema.followersTable),
-            m.createTable(schema.likesTable),
-          ]);
-        },
-        from2To3: (m, schema) async {
-          await Future.wait(
-            [
-              m.alterTable(
-                TableMigration(
-                  schema.commentsTable,
-                  columnTransformer: {
-                    schema.commentsTable.createdAt: schema.commentsTable.normalizedTimestamp(
-                      schema.commentsTable.createdAt,
-                    ),
-                  },
-                ),
-              ),
-              m.alterTable(
-                TableMigration(
-                  schema.followersTable,
-                  columnTransformer: {
-                    schema.followersTable.createdAt: schema.followersTable.normalizedTimestamp(
-                      schema.followersTable.createdAt,
-                    ),
-                  },
-                ),
-              ),
-              m.alterTable(
-                TableMigration(
-                  schema.likesTable,
-                  columnTransformer: {
-                    schema.likesTable.createdAt: schema.likesTable.normalizedTimestamp(
-                      schema.likesTable.createdAt,
-                    ),
-                  },
-                ),
-              ),
-            ],
-          );
-        },
-        from3To4: (m, schema) async {
-          await Future.wait([
-            m.createTable(schema.subscribedUsersContentTable),
-            m.createTable(schema.accountNotificationSyncStateTable),
-          ]);
-        },
-        from4To5: (m, schema) async {
-          await m.database.customStatement('DROP TABLE IF EXISTS subscribed_users_content_table');
-          await m.database.customStatement('DROP TABLE IF EXISTS content_table');
-          await m.database
-              .customStatement('DROP TABLE IF EXISTS account_notification_sync_state_table');
-
-          await Future.wait([
-            m.createTable(schema.accountNotificationSyncStateTable),
-            m.createTable(schema.subscribedUsersContentTable),
-          ]);
-        },
-      ),
-    );
-  }
 
   static QueryExecutor _openConnection(String pubkey) {
     return driftDatabase(name: 'notifications_database_$pubkey');

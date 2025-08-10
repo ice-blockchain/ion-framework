@@ -26,8 +26,8 @@ import 'package:ion/app/features/feed/data/database/following_feed_database/foll
 import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
 import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:ion/app/features/user/providers/user_verify_identity_provider.r.dart';
-import 'package:ion/app/features/user_block/providers/blocked_users_database_provider.r.dart';
-import 'package:ion/app/features/user_profile/providers/user_profile_database_provider.r.dart';
+import 'package:ion/app/features/user_block/model/database/block_user_database.m.dart';
+import 'package:ion/app/features/user_profile/database/user_profile_database.d.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
@@ -91,23 +91,48 @@ class SignInStep extends HookConsumerWidget {
                   SizedBox(height: 56.0.s),
                   TextButton(
                       onPressed: () {
-                        final chatDb = ref.read(chatDatabaseProvider);
-                        final followingFeedDb = ref.read(followingFeedDatabaseProvider);
-                        final notificationsDb = ref.read(notificationsDatabaseProvider);
-                        final eventMessagesDb = ref.read(eventMessagesDatabaseProvider);
-                        final blokckUserDb = ref.read(blockedUsersDatabaseProvider);
-                        final userProfileDb = ref.read(userProfileDatabaseProvider);
-                        final walletsDb = ref.read(walletsDatabaseProvider);
+                        final _chatDb = ChatDatabase("");
+                        final _followingFeedDb = FollowingFeedDatabase('');
+                        final _notificationDb = NotificationsDatabase('');
+                        final _eventDb = EventMessagesDatabase('');
+                        final _blockuserDb = BlockUserDatabase('');
+                        final _userProfileDb = UserProfileDatabase('');
+                        final _walletDb = WalletsDatabase('');
 
                         final allDbs = [
-                          chatDb,
-                          followingFeedDb,
-                          notificationsDb,
-                          eventMessagesDb,
-                          blokckUserDb,
-                          userProfileDb,
-                          walletsDb,
+                          _chatDb,
+                          _followingFeedDb,
+                          _notificationDb,
+                          _eventDb,
+                          _blockuserDb,
+                          _userProfileDb,
+                          _walletDb
                         ];
+
+                        allDbs.forEach((db) {
+                          print('');
+                          print(db.runtimeType.toString());
+                          db.allTables.map((t) => print(t.actualTableName));
+                          print('');
+                        });
+
+                        // final chatDb = ref.read(chatDatabaseProvider);
+                        // final followingFeedDb = ref.read(followingFeedDatabaseProvider);
+                        // final notificationsDb = ref.read(notificationsDatabaseProvider);
+                        // final eventMessagesDb = ref.read(eventMessagesDatabaseProvider);
+                        // final blokckUserDb = ref.read(blockedUsersDatabaseProvider);
+                        // final userProfileDb = ref.read(userProfileDatabaseProvider);
+                        // final walletsDb = ref.read(walletsDatabaseProvider);
+
+                        // final allDbs = [
+                        //   chatDb,
+                        //   followingFeedDb,
+                        //   notificationsDb,
+                        //   eventMessagesDb,
+                        //   blokckUserDb,
+                        //   userProfileDb,
+                        //   walletsDb,
+                        // ];
                       },
                       child: Text("INIT DBS")),
                   LoginForm(

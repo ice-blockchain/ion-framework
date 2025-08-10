@@ -11,29 +11,45 @@ import 'package:ion/app/features/core/views/components/content_scaler.dart';
 import 'package:ion/app/router/components/app_router_builder.dart';
 import 'package:ion/app/router/components/modal_wrapper/sheet_scope.dart';
 import 'package:ion/app/router/providers/go_router_provider.r.dart';
-import 'package:ion/app/services/logger/logger_initializer.dart';
 import 'package:ion/app/services/riverpod/container.dart';
-import 'package:ion/app/services/sentry/sentry_service.dart';
-import 'package:ion/app/services/storage/secure_storage.r.dart';
 import 'package:ion/app/theme/theme.dart';
 import 'package:ion/generated/app_localizations.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
-  SentryWidgetsFlutterBinding.ensureInitialized();
-  await SecureStorage().clearOnReinstall();
-
-  LoggerInitializer.initialize(riverpodContainer);
-
-  await SentryService.init(
-    container: riverpodContainer,
-    appRunner: () => runApp(
-      UncontrolledProviderScope(
-        container: riverpodContainer,
-        child: const IONApp(),
-      ),
+  runApp(TestApp());
+  return;
+  runApp(
+    UncontrolledProviderScope(
+      container: riverpodContainer,
+      child: const IONApp(),
     ),
   );
+}
+
+class TestApp extends StatefulWidget {
+  const TestApp({super.key});
+
+  @override
+  State<TestApp> createState() => _TestAppState();
+}
+
+class _TestAppState extends State<TestApp> {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: SafeArea(
+            child: Column(
+          children: [
+            SizedBox(
+              height: 100,
+            ),
+            ElevatedButton(onPressed: () {}, child: Text("INIT DBS")),
+          ],
+        )),
+      ),
+    );
+  }
 }
 
 class IONApp extends ConsumerWidget {

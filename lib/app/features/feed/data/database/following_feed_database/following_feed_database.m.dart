@@ -6,7 +6,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/converters/feed_modifier_converter.d.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/converters/feed_type_converter.d.dart';
-import 'package:ion/app/features/feed/data/database/following_feed_database/following_feed_database.m.steps.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/tables/seen_events_table.d.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/tables/seen_reposts_table.d.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/tables/user_fetch_states_table.d.dart';
@@ -57,35 +56,6 @@ class FollowingFeedDatabase extends _$FollowingFeedDatabase {
 
   @override
   int get schemaVersion => 4;
-
-  @override
-  MigrationStrategy get migration {
-    return MigrationStrategy(
-      onUpgrade: stepByStep(
-        from1To2: (m, schema) async {
-          await m.createTable(schema.seenRepostsTable);
-        },
-        from2To3: (m, schema) async {
-          // Migrating from a nullable to a non-nullable column (feedModifier)
-          await m.deleteTable('seen_events_table');
-          await m.createTable(schema.seenEventsTable);
-          await m.createTable(schema.userFetchStatesTable);
-        },
-        from3To4: (Migrator m, Schema4 schema) async {
-          // Remove lastContentTime column from userFetchStatesTable
-          await m.alterTable(
-            TableMigration(
-              schema.userFetchStatesTable,
-              columnTransformer: {
-                // Remove the column by not including it in the transformer
-                // No mapping for 'lastContentTime'
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   static QueryExecutor _openConnection(String pubkey) {
     return driftDatabase(name: 'following_feed_database_$pubkey');

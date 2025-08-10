@@ -3,7 +3,7 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart' as db;
-import 'package:drift_db_viewer/drift_db_viewer.dart';
+// import 'package:drift_db_viewer/drift_db_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -178,13 +178,6 @@ class DebugPage extends ConsumerWidget {
 
   void _openDatabaseViewer(BuildContext context, WidgetRef ref, _DebugPageDatabaseType dbType) {
     final database = _getDatabaseInstance(ref, dbType);
-    Navigator.of(context).push(
-      MaterialPageRoute<DriftDbViewer>(
-        builder: (BuildContext context) {
-          return DriftDbViewer(database);
-        },
-      ),
-    );
   }
 
   Future<void> _exportAndShareDatabase(
