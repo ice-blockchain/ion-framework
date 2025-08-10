@@ -25,14 +25,6 @@ class TrendingVideoAuthor extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final boxShadow = [
-      BoxShadow(
-        offset: const Offset(0, 1),
-        blurRadius: 1,
-        color: Colors.black.withValues(alpha: 0.40),
-      ),
-    ];
-
     return TextButton(
       onPressed: () {
         ProfileRoute(pubkey: pubkey).push<void>(context);
@@ -53,7 +45,13 @@ class TrendingVideoAuthor extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                   style: context.theme.appTextThemes.caption3.copyWith(
                     color: context.theme.appColors.secondaryBackground,
-                    shadows: boxShadow,
+                    shadows: [
+                      BoxShadow(
+                        offset: const Offset(0, 1),
+                        blurRadius: 1,
+                        color: Colors.black.withValues(alpha: 0.40),
+                      ),
+                    ],
                   ),
                 ),
               ),

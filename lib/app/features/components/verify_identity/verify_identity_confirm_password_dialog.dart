@@ -32,7 +32,7 @@ class VerifyIdentityConfirmPasswordDialog<T> extends HookConsumerWidget {
     final processing = useState<bool>(false);
 
     return SingleChildScrollView(
-      padding: EdgeInsetsDirectional.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsetsDirectional.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 28.0.s),
         child: Form(
