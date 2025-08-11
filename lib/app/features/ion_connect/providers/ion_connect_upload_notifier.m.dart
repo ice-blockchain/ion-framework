@@ -5,16 +5,21 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:dio_http2_adapter/dio_http2_adapter.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/dio_provider.r.dart';
+import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/file_storage_url_provider.r.dart';
 import 'package:ion/app/features/ion_connect/utils/file_storage_utils.dart';
+import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/media_service/large_media_upload_service.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -22,6 +27,8 @@ part 'ion_connect_upload_notifier.m.freezed.dart';
 part 'ion_connect_upload_notifier.m.g.dart';
 
 typedef UploadResult = ({FileMetadata fileMetadata, MediaAttachment mediaAttachment});
+
+const int _largeFileThreshold = 1024 * 1024;
 
 @riverpod
 class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
@@ -43,28 +50,43 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     if (!skipDimCheck && (file.width == null || file.height == null)) {
       throw UnknownFileResolutionException('File dimensions are missing');
     }
-
     final dimension = skipDimCheck ? null : '${file.width}x${file.height}';
 
     final url = await ref.read(fileStorageUrlProvider.future);
 
     final fileBytes = await File(file.path).readAsBytes();
+    final isLargeFile = fileBytes.length >= _largeFileThreshold;
 
-    final authorizationToken = await generateAuthorizationToken(
+    // replace files with xfiles in the url for large files
+    final uploadUrl = isLargeFile ? Uri.parse(url).replace(path: '/xfiles/').toString() : url;
+
+    final authToken = await generateAuthorizationToken(
       ref: ref,
-      url: url,
+      url: uploadUrl,
       fileBytes: fileBytes,
       customEventSigner: customEventSigner,
       method: 'POST',
     );
 
-    final response = await _makeUploadRequest(
-      url: url,
-      alt: alt,
-      file: file,
-      fileBytes: fileBytes,
-      authorizationToken: authorizationToken,
-    );
+    UploadResponse response;
+    try {
+      final uploader = isLargeFile ? _uploadLargeMultipart : _uploadSimpleMultipart;
+
+      response = await uploader(
+        url: uploadUrl,
+        file: file,
+        fileBytes: fileBytes,
+        authToken: authToken,
+        alt: alt,
+      );
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: '[Upload] Upload failed isLarge=$isLargeFile url=$uploadUrl',
+      );
+      rethrow;
+    }
 
     final fileMetadata = FileMetadata.fromUploadResponseTags(
       response.nip94Event.tags,
@@ -84,18 +106,49 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     return (fileMetadata: fileMetadata, mediaAttachment: mediaAttachment);
   }
 
-  Future<UploadResponse> _makeUploadRequest({
+  Future<UploadResponse> _uploadLargeMultipart({
     required String url,
     required MediaFile file,
     required Uint8List fileBytes,
-    required String authorizationToken,
+    required String authToken,
+    FileAlt? alt,
+  }) async {
+    final dio = Dio()
+      ..options.baseUrl = url
+      ..httpClientAdapter = Http2Adapter(
+        ConnectionManager(),
+      );
+
+    final isLogApp = ref.read(featureFlagsProvider.notifier).get(LoggerFeatureFlag.logApp);
+    if (isLogApp) {
+      dio.interceptors.add(
+        LogInterceptor(),
+      );
+    }
+
+    return LargeMediaUploadService(
+      dio: dio,
+    ).upload(
+      url: url,
+      file: file,
+      authToken: authToken,
+      alt: alt,
+      fileBytes: fileBytes,
+    );
+  }
+
+  Future<UploadResponse> _uploadSimpleMultipart({
+    required String url,
+    required MediaFile file,
+    required Uint8List fileBytes,
+    required String authToken,
     FileAlt? alt,
   }) async {
     final fileName = file.name ?? file.basename;
     final multipartFile = MultipartFile.fromBytes(fileBytes, filename: fileName);
 
     final formData = FormData.fromMap({
-      'file': MultipartFile.fromBytes(fileBytes, filename: fileName),
+      'file': multipartFile,
       'caption': fileName,
       if (alt != null) 'alt': alt.toShortString(),
       'size': multipartFile.length,
@@ -107,7 +160,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
             url,
             data: formData,
             options: Options(
-              headers: {'Authorization': authorizationToken},
+              headers: {'Authorization': authToken},
             ),
           );
 
@@ -117,7 +170,6 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
       if (uploadResponse.status != 'success') {
         throw Exception(uploadResponse.message);
       }
-
       return uploadResponse;
     } catch (error) {
       throw FileUploadException(error, url: url);
