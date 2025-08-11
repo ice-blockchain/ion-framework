@@ -174,8 +174,8 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
         throw Exception(uploadResponse.message);
       }
       return uploadResponse;
-    } catch (e) {
-      throw FileUploadException(e, url: url);
+    } catch (error) {
+      throw FileUploadException(error, url: url);
     }
   }
 }

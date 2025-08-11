@@ -236,12 +236,12 @@ class LargeMediaUploadService {
         }
 
         throw FileUploadException('PATCH failed: $status', url: uploadUrl);
-      } on DioException catch (e) {
+      } on DioException catch (error) {
         if (++attempt > maxRetriesPerPartial) rethrow;
         final backoff = _backoff(attempt);
 
         Logger.error(
-          'PATCH error: ${e.message}; retry#$attempt in ${backoff.inMilliseconds}ms',
+          'PATCH error: ${error.message}; retry#$attempt in ${backoff.inMilliseconds}ms',
         );
 
         await Future<void>.delayed(backoff);
@@ -274,8 +274,8 @@ class LargeMediaUploadService {
       final offStr = head.headers.value('upload-offset');
       final off = int.tryParse(offStr ?? '0') ?? 0;
       return off;
-    } on DioException catch (e) {
-      Logger.log('HEAD probe failed (${e.message}), assuming offset=0');
+    } on DioException catch (error) {
+      Logger.log('HEAD probe failed (${error.message}), assuming offset=0');
       return 0;
     }
   }
