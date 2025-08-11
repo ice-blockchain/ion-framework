@@ -13,8 +13,6 @@ import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/utils/queue.dart';
 
-const String _tusVersion = '1.0.0';
-
 // Parallel tus upload using concatenation.
 class LargeMediaUploadService {
   const LargeMediaUploadService({
@@ -46,7 +44,7 @@ class LargeMediaUploadService {
   Future<UploadResponse> upload({
     required String url,
     required MediaFile file,
-    required String authorizationToken,
+    required String authToken,
     FileAlt? alt,
     String? caption,
     CancelToken? cancelToken,
@@ -78,7 +76,7 @@ class LargeMediaUploadService {
             byteStart: start,
             byteEndExclusive: endExclusive,
             partSize: partSize,
-            authorizationToken: authorizationToken,
+            authToken: authToken,
             fileNameB64: fileNameB64,
             cancelToken: cancelToken,
           );
@@ -99,7 +97,7 @@ class LargeMediaUploadService {
       url: url,
       partLocations: locations,
       file: file,
-      authorizationToken: authorizationToken,
+      authToken: authToken,
       alt: alt,
       fileNameB64: fileNameB64,
       captionB64: captionB64,
@@ -117,7 +115,7 @@ class LargeMediaUploadService {
     required int byteStart,
     required int byteEndExclusive,
     required int partSize,
-    required String authorizationToken,
+    required String authToken,
     required String fileNameB64,
     CancelToken? cancelToken,
   }) async {
@@ -125,12 +123,11 @@ class LargeMediaUploadService {
       endpoint,
       options: Options(
         headers: {
-          'Tus-Resumable': _tusVersion,
-          'Authorization': authorizationToken,
           'Content-Length': '0',
           'Upload-Length': partSize.toString(),
           'Upload-Concat': 'partial',
           'Upload-Metadata': 'fileName $fileNameB64',
+          ..._commonHeaders(authToken: authToken),
         },
       ),
       cancelToken: cancelToken,
@@ -156,7 +153,7 @@ class LargeMediaUploadService {
       filePath: filePath,
       bodyStart: byteStart,
       bodyLength: partSize,
-      authorizationToken: authorizationToken,
+      authToken: authToken,
       cancelToken: cancelToken,
     );
 
@@ -170,13 +167,13 @@ class LargeMediaUploadService {
     required String filePath,
     required int bodyStart,
     required int bodyLength,
-    required String authorizationToken,
+    required String authToken,
     CancelToken? cancelToken,
   }) async {
     var attempt = 0;
     var offset = await _probeOffset(
       uploadUrl: uploadUrl,
-      authorizationToken: authorizationToken,
+      authToken: authToken,
       cancelToken: cancelToken,
     );
 
@@ -194,11 +191,10 @@ class LargeMediaUploadService {
           data: stream,
           options: Options(
             headers: {
-              'Tus-Resumable': _tusVersion,
-              'Authorization': authorizationToken,
               'Upload-Offset': '$offset',
               'Content-Type': 'application/offset+octet-stream',
               'Content-Length': '$toSend',
+              ..._commonHeaders(authToken: authToken),
             },
             responseType: ResponseType.stream,
           ),
@@ -248,7 +244,7 @@ class LargeMediaUploadService {
 
         offset = await _probeOffset(
           uploadUrl: uploadUrl,
-          authorizationToken: authorizationToken,
+          authToken: authToken,
           cancelToken: cancelToken,
         );
       }
@@ -257,17 +253,14 @@ class LargeMediaUploadService {
 
   Future<int> _probeOffset({
     required String uploadUrl,
-    required String authorizationToken,
+    required String authToken,
     CancelToken? cancelToken,
   }) async {
     try {
       final head = await dio.head<dynamic>(
         uploadUrl,
         options: Options(
-          headers: {
-            'Tus-Resumable': _tusVersion,
-            'Authorization': authorizationToken,
-          },
+          headers: _commonHeaders(authToken: authToken),
         ),
         cancelToken: cancelToken,
       );
@@ -290,7 +283,7 @@ class LargeMediaUploadService {
     required String url,
     required List<String> partLocations,
     required MediaFile file,
-    required String authorizationToken,
+    required String authToken,
     required String fileNameB64,
     required String captionB64,
     FileAlt? alt,
@@ -310,10 +303,9 @@ class LargeMediaUploadService {
       url,
       options: Options(
         headers: {
-          'Tus-Resumable': _tusVersion,
-          'Authorization': authorizationToken,
           'Upload-Concat': concatValue,
           'Upload-Metadata': metadata.join(','),
+          ..._commonHeaders(authToken: authToken),
         },
       ),
       cancelToken: cancelToken,
@@ -334,5 +326,14 @@ class LargeMediaUploadService {
       }
     }
     return uploadResponse;
+  }
+
+  Map<String, String> _commonHeaders({
+    required String authToken,
+  }) {
+    return {
+      'Tus-Resumable': '1.0.0',
+      'Authorization': authToken,
+    };
   }
 }

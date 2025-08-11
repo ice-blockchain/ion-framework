@@ -60,7 +60,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     // replace files with xfiles in the url for large files
     final uploadUrl = isLargeFile ? url.replaceFirst('files', 'xfiles/') : url;
 
-    final authorizationToken = await generateAuthorizationToken(
+    final authToken = await generateAuthorizationToken(
       ref: ref,
       url: uploadUrl,
       fileBytes: fileBytes,
@@ -74,14 +74,14 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
           ? await _uploadLargeMultipart(
               url: uploadUrl,
               file: file,
-              authorizationToken: authorizationToken,
+              authToken: authToken,
               alt: alt,
             )
           : await _uploadSimpleMultipart(
               url: url,
               file: file,
               fileBytes: fileBytes,
-              authorizationToken: authorizationToken,
+              authToken: authToken,
               alt: alt,
             );
     } catch (error, stackTrace) {
@@ -114,7 +114,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
   Future<UploadResponse> _uploadLargeMultipart({
     required String url,
     required MediaFile file,
-    required String authorizationToken,
+    required String authToken,
     FileAlt? alt,
   }) async {
     final dio = Dio()
@@ -135,7 +135,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     ).upload(
       url: url,
       file: file,
-      authorizationToken: authorizationToken,
+      authToken: authToken,
       alt: alt,
     );
   }
@@ -144,7 +144,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     required String url,
     required MediaFile file,
     required Uint8List fileBytes,
-    required String authorizationToken,
+    required String authToken,
     FileAlt? alt,
   }) async {
     final fileName = file.name ?? file.basename;
@@ -163,7 +163,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
             url,
             data: formData,
             options: Options(
-              headers: {'Authorization': authorizationToken},
+              headers: {'Authorization': authToken},
             ),
           );
 
