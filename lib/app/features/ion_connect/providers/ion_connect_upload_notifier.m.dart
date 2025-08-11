@@ -35,6 +35,12 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
   @override
   FutureOr<void> build() {}
 
+  /// IMPORTANT:
+  /// Uploading a file via this method only stores it on the relay and returns the metadata.
+  /// It DOES NOT broadcast the metadata (FileMetadata) as a NIP-94 event (kind 1063).
+  ///
+  /// The developer is responsible for sending the FileMetadata to the relay manually
+  /// after a successful upload.
   Future<UploadResult> upload(
     MediaFile file, {
     FileAlt? alt,
