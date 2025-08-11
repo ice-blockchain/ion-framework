@@ -11,6 +11,7 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/relays/relay_picker_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -22,10 +23,14 @@ part 'ion_connect_entity_provider.r.g.dart';
 IonConnectEntity? ionConnectCachedEntity(
   Ref ref, {
   required EventReference eventReference,
+  Duration? expirationDuration,
 }) =>
     ref.watch(
       ionConnectCacheProvider.select(
-        cacheSelector(CacheableEntity.cacheKeyBuilder(eventReference: eventReference)),
+        cacheSelector(
+          CacheableEntity.cacheKeyBuilder(eventReference: eventReference),
+          expirationDuration: expirationDuration,
+        ),
       ),
     );
 
@@ -34,6 +39,7 @@ Future<IonConnectEntity?> ionConnectNetworkEntity(
   Ref ref, {
   required EventReference eventReference,
   String? search,
+  ActionType? actionType,
   ActionSource? actionSource,
 }) async {
   final aSource = actionSource ?? ActionSourceUser(eventReference.masterPubkey);
@@ -46,9 +52,11 @@ Future<IonConnectEntity?> ionConnectNetworkEntity(
           limit: 1,
         ),
       );
+
     return ref.read(ionConnectNotifierProvider.notifier).requestEntity(
           requestMessage,
           actionSource: aSource,
+          actionType: actionType,
           entityEventReference: eventReference,
         );
   } else if (eventReference is ReplaceableEventReference) {
@@ -67,6 +75,7 @@ Future<IonConnectEntity?> ionConnectNetworkEntity(
     return ref.read(ionConnectNotifierProvider.notifier).requestEntity(
           requestMessage,
           actionSource: aSource,
+          actionType: actionType,
           entityEventReference: eventReference,
         );
   } else {
@@ -199,6 +208,8 @@ Future<IonConnectEntity?> ionConnectEntity(
   required EventReference eventReference,
   bool network = true,
   bool cache = true,
+  ActionType? actionType,
+  Duration? expirationDuration,
   String? search,
 }) async {
   final currentUser = ref.watch(currentIdentityKeyNameSelectorProvider);
@@ -206,14 +217,23 @@ Future<IonConnectEntity?> ionConnectEntity(
     throw const CurrentUserNotFoundException();
   }
   if (cache) {
-    final entity = ref.watch(ionConnectCachedEntityProvider(eventReference: eventReference));
+    final entity = ref.watch(
+      ionConnectCachedEntityProvider(
+        eventReference: eventReference,
+        expirationDuration: expirationDuration,
+      ),
+    );
     if (entity != null) {
       return entity;
     }
   }
   if (network) {
     return ref.watch(
-      ionConnectNetworkEntityProvider(eventReference: eventReference, search: search).future,
+      ionConnectNetworkEntityProvider(
+        search: search,
+        actionType: actionType,
+        eventReference: eventReference,
+      ).future,
     );
   }
   return null;
