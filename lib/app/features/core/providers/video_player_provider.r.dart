@@ -37,7 +37,6 @@ class VideoControllerParams {
     required this.sourcePath,
     this.authorPubkey,
     this.uniqueId = '',
-    this.autoPlay = false,
     this.looping = false,
     this.onlyOneShouldPlay = false,
   });
@@ -46,7 +45,6 @@ class VideoControllerParams {
   final String? authorPubkey;
   final String
       uniqueId; // an optional uniqueId parameter which should be used when needed independent controllers for the same sourcePath
-  final bool autoPlay;
   final bool looping;
   final bool onlyOneShouldPlay;
 
@@ -129,10 +127,6 @@ class VideoController extends _$VideoController {
               prevController.dispose();
             },
           );
-        } else {
-          if (params.autoPlay) {
-            unawaited(controller.play());
-          }
         }
 
         _activeController = controller;

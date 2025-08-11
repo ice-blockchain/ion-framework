@@ -26,9 +26,18 @@ class SplashPage extends HookConsumerWidget {
       videoControllerProvider(
         VideoControllerParams(
           sourcePath: Assets.videos.logoStatic,
-          autoPlay: true,
         ),
       ),
+    );
+
+    useEffect(
+      () {
+        splashVideoControllerState.valueOrNull?.play();
+        return () {
+          splashVideoControllerState.valueOrNull?.pause();
+        };
+      },
+      [splashVideoControllerState.valueOrNull],
     );
 
     final splashVideoController = splashVideoControllerState.valueOrNull;
@@ -37,7 +46,7 @@ class SplashPage extends HookConsumerWidget {
     // This ensures a seamless transition to the IntroPage without flickering or delays.
     ref.watch(
       videoControllerProvider(
-        VideoControllerParams(sourcePath: Assets.videos.intro, looping: true, autoPlay: true),
+        VideoControllerParams(sourcePath: Assets.videos.intro, looping: true),
       ),
     );
 

@@ -64,13 +64,26 @@ class VideoPage extends HookConsumerWidget {
                 VideoControllerParams(
                   sourcePath: videoUrl,
                   authorPubkey: authorPubkey,
-                  autoPlay: true,
                   looping: looping,
                   uniqueId: framedEventReference?.encode() ?? '',
                 ),
               ),
             )
             .valueOrNull;
+
+    useEffect(
+      () {
+        if (this.playerController == null) {
+          playerController?.play();
+        }
+        return () {
+          if (this.playerController == null) {
+            playerController?.pause();
+          }
+        };
+      },
+      [this.playerController, playerController],
+    );
 
     if (playerController == null || !playerController.value.isInitialized) {
       final thumbnailAspectRatio = aspectRatio ?? 16 / 9;
