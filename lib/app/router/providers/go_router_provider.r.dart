@@ -54,8 +54,8 @@ GoRouter goRouter(Ref ref) {
       }
 
       if (isInitInProgress || !isSplashAnimationCompleted) {
-        // Redirect if app is not initialized yet
-        return SplashRoute().location;
+        // Redirect if app is not initialized yet, but avoid re-entering Splash when already there
+        return isOnSplash ? null : SplashRoute().location;
       }
 
       return _mainRedirect(location: state.matchedLocation, ref: ref);

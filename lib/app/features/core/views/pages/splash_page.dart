@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
+import 'package:ion/app/hooks/use_auto_play.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:video_player/video_player.dart';
@@ -30,24 +31,23 @@ class SplashPage extends HookConsumerWidget {
       ),
     );
 
-    useEffect(
-      () {
-        splashVideoControllerState.valueOrNull?.play();
-        return () {
-          splashVideoControllerState.valueOrNull?.pause();
-        };
-      },
-      [splashVideoControllerState.valueOrNull],
-    );
+    useAutoPlay(splashVideoControllerState.valueOrNull);
 
     final splashVideoController = splashVideoControllerState.valueOrNull;
 
     // We watch the intro video controller here to initialize the intro video in advance.
     // This ensures a seamless transition to the IntroPage without flickering or delays.
-    ref.watch(
+    final intoVideoControllerState = ref.watch(
       videoControllerProvider(
         VideoControllerParams(sourcePath: Assets.videos.intro, looping: true),
       ),
+    );
+    useEffect(
+      () {
+        intoVideoControllerState.valueOrNull?.play();
+        return null;
+      },
+      [intoVideoControllerState],
     );
 
     useEffect(

@@ -18,6 +18,7 @@ import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/video/views/components/video_progress.dart';
 import 'package:ion/app/features/video/views/components/video_slider.dart';
 import 'package:ion/app/features/video/views/pages/video_page.dart';
+import 'package:ion/app/hooks/use_auto_play.dart';
 import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
 import 'package:ion/app/utils/url.dart';
 
@@ -131,16 +132,7 @@ class _ChatMediaItem extends HookConsumerWidget {
             ),
           )
           .valueOrNull;
-
-      useEffect(
-        () {
-          playerController?.play();
-          return () {
-            playerController?.pause();
-          };
-        },
-        [playerController],
-      );
+      useAutoPlay(playerController);
 
       return Stack(
         children: [
