@@ -5,6 +5,7 @@ import 'package:ion_identity_client/src/auth/services/extract_user_id/extract_us
 import 'package:ion_identity_client/src/users/available_ion_connect_relays/available_ion_connect_relays_service.dart';
 import 'package:ion_identity_client/src/users/get_content_creators/content_creators_service.dart';
 import 'package:ion_identity_client/src/users/ion_connect_indexers/get_user_connect_indexers_service.dart';
+import 'package:ion_identity_client/src/users/ion_connect_relays/ion_connect_relays_service.dart';
 import 'package:ion_identity_client/src/users/search_users_social_profile/search_users_social_profile_service.dart';
 import 'package:ion_identity_client/src/users/set_ion_connect_relays/set_ion_connect_relays_service.dart';
 import 'package:ion_identity_client/src/users/update_user_social_profile/update_user_social_profile_service.dart';
@@ -15,6 +16,7 @@ class IONIdentityUsers {
   const IONIdentityUsers(
     this.username,
     this._getUserDetailsService,
+    this._ionConnectRelaysService,
     this._ionConnectIndexersService,
     this._setIONConnectRelaysService,
     this._ionConnectContentCreatorsService,
@@ -27,6 +29,7 @@ class IONIdentityUsers {
 
   final String username;
   final UserDetailsService _getUserDetailsService;
+  final IONConnectRelaysService _ionConnectRelaysService;
   final IONConnectIndexersService _ionConnectIndexersService;
   final IONConnectContentCreatorsService _ionConnectContentCreatorsService;
   final NicknameAvailabilityService _nicknameAvailabilityService;
@@ -45,6 +48,11 @@ class IONIdentityUsers {
     required String userId,
   }) async =>
       _getUserDetailsService.details(userId: userId);
+
+  Future<List<UserRelaysInfo>> ionConnectRelays({
+    required List<String> masterPubkeys,
+  }) async =>
+      _ionConnectRelaysService.relays(masterPubkeys: masterPubkeys);
 
   Future<List<String>> ionConnectIndexers({
     required String userId,
