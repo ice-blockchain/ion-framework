@@ -38,9 +38,9 @@ dependencies:
   dio_smart_retry: ^7.0.1
   dlibphonenumber: ^1.1.26
   dotted_border: ^2.1.0
-  drift: ^2.24.0
+  drift: ^2.28.1
   drift_db_viewer: ^2.1.0
-  drift_flutter: ^0.2.4
+  drift_flutter: ^0.2.5
   email_validator: ^3.0.0
   es_compression: ^2.0.14
   extended_text: ^15.0.2
@@ -165,9 +165,9 @@ dependencies:
   window_manager: ^0.4.2
 
 dev_dependencies:
-  build_runner: ^2.4.13
-  custom_lint: ^0.6.10
-  drift_dev: ^2.22.0
+  build_runner: ^2.4.15
+  custom_lint: ^0.7.3
+  drift_dev: ^2.28.0
   flutter_gen: ^5.8.0
   flutter_gen_runner: ^5.8.0
   flutter_launcher_icons: ^0.14.2
@@ -243,6 +243,7 @@ flutter_gen:
 # And because qr_code_scanner 1.0.1 depends on js ^0.6.3 and no versions of qr_code_scanner match >1.0.1 <2.0.0, ion_identity_client from path is incompatible with qr_code_scanner ^1.0.1.
 # So, because ice depends on both qr_code_scanner ^1.0.1 and ion_identity_client from path, version solving failed.
 dependency_overrides:
+  analyzer_plugin: ^0.13.1
   js: ^0.7.1
 
 sentry:

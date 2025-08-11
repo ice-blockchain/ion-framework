@@ -19,7 +19,7 @@ class StoryList extends ConsumerWidget {
     super.key,
   });
 
-  final List<String> pubkeys;
+  final Set<String> pubkeys;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,7 +45,7 @@ class StoryList extends ConsumerWidget {
 
           final pubkey = filteredPubkeys[index - 1];
           return StoryListItem(
-            key: Key(pubkey),
+            key: Key('story_list_item_$pubkey'),
             pubkey: pubkey,
           );
         },

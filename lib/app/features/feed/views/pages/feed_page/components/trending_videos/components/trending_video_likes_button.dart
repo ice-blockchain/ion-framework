@@ -24,13 +24,6 @@ class TrendingVideoLikesButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final likesCount = ref.watch(likesCountProvider(eventReference));
     final isLiked = ref.watch(isLikedProvider(eventReference));
-    final boxShadow = [
-      BoxShadow(
-        offset: const Offset(0, 1),
-        blurRadius: 1,
-        color: Colors.black.withValues(alpha: 0.40),
-      ),
-    ];
     final appColors = context.theme.appColors;
     final color = isLiked ? appColors.attentionRed : appColors.onPrimaryAccent;
 
@@ -56,7 +49,13 @@ class TrendingVideoLikesButton extends ConsumerWidget {
               formatDoubleCompact(likesCount),
               style: context.theme.appTextThemes.caption3.copyWith(
                 color: color,
-                shadows: boxShadow,
+                shadows: [
+                  BoxShadow(
+                    offset: const Offset(0, 1),
+                    blurRadius: 1,
+                    color: Colors.black.withValues(alpha: 0.40),
+                  ),
+                ],
               ),
             ),
           ),

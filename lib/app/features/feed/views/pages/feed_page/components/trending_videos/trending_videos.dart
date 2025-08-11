@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/section_header/section_header.dart';
@@ -17,7 +18,7 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/components/video_icon.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
-class TrendingVideos extends ConsumerWidget {
+class TrendingVideos extends HookConsumerWidget {
   const TrendingVideos({super.key});
 
   @override
@@ -28,7 +29,14 @@ class TrendingVideos extends ConsumerWidget {
 
     final (:items, :hasMore) = ref.watch(feedTrendingVideosProvider);
 
-    if (items == null) {
+    final postItems = useMemoized(
+      () {
+        return items?.whereType<ModifiablePostEntity>().toList();
+      },
+      [items],
+    );
+
+    if (postItems == null) {
       return Column(
         children: [
           SizedBox(height: 10.0.s),
@@ -39,13 +47,13 @@ class TrendingVideos extends ConsumerWidget {
       );
     }
 
-    if (items.isEmpty) return const SizedBox.shrink();
+    if (postItems.isEmpty) return const SizedBox.shrink();
 
     return Column(
       children: [
         SectionHeader(
           onPress: () {
-            final eventReference = items.whereType<ModifiablePostEntity>().first.toEventReference();
+            final eventReference = postItems.first.toEventReference();
             TrendingVideosRoute(
               eventReference: eventReference.encode(),
             ).push<void>(context);
@@ -58,7 +66,7 @@ class TrendingVideos extends ConsumerWidget {
         LoadMoreBuilder(
           slivers: [
             TrendingVideosList(
-              videos: items.whereType<ModifiablePostEntity>().toList(),
+              videos: postItems,
               listOverlay: listOverlay,
             ),
           ],

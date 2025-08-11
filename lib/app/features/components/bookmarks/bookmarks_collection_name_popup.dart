@@ -58,7 +58,7 @@ class BookmarksCollectionNamePopup extends HookConsumerWidget {
       alignment: Alignment.topCenter,
       children: [
         SingleChildScrollView(
-          padding: EdgeInsetsDirectional.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          padding: EdgeInsetsDirectional.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
           child: Form(
             key: formKey.value,
             child: Column(

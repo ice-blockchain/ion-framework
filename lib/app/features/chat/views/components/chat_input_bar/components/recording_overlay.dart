@@ -22,7 +22,7 @@ class RecordingOverlay extends ConsumerWidget {
     final voiceRecordingState = ref.watch(voiceRecordingActiveStateProvider);
 
     return PositionedDirectional(
-      bottom: MediaQuery.of(context).viewInsets.bottom + 8.0.s,
+      bottom: MediaQuery.viewInsetsOf(context).bottom + 8.0.s,
       end: 14.0.s,
       child: SafeArea(
         child: Container(
