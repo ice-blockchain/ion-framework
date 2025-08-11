@@ -18,21 +18,22 @@ Dio dio(Ref ref) {
     dio.interceptors.add(logger);
   }
 
+  const retryDelays = [
+    Duration(milliseconds: 200),
+    Duration(milliseconds: 400),
+    Duration(milliseconds: 600),
+    Duration(milliseconds: 800),
+    Duration(seconds: 1),
+    Duration(seconds: 2),
+    Duration(seconds: 3),
+    Duration(seconds: 4),
+    Duration(seconds: 5),
+  ];
   dio.interceptors.add(
     RetryInterceptor(
       dio: dio,
-      retries: 9,
-      retryDelays: const [
-        Duration(milliseconds: 200),
-        Duration(milliseconds: 400),
-        Duration(milliseconds: 600),
-        Duration(milliseconds: 800),
-        Duration(seconds: 1),
-        Duration(seconds: 2),
-        Duration(seconds: 3),
-        Duration(seconds: 4),
-        Duration(seconds: 5),
-      ],
+      retries: retryDelays.length,
+      retryDelays: retryDelays,
     ),
   );
 
