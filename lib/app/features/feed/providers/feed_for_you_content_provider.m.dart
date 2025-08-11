@@ -415,10 +415,11 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       Future.wait(requests).whenComplete(() {
         resultsController.close();
         if (missingEvents.isNotEmpty) {
-          final refs = missingEvents.map((event) => event.data.metadataEventReference).nonNulls.toList();
+          final refs =
+              missingEvents.map((event) => event.data.metadataEventReference).nonNulls.toList();
           ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
-            eventReferences: refs,
-          );
+                eventReferences: refs,
+              );
         }
       }),
     );
