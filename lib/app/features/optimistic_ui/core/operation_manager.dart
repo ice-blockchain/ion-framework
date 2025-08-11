@@ -116,14 +116,8 @@ class OptimisticOperationManager<T extends OptimisticModel> {
       );
 
       if (!enableLocal) {
-        final stateIndex =
-            _state.indexWhere((model) => model.optimisticId == backendState.optimisticId);
-        if (stateIndex == -1) {
-          _state.add(backendState);
-        } else {
-          _state[stateIndex] = backendState;
-        }
-
+        _state.removeWhere((model) => model.optimisticId == backendState.optimisticId);
+        _controller.add(List.unmodifiable(_state));
         return;
       }
 
@@ -138,6 +132,9 @@ class OptimisticOperationManager<T extends OptimisticModel> {
         final currentLocalState =
             stateIndex != -1 ? _state[stateIndex] : optimisticOperation.optimisticState;
         await perform(previous: currentLocalState, optimistic: backendState);
+      } else {
+        _state.removeWhere((model) => model.optimisticId == backendState.optimisticId);
+        _controller.add(List.unmodifiable(_state));
       }
     } catch (error, stackTrace) {
       Logger.warning(
