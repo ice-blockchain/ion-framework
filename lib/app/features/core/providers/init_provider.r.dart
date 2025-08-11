@@ -12,6 +12,7 @@ import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/core/providers/template_provider.r.dart';
 import 'package:ion/app/features/core/providers/window_manager_provider.r.dart';
 import 'package:ion/app/features/core/views/components/widget_error_builder.dart';
+import 'package:ion/app/features/feed/nft/providers/nft_collection_sync_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_bookmarks_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/feed_feature_initializer.dart';
 import 'package:ion/app/features/force_update/providers/force_update_provider.r.dart';
@@ -64,6 +65,7 @@ Future<void> initApp(Ref ref) async {
   // so we need to listen to it to keep it alive. The same with transactionsSubscription.
   ref
     ..listen(coinsSyncProvider, noop)
+    ..listen(nftCollectionSyncProvider, noop)
     ..listen(walletsInitializerNotifierProvider, noop)
     ..listen(userPublicWalletsSyncProvider, noop)
     ..listen(userRelaysSyncProvider, noop)
