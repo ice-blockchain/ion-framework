@@ -5,13 +5,11 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:dio_http2_adapter/dio_http2_adapter.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/dio_provider.r.dart';
-import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
+import 'package:ion/app/features/feed/providers/feed_config_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
@@ -114,9 +112,11 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     FileAlt? alt,
   }) async {
     final dio = ref.read(dioHttp2Provider);
+    final feedConfig = await ref.watch(feedConfigProvider.future);
 
     return LargeMediaUploadService(
       dio: dio,
+      maxConcurrentPartials: feedConfig.concurrentBigFileUploadChunks,
     ).upload(
       url: url,
       file: file,
