@@ -64,12 +64,17 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
       final additionalEvents = <EventMessage>[];
       final usernameChanged = currentUserMetadata?.data.name != data.name;
       final displayNameChanged = currentUserMetadata?.data.displayName != data.displayName;
-      if (currentUserMetadata != null && (usernameChanged || displayNameChanged)) {
+      final bioChanged = currentUserMetadata?.data.about != data.about;
+      final avatarChanged = currentUserMetadata?.data.picture != data.picture;
+      if (currentUserMetadata != null &&
+          (usernameChanged || displayNameChanged || avatarChanged || bioChanged)) {
         final updateUserSocialProfileResponse = await ref.read(
           updateUserSocialProfileProvider(
             data: UserSocialProfileData(
               username: usernameChanged ? data.name : null,
               displayName: displayNameChanged ? data.displayName : null,
+              bio: bioChanged ? data.about : null,
+              avatar: avatarChanged ? data.picture : null,
             ),
           ).future,
         );

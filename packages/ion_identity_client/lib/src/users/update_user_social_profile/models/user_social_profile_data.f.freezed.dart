@@ -23,6 +23,8 @@ UserSocialProfileData _$UserSocialProfileDataFromJson(
 mixin _$UserSocialProfileData {
   String? get username => throw _privateConstructorUsedError;
   String? get displayName => throw _privateConstructorUsedError;
+  String? get avatar => throw _privateConstructorUsedError;
+  String? get bio => throw _privateConstructorUsedError;
   String? get referral => throw _privateConstructorUsedError;
 
   /// Serializes this UserSocialProfileData to a JSON map.
@@ -41,7 +43,12 @@ abstract class $UserSocialProfileDataCopyWith<$Res> {
           $Res Function(UserSocialProfileData) then) =
       _$UserSocialProfileDataCopyWithImpl<$Res, UserSocialProfileData>;
   @useResult
-  $Res call({String? username, String? displayName, String? referral});
+  $Res call(
+      {String? username,
+      String? displayName,
+      String? avatar,
+      String? bio,
+      String? referral});
 }
 
 /// @nodoc
@@ -62,6 +69,8 @@ class _$UserSocialProfileDataCopyWithImpl<$Res,
   $Res call({
     Object? username = freezed,
     Object? displayName = freezed,
+    Object? avatar = freezed,
+    Object? bio = freezed,
     Object? referral = freezed,
   }) {
     return _then(_value.copyWith(
@@ -72,6 +81,14 @@ class _$UserSocialProfileDataCopyWithImpl<$Res,
       displayName: freezed == displayName
           ? _value.displayName
           : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      avatar: freezed == avatar
+          ? _value.avatar
+          : avatar // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bio: freezed == bio
+          ? _value.bio
+          : bio // ignore: cast_nullable_to_non_nullable
               as String?,
       referral: freezed == referral
           ? _value.referral
@@ -90,7 +107,12 @@ abstract class _$$UserSocialProfileDataImplCopyWith<$Res>
       __$$UserSocialProfileDataImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String? username, String? displayName, String? referral});
+  $Res call(
+      {String? username,
+      String? displayName,
+      String? avatar,
+      String? bio,
+      String? referral});
 }
 
 /// @nodoc
@@ -109,6 +131,8 @@ class __$$UserSocialProfileDataImplCopyWithImpl<$Res>
   $Res call({
     Object? username = freezed,
     Object? displayName = freezed,
+    Object? avatar = freezed,
+    Object? bio = freezed,
     Object? referral = freezed,
   }) {
     return _then(_$UserSocialProfileDataImpl(
@@ -119,6 +143,14 @@ class __$$UserSocialProfileDataImplCopyWithImpl<$Res>
       displayName: freezed == displayName
           ? _value.displayName
           : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      avatar: freezed == avatar
+          ? _value.avatar
+          : avatar // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bio: freezed == bio
+          ? _value.bio
+          : bio // ignore: cast_nullable_to_non_nullable
               as String?,
       referral: freezed == referral
           ? _value.referral
@@ -133,7 +165,7 @@ class __$$UserSocialProfileDataImplCopyWithImpl<$Res>
 @JsonSerializable(includeIfNull: false)
 class _$UserSocialProfileDataImpl implements _UserSocialProfileData {
   const _$UserSocialProfileDataImpl(
-      {this.username, this.displayName, this.referral});
+      {this.username, this.displayName, this.avatar, this.bio, this.referral});
 
   factory _$UserSocialProfileDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserSocialProfileDataImplFromJson(json);
@@ -143,11 +175,15 @@ class _$UserSocialProfileDataImpl implements _UserSocialProfileData {
   @override
   final String? displayName;
   @override
+  final String? avatar;
+  @override
+  final String? bio;
+  @override
   final String? referral;
 
   @override
   String toString() {
-    return 'UserSocialProfileData(username: $username, displayName: $displayName, referral: $referral)';
+    return 'UserSocialProfileData(username: $username, displayName: $displayName, avatar: $avatar, bio: $bio, referral: $referral)';
   }
 
   @override
@@ -159,13 +195,16 @@ class _$UserSocialProfileDataImpl implements _UserSocialProfileData {
                 other.username == username) &&
             (identical(other.displayName, displayName) ||
                 other.displayName == displayName) &&
+            (identical(other.avatar, avatar) || other.avatar == avatar) &&
+            (identical(other.bio, bio) || other.bio == bio) &&
             (identical(other.referral, referral) ||
                 other.referral == referral));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, username, displayName, referral);
+  int get hashCode =>
+      Object.hash(runtimeType, username, displayName, avatar, bio, referral);
 
   /// Create a copy of UserSocialProfileData
   /// with the given fields replaced by the non-null parameter values.
@@ -188,6 +227,8 @@ abstract class _UserSocialProfileData implements UserSocialProfileData {
   const factory _UserSocialProfileData(
       {final String? username,
       final String? displayName,
+      final String? avatar,
+      final String? bio,
       final String? referral}) = _$UserSocialProfileDataImpl;
 
   factory _UserSocialProfileData.fromJson(Map<String, dynamic> json) =
@@ -197,6 +238,10 @@ abstract class _UserSocialProfileData implements UserSocialProfileData {
   String? get username;
   @override
   String? get displayName;
+  @override
+  String? get avatar;
+  @override
+  String? get bio;
   @override
   String? get referral;
 
