@@ -88,13 +88,13 @@ Future<bool> isUserDeleted(Ref ref, String pubkey) async {
   );
 
   final userMetadata =
-      await ref.read(userMetadataProvider(pubkey, expirationDuration: expirationDuration).future);
+      await ref.watch(userMetadataProvider(pubkey, expirationDuration: expirationDuration).future);
 
   if (userMetadata == null) {
     // If user metadata is null, information can be not available yet on read
     // relays, so we check write relays
     final userMetadataFromWriteRelay = await ref
-        .read(userMetadataProvider(pubkey, actionType: ActionType.write, cache: false).future);
+        .watch(userMetadataProvider(pubkey, actionType: ActionType.write, cache: false).future);
 
     return userMetadataFromWriteRelay == null;
   } else {
