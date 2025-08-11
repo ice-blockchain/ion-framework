@@ -58,7 +58,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     final isLargeFile = fileBytes.length >= _largeFileThreshold;
 
     // replace files with xfiles in the url for large files
-    final uploadUrl = isLargeFile ? url.replaceFirst('files', 'xfiles/') : url;
+    final uploadUrl = isLargeFile ? Uri.parse(url).replace(path: '/xfiles/').toString() : url;
 
     final authToken = await generateAuthorizationToken(
       ref: ref,
