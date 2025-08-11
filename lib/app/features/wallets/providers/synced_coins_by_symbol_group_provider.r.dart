@@ -38,9 +38,8 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
     await ref.watch(authProvider.selectAsync((state) => state.isAuthenticated));
     await ref.watch(currentWalletViewIdProvider.future);
 
-    // Clear debounce times when provider resets, but preserve active requests
-    // to prevent race conditions with in-flight HTTP requests
     _lastRequestTimes.clear();
+    _activeRequests.clear();
 
     return {};
   }
