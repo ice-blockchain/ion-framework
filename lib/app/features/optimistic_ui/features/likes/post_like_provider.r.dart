@@ -113,6 +113,7 @@ class ToggleLikeNotifier extends _$ToggleLikeNotifier {
         likedByMe: ref.read(isLikedProvider(eventReference)),
       );
 
+
       await service.dispatch(ToggleLikeIntent(), current);
 
       if (!current.likedByMe) {
