@@ -125,9 +125,18 @@ OptimisticService<PostRepost> postRepostService(Ref ref) {
 
 @riverpod
 Stream<PostRepost?> postRepostWatch(Ref ref, String id) {
+  keepAliveWhenAuthenticated(ref);
   final service = ref.watch(postRepostServiceProvider);
+  final manager = ref.watch(postRepostManagerProvider);
+
+  var last = manager.snapshot.firstWhereOrNull((e) => e.optimisticId == id);
+
   return service.watch(id).map((postRepost) {
-    return postRepost;
+    if (postRepost != null) {
+      last = postRepost;
+      return postRepost;
+    }
+    return last;
   });
 }
 
