@@ -113,18 +113,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     required String authToken,
     FileAlt? alt,
   }) async {
-    final dio = Dio()
-      ..options.baseUrl = url
-      ..httpClientAdapter = Http2Adapter(
-        ConnectionManager(),
-      );
-
-    final isLogApp = ref.read(featureFlagsProvider.notifier).get(LoggerFeatureFlag.logApp);
-    if (isLogApp) {
-      dio.interceptors.add(
-        LogInterceptor(),
-      );
-    }
+    final dio = ref.read(dioHttp2Provider);
 
     return LargeMediaUploadService(
       dio: dio,
