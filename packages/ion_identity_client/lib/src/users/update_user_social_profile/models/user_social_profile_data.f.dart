@@ -11,6 +11,8 @@ class UserSocialProfileData with _$UserSocialProfileData {
   const factory UserSocialProfileData({
     String? username,
     String? displayName,
+    String? avatar,
+    String? bio,
     String? referral,
   }) = _UserSocialProfileData;
 
