@@ -652,6 +652,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.9.0"
+  dio_http2_adapter:
+    dependency: "direct main"
+    description:
+      path: "plugins/http2_adapter"
+      ref: HEAD
+      resolved-ref: c2b60fb59e00c666699c0b91f67dbadece31a25f
+      url: "https://github.com/ice-blockchain/dio.git"
+    source: git
+    version: "2.6.1"
   dio_smart_retry:
     dependency: "direct main"
     description:
@@ -1548,6 +1557,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
+  http2:
+    dependency: transitive
+    description:
+      name: http2
+      sha256: "382d3aefc5bd6dc68c6b892d7664f29b5beb3251611ae946a98d35158a82bbfa"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.1"
   http_multi_server:
     dependency: transitive
     description:
