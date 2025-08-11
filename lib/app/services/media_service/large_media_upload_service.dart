@@ -296,10 +296,11 @@ class LargeMediaUploadService {
     FileAlt? alt,
     CancelToken? cancelToken,
   }) async {
+    final mimeType = file.mimeType;
     final metadata = <String>[
       'fileName $fileNameB64',
       'caption $captionB64', // legacy param preserved
-      'contentType ${base64Encode(utf8.encode(file.mimeType!))}',
+      if (mimeType != null) 'contentType ${base64Encode(utf8.encode(mimeType))}',
       if (alt != null) 'alt ${base64Encode(utf8.encode(alt.toShortString()))}',
     ];
 
