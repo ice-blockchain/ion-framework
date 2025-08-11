@@ -20,7 +20,7 @@ class AllChainsItem extends ConsumerWidget {
         final isSelected = selectedNetworkIds.isEmpty;
 
         return ListItem(
-          title: Text(context.i18n.all_chains_item),
+          title: Text(context.i18n.all_networks_item),
           backgroundColor: context.theme.appColors.tertiaryBackground,
           leading: Assets.svg.walletallnetwork.icon(size: 40.0.s),
           trailing: isSelected
