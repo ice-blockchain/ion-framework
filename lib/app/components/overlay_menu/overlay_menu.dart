@@ -58,13 +58,13 @@ class OverlayMenu extends HookWidget {
       overlayChildBuilder: (_) {
         final renderBox = context.findRenderObject()! as RenderBox;
 
-        final dir = Directionality.of(context);
         final globalOffset = renderBox.localToGlobal(Offset.zero);
         final screenSize = MediaQuery.sizeOf(context);
         final shouldAlignStart = (globalOffset.dx + menuWidth.value) < screenSize.width;
         final shouldAlignBelow = (globalOffset.dy + menuHeight.value) < screenSize.height;
+
         final offset = Offset(
-          shouldAlignStart ? 0 : renderBox.size.width,
+          shouldAlignStart ? 6.0.s : renderBox.size.width - 6.0.s,
           shouldAlignBelow ? renderBox.size.height + 6.0.s : -6.0.s,
         );
         final anchorAlignment = (shouldAlignBelow
@@ -72,7 +72,7 @@ class OverlayMenu extends HookWidget {
                 : (shouldAlignStart
                     ? AlignmentDirectional.bottomStart
                     : AlignmentDirectional.bottomEnd))
-            .resolve(dir);
+            .resolve(TextDirection.ltr);
 
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
