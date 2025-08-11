@@ -5,7 +5,6 @@ import 'dart:async';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message_service.r.dart';
-import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
@@ -100,13 +99,13 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
           senderAddress: senderWallet.address,
           receiverAddress: form.receiverAddress,
         );
-      } on SendEventException catch (e, stacktrace) {
+      } on Exception catch (e, stacktrace) {
         Logger.error('Failed to send event $e', stackTrace: stacktrace);
       }
 
       unawaited(
         ref.read(syncedCoinsBySymbolGroupNotifierProvider.notifier).refresh(
-          [coinAssetData.coinsGroup.symbolGroup],
+          symbolGroups: [coinAssetData.coinsGroup.symbolGroup],
         ),
       );
 
