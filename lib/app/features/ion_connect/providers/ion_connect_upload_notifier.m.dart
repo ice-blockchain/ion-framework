@@ -70,20 +70,15 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
 
     UploadResponse response;
     try {
-      response = isLargeFile
-          ? await _uploadLargeMultipart(
-              url: uploadUrl,
-              file: file,
-              authToken: authToken,
-              alt: alt,
-            )
-          : await _uploadSimpleMultipart(
-              url: url,
-              file: file,
-              fileBytes: fileBytes,
-              authToken: authToken,
-              alt: alt,
-            );
+      final uploader = isLargeFile ? _uploadLargeMultipart : _uploadSimpleMultipart;
+
+      response = await uploader(
+        url: uploadUrl,
+        file: file,
+        fileBytes: fileBytes,
+        authToken: authToken,
+        alt: alt,
+      );
     } catch (error, stackTrace) {
       Logger.error(
         error,
@@ -114,6 +109,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
   Future<UploadResponse> _uploadLargeMultipart({
     required String url,
     required MediaFile file,
+    required Uint8List fileBytes,
     required String authToken,
     FileAlt? alt,
   }) async {
@@ -137,6 +133,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
       file: file,
       authToken: authToken,
       alt: alt,
+      fileBytes: fileBytes,
     );
   }
 

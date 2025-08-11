@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -45,12 +46,13 @@ class LargeMediaUploadService {
     required String url,
     required MediaFile file,
     required String authToken,
+    required Uint8List fileBytes,
     FileAlt? alt,
     String? caption,
     CancelToken? cancelToken,
   }) async {
     final filePath = file.path;
-    final fileLen = await File(filePath).length();
+    final fileLen = fileBytes.length;
     final totalParts = (fileLen / partialSize).ceil();
 
     final fileName = file.name ?? file.basename;
