@@ -82,7 +82,7 @@ Future<UserMetadataEntity?> currentUserMetadata(Ref ref) async {
 
 @riverpod
 Future<bool> isUserDeleted(Ref ref, String pubkey) async {
-  final env = ref.read(envProvider.notifier);
+  final env = ref.watch(envProvider.notifier);
   final expirationDuration = Duration(
     minutes: env.get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES),
   );
