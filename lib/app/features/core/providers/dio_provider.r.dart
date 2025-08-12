@@ -8,6 +8,18 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'dio_provider.r.g.dart';
 
+const List<Duration> _defaultRetryDelays = <Duration>[
+  Duration(milliseconds: 200),
+  Duration(milliseconds: 400),
+  Duration(milliseconds: 600),
+  Duration(milliseconds: 800),
+  Duration(seconds: 1),
+  Duration(seconds: 2),
+  Duration(seconds: 3),
+  Duration(seconds: 4),
+  Duration(seconds: 5),
+];
+
 @riverpod
 Dio dio(Ref ref) {
   final dio = Dio();
@@ -18,24 +30,19 @@ Dio dio(Ref ref) {
     dio.interceptors.add(logger);
   }
 
-  const retryDelays = [
-    Duration(milliseconds: 200),
-    Duration(milliseconds: 400),
-    Duration(milliseconds: 600),
-    Duration(milliseconds: 800),
-    Duration(seconds: 1),
-    Duration(seconds: 2),
-    Duration(seconds: 3),
-    Duration(seconds: 4),
-    Duration(seconds: 5),
-  ];
-  dio.interceptors.add(
-    RetryInterceptor(
-      dio: dio,
-      retries: retryDelays.length,
-      retryDelays: retryDelays,
-    ),
-  );
+  final retry = createDefaultRetryInterceptor(dio);
+  dio.interceptors.add(retry);
 
   return dio;
+}
+
+RetryInterceptor createDefaultRetryInterceptor(
+  Dio dio, {
+  List<Duration> retryDelays = _defaultRetryDelays,
+}) {
+  return RetryInterceptor(
+    dio: dio,
+    retries: _defaultRetryDelays.length,
+    retryDelays: _defaultRetryDelays,
+  );
 }

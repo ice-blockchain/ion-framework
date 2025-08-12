@@ -78,6 +78,8 @@ class NftCollectionSyncController {
     } catch (e, st) {
       if (e is DioException && CancelToken.isCancel(e)) {
         Logger.log('Sync cancelled');
+      } else if (e is DioException && e.response?.statusCode == 404) {
+        Logger.log('NFT collection not available yet; will retry');
       } else {
         Logger.log('Failed to sync NFT collection: $e', error: e, stackTrace: st);
       }

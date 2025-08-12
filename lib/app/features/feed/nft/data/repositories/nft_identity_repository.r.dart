@@ -2,9 +2,9 @@
 
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/core/providers/dio_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/nft/model/nft_collection_data.f.dart';
+import 'package:ion/app/features/feed/nft/providers/nft_identity_dio_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nft_identity_repository.r.g.dart';
@@ -18,10 +18,9 @@ NftIdentityRepository nftIdentityRepository(Ref ref) {
   final env = ref.watch(envProvider.notifier);
   final baseUrl = env.get<String>(EnvVariable.NFT_IDENTITY_BASE_URL);
 
-  return NftIdentityRepository(
-    baseUrl,
-    ref.watch(dioProvider),
-  );
+  final dio = ref.watch(nftIdentityDioProvider);
+
+  return NftIdentityRepository(baseUrl, dio);
 }
 
 class NftIdentityRepository {
