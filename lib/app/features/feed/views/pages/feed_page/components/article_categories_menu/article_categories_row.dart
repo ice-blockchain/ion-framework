@@ -2,9 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/icons/network_icon_widget.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/feed_interests.f.dart';
-import 'package:ion/app/features/wallets/views/components/network_icon_widget.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -85,6 +86,7 @@ class _CategoryButton extends StatelessWidget {
       leadingIcon: NetworkIconWidget(
         imageUrl: category.iconUrl ?? '',
         color: isSelected ? colors.primaryAccent : colors.tertiaryText,
+        type: WalletItemIconType.medium(),
       ),
       label: Text(
         category.display,

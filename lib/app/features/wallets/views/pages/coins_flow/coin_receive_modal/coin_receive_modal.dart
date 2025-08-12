@@ -4,13 +4,14 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/icons/network_icon_widget.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/hooks/use_check_wallet_address_available.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
-import 'package:ion/app/features/wallets/views/components/network_icon_widget.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_receive_modal/components/coin_address_tile/coin_address_tile.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/receive_coins_form_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
@@ -102,7 +103,7 @@ class CoinReceiveModal extends HookConsumerWidget {
                 subtitle: Text(network.displayName),
                 switchTitleStyles: true,
                 leading: NetworkIconWidget(
-                  size: 36.0.s,
+                  type: WalletItemIconType.big(),
                   imageUrl: network.image,
                 ),
                 trailing: Text(

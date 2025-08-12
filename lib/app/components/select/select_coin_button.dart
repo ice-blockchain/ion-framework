@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:ion/app/components/coins/coin_icon.dart';
+import 'package:ion/app/components/icons/coin_icon.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/select/select_container.dart';
@@ -94,7 +95,10 @@ class _HasCoinSelected extends StatelessWidget {
           style: textTheme.caption3,
         ),
         backgroundColor: Colors.transparent,
-        leading: CoinIconWidget.big(selectedCoin.coin.iconUrl),
+        leading: CoinIconWidget(
+          imageUrl: selectedCoin.coin.iconUrl,
+          type: WalletItemIconType.big(),
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

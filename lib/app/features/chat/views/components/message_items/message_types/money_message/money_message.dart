@@ -3,7 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/coins/coin_icon.dart';
+import 'package:ion/app/components/icons/coin_icon.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/extensions/object.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -244,7 +245,10 @@ class _MoneyMessageContent extends HookConsumerWidget {
               SizedBox(height: 10.0.s),
               Row(
                 children: [
-                  CoinIconWidget.big(coinGroup?.iconUrl ?? coin?.iconUrl ?? ''),
+                  CoinIconWidget(
+                    imageUrl: coinGroup?.iconUrl ?? coin?.iconUrl ?? '',
+                    type: WalletItemIconType.big(),
+                  ),
                   SizedBox(width: 8.0.s),
                   _AmountDisplay(
                     amount: amount,
