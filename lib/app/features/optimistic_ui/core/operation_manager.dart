@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_model.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_operation.f.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -27,16 +26,13 @@ class OptimisticOperationManager<T extends OptimisticModel> {
     required this.onError,
     required this.enableLocal,
     this.maxRetries = 3,
-    Duration? retryBaseDelay,
   })  : _state = [],
-        _pending = Queue<OptimisticOperation<T>>(),
-        _retryBaseDelay = retryBaseDelay ?? const Duration(milliseconds: 100);
+        _pending = Queue<OptimisticOperation<T>>();
 
   final SyncCallback<T> syncCallback;
   final ErrorCallback onError;
   final int maxRetries;
   final bool enableLocal;
-  final Duration _retryBaseDelay;
 
   final _controller = StreamController<List<T>>.broadcast();
   Stream<List<T>> get stream => _controller.stream;
@@ -47,24 +43,12 @@ class OptimisticOperationManager<T extends OptimisticModel> {
   final Queue<OptimisticOperation<T>> _pending;
   bool _busy = false;
 
-  List<T>? _lastEmitted;
-  final _listEquality = const ListEquality<Object>();
-
-  void _emitIfChanged() {
-    if (_lastEmitted != null && _listEquality.equals(_lastEmitted, _state)) {
-      return;
-    }
-    final snapshot = List<T>.unmodifiable(_state);
-    _lastEmitted = snapshot;
-    _controller.add(snapshot);
-  }
-
   Future<void> initialize(FutureOr<List<T>> initial) async {
     final initialState = await initial;
     _state
       ..clear()
       ..addAll(initialState);
-    _emitIfChanged();
+    _controller.add(List.unmodifiable(_state));
   }
 
   /// Adds a new optimistic operation and triggers processing if idle.
@@ -107,7 +91,7 @@ class OptimisticOperationManager<T extends OptimisticModel> {
     } else {
       _state[stateIndex] = optimisticOperation.optimisticState;
     }
-    _emitIfChanged();
+    _controller.add(List.unmodifiable(_state));
   }
 
   /// Schedules and processes the next optimistic operation in the queue.
@@ -132,8 +116,16 @@ class OptimisticOperationManager<T extends OptimisticModel> {
       );
 
       if (!enableLocal) {
-        _state.removeWhere((model) => model.optimisticId == backendState.optimisticId);
-        _emitIfChanged();
+        final stateIndex =
+            _state.indexWhere((model) => model.optimisticId == backendState.optimisticId);
+        if (stateIndex == -1) {
+          _state.add(backendState);
+        } else {
+          _state[stateIndex] = backendState;
+        }
+
+        _controller.add(List.unmodifiable(_state));
+
         return;
       }
 
@@ -148,9 +140,6 @@ class OptimisticOperationManager<T extends OptimisticModel> {
         final currentLocalState =
             stateIndex != -1 ? _state[stateIndex] : optimisticOperation.optimisticState;
         await perform(previous: currentLocalState, optimistic: backendState);
-      } else {
-        _state.removeWhere((model) => model.optimisticId == backendState.optimisticId);
-        _emitIfChanged();
       }
     } catch (error, stackTrace) {
       Logger.warning(
@@ -158,10 +147,9 @@ class OptimisticOperationManager<T extends OptimisticModel> {
       );
       final shouldRetry = await onError('Sync failed (${optimisticOperation.id})', error);
       if (shouldRetry && optimisticOperation.retryCount < maxRetries) {
-        final factor = pow(2, optimisticOperation.retryCount).toInt();
-        final retryDelay = Duration(milliseconds: _retryBaseDelay.inMilliseconds * factor);
+        final retryDelay = Duration(seconds: pow(2, optimisticOperation.retryCount).toInt());
         Logger.info(
-          '[Optimistic UI - ${optimisticOperation.type}] Retrying operation: ${optimisticOperation.id} after ${retryDelay.inMilliseconds}ms (Attempt ${optimisticOperation.retryCount + 2})',
+          '[Optimistic UI - ${optimisticOperation.type}] Retrying operation: ${optimisticOperation.id} after ${retryDelay.inSeconds}s (Attempt ${optimisticOperation.retryCount + 2})',
         );
         await Future<void>.delayed(retryDelay);
         _pending.addFirst(
@@ -187,13 +175,15 @@ class OptimisticOperationManager<T extends OptimisticModel> {
 
   /// Rolls back the optimistic state to the previous state in case of failure.
   void _rollback(OptimisticOperation<T> optimisticOperation) {
+    final stateIndex = _state.indexWhere(
+      (model) => model.optimisticId == optimisticOperation.optimisticState.optimisticId,
+    );
     Logger.info(
       '[Optimistic UI - ${optimisticOperation.type}] Rolling back state for operation: ${optimisticOperation.id}, Optimistic ID: ${optimisticOperation.optimisticState.optimisticId}',
     );
-    // Remove the optimistic item on rollback to avoid duplicate initial state emission
-    _state.removeWhere(
-      (model) => model.optimisticId == optimisticOperation.optimisticState.optimisticId,
-    );
-    _emitIfChanged();
+    if (stateIndex != -1) {
+      _state[stateIndex] = optimisticOperation.previousState;
+      _controller.add(List.unmodifiable(_state));
+    }
   }
 }
