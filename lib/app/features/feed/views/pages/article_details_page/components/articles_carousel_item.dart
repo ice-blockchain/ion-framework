@@ -3,11 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/feed_network_image/feed_network_image.dart';
+import 'package:ion/app/features/feed/views/components/overlay_menu/own_entity_menu.dart';
 import 'package:ion/app/features/feed/views/components/overlay_menu/user_info_menu.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -32,6 +34,8 @@ class ArticlesCarouselItem extends ConsumerWidget {
           .select((state) => state.valueOrNull?.subcategories ?? {}),
     );
     final topicsNames = topics.map((key) => availableSubcategories[key]?.display).nonNulls.toList();
+    final isOwnedByCurrentUser =
+        ref.watch(isCurrentUserSelectorProvider(eventReference.masterPubkey));
 
     return GestureDetector(
       onTap: () => ArticleDetailsRoute(eventReference: eventReference.encode()).push<void>(context),
@@ -39,7 +43,9 @@ class ArticlesCarouselItem extends ConsumerWidget {
         children: [
           UserInfo(
             pubkey: article.masterPubkey,
-            trailing: UserInfoMenu(eventReference: eventReference),
+            trailing: isOwnedByCurrentUser
+                ? null
+                : UserInfoMenu(eventReference: eventReference),
           ),
           Flexible(
             child: Row(
