@@ -14,6 +14,7 @@ class FeedConfig with _$FeedConfig implements AppConfigWithVersion {
     required double notInterestedCategoryChance,
     required int concurrentRequests,
     required int concurrentMediaDownloadsLimit,
+    required int concurrentBigFileUploadChunks,
     @DurationMillisecondsConverter() required Duration followingReqMaxAge,
     @DurationMillisecondsConverter() required Duration followingCacheMaxAge,
     @DurationMillisecondsConverter() required Duration topMaxAge,

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:dio/dio.dart';
+import 'package:dio_http2_adapter/dio_http2_adapter.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -30,19 +31,38 @@ Dio dio(Ref ref) {
     dio.interceptors.add(logger);
   }
 
-  final retry = createDefaultRetryInterceptor(dio);
+  final retry = configureDioRetryInterceptor(dio);
   dio.interceptors.add(retry);
 
   return dio;
 }
 
-RetryInterceptor createDefaultRetryInterceptor(
+@riverpod
+Dio dioHttp2(Ref ref) {
+  final dio = Dio()
+    ..httpClientAdapter = Http2Adapter(
+      ConnectionManager(),
+    );
+
+  final logger = Logger.talkerDioLogger;
+
+  if (logger != null) {
+    dio.interceptors.add(logger);
+  }
+
+  final retry = configureDioRetryInterceptor(dio);
+  dio.interceptors.add(retry);
+
+  return dio;
+}
+
+RetryInterceptor configureDioRetryInterceptor(
   Dio dio, {
   List<Duration> retryDelays = _defaultRetryDelays,
 }) {
   return RetryInterceptor(
     dio: dio,
-    retries: _defaultRetryDelays.length,
-    retryDelays: _defaultRetryDelays,
+    retries: retryDelays.length,
+    retryDelays: retryDelays,
   );
 }

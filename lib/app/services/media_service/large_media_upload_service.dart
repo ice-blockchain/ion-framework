@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -20,8 +19,6 @@ class LargeMediaUploadService {
     required this.dio,
     this.partialSize = 1024 * 1024,
     this.maxConcurrentPartials = 5,
-    this.maxRetriesPerPartial = 3,
-    this.retryBaseDelayMs = 400,
   });
 
   final Dio dio;
@@ -31,12 +28,6 @@ class LargeMediaUploadService {
 
   /// How many partials to upload concurrently.
   final int maxConcurrentPartials;
-
-  /// Retries for a failing PATCH of a partial.
-  final int maxRetriesPerPartial;
-
-  /// Base delay for exponential backoff (ms).
-  final int retryBaseDelayMs;
 
   /// Parallel tus upload using concatenation.
   ///
@@ -67,7 +58,7 @@ class LargeMediaUploadService {
     for (var i = 0; i < totalParts; i++) {
       final index = i;
       final start = index * partialSize;
-      final endExclusive = math.min(start + partialSize, fileLen);
+      final endExclusive = (start + partialSize < fileLen) ? start + partialSize : fileLen;
       final partSize = endExclusive - start;
 
       futures.add(
@@ -163,7 +154,7 @@ class LargeMediaUploadService {
   }
 
   /// Sends (sub)range PATCHes until [bodyLength] bytes are acknowledged.
-  /// Handles 204 + Upload-Offset, 409 offset correction, retries with exponential backoff.
+  /// Handles 204 + Upload-Offset, 409 offset correction.
   Future<void> _patchRange({
     required String uploadUrl,
     required String filePath,
@@ -172,7 +163,6 @@ class LargeMediaUploadService {
     required String authToken,
     CancelToken? cancelToken,
   }) async {
-    var attempt = 0;
     var offset = await _probeOffset(
       uploadUrl: uploadUrl,
       authToken: authToken,
@@ -216,7 +206,6 @@ class LargeMediaUploadService {
           }
 
           offset = srvOffset;
-          attempt = 0;
           continue;
         }
 
@@ -235,20 +224,8 @@ class LargeMediaUploadService {
 
         throw FileUploadException('PATCH failed: $status', url: uploadUrl);
       } on DioException catch (error) {
-        if (++attempt > maxRetriesPerPartial) rethrow;
-        final backoff = _backoff(attempt);
-
-        Logger.error(
-          'PATCH error: ${error.message}; retry#$attempt in ${backoff.inMilliseconds}ms',
-        );
-
-        await Future<void>.delayed(backoff);
-
-        offset = await _probeOffset(
-          uploadUrl: uploadUrl,
-          authToken: authToken,
-          cancelToken: cancelToken,
-        );
+        Logger.error(error, message: 'PATCH error for $uploadUrl');
+        rethrow;
       }
     }
   }
@@ -270,15 +247,9 @@ class LargeMediaUploadService {
       final off = int.tryParse(offStr ?? '0') ?? 0;
       return off;
     } on DioException catch (error) {
-      Logger.log('HEAD probe failed (${error.message}), assuming offset=0');
+      Logger.log('HEAD probe failed for $uploadUrl (${error.message}), assuming offset=0');
       return 0;
     }
-  }
-
-  Duration _backoff(int attempt) {
-    final base = retryBaseDelayMs * math.pow(2, attempt - 1);
-    final jitter = math.Random().nextDouble() * 0.4 + 0.8;
-    return Duration(milliseconds: (base * jitter).toInt());
   }
 
   Future<UploadResponse> _finalizeConcatenation({
@@ -321,12 +292,6 @@ class LargeMediaUploadService {
       throw FileUploadException(uploadResponse.message, url: url);
     }
 
-    final tags = uploadResponse.nip94Event.tags;
-    for (final t in tags) {
-      if (t.isNotEmpty && t.first == 'url' && t.length > 1) {
-        break;
-      }
-    }
     return uploadResponse;
   }
 

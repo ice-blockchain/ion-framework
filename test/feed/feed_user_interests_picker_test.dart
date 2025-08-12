@@ -29,6 +29,7 @@ void main() {
         repostThrottleDelay: Duration(days: 1),
         concurrentRequests: 3,
         concurrentMediaDownloadsLimit: 3,
+        concurrentBigFileUploadChunks: 5,
         excludeUnclassifiedFromExplore: false,
         forYouMaxRetriesMultiplier: 5,
         followingMaxRetriesMultiplier: 5,
