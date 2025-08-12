@@ -191,7 +191,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
 
   Stream<EventMessage> requestEvents(
     RequestMessage requestMessage, {
-    ActionType? actionType,
+    ActionType? actionType = ActionType.read,
     ActionSource actionSource = const ActionSourceCurrentUser(),
     Stream<RelayMessage> Function(RequestMessage requestMessage, NostrRelay relay)?
         subscriptionBuilder,
@@ -212,7 +212,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
               )
             : await ref.read(relayPickerProvider.notifier).getActionSourceRelay(
                   actionSource,
-                  actionType: actionType ?? ActionType.read,
+                  actionType: actionType!,
                   dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
                 );
         triedRelay = relay;
