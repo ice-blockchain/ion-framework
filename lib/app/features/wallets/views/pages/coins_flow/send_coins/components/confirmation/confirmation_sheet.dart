@@ -134,7 +134,9 @@ class ConfirmationSheet extends ConsumerWidget {
                       title: Text(locale.wallet_asset),
                       value: coin.coinsGroup.abbreviation,
                       icon: CoinIconWidget(
-                          imageUrl: coin.coinsGroup.iconUrl, type: WalletItemIconType.small()),
+                        imageUrl: coin.coinsGroup.iconUrl,
+                        type: WalletItemIconType.small(),
+                      ),
                     ),
                     SizedBox(height: 16.0.s),
                   ],
