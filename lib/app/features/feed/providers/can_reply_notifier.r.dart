@@ -24,17 +24,19 @@ class CanReply extends _$CanReply {
   bool _skipCache = false;
 
   @override
-  Future<bool> build(EventReference eventReference) async {
+  Future<bool?> build(EventReference eventReference) async {
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
     if (currentPubkey == null) {
-      return true;
+      return null;
     }
 
+    final skipCache = _skipCache;
+    _skipCache = false;
     final entity = ref.watch(
-      rootPostEntityProvider(eventReference: eventReference, cache: !_skipCache),
+      rootPostEntityProvider(eventReference: eventReference, cache: !skipCache),
     );
     if (entity == null) {
-      return false;
+      return null;
     }
 
     if ((entity is ModifiablePostEntity && entity.isDeleted) ||
@@ -58,7 +60,7 @@ class CanReply extends _$CanReply {
       everyone: () async => true,
       followedAccounts: () async {
         final followers = await ref.watch(
-          followListProvider(authorPubkey, cache: !_skipCache).future,
+          followListProvider(authorPubkey, cache: !skipCache).future,
         );
         if (followers == null) {
           return false;
@@ -84,7 +86,7 @@ class CanReply extends _$CanReply {
     );
   }
 
-  void refreshIfNeeded(EventReference eventReference) {
+  void refreshIfNeeded() {
     final now = DateTime.now();
     if (now.difference(_lastFetchDate) > _maxCacheAge) {
       _lastFetchDate = now;
