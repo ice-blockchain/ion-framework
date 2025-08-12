@@ -24,7 +24,7 @@ Dio nftIdentityDio(Ref ref) {
   );
   dio.interceptors.add(logger);
 
-  final retry = createDefaultRetryInterceptor(dio);
+  final retry = configureDioRetryInterceptor(dio);
   dio.interceptors.add(retry);
 
   return dio;

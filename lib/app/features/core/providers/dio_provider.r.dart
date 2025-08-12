@@ -22,33 +22,47 @@ const List<Duration> _defaultRetryDelays = <Duration>[
 ];
 
 @riverpod
-Dio dio(Ref ref) => _configureDefaultDioInterceptors(Dio());
+Dio dio(Ref ref) {
+  final dio = Dio();
 
-@riverpod
-Dio dioHttp2(Ref ref) => _configureDefaultDioInterceptors(
-      Dio()
-        ..httpClientAdapter = Http2Adapter(
-          ConnectionManager(),
-        ),
-    );
-
-Dio _configureDefaultDioInterceptors(
-  Dio dio, {
-  List<Duration> retryDelays = _defaultRetryDelays,
-}) {
   final logger = Logger.talkerDioLogger;
 
   if (logger != null) {
     dio.interceptors.add(logger);
   }
 
-  dio.interceptors.add(
-    RetryInterceptor(
-      dio: dio,
-      retries: retryDelays.length,
-      retryDelays: retryDelays,
-    ),
-  );
+  final retry = configureDioRetryInterceptor(dio);
+  dio.interceptors.add(retry);
 
   return dio;
+}
+
+@riverpod
+Dio dioHttp2(Ref ref) {
+  final dio = Dio()
+    ..httpClientAdapter = Http2Adapter(
+      ConnectionManager(),
+    );
+
+  final logger = Logger.talkerDioLogger;
+
+  if (logger != null) {
+    dio.interceptors.add(logger);
+  }
+
+  final retry = configureDioRetryInterceptor(dio);
+  dio.interceptors.add(retry);
+
+  return dio;
+}
+
+RetryInterceptor configureDioRetryInterceptor(
+  Dio dio, {
+  List<Duration> retryDelays = _defaultRetryDelays,
+}) {
+  return RetryInterceptor(
+    dio: dio,
+    retries: retryDelays.length,
+    retryDelays: retryDelays,
+  );
 }
