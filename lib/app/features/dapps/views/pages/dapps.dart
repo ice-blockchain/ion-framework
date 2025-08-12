@@ -14,7 +14,6 @@ import 'package:ion/app/features/dapps/views/components/dapps_header/dapps_heade
 import 'package:ion/app/features/dapps/views/components/favourites/favourites.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
-import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
 
 class DAppsPage extends HookConsumerWidget {
   const DAppsPage({super.key});
@@ -27,13 +26,13 @@ class DAppsPage extends HookConsumerWidget {
     useScrollTopOnTabPress(context, scrollController: scrollController);
 
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(DAppsHeader.height),
+        child: const SafeArea(child: DAppsHeader()),
+      ),
       body: CustomScrollView(
         controller: scrollController,
         slivers: [
-          CollapsingAppBar(
-            height: DAppsHeader.height,
-            child: const DAppsHeader(),
-          ),
           SliverToBoxAdapter(
             child: Column(
               children: [
