@@ -65,10 +65,12 @@ class TransactionResultSheet extends ConsumerWidget {
                         amount: coin.amount,
                         currency: coin.coinsGroup.abbreviation,
                         usdAmount: coin.amountUSD,
-                        icon: CoinIconWidget(imageUrl: coin.coinsGroup.iconUrl, type: WalletItemIconType.medium()),
+                        icon: CoinIconWidget(
+                          imageUrl: coin.coinsGroup.iconUrl,
+                          type: WalletItemIconType.medium(),
+                        ),
                         transactionType: TransactionType.send,
                       ),
-                      // TODO: Recheck the nft part during implementation
                       nft: (nft) => Padding(
                         padding: EdgeInsets.symmetric(
                           horizontal: 52.0.s,

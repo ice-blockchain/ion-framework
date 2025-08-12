@@ -95,7 +95,10 @@ class _HasCoinSelected extends StatelessWidget {
           style: textTheme.caption3,
         ),
         backgroundColor: Colors.transparent,
-        leading: CoinIconWidget(imageUrl: selectedCoin.coin.iconUrl, type: WalletItemIconType.big()),
+        leading: CoinIconWidget(
+          imageUrl: selectedCoin.coin.iconUrl,
+          type: WalletItemIconType.big(),
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
