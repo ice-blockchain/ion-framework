@@ -36,14 +36,13 @@ class FeedMainModalPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // TODO: gonna uncomment it later, when Backend will be ready
-    // final hasNftCollectionState = ref.watch(hasIonContentNftCollectionProvider);
-    // final body = hasNftCollectionState.whenOrNull(
-    //       data: (hasNftCollection) =>
-    //           hasNftCollection ? const _CreateContentModal() : const _ContentCreationBlockedModal(),
-    //     ) ??
-    //     const _CreateContentLoadingModal();
-    const body = _CreateContentModal();
+    final hasNftCollectionState = ref.watch(hasIonContentNftCollectionProvider);
+
+    final body = hasNftCollectionState.whenOrNull(
+          data: (hasNftCollection) =>
+              hasNftCollection ? const _CreateContentModal() : const _ContentCreationBlockedModal(),
+        ) ??
+        const _CreateContentLoadingModal();
 
     return SheetContent(
       backgroundColor: context.theme.appColors.secondaryBackground,
@@ -91,7 +90,6 @@ class _CreateContentModal extends StatelessWidget {
   }
 }
 
-// ignore: unused_element
 class _ContentCreationBlockedModal extends HookConsumerWidget {
   const _ContentCreationBlockedModal();
 
@@ -156,7 +154,6 @@ class _ContentCreationBlockedModal extends HookConsumerWidget {
   }
 }
 
-// ignore: unused_element
 class _CreateContentLoadingModal extends StatelessWidget {
   const _CreateContentLoadingModal();
 
