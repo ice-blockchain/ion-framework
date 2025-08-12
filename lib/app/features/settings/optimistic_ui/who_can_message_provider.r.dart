@@ -18,7 +18,7 @@ part 'who_can_message_provider.r.g.dart';
 
 @riverpod
 Future<List<WhoCanMessagePrivacyOption>> loadInitialVisibility(Ref ref) async {
-  final userMetadata = ref.read(currentUserMetadataProvider).valueOrNull;
+  final userMetadata = await ref.read(currentUserMetadataProvider.future);
   final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
 
   if (currentUserMasterPubkey == null) {
@@ -58,7 +58,8 @@ OptimisticOperationManager<WhoCanMessagePrivacyOption> whoCanMessageManager(Ref 
 @riverpod
 OptimisticService<WhoCanMessagePrivacyOption> whoCanMessageService(Ref ref) {
   final manager = ref.watch(whoCanMessageManagerProvider);
-  final service = OptimisticService<WhoCanMessagePrivacyOption>(manager: manager);
+  final service = OptimisticService<WhoCanMessagePrivacyOption>(manager: manager)
+    ..initialize(loadInitialVisibility(ref));
 
   return service;
 }
@@ -70,7 +71,8 @@ Stream<WhoCanMessagePrivacyOption?> whoCanMessageWatch(Ref ref) {
   if (currentUserMasterPubkey == null) {
     throw UserMasterPubkeyNotFoundException();
   }
-  final service = ref.watch(whoCanMessageServiceProvider)..initialize(loadInitialVisibility(ref));
+
+  final service = ref.watch(whoCanMessageServiceProvider);
 
   return service.watch(currentUserMasterPubkey);
 }
@@ -92,8 +94,8 @@ class ToggleWhoCanMessageNotifier extends _$ToggleWhoCanMessageNotifier {
     }
 
     current ??= WhoCanMessagePrivacyOption(
-      masterPubkey: currentUserMasterPubkey,
       visibility: UserVisibilityPrivacyOption.followedPeople,
+      masterPubkey: currentUserMasterPubkey,
     );
 
     await service.dispatch(ToggleWhoCanMessageIntent(), current);

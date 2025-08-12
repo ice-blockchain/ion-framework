@@ -9,7 +9,7 @@ import 'package:ion/app/components/separated/separated_column.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/settings/components/selectable_options_group.dart';
 import 'package:ion/app/features/settings/model/privacy_options.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/settings/optimistic_ui/who_can_message_provider.r.dart';
 import 'package:ion/app/features/user/providers/update_user_metadata_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -30,8 +30,8 @@ class PrivacySettingsModal extends ConsumerWidget {
     }
 
     final walletPrivacy = WalletAddressPrivacyOption.fromWalletsMap(metadata.data.wallets);
-    final messagingPrivacy =
-        UserVisibilityPrivacyOption.fromWhoCanSetting(metadata.data.whoCanMessageYou);
+    final messagingPrivacy = ref.watch(whoCanMessageWatchProvider).valueOrNull?.visibility ??
+        UserVisibilityPrivacyOption.followedPeople;
 
     return SheetContent(
       body: SingleChildScrollView(
@@ -61,11 +61,11 @@ class PrivacySettingsModal extends ConsumerWidget {
                           .publishWallets(option),
                     ),
                     SelectableOptionsGroup(
-                      title: context.i18n.privacy_group_who_can_message_you_title,
                       selected: [messagingPrivacy],
                       options: UserVisibilityPrivacyOption.values,
+                      title: context.i18n.privacy_group_who_can_message_you_title,
                       onSelected: (option) =>
-                          _onMessagingPrivacyOptionSelected(ref, metadata, option),
+                          ref.read(toggleWhoCanMessageNotifierProvider.notifier).toggle(),
                     ),
                   ],
                 ),
@@ -75,14 +75,5 @@ class PrivacySettingsModal extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  void _onMessagingPrivacyOptionSelected(
-    WidgetRef ref,
-    UserMetadataEntity metadata,
-    UserVisibilityPrivacyOption option,
-  ) {
-    final updatedMetadata = metadata.data.copyWith(whoCanMessageYou: option.toWhoCanSetting());
-    ref.read(updateUserMetadataNotifierProvider.notifier).publish(updatedMetadata);
   }
 }

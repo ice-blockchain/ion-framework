@@ -6,9 +6,7 @@ import 'package:ion/app/features/settings/optimistic_ui/model/who_can_message_pr
 
 /// Sync strategy for who can message visibility option using IonConnectNotifier.
 class WhoCanMessageStrategy implements SyncStrategy<WhoCanMessagePrivacyOption> {
-  WhoCanMessageStrategy({
-    required this.updateVisibility,
-  });
+  WhoCanMessageStrategy({required this.updateVisibility});
 
   final Future<void> Function(UserVisibilityPrivacyOption) updateVisibility;
 
