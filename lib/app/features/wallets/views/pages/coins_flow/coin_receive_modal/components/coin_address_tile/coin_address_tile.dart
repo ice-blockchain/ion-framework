@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/coins/coin_icon.dart';
+import 'package:ion/app/components/icons/coin_icon.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/tooltip/copied_tooltip.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
@@ -53,7 +54,7 @@ class CoinAddressTile extends HookConsumerWidget {
                 Row(
                   spacing: 6.0.s,
                   children: [
-                    CoinIconWidget.small(coinsGroup.iconUrl),
+                    CoinIconWidget(imageUrl: coinsGroup.iconUrl, type: WalletItemIconType.small()),
                     Flexible(
                       child: Text(
                         context.i18n.wallet_coin_address(coinsGroup.abbreviation),

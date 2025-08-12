@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
-import 'package:ion/app/components/coins/coin_icon.dart';
+import 'package:ion/app/components/icons/coin_icon.dart';
+import 'package:ion/app/components/icons/network_icon_widget.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
@@ -24,7 +26,6 @@ import 'package:ion/app/features/wallets/providers/transaction_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/arrival_time/list_item_arrival_time.dart';
 import 'package:ion/app/features/wallets/views/components/network_fee/list_item_network_fee.dart';
-import 'package:ion/app/features/wallets/views/components/network_icon_widget.dart';
 import 'package:ion/app/features/wallets/views/components/transaction_participant.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/confirmation/transaction_amount_summary.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
@@ -97,7 +98,7 @@ class ConfirmationSheet extends ConsumerWidget {
                       amount: coin.amount,
                       currency: coin.coinsGroup.abbreviation,
                       usdAmount: coin.amountUSD,
-                      icon: CoinIconWidget.big(coin.coinsGroup.iconUrl),
+                      icon: CoinIconWidget(imageUrl: coin.coinsGroup.iconUrl, type: WalletItemIconType.big()),
                       transactionType: TransactionType.send,
                     ),
                     SizedBox(height: 16.0.s),
@@ -129,7 +130,7 @@ class ConfirmationSheet extends ConsumerWidget {
                     ListItem.textWithIcon(
                       title: Text(locale.wallet_asset),
                       value: coin.coinsGroup.abbreviation,
-                      icon: CoinIconWidget.small(coin.coinsGroup.iconUrl),
+                      icon: CoinIconWidget(imageUrl: coin.coinsGroup.iconUrl, type: WalletItemIconType.small()),
                     ),
                     SizedBox(height: 16.0.s),
                   ],
@@ -138,7 +139,7 @@ class ConfirmationSheet extends ConsumerWidget {
                       title: Text(locale.wallet_network),
                       value: network.displayName,
                       icon: NetworkIconWidget(
-                        size: 16.0.s,
+                        type: WalletItemIconType.small(),
                         imageUrl: network.image,
                       ),
                     ),

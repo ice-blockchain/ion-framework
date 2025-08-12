@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/components/icons/network_icon_widget.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/image/ion_network_image.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/features/wallets/model/nft_data.f.dart';
-import 'package:ion/app/features/wallets/views/components/network_icon_widget.dart';
 
 class NftItem extends StatelessWidget {
   const NftItem({
@@ -39,7 +40,7 @@ class NftItem extends StatelessWidget {
               children: [
                 NetworkIconWidget(
                   imageUrl: nftData.network.image,
-                  size: 12.0.s,
+                  type: WalletItemIconType.tiny(),
                 ),
                 Padding(
                   padding: EdgeInsetsDirectional.only(start: 4.0.s, end: 5.0.s),

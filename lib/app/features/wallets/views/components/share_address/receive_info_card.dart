@@ -3,12 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/copy/copy_builder.dart';
+import 'package:ion/app/components/icons/network_icon_widget.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
-import 'package:ion/app/features/wallets/views/components/network_icon_widget.dart';
 import 'package:ion/app/utils/formatters.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -54,7 +55,7 @@ class ReceiveInfoCard extends StatelessWidget {
                   Text('(${network.displayName})'),
                 ] else ...[
                   NetworkIconWidget(
-                    size: 46.0.s,
+                    type: WalletItemIconType.huge(),
                     imageUrl: network.image,
                   ),
                   SizedBox(height: 10.0.s),

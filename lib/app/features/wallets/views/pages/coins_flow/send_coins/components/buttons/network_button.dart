@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/components/icons/network_icon_widget.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
-import 'package:ion/app/features/wallets/views/components/network_icon_widget.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class NetworkButton extends StatelessWidget {
@@ -47,7 +48,7 @@ class NetworkButton extends StatelessWidget {
             Row(
               children: [
                 NetworkIconWidget(
-                  size: 16.0.s,
+                  type: WalletItemIconType.small(),
                   imageUrl: network.image,
                 ),
                 SizedBox(width: 10.0.s),

@@ -2,7 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/coins/coin_icon.dart';
+import 'package:ion/app/components/icons/coin_icon.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/skeleton/container_skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -34,7 +35,10 @@ class CoinsGroupItem extends HookConsumerWidget {
       title: Text(coinsGroup.name),
       subtitle: Text(coinsGroup.abbreviation),
       backgroundColor: context.theme.appColors.tertiaryBackground,
-      leading: CoinIconWidget.big(coinsGroup.iconUrl),
+      leading: CoinIconWidget(
+        imageUrl: coinsGroup.iconUrl,
+        type: WalletItemIconType.big(),
+      ),
       onTap: onTap,
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,

@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
-import 'package:ion/app/components/coins/coin_icon.dart';
+import 'package:ion/app/components/icons/coin_icon.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -64,7 +65,7 @@ class TransactionResultSheet extends ConsumerWidget {
                         amount: coin.amount,
                         currency: coin.coinsGroup.abbreviation,
                         usdAmount: coin.amountUSD,
-                        icon: CoinIconWidget.medium(coin.coinsGroup.iconUrl),
+                        icon: CoinIconWidget(imageUrl: coin.coinsGroup.iconUrl, type: WalletItemIconType.medium()),
                         transactionType: TransactionType.send,
                       ),
                       // TODO: Recheck the nft part during implementation

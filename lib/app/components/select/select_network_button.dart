@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/components/icons/network_icon_widget.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/select/select_container.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
-import 'package:ion/app/features/wallets/views/components/network_icon_widget.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class SelectNetworkButton extends StatelessWidget {
@@ -88,7 +89,7 @@ class _HasNetworkSelected extends StatelessWidget {
           Row(
             children: [
               NetworkIconWidget(
-                size: 16.0.s,
+                type: WalletItemIconType.small(),
                 imageUrl: selectedNetwork.image,
               ),
               SizedBox(width: 10.0.s),

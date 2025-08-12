@@ -3,11 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
+import 'package:ion/app/components/icons/network_icon_widget.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
-import 'package:ion/app/features/wallets/views/components/network_icon_widget.dart';
 
 class NftNetwork extends ConsumerWidget {
   const NftNetwork({
@@ -24,7 +25,7 @@ class NftNetwork extends ConsumerWidget {
         Avatar(
           size: 12.0.s,
           imageWidget: NetworkIconWidget(
-            size: 12.0.s,
+            type: WalletItemIconType.tiny(),
             imageUrl: network.image,
           ),
         ),

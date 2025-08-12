@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/icons/network_icon_widget.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
@@ -15,7 +17,6 @@ import 'package:ion/app/features/wallets/providers/send_nft_notifier_provider.r.
 import 'package:ion/app/features/wallets/providers/transaction_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/arrival_time/list_item_arrival_time.dart';
 import 'package:ion/app/features/wallets/views/components/network_fee/list_item_network_fee.dart';
-import 'package:ion/app/features/wallets/views/components/network_icon_widget.dart';
 import 'package:ion/app/features/wallets/views/components/nft_item.dart';
 import 'package:ion/app/features/wallets/views/components/transaction_participant.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
@@ -87,7 +88,7 @@ class SendNftConfirmPage extends ConsumerWidget {
                     title: Text(context.i18n.send_nft_confirm_network),
                     value: nft.network.displayName,
                     icon: NetworkIconWidget(
-                      size: 16.0.s,
+                      type: WalletItemIconType.small(),
                       imageUrl: nft.network.image,
                     ),
                   ),

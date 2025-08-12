@@ -2,7 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/coins/coin_icon.dart';
+import 'package:ion/app/components/icons/coin_icon.dart';
+import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
@@ -29,7 +30,7 @@ class ManageCoinItemWidget extends ConsumerWidget {
       title: Text(coinsGroup.name),
       subtitle: Text(coinsGroup.abbreviation),
       backgroundColor: context.theme.appColors.tertiaryBackground,
-      leading: CoinIconWidget.big(coinsGroup.iconUrl),
+      leading: CoinIconWidget(imageUrl: coinsGroup.iconUrl, type: WalletItemIconType.big()),
       trailing: isSelected
           ? Assets.svg.iconBlockCheckboxOn.icon()
           : Assets.svg.iconBlockCheckboxOff.icon(),
