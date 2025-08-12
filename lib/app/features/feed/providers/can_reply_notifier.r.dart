@@ -16,13 +16,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'can_reply_notifier.r.g.dart';
 
-const _maxCacheAge = Duration(minutes: 1);
-
 @riverpod
 class CanReply extends _$CanReply {
-  DateTime _lastFetchDate = DateTime.now();
-  bool _skipCache = false;
-
   @override
   Future<bool?> build(EventReference eventReference) async {
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
@@ -30,10 +25,8 @@ class CanReply extends _$CanReply {
       return null;
     }
 
-    final skipCache = _skipCache;
-    _skipCache = false;
     final entity = ref.watch(
-      rootPostEntityProvider(eventReference: eventReference, cache: !skipCache),
+      rootPostEntityProvider(eventReference: eventReference),
     );
     if (entity == null) {
       return null;
@@ -60,7 +53,7 @@ class CanReply extends _$CanReply {
       everyone: () async => true,
       followedAccounts: () async {
         final followers = await ref.watch(
-          followListProvider(authorPubkey, cache: !skipCache).future,
+          followListProvider(authorPubkey).future,
         );
         if (followers == null) {
           return false;
@@ -84,15 +77,6 @@ class CanReply extends _$CanReply {
         return mentions.any((pubKey) => pubKey == currentPubkey);
       },
     );
-  }
-
-  void refreshIfNeeded() {
-    final now = DateTime.now();
-    if (now.difference(_lastFetchDate) > _maxCacheAge) {
-      _lastFetchDate = now;
-      _skipCache = true;
-      ref.invalidateSelf();
-    }
   }
 }
 

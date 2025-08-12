@@ -83,7 +83,6 @@ class RepliesCounterButton extends HookConsumerWidget {
   }
 
   Future<void> _onTap(WidgetRef ref) async {
-    ref.read(canReplyProvider(eventReference).notifier).refreshIfNeeded();
     final canReply = await ref.read(canReplyProvider(eventReference).future);
     final entity = await ref.read(ionConnectEntityProvider(eventReference: eventReference).future);
 
