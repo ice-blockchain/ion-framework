@@ -32,13 +32,16 @@ class _AmountDisplay extends HookWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        Wrap(
+          spacing: 4.0.s,
+          runSpacing: 2.0.s,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
               formatCrypto(amount, coin.emptyOrValue.isEmpty ? '' : '$coin '),
               style: context.theme.appTextThemes.subtitle3.copyWith(color: textColor),
+              softWrap: false,
             ),
-            SizedBox(width: 4.0.s),
             Text(
               context.i18n.wallet_approximate_in_usd(
                 formatUSD(equivalentUsd),

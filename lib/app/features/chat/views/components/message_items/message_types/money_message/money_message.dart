@@ -233,39 +233,43 @@ class _MoneyMessageContent extends HookConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (repliedMessageItem != null)
-                ReplyMessage(messageItem, repliedMessageItem, onTapReply),
-              Text(
-                title,
-                style: context.theme.appTextThemes.body2.copyWith(color: textColor),
-              ),
-              SizedBox(height: 10.0.s),
-              Row(
-                children: [
-                  CoinIconWidget(
-                    imageUrl: coinGroup?.iconUrl ?? coin?.iconUrl ?? '',
-                    type: WalletItemIconType.big(),
-                  ),
-                  SizedBox(width: 8.0.s),
-                  _AmountDisplay(
-                    amount: amount,
-                    equivalentUsd: equivalentUsd,
-                    chain: network?.displayName ?? '',
-                    coin: coin?.abbreviation,
-                    isMe: isMe,
-                  ),
-                ],
-              ),
-              SizedBox(height: 8.0.s),
-              button,
-              MessageReactions(
-                isMe: isMe,
-                eventMessage: eventMessage,
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (repliedMessageItem != null)
+                  ReplyMessage(messageItem, repliedMessageItem, onTapReply),
+                Text(
+                  title,
+                  style: context.theme.appTextThemes.body2.copyWith(color: textColor),
+                ),
+                SizedBox(height: 10.0.s),
+                Row(
+                  children: [
+                    CoinIconWidget(
+                      imageUrl: coinGroup?.iconUrl ?? coin?.iconUrl ?? '',
+                      type: WalletItemIconType.big(),
+                    ),
+                    SizedBox(width: 8.0.s),
+                    Expanded(
+                      child: _AmountDisplay(
+                        amount: amount,
+                        equivalentUsd: equivalentUsd,
+                        chain: network?.displayName ?? '',
+                        coin: coin?.abbreviation,
+                        isMe: isMe,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8.0.s),
+                button,
+                MessageReactions(
+                  isMe: isMe,
+                  eventMessage: eventMessage,
+                ),
+              ],
+            ),
           ),
           MessageMetaData(eventMessage: eventMessage),
         ],
