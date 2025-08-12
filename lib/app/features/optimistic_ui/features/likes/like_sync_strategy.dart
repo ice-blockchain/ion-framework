@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -13,13 +12,13 @@ class LikeSyncStrategy implements SyncStrategy<PostLike> {
     required this.sendReaction,
     required this.getLikeEntity,
     required this.deleteReaction,
-    required this.removeFromCache,
+    required this.updateCache,
   });
 
   final Future<void> Function(ReactionData) sendReaction;
   final ReactionEntity? Function(EventReference) getLikeEntity;
   final Future<void> Function(ReactionEntity) deleteReaction;
-  final void Function(String) removeFromCache;
+  final void Function(EventReference, int) updateCache;
 
   @override
   Future<PostLike> send(PostLike previous, PostLike optimistic) async {
@@ -35,20 +34,15 @@ class LikeSyncStrategy implements SyncStrategy<PostLike> {
             : PostEntity.kind,
       );
       await sendReaction(data);
+      updateCache(optimistic.eventReference, 1);
     } else if (toggledToUnlike) {
       final likeEntity = getLikeEntity(optimistic.eventReference);
       if (likeEntity != null && likeEntity.id.isNotEmpty) {
         await deleteReaction(likeEntity);
-        removeFromCache(likeEntity.cacheKey);
+        updateCache(optimistic.eventReference, -1);
       }
     }
 
-    removeFromCache(
-      EventCountResultEntity.cacheKeyBuilder(
-        key: optimistic.eventReference.toString(),
-        type: EventCountResultType.reactions,
-      ),
-    );
     return optimistic;
   }
 }

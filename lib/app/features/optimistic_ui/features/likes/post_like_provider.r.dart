@@ -56,6 +56,7 @@ List<PostLike> loadInitialLikesFromCache(Ref ref) {
 
 @riverpod
 OptimisticService<PostLike> postLikeService(Ref ref) {
+  keepAliveWhenAuthenticated(ref);
   final manager = ref.watch(postLikeManagerProvider);
   final loadInitialLikes = ref.watch(loadInitialLikesFromCacheProvider);
   final service = OptimisticService<PostLike>(manager: manager)..initialize(loadInitialLikes);
@@ -65,8 +66,19 @@ OptimisticService<PostLike> postLikeService(Ref ref) {
 
 @riverpod
 Stream<PostLike?> postLikeWatch(Ref ref, String id) {
+  keepAliveWhenAuthenticated(ref);
   final service = ref.watch(postLikeServiceProvider);
-  return service.watch(id);
+  final manager = ref.watch(postLikeManagerProvider);
+
+  var last = manager.snapshot.firstWhereOrNull((e) => e.optimisticId == id);
+
+  return service.watch(id).map((postLike) {
+    if (postLike != null) {
+      last = postLike;
+      return postLike;
+    }
+    return last;
+  });
 }
 
 @Riverpod(keepAlive: true)

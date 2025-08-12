@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
 import 'package:ion/app/features/feed/providers/counters/like_reaction_provider.r.dart';
 import 'package:ion/app/features/feed/providers/delete_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
@@ -36,6 +38,40 @@ SyncStrategy<PostLike> likeSyncStrategy(Ref ref) {
     deleteReaction: (reactionEntity) async {
       await ref.read(deleteEntityControllerProvider.notifier).deleteEntity(reactionEntity);
     },
-    removeFromCache: (cacheKey) => ref.read(ionConnectCacheProvider.notifier).remove(cacheKey),
+    updateCache: (eventReference, delta) {
+      final likesCacheKey = EventCountResultEntity.cacheKeyBuilder(
+        key: eventReference.toString(),
+        type: EventCountResultType.reactions,
+      );
+
+      final existingEntity = ref.read(
+        ionConnectCacheProvider.select(
+          cacheSelector<EventCountResultEntity>(likesCacheKey),
+        ),
+      );
+
+      if (existingEntity != null) {
+        final reactionsMap =
+            Map<String, dynamic>.from(existingEntity.data.content as Map<String, dynamic>);
+        final currentCount = (reactionsMap[ReactionEntity.likeSymbol] ?? 0) as int;
+        final newCount = (currentCount + delta).clamp(0, double.infinity).toInt();
+        if (newCount == 0) {
+          reactionsMap.remove(ReactionEntity.likeSymbol);
+        } else {
+          reactionsMap[ReactionEntity.likeSymbol] = newCount;
+        }
+
+        if (reactionsMap.isEmpty) {
+          ref.read(ionConnectCacheProvider.notifier).remove(likesCacheKey);
+        } else {
+          final updatedEntity = existingEntity.copyWith(
+            data: existingEntity.data.copyWith(
+              content: reactionsMap,
+            ),
+          );
+          ref.read(ionConnectCacheProvider.notifier).cache(updatedEntity);
+        }
+      }
+    },
   );
 }
