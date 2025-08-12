@@ -15,6 +15,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
+import 'package:ion/app/extensions/extensions.dart';
 
 const double _kMinFlingVelocity = 1; // Screen widths per second.
 
@@ -804,7 +805,7 @@ class _CupertinoBackGestureDetectorState<T> extends State<_CupertinoBackGestureD
         widget.child,
         PositionedDirectional(
           start: 0,
-          width: max(dragAreaWidth, MediaQuery.sizeOf(context).width),
+          width: max(dragAreaWidth, 64.0.s),
           top: 0,
           bottom: 0,
           child: Listener(
