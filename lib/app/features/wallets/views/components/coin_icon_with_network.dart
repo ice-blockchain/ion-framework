@@ -35,7 +35,7 @@ class CoinIconWithNetwork extends StatelessWidget {
       CoinIconWithNetwork._(
         iconUrl: iconUrl,
         network: network,
-        networkIconType: WalletItemIconType.custom(size: 20.0.s),
+        networkIconType: const WalletItemIconType.custom(size: 20),
         containerSize: 51.0.s,
         coinIconType: WalletItemIconType.huge(),
       );
