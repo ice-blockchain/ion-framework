@@ -10,15 +10,12 @@ import 'package:ion/app/components/separated/separated_row.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_copy_link_option.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_options_menu_item.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_post_to_story_content.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/share/social_share_service.r.dart';
 import 'package:ion/app/utils/screenshot_utils.dart';
@@ -103,50 +100,27 @@ class ShareOptions extends HookConsumerWidget {
   Future<void> _onSharePostToStory(WidgetRef ref, ValueNotifier<bool> isCapturing) async {
     final context = ref.context;
     isCapturing.value = true;
+    final postItselfEntity =
+        ref.read(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
+    if (postItselfEntity == null || postItselfEntity is! ModifiablePostEntity) {
+      isCapturing.value = false;
+      return;
+    }
+    final parentContainer = ProviderScope.containerOf(context);
+    final childContainer = ProviderContainer(
+      parent: parentContainer,
+    );
 
     try {
-      final postItselfEntity =
-          ref.read(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
-      if (postItselfEntity == null || postItselfEntity is! ModifiablePostEntity) {
-        isCapturing.value = false;
-        return;
-      }
-
-      final postEntityAsyncValue = ref.read(
-        ionConnectEntityWithCountersProvider(eventReference: eventReference),
-      );
-
-      final userMetadata = ref.read(cachedUserMetadataProvider(eventReference.masterPubkey));
-
-      // ignore: scoped_providers_should_specify_dependencies
-      final postWidget = ProviderScope(
-        overrides: [
-          // ignore: scoped_providers_should_specify_dependencies
-          currentIdentityKeyNameSelectorProvider.overrideWithValue(
-            ref.read(currentIdentityKeyNameSelectorProvider),
-          ),
-          // ignore: scoped_providers_should_specify_dependencies
-          ionConnectEntityWithCountersProvider(
-            eventReference: eventReference,
-          ).overrideWithValue(postEntityAsyncValue),
-          // ignore: scoped_providers_should_specify_dependencies
-          if (userMetadata != null)
-            ionConnectCachedEntityProvider(eventReference: userMetadata.toEventReference())
-                .overrideWithValue(
-              userMetadata,
-            ),
-        ],
+      final postWidget = UncontrolledProviderScope(
+        container: childContainer,
         child: SharePostToStoryContent(
           eventReference: eventReference,
           postItselfEntity: postItselfEntity,
         ),
       );
 
-      final tempFile = await captureWidgetScreenshot(
-        context: context,
-        widget: postWidget,
-      );
-
+      final tempFile = await captureWidgetScreenshot(context: context, widget: postWidget);
       if (tempFile != null && context.mounted) {
         context.pop();
         await StoryPreviewRoute(
@@ -157,6 +131,7 @@ class ShareOptions extends HookConsumerWidget {
         ).push<void>(context);
       }
     } finally {
+      childContainer.dispose();
       if (context.mounted) {
         isCapturing.value = false;
       }

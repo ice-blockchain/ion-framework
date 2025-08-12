@@ -6,7 +6,6 @@ import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/views/components/post/post.dart';
-import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 
 class SharePostToStoryContent extends StatelessWidget {
@@ -35,11 +34,6 @@ class SharePostToStoryContent extends StatelessWidget {
                 eventReference: eventReference,
                 footer: const SizedBox.shrink(),
                 topOffset: 0,
-                header: UserInfo(
-                  pubkey: eventReference.masterPubkey,
-                  createdAt: postItselfEntity.data.publishedAt.value,
-                  trailing: const SizedBox.shrink(),
-                ),
               ),
             ),
           ),
