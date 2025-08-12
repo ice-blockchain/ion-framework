@@ -51,7 +51,7 @@ class OptimisticOperationManager<T extends OptimisticModel> {
   final _listEquality = const ListEquality<Object>();
 
   void _emitIfChanged() {
-    if (_lastEmitted != null && _listEquality.equals(_lastEmitted!, _state)) {
+    if (_lastEmitted != null && _listEquality.equals(_lastEmitted, _state)) {
       return;
     }
     final snapshot = List<T>.unmodifiable(_state);
