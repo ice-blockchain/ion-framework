@@ -28,8 +28,6 @@ class CollapsingAppBar extends StatelessWidget {
     final fadeOffset = totalHeight - topOffset - safeAreaOffset;
 
     return SliverAppBar(
-      floating: true,
-      pinned: true,
       automaticallyImplyLeading: false,
       expandedHeight: height + topOffset + bottomOffset,
       shadowColor: context.theme.appColors.onTertiaryBackground.withValues(alpha: 0.05),
