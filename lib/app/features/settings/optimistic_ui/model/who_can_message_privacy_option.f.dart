@@ -12,7 +12,7 @@ class WhoCanMessagePrivacyOption with _$WhoCanMessagePrivacyOption implements Op
     required String masterPubkey,
     required UserVisibilityPrivacyOption visibility,
   }) = _WhoCanMessagePrivacyOption;
-  
+
   const WhoCanMessagePrivacyOption._();
 
   @override
