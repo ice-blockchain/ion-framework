@@ -43,9 +43,7 @@ class ArticlesCarouselItem extends ConsumerWidget {
         children: [
           UserInfo(
             pubkey: article.masterPubkey,
-            trailing: isOwnedByCurrentUser
-                ? null
-                : UserInfoMenu(eventReference: eventReference),
+            trailing: isOwnedByCurrentUser ? null : UserInfoMenu(eventReference: eventReference),
           ),
           Flexible(
             child: Row(
