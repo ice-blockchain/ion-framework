@@ -24,6 +24,7 @@ import 'package:ion/app/features/video/views/components/video_post_info.dart';
 import 'package:ion/app/features/video/views/hooks/use_status_bar_color.dart';
 import 'package:ion/app/features/video/views/hooks/use_wake_lock.dart';
 import 'package:ion/app/features/video/views/pages/video_page.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -42,6 +43,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
     required this.onLoadMore,
     this.initialMediaIndex = 0,
     this.framedEventReference,
+    this.onVideoSeen,
     super.key,
   });
 
@@ -49,6 +51,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
   final int initialMediaIndex;
   final Iterable<IonConnectEntity> entities;
   final void Function() onLoadMore;
+  final void Function(IonConnectEntity? video)? onVideoSeen;
   final EventReference? framedEventReference;
 
   @override
@@ -130,6 +133,13 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
       [userPageController],
     );
 
+    useOnInit(
+      () {
+        onVideoSeen?.call(flattenedVideos[initialPage].entity);
+      },
+      [onVideoSeen, initialPage, flattenedVideos],
+    );
+
     return StatusBarColorWrapper.light(
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -175,6 +185,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
             scrollDirection: Axis.vertical,
             physics: const NeverScrollableScrollPhysics(),
             onPageChanged: (index) {
+              onVideoSeen?.call(flattenedVideos[index].entity);
               _loadMore(ref, index, flattenedVideos.length);
               currentEventReference.value = flattenedVideos[index].entity.toEventReference();
             },
