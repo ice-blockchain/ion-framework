@@ -69,9 +69,9 @@ class SecureAccountOptionsPage extends HookConsumerWidget {
                     isEnabled: securityMethods?.isBackupEnabled ?? false,
                     isLoading: isLoading,
                   ),
-                  SizedBox(height: 20.0.s),
-                  const HorizontalSeparator(),
-                  SizedBox(height: 20.0.s),
+                  HorizontalSeparator(
+                    height: 40.0.s,
+                  ),
                   SecureAccountOption(
                     title: locale.two_fa_option_email,
                     icon: Assets.svg.iconFieldEmail.icon(
