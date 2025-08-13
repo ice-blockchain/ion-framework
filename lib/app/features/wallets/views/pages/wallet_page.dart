@@ -7,6 +7,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
+import 'package:ion/app/features/wallets/data/repository/networks_repository.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
@@ -23,6 +24,7 @@ import 'package:ion/app/features/wallets/views/pages/wallet_page/tab_type.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
+import 'package:ion/app/utils/precache_pictures.dart';
 
 class WalletPage extends HookConsumerWidget {
   const WalletPage({super.key});
@@ -33,6 +35,20 @@ class WalletPage extends HookConsumerWidget {
     useScrollTopOnTabPress(context, scrollController: scrollController);
 
     final activeTab = useState<WalletTabType>(WalletTabType.coins);
+
+    // Precache tier 1 network icons when wallet page opens
+    useEffect(
+      () {
+        ref.read(networksRepositoryProvider).getByFilters(tiers: [1]).then((networks) {
+          final iconUrls = networks.map((network) => network.image).where((url) => url.isNotEmpty).toList();
+          if (iconUrls.isNotEmpty) {
+            precachePictures(iconUrls);
+          }
+        });
+        return null;
+      },
+      [],
+    );
 
     return Scaffold(
       appBar: NavigationAppBar.root(
