@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/card/info_card.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
+import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/protect_account/components/secure_account_option.dart';
 import 'package:ion/app/features/protect_account/email/data/model/email_steps.dart';
@@ -68,7 +69,9 @@ class SecureAccountOptionsPage extends HookConsumerWidget {
                     isEnabled: securityMethods?.isBackupEnabled ?? false,
                     isLoading: isLoading,
                   ),
-                  SizedBox(height: 12.0.s),
+                  SizedBox(height: 20.0.s),
+                  const HorizontalSeparator(),
+                  SizedBox(height: 20.0.s),
                   SecureAccountOption(
                     title: locale.two_fa_option_email,
                     icon: Assets.svg.iconFieldEmail.icon(
