@@ -6,9 +6,10 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/polls/providers/poll_results_provider.r.dart';
-import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
@@ -94,10 +95,11 @@ class PollVoteNotifier extends _$PollVoteNotifier {
         throw Exception('Poll event not loaded');
       }
 
+      final selectedOptionIndex = int.parse(optionId);
       final pollEventId = postReference.toString();
       final pollVoteData = PollVoteData(
         pollEventId: pollEventId,
-        selectedOptionIndexes: [int.parse(optionId)],
+        selectedOptionIndexes: [selectedOptionIndex],
       );
 
       final voteEvent = await pollVoteData.toEventMessage(
@@ -107,15 +109,18 @@ class PollVoteNotifier extends _$PollVoteNotifier {
         ],
       );
 
-      final result = await ref.read(ionConnectNotifierProvider.notifier).sendEvent(voteEvent);
+      final result = await ref.read(ionConnectNotifierProvider.notifier).sendEvent(
+            voteEvent,
+            actionSource: ActionSource.user(pollEvent.masterPubkey),
+          );
 
+      final pollData = pollEvent is ModifiablePostEntity ? pollEvent.data.poll : null;
       if (result != null) {
-        ref
-          ..read(ionConnectEntityWithCountersProvider(eventReference: postReference, cache: false))
-          ..invalidate(userPollVoteProvider(postReference))
-          ..invalidate(userVotedOptionIndexProvider(postReference))
-          ..invalidate(hasUserVotedProvider(postReference))
-          ..invalidate(pollVoteCountsProvider);
+        if (pollData != null) {
+          ref.read(pollVoteCountsProvider(postReference, pollData).notifier).addOne(
+                selectedOptionIndex,
+              );
+        }
 
         state = const AsyncValue.data(null);
         return true;
