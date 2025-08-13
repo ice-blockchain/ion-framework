@@ -4,6 +4,7 @@ import 'package:ffmpeg_kit_flutter/ffprobe_kit.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/services/compressors/compress_executor.r.dart';
 import 'package:ion/app/services/compressors/compressor.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -121,7 +122,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       // Return the final compressed video file info
       return MediaFile(
         path: output,
-        mimeType: 'video/mp4',
+        mimeType: MimeType.video.value,
         width: outWidth,
         height: outHeight,
         duration: file.duration,

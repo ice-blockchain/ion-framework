@@ -20,6 +20,7 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/share/social_share_service.r.dart';
 import 'package:ion/app/utils/screenshot_utils.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:mime/mime.dart';
 
 class ShareOptions extends HookConsumerWidget {
   const ShareOptions({required this.eventReference, super.key});
@@ -125,7 +126,7 @@ class ShareOptions extends HookConsumerWidget {
         context.pop();
         await StoryPreviewRoute(
           path: tempFile.path,
-          mimeType: 'image/png',
+          mimeType: lookupMimeType(tempFile.path),
           eventReference: eventReference.encode(),
           isPostScreenshot: true,
         ).push<void>(context);
