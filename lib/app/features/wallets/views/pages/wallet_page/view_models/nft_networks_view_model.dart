@@ -9,7 +9,7 @@ import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/services/command/command.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-final nftNetworksViewModelProvider = Provider.autoDispose(
+final nftNetworksViewModelProvider = Provider(
   (ref) {
     final filterService = ref.watch(nftNetworkFilterManagerProvider);
     final networksRepository = ref.watch(networksRepositoryProvider);
