@@ -38,7 +38,7 @@ class AttachedMediaPreview extends StatelessWidget {
         padding: EdgeInsetsDirectional.only(end: 12.0.s),
         scrollDirection: Axis.horizontal,
         itemCount: totalItems,
-        separatorBuilder: (_, __) => SizedBox(width: 12.0.s),
+        separatorBuilder: (_, __) => SizedBox(width: 16.0.s),
         itemBuilder: (context, index) {
           if (index < mediaFiles.length) {
             final media = mediaFiles[index];
@@ -108,11 +108,12 @@ class _PreviewItem extends ConsumerWidget {
     }
 
     return SizedBox.square(
-      dimension: 62.0.s,
+      dimension: 44.0.s,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           PositionedDirectional(
-            start: 12.0.s,
+            end: 0.0.s,
             bottom: 0,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10.0.s),
@@ -135,8 +136,7 @@ class _PreviewItem extends ConsumerWidget {
             ),
           ),
           PositionedDirectional(
-            end: 0,
-            top: 0,
+            end: -6.0.s,
             child: GestureDetector(
               onTap: onRemove,
               child: Assets.svg.iconFieldClearmedia.icon(size: 20.0.s),

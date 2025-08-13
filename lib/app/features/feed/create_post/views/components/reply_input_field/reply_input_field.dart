@@ -119,9 +119,16 @@ class ReplyInputField extends HookConsumerWidget {
                     children: [
                       if (attachedMediaNotifier.value.isNotEmpty) ...[
                         SizedBox(height: 6.0.s),
-                        AttachedMediaPreview(
-                          attachedMediaNotifier: attachedMediaNotifier,
-                          attachedMediaLinksNotifier: attachedMediaLinksNotifier,
+                        Row(
+                          children: [
+                            SizedBox(width: 12.0.s),
+                            Expanded(
+                              child: AttachedMediaPreview(
+                                attachedMediaNotifier: attachedMediaNotifier,
+                                attachedMediaLinksNotifier: attachedMediaLinksNotifier,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                       Container(
