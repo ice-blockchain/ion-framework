@@ -33,7 +33,7 @@ GoRouter goRouter(Ref ref) {
   return GoRouter(
     refreshListenable: AppRouterNotifier(ref),
     redirect: (context, state) async {
-      final initState = ref.watch(initAppProvider);
+      final initState = ref.read(initAppProvider);
       final isSplashAnimationCompleted = ref.read(splashProvider);
       final forceUpdateRequired = ref.read(forceUpdateProvider).valueOrNull.falseOrValue;
       final isOnSplash = state.matchedLocation.startsWith(SplashRoute().location);
@@ -44,7 +44,7 @@ GoRouter goRouter(Ref ref) {
         ref.read(uiEventQueueNotifierProvider.notifier).emit(const ShowAppUpdateModalEvent());
       }
 
-      if (isInitError) {
+      if (isInitError && !isInitInProgress) {
         Logger.log(
           'Init error',
           error: initState.error.toString(),
@@ -55,7 +55,7 @@ GoRouter goRouter(Ref ref) {
 
       if (isInitInProgress || !isSplashAnimationCompleted) {
         // Redirect if app is not initialized yet, but avoid re-entering Splash when already there
-        return isOnSplash ? null : SplashRoute().location;
+        return SplashRoute().location;
       }
 
       return _mainRedirect(location: state.matchedLocation, ref: ref);

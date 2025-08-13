@@ -9,6 +9,8 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/core/providers/init_provider.r.dart';
 import 'package:ion/app/features/core/providers/internet_status_stream_provider.r.dart';
+import 'package:ion/app/features/core/providers/splash_provider.r.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ErrorPage extends HookConsumerWidget {
@@ -24,12 +26,14 @@ class ErrorPage extends HookConsumerWidget {
     final showDebugInfo = ref.watch(envProvider.notifier).get<bool>(EnvVariable.SHOW_DEBUG_INFO);
     final hasInternetConnection = ref.watch(hasInternetConnectionProvider);
     final prevNoInternetConnection = usePrevious(!hasInternetConnection);
-    useEffect(
+    useOnInit(
       () {
         if (prevNoInternetConnection.falseOrValue && hasInternetConnection) {
-          ref.invalidate(initAppProvider);
+          ref.read(splashProvider.notifier).animationCompleted = false;
+          ref
+            ..invalidate(initAppProvider)
+            ..read(initAppProvider);
         }
-        return null;
       },
       [prevNoInternetConnection, hasInternetConnection],
     );

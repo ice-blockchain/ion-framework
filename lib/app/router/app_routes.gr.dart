@@ -279,7 +279,6 @@ class SplashRoute extends BaseRouteData with _$SplashRoute {
   SplashRoute()
       : super(
           child: const SplashPage(),
-          key: const ValueKey('splash-page'),
         );
 }
 
