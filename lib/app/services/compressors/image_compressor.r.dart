@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/services/compressors/compress_executor.r.dart';
 import 'package:ion/app/services/compressors/compressor.r.dart';
 import 'package:ion/app/services/compressors/output_path_generator.dart';
@@ -23,8 +24,9 @@ enum ImageCompressionType {
   jpeg;
 
   String get mimeType => switch (this) {
-        webp => 'image/webp',
-        jpeg => 'image/jpeg',
+        webp => MimeType.image.value,
+        // We use this for push notifications only
+        jpeg => LocalMimeType.jpeg.value,
       };
 }
 
@@ -74,7 +76,8 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
 
       final output = await generateOutputPath(extension: to.name);
 
-      final isGif = file.mimeType == 'image/gif' && file.path.isGif && settings.shouldCompressGif;
+      final isGif =
+          file.mimeType == LocalMimeType.gif.value && file.path.isGif && settings.shouldCompressGif;
 
       List<String> command;
 
@@ -118,7 +121,7 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
       final outputDimension = await getImageDimension(path: output);
 
       // If it's a gif, we need to indicate that it's a webp with the gif extension
-      final mimeType = isGif ? 'image/gif+webp' : to.mimeType;
+      final mimeType = isGif ? MimeType.gif.value : to.mimeType;
 
       return MediaFile(
         path: output,
