@@ -17,6 +17,8 @@ class OptimisticService<T extends OptimisticModel> {
         (l) => l.firstWhereOrNull((e) => e.optimisticId == id),
       );
 
+  T? get(String id) => _manager.snapshot.firstWhereOrNull((e) => e.optimisticId == id);
+
   /// Dispatches an optimistic intent.
   Future<void> dispatch(OptimisticIntent<T> intent, T current) async =>
       _manager.perform(previous: current, optimistic: intent.optimistic(current));

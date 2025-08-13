@@ -15,6 +15,7 @@ part 'follow_provider.r.g.dart';
 
 @riverpod
 OptimisticService<UserFollow> followService(Ref ref) {
+  keepAliveWhenAuthenticated(ref);
   final manager = ref.watch(followManagerProvider);
   final initialFollows = ref.read(currentUserSyncFollowListProvider)?.masterPubkeys ?? [];
   final initialUserFollows = initialFollows.map((pubkey) {
@@ -56,7 +57,7 @@ class ToggleFollowNotifier extends _$ToggleFollowNotifier {
 
   Future<void> toggle(String pubkey) async {
     final service = ref.read(followServiceProvider);
-    var current = ref.read(followWatchProvider(pubkey)).valueOrNull;
+    var current = service.get(pubkey);
 
     current ??= UserFollow(
       pubkey: pubkey,
