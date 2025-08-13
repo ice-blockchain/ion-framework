@@ -276,7 +276,11 @@ class ModalShellRouteData extends ShellRouteData {
 
 @TypedGoRoute<SplashRoute>(path: '/splash')
 class SplashRoute extends BaseRouteData with _$SplashRoute {
-  SplashRoute() : super(child: const SplashPage());
+  SplashRoute()
+      : super(
+          child: const SplashPage(),
+          key: const ValueKey('splash-page'),
+        );
 }
 
 class FeedRoute extends BaseRouteData with _$FeedRoute {

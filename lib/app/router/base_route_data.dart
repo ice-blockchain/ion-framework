@@ -29,19 +29,23 @@ abstract class BaseRouteData extends GoRouteData {
     this.type = IceRouteType.single,
     this.isFullscreenMedia = false,
     this.canPop,
+    this.key,
   });
 
   final IceRouteType type;
   final bool isFullscreenMedia;
   final Widget child;
   final bool? canPop;
+  final LocalKey? key;
+
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
     return switch (type) {
       IceRouteType.single => custom_route.CupertinoPage<void>(
-          key: state.pageKey,
+          key: key ?? state.pageKey,
           child: PopScope(
             canPop: canPop ?? Platform.isIOS,
+            key: key,
             onPopInvokedWithResult: (didPop, result) async {
               if (!didPop) {
                 context.pop();
