@@ -1,39 +1,24 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ion/app/features/core/services/internet_connection_checker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'internet_connection_checker_provider.r.g.dart';
 
-const _timeoutDuration = Duration(seconds: 8);
-
 @Riverpod(keepAlive: true)
-InternetConnection internetConnectionChecker(Ref ref) {
-  const uris = [
-    'https://1.1.1.1', // Cloudflare
-    'http://8.8.8.8', // Google
-    'http://9.9.9.9', // Quad9
-    'http://77.88.8.8', // Yandex
-    'http://64.6.64.6', // Comodo
+InternetConnectionChecker internetConnectionChecker(Ref ref) {
+  const checkInterval = Duration(seconds: 10);
+  const hosts = [
+    InternetCheckOption(host: '1.1.1.1'), // Cloudflare
+    InternetCheckOption(host: '8.8.8.8'), // Google
+    InternetCheckOption(host: '9.9.9.9'), // Quad9
+    InternetCheckOption(host: '77.88.8.8'), // Yandex
+    InternetCheckOption(host: '64.6.64.6'), // Comodo
   ];
 
-  return InternetConnection.createInstance(
-    useDefaultOptions: false,
-    customCheckOptions: _createCheckOptions(uris),
+  return InternetConnectionChecker.createInstance(
+    checkInterval: checkInterval,
+    options: hosts,
   );
 }
-
-List<InternetCheckOption> _createCheckOptions(List<String> uris) {
-  return uris
-      .map(
-        (uri) => InternetCheckOption(
-          uri: Uri.parse(uri),
-          timeout: _timeoutDuration,
-          responseStatusFn: (response) => _checkStatus(response.statusCode),
-        ),
-      )
-      .toList();
-}
-
-bool _checkStatus(int statusCode) => statusCode >= 200;

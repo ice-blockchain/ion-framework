@@ -444,22 +444,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
-  connectivity_plus:
-    dependency: transitive
-    description:
-      name: connectivity_plus
-      sha256: "051849e2bd7c7b3bc5844ea0d096609ddc3a859890ec3a9ac4a65a2620cc1f99"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.1.4"
-  connectivity_plus_platform_interface:
-    dependency: transitive
-    description:
-      name: connectivity_plus_platform_interface
-      sha256: "42657c1715d48b167930d5f34d00222ac100475f73d10162ddf43e714932f204"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.1"
   conventional_commit:
     dependency: transitive
     description:
@@ -1637,14 +1621,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
-  internet_connection_checker_plus:
-    dependency: "direct main"
-    description:
-      name: internet_connection_checker_plus
-      sha256: "5aea4a1ee0fcca736980a7d04d96fe8c0b53dea330690053305a5c5392230112"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.7.2"
   intl:
     dependency: "direct main"
     description:
@@ -1900,14 +1876,6 @@ packages:
       url: "https://github.com/ice-blockchain/dart-nip44.git"
     source: git
     version: "1.0.0"
-  nm:
-    dependency: transitive
-    description:
-      name: nm
-      sha256: "2c9aae4127bdc8993206464fcc063611e0e36e72018696cd9631023a31b24254"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.5.0"
   nostr_dart:
     dependency: "direct main"
     description:
