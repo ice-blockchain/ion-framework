@@ -590,7 +590,7 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
 
   Future<RetryCounter> _buildRetryCounter() async {
     final feedConfig = await ref.read(feedConfigProvider.future);
-    final maxRetries = (feedType.pageSize * feedConfig.forYouMaxRetriesMultiplier).ceil();
+    final maxRetries = (feedType.pageSize * feedConfig.followingMaxRetriesMultiplier).ceil();
     return RetryCounter(limit: maxRetries);
   }
 
