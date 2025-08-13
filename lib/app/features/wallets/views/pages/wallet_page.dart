@@ -40,7 +40,8 @@ class WalletPage extends HookConsumerWidget {
     useEffect(
       () {
         ref.read(networksRepositoryProvider).getByFilters(tiers: [1]).then((networks) {
-          final iconUrls = networks.map((network) => network.image).where((url) => url.isNotEmpty).toList();
+          final iconUrls =
+              networks.map((network) => network.image).where((url) => url.isNotEmpty).toList();
           if (iconUrls.isNotEmpty) {
             precachePictures(iconUrls);
           }
