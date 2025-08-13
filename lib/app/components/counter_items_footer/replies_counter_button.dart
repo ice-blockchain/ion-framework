@@ -34,13 +34,13 @@ class RepliesCounterButton extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final repliesCount = ref.watch(repliesCountProvider(eventReference));
     final isReplied = ref.watch(isRepliedProvider(eventReference));
-    final canReply = ref.watch(canReplyProvider(eventReference)).valueOrNull;
+    final canReply = ref.watch(canReplyProvider(eventReference)).valueOrNull ?? true;
     final isLoading = useRef(false);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
-        if (isLoading.value || canReply == null) {
+        if (isLoading.value) {
           return;
         }
         try {
@@ -72,7 +72,6 @@ class RepliesCounterButton extends HookConsumerWidget {
           disabledTextColor: context.theme.appColors.tertiaryText,
           value: formatDoubleCompact(repliesCount),
           state: switch ((canReply, isReplied)) {
-            (null, _) => TextActionButtonState.disabled,
             (false, _) => TextActionButtonState.disabled,
             (true, true) => TextActionButtonState.active,
             (true, false) => TextActionButtonState.idle,
@@ -83,10 +82,10 @@ class RepliesCounterButton extends HookConsumerWidget {
   }
 
   Future<void> _onTap(WidgetRef ref) async {
-    final canReply = await ref.read(canReplyProvider(eventReference).future);
     final entity = await ref.read(ionConnectEntityProvider(eventReference: eventReference).future);
+    final canReply = await ref.read(canReplyProvider(eventReference).future) ?? true;
 
-    if (!ref.context.mounted || entity == null || canReply == null) return;
+    if (!ref.context.mounted || entity == null) return;
 
     if (canReply) {
       if (entity is ArticleEntity) {
