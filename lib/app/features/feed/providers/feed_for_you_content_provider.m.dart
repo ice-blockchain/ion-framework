@@ -32,7 +32,6 @@ import 'package:ion/app/utils/pagination.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'feed_for_you_content_provider.m.freezed.dart';
-
 part 'feed_for_you_content_provider.m.g.dart';
 
 @riverpod
@@ -118,7 +117,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   Future<RetryCounter> _buildRetryCounter() async {
     final feedConfig = await ref.read(feedConfigProvider.future);
-    final maxRetries = (feedType.pageSize * feedConfig.followingMaxRetriesMultiplier).ceil();
+    final maxRetries = (feedType.pageSize * feedConfig.forYouMaxRetriesMultiplier).ceil();
     return RetryCounter(limit: maxRetries);
   }
 
