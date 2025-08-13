@@ -34,21 +34,22 @@ class RepliesCounterButton extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final repliesCount = ref.watch(repliesCountProvider(eventReference));
     final isReplied = ref.watch(isRepliedProvider(eventReference));
-    final canReply = ref.watch(canReplyProvider(eventReference)).valueOrNull ?? false;
+    final canReply = ref.watch(canReplyProvider(eventReference)).valueOrNull ?? true;
     final isLoading = useRef(false);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: isLoading.value
-          ? null
-          : () async {
-              try {
-                isLoading.value = true;
-                await _onTap(ref);
-              } finally {
-                isLoading.value = false;
-              }
-            },
+      onTap: () async {
+        if (isLoading.value) {
+          return;
+        }
+        try {
+          isLoading.value = true;
+          await _onTap(ref);
+        } finally {
+          isLoading.value = false;
+        }
+      },
       child: Container(
         constraints: BoxConstraints(minWidth: 50.0.s),
         padding: padding,
@@ -81,9 +82,8 @@ class RepliesCounterButton extends HookConsumerWidget {
   }
 
   Future<void> _onTap(WidgetRef ref) async {
-    ref.read(canReplyProvider(eventReference).notifier).refreshIfNeeded(eventReference);
-    final canReply = await ref.read(canReplyProvider(eventReference).future);
     final entity = await ref.read(ionConnectEntityProvider(eventReference: eventReference).future);
+    final canReply = await ref.read(canReplyProvider(eventReference).future) ?? true;
 
     if (!ref.context.mounted || entity == null) return;
 
