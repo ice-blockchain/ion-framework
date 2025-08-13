@@ -27,6 +27,7 @@ import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
+import 'package:ion/generated/assets.gen.dart';
 
 class ProfilePage extends HookConsumerWidget {
   const ProfilePage({
@@ -110,6 +111,7 @@ class ProfilePage extends HookConsumerWidget {
                     SliverToBoxAdapter(
                       child: Column(
                         children: [
+                          SizedBox(height: 12.0.s),
                           ProfileAvatar(pubkey: pubkey),
                           SizedBox(height: 16.0.s),
                           ProfileDetails(pubkey: pubkey),
@@ -183,7 +185,13 @@ class ProfilePage extends HookConsumerWidget {
             if (showBackButton)
               Align(
                 alignment: AlignmentDirectional.topStart,
-                child: NavigationBackButton(context.pop),
+                child: NavigationBackButton(
+                  context.pop,
+                  icon: Assets.svg.iconProfileBack.icon(
+                    size: NavigationBackButton.iconSize,
+                    flipForRtl: true,
+                  ),
+                ),
               ),
           ],
         ),
