@@ -7,6 +7,7 @@ import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/inputs/search_input/search_input.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/feed_controls.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_button/navigation_button.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -14,7 +15,7 @@ import 'package:ion/generated/assets.gen.dart';
 class DAppsHeader extends ConsumerWidget {
   const DAppsHeader({super.key});
 
-  static double get height => 40.0.s;
+  static double get height => FeedControls.height + 12.0.s;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,6 +44,7 @@ class DAppsHeader extends ConsumerWidget {
             Padding(
               padding: EdgeInsetsDirectional.only(start: 12.0.s),
               child: Button.icon(
+                size: 40.0.s,
                 onPressed: () {
                   WalletsRoute().push<void>(context);
                 },
