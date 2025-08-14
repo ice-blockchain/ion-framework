@@ -55,7 +55,7 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
 
     useOnInit(() {
       if (Platform.isIOS) {
-        scrollController.addListener(() {
+        void listener() {
           if (scrollController.position.userScrollDirection == ScrollDirection.forward &&
               scrollController.offset < -60.0.s) {
             archiveVisible.value = true;
@@ -63,7 +63,15 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
               scrollController.offset > 30.0.s) {
             archiveVisible.value = false;
           }
-        });
+        }
+
+        scrollController.addListener(listener);
+
+        // Dispose the listener when the widget is disposed
+        useEffect(
+          () => () => scrollController.removeListener(listener),
+          const [],
+        );
       }
 
       _forceSyncUserMetadata(ref);
@@ -144,6 +152,16 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
           ),
         ],
         onRefresh: () async {
+          final conversations = ref.read(conversationsProvider).valueOrNull ?? [];
+          for (final c in conversations) {
+            final receiverMasterPubkey =
+                c.receiverMasterPubkey(ref.read(currentPubkeySelectorProvider));
+
+            if (receiverMasterPubkey != null) {
+              ref.invalidate(isUserDeletedProvider(receiverMasterPubkey));
+            }
+          }
+
           ref.invalidate(conversationsProvider);
 
           await _forceSyncUserMetadata(ref);
