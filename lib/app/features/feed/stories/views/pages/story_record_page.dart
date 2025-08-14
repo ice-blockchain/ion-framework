@@ -157,7 +157,7 @@ class StoryRecordPage extends HookConsumerWidget {
             .read(mediaEditingServiceProvider)
             .editExternalPhoto(file.path, resumeCamera: false);
 
-        if (edited != null && edited != file.path && context.mounted) {
+        if (edited != null && edited != file.path) {
           // Banuba returns edited image as png so we need to compress it to webp
           final compressedImage = await ref.read(imageCompressorProvider).compress(
                 MediaFile(path: edited),
@@ -165,6 +165,8 @@ class StoryRecordPage extends HookConsumerWidget {
                   quality: ImageProcessingType.story.config.quality,
                 ),
               );
+
+          if (!context.mounted) return;
 
           final result = await StoryPreviewRoute(
             path: compressedImage.path,
