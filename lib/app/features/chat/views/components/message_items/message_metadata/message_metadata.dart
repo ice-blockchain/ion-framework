@@ -16,12 +16,14 @@ class MessageMetaData extends HookConsumerWidget {
   const MessageMetaData({
     required this.eventMessage,
     this.displayTime = true,
+    this.displayEdited = true,
     super.key,
     this.startPadding,
     this.deliveryStatusIconSize,
   });
 
   final bool displayTime;
+  final bool displayEdited;
   final double? startPadding;
   final double? deliveryStatusIconSize;
   final EventMessage eventMessage;
@@ -47,7 +49,8 @@ class MessageMetaData extends HookConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if ((entityData.messageType == MessageType.text ||
+          if (displayEdited &&
+              (entityData.messageType == MessageType.text ||
                   entityData.messageType == MessageType.emoji) &&
               (eventMessage.createdAt.toDateTime
                       .difference(entityData.publishedAt.value.toDateTime)

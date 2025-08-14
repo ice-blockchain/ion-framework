@@ -22,13 +22,50 @@ class OneToOneMessageList extends HookConsumerWidget {
 
   final Map<DateTime, List<EventMessage>> messages;
 
+  static double _getEstimatedHeight(MessageType messageType) {
+    switch (messageType) {
+      case MessageType.text:
+        return 60.0.s;
+      case MessageType.profile:
+        return 80.0.s;
+      case MessageType.visualMedia:
+        return 200.0.s;
+      case MessageType.sharedPost:
+        return 150.0.s;
+      case MessageType.requestFunds:
+      case MessageType.moneySent:
+        return 100.0.s;
+      case MessageType.emoji:
+        return 50.0.s;
+      case MessageType.audio:
+        return 80.0.s;
+      case MessageType.document:
+        return 90.0.s;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
     final listController = useMemoized(ListController.new);
 
-    final allMessages = messages.values.expand((e) => e).toList()
-      ..sortByCompare((e) => e.publishedAt, (a, b) => b.compareTo(a));
+    final allMessages = useMemoized(
+      () => messages.values.expand((e) => e).toList()
+        ..sortByCompare((e) => e.publishedAt, (a, b) => b.compareTo(a)),
+      [messages],
+    );
+
+    final dateHeaderLookup = useMemoized(
+      () {
+        final lookup = <String, DateTime>{};
+        for (final entry in messages.entries) {
+          final lastMessage = entry.value.last;
+          lookup[lastMessage.id] = entry.key;
+        }
+        return lookup;
+      },
+      [messages],
+    );
 
     final animateToItem = useCallback(
       (int index) {
@@ -54,7 +91,7 @@ class OneToOneMessageList extends HookConsumerWidget {
           animateToItem(replyMessageIndex);
         }
       },
-      [allMessages, scrollController, listController],
+      [allMessages, scrollController, listController], // Optimized dependencies
     );
 
     return NotificationListener<ScrollUpdateNotification>(
@@ -71,26 +108,51 @@ class OneToOneMessageList extends HookConsumerWidget {
             color: context.theme.appColors.primaryBackground,
             child: ScreenSideOffset.small(
               child: SuperListView.builder(
+                reverse: true,
+                cacheExtent: 2000,
+                itemCount: allMessages.length,
+                controller: scrollController,
+                listController: listController,
                 key: const Key('one_to_one_messages_list'),
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                 findChildIndexCallback: (key) {
                   final valueKey = key as ValueKey<String>;
                   return allMessages.indexWhere((e) => e.id == valueKey.value);
                 },
-                itemCount: allMessages.length,
-                controller: scrollController,
-                listController: listController,
-                reverse: true,
+                // Add item extent estimation for better scroll performance
+                extentEstimation: (index, dimensions) {
+                  if (index == null || index >= allMessages.length) return 60.0; // Default height
+                  final message = allMessages[index];
+                  final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(message);
+
+                  // Base height estimate for the message type
+                  var estimatedHeight = _getEstimatedHeight(entity.data.messageType);
+
+                  // Add date header height if this message shows a date
+                  final hasDateHeader = dateHeaderLookup.containsKey(message.id);
+                  if (hasDateHeader) {
+                    estimatedHeight += 50.0.s; // Date header height estimate
+                  }
+
+                  // Add margin spacing
+                  final isLastMessageInConversation = index == 0;
+                  final hasNextMessageFromAnotherUser =
+                      index > 0 && allMessages[index - 1].masterPubkey != message.masterPubkey;
+
+                  if (isLastMessageInConversation || hasNextMessageFromAnotherUser) {
+                    estimatedHeight += 20.0;
+                  } else {
+                    estimatedHeight += 8.0;
+                  }
+
+                  return estimatedHeight;
+                },
                 itemBuilder: (context, index) {
                   final message = allMessages[index];
 
                   final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(message);
 
-                  final displayDate = messages.entries
-                      .singleWhereOrNull((entry) => entry.value.last.id == message.id)
-                      ?.key;
+                  final displayDate = dateHeaderLookup[message.id];
 
                   final isLastMessageInConversation = index == 0;
                   final hasNextMessageFromAnotherUser =
@@ -103,7 +165,7 @@ class OneToOneMessageList extends HookConsumerWidget {
                   );
 
                   return Column(
-                    key: Key(message.id),
+                    key: ValueKey(message.id),
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (displayDate != null)
