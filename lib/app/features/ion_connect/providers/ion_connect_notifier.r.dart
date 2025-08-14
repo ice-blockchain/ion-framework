@@ -191,7 +191,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
 
   Stream<EventMessage> requestEvents(
     RequestMessage requestMessage, {
-    ActionType? actionType = ActionType.read,
+    ActionType? actionType,
     ActionSource actionSource = const ActionSourceCurrentUser(),
     Stream<RelayMessage> Function(RequestMessage requestMessage, NostrRelay relay)?
         subscriptionBuilder,
@@ -199,6 +199,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
   }) async* {
     final dislikedRelaysUrls = <String>{};
     IonConnectRelay? triedRelay;
+
 
     yield* withRetryStream(
       ({error}) async* {
@@ -212,7 +213,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
               )
             : await ref.read(relayPickerProvider.notifier).getActionSourceRelay(
                   actionSource,
-                  actionType: actionType!,
+                  actionType: actionType ?? ActionType.read,
                   dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
                 );
         triedRelay = relay;
