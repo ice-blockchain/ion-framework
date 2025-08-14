@@ -54,28 +54,31 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     final isArchivedConversationsEmpty = archivedConversations.valueOrNull?.isEmpty ?? true;
 
     useOnInit(() {
-      if (Platform.isIOS) {
-        void listener() {
-          if (scrollController.position.userScrollDirection == ScrollDirection.forward &&
-              scrollController.offset < -60.0.s) {
-            archiveVisible.value = true;
-          } else if (scrollController.position.userScrollDirection == ScrollDirection.reverse &&
-              scrollController.offset > 30.0.s) {
-            archiveVisible.value = false;
-          }
-        }
-
-        scrollController.addListener(listener);
-
-        // Dispose the listener when the widget is disposed
-        useEffect(
-          () => () => scrollController.removeListener(listener),
-          const [],
-        );
-      }
-
       _forceSyncUserMetadata(ref);
     });
+
+    useEffect(
+      () {
+        if (Platform.isIOS) {
+          void listener() {
+            if (scrollController.position.userScrollDirection == ScrollDirection.forward &&
+                scrollController.offset < -60.0.s) {
+              archiveVisible.value = true;
+            } else if (scrollController.position.userScrollDirection == ScrollDirection.reverse &&
+                scrollController.offset > 30.0.s) {
+              archiveVisible.value = false;
+            }
+          }
+
+          scrollController.addListener(listener);
+
+          return () => scrollController.removeListener(listener);
+        }
+
+        return null;
+      },
+      const [],
+    );
 
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
