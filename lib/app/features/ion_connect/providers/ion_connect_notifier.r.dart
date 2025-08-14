@@ -302,7 +302,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     ActionType? actionType,
     ActionSource actionSource = const ActionSourceCurrentUser(),
     // In case if we request an entity with the search extension, multiple events are returned.
-    // To identity the needed one, entityEventReference might be user
+    // To identify the needed one, entityEventReference might be user
     EventReference? entityEventReference,
   }) async {
     final entitiesStream =
