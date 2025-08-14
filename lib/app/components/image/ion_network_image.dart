@@ -3,9 +3,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/placeholder/ion_placeholder.dart';
 
-class IonNetworkImage extends StatelessWidget {
+class IonNetworkImage extends HookWidget {
   IonNetworkImage({
     required this.imageUrl,
     super.key,
@@ -71,6 +72,8 @@ class IonNetworkImage extends StatelessWidget {
       memCacheHeight = cacheHeight?.toInt();
     }
 
+    final fetchError = useState<Object?>(null);
+
     if (borderRadius != null) {
       return DecoratedBox(
         decoration: BoxDecoration(
@@ -99,8 +102,22 @@ class IonNetworkImage extends StatelessWidget {
       fit: fit,
       alignment: alignment ?? Alignment.center,
       filterQuality: filterQuality ?? FilterQuality.medium,
-      placeholder: placeholder ?? (context, url) => const IonPlaceholder(),
-      errorListener: errorListener ?? (_) {},
+      placeholder: (context, url) {
+        final error = fetchError.value;
+        if (error != null) {
+          // Once any error is observed, always render the error widget here
+          // (avoids placeholder <-> error flicker across internal retries)
+          return errorWidget?.call(context, url, error) ?? const IonPlaceholder();
+        }
+        return placeholder?.call(context, url) ??
+            const IonPlaceholder(
+              isPlaceholder: true,
+            );
+      },
+      errorListener: (error) {
+        fetchError.value = error;
+        errorListener?.call(error);
+      },
       errorWidget: errorWidget ?? (context, url, error) => const IonPlaceholder(),
       fadeOutDuration: fadeOutDuration,
       fadeInDuration: fadeInDuration,
