@@ -200,7 +200,6 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     final dislikedRelaysUrls = <String>{};
     IonConnectRelay? triedRelay;
 
-
     yield* withRetryStream(
       ({error}) async* {
         triedRelay = null;
