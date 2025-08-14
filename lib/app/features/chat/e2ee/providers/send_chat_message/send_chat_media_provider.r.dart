@@ -94,10 +94,6 @@ class SendChatMedia extends _$SendChatMedia {
     final oneTimeEventSigner = await Ed25519KeyStore.generate();
     final env = ref.read(envProvider.notifier);
 
-    if (!MimeType.values.any((mimeType) => mimeType.value == mediaFile.mimeType)) {
-      throw UnsupportedError('Unsupported chat media mime type: ${mediaFile.mimeType}');
-    }
-
     final isVideo = mediaFile.mimeType == MimeType.video.value;
 
     var blurHash = await ref.read(generateBlurhashProvider(mediaFile));

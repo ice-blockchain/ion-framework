@@ -2,6 +2,7 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -24,7 +25,13 @@ class MediaUploadService {
   Future<({List<FileMetadata> fileMetadatas, MediaAttachment mediaAttachment})> uploadMedia(
     MediaFile mediaFile,
   ) async {
-    final mediaType = MediaType.fromMimeType(mediaFile.mimeType ?? '');
+    final mimeType = mediaFile.mimeType;
+    if (mimeType == null ||
+        !MimeType.values.any((supportedMimeType) => supportedMimeType.value == mimeType)) {
+      throw UnsupportedError('Unsupported media MIME type: $mimeType');
+    }
+
+    final mediaType = MediaType.fromMimeType(mimeType);
     switch (mediaType) {
       case MediaType.image:
         return uploadImage(mediaFile);
