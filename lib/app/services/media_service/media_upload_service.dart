@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
-import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -26,9 +26,8 @@ class MediaUploadService {
     MediaFile mediaFile,
   ) async {
     final mimeType = mediaFile.mimeType;
-    if (mimeType == null ||
-        !MimeType.values.any((supportedMimeType) => supportedMimeType.value == mimeType)) {
-      throw UnsupportedError('Unsupported media MIME type: $mimeType');
+    if (mimeType == null) {
+      throw FileUploadException('Failed to upload media, mimeType is null', url: mediaFile.path);
     }
 
     final mediaType = MediaType.fromMimeType(mimeType);
