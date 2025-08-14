@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -46,85 +47,133 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final archiveVisible = useState(false);
+    final isOverscrolling = useState(false);
+
     useScrollTopOnTabPress(context, scrollController: scrollController);
     final archivedConversations = ref.watch(archivedConversationsProvider);
     final isArchivedConversationsEmpty = archivedConversations.valueOrNull?.isEmpty ?? true;
 
     useOnInit(() {
-      scrollController.addListener(() {
-        if (scrollController.position.userScrollDirection == ScrollDirection.forward &&
-            scrollController.offset < -60.0.s) {
-          archiveVisible.value = true;
-        } else if (scrollController.position.userScrollDirection == ScrollDirection.reverse &&
-            scrollController.offset > 30.0.s) {
-          archiveVisible.value = false;
-        }
-      });
-
       _forceSyncUserMetadata(ref);
     });
 
-    return PullToRefreshBuilder(
-      sliverAppBar: CollapsingAppBar(
-        height: SearchInput.height,
-        topOffset: 0,
-        bottomOffset: 0,
-        child: FlexibleSpaceBar(
-          background: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => ChatQuickSearchRoute().push<void>(context),
-            child: const IgnorePointer(
-              child: SearchInput(),
-            ),
-          ),
-        ),
-      ),
-      slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsetsDirectional.only(top: 12.0.s),
-            child: const HorizontalSeparator(),
-          ),
-        ),
-        if (scrollController.hasClients && !isArchivedConversationsEmpty)
-          SliverToBoxAdapter(
-            child: AnimatedOpacity(
-              opacity: archiveVisible.value ? 1.0 : 0.0,
-              duration: 500.milliseconds,
-              child: archiveVisible.value ? const ArchiveChatTile() : const SizedBox.shrink(),
-            ),
-          ),
-        if (!isArchivedConversationsEmpty && conversations.isNotEmpty)
-          const SliverToBoxAdapter(
-            child: HorizontalSeparator(),
-          ),
-        ConversationList(conversations: conversations.where((c) => !c.isArchived).toList()),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsetsDirectional.only(bottom: 12.0.s),
-            child: const HorizontalSeparator(),
-          ),
-        ),
-      ],
-      onRefresh: () async {
-        final conversations = ref.read(conversationsProvider).valueOrNull ?? [];
-        for (final c in conversations) {
-          final receiverMasterPubkey =
-              c.receiverMasterPubkey(ref.read(currentPubkeySelectorProvider));
+    useEffect(
+      () {
+        if (Platform.isIOS) {
+          void listener() {
+            if (scrollController.position.userScrollDirection == ScrollDirection.forward &&
+                scrollController.offset < -60.0.s) {
+              archiveVisible.value = true;
+            } else if (scrollController.position.userScrollDirection == ScrollDirection.reverse &&
+                scrollController.offset > 30.0.s) {
+              archiveVisible.value = false;
+            }
+          }
 
-          if (receiverMasterPubkey != null) {
-            ref.invalidate(isUserDeletedProvider(receiverMasterPubkey));
+          scrollController.addListener(listener);
+
+          return () => scrollController.removeListener(listener);
+        }
+
+        return null;
+      },
+      const [],
+    );
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (Platform.isAndroid) {
+          // Only process if we have archived conversations
+          if (isArchivedConversationsEmpty) return false;
+
+          if (notification is ScrollStartNotification) {
+            // Reset overscroll state when starting a new scroll
+            isOverscrolling.value = false;
+          } else if (notification is OverscrollNotification) {
+            // User is overscrolling at the top
+            if (notification.overscroll < 0) {
+              isOverscrolling.value = true;
+              archiveVisible.value = true;
+            }
+          } else if (notification is ScrollUpdateNotification) {
+            // Hide archive when scrolling down in normal content
+            if (notification.scrollDelta != null &&
+                notification.scrollDelta! > 0 &&
+                !isOverscrolling.value) {
+              archiveVisible.value = false;
+            }
+          } else if (notification is ScrollEndNotification) {
+            // If we end scroll and we're not overscrolling, hide archive
+            if (!isOverscrolling.value || (notification.metrics.pixels > 0)) {
+              archiveVisible.value = false;
+            }
           }
         }
 
-        ref.invalidate(conversationsProvider);
-
-        await _forceSyncUserMetadata(ref);
+        return false;
       },
-      builder: (context, slivers) => CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        controller: scrollController,
-        slivers: slivers,
+      child: PullToRefreshBuilder(
+        sliverAppBar: CollapsingAppBar(
+          height: SearchInput.height,
+          topOffset: 0,
+          bottomOffset: 0,
+          child: FlexibleSpaceBar(
+            background: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => ChatQuickSearchRoute().push<void>(context),
+              child: const IgnorePointer(
+                child: SearchInput(),
+              ),
+            ),
+          ),
+        ),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsetsDirectional.only(top: 12.0.s),
+              child: const HorizontalSeparator(),
+            ),
+          ),
+          if (scrollController.hasClients && !isArchivedConversationsEmpty)
+            SliverToBoxAdapter(
+              child: AnimatedOpacity(
+                opacity: archiveVisible.value ? 1.0 : 0.0,
+                duration: 500.milliseconds,
+                child: archiveVisible.value ? const ArchiveChatTile() : const SizedBox.shrink(),
+              ),
+            ),
+          if (!isArchivedConversationsEmpty && conversations.isNotEmpty)
+            const SliverToBoxAdapter(
+              child: HorizontalSeparator(),
+            ),
+          ConversationList(conversations: conversations.where((c) => !c.isArchived).toList()),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsetsDirectional.only(bottom: 12.0.s),
+              child: const HorizontalSeparator(),
+            ),
+          ),
+        ],
+        onRefresh: () async {
+          final conversations = ref.read(conversationsProvider).valueOrNull ?? [];
+          for (final c in conversations) {
+            final receiverMasterPubkey =
+                c.receiverMasterPubkey(ref.read(currentPubkeySelectorProvider));
+
+            if (receiverMasterPubkey != null) {
+              ref.invalidate(isUserDeletedProvider(receiverMasterPubkey));
+            }
+          }
+
+          ref.invalidate(conversationsProvider);
+
+          await _forceSyncUserMetadata(ref);
+        },
+        builder: (context, slivers) => CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          controller: scrollController,
+          slivers: slivers,
+        ),
       ),
     );
   }

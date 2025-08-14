@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
@@ -94,26 +93,21 @@ class SharedPostMessage extends HookConsumerWidget {
           contentAsPlainText.isEmpty ? context.i18n.post_page_title : contentAsPlainText,
     );
 
-    final userInfo = Padding(
-      padding: EdgeInsetsDirectional.only(
-        start: ScreenSideOffset.defaultSmallMargin,
-      ),
-      child: UserInfo(
-        accentTheme: isMe,
-        createdAt: createdAt,
-        pubkey: postEntity.masterPubkey,
-        textStyle: isMe
-            ? context.theme.appTextThemes.caption.copyWith(
-                color: context.theme.appColors.onPrimaryAccent,
-              )
-            : null,
-      ),
+    final userInfo = UserInfo(
+      accentTheme: isMe,
+      createdAt: createdAt,
+      pubkey: postEntity.masterPubkey,
+      textStyle: isMe
+          ? context.theme.appTextThemes.caption.copyWith(
+              color: context.theme.appColors.onPrimaryAccent,
+            )
+          : null,
     );
     return MessageItemWrapper(
       isMe: isMe,
       margin: margin,
       messageItem: messageItem,
-      contentPadding: EdgeInsets.symmetric(horizontal: 0.0.s, vertical: 8.0.s),
+      contentPadding: EdgeInsets.symmetric(horizontal: 0.0.s, vertical: 12.0.s),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -123,15 +117,12 @@ class SharedPostMessage extends HookConsumerWidget {
                   ArticleDetailsRoute(eventReference: postEntity.toEventReference().encode())
                       .push<void>(context),
               behavior: HitTestBehavior.opaque,
-              child: Padding(
-                padding: EdgeInsetsDirectional.only(end: 12.0.s, top: 4.0.s, bottom: 4.0.s),
-                child: Article(
-                  header:
-                      Padding(padding: EdgeInsetsDirectional.only(bottom: 10.0.s), child: userInfo),
-                  accentTheme: isMe,
-                  footer: const SizedBox.shrink(),
-                  eventReference: postEntity.toEventReference(),
-                ),
+              child: Article(
+                header:
+                    Padding(padding: EdgeInsetsDirectional.only(bottom: 10.0.s), child: userInfo),
+                accentTheme: isMe,
+                footer: const SizedBox.shrink(),
+                eventReference: postEntity.toEventReference(),
               ),
             )
           else
@@ -140,7 +131,8 @@ class SharedPostMessage extends HookConsumerWidget {
                   .push<void>(context),
               behavior: HitTestBehavior.opaque,
               child: Post(
-                header: userInfo,
+                header:
+                    Padding(padding: EdgeInsetsDirectional.only(start: 14.0.s), child: userInfo),
                 accentTheme: isMe,
                 footer: const SizedBox.shrink(),
                 eventReference: postEntity.toEventReference(),
@@ -148,7 +140,7 @@ class SharedPostMessage extends HookConsumerWidget {
               ),
             ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 0.0.s),
+            padding: EdgeInsets.symmetric(horizontal: 14.0.s, vertical: 0.0.s),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

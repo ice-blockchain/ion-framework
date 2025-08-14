@@ -191,7 +191,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
 
   Stream<EventMessage> requestEvents(
     RequestMessage requestMessage, {
-    ActionType? actionType = ActionType.read,
+    ActionType? actionType,
     ActionSource actionSource = const ActionSourceCurrentUser(),
     Stream<RelayMessage> Function(RequestMessage requestMessage, NostrRelay relay)?
         subscriptionBuilder,
@@ -212,7 +212,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
               )
             : await ref.read(relayPickerProvider.notifier).getActionSourceRelay(
                   actionSource,
-                  actionType: actionType!,
+                  actionType: actionType ?? ActionType.read,
                   dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
                 );
         triedRelay = relay;
@@ -302,7 +302,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     ActionType? actionType,
     ActionSource actionSource = const ActionSourceCurrentUser(),
     // In case if we request an entity with the search extension, multiple events are returned.
-    // To identity the needed one, entityEventReference might be user
+    // To identify the needed one, entityEventReference might be user
     EventReference? entityEventReference,
   }) async {
     final entitiesStream =
