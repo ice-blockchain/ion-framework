@@ -120,20 +120,6 @@ class MediaEncryptionService {
     }
   }
 
-  Future<List<EncryptedMediaFile>> encryptMediaFiles(
-    List<MediaFile> compressedMediaFiles,
-  ) async {
-    final encryptedFiles = <EncryptedMediaFile>[];
-
-    for (final compressedMediaFile in compressedMediaFiles) {
-      final encryptedMediaFile = await encryptMediaFile(compressedMediaFile);
-
-      encryptedFiles.add(encryptedMediaFile);
-    }
-
-    return encryptedFiles;
-  }
-
   Future<EncryptedMediaFile> encryptMediaFile(
     MediaFile mediaFile,
   ) async {
