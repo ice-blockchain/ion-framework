@@ -3,6 +3,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:ion/app/services/logger/logger.dart';
+
 /// Connectivity status enum compatible with previous usage.
 enum InternetStatus { connected, disconnected }
 
@@ -50,6 +52,7 @@ class InternetConnectionChecker {
     final currentStatus = await _currentStatus();
 
     if (_lastStatus != currentStatus) {
+      Logger.info('[Internet] status changed: ${currentStatus.name}');
       _statusStreamController.add(currentStatus);
     }
 
@@ -71,15 +74,25 @@ class InternetConnectionChecker {
   }
 
   Future<bool> _dialHost(InternetCheckOption option) async {
+    final host = _extractHost(option.host);
+    Logger.info(
+      '[Internet] dial start: $host:${option.port} (timeout ${option.timeout.inSeconds}s)',
+    );
     try {
       final socket = await Socket.connect(
-        _extractHost(option.host),
+        host,
         option.port,
         timeout: option.timeout,
       );
       await socket.close();
+      Logger.info('[Internet] dial success: $host:${option.port}');
       return true;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: '[Internet] dial failed: $host:${option.port}',
+      );
       return false;
     }
   }
@@ -94,6 +107,7 @@ class InternetConnectionChecker {
 
   void _handleStatusChangeCancel() {
     if (_statusStreamController.hasListener) return;
+    Logger.info('[Internet] stop listening, cancelling timer');
     _timerHandle?.cancel();
     _timerHandle = null;
     _lastStatus = null;

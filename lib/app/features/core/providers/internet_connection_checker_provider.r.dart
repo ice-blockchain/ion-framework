@@ -2,6 +2,7 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/services/internet_connection_checker.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'internet_connection_checker_provider.r.g.dart';
@@ -17,6 +18,9 @@ InternetConnectionChecker internetConnectionChecker(Ref ref) {
     InternetCheckOption(host: '64.6.64.6'), // Comodo
   ];
 
+  Logger.info(
+    '[Internet] creating checker; interval=${checkInterval.inSeconds}s, hosts=${hosts.map((h) => h.host).toList()}',
+  );
   return InternetConnectionChecker.createInstance(
     checkInterval: checkInterval,
     options: hosts,
