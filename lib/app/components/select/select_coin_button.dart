@@ -64,7 +64,7 @@ class _NoCoinSelected extends StatelessWidget {
   }
 }
 
-class _HasCoinSelected extends HookConsumerWidget {
+class _HasCoinSelected extends ConsumerWidget {
   const _HasCoinSelected({
     required this.selectedCoin,
     required this.enabled,

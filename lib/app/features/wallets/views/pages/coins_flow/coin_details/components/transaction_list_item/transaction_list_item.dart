@@ -16,7 +16,7 @@ import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
 
-class TransactionListItem extends HookConsumerWidget {
+class TransactionListItem extends ConsumerWidget {
   const TransactionListItem({
     required this.transactionData,
     required this.coinData,
