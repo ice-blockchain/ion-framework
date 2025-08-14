@@ -107,6 +107,16 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
         ),
       ],
       onRefresh: () async {
+        final conversations = ref.read(conversationsProvider).valueOrNull ?? [];
+        for (final c in conversations) {
+          final receiverMasterPubkey =
+              c.receiverMasterPubkey(ref.read(currentPubkeySelectorProvider));
+
+          if (receiverMasterPubkey != null) {
+            ref.invalidate(isUserDeletedProvider(receiverMasterPubkey));
+          }
+        }
+
         ref.invalidate(conversationsProvider);
 
         await _forceSyncUserMetadata(ref);

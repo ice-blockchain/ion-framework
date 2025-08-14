@@ -191,6 +191,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
 
   Stream<EventMessage> requestEvents(
     RequestMessage requestMessage, {
+    ActionType? actionType = ActionType.read,
     ActionSource actionSource = const ActionSourceCurrentUser(),
     Stream<RelayMessage> Function(RequestMessage requestMessage, NostrRelay relay)?
         subscriptionBuilder,
@@ -211,7 +212,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
               )
             : await ref.read(relayPickerProvider.notifier).getActionSourceRelay(
                   actionSource,
-                  actionType: ActionType.read,
+                  actionType: actionType!,
                   dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
                 );
         triedRelay = relay;
@@ -283,9 +284,11 @@ class IonConnectNotifier extends _$IonConnectNotifier {
 
   Stream<T> requestEntities<T extends IonConnectEntity>(
     RequestMessage requestMessage, {
+    ActionType? actionType,
     ActionSource actionSource = const ActionSourceCurrentUser(),
   }) async* {
-    await for (final event in requestEvents(requestMessage, actionSource: actionSource)) {
+    await for (final event
+        in requestEvents(requestMessage, actionType: actionType, actionSource: actionSource)) {
       try {
         yield _parseAndCache(event) as T;
       } catch (error, stackTrace) {
@@ -296,12 +299,14 @@ class IonConnectNotifier extends _$IonConnectNotifier {
 
   Future<T?> requestEntity<T extends IonConnectEntity>(
     RequestMessage requestMessage, {
+    ActionType? actionType,
     ActionSource actionSource = const ActionSourceCurrentUser(),
     // In case if we request an entity with the search extension, multiple events are returned.
     // To identity the needed one, entityEventReference might be user
     EventReference? entityEventReference,
   }) async {
-    final entitiesStream = requestEntities<T>(requestMessage, actionSource: actionSource);
+    final entitiesStream =
+        requestEntities<T>(requestMessage, actionType: actionType, actionSource: actionSource);
 
     final entities = await entitiesStream.toList();
     return entities.isNotEmpty
