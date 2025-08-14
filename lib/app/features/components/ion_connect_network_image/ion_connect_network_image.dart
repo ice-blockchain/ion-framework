@@ -69,7 +69,7 @@ class IonConnectNetworkImage extends ConsumerWidget {
       fadeInDuration: fadeInDuration ?? Duration.zero,
       fadeOutDuration: fadeOutDuration ?? Duration.zero,
       borderRadius: borderRadius,
-      errorListener: (error) {
+      errorListener: (_) {
         if (ref.context.mounted) {
           ref.read(iONConnectMediaUrlFallbackProvider.notifier).generateFallback(
                 imageUrl,
