@@ -3,12 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
+import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 import 'package:ion/app/features/wallets/providers/selected_wallet_view_id_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/wallet_icon.dart';
 import 'package:ion/app/utils/num.dart';
@@ -26,6 +28,7 @@ class WalletTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedWalletId = ref.watch(currentWalletViewIdProvider).valueOrNull;
     final isSelected = walletData.id == selectedWalletId;
+    final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
@@ -43,7 +46,7 @@ class WalletTile extends ConsumerWidget {
           walletData.name,
         ),
         subtitle: Text(
-          formatToCurrency(walletData.usdBalance),
+          isBalanceVisible ? formatToCurrency(walletData.usdBalance) : StringConstants.obfuscated,
           style: context.theme.appTextThemes.caption3.copyWith(
             color: isSelected
                 ? context.theme.appColors.onPrimaryAccent

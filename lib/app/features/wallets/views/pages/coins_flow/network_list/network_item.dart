@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
+import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
@@ -50,12 +51,14 @@ class NetworkItem extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            isBalanceVisible ? formatCrypto(coinInWallet.amount) : '****',
+            isBalanceVisible ? formatCrypto(coinInWallet.amount) : StringConstants.obfuscated,
             style: context.theme.appTextThemes.body
                 .copyWith(color: context.theme.appColors.primaryText),
           ),
           Text(
-            isBalanceVisible ? formatToCurrency(coinInWallet.balanceUSD) : '******',
+            isBalanceVisible
+                ? formatToCurrency(coinInWallet.balanceUSD)
+                : StringConstants.obfuscated,
             style: context.theme.appTextThemes.caption3
                 .copyWith(color: context.theme.appColors.secondaryText),
           ),

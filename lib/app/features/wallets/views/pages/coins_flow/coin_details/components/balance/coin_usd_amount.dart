@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
@@ -22,11 +23,17 @@ class CoinUsdAmount extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final coinText = '${formatCrypto(coinsGroup.totalAmount)} ${coinsGroup.abbreviation}';
-    final usdText = context.i18n.wallet_approximate_in_usd(
-      formatUSD(coinsGroup.totalBalanceUSD),
-    );
     final displayOrder = ref.watch(balanceDisplayOrderProvider);
+    final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
+
+    final coinText = isBalanceVisible
+        ? '${formatCrypto(coinsGroup.totalAmount)} ${coinsGroup.abbreviation}'
+        : StringConstants.obfuscated;
+    final usdText = isBalanceVisible
+        ? context.i18n.wallet_approximate_in_usd(
+            formatUSD(coinsGroup.totalBalanceUSD),
+          )
+        : StringConstants.obfuscated;
 
     return Column(
       children: [
