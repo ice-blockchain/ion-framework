@@ -103,7 +103,6 @@ dependencies:
   hooks_riverpod: ^2.6.1
   icloud_storage: ^2.2.0
   image_cropper: ^8.1.0
-  internet_connection_checker_plus: ^2.7.1
   intl: any
   ion_identity_client:
     path: packages/ion_identity_client
