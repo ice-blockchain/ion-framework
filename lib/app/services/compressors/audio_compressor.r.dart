@@ -59,6 +59,7 @@ class AudioCompressor implements Compressor<AudioCompressionSettings> {
         return MediaFile(
           path: outputPath,
           mimeType: MimeType.audio.value,
+          originalMimeType: file.originalMimeType,
           width: 0,
           height: 0,
         );

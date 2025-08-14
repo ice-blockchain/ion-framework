@@ -155,6 +155,7 @@ class MediaEncryptionService {
           width: mediaFile.width,
           height: mediaFile.height,
           mimeType: MimeType.generic.value,
+          originalMimeType: mediaFile.originalMimeType,
           duration: mediaFile.duration,
         );
 

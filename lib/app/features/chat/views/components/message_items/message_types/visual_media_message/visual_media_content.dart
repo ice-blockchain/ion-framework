@@ -61,7 +61,8 @@ class VisualMediaContent extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final isVideo = MediaType.fromMimeType(mediaAttachment?.mimeType ?? '') == MediaType.video;
+    final isVideo =
+        MediaType.fromMimeType(mediaAttachment?.originalMimeType ?? '') == MediaType.video;
 
     return GestureDetector(
       onTap: () async {

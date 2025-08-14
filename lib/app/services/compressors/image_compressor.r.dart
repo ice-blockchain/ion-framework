@@ -126,6 +126,7 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
       return MediaFile(
         path: output,
         mimeType: mimeType,
+        originalMimeType: file.originalMimeType,
         width: outputDimension.width,
         height: outputDimension.height,
       );
