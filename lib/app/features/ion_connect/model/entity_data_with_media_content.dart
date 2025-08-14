@@ -20,7 +20,10 @@ mixin EntityDataWithMediaContent {
       media.values.firstWhereOrNull((media) => media.mediaType == MediaType.video);
 
   List<MediaAttachment> get visualMedias => media.values
-      .where((m) => m.mediaType == MediaType.image || m.mediaType == MediaType.video)
+      .where((m) => 
+          m.mediaType == MediaType.image || 
+          m.mediaType == MediaType.video ||
+          (m.isEncrypted && m.mediaType == MediaType.unknown),)
       .toList();
 
   List<MediaAttachment> get videos =>

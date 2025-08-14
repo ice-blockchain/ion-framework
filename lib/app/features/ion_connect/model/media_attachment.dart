@@ -168,6 +168,9 @@ class MediaAttachment {
 
   final String? blurhash;
 
+  /// Returns true if this media attachment is encrypted (has encryption metadata)
+  bool get isEncrypted => encryptionKey != null && encryptionNonce != null && encryptionMac != null;
+
   final int? duration;
 
   /// Calculates the aspect ratio from a given dimension string.
