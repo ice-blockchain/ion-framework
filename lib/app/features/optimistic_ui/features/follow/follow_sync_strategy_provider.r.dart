@@ -12,6 +12,7 @@ import 'package:ion/app/features/optimistic_ui/features/follow/follow_sync_strat
 import 'package:ion/app/features/optimistic_ui/features/follow/model/user_follow.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
+import 'package:ion/app/features/user/providers/followers_count_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -51,6 +52,7 @@ SyncStrategy<UserFollow> followSyncStrategy(Ref ref) {
           cache: false,
         ),
       ]);
+      ref.read(followersCountProvider(follow.pubkey).notifier).addOne();
     },
     deleteFollow: (follow) async {
       final followList = await ref.read(currentUserFollowListProvider.future);
@@ -95,6 +97,7 @@ SyncStrategy<UserFollow> followSyncStrategy(Ref ref) {
       final updatedFollowList = followList.data.copyWith(list: followees.toList());
       final updatedFollowEntity = followList.copyWith(data: updatedFollowList);
       ref.read(ionConnectCacheProvider.notifier).cache(updatedFollowEntity);
+      ref.read(followersCountProvider(pubkey).notifier).removeOne();
     },
   );
 }
