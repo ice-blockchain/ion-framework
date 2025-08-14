@@ -7,8 +7,8 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
-import 'package:ion/app/features/wallets/data/repository/networks_repository.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
+import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/manage_coins/providers/manage_coins_provider.r.dart';
@@ -39,7 +39,7 @@ class WalletPage extends HookConsumerWidget {
     // Precache tier 1 network icons when wallet page opens
     useEffect(
       () {
-        ref.read(networksRepositoryProvider).getByFilters(tiers: [1]).then((networks) {
+        ref.read(networksByTierProvider(tier: 1).future).then((networks) {
           final iconUrls =
               networks.map((network) => network.image).where((url) => url.isNotEmpty).toList();
           if (iconUrls.isNotEmpty) {
