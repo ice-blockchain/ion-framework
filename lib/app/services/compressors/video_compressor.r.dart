@@ -123,6 +123,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       return MediaFile(
         path: output,
         mimeType: MimeType.video.value,
+        originalMimeType: file.originalMimeType,
         width: outWidth,
         height: outHeight,
         duration: file.duration,

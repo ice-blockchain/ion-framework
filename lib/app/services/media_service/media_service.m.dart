@@ -35,6 +35,7 @@ class MediaFile with _$MediaFile {
     int? width,
     int? height,
     String? mimeType,
+    String? originalMimeType,
     String? thumb,
     String? blurhash,
     int? duration,

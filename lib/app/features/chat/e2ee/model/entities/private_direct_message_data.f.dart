@@ -11,6 +11,7 @@ import 'package:ion/app/features/chat/community/models/entities/tags/master_pubk
 import 'package:ion/app/features/chat/model/group_subject.f.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/entity_data_with_encrypted_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_parent.dart';
 import 'package:ion/app/features/ion_connect/model/entity_editing_ended_at.f.dart';
@@ -64,7 +65,7 @@ class ReplaceablePrivateDirectMessageEntity
 @freezed
 class ReplaceablePrivateDirectMessageData
     with
-        EntityDataWithMediaContent,
+        EntityDataWithEncryptedMediaContent,
         EntityDataWithRelatedEvents<RelatedReplaceableEvent>,
         _$ReplaceablePrivateDirectMessageData
     implements EventSerializable, ReplaceableEntityData {

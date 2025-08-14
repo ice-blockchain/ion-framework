@@ -95,6 +95,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     final fileMetadata = FileMetadata.fromUploadResponseTags(
       response.nip94Event.tags,
       mimeType: file.mimeType,
+      originalMimeType: file.originalMimeType,
     );
 
     final mediaAttachment = MediaAttachment(
@@ -105,6 +106,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
       alt: alt,
       thumb: fileMetadata.thumb,
       duration: file.duration,
+      originalMimeType: fileMetadata.originalMimeType,
     );
 
     return (fileMetadata: fileMetadata, mediaAttachment: mediaAttachment);
