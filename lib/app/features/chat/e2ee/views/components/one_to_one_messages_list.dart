@@ -121,7 +121,7 @@ class OneToOneMessageList extends HookConsumerWidget {
                 },
                 // Add item extent estimation for better scroll performance
                 extentEstimation: (index, dimensions) {
-                  if (index == null || index >= allMessages.length) return 60.0; // Default height
+                  if (index == null || index >= allMessages.length) return 60.0.s; // Default height
                   final message = allMessages[index];
                   final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(message);
 
