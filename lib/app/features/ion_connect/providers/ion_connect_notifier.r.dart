@@ -212,7 +212,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
               )
             : await ref.read(relayPickerProvider.notifier).getActionSourceRelay(
                   actionSource,
-                  actionType: actionType!,
+                  actionType: ActionType.read,
                   dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
                 );
         triedRelay = relay;
