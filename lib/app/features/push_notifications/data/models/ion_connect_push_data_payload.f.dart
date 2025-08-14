@@ -160,19 +160,27 @@ class IonConnectPushDataPayload {
   ) {
     final mediaItems = message.data.media.values.toList();
 
-    if (mediaItems.every((media) => media.mediaType == MediaType.image)) {
+    if (mediaItems
+        .every((media) => (media.mediaTypeEncrypted ?? media.mediaType) == MediaType.image)) {
       if (mediaItems.length == 1) {
-        final isGif = mediaItems.first.mimeType.contains('gif');
+        final mimeType = mediaItems.first.originalMimeType ?? mediaItems.first.mimeType;
+        final isGif = mimeType.contains('gif');
         return isGif ? PushNotificationType.chatGifMessage : PushNotificationType.chatPhotoMessage;
       } else {
-        final isGif = mediaItems.every((media) => media.mimeType.contains('gif'));
+        final isGif =
+            mediaItems.every((media) => (media.originalMimeType ?? media.mimeType).contains('gif'));
         return isGif
             ? PushNotificationType.chatMultiGifMessage
             : PushNotificationType.chatMultiPhotoMessage;
       }
-    } else if (mediaItems.any((media) => media.mediaType == MediaType.video)) {
-      final videoItems = mediaItems.where((media) => media.mediaType == MediaType.video).toList();
-      final thumbItems = mediaItems.where((media) => media.mediaType == MediaType.image).toList();
+    } else if (mediaItems
+        .any((media) => (media.mediaTypeEncrypted ?? media.mediaType) == MediaType.video)) {
+      final videoItems = mediaItems
+          .where((media) => (media.mediaTypeEncrypted ?? media.mediaType) == MediaType.video)
+          .toList();
+      final thumbItems = mediaItems
+          .where((media) => (media.mediaTypeEncrypted ?? media.mediaType) == MediaType.image)
+          .toList();
 
       if (videoItems.length == 1 && thumbItems.length == 1) {
         return PushNotificationType.chatVideoMessage;
