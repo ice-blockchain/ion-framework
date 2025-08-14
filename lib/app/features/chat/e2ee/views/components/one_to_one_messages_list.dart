@@ -91,7 +91,7 @@ class OneToOneMessageList extends HookConsumerWidget {
           animateToItem(replyMessageIndex);
         }
       },
-      [allMessages, animateToItem], // Optimized dependencies
+      [allMessages, scrollController, listController], // Optimized dependencies
     );
 
     return NotificationListener<ScrollUpdateNotification>(
