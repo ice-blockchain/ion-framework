@@ -24,6 +24,7 @@ import 'package:ion/app/features/gallery/data/models/camera_state.f.dart';
 import 'package:ion/app/features/gallery/providers/camera_provider.r.dart';
 import 'package:ion/app/features/user/providers/image_proccessor_notifier.m.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/media_service/banuba_service.r.dart';
 import 'package:ion/app/services/media_service/image_proccessing_config.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -157,9 +158,17 @@ class StoryRecordPage extends HookConsumerWidget {
             .editExternalPhoto(file.path, resumeCamera: false);
 
         if (edited != null && edited != file.path && context.mounted) {
+          // Banuba returns edited image as png so we need to compress it to webp
+          final compressedImage = await ref.read(imageCompressorProvider).compress(
+                MediaFile(path: edited),
+                settings: ImageCompressionSettings(
+                  quality: ImageProcessingType.story.config.quality,
+                ),
+              );
+
           final result = await StoryPreviewRoute(
-            path: edited,
-            mimeType: file.mimeType,
+            path: compressedImage.path,
+            mimeType: compressedImage.mimeType,
             fromEditor: true,
             originalFilePath: file.path,
           ).push<StoryPreviewResult>(context);
