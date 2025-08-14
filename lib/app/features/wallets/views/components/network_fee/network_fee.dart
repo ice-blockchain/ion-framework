@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/model/network_fee_option.f.dart';
-import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
+import 'package:ion/app/features/wallets/views/components/info_block_button.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
-import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/utils/num.dart';
-import 'package:ion/generated/assets.gen.dart';
 
 class NetworkFeeOptionWidget extends StatelessWidget {
   const NetworkFeeOptionWidget({
@@ -28,27 +26,11 @@ class NetworkFeeOptionWidget extends StatelessWidget {
             color: context.theme.appColors.primaryText,
           ),
         ),
-        GestureDetector(
-          onTap: () {
-            showSimpleBottomSheet<void>(
-              context: context,
-              child: const InfoModal(
-                infoType: InfoType.networkFee,
-              ),
-            );
-          },
-          child: Padding(
-            padding: EdgeInsetsDirectional.only(start: 6.0.s),
-            child: IconTheme(
-              data: IconThemeData(
-                size: 16.0.s,
-              ),
-              child: Assets.svg.iconBlockInformation.icon(
-                size: 16.0.s,
-                color: context.theme.appColors.tertiaryText,
-              ),
-            ),
-          ),
+        SizedBox(width: 6.s),
+        InfoBlockButton(
+          size: 16.s,
+          infoType: InfoType.networkFee,
+          color: context.theme.appColors.tertiaryText,
         ),
         const Spacer(),
         RichText(

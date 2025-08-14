@@ -68,7 +68,6 @@ class CoinAddressTile extends HookConsumerWidget {
                         context: ref.context,
                         child: const InfoModal(
                           infoType: InfoType.addressConfirmation,
-                          descriptionTextAlign: TextAlign.center,
                         ),
                       ),
                       child: Assets.svg.iconBlockInformation.icon(size: 20.0.s),

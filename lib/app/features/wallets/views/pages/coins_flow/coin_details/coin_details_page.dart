@@ -15,9 +15,11 @@ import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
 import 'package:ion/app/features/wallets/model/coin_transaction_data.f.dart';
+import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
 import 'package:ion/app/features/wallets/providers/transaction_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
+import 'package:ion/app/features/wallets/views/components/info_block_button.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/balance/balance.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/empty_state/empty_state.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/transaction_list_header.dart';
@@ -66,6 +68,11 @@ class CoinDetailsPage extends HookConsumerWidget {
       [history, context],
     );
 
+    final containsTier2Network = useMemoized(
+      () => coinsGroup.coins.any((coin) => coin.coin.network.tier != 1),
+      [coinsGroup],
+    );
+
     return Scaffold(
       appBar: NavigationAppBar.screen(
         title: Row(
@@ -75,6 +82,12 @@ class CoinDetailsPage extends HookConsumerWidget {
             CoinIconWidget(imageUrl: coinsGroup.iconUrl, type: WalletItemIconType.medium()),
             SizedBox(width: 6.0.s),
             Text(coinsGroup.name),
+            if (containsTier2Network) ...[
+              SizedBox(width: 2.0.s),
+              const InfoBlockButton(
+                infoType: InfoType.transactionsInTier2Network,
+              ),
+            ],
           ],
         ),
       ),
