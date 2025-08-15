@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:cached_video_player_plus/cached_video_player_plus.dart';
@@ -29,6 +30,33 @@ class NetworkVideosCacheManager {
       stalePeriod: const Duration(days: 1),
     ),
   );
+}
+
+/// Limits how many video controllers are initialized concurrently.
+class _ConcurrencyGate {
+  _ConcurrencyGate(this.max);
+
+  final int max;
+  int _inFlight = 0;
+  final Queue<Completer<void>> _queue = Queue();
+
+  Future<void> acquire() {
+    if (_inFlight < max) {
+      _inFlight++;
+      return Future.value();
+    }
+    final c = Completer<void>();
+    _queue.add(c);
+    return c.future;
+  }
+
+  void release() {
+    if (_queue.isNotEmpty) {
+      _queue.removeFirst().complete();
+    } else {
+      _inFlight = (_inFlight - 1).clamp(0, max);
+    }
+  }
 }
 
 @immutable
@@ -85,15 +113,16 @@ class VideoController extends _$VideoController {
         }
         await Future.wait([
           () async {
-            if (controller.value.isInitialized) {
+            try {
               await controller.dispose();
-            }
+            } catch (_) {}
           }(),
           () async {
-            if (_activeController != null &&
-                _activeController != controller &&
-                _activeController!.value.isInitialized) {
-              await _activeController!.dispose();
+            final prev = _activeController;
+            if (prev != null && prev != controller) {
+              try {
+                await prev.dispose();
+              } catch (_) {}
               _activeController = null;
             }
           }(),
@@ -179,6 +208,7 @@ class VideoPlayerControllerFactory {
   });
 
   final String sourcePath;
+  static final _initGate = _ConcurrencyGate(2); // limit parallel init to reduce MediaCodec pressure
 
   Future<VideoPlayerController> createController({
     VideoPlayerOptions? options,
@@ -186,30 +216,35 @@ class VideoPlayerControllerFactory {
   }) async {
     final videoPlayerOptions = options ?? VideoPlayerOptions();
 
-    final player = _getPlayer(videoPlayerOptions, forceNetworkDataSource.falseOrValue);
+    await _initGate.acquire();
     try {
-      await player.initialize();
-      return player.controller;
-    } catch (e, stackTrace) {
-      Logger.log(
-        'Error during video player initialization'
-        ' | dataSourceType: ${player.dataSourceType}'
-        ' | dataSource: ${player.dataSource}',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      if (player.dataSourceType == DataSourceType.file &&
-          e.runtimeType == PlatformException &&
-          forceNetworkDataSource != true) {
-        return createController(
-          options: options,
-          forceNetworkDataSource: true,
+      final player = _getPlayer(videoPlayerOptions, forceNetworkDataSource.falseOrValue);
+      try {
+        await player.initialize();
+        return player.controller;
+      } catch (e, stackTrace) {
+        Logger.log(
+          'Error during video player initialization'
+          ' | dataSourceType: ${player.dataSourceType}'
+          ' | dataSource: ${player.dataSource}',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        if (player.dataSourceType == DataSourceType.file &&
+            e.runtimeType == PlatformException &&
+            forceNetworkDataSource != true) {
+          return createController(
+            options: options,
+            forceNetworkDataSource: true,
+          );
+        }
+        throw FailedToInitVideoPlayer(
+          dataSource: player.dataSource,
+          dataSourceType: player.dataSourceType,
         );
       }
-      throw FailedToInitVideoPlayer(
-        dataSource: player.dataSource,
-        dataSourceType: player.dataSourceType,
-      );
+    } finally {
+      _initGate.release();
     }
   }
 
