@@ -26,6 +26,7 @@ class OptimisticOperationManager<T extends OptimisticModel> {
     required this.onError,
     required this.enableLocal,
     this.maxRetries = 3,
+    this.clearOnSuccessfulSync = false,
   })  : _state = [],
         _pending = Queue<OptimisticOperation<T>>();
 
@@ -33,6 +34,7 @@ class OptimisticOperationManager<T extends OptimisticModel> {
   final ErrorCallback onError;
   final int maxRetries;
   final bool enableLocal;
+  final bool clearOnSuccessfulSync;
 
   final _controller = StreamController<List<T>>.broadcast();
   Stream<List<T>> get stream => _controller.stream;
@@ -140,6 +142,12 @@ class OptimisticOperationManager<T extends OptimisticModel> {
         final currentLocalState =
             stateIndex != -1 ? _state[stateIndex] : optimisticOperation.optimisticState;
         await perform(previous: currentLocalState, optimistic: backendState);
+      } else if (clearOnSuccessfulSync) {
+        final index = _state.indexWhere((model) => model.optimisticId == backendState.optimisticId);
+        if (index != -1) {
+          _state.removeAt(index);
+          _controller.add(List.unmodifiable(_state));
+        }
       }
     } catch (error, stackTrace) {
       Logger.warning(
