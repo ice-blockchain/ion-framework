@@ -133,7 +133,7 @@ class _ContentCreationBlockedModal extends HookConsumerWidget {
                 onPressed: () async {
                   try {
                     isLoading.value = true;
-                    final _ = await ref.refresh(hasIonContentNftCollectionProvider.future);
+                    await invalidateCurrentUserMetadataProviders(ref);
                     await Future<void>.delayed(const Duration(milliseconds: 500));
                   } finally {
                     isLoading.value = false;
