@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -38,7 +39,8 @@ bool shouldShowFriendsList(Ref ref) {
 }
 
 @riverpod
-bool shouldShowFriendsSection(Ref ref) {
+Future<bool> shouldShowFriendsSection(Ref ref) async {
+  await ref.debounce(duration: const Duration(milliseconds: 500));
   final shouldShowList = ref.watch(shouldShowFriendsListProvider);
   final shouldShowLoader = ref.watch(shouldShowFriendsLoaderProvider);
 
