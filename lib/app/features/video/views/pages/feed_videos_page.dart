@@ -21,12 +21,26 @@ class FeedVideosPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entities = ref.watch(feedPostsProvider.select((state) => state.items ?? {}));
+
+    final videoCount = entities
+        .where(
+          (entity) =>
+              ref.read(isVideoPostProvider(entity)) || ref.read(isVideoRepostProvider(entity)),
+        )
+        .length;
+
+    final state = ref.read(feedPostsProvider);
+    if (videoCount < 3 && state.hasMore) {
+      ref.read(feedPostsProvider.notifier).fetchEntitiesUntilVideo();
+    }
+
     return VideosVerticalScrollPage(
       eventReference: eventReference,
       initialMediaIndex: initialMediaIndex,
       framedEventReference: framedEventReference,
+      hasMore: state.hasMore,
       entities: entities,
-      onLoadMore: () => ref.read(feedPostsProvider.notifier).fetchEntities(),
+      onLoadMore: () => ref.read(feedPostsProvider.notifier).fetchEntitiesUntilVideo(),
     );
   }
 }
