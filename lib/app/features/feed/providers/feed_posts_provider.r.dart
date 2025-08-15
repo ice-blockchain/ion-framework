@@ -64,6 +64,24 @@ class FeedPosts extends _$FeedPosts with DelegatedPagedNotifier {
     };
   }
 
+  Future<void> fetchEntitiesUntilVideo() async {
+    while (true) {
+      final stateBefore = state;
+      final itemsCountBefore = stateBefore.items?.length ?? 0;
+      if (!stateBefore.hasMore) break;
+      await fetchEntities();
+      final stateAfter = state;
+      final itemsCountAfter = stateAfter.items?.length ?? 0;
+      if (itemsCountAfter <= itemsCountBefore) break;
+      final newItems = stateAfter.items?.skip(itemsCountBefore) ?? [];
+      final hasNewVideo = newItems.any(
+        (entity) =>
+            ref.read(isVideoPostProvider(entity)) || ref.read(isVideoRepostProvider(entity)),
+      );
+      if (hasNewVideo) break;
+    }
+  }
+
   bool _filterEntities(IonConnectEntity entity) {
     final currentCategory = ref.read(feedCurrentFilterProvider).category;
     return switch (currentCategory) {
