@@ -266,9 +266,6 @@ class FakeFollowingFeedSeenEventsRepository implements FollowingFeedSeenEventsRe
   @override
   Future<void> deleteEvents({
     required FeedType feedType,
-    required List<String> retainPubkeys,
-    required int until,
-    FeedModifier? feedModifier,
   }) {
     throw UnimplementedError();
   }

@@ -186,21 +186,8 @@ class SeenEventsDao extends DatabaseAccessor<FollowingFeedDatabase> with _$SeenE
 
   Future<void> deleteEvents({
     required FeedType feedType,
-    required List<String> retainPubkeys,
-    required int until,
-    FeedModifier? feedModifier,
   }) async {
-    final query = delete(db.seenEventsTable)
-      ..where((tbl) => tbl.feedType.equalsValue(feedType))
-      ..where(
-        (tbl) => tbl.feedModifier.equals(const FeedModifierConverter().toSql(feedModifier)),
-      )
-      ..where(
-        (tbl) => Expression.or([
-          tbl.createdAt.isSmallerThanValue(until.toMicroseconds),
-          tbl.pubkey.isNotIn(retainPubkeys),
-        ]),
-      );
+    final query = delete(db.seenEventsTable)..where((tbl) => tbl.feedType.equalsValue(feedType));
     await query.go();
   }
 
