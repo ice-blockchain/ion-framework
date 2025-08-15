@@ -51,6 +51,19 @@ int countFromCache(
   );
 }
 
+@riverpod
+void invalidateAllReactionCaches(Ref ref) {
+  final cache = ref.read(ionConnectCacheProvider);
+  final reactionKeys = cache.keys.where((key) => 
+    key.contains('EventCountResult') && key.contains('reactions'),
+  ).toList();
+  
+  final cacheNotifier = ref.read(ionConnectCacheProvider.notifier);
+  for (final key in reactionKeys) {
+    cacheNotifier.remove(key);
+  }
+}
+
 /// Service for updating quote counters using optimistic UI
 class QuoteCounterUpdater {
   QuoteCounterUpdater({
