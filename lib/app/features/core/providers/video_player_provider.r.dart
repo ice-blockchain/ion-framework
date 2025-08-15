@@ -208,7 +208,8 @@ class VideoPlayerControllerFactory {
   });
 
   final String sourcePath;
-  static final _initGate = _ConcurrencyGate(2); // limit parallel init to reduce MediaCodec pressure
+  static final _initGate = _ConcurrencyGate(2);
+  static const _maxCodecAttempts = 3;
 
   Future<VideoPlayerController> createController({
     VideoPlayerOptions? options,
@@ -218,31 +219,57 @@ class VideoPlayerControllerFactory {
 
     await _initGate.acquire();
     try {
-      final player = _getPlayer(videoPlayerOptions, forceNetworkDataSource.falseOrValue);
-      try {
-        await player.initialize();
-        return player.controller;
-      } catch (e, stackTrace) {
-        Logger.log(
-          'Error during video player initialization'
-          ' | dataSourceType: ${player.dataSourceType}'
-          ' | dataSource: ${player.dataSource}',
-          error: e,
-          stackTrace: stackTrace,
-        );
-        if (player.dataSourceType == DataSourceType.file &&
-            e.runtimeType == PlatformException &&
-            forceNetworkDataSource != true) {
-          return createController(
-            options: options,
-            forceNetworkDataSource: true,
+      var backoff = const Duration(milliseconds: 300);
+      CachedVideoPlayerPlus? player;
+      DataSourceType? lastType;
+      String? lastSource;
+
+      for (var attempt = 0; attempt < _maxCodecAttempts; attempt++) {
+        // Recreate player each attempt to force a fresh decoder allocation.
+        player = _getPlayer(videoPlayerOptions, forceNetworkDataSource.falseOrValue);
+        lastType = player.dataSourceType;
+        lastSource = player.dataSource;
+        try {
+          await player.initialize();
+          return player.controller;
+        } catch (e, stackTrace) {
+          Logger.log(
+            'Error during video player initialization (attempt=${attempt + 1})'
+            ' | dataSourceType: $lastType'
+            ' | dataSource: $lastSource',
+            error: e,
+            stackTrace: stackTrace,
           );
+          try {
+            await player.dispose();
+          } catch (_) {}
+
+          if (_isMediaCodecInitError(e) && attempt < _maxCodecAttempts - 1) {
+            await Future<void>.delayed(backoff);
+            // Exponential backoff with cap ~2s
+            final nextMs = (backoff.inMilliseconds * 2).clamp(300, 2000);
+            backoff = Duration(milliseconds: nextMs);
+            continue;
+          }
+
+          // If local file path fails, try forcing network once.
+          if (lastType == DataSourceType.file &&
+              e is PlatformException &&
+              forceNetworkDataSource != true) {
+            return createController(
+              options: options,
+              forceNetworkDataSource: true,
+            );
+          }
+
+          break;
         }
-        throw FailedToInitVideoPlayer(
-          dataSource: player.dataSource,
-          dataSourceType: player.dataSourceType,
-        );
       }
+
+      throw FailedToInitVideoPlayer(
+        dataSource: lastSource ?? 'unknown',
+        dataSourceType: lastType ?? DataSourceType.network,
+      );
     } finally {
       _initGate.release();
     }
@@ -276,6 +303,14 @@ class VideoPlayerControllerFactory {
 
   bool _isLocalFile(String path) {
     return !kIsWeb && File(path).existsSync();
+  }
+
+  /// Detect MediaCodec/decoder init errors from platform exceptions.
+  bool _isMediaCodecInitError(Object e) {
+    if (e is! PlatformException) return false;
+    final msg = e.message ?? '';
+    // Typical ExoPlayer messages: "MediaCodecVideoRenderer error", "Decoder init failed"
+    return msg.contains('MediaCodecVideoRenderer') || msg.contains('Decoder init');
   }
 }
 
