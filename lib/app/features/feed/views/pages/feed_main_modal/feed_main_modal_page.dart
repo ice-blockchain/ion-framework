@@ -15,6 +15,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/permissions/data/models/permissions_types.dart';
 import 'package:ion/app/features/core/permissions/views/components/permission_aware_widget.dart';
 import 'package:ion/app/features/core/permissions/views/components/permission_dialogs/permission_sheets.dart';
+import 'package:ion/app/features/core/views/pages/error_modal.dart';
 import 'package:ion/app/features/feed/constants/video_constants.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/nft/sync/nft_collection_sync_controller.r.dart';
@@ -41,10 +42,17 @@ class FeedMainModalPage extends ConsumerWidget {
     return SheetContent(
       backgroundColor: context.theme.appColors.secondaryBackground,
       topPadding: 0.0.s,
-      body: hasNftCollectionState.maybeWhen(
-        data: (hasNftCollection) =>
-            hasNftCollection ? const _CreateContentModal() : const _ContentCreationBlockedModal(),
-        orElse: () => const _CreateContentLoadingModal(),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        switchInCurve: Curves.easeIn,
+        switchOutCurve: Curves.easeOut,
+        child: hasNftCollectionState.when(
+          data: (hasContentNftCollection) => hasContentNftCollection
+              ? const _CreateContentModal()
+              : const _ContentCreationBlockedModal(),
+          loading: () => const _CreateContentLoadingModal(),
+          error: (error, __) => ErrorModal(error: error),
+        ),
       ),
     );
   }
@@ -88,7 +96,6 @@ class _CreateContentModal extends StatelessWidget {
   }
 }
 
-// ignore: unused_element
 class _ContentCreationBlockedModal extends HookConsumerWidget {
   const _ContentCreationBlockedModal();
 
@@ -148,18 +155,26 @@ class _ContentCreationBlockedModal extends HookConsumerWidget {
   }
 }
 
-// ignore: unused_element
 class _CreateContentLoadingModal extends StatelessWidget {
   const _CreateContentLoadingModal();
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(height: 375.s);
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: 333.s),
+      child: const Center(
+        child: IONLoadingIndicatorThemed(),
+      ),
+    );
   }
 }
 
 class _SharePostButton extends HookConsumerWidget {
-  const _SharePostButton({required this.type, required this.index});
+  const _SharePostButton({
+    required this.type,
+    required this.index,
+  });
+
   final MainModalListItem type;
   final int index;
 
