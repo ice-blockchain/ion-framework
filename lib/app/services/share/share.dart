@@ -10,11 +10,13 @@ void shareContent(String text, {String? subject}) {
 }
 
 Future<void> shareFile(String path, {String name = ''}) {
+  final bytes = File(path).readAsBytesSync();
+
   return Share.shareXFiles(
     [
       XFile.fromData(
-        File(path).readAsBytesSync(),
-        mimeType: lookupMimeType(name),
+        bytes,
+        mimeType: lookupMimeType(path, headerBytes: bytes),
         name: name,
       ),
     ],

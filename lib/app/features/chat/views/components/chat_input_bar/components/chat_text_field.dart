@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
 class ChatTextField extends HookConsumerWidget {
@@ -76,7 +77,7 @@ class ChatTextField extends HookConsumerWidget {
         ),
       ),
       contentInsertionConfiguration: ContentInsertionConfiguration(
-        allowedMimeTypes: ['image/gif'],
+        allowedMimeTypes: [LocalMimeType.gif.value],
         onContentInserted: onGifInsertedByAndroidKeyboard,
       ),
     );

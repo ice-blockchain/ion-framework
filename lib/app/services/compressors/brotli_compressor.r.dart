@@ -6,6 +6,7 @@ import 'package:es_compression/brotli.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/services/compressors/compressor.r.dart';
 import 'package:ion/app/services/compressors/output_path_generator.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -40,9 +41,10 @@ class BrotliCompressor implements Compressor<BrotliCompressionSettings> {
             bytes: compressedData,
             extension: 'br',
             outputFilePath: arg.outputFilePath,
+            originalMimeType: arg.originalMimeType,
           );
         },
-        (path: file.path, outputFilePath: outputFilePath),
+        (path: file.path, outputFilePath: outputFilePath, originalMimeType: file.originalMimeType),
       );
     } catch (error, stackTrace) {
       Logger.log('Error during Brotli compression!', error: error, stackTrace: stackTrace);
@@ -69,7 +71,7 @@ class BrotliCompressor implements Compressor<BrotliCompressionSettings> {
         (
           compressedData: compressedData,
           outputFilePath: outputFilePath,
-          outputExtension: outputExtension
+          outputExtension: outputExtension,
         ),
       );
     } catch (error, stackTrace) {
@@ -82,13 +84,15 @@ class BrotliCompressor implements Compressor<BrotliCompressionSettings> {
     required List<int> bytes,
     required String extension,
     required String outputFilePath,
+    String? originalMimeType,
   }) async {
     final outputFile = File(outputFilePath);
     await outputFile.writeAsBytes(bytes);
 
     return MediaFile(
       path: outputFilePath,
-      mimeType: 'application/brotli',
+      mimeType: MimeType.brotli.value,
+      originalMimeType: originalMimeType,
       width: 0,
       height: 0,
     );

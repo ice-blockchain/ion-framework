@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:collection/collection.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:ion/app/features/core/model/mime_type.dart' as ion;
 import 'package:ion/app/features/core/permissions/data/models/permissions_types.dart';
 import 'package:ion/app/features/core/permissions/providers/permissions_provider.r.dart';
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
@@ -274,7 +275,7 @@ class CameraControllerNotifier extends _$CameraControllerNotifier {
                 ext: '.mp4',
               );
 
-              return XFile(path, mimeType: 'video/mp4');
+              return XFile(path, mimeType: ion.MimeType.video.value);
             }
 
             return videoFile;

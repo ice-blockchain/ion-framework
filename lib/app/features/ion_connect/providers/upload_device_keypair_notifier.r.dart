@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
@@ -132,7 +133,7 @@ class UploadDeviceKeypairNotifier extends _$UploadDeviceKeypairNotifier {
 
     final mediaFile = MediaFile(
       path: tempFile.path,
-      mimeType: 'application/octet-stream',
+      mimeType: MimeType.generic.value,
     );
 
     try {

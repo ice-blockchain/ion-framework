@@ -67,6 +67,9 @@ class SendE2eeChatMessageService {
     List<MediaFile> mediaFiles = const [],
     Map<String, List<String>>? failedParticipantsMasterPubkeys,
   }) async {
+    final preparedMediaFiles =
+        mediaFiles.map((e) => e.copyWith(originalMimeType: e.mimeType)).toList();
+
     EventMessage? sentMessage;
 
     final sharedId = editedMessage?.sharedId ?? failedEventMessage?.sharedId ?? generateUuid();
@@ -109,7 +112,7 @@ class SendE2eeChatMessageService {
         editingEndedAt: editingEndedAt,
         conversationId: conversationId,
         media: {
-          for (final attachment in mediaFiles.map(MediaAttachment.fromMediaFile))
+          for (final attachment in preparedMediaFiles.map(MediaAttachment.fromMediaFile))
             attachment.url: attachment,
         },
         masterPubkey: currentUserMasterPubkey,
@@ -128,13 +131,13 @@ class SendE2eeChatMessageService {
       sentMessage = localEventMessage;
 
       final messageMediaIds = await _addDbEntities(
-        mediaFiles: mediaFiles,
+        mediaFiles: preparedMediaFiles,
         eventReference: eventReference,
         localEventMessage: localEventMessage,
       );
 
       final mediaAttachmentsUsersBased = await _sendMediaFiles(
-        mediaFiles: mediaFiles,
+        mediaFiles: preparedMediaFiles,
         messageMediaIds: messageMediaIds,
         eventReference: eventReference,
         participantsMasterPubkeys: participantsPubkeysMap.keys.toList(),
@@ -369,6 +372,7 @@ class SendE2eeChatMessageService {
           (media) => MediaFile(
             path: media.url,
             mimeType: media.mimeType,
+            originalMimeType: media.originalMimeType,
             height: media.dimension?.split('x').firstOrNull?.map(int.tryParse),
             width: media.dimension?.split('x').lastOrNull?.map(int.tryParse),
           ),
@@ -393,7 +397,7 @@ class SendE2eeChatMessageService {
     for (final mediaFile in mediaFiles) {
       final file = File(mediaFile.path);
       final fileName = generateUuid();
-      final isVideo = MediaType.fromMimeType(mediaFile.mimeType ?? '') == MediaType.video;
+      final isVideo = MediaType.fromMimeType(mediaFile.originalMimeType ?? '') == MediaType.video;
 
       if (isVideo) {
         final thumb = await ref.read(videoCompressorProvider).getThumbnail(mediaFile);

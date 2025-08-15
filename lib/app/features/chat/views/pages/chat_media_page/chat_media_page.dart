@@ -181,7 +181,7 @@ class _MediaBottomOverlay extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final isVideo = medias[currentIndex].mediaType == MediaType.video;
+    final isVideo = medias[currentIndex].mediaTypeEncrypted == MediaType.video;
     final isMuted = ref.watch(globalMuteNotifierProvider);
 
     return PositionedDirectional(

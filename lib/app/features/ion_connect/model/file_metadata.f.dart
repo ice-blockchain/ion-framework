@@ -66,9 +66,14 @@ class FileMetadata with _$FileMetadata implements EventSerializable {
     String? image,
     String? summary,
     String? alt,
+    String? originalMimeType,
   }) = _FileMetadata;
 
-  factory FileMetadata.fromUploadResponseTags(List<List<String>> tags, {String? mimeType}) {
+  factory FileMetadata.fromUploadResponseTags(
+    List<List<String>> tags, {
+    String? mimeType,
+    String? originalMimeType,
+  }) {
     final values = tags.fold(<String, String>{}, (res, tags) {
       return {...res, tags[0]: tags[1]};
     });
@@ -89,6 +94,7 @@ class FileMetadata with _$FileMetadata implements EventSerializable {
       image: values['image'],
       summary: values['summary'],
       alt: values['alt'],
+      originalMimeType: values['om'] ?? originalMimeType,
     );
   }
 
@@ -106,6 +112,8 @@ class FileMetadata with _$FileMetadata implements EventSerializable {
     String? image;
     String? summary;
     String? alt;
+    String? originalMimeType;
+
     for (final tag in eventMessage.tags) {
       switch (tag[0]) {
         case 'url':
@@ -134,6 +142,8 @@ class FileMetadata with _$FileMetadata implements EventSerializable {
           summary = tag[1];
         case 'alt':
           alt = tag[1];
+        case 'om':
+          originalMimeType = tag[1];
       }
     }
 
@@ -160,6 +170,7 @@ class FileMetadata with _$FileMetadata implements EventSerializable {
       image: image,
       summary: summary,
       alt: alt,
+      originalMimeType: originalMimeType,
     );
   }
 
@@ -190,6 +201,7 @@ class FileMetadata with _$FileMetadata implements EventSerializable {
         if (image != null) ['image', image!],
         if (summary != null) ['summary', summary!],
         if (alt != null) ['alt', alt!],
+        if (originalMimeType != null) ['om', originalMimeType!],
       ],
       content: caption,
     );

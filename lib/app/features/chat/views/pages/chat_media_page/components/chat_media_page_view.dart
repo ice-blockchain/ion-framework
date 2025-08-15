@@ -121,7 +121,7 @@ class _ChatMediaItem extends HookConsumerWidget {
 
     final path = fileFuture.data!;
 
-    if (media.mediaType == MediaType.video) {
+    if (media.mediaTypeEncrypted == MediaType.video) {
       final playerController = ref
           .watch(
             videoControllerProvider(
