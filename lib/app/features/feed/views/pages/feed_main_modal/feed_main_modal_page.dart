@@ -37,16 +37,15 @@ class FeedMainModalPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hasNftCollectionState = ref.watch(hasIonContentNftCollectionProvider);
-    final body = hasNftCollectionState.whenOrNull(
-          data: (hasNftCollection) =>
-              hasNftCollection ? const _CreateContentModal() : const _ContentCreationBlockedModal(),
-        ) ??
-        const _CreateContentLoadingModal();
 
     return SheetContent(
       backgroundColor: context.theme.appColors.secondaryBackground,
       topPadding: 0.0.s,
-      body: body,
+      body: hasNftCollectionState.maybeWhen(
+        data: (hasNftCollection) =>
+            hasNftCollection ? const _CreateContentModal() : const _ContentCreationBlockedModal(),
+        orElse: () => const _CreateContentLoadingModal(),
+      ),
     );
   }
 }
