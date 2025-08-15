@@ -116,3 +116,24 @@ class UserMetadataFromDb extends _$UserMetadataFromDb {
     return null;
   }
 }
+
+Future<void> invalidateCurrentUserMetadataProviders(
+  WidgetRef ref, {
+  ActionType? actionType,
+}) async {
+  final pubkey = ref.read(currentPubkeySelectorProvider);
+  if (pubkey == null) {
+    return;
+  }
+
+  final _ = await ref.refresh(
+    ionConnectNetworkEntityProvider(
+      search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
+      actionType: actionType,
+      eventReference: ReplaceableEventReference(
+        masterPubkey: pubkey,
+        kind: UserMetadataEntity.kind,
+      ),
+    ).future,
+  );
+}

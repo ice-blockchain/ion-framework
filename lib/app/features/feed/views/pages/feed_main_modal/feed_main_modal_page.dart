@@ -20,9 +20,9 @@ import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/nft/sync/nft_collection_sync_controller.r.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_page.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
-import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/main_modal_item.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/router/model/main_modal_list_item.dart';
@@ -36,19 +36,16 @@ class FeedMainModalPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // TODO: gonna uncomment it later, when Backend will be ready
-    // final hasNftCollectionState = ref.watch(hasIonContentNftCollectionProvider);
-    // final body = hasNftCollectionState.whenOrNull(
-    //       data: (hasNftCollection) =>
-    //           hasNftCollection ? const _CreateContentModal() : const _ContentCreationBlockedModal(),
-    //     ) ??
-    //     const _CreateContentLoadingModal();
-    const body = _CreateContentModal();
+    final hasNftCollectionState = ref.watch(hasIonContentNftCollectionProvider);
 
     return SheetContent(
       backgroundColor: context.theme.appColors.secondaryBackground,
       topPadding: 0.0.s,
-      body: body,
+      body: hasNftCollectionState.maybeWhen(
+        data: (hasNftCollection) =>
+            hasNftCollection ? const _CreateContentModal() : const _ContentCreationBlockedModal(),
+        orElse: () => const _CreateContentLoadingModal(),
+      ),
     );
   }
 }
@@ -106,15 +103,10 @@ class _ContentCreationBlockedModal extends HookConsumerWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        NavigationAppBar.modal(
-          showBackButton: false,
-          actions: const [
-            NavigationCloseButton(),
-          ],
-        ),
         ScreenSideOffset.medium(
           child: Column(
             children: [
+              SizedBox(height: 24.s),
               Assets.svg.walleticonwalletemptypost.icon(size: 80.s),
               SizedBox(height: 10.s),
               Text(
@@ -140,7 +132,7 @@ class _ContentCreationBlockedModal extends HookConsumerWidget {
                 onPressed: () async {
                   try {
                     isLoading.value = true;
-                    final _ = await ref.refresh(hasIonContentNftCollectionProvider.future);
+                    await invalidateCurrentUserMetadataProviders(ref);
                     await Future<void>.delayed(const Duration(milliseconds: 500));
                   } finally {
                     isLoading.value = false;
