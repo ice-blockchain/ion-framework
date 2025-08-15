@@ -19,12 +19,14 @@ import 'package:ion/app/features/feed/data/repository/following_users_fetch_stat
 import 'package:ion/app/features/feed/providers/feed_config_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_data_source_builders.dart';
 import 'package:ion/app/features/feed/providers/feed_request_queue.r.dart';
+import 'package:ion/app/features/feed/providers/feed_selected_article_categories_provider.r.dart';
 import 'package:ion/app/features/feed/providers/relevant_users_to_fetch_service.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
@@ -327,6 +329,8 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
   }) async {
     final ionConnectNotifier = ref.read(ionConnectNotifierProvider.notifier);
 
+    final selectedArticleCategories = ref.read(feedSelectedArticleCategoriesProvider);
+
     final feedConfig = await ref.read(feedConfigProvider.future);
     final FeedEntitiesDataSource(:dataSource, :responseFilter) =
         _getDataSourceForPubkey(pubkey, feedConfig);
@@ -341,6 +345,11 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
         filter.copyWith(
           limit: () => 1,
           until: () => until,
+          tags: () => selectedArticleCategories.isEmpty
+              ? null
+              : {
+                  '#${RelatedHashtag.tagName}': selectedArticleCategories.toList(),
+                },
         ),
       );
     }

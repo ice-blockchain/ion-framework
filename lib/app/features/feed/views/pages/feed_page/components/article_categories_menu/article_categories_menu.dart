@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
+import 'package:ion/app/features/feed/data/repository/following_feed_seen_events_repository.r.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_selected_article_categories_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_selected_visible_article_categories_provider.r.dart';
@@ -67,7 +68,7 @@ class ArticleCategoriesMenu extends HookConsumerWidget {
     );
   }
 
-  void _toggleCategory(WidgetRef ref, String categoryKey) {
+  Future<void> _toggleCategory(WidgetRef ref, String categoryKey) async {
     final selectedSubcategoriesKeys = ref.read(feedSelectedArticleCategoriesProvider);
     final newCategories = selectedSubcategoriesKeys.toSet();
     if (newCategories.contains(categoryKey)) {
@@ -76,6 +77,9 @@ class ArticleCategoriesMenu extends HookConsumerWidget {
       newCategories.add(categoryKey);
     }
     ref.read(feedSelectedArticleCategoriesProvider.notifier).categories = newCategories;
+    await ref
+        .read(followingFeedSeenEventsRepositoryProvider)
+        .deleteEvents(feedType: FeedType.article);
     ref.read(feedPostsProvider.notifier).refresh();
   }
 }
