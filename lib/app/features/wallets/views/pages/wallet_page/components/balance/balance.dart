@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/skeleton/container_skeleton.dart';
+import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
@@ -56,7 +57,7 @@ class Balance extends ConsumerWidget {
             )
           else
             Text(
-              isBalanceVisible ? formatToCurrency(walletBalance) : '********',
+              isBalanceVisible ? formatToCurrency(walletBalance) : StringConstants.obfuscated,
               style: context.theme.appTextThemes.headline1
                   .copyWith(color: context.theme.appColors.primaryText),
             ),

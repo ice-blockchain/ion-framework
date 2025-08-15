@@ -1,19 +1,22 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/icons/network_icon_widget.dart';
 import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
+import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
+import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/transaction_list_item_leading_icon.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
 
-class TransactionListItem extends StatelessWidget {
+class TransactionListItem extends ConsumerWidget {
   const TransactionListItem({
     required this.transactionData,
     required this.coinData,
@@ -33,7 +36,15 @@ class TransactionListItem extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
+
+    final amountText =
+        isBalanceVisible ? formatCrypto(transactionData.coinAmount) : StringConstants.obfuscated;
+    final usdText = isBalanceVisible
+        ? context.i18n.wallet_approximate_in_usd(formatUSD(transactionData.usdAmount))
+        : StringConstants.obfuscated;
+
     return ListItem(
       onTap: onTap,
       title: Text(transactionData.transactionType.getDisplayName(context)),
@@ -60,17 +71,13 @@ class TransactionListItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            '${transactionData.transactionType.sign}'
-            '${formatCrypto(transactionData.coinAmount, '')}'
-            '${coinData.abbreviation}',
+            '${transactionData.transactionType.sign} $amountText ${coinData.abbreviation}',
             style: context.theme.appTextThemes.body.copyWith(
               color: _getTextColor(context),
             ),
           ),
           Text(
-            context.i18n.wallet_approximate_in_usd(
-              formatUSD(transactionData.usdAmount),
-            ),
+            usdText,
             style: context.theme.appTextThemes.caption3.copyWith(
               color: context.theme.appColors.secondaryText,
             ),

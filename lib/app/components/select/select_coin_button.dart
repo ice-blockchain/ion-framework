@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/icons/coin_icon.dart';
 import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/select/select_container.dart';
+import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
+import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -61,7 +64,7 @@ class _NoCoinSelected extends StatelessWidget {
   }
 }
 
-class _HasCoinSelected extends StatelessWidget {
+class _HasCoinSelected extends ConsumerWidget {
   const _HasCoinSelected({
     required this.selectedCoin,
     required this.enabled,
@@ -71,9 +74,10 @@ class _HasCoinSelected extends StatelessWidget {
   final bool enabled;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.appColors;
     final textTheme = context.theme.appTextThemes;
+    final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -106,11 +110,13 @@ class _HasCoinSelected extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  formatCrypto(selectedCoin.amount),
+                  isBalanceVisible ? formatCrypto(selectedCoin.amount) : StringConstants.obfuscated,
                   style: textTheme.body,
                 ),
                 Text(
-                  formatToCurrency(selectedCoin.balanceUSD),
+                  isBalanceVisible
+                      ? formatToCurrency(selectedCoin.balanceUSD)
+                      : StringConstants.obfuscated,
                   style: textTheme.caption3.copyWith(
                     color: colors.secondaryText,
                   ),

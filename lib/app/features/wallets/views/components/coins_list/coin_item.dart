@@ -6,6 +6,7 @@ import 'package:ion/app/components/icons/coin_icon.dart';
 import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/skeleton/container_skeleton.dart';
+import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
@@ -53,14 +54,18 @@ class CoinsGroupItem extends HookConsumerWidget {
                   ),
                 ),
               Text(
-                isBalanceVisible ? formatCrypto(coinsGroup.totalAmount) : '****',
+                isBalanceVisible
+                    ? formatCrypto(coinsGroup.totalAmount)
+                    : StringConstants.obfuscated,
                 style: context.theme.appTextThemes.body
                     .copyWith(color: context.theme.appColors.primaryText),
               ),
             ],
           ),
           Text(
-            isBalanceVisible ? formatToCurrency(coinsGroup.totalBalanceUSD) : '******',
+            isBalanceVisible
+                ? formatToCurrency(coinsGroup.totalBalanceUSD)
+                : StringConstants.obfuscated,
             style: context.theme.appTextThemes.caption3
                 .copyWith(color: context.theme.appColors.secondaryText),
           ),
