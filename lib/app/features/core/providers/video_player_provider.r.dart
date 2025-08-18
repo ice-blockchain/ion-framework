@@ -100,12 +100,20 @@ class VideoController extends _$VideoController {
           .select((state) => state[params.sourcePath] ?? params.sourcePath),
     );
 
+    // Cancellation signal for in-flight initialization (scroll off / dispose / refresh).
+    final cancelInit = Completer<void>();
+    ref.onCancel(() {
+      if (!cancelInit.isCompleted) cancelInit.complete();
+    });
+
     VoidCallback? onlyOneListener;
 
     try {
-      final controller = await ref
-          .watch(videoPlayerControllerFactoryProvider(sourcePath))
-          .createController(options: VideoPlayerOptions(mixWithOthers: true));
+      final controller =
+          await ref.watch(videoPlayerControllerFactoryProvider(sourcePath)).createController(
+                options: VideoPlayerOptions(mixWithOthers: true),
+                cancelToken: cancelInit,
+              );
 
       ref.onCancel(() async {
         if (onlyOneListener != null) {
@@ -184,12 +192,8 @@ class VideoController extends _$VideoController {
           onlyOneListener = () {
             if (controller.value.isPlaying) {
               final prev = VideoController._currentlyPlayingController;
-              if (prev != null && prev != controller && prev.value.isPlaying) {
-                try {
-                  prev.pause();
-                } catch (_) {
-                  // No-op: controller might have been disposed between check and call.
-                }
+              if (prev != null && prev != controller) {
+                prev.pause();
               }
               VideoController._currentlyPlayingController = controller;
             }
@@ -216,16 +220,23 @@ class VideoPlayerControllerFactory {
   });
 
   final String sourcePath;
-  static final _initGate = _ConcurrencyGate(2);
+  static final _initGate = _ConcurrencyGate(Platform.isAndroid ? 1 : 2);
   static const _maxRetryAttempts = 5;
 
   Future<VideoPlayerController> createController({
+    required Completer<void> cancelToken,
     VideoPlayerOptions? options,
     bool? forceNetworkDataSource,
   }) async {
     final videoPlayerOptions = options ?? VideoPlayerOptions();
 
     await _initGate.acquire();
+
+    // Give Android a tiny breather between controller init
+    if (Platform.isAndroid) {
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+    }
+
     try {
       var backoff = const Duration(milliseconds: 300);
       CachedVideoPlayerPlus? player;
@@ -237,8 +248,19 @@ class VideoPlayerControllerFactory {
         player = _getPlayer(videoPlayerOptions, forceNetworkDataSource.falseOrValue);
         lastType = player.dataSourceType;
         lastSource = player.dataSource;
+
+        // Early cancellation before starting the heavy work.
+        if (cancelToken.isCompleted) {
+          throw StateError('video_init_cancelled');
+        }
         try {
           await player.initialize();
+          if (cancelToken.isCompleted) {
+            try {
+              await player.dispose();
+            } catch (_) {}
+            throw StateError('video_init_cancelled');
+          }
           return player.controller;
         } catch (e, stackTrace) {
           Logger.log(
@@ -257,6 +279,7 @@ class VideoPlayerControllerFactory {
               e is PlatformException &&
               forceNetworkDataSource != true) {
             return createController(
+              cancelToken: cancelToken,
               options: options,
               forceNetworkDataSource: true,
             );

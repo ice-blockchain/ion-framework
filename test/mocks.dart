@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -115,6 +117,7 @@ class FakeVideoFactory extends VideoPlayerControllerFactory {
 
   @override
   Future<VideoPlayerController> createController({
+    required Completer<void> cancelToken,
     VideoPlayerOptions? options,
     bool? forceNetworkDataSource,
   }) async {
