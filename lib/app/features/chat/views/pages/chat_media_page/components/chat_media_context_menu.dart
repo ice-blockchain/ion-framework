@@ -52,7 +52,7 @@ class ChatMediaContextMenu extends HookConsumerWidget {
           file = File(activeMedia.url);
         }
 
-        switch (activeMedia.mediaType) {
+        switch (activeMedia.mediaTypeEncrypted ?? activeMedia.mediaType) {
           case MediaType.image:
             unawaited(ref.read(mediaServiceProvider).saveImageToGallery(file));
           case MediaType.video:

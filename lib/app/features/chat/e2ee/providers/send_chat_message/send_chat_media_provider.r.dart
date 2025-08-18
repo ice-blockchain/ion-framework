@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/compress_chat_media_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_expiration.f.dart';
@@ -93,8 +94,7 @@ class SendChatMedia extends _$SendChatMedia {
     final oneTimeEventSigner = await Ed25519KeyStore.generate();
     final env = ref.read(envProvider.notifier);
 
-    final isVideo = mediaFile.mimeType?.startsWith('video/') ?? false;
-    final isImage = mediaFile.mimeType?.startsWith('image/') ?? false;
+    final isVideo = mediaFile.mimeType == MimeType.video.value;
 
     var blurHash = await ref.read(generateBlurhashProvider(mediaFile));
     String? thumbUrl;
@@ -117,6 +117,7 @@ class SendChatMedia extends _$SendChatMedia {
           customEventSigner: oneTimeEventSigner,
         );
 
+    final isImage = mediaFile.mimeType == MimeType.image.value;
     if (isImage) {
       thumbUrl = uploadResult.mediaAttachment.url;
     }

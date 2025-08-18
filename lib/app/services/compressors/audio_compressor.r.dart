@@ -3,6 +3,7 @@
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/services/compressors/compress_executor.r.dart';
 import 'package:ion/app/services/compressors/compressor.r.dart';
 import 'package:ion/app/services/compressors/output_path_generator.dart';
@@ -57,7 +58,8 @@ class AudioCompressor implements Compressor<AudioCompressionSettings> {
       if (ReturnCode.isSuccess(returnCode)) {
         return MediaFile(
           path: outputPath,
-          mimeType: 'audio/ogg',
+          mimeType: MimeType.audio.value,
+          originalMimeType: file.originalMimeType,
           width: 0,
           height: 0,
         );

@@ -8,6 +8,7 @@ import 'package:dio/dio.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/core/providers/dio_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_config_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
@@ -45,6 +46,12 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     EventSigner? customEventSigner,
     bool skipDimCheck = false,
   }) async {
+    // Validate that the MIME type is supported
+    final mimeType = file.mimeType;
+    if (mimeType != null && !MimeType.isSupported(mimeType)) {
+      throw UnsupportedError('Unsupported media MIME type: $mimeType');
+    }
+
     if (!skipDimCheck && (file.width == null || file.height == null)) {
       throw UnknownFileResolutionException('File dimensions are missing');
     }
@@ -89,6 +96,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     final fileMetadata = FileMetadata.fromUploadResponseTags(
       response.nip94Event.tags,
       mimeType: file.mimeType,
+      originalMimeType: file.originalMimeType,
     );
 
     final mediaAttachment = MediaAttachment(
@@ -99,6 +107,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
       alt: alt,
       thumb: fileMetadata.thumb,
       duration: file.duration,
+      originalMimeType: fileMetadata.originalMimeType,
     );
 
     return (fileMetadata: fileMetadata, mediaAttachment: mediaAttachment);

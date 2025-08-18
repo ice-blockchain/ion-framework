@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/utils/url.dart';
 import 'package:photo_manager/photo_manager.dart';
 
@@ -11,27 +12,26 @@ extension ImagePathExtension on String {
   bool get isNetworkSvg => isNetworkUrl(toLowerCase()) && isSvg;
 }
 
-Future<bool> isGifAsset(AssetEntity assetEntity) async {
-  if (assetEntity.mimeType == 'image/gif') {
-    return true;
+Future<File?> getAssetFile(AssetEntity assetEntity) async {
+  final isAnimated = await _isAnimatedAsset(assetEntity);
+
+  File? resultFile;
+  if (isAnimated) {
+    resultFile = await assetEntity.originFile;
+  } else {
+    resultFile = await assetEntity.file;
   }
 
-  final file = await assetEntity.originFile;
-  final path = file?.path;
-  if (path != null && path.isGif) {
-    return true;
-  }
-
-  return false;
+  return resultFile;
 }
 
-Future<bool> isAnimatedAsset(AssetEntity assetEntity) async {
-  final isGif = await isGifAsset(assetEntity);
+Future<bool> _isAnimatedAsset(AssetEntity assetEntity) async {
+  final isGif = await _isGifAsset(assetEntity);
   if (isGif) {
     return true;
   }
 
-  if (assetEntity.mimeType == 'image/webp') {
+  if (assetEntity.mimeType == MimeType.image.value) {
     return true;
   }
 
@@ -45,15 +45,16 @@ Future<bool> isAnimatedAsset(AssetEntity assetEntity) async {
   return false;
 }
 
-Future<File?> getAssetFile(AssetEntity assetEntity) async {
-  final isAnimated = await isAnimatedAsset(assetEntity);
-
-  File? resultFile;
-  if (isAnimated) {
-    resultFile = await assetEntity.originFile;
-  } else {
-    resultFile = await assetEntity.file;
+Future<bool> _isGifAsset(AssetEntity assetEntity) async {
+  if (assetEntity.mimeType == LocalMimeType.gif.value) {
+    return true;
   }
 
-  return resultFile;
+  final file = await assetEntity.originFile;
+  final path = file?.path;
+  if (path != null && path.isGif) {
+    return true;
+  }
+
+  return false;
 }

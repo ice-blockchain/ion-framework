@@ -451,30 +451,6 @@ class CreateArticle extends _$CreateArticle {
     );
   }
 
-  Future<String> getOriginalAssetPath(String assetId) async {
-    final assetEntity = await ref.read(assetEntityProvider(assetId).future);
-
-    if (assetEntity == null) {
-      throw AssetEntityFileNotFoundException(assetId: assetId);
-    }
-
-    final isGif = await isGifAsset(assetEntity);
-    if (isGif) {
-      final file = await assetEntity.originFile;
-      if (file == null) {
-        throw AssetEntityFileNotFoundException(assetId: assetId);
-      }
-      return file.path;
-    }
-
-    final defaultPath = await ref.read(assetFilePathProvider(assetId).future);
-    if (defaultPath == null || defaultPath.isEmpty) {
-      throw AssetEntityFileNotFoundException(assetId: assetId);
-    }
-
-    return defaultPath;
-  }
-
   Future<void> _updateInterests(ArticleEntity article) async {
     final tags = article.data.relatedHashtags ?? [];
     final interactionCategories = tags.map((tag) => tag.value).toList();

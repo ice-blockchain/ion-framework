@@ -8,19 +8,22 @@ struct MediaItem: Codable {
     let mediaType: MediaType
     let thumb: String?
     let mediaExt: String?
+    let originalMimeType: String?
 
     init(
         url: String,
         mimeType: String,
         dimension: String? = nil,
         thumb: String? = nil,
-        mediaExt: String? = nil
+        mediaExt: String? = nil,
+        originalMimeType: String? = nil
     ) {
         self.url = url
         self.mimeType = mimeType
-        self.mediaType = MediaType.fromMimeType(mimeType)
+        self.mediaType = MediaType.fromMimeType(originalMimeType ?? mimeType)
         self.thumb = thumb
         self.mediaExt = mediaExt
+        self.originalMimeType = originalMimeType
     }
 
     /// Parse a single imeta tag into a MediaItem
@@ -32,6 +35,7 @@ struct MediaItem: Codable {
 
         var url: String? = nil
         var mimeType: String? = nil
+        var originalMimeType: String? = nil
         var thumb: String? = nil
 
         // Skip the first element ("imeta") and parse the rest
@@ -49,6 +53,8 @@ struct MediaItem: Codable {
                 url = value
             case "m":
                 mimeType = value
+            case "om":
+                originalMimeType = value
             case "thumb":
                 thumb = value
             default:
@@ -65,7 +71,8 @@ struct MediaItem: Codable {
             url: url,
             mimeType: mimeType,
             thumb: thumb,
-            mediaExt: mimeType.split(separator: "/").last?.lowercased()
+            mediaExt: mimeType.split(separator: "/").last?.lowercased(),
+            originalMimeType: originalMimeType
         )
     }
 
