@@ -129,13 +129,15 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
     final Widget? titleWidget = title != null
         ? DefaultTextStyle(
             textAlign: TextAlign.center,
-            style: context.theme.appTextThemes.subtitle.copyWith(color: context.theme.appColors.primaryText),
+            style: context.theme.appTextThemes.subtitle
+                .copyWith(color: context.theme.appColors.primaryText),
             child: title!,
           )
         : null;
 
-    final effectiveTrailing =
-        actions != null && actions!.isNotEmpty ? Row(mainAxisSize: MainAxisSize.min, children: actions!) : null;
+    final effectiveTrailing = actions != null && actions!.isNotEmpty
+        ? Row(mainAxisSize: MainAxisSize.min, children: actions!)
+        : null;
 
     final Widget appBarContent = NavigationToolbar(
       middleSpacing: 0,
@@ -167,7 +169,8 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: horizontalPadding ?? ScreenSideOffset.defaultSmallMargin - UiConstants.hitSlop,
+          horizontal:
+              horizontalPadding ?? ScreenSideOffset.defaultSmallMargin - UiConstants.hitSlop,
         ),
         child: appBarContent,
       ),

@@ -44,7 +44,8 @@ class ProfilePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDeleted = ref.watch(isUserDeletedProvider(pubkey)).valueOrNull.falseOrValue;
-    final isBlockedOrBlockedBy = ref.watch(isBlockedOrBlockedByNotifierProvider(pubkey)).valueOrNull.falseOrValue;
+    final isBlockedOrBlockedBy =
+        ref.watch(isBlockedOrBlockedByNotifierProvider(pubkey)).valueOrNull.falseOrValue;
 
     if (isDeleted || isBlockedOrBlockedBy) {
       return const CantFindProfilePage();
