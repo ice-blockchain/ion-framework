@@ -121,6 +121,9 @@ class VideoController extends _$VideoController {
             final prev = _activeController;
             if (prev != null && prev != controller) {
               try {
+                if (identical(VideoController._currentlyPlayingController, prev)) {
+                  VideoController._currentlyPlayingController = null;
+                }
                 await prev.dispose();
               } catch (_) {}
               _activeController = null;
@@ -153,6 +156,9 @@ class VideoController extends _$VideoController {
           }
           WidgetsBinding.instance.addPostFrameCallback(
             (_) {
+              if (identical(VideoController._currentlyPlayingController, prevController)) {
+                VideoController._currentlyPlayingController = null;
+              }
               prevController.dispose();
             },
           );
@@ -178,9 +184,11 @@ class VideoController extends _$VideoController {
           onlyOneListener = () {
             if (controller.value.isPlaying) {
               final prev = VideoController._currentlyPlayingController;
-              if (prev != null && prev != controller) {
-                if (prev.value.isPlaying) {
+              if (prev != null && prev != controller && prev.value.isPlaying) {
+                try {
                   prev.pause();
+                } catch (_) {
+                  // No-op: controller might have been disposed between check and call.
                 }
               }
               VideoController._currentlyPlayingController = controller;
@@ -209,7 +217,7 @@ class VideoPlayerControllerFactory {
 
   final String sourcePath;
   static final _initGate = _ConcurrencyGate(2);
-  static const _maxCodecAttempts = 3;
+  static const _maxRetryAttempts = 5;
 
   Future<VideoPlayerController> createController({
     VideoPlayerOptions? options,
@@ -224,7 +232,7 @@ class VideoPlayerControllerFactory {
       DataSourceType? lastType;
       String? lastSource;
 
-      for (var attempt = 0; attempt < _maxCodecAttempts; attempt++) {
+      for (var attempt = 0; attempt < _maxRetryAttempts; attempt++) {
         // Recreate player each attempt to force a fresh decoder allocation.
         player = _getPlayer(videoPlayerOptions, forceNetworkDataSource.falseOrValue);
         lastType = player.dataSourceType;
@@ -244,14 +252,6 @@ class VideoPlayerControllerFactory {
             await player.dispose();
           } catch (_) {}
 
-          if (_isMediaCodecInitError(e) && attempt < _maxCodecAttempts - 1) {
-            await Future<void>.delayed(backoff);
-            // Exponential backoff with cap ~2s
-            final nextMs = (backoff.inMilliseconds * 2).clamp(300, 2000);
-            backoff = Duration(milliseconds: nextMs);
-            continue;
-          }
-
           // If local file path fails, try forcing network once.
           if (lastType == DataSourceType.file &&
               e is PlatformException &&
@@ -262,6 +262,12 @@ class VideoPlayerControllerFactory {
             );
           }
 
+          if (e is PlatformException) {
+            await Future<void>.delayed(backoff);
+            final nextMs = (backoff.inMilliseconds * 2).clamp(300, 3000);
+            backoff = Duration(milliseconds: nextMs);
+            continue;
+          }
           break;
         }
       }
@@ -283,6 +289,7 @@ class VideoPlayerControllerFactory {
       return CachedVideoPlayerPlus.networkUrl(
         _isLocalFile(sourcePath) ? Uri.file(sourcePath) : Uri.parse(sourcePath),
         videoPlayerOptions: videoPlayerOptions,
+        cacheKey: _cacheKeyFor(sourcePath),
         cacheManager: NetworkVideosCacheManager.instance,
       );
     } else if (_isLocalFile(sourcePath)) {
@@ -305,12 +312,14 @@ class VideoPlayerControllerFactory {
     return !kIsWeb && File(path).existsSync();
   }
 
-  /// Detect MediaCodec/decoder init errors from platform exceptions.
-  bool _isMediaCodecInitError(Object e) {
-    if (e is! PlatformException) return false;
-    final msg = e.message ?? '';
-    // Typical ExoPlayer messages: "MediaCodecVideoRenderer error", "Decoder init failed"
-    return msg.contains('MediaCodecVideoRenderer') || msg.contains('Decoder init');
+  String _cacheKeyFor(String input) {
+    try {
+      final u = Uri.parse(input);
+      return u.path;
+    } catch (_) {
+      // On parse issues, fall back to the original string.
+      return input;
+    }
   }
 }
 
