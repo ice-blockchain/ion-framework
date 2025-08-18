@@ -97,7 +97,7 @@ class CameraControllerNotifier extends _$CameraControllerNotifier {
   }
 
   Future<void> pauseCamera() async {
-    if (_cameraController != null) {
+    if (_cameraController != null && _cameraController!.value.isInitialized) {
       state = const CameraState.paused();
 
       Logger.log('Pausing camera - disposing controller');
