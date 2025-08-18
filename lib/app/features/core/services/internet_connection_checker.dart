@@ -66,11 +66,13 @@ class InternetConnectionChecker {
   }
 
   Future<bool> _hasInternetAccess() async {
-    final futures = _internetCheckOptions.map(_dialHost);
-    return Stream.fromFutures(futures).firstWhere(
-      (isSuccess) => isSuccess,
-      orElse: () => false,
-    );
+    for (final option in _internetCheckOptions) {
+      final isSuccess = await _dialHost(option);
+      if (isSuccess) {
+        return true;
+      }
+    }
+    return false;
   }
 
   Future<bool> _dialHost(InternetCheckOption option) async {
