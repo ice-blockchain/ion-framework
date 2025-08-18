@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
+import 'package:ion/app/features/feed/providers/feed_videos_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/video/views/pages/videos_vertical_scroll_page.dart';
 
@@ -20,7 +21,7 @@ class FeedVideosPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entities = ref.watch(feedPostsProvider.select((state) => state.items ?? {}));
+    final entities = ref.watch(feedVideosProvider.select((state) => state.items ?? {}));
 
     final videoCount = entities
         .where(
@@ -29,9 +30,11 @@ class FeedVideosPage extends HookConsumerWidget {
         )
         .length;
 
-    final state = ref.read(feedPostsProvider);
+    final state = ref.read(feedVideosProvider);
+    print('🔥 [d3g] FeedVideosPage videoCount: $videoCount');
     if (videoCount < 3 && state.hasMore) {
-      ref.read(feedPostsProvider.notifier).fetchEntitiesUntilVideo();
+      print('🔥 [d3g] FeedVideosPage fetchEntities');
+      ref.read(feedVideosProvider.notifier).fetchEntities();
     }
 
     return VideosVerticalScrollPage(
@@ -40,7 +43,7 @@ class FeedVideosPage extends HookConsumerWidget {
       framedEventReference: framedEventReference,
       hasMore: state.hasMore,
       entities: entities,
-      onLoadMore: () => ref.read(feedPostsProvider.notifier).fetchEntitiesUntilVideo(),
+      onLoadMore: () => ref.read(feedVideosProvider.notifier).fetchEntities(),
     );
   }
 }
