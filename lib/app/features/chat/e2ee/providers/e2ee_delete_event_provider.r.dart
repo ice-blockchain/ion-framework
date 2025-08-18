@@ -274,6 +274,7 @@ Future<void> _deleteConversations({
             if (pubkeys == null || pubkeys.isEmpty) {
               throw UserPubkeyNotFoundException(masterPubkey);
             }
+
             await Future.wait(
               pubkeys.map(
                 (pubkey) => ref.read(sendE2eeChatMessageServiceProvider).sendWrappedMessage(

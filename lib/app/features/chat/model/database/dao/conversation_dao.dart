@@ -125,6 +125,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
             ),
         ),
       )
+      ..where(conversationTable.isHidden.equals(false))
       ..addColumns([eventMessageTable.createdAt.max()])
       ..groupBy([conversationTable.id])
       ..distinct;
@@ -330,6 +331,8 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
         where: (table) => table.messageEventReference.isInValues(messageEventReference),
       );
     });
+
+    await unhideConversations(conversationIds);
   }
 
   Future<void> hideConversations(List<String> conversationsId) async {
