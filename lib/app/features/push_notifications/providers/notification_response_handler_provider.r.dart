@@ -12,15 +12,20 @@ part 'notification_response_handler_provider.r.g.dart';
 
 @Riverpod(keepAlive: true)
 class NotificationResponseHandler extends _$NotificationResponseHandler {
+  // Prevents multiple listeners from being added.
+  bool _isInitialized = false;
+
   @override
   void build() {
     final firebaseAppConfigured = ref.watch(configureFirebaseAppProvider).valueOrNull ?? false;
-    if (firebaseAppConfigured) {
+    if (firebaseAppConfigured && !_isInitialized) {
       _initialize();
     }
   }
 
   Future<void> _initialize() async {
+    _isInitialized = true;
+
     final firebaseMessagingService = ref.watch(firebaseMessagingServiceProvider);
     final localNotificationsService = await ref.watch(localNotificationsServiceProvider.future);
 
@@ -52,6 +57,7 @@ class NotificationResponseHandler extends _$NotificationResponseHandler {
     ref.onDispose(() {
       firebaseNotificationHandler.cancel();
       localNotificationHandler.cancel();
+      _isInitialized = false;
     });
   }
 
