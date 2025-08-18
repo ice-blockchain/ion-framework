@@ -9,7 +9,7 @@ part 'internet_connection_checker_provider.r.g.dart';
 
 @Riverpod(keepAlive: true)
 InternetConnectionChecker internetConnectionChecker(Ref ref) {
-  const checkInterval = Duration(seconds: 10);
+  const checkInterval = Duration(hours: 1);
   const hosts = [
     InternetCheckOption(host: '1.1.1.1'), // Cloudflare
     InternetCheckOption(host: '8.8.8.8'), // Google
