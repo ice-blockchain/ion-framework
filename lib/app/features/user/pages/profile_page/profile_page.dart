@@ -44,8 +44,7 @@ class ProfilePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDeleted = ref.watch(isUserDeletedProvider(pubkey)).valueOrNull.falseOrValue;
-    final isBlockedOrBlockedBy =
-        ref.watch(isBlockedOrBlockedByNotifierProvider(pubkey)).valueOrNull.falseOrValue;
+    final isBlockedOrBlockedBy = ref.watch(isBlockedOrBlockedByNotifierProvider(pubkey)).valueOrNull.falseOrValue;
 
     if (isDeleted || isBlockedOrBlockedBy) {
       return const CantFindProfilePage();
@@ -95,6 +94,11 @@ class ProfilePage extends HookConsumerWidget {
             );
       },
       [userMetadata.value?.cacheKey],
+    );
+
+    final backButtonIcon = Assets.svg.iconProfileBack.icon(
+      size: NavigationBackButton.iconSize,
+      flipForRtl: true,
     );
 
     return Scaffold(
@@ -154,6 +158,7 @@ class ProfilePage extends HookConsumerWidget {
               child: NavigationAppBar(
                 showBackButton: showBackButton,
                 useScreenTopOffset: true,
+                backButtonIcon: backButtonIcon,
                 scrollController: scrollController,
                 horizontalPadding: 0,
                 title: Header(
@@ -188,10 +193,7 @@ class ProfilePage extends HookConsumerWidget {
                 alignment: AlignmentDirectional.topStart,
                 child: NavigationBackButton(
                   context.pop,
-                  icon: Assets.svg.iconProfileBack.icon(
-                    size: NavigationBackButton.iconSize,
-                    flipForRtl: true,
-                  ),
+                  icon: backButtonIcon,
                 ),
               ),
           ],
