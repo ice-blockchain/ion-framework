@@ -52,20 +52,6 @@ int countFromCache(
   );
 }
 
-@riverpod
-void invalidateAllReactionCaches(Ref ref) {
-  final cache = ref.watch(ionConnectCacheProvider);
-  final reactionTypeString = EventCountResultType.reactions.toShortString();
-  final reactionKeys = cache.keys
-      .where((key) => key.endsWith(':$reactionTypeString'))
-      .toList();
-
-  final cacheNotifier = ref.watch(ionConnectCacheProvider.notifier);
-  for (final key in reactionKeys) {
-    cacheNotifier.remove(key);
-  }
-}
-
 /// Service for updating quote counters using optimistic UI
 class QuoteCounterUpdater {
   QuoteCounterUpdater({
@@ -74,6 +60,7 @@ class QuoteCounterUpdater {
     required this.getCurrentPostRepost,
     required this.findRepostInCache,
     required this.getRepostCounts,
+    required this.cacheKeys,
   });
 
   final OptimisticService<PostRepost> postRepostService;
@@ -81,6 +68,7 @@ class QuoteCounterUpdater {
   final PostRepost? Function(String id) getCurrentPostRepost;
   final PostRepost? Function(EventReference) findRepostInCache;
   final ({int repostsCount, int quotesCount}) Function(EventReference) getRepostCounts;
+  final List<String> cacheKeys;
 
   Future<void> updateQuoteCounter(
     EventReference quotedEvent, {
@@ -124,6 +112,15 @@ class QuoteCounterUpdater {
     removeCacheItem(repostsCacheKey);
     removeCacheItem(quotesCacheKey);
   }
+
+  void invalidateAllReactionCaches() {
+    final reactionTypeString = EventCountResultType.reactions.toShortString();
+    final reactionKeys = cacheKeys.where((key) => key.endsWith(':$reactionTypeString')).toList();
+
+    for (final key in reactionKeys) {
+      removeCacheItem(key);
+    }
+  }
 }
 
 @riverpod
@@ -134,5 +131,6 @@ QuoteCounterUpdater quoteCounterUpdater(Ref ref) {
     getCurrentPostRepost: (id) => ref.watch(postRepostWatchProvider(id)).valueOrNull,
     findRepostInCache: (eventRef) => ref.watch(findRepostInCacheProvider(eventRef)),
     getRepostCounts: (eventRef) => ref.watch(repostCountsFromCacheProvider(eventRef)),
+    cacheKeys: ref.watch(ionConnectCacheProvider).keys.toList(),
   );
 }
