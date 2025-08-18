@@ -47,8 +47,9 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     bool skipDimCheck = false,
   }) async {
     // Validate that the MIME type is supported
-    if (!MimeType.values.any((mimeType) => mimeType.value == file.mimeType)) {
-      throw UnsupportedError('Unsupported media MIME type: ${file.mimeType}');
+    final mimeType = file.mimeType;
+    if (mimeType != null && !MimeType.isSupported(mimeType)) {
+      throw UnsupportedError('Unsupported media MIME type: $mimeType');
     }
 
     if (!skipDimCheck && (file.width == null || file.height == null)) {

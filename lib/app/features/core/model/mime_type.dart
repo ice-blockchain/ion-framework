@@ -27,6 +27,12 @@ enum MimeType {
   const MimeType(this.value);
 
   final String value;
+
+  static final Set<String> _supportedValues = {
+    for (final mimeType in MimeType.values) mimeType.value,
+  };
+
+  static bool isSupported(String mimeType) => _supportedValues.contains(mimeType);
 }
 
 /// MIME types used internally within the app for local processing.
