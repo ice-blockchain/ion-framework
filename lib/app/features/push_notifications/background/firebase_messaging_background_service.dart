@@ -27,7 +27,7 @@ import 'package:ion/app/services/storage/local_storage.r.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  Logger.log('☁️ Background push notification received: ${message.data}');
+  Logger.log('☁️ Background push notification received: ${message.toMap()}');
   final backgroundContainer = ProviderContainer(
     observers: [Logger.talkerRiverpodObserver],
   );
