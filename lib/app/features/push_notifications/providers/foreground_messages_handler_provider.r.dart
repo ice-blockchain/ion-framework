@@ -32,7 +32,7 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage response) async {
-    Logger.log('☁️ Foreground push notification received: ${response.data}');
+    Logger.log('☁️ Foreground push notification received: ${response.toMap()}');
 
     final data = await IonConnectPushDataPayload.fromEncoded(
       response.data,

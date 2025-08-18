@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import FirebaseMessaging
 import UserNotifications
 
 class NotificationService: UNNotificationServiceExtension {
@@ -30,11 +29,8 @@ class NotificationService: UNNotificationServiceExtension {
             } catch {
                 NSLog("Failed to translate notification: \(error)")
             }
-
-            Messaging.serviceExtension().populateNotificationContent(
-                mutableNotificationContent,
-                withContentHandler: contentHandler
-            )
+            
+            contentHandler(mutableNotificationContent)
         }
     }
 
