@@ -110,12 +110,9 @@ class ChatDatabase extends _$ChatDatabase {
           );
         },
         from2To3: (Migrator m, Schema3 schema) async {
-          // Rename "isDeleted" column from ConversationTable to "isHidden"
-          await m.renameColumn(
-            schema.conversationTable,
-            'isDeleted',
-            schema.conversationTable.isHidden,
-          );
+          //  Rename "isDeleted" column from ConversationTable to "isHidden"
+          await m.dropColumn(schema.conversationTable, 'is_deleted');
+          await m.addColumn(schema.conversationTable, schema.conversationTable.isHidden);
         },
       ),
     );
