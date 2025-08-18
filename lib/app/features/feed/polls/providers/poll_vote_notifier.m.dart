@@ -14,6 +14,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -109,9 +110,16 @@ class PollVoteNotifier extends _$PollVoteNotifier {
         ],
       );
 
+      final metadataBuilders = <UserEventsMetadataBuilder>[];
+      if (pollEvent.masterPubkey != masterPubkey) {
+        final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
+        metadataBuilders.add(userEventsMetadataBuilder);
+      }
+
       final result = await ref.read(ionConnectNotifierProvider.notifier).sendEvent(
             voteEvent,
             actionSource: ActionSource.user(pollEvent.masterPubkey),
+            metadataBuilders: metadataBuilders,
           );
 
       final pollData = pollEvent is ModifiablePostEntity ? pollEvent.data.poll : null;
