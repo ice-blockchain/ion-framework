@@ -174,8 +174,7 @@ class MediaAttachment {
 
   late MediaType mediaType = _parseMediaType(url: url, mimeType: mimeType);
 
-  late MediaType? mediaTypeEncrypted =
-      originalMimeType != null ? MediaType.fromMimeType(originalMimeType!) : MediaType.unknown;
+  late MediaType? mediaTypeEncrypted = MediaType.fromMimeType(originalMimeType ?? mimeType);
 
   final String? blurhash;
 
