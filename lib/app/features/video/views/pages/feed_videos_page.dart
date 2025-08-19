@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
+import 'package:ion/app/features/feed/providers/feed_videos_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/video/views/pages/videos_vertical_scroll_page.dart';
 
 class FeedVideosPage extends HookConsumerWidget {
@@ -20,7 +23,13 @@ class FeedVideosPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entities = ref.watch(feedPostsProvider.select((state) => state.items ?? {}));
+    final post = ref.watch(feedPostsProvider.select((state) => state.items ?? {})).firstWhereOrNull(
+          (entity) => entity.toEventReference() == eventReference,
+        );
+    final entities = <IonConnectEntity>[
+      if (post != null) post,
+      ...ref.watch(feedVideosProvider.select((state) => state.items ?? {})),
+    ];
     return VideosVerticalScrollPage(
       eventReference: eventReference,
       initialMediaIndex: initialMediaIndex,
