@@ -11,6 +11,7 @@ import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_item_content.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_list.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_list_skeleton.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 
 class Stories extends HookConsumerWidget {
   const Stories({super.key});
@@ -23,6 +24,10 @@ class Stories extends HookConsumerWidget {
     final pubkeys = useMemoized(() => stories?.map((story) => story.pubkey).toSet() ?? {}, [
       stories,
     ]);
+
+    useOnInit(() {
+      ref.read(feedStoriesProvider.notifier).fetchEntities();
+    });
 
     return Column(
       children: [

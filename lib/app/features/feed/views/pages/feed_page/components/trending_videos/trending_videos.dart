@@ -16,6 +16,7 @@ import 'package:ion/app/features/feed/providers/feed_trending_videos_provider.r.
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/components/trending_videos_list.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/components/trending_videos_list_skeleton.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/components/video_icon.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
 class TrendingVideos extends HookConsumerWidget {
@@ -28,6 +29,10 @@ class TrendingVideos extends HookConsumerWidget {
     const listOverlay = TrendingVideosOverlay.vertical;
 
     final (:items, :hasMore) = ref.watch(feedTrendingVideosProvider);
+
+    useOnInit(() {
+      ref.read(feedTrendingVideosProvider.notifier).fetchEntities();
+    });
 
     final postItems = useMemoized(
       () {

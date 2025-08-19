@@ -45,11 +45,7 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
     FeedType feedType, {
     FeedModifier? feedModifier,
     bool fetchSeen = true,
-    bool autoFetch = true,
   }) {
-    if (autoFetch) {
-      Future.value(() => fetchEntities(microtask: true));
-    }
     return FeedFollowingContentState(
       items: null,
       isLoading: false,
@@ -59,11 +55,7 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
   }
 
   @override
-  Future<void> fetchEntities({bool microtask = false}) async {
-    if (microtask) {
-      Logger.info('$_logTag Fetching entities with microtask start');
-      return;
-    }
+  Future<void> fetchEntities() async {
     if (state.isLoading) return;
     state = state.copyWith(isLoading: true);
 
@@ -74,9 +66,6 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
       _ensureEmptyState();
     } finally {
       state = state.copyWith(isLoading: false);
-    }
-    if (microtask) {
-      Logger.info('$_logTag Fetching entities with microtask end');
     }
   }
 

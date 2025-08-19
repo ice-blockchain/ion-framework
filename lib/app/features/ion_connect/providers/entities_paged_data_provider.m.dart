@@ -105,7 +105,7 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
   @override
   EntitiesPagedDataState? build(List<EntitiesDataSource>? dataSources) {
     if (dataSources != null) {
-      Future.value(() => fetchEntities(microtask: true));
+      Future.value(fetchEntities);
 
       return EntitiesPagedDataState(
         data: Paged.data(
@@ -118,11 +118,7 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
   }
 
   @override
-  Future<void> fetchEntities({bool microtask = false}) async {
-    if (microtask) {
-      Logger.info('EntitiesPagedData Fetching entities with microtask start');
-      return;
-    }
+  Future<void> fetchEntities() async {
     final currentState = state;
     if (dataSources == null || currentState == null || currentState.data is PagedLoading) {
       return;
@@ -149,9 +145,6 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
     );
 
     await _handleMissingEvents(missingEvents, pendingInserts);
-    if (microtask) {
-      Logger.info('EntitiesPagedData Fetching entities with microtask end');
-    }
   }
 
   @override
