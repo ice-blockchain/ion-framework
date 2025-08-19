@@ -18,8 +18,11 @@ class IONConnectMediaUrlFallback extends _$IONConnectMediaUrlFallback {
   /// A map of pubkeys to failed assets hosts
   final Map<String, Set<String>> _failedHosts = {};
 
-  /// A map of pubkeys to Futures with updated pubkey relays (extra fallback)
-  final Map<String, List<Future<List<String>>>> _updatedRelays = {};
+  /// A map of pubkeys to Futures with identity pubkey relays (extra fallback)
+  ///
+  /// Storing Future instead of the result to avoid fetching the same relays multiple times
+  /// in case of multiple simultaneous requests for the same author.
+  final Map<String, Future<List<String>?>> _identityRelays = {};
 
   Future<String?> generateFallback(String initialAssetUrl, {required String authorPubkey}) async {
     if (!isNetworkUrl(initialAssetUrl)) {
@@ -28,32 +31,54 @@ class IONConnectMediaUrlFallback extends _$IONConnectMediaUrlFallback {
 
     final currentFallbackUrl = state[initialAssetUrl];
 
+    // Add the current asset URL host to the failed hosts to avoid retrying
+    // the same host in the future.
     _failedHosts
         .putIfAbsent(authorPubkey, () => {})
         .add(Uri.parse(currentFallbackUrl ?? initialAssetUrl).host);
 
-    final fallbackUrl =
-        await _getFallbackUrlFromAuthorRelays(initialAssetUrl, authorPubkey: authorPubkey);
+    // First trying to get a fallback URL from the cached user relays.
+    // If that fails, we try to get the fresh relays from the identity.
+    final fallbackUrl = await _getFallbackUrl(
+          initialAssetUrl,
+          userRelays: await _getCachedUserRelays(authorPubkey),
+          authorPubkey: authorPubkey,
+        ) ??
+        await _getFallbackUrl(
+          initialAssetUrl,
+          userRelays: await _getIdentityUserRelays(authorPubkey),
+          authorPubkey: authorPubkey,
+        );
 
     if (fallbackUrl != null) {
       state = {...state, initialAssetUrl: fallbackUrl};
       return fallbackUrl;
     }
 
-    // Extra step - if all current author relays have failed
-    // trying to refetch the relays from identity
     return null;
   }
 
-  Future<String?> _getFallbackUrlFromAuthorRelays(
-    String initialAssetUrl, {
-    required String authorPubkey,
-  }) async {
+  Future<List<String>?> _getIdentityUserRelays(String authorPubkey) async {
+    return _identityRelays.putIfAbsent(
+      authorPubkey,
+      () => ref.read(userRelaysManagerProvider.notifier).fetchRelaysFromIdentity(
+        [authorPubkey],
+      ).then((entities) => entities.firstOrNull?.urls),
+    );
+  }
+
+  Future<List<String>?> _getCachedUserRelays(String authorPubkey) async {
     final userRelayEntities =
         await ref.read(userRelaysManagerProvider.notifier).fetchReachableRelays([authorPubkey]);
 
-    final userRelays = userRelayEntities.firstOrNull?.urls;
+    return userRelayEntities.firstOrNull?.urls;
+  }
 
+  Future<String?> _getFallbackUrl(
+    String initialAssetUrl, {
+    required List<String>? userRelays,
+    required String authorPubkey,
+  }) async {
     if (userRelays == null || userRelays.isEmpty) {
       return null;
     }
