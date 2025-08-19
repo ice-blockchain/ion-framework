@@ -30,7 +30,7 @@ class AccountNotificationsModal extends HookConsumerWidget {
 
     useEffect(
       () {
-        Future.microtask(() async {
+        Future.value(() async {
           try {
             final initialNotifications =
                 await ref.refresh(userSpecificNotificationsProvider(userPubkey).future);

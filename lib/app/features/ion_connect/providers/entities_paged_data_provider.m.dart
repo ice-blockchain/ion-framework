@@ -16,7 +16,6 @@ import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'entities_paged_data_provider.m.freezed.dart';
-
 part 'entities_paged_data_provider.m.g.dart';
 
 abstract class PagedNotifier {
@@ -106,7 +105,7 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
   @override
   EntitiesPagedDataState? build(List<EntitiesDataSource>? dataSources) {
     if (dataSources != null) {
-      Future.microtask(fetchEntities);
+      Future.value(fetchEntities);
 
       return EntitiesPagedDataState(
         data: Paged.data(
