@@ -10,6 +10,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/user_notifications_type.dart';
 import 'package:ion/app/features/user/providers/user_specific_notifications_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class AccountNotificationsModal extends HookConsumerWidget {
@@ -30,7 +31,8 @@ class AccountNotificationsModal extends HookConsumerWidget {
 
     useEffect(
       () {
-        Future.microtask(() async {
+        Future.value(() async {
+          Logger.info('AccountNotificationsModal Fetching entities with microtask start');
           try {
             final initialNotifications =
                 await ref.refresh(userSpecificNotificationsProvider(userPubkey).future);
@@ -38,6 +40,7 @@ class AccountNotificationsModal extends HookConsumerWidget {
           } catch (error) {
             selectedOptions.value = <UserNotificationsType>{};
           }
+          Logger.info('AccountNotificationsModal Fetching entities with microtask end');
         });
         return null;
       },

@@ -23,6 +23,7 @@ class FeedPostsList extends HookConsumerWidget {
     // Prefetching mute list here so it can be used later with sync provider
     useOnInit(() {
       ref.read(mutedUsersProvider);
+      ref.read(feedPostsProvider.notifier).fetchEntities();
     });
 
     if (entities == null) {

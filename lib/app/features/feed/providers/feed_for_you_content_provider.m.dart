@@ -47,7 +47,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       ),
       noop,
     );
-    Future.microtask(fetchEntities);
+    Future.value(() => fetchEntities(microtask: true));
     return const FeedForYouContentState(
       items: null,
       isLoading: false,
@@ -58,7 +58,11 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }
 
   @override
-  Future<void> fetchEntities() async {
+  Future<void> fetchEntities({bool microtask = false}) async {
+    if (microtask) {
+      Logger.info('$_logTag Fetching entities with microtask start');
+      return;
+    }
     if (state.isLoading) return;
     state = state.copyWith(isLoading: true);
     try {
@@ -68,6 +72,9 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       _ensureEmptyState();
     } finally {
       state = state.copyWith(isLoading: false);
+    }
+    if (microtask) {
+      Logger.info('$_logTag Fetching entities with microtask end');
     }
   }
 
