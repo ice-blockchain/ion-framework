@@ -111,6 +111,8 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
         flattenedVideos.indexWhere((video) => video.entity.id == ionConnectEntity.id) +
             initialMediaIndex;
 
+    print('🔥 [d3g] initialPage: $initialPage, ionConnectEntity: ${ionConnectEntity.id}');
+
     final userPageController = usePageController(initialPage: initialPage);
     final currentEventReference = useState<EventReference>(eventReference);
 

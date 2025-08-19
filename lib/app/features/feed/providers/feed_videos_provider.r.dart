@@ -57,10 +57,13 @@ class FeedVideos extends _$FeedVideos with DelegatedPagedNotifier {
   Future<void> fetchEntities() async {
     final filter = ref.read(feedCurrentFilterProvider.select((state) => state.filter));
     // Try getting videos from posts provider instead
-    final notifier = feedForYouContentProvider(FeedType.video).notifier as FeedFollowingContent;
+    final notifier = ref.watch(feedForYouContentProvider(FeedType.video).notifier);
     print('🔥 [d3g] FeedVideos fetchEntities');
-    await notifier.fetchEntities();
-    print('🔥 [d3g] FeedVideos fetchEntities completed');
+    notifier.fetchEntities().then((value) {
+      this.build();
+      print('🔥 [d3g] FeedVideos fetchEntities completed');
+    });
+    // print('🔥 [d3g] FeedVideos fetchEntities completed');
 
     // final contentProvider = switch (filter) {
     //   FeedFilter.following => feedFollowingContentProvider(FeedType.video).notifier,

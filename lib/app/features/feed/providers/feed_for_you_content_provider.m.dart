@@ -59,14 +59,19 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   @override
   Future<void> fetchEntities() async {
+    print('🔥 [d3g] FeedForYouContent fetchEntities state.isLoading ${state.isLoading}');
     if (state.isLoading) return;
     state = state.copyWith(isLoading: true);
     try {
+      print('🔥 [d3g] FeedForYouContent fetchEntities requestEntities');
       await for (final entity in requestEntities(limit: feedType.pageSize)) {
+        print('🔥 [d3g] FeedForYouContent fetchEntities requestEntities entity ${entity.id}');
         state = state.copyWith(items: {...(state.items ?? {}), entity});
       }
+      print('🔥 [d3g] FeedForYouContent fetchEntities _ensureEmptyState');
       _ensureEmptyState();
     } finally {
+      print('🔥 [d3g] FeedForYouContent fetchEntities state.isLoading ${state.isLoading}');
       state = state.copyWith(isLoading: false);
     }
   }

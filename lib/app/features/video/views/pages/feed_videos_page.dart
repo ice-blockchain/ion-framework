@@ -20,27 +20,28 @@ class FeedVideosPage extends HookConsumerWidget {
   final EventReference? framedEventReference;
   final int initialMediaIndex;
 
-  Iterable<IonConnectEntity> _filterEntitiesFromEventReference(
-    Iterable<IonConnectEntity> entities,
-    EventReference targetEventReference,
-  ) {
-    final entitiesList = entities.toList();
-    final targetIndex = entitiesList.indexWhere(
-      (entity) => entity.toEventReference() == targetEventReference,
-    );
-    
-    if (targetIndex == -1) {
-      return entities;
-    }
-    
-    return entitiesList.skip(targetIndex);
-  }
+  // Iterable<IonConnectEntity> _filterEntitiesFromEventReference(
+  //   Iterable<IonConnectEntity> entities,
+  //   EventReference targetEventReference,
+  // ) {
+  //   final entitiesList = entities.toList();
+  //   final targetIndex = entitiesList.indexWhere(
+  //     (entity) => entity.toEventReference() == targetEventReference,
+  //   );
+
+  //   if (targetIndex == -1) {
+  //     return entities;
+  //   }
+
+  //   print('🔥 [d3g] _filterEntitiesFromEventReference targetIndex: $targetIndex, entitiesList: ${entitiesList.length}');
+  //   return entitiesList.skip(targetIndex);
+  // }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final allEntities = ref.watch(feedVideosProvider.select((state) => state.items ?? {}));
 
-    final entities = _filterEntitiesFromEventReference(allEntities, eventReference);
+    final entities = allEntities; //_filterEntitiesFromEventReference(allEntities, eventReference);
 
     final videoCount = entities
         .where(
@@ -55,7 +56,8 @@ class FeedVideosPage extends HookConsumerWidget {
       print('🔥 [d3g] FeedVideosPage fetchEntities');
       ref.read(feedVideosProvider.notifier).fetchEntities();
     }
-    print('🔥 [d3g] initialMediaIndex: ${initialMediaIndex}');
+    print(
+        '🔥 [d3g] return VideosVerticalScrollPage initialMediaIndex: ${initialMediaIndex}, entities: ${entities.length}, eventReference: ${eventReference}');
 
     return VideosVerticalScrollPage(
       eventReference: eventReference,
