@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:cached_video_player_plus/cached_video_player_plus.dart';
@@ -29,6 +30,33 @@ class NetworkVideosCacheManager {
       stalePeriod: const Duration(days: 1),
     ),
   );
+}
+
+/// Limits how many video controllers are initialized concurrently.
+class _ConcurrencyGate {
+  _ConcurrencyGate(this.max);
+
+  final int max;
+  int _inFlight = 0;
+  final Queue<Completer<void>> _queue = Queue();
+
+  Future<void> acquire() {
+    if (_inFlight < max) {
+      _inFlight++;
+      return Future.value();
+    }
+    final c = Completer<void>();
+    _queue.add(c);
+    return c.future;
+  }
+
+  void release() {
+    if (_queue.isNotEmpty) {
+      _queue.removeFirst().complete();
+    } else {
+      _inFlight = (_inFlight - 1).clamp(0, max);
+    }
+  }
 }
 
 @immutable
@@ -72,12 +100,20 @@ class VideoController extends _$VideoController {
           .select((state) => state[params.sourcePath] ?? params.sourcePath),
     );
 
+    // Cancellation signal for in-flight initialization (scroll off / dispose / refresh).
+    final cancelInit = Completer<void>();
+    ref.onCancel(() {
+      if (!cancelInit.isCompleted) cancelInit.complete();
+    });
+
     VoidCallback? onlyOneListener;
 
     try {
-      final controller = await ref
-          .watch(videoPlayerControllerFactoryProvider(sourcePath))
-          .createController(options: VideoPlayerOptions(mixWithOthers: true));
+      final controller =
+          await ref.watch(videoPlayerControllerFactoryProvider(sourcePath)).createController(
+                options: VideoPlayerOptions(mixWithOthers: true),
+                cancelToken: cancelInit,
+              );
 
       ref.onCancel(() async {
         if (onlyOneListener != null) {
@@ -85,15 +121,19 @@ class VideoController extends _$VideoController {
         }
         await Future.wait([
           () async {
-            if (controller.value.isInitialized) {
+            try {
               await controller.dispose();
-            }
+            } catch (_) {}
           }(),
           () async {
-            if (_activeController != null &&
-                _activeController != controller &&
-                _activeController!.value.isInitialized) {
-              await _activeController!.dispose();
+            final prev = _activeController;
+            if (prev != null && prev != controller) {
+              try {
+                if (identical(VideoController._currentlyPlayingController, prev)) {
+                  VideoController._currentlyPlayingController = null;
+                }
+                await prev.dispose();
+              } catch (_) {}
               _activeController = null;
             }
           }(),
@@ -124,6 +164,9 @@ class VideoController extends _$VideoController {
           }
           WidgetsBinding.instance.addPostFrameCallback(
             (_) {
+              if (identical(VideoController._currentlyPlayingController, prevController)) {
+                VideoController._currentlyPlayingController = null;
+              }
               prevController.dispose();
             },
           );
@@ -150,9 +193,7 @@ class VideoController extends _$VideoController {
             if (controller.value.isPlaying) {
               final prev = VideoController._currentlyPlayingController;
               if (prev != null && prev != controller) {
-                if (prev.value.isPlaying) {
-                  prev.pause();
-                }
+                prev.pause();
               }
               VideoController._currentlyPlayingController = controller;
             }
@@ -179,37 +220,87 @@ class VideoPlayerControllerFactory {
   });
 
   final String sourcePath;
+  static final _initGate = _ConcurrencyGate(Platform.isAndroid ? 1 : 2);
+  static const _maxRetryAttempts = 5;
 
   Future<VideoPlayerController> createController({
+    required Completer<void> cancelToken,
     VideoPlayerOptions? options,
     bool? forceNetworkDataSource,
   }) async {
     final videoPlayerOptions = options ?? VideoPlayerOptions();
 
-    final player = _getPlayer(videoPlayerOptions, forceNetworkDataSource.falseOrValue);
+    await _initGate.acquire();
+
+    // Give Android a tiny breather between controller init
+    if (Platform.isAndroid) {
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+    }
+
     try {
-      await player.initialize();
-      return player.controller;
-    } catch (e, stackTrace) {
-      Logger.log(
-        'Error during video player initialization'
-        ' | dataSourceType: ${player.dataSourceType}'
-        ' | dataSource: ${player.dataSource}',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      if (player.dataSourceType == DataSourceType.file &&
-          e.runtimeType == PlatformException &&
-          forceNetworkDataSource != true) {
-        return createController(
-          options: options,
-          forceNetworkDataSource: true,
-        );
+      var backoff = const Duration(milliseconds: 300);
+      CachedVideoPlayerPlus? player;
+      DataSourceType? lastType;
+      String? lastSource;
+
+      for (var attempt = 0; attempt < _maxRetryAttempts; attempt++) {
+        // Recreate player each attempt to force a fresh decoder allocation.
+        player = _getPlayer(videoPlayerOptions, forceNetworkDataSource.falseOrValue);
+        lastType = player.dataSourceType;
+        lastSource = player.dataSource;
+
+        // Early cancellation before starting the heavy work.
+        if (cancelToken.isCompleted) {
+          throw StateError('video_init_cancelled');
+        }
+        try {
+          await player.initialize();
+          if (cancelToken.isCompleted) {
+            try {
+              await player.dispose();
+            } catch (_) {}
+            throw StateError('video_init_cancelled');
+          }
+          return player.controller;
+        } catch (e, stackTrace) {
+          Logger.log(
+            'Error during video player initialization (attempt=${attempt + 1})'
+            ' | dataSourceType: $lastType'
+            ' | dataSource: $lastSource',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          try {
+            await player.dispose();
+          } catch (_) {}
+
+          // If local file path fails, try forcing network once.
+          if (lastType == DataSourceType.file &&
+              e is PlatformException &&
+              forceNetworkDataSource != true) {
+            return createController(
+              cancelToken: cancelToken,
+              options: options,
+              forceNetworkDataSource: true,
+            );
+          }
+
+          if (e is PlatformException) {
+            await Future<void>.delayed(backoff);
+            final nextMs = (backoff.inMilliseconds * 2).clamp(300, 3000);
+            backoff = Duration(milliseconds: nextMs);
+            continue;
+          }
+          break;
+        }
       }
+
       throw FailedToInitVideoPlayer(
-        dataSource: player.dataSource,
-        dataSourceType: player.dataSourceType,
+        dataSource: lastSource ?? 'unknown',
+        dataSourceType: lastType ?? DataSourceType.network,
       );
+    } finally {
+      _initGate.release();
     }
   }
 
@@ -221,6 +312,7 @@ class VideoPlayerControllerFactory {
       return CachedVideoPlayerPlus.networkUrl(
         _isLocalFile(sourcePath) ? Uri.file(sourcePath) : Uri.parse(sourcePath),
         videoPlayerOptions: videoPlayerOptions,
+        cacheKey: _cacheKeyFor(sourcePath),
         cacheManager: NetworkVideosCacheManager.instance,
       );
     } else if (_isLocalFile(sourcePath)) {
@@ -241,6 +333,16 @@ class VideoPlayerControllerFactory {
 
   bool _isLocalFile(String path) {
     return !kIsWeb && File(path).existsSync();
+  }
+
+  String _cacheKeyFor(String input) {
+    try {
+      final u = Uri.parse(input);
+      return u.path;
+    } catch (_) {
+      // On parse issues, fall back to the original string.
+      return input;
+    }
   }
 }
 
