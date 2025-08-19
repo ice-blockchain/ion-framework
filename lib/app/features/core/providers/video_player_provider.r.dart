@@ -150,7 +150,9 @@ class VideoController extends _$VideoController {
             if (controller.value.isPlaying) {
               final prev = VideoController._currentlyPlayingController;
               if (prev != null && prev != controller) {
-                prev.pause();
+                if (prev.value.isPlaying) {
+                  prev.pause();
+                }
               }
               VideoController._currentlyPlayingController = controller;
             }

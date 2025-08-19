@@ -120,7 +120,9 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
         void listener() {
           if (userPageController.offset < -150 ||
               (userPageController.offset > userPageController.position.maxScrollExtent + 150)) {
-            context.pop();
+            if (context.canPop()) {
+              context.pop();
+            }
           }
         }
 
