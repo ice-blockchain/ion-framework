@@ -125,6 +125,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
             ),
         ),
       )
+      ..where(conversationTable.isHidden.equals(false))
       ..addColumns([eventMessageTable.createdAt.max()])
       ..groupBy([conversationTable.id])
       ..distinct;
@@ -166,7 +167,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
       ),
     ])
       ..where(conversationTable.type.equals(ConversationType.oneToOne.index))
-      ..where(conversationTable.isDeleted.equals(false))
+      ..where(conversationTable.isHidden.equals(false))
       ..where(conversationMessageTable.conversationId.equals(participantsMasterPubkeys.join()))
       ..where(
         eventMessageTable.kind.equals(ReplaceablePrivateDirectMessageEntity.kind),
@@ -259,7 +260,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
     // Check if conversation is already marked as deleted in conversationTable
     final conversation = await (select(conversationTable)
           ..where((t) => t.id.equals(conversationId))
-          ..where((t) => t.isDeleted.equals(true)))
+          ..where((t) => t.isHidden.equals(true)))
         .getSingleOrNull();
 
     if (conversation != null) {
@@ -330,5 +331,17 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
         where: (table) => table.messageEventReference.isInValues(messageEventReference),
       );
     });
+
+    await unhideConversations(conversationIds);
+  }
+
+  Future<void> hideConversations(List<String> conversationsId) async {
+    await (update(conversationTable)..where((t) => t.id.isIn(conversationsId)))
+        .write(const ConversationTableCompanion(isHidden: Value(true)));
+  }
+
+  Future<void> unhideConversations(List<String> conversationsId) async {
+    await (update(conversationTable)..where((t) => t.id.isIn(conversationsId)))
+        .write(const ConversationTableCompanion(isHidden: Value(false)));
   }
 }

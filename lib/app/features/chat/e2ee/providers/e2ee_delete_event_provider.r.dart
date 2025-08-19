@@ -250,36 +250,49 @@ Future<void> _deleteConversations({
     masterPubkey: currentUserMasterPubkey,
   );
 
+  final conversationDao = ref.watch(conversationDaoProvider);
+
+  // Mark conversations as hidden in the database
+  // This is a soft delete, so we hide them instead of deleting
+  await conversationDao.hideConversations(conversationIds);
+
+  final failedConversations = <String>[];
+
   await Future.wait(
-    conversationIds.map(
-      (conversationId) async {
+    conversationIds.map((conversationId) async {
+      try {
         final participantsMasterPubkeys = forEveryone
-            ? await ref.read(conversationDaoProvider).getConversationParticipants(conversationId)
+            ? await conversationDao.getConversationParticipants(conversationId)
             : [currentUserMasterPubkey];
 
-        return Future.wait(
+        final participantsKeysMap =
+            await conversationPubkeysNotifier.fetchUsersKeys(participantsMasterPubkeys);
+
+        await Future.wait(
           participantsMasterPubkeys.map((masterPubkey) async {
-            final participantsKeysMap =
-                await conversationPubkeysNotifier.fetchUsersKeys(participantsMasterPubkeys);
-
             final pubkeys = participantsKeysMap[masterPubkey];
-
-            if (pubkeys == null) {
+            if (pubkeys == null || pubkeys.isEmpty) {
               throw UserPubkeyNotFoundException(masterPubkey);
             }
 
-            for (final pubkey in pubkeys) {
-              await ref.read(sendE2eeChatMessageServiceProvider).sendWrappedMessage(
-                    eventSigner: eventSigner,
-                    masterPubkey: masterPubkey,
-                    eventMessage: eventMessage,
-                    wrappedKinds: [DeletionRequestEntity.kind.toString()],
-                    pubkey: pubkey,
-                  );
-            }
+            await Future.wait(
+              pubkeys.map(
+                (pubkey) => ref.read(sendE2eeChatMessageServiceProvider).sendWrappedMessage(
+                  pubkey: pubkey,
+                  eventSigner: eventSigner,
+                  masterPubkey: masterPubkey,
+                  eventMessage: eventMessage,
+                  wrappedKinds: [DeletionRequestEntity.kind.toString()],
+                ),
+              ),
+            );
           }),
         );
-      },
-    ),
+      } catch (_) {
+        failedConversations.add(conversationId);
+      }
+    }),
   );
+
+  await conversationDao.unhideConversations(failedConversations);
 }
