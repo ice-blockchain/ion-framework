@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
@@ -16,6 +17,7 @@ import 'package:ion/app/features/feed/create_article/views/pages/article_preview
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
+import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
@@ -63,6 +65,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
     ) = ref.watch(draftArticleProvider);
     final whoCanReply = ref.watch(selectedWhoCanReplyOptionProvider);
     final selectedTopics = ref.watch(selectedInterestsNotifierProvider);
+    final shownTooltip = useRef(false);
 
     useOnInit(
       () {
@@ -119,6 +122,12 @@ class ArticlePreviewModal extends HookConsumerWidget {
                       color: context.theme.appColors.onPrimaryAccent,
                     ),
                     onPressed: () {
+                      if (!shownTooltip.value && selectedTopics.isEmpty) {
+                        shownTooltip.value = true;
+                        ref.read(topicTooltipVisibilityNotifierProvider.notifier).show();
+                        return;
+                      }
+
                       final type = modifiedEvent != null
                           ? CreateArticleOption.modify
                           : CreateArticleOption.plain;
