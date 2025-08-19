@@ -105,7 +105,7 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
   @override
   EntitiesPagedDataState? build(List<EntitiesDataSource>? dataSources) {
     if (dataSources != null) {
-      Future.value(fetchEntities);
+      Future.microtask(fetchEntities);
 
       return EntitiesPagedDataState(
         data: Paged.data(

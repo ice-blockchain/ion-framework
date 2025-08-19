@@ -47,7 +47,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       ),
       noop,
     );
-    Future.value(fetchEntities);
+    Future.microtask(fetchEntities);
     return const FeedForYouContentState(
       items: null,
       isLoading: false,
