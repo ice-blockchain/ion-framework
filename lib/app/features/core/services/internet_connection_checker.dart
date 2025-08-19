@@ -25,8 +25,10 @@ class InternetCheckOption {
 class InternetConnectionChecker {
   InternetConnectionChecker.createInstance({
     required Duration checkInterval,
+    required Duration checkNoInternetInterval,
     required List<InternetCheckOption> options,
   })  : _checkInterval = checkInterval,
+        _checkNoInternetInterval = checkNoInternetInterval,
         _internetCheckOptions = options {
     _statusStreamController.onListen = _maybeEmitStatusUpdate;
     _statusStreamController.onCancel = _handleStatusChangeCancel;
@@ -35,12 +37,21 @@ class InternetConnectionChecker {
   Stream<InternetStatus> get onStatusChange => _statusStreamController.stream;
 
   final Duration _checkInterval;
+  final Duration _checkNoInternetInterval;
   final List<InternetCheckOption> _internetCheckOptions;
 
   InternetStatus? _lastStatus;
   Timer? _timerHandle;
 
   final _statusStreamController = StreamController<InternetStatus>.broadcast();
+
+  /// Triggers an immediate connectivity check and reschedules the next timer.
+  ///
+  /// If there are no listeners to [onStatusChange], the check is skipped,
+  /// mirroring the lazy behavior of the periodic checks.
+  Future<void> checkNow() async {
+    await _maybeEmitStatusUpdate();
+  }
 
   Future<void> _maybeEmitStatusUpdate() async {
     _timerHandle?.cancel();
@@ -56,7 +67,9 @@ class InternetConnectionChecker {
       _statusStreamController.add(currentStatus);
     }
 
-    _timerHandle = Timer(_checkInterval, _maybeEmitStatusUpdate);
+    final checkInterval =
+        currentStatus == InternetStatus.connected ? _checkInterval : _checkNoInternetInterval;
+    _timerHandle = Timer(checkInterval, _maybeEmitStatusUpdate);
 
     _lastStatus = currentStatus;
   }

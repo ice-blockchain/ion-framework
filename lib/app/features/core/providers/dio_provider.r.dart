@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:dio_http2_adapter/dio_http2_adapter.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/core/providers/internet_connection_checker_provider.r.dart';
+import 'package:ion/app/services/http_client/connectivity_trigger_interceptor.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -25,8 +27,11 @@ const List<Duration> _defaultRetryDelays = <Duration>[
 Dio dio(Ref ref) {
   final dio = Dio();
 
+  final internetChecker = ref.read(internetConnectionCheckerProvider);
+  dio.interceptors.add(
+    ConnectivitySideEffectInterceptor(internetConnectionChecker: internetChecker),
+  );
   final logger = Logger.talkerDioLogger;
-
   if (logger != null) {
     dio.interceptors.add(logger);
   }
@@ -44,8 +49,11 @@ Dio dioHttp2(Ref ref) {
       ConnectionManager(),
     );
 
+  final internetChecker = ref.read(internetConnectionCheckerProvider);
+  dio.interceptors.add(
+    ConnectivitySideEffectInterceptor(internetConnectionChecker: internetChecker),
+  );
   final logger = Logger.talkerDioLogger;
-
   if (logger != null) {
     dio.interceptors.add(logger);
   }

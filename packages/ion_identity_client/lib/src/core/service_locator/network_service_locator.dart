@@ -75,9 +75,7 @@ mixin _Dio {
     );
     final dio = Dio(dioOptions);
 
-    final interceptors = [
-      if (config.logger != null) config.logger!,
-    ];
+    final interceptors = config.interceptors ?? [];
     dio.interceptors.addAll(interceptors);
 
     return dio;
@@ -89,9 +87,9 @@ mixin _Interceptors {
     required Dio dio,
     required IONIdentityConfig config,
   }) {
-    final logger = config.logger;
+    final extraInterceptors = config.interceptors ?? [];
     return <Interceptor>[
-      if (config.logger != null) logger!,
+      ...extraInterceptors,
       authInterceptor(config: config),
       retryInterceptor(dio: dio),
     ];
