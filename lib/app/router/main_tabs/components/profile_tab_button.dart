@@ -12,7 +12,7 @@ class ProfileTabButton extends ConsumerWidget {
     super.key,
   });
 
-  static double get avatarSize => 13.0.s;
+  static double get avatarSize => 17.0.s;
 
   double get borderWidth => 1.2.s;
 
@@ -26,32 +26,29 @@ class ProfileTabButton extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          alignment: Alignment.center,
-          height: avatarSize + 5.0.s,
-          width: avatarSize + 5.0.s,
-          decoration: BoxDecoration(
-            color: context.theme.appColors.tertiaryBackground,
-            border: Border.all(
-              width: 1.2.s,
-              color: isSelected
-                  ? context.theme.appColors.primaryAccent
-                  : context.theme.appColors.tertiaryText,
-            ),
-            borderRadius: BorderRadius.circular(6.0.s),
+    return SizedBox(
+      height: 24.s,
+      width: 24.s,
+      child: Container(
+        margin: EdgeInsets.all(1.s),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: context.theme.appColors.tertiaryBackground,
+          border: Border.all(
+            width: 1.2.s,
+            color: isSelected
+                ? context.theme.appColors.primaryAccent
+                : context.theme.appColors.tertiaryText,
           ),
-          child: IonConnectAvatar(
-            pubkey: currentPubkey,
-            size: avatarSize,
-            fit: BoxFit.cover,
-            borderRadius: BorderRadius.circular(4.0.s),
-          ),
+          borderRadius: BorderRadius.circular(6.0.s),
         ),
-      ],
+        child: IonConnectAvatar(
+          pubkey: currentPubkey,
+          size: avatarSize,
+          fit: BoxFit.cover,
+          borderRadius: BorderRadius.circular(4.0.s),
+        ),
+      ),
     );
   }
 }
