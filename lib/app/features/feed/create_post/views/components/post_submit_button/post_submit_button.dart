@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -13,6 +14,7 @@ import 'package:ion/app/features/feed/polls/providers/poll_draft_provider.r.dart
 import 'package:ion/app/features/feed/polls/utils/poll_utils.dart';
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
+import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifier.r.dart';
 import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_send_button.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -59,6 +61,7 @@ class PostSubmitButton extends HookConsumerWidget {
     final draftPoll = ref.watch(pollDraftNotifierProvider);
     final whoCanReply = ref.watch(selectedWhoCanReplyOptionProvider);
     final selectedTopics = ref.watch(selectedInterestsNotifierProvider);
+    final shownTooltip = useRef(false);
 
     final isSubmitButtonEnabled = useCanSubmitPost(
       textEditorController: textEditorController,
@@ -72,6 +75,12 @@ class PostSubmitButton extends HookConsumerWidget {
     return ToolbarSendButton(
       enabled: isSubmitButtonEnabled,
       onPressed: () async {
+        if (!shownTooltip.value && selectedTopics.isEmpty) {
+          shownTooltip.value = true;
+          ref.read(topicTooltipVisibilityNotifierProvider.notifier).show();
+          return;
+        }
+
         final filesToUpload = createOption == CreatePostOption.video
             ? mediaFiles
             : await ref
