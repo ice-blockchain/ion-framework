@@ -12,6 +12,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/feed_category.dart';
+import 'package:ion/app/features/feed/providers/counters/helpers/counter_cache_helpers.r.dart';
 import 'package:ion/app/features/feed/providers/feed_current_filter_provider.m.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_trending_videos_provider.r.dart';
@@ -111,6 +112,7 @@ class FeedPage extends HookConsumerWidget {
     required bool showStories,
     required bool showTrendingVideos,
   }) async {
+    ref.read(quoteCounterUpdaterProvider).invalidateAllReactionCaches();
     ref.read(feedPostsProvider.notifier).refresh();
     if (showTrendingVideos) {
       ref.read(feedTrendingVideosProvider.notifier).refresh();

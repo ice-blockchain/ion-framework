@@ -81,8 +81,10 @@ Stream<PostLike?> postLikeWatch(Ref ref, String id) {
   });
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 OptimisticOperationManager<PostLike> postLikeManager(Ref ref) {
+  keepAliveWhenAuthenticated(ref);
+
   final strategy = ref.watch(likeSyncStrategyProvider);
   final localEnabled = ref.watch(envProvider.notifier).get<bool>(EnvVariable.OPTIMISTIC_UI_ENABLED);
 
@@ -90,6 +92,7 @@ OptimisticOperationManager<PostLike> postLikeManager(Ref ref) {
     syncCallback: strategy.send,
     onError: (_, __) async => true,
     enableLocal: localEnabled,
+    clearOnSuccessfulSync: true,
   );
 
   ref.onDispose(manager.dispose);

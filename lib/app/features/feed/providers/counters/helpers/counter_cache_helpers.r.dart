@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/feed/reposts/models/post_repost.f.dart';
 import 'package:ion/app/features/feed/reposts/providers/optimistic/intents/add_quote_intent.dart';
@@ -59,6 +60,7 @@ class QuoteCounterUpdater {
     required this.getCurrentPostRepost,
     required this.findRepostInCache,
     required this.getRepostCounts,
+    required this.cacheKeys,
   });
 
   final OptimisticService<PostRepost> postRepostService;
@@ -66,6 +68,7 @@ class QuoteCounterUpdater {
   final PostRepost? Function(String id) getCurrentPostRepost;
   final PostRepost? Function(EventReference) findRepostInCache;
   final ({int repostsCount, int quotesCount}) Function(EventReference) getRepostCounts;
+  final List<String> cacheKeys;
 
   Future<void> updateQuoteCounter(
     EventReference quotedEvent, {
@@ -109,6 +112,15 @@ class QuoteCounterUpdater {
     removeCacheItem(repostsCacheKey);
     removeCacheItem(quotesCacheKey);
   }
+
+  void invalidateAllReactionCaches() {
+    final reactionTypeString = EventCountResultType.reactions.toShortString();
+    final reactionKeys = cacheKeys.where((key) => key.endsWith(':$reactionTypeString')).toList();
+
+    for (final key in reactionKeys) {
+      removeCacheItem(key);
+    }
+  }
 }
 
 @riverpod
@@ -119,5 +131,6 @@ QuoteCounterUpdater quoteCounterUpdater(Ref ref) {
     getCurrentPostRepost: (id) => ref.watch(postRepostWatchProvider(id)).valueOrNull,
     findRepostInCache: (eventRef) => ref.watch(findRepostInCacheProvider(eventRef)),
     getRepostCounts: (eventRef) => ref.watch(repostCountsFromCacheProvider(eventRef)),
+    cacheKeys: ref.watch(ionConnectCacheProvider).keys.toList(),
   );
 }
