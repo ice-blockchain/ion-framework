@@ -127,7 +127,6 @@ class TransactionsVisibilityStatusDao extends DatabaseAccessor<WalletsDatabase>
   /// If [symbolGroups] is null or empty, counts all unseen transactions.
   /// If [symbolGroups] is provided, only counts transactions for those symbol groups.
   Stream<int> getUnseenTransactionsCount({Set<String>? symbolGroups}) {
-    // Early return for empty symbol groups
     if (symbolGroups != null) {
       if (symbolGroups.isEmpty) return Stream.value(0);
 
