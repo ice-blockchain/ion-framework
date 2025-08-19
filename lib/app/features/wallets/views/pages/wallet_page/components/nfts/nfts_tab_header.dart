@@ -36,8 +36,8 @@ class NftsTabHeader extends HookConsumerWidget {
 
     return ValueListenableBuilder(
       valueListenable: viewModel.filteredNfts,
-      builder: (context, nfts, _) {
-        if (nfts.isEmpty) {
+      builder: (context, state, _) {
+        if (state.allNfts.isEmpty) {
           return ScreenSideOffset.small(
             child: WalletSearchBar(
               padding: EdgeInsetsDirectional.only(top: UiConstants.hitSlop),

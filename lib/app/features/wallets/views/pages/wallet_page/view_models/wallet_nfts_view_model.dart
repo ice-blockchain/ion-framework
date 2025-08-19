@@ -8,6 +8,8 @@ import 'package:ion/app/features/wallets/model/nft_data.f.dart';
 import 'package:ion/app/services/command/command.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+typedef NftsState = ({List<NftData> allNfts, List<NftData> filteredNfts});
+
 final walletNftsViewModelProvider = Provider.autoDispose(
   (ref) {
     final nftFilterService = ref.watch(nftNetworkFilterManagerProvider);
@@ -34,7 +36,7 @@ class WalletNftsViewModel {
 
   late final StateCommand<List<NftData>> setNftsCommand;
   late final StateCommand<String> searchQueryCommand;
-  late final ValueListenable<List<NftData>> filteredNfts;
+  late final ValueListenable<NftsState> filteredNfts;
 
   void _initializeCommands() {
     setNftsCommand = stateCommand([]);
@@ -52,11 +54,13 @@ class WalletNftsViewModel {
     });
   }
 
-  List<NftData> _filterNfts(List<NftData> nfts, String query, Set<String> selectedNetworks) {
-    return nfts
+  NftsState _filterNfts(List<NftData> nfts, String query, Set<String> selectedNetworks) {
+    final filteredNfts = nfts
         .where((nft) => nft.symbol.toLowerCase().contains(query))
         .where((nft) => selectedNetworks.isEmpty || selectedNetworks.contains(nft.network.id))
         .toList();
+
+    return (allNfts: nfts, filteredNfts: filteredNfts);
   }
 
   void _dispose() {

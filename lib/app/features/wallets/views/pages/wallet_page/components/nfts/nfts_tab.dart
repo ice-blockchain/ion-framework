@@ -50,8 +50,8 @@ class NftsTab extends ConsumerWidget {
 
     return ValueListenableBuilder(
       valueListenable: viewModel.filteredNfts,
-      builder: (context, nfts, _) {
-        if (nfts.isEmpty) {
+      builder: (context, state, _) {
+        if (state.filteredNfts.isEmpty) {
           return EmptyState(
             tabType: tabType,
             onBottomActionTap: () {},
@@ -73,8 +73,8 @@ class NftsTab extends ConsumerWidget {
                     childAspectRatio: aspectRatio,
                   ),
                   delegate: SliverChildBuilderDelegate(
-                    (context, index) => NftGridItem(nftData: nfts[index]),
-                    childCount: nfts.length,
+                    (context, index) => NftGridItem(nftData: state.filteredNfts[index]),
+                    childCount: state.filteredNfts.length,
                   ),
                 ),
               ),
@@ -86,15 +86,15 @@ class NftsTab extends ConsumerWidget {
         return SliverMainAxisGroup(
           slivers: [
             SliverList.separated(
-              itemCount: nfts.length,
+              itemCount: state.filteredNfts.length,
               separatorBuilder: (context, index) => SizedBox(height: 12.0.s),
               itemBuilder: (context, index) => ScreenSideOffset.small(
                 child: NftListItem(
-                  nftData: nfts[index],
+                  nftData: state.filteredNfts[index],
                   onTap: () {
                     NftDetailsRoute(
-                      contract: nfts[index].contract,
-                      tokenId: nfts[index].tokenId,
+                      contract: state.filteredNfts[index].contract,
+                      tokenId: state.filteredNfts[index].tokenId,
                     ).push<void>(context);
                   },
                 ),
