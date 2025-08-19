@@ -72,7 +72,7 @@ class IonNetworkImage extends HookWidget {
       memCacheHeight = cacheHeight?.toInt();
     }
 
-    final fetchError = useState<Object?>(null);
+    final fetchError = useRef<Object?>(null);
 
     if (borderRadius != null) {
       return DecoratedBox(
