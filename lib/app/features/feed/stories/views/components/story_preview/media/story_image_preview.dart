@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/services/media_service/aspect_ratio.dart';
 
 class StoryImagePreview extends StatelessWidget {
   const StoryImagePreview({
@@ -18,7 +19,7 @@ class StoryImagePreview extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.0.s),
       child: AspectRatio(
-        aspectRatio: 9 / 16,
+        aspectRatio: MediaAspectRatio.portrait,
         child: Image.file(
           File(path),
           fit: BoxFit.cover,

@@ -24,6 +24,9 @@ class MediaAspectRatio {
   }
 
   final double? aspectRatio;
+
+  static const double portrait = 9 / 16;
+  static const double landscape = 16 / 9;
 }
 
 class MediaAspectRatioResult {

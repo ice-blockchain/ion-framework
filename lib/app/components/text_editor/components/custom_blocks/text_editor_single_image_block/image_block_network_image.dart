@@ -33,7 +33,7 @@ class ImageBlockNetworkImage extends ConsumerWidget {
 
       if (mediaType == MediaType.video) {
         final mediaAspectRatio = MediaAspectRatio.fromMediaAttachment(attachment);
-        final aspectRatio = mediaAspectRatio.aspectRatio ?? 16 / 9;
+        final aspectRatio = mediaAspectRatio.aspectRatio ?? MediaAspectRatio.landscape;
 
         final videoWidget = AspectRatio(
           aspectRatio: aspectRatio,
