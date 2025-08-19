@@ -160,6 +160,7 @@ class TransactionsVisibilityStatusDao extends DatabaseAccessor<WalletsDatabase>
           coinsTable.id.equalsExp(transactionsTable.coinId),
         ),
       ])
+      ..limit(1)
       // Only receive transactions can be unseen
       ..where(transactionsTable.type.equals(TransactionType.receive.value))
       // Filter for unseen transactions (null status or explicit unseen status)
