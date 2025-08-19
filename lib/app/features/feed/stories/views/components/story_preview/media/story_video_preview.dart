@@ -30,12 +30,25 @@ class StoryVideoPreview extends HookConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final isHorizontal = videoController.value.aspectRatio > 1.0;
+        final maxAspectRatioMultiplier = isHorizontal ? (9 / 16) : (16 / 9);
+        final visibleHeight = constraints.maxWidth * maxAspectRatioMultiplier;
+
         return ClipRRect(
           borderRadius: BorderRadius.circular(22.0.s),
           child: SizedBox(
             width: constraints.maxWidth,
-            height: constraints.maxWidth / videoController.value.aspectRatio,
-            child: VideoPlayer(videoController),
+            height: visibleHeight,
+            child: FittedBox(
+              fit: isHorizontal ? BoxFit.contain : BoxFit.cover,
+              child: SizedBox(
+                width: constraints.maxWidth,
+                child: AspectRatio(
+                  aspectRatio: videoController.value.aspectRatio,
+                  child: VideoPlayer(videoController),
+                ),
+              ),
+            ),
           ),
         );
       },
