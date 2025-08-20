@@ -107,16 +107,20 @@ class LocalNotificationsService {
       avatarFilePath = await _getMediaFilePath(Uri.parse(avatarUrl), storeToCache: true);
     }
 
-    // Use fallback avatar if no avatar URL provided or if processing failed
-    avatarFilePath ??= await _getFallbackUserAvatar(Assets.images.iconProfileNoimage.path);
+    final fallbackAvatarFilePath =
+        await _getFallbackUserAvatar(Assets.images.iconProfileNoimage.path);
 
-    if (avatarFilePath != null) {
-      messagePerson = Person(
-        key: userName,
-        name: userName,
-        icon: BitmapFilePathAndroidIcon(avatarFilePath),
-      );
-    }
+    final androidIcon = avatarFilePath != null
+        ? BitmapFilePathAndroidIcon(avatarFilePath)
+        : fallbackAvatarFilePath != null
+            ? BitmapFilePathAndroidIcon(fallbackAvatarFilePath)
+            : null;
+
+    messagePerson = Person(
+      key: userName,
+      name: userName,
+      icon: androidIcon,
+    );
 
     String? attachmentFilePath;
     if (attachmentUrl != null) {
@@ -124,21 +128,19 @@ class LocalNotificationsService {
     }
 
     StyleInformation? styleInformation;
-    if (messagePerson != null) {
-      styleInformation = MessagingStyleInformation(
-        messagePerson,
-        groupConversation: false,
-        messages: [
-          Message(
-            textMessage ?? '',
-            DateTime.now(),
-            messagePerson,
-            dataMimeType: attachmentFilePath != null ? ImageCompressionType.jpeg.mimeType : null,
-            dataUri: attachmentFilePath,
-          ),
-        ],
-      );
-    }
+    styleInformation = MessagingStyleInformation(
+      messagePerson,
+      groupConversation: false,
+      messages: [
+        Message(
+          textMessage ?? '',
+          DateTime.now(),
+          messagePerson,
+          dataMimeType: attachmentFilePath != null ? ImageCompressionType.jpeg.mimeType : null,
+          dataUri: attachmentFilePath,
+        ),
+      ],
+    );
 
     final androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'ion_miscellaneous',
@@ -152,7 +154,7 @@ class LocalNotificationsService {
     );
 
     final iOSPerson = DarwinCommunicationPerson(
-      handle: '',
+      handle: userName ?? 'unknown_user',
       displayName: userName,
       avatarFilePath: avatarFilePath,
     );

@@ -37,7 +37,7 @@ class Translator<T: TranslationWithVersion> {
 
             return nil
         } catch {
-            print("[Translator] Translation failed: \(error)")
+            NSLog("[Translator] Translation failed: \(error)")
             return nil
         }
     }
@@ -99,7 +99,7 @@ class TranslationsRepository<T: TranslationWithVersion & Decodable> {
                 do {
                     return try readCache(at: cacheFile)
                 } catch {
-                    print("[Repository] Error reading fallback cache: \(error)")
+                    NSLog("[Repository] Error reading fallback cache: \(error)")
                     throw error
                 }
             }
@@ -117,7 +117,7 @@ class TranslationsRepository<T: TranslationWithVersion & Decodable> {
                 do {
                     return try readCache(at: cacheFile)
                 } catch {
-                    print("[Repository] Error reading cache: \(error)")
+                    NSLog("[Repository] Error reading cache: \(error)")
                 }
             }
         }
@@ -185,14 +185,14 @@ class TranslationsRepository<T: TranslationWithVersion & Decodable> {
 
         } catch let urlError as URLError {
             if urlError.code == .timedOut {
-                print("[Repository] Request timed out: \(url.absoluteString)")
+                NSLog("[Repository] Request timed out: \(url.absoluteString)")
             } else {
-                print("[Repository] Network error: \(urlError.localizedDescription)")
+                NSLog("[Repository] Network error: \(urlError.localizedDescription)")
             }
             throw TranslationError.fetchFailed(urlError)
 
         } catch {
-            print("[Repository] Error fetching translations: \(error)")
+            NSLog("[Repository] Error fetching translations: \(error)")
             throw error
         }
     }

@@ -76,7 +76,7 @@ struct PostData {
                     quotedEvent = try QuotedEventFactory.fromTag(tag)
                     break
                 } catch {
-                    print("Error parsing quoted event: \(error)")
+                    NSLog("Error parsing quoted event: \(error)")
                 }
             }
         }

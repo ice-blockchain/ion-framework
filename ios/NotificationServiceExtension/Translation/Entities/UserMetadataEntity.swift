@@ -33,6 +33,7 @@ struct UserMetadataEntity: IonConnectEntity {
 struct UserMetadata {
     let name: String
     let displayName: String
+    let picture: String?
 
     static func fromEventMessage(_ eventMessage: EventMessage) -> UserMetadata {
         let contentData = eventMessage.content.data(using: .utf8)
@@ -44,7 +45,8 @@ struct UserMetadata {
 
         return UserMetadata(
             name: userData.name ?? "",
-            displayName: userData.displayName ?? ""
+            displayName: userData.displayName ?? "",
+            picture: userData.picture
         )
     }
 }
@@ -52,9 +54,11 @@ struct UserMetadata {
 struct UserDataEventMessageContent: Codable {
     let name: String?
     let displayName: String?
+    let picture: String?
     
     enum CodingKeys: String, CodingKey {
         case name
         case displayName = "display_name"
+        case picture
     }
 }

@@ -2,6 +2,14 @@
 
 import Foundation
 
+struct NotificationTranslationResult {
+    let title: String
+    let body: String
+    let notificationType: PushNotificationType
+    let avatarFilePath: String?
+    let attachmentFilePaths: String?
+}
+
 class NotificationTranslationService {
     private let translator: Translator<PushNotificationTranslations>
     private let storage: SharedStorageService
@@ -35,41 +43,49 @@ class NotificationTranslationService {
         }
     }
 
-    func translate(_ pushPayload: [AnyHashable: Any]) async -> (title: String?, body: String?) {
+    func translate(_ pushPayload: [AnyHashable: Any]) async -> NotificationTranslationResult? {
         guard let currentPubkey = storage.getCurrentPubkey() else {
-            return (title: nil, body: nil)
+            return nil
         }
 
         guard let data = await parsePayload(from: pushPayload) else {
-            return (title: nil, body: nil)
+            return nil
         }
 
         let dataIsValid = data.validate(currentPubkey: currentPubkey)
 
         if !dataIsValid {
-            return (title: nil, body: nil)
+            return nil
         }
 
         guard let notificationType = data.getNotificationType(currentPubkey: currentPubkey) else {
-            return (title: nil, body: nil)
+            return nil
         }
 
         guard let (title, body) = await getNotificationTranslation(for: notificationType) else {
-            return (title: nil, body: nil)
+            return nil
         }
 
         let placeholders = data.placeholders(type: notificationType)
-
+        
         let result = (
             title: replacePlaceholders(title, placeholders),
             body: replacePlaceholders(body, placeholders)
         )
-
+        
         if hasPlaceholders(result.title) || hasPlaceholders(result.body) {
-            return (title: nil, body: nil)
+            return nil
         }
+        
+        let media = data.getMediaPlaceholders()
 
-        return result
+        return NotificationTranslationResult(
+            title: result.title,
+            body: result.body,
+            notificationType: notificationType,
+            avatarFilePath: media.avatar,
+            attachmentFilePaths: media.attachment
+        )
     }
 
     // MARK: - Private helper methods
@@ -156,6 +172,10 @@ class NotificationTranslationService {
                 return translations.chatMultiPhotoMessage
             case .chatMultiVideoMessage:
                 return translations.chatMultiVideoMessage
+            case .chatPaymentRequestMessage:
+                return translations.chatPaymentRequestMessage
+            case .chatPaymentReceivedMessage:
+                return translations.chatPaymentReceivedMessage
             }
         }
 
@@ -258,7 +278,8 @@ class NotificationTranslationService {
             // Create and return UserMetadata
             let metadata = UserMetadata(
                 name: userData.name ?? "",
-                displayName: userData.displayName ?? ""
+                displayName: userData.displayName ?? "",
+                picture: userData.picture
             )
 
             return metadata
