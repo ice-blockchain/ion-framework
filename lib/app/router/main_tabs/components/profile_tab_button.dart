@@ -12,7 +12,7 @@ class ProfileTabButton extends ConsumerWidget {
     super.key,
   });
 
-  static double get avatarSize => 17.0.s;
+  static double get avatarSize => 16.0.s;
 
   double get borderWidth => 1.2.s;
 
@@ -30,7 +30,7 @@ class ProfileTabButton extends ConsumerWidget {
       height: 24.s,
       width: 24.s,
       child: Container(
-        margin: EdgeInsets.all(1.s),
+        margin: EdgeInsets.all(2.s),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: context.theme.appColors.tertiaryBackground,
