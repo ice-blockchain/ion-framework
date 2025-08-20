@@ -299,6 +299,7 @@ class IonConnectPushDataPayload {
           final decryptedMedia = await mediaEncryptionService.retrieveEncryptedMedia(
             imageMedia,
             authorPubkey: message.pubkey,
+            tryLoadThumbnail: true,
           );
           attachmentUrl = decryptedMedia.path;
         }

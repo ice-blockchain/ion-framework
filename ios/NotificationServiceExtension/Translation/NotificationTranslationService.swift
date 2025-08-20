@@ -77,7 +77,7 @@ class NotificationTranslationService {
             return nil
         }
         
-        let media = data.getMediaPlaceholders()
+        let media = await data.getMediaPlaceholders()
 
         return NotificationTranslationResult(
             title: result.title,

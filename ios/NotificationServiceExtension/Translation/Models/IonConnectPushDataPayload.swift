@@ -232,7 +232,7 @@ class IonConnectPushDataPayload: Decodable {
         return data
     }
     
-    func getMediaPlaceholders() -> (avatar: String?, attachment: String?) {
+    func getMediaPlaceholders() async -> (avatar: String?, attachment: String?) {
         guard let masterPubkey = mainEntity?.masterPubkey else {
             return (avatar: nil, attachment: nil)
         }
@@ -255,16 +255,31 @@ class IonConnectPushDataPayload: Decodable {
                 entity.data.kinds.contains(String(ReplaceablePrivateDirectMessageEntity.kind))
             {
                 if let message = try? ReplaceablePrivateDirectMessageEntity.fromEventMessage(decryptedEvent) {
-                    attachmentUrl = message.data.visualMedias.first(where: { mediaItem in
+                    let image = message.data.visualMedias.first(where: { mediaItem in
                         return mediaItem.mediaType == .image
-                    })?.thumb
+                    })
+                    
+                    attachmentUrl = image?.thumb ?? image?.url
                 }
             }
         }
         
-        return (avatar: avatarUrl, attachment: attachmentUrl)
+        var avatarFilePath: String?
+                
+        if let avatarUrl = avatarUrl {
+            let avatarOutputFilePath = FileManager.default.temporaryDirectory.appendingPathComponent("user_avatar.jpg")
+            do {
+                let outputFileURL = try await ImageConverter().convertWebPToJPEG(webpURLString: avatarUrl, outputJPEGURL: avatarOutputFilePath)
+                avatarFilePath = outputFileURL.path
+            } catch {
+                NSLog("Conversion failed: \(error)")
+            }
+            
+        }
+        
+        return (avatar: avatarFilePath, attachment: attachmentUrl)
     }
-
+    
     func validate(currentPubkey: String) -> Bool {
         return checkEventsSignatures()
             && checkMainEventRelevant(currentPubkey: currentPubkey)

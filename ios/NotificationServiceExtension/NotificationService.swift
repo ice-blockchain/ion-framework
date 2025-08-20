@@ -33,8 +33,8 @@ class NotificationService: UNNotificationServiceExtension {
                         communicationPushData = CommunicationPushData(
                             title: result.title,
                             body: result.body,
-                            avatarFilePath: nil,
-                            attachmentFilePath: nil
+                            avatarFilePath: result.avatarFilePath,
+                            attachmentFilePath: result.attachmentFilePaths
                         )
                     }
 
