@@ -76,6 +76,8 @@ class VideoPreviewCover extends HookConsumerWidget {
       }
       if (newThumbFile != null && newThumbFile.existsSync()) {
         thumbFile.value = newThumbFile;
+        //Evict(invalidate) the cached image. Required as thumbnail has always the same file path and name
+        FileImage(newThumbFile).evict();
       }
     });
 
