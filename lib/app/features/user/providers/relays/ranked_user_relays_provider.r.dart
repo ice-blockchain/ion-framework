@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
@@ -29,7 +31,7 @@ class RankedCurrentUserRelays extends _$RankedCurrentUserRelays {
       return;
     }
 
-    final cancelToken = CancelToken();
+    var cancelToken = CancelToken();
 
     yield* _rank(currentUserRelays, cancelToken: cancelToken);
 
@@ -38,15 +40,78 @@ class RankedCurrentUserRelays extends _$RankedCurrentUserRelays {
 
     final controller = StreamController<List<UserRelay>>();
 
-    final timer = Timer.periodic(Duration(seconds: pingIntervalSeconds), (_) {
-      controller.addStream(_rank(currentUserRelays, cancelToken: cancelToken));
-    });
+    final interval = Duration(seconds: pingIntervalSeconds);
+    const minResumeDelay = Duration(seconds: 30);
 
-    ref.onDispose(() async {
-      timer.cancel();
-      cancelToken.cancel();
-      await controller.close();
-    });
+    Timer? periodicTimer;
+    Timer? nextTickTimer;
+    DateTime? nextFireAt;
+    Duration? remainingUntilNext;
+
+    void fire() {
+      controller.addStream(_rank(currentUserRelays, cancelToken: cancelToken));
+    }
+
+    void schedulePeriodic() {
+      nextTickTimer?.cancel();
+      periodicTimer?.cancel();
+      periodicTimer = Timer.periodic(interval, (_) {
+        nextFireAt = DateTime.now().add(interval);
+        fire();
+      });
+      nextFireAt = DateTime.now().add(interval);
+    }
+
+    void scheduleOneShot(Duration delay) {
+      periodicTimer?.cancel();
+      periodicTimer = null;
+      nextTickTimer?.cancel();
+      nextTickTimer = Timer(delay, () {
+        fire();
+        schedulePeriodic();
+      });
+      nextFireAt = DateTime.now().add(delay);
+    }
+
+    schedulePeriodic();
+
+    // Pause/resume behavior:
+    // - When backgrounded: capture "remainingUntilNext" and stop timers; cancel in-flight ranking.
+    // - When resumed: schedule a one-shot for max(remainingUntilNext, 30s), then return to periodic cadence.
+    ref
+      ..listen<AppLifecycleState>(appLifecycleProvider, (previous, next) {
+        if (next == AppLifecycleState.resumed) {
+          // Resume after max(remaining, 30s)
+          cancelToken.cancel();
+          cancelToken = CancelToken();
+          var delay = remainingUntilNext ?? interval;
+          if (delay < minResumeDelay) {
+            delay = minResumeDelay;
+          }
+          remainingUntilNext = null;
+          scheduleOneShot(delay);
+        } else {
+          // Background/inactive: capture remaining time and stop timers; cancel in-flight ranking
+          final now = DateTime.now();
+          if (nextFireAt != null) {
+            var remaining = nextFireAt!.difference(now);
+            if (remaining.isNegative) remaining = Duration.zero;
+            remainingUntilNext = remaining;
+          } else {
+            remainingUntilNext = interval;
+          }
+          periodicTimer?.cancel();
+          nextTickTimer?.cancel();
+          cancelToken.cancel();
+          cancelToken = CancelToken();
+        }
+      })
+      ..onDispose(() async {
+        periodicTimer?.cancel();
+        nextTickTimer?.cancel();
+        cancelToken.cancel();
+        await controller.close();
+      });
 
     yield* controller.stream;
   }
