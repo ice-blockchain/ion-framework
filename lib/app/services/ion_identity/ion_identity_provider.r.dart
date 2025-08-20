@@ -6,6 +6,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
+import 'package:ion/app/features/core/providers/internet_connection_checker_provider.r.dart';
+import 'package:ion/app/services/http_client/connectivity_trigger_interceptor.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -23,10 +25,16 @@ Future<Raw<IONIdentity>> ionIdentity(Ref ref) async {
   final logIonIdentityClient =
       ref.read(featureFlagsProvider.notifier).get(LoggerFeatureFlag.logIonIdentityClient);
 
+  final baseLogger = logIonIdentityClient ? Logger.talkerDioLogger : null;
   final config = IONIdentityConfig(
     appId: appId,
     origin: env.get(EnvVariable.ION_ORIGIN),
-    logger: logIonIdentityClient ? Logger.talkerDioLogger : null,
+    interceptors: [
+      if (baseLogger != null) baseLogger,
+      ConnectivitySideEffectInterceptor(
+        internetConnectionChecker: ref.watch(internetConnectionCheckerProvider),
+      ),
+    ],
   );
 
   final ionClient = IONIdentity.createDefault(config: config);

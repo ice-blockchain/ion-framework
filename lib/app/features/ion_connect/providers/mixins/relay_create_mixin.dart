@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/core/providers/internet_connection_checker_provider.r.dart';
 import 'package:ion/app/features/core/providers/internet_status_stream_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/user/providers/relays_reachability_provider.r.dart';
@@ -24,6 +25,9 @@ mixin RelayCreateMixin {
       connectionState: connectionState,
       hasInternetConnection: hasInternetConnection,
     )) {
+      // Trigger an immediate connectivity check on network-like WebSocket errors
+      // to update the global status promptly.
+      unawaited(ref.read(internetConnectionCheckerProvider).checkNow());
       socket.close();
       await _updateRelayReachabilityInfo(ref, url);
       throw RelayUnreachableException(url);

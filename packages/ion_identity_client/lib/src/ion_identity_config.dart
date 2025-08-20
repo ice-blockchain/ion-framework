@@ -10,7 +10,7 @@ class IONIdentityConfig {
   IONIdentityConfig({
     required this.appId,
     required this.origin,
-    this.logger,
+    this.interceptors,
   });
 
   /// The application identifier used to uniquely identify the app within the ION Identity API.
@@ -20,10 +20,10 @@ class IONIdentityConfig {
   /// and securing API requests.
   final String origin;
 
-  /// The logger interceptor to use for logging requests and responses.
-  final Interceptor? logger;
+  /// The extra interceptors to use inside the ION Identity client.
+  final List<Interceptor>? interceptors;
 
   @override
   String toString() =>
-      'IONIdentityConfig(appId: $appId, origin: $origin, logger: ${logger?.toString() ?? 'null'})';
+      'IONIdentityConfig(appId: $appId, origin: $origin, interceptors count: ${interceptors?.length ?? 0})';
 }
