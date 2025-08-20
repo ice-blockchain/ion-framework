@@ -89,7 +89,9 @@ class AudioCompressor implements Compressor<AudioCompressionSettings> {
   /// If fails, throws an exception.
   ///
   Future<String> compressAudioToWav(String inputPath) async {
+    final sessionIdCompleter = Completer<FFmpegSession>();
     final sessionResultCompleter = Completer<FFmpegSession>();
+
     final outputPath = await generateOutputPath(extension: 'wav');
     try {
       await compressExecutor.execute(
@@ -98,6 +100,7 @@ class AudioCompressor implements Compressor<AudioCompressionSettings> {
           outputPath: outputPath,
         ),
         sessionResultCompleter,
+        sessionIdCompleter: sessionIdCompleter,
       );
 
       final session = await sessionResultCompleter.future;
@@ -123,6 +126,7 @@ class AudioCompressor implements Compressor<AudioCompressionSettings> {
   Future<MediaFile> combineAudioFiles(List<MediaFile> inputPaths) async {
     final extension = inputPaths.last.mimeType?.split('/').last ?? '';
     final sessionResultCompleter = Completer<FFmpegSession>();
+    final sessionIdCompleter = Completer<FFmpegSession>();
     final outputPath = await generateOutputPath(extension: extension);
     try {
       await compressExecutor.execute(
@@ -131,6 +135,7 @@ class AudioCompressor implements Compressor<AudioCompressionSettings> {
           outputPath: outputPath,
         ),
         sessionResultCompleter,
+        sessionIdCompleter: sessionIdCompleter,
       );
 
       final session = await sessionResultCompleter.future;

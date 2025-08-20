@@ -19,10 +19,12 @@ class CompressExecutor {
     Completer<FFmpegSession>? sessionIdCompleter,
   }) async {
     return _lock.synchronized(() async {
+      // This is just to get session ID for the caller
       final session = await FFmpegKit.executeWithArgumentsAsync(args, (sessionResult) {
         sessionResultCompleter.complete(sessionResult);
       });
 
+      // This is actual result of the operation
       sessionIdCompleter?.complete(session);
 
       return sessionResultCompleter.future;

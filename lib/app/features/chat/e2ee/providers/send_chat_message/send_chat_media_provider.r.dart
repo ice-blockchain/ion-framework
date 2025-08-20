@@ -27,8 +27,8 @@ part 'send_chat_media_provider.r.g.dart';
 
 @Riverpod(keepAlive: true)
 class SendChatMedia extends _$SendChatMedia {
-  final _cancelToken = CancelToken();
-  final Completer<FFmpegSession> _sessionIdCompleter = Completer<FFmpegSession>();
+  CancelToken? _cancelToken;
+  Completer<FFmpegSession>? _sessionIdCompleter;
   CancelableOperation<AsyncValue<List<MediaAttachment>>>? _cancellableOperation;
 
   @override
@@ -46,6 +46,8 @@ class SendChatMedia extends _$SendChatMedia {
 
     state = const AsyncLoading();
 
+    _cancelToken = cancelToken ?? CancelToken();
+    _sessionIdCompleter = Completer<FFmpegSession>();
     _cancellableOperation = CancelableOperation.fromFuture(
       AsyncValue.guard(() async {
         Logger.log('Preparing to compress and upload media file: ${mediaFile.path}');
@@ -99,10 +101,10 @@ class SendChatMedia extends _$SendChatMedia {
 
   Future<void> cancel() async {
     await _cancellableOperation?.cancel();
-    _cancelToken.cancel('User cancelled upload');
+    _cancelToken?.cancel('User cancelled upload');
     await ref.read(messageMediaDaoProvider).cancel(messageMediaId);
-    final compressionSessionId = await _sessionIdCompleter.future;
-    await compressionSessionId.cancel();
+    final compressionSessionId = await _sessionIdCompleter?.future;
+    await compressionSessionId?.cancel();
   }
 
   Future<List<MediaAttachment>> _processMedia(
