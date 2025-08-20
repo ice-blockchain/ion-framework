@@ -107,19 +107,10 @@ class LocalNotificationsService {
       avatarFilePath = await _getMediaFilePath(Uri.parse(avatarUrl), storeToCache: true);
     }
 
-    final fallbackAvatarFilePath =
-        await _getFallbackUserAvatar(Assets.images.iconProfileNoimage.path);
-
-    final androidIcon = avatarFilePath != null
-        ? BitmapFilePathAndroidIcon(avatarFilePath)
-        : fallbackAvatarFilePath != null
-            ? BitmapFilePathAndroidIcon(fallbackAvatarFilePath)
-            : null;
-
     messagePerson = Person(
       key: userName,
       name: userName,
-      icon: androidIcon,
+      icon: avatarFilePath != null ? BitmapFilePathAndroidIcon(avatarFilePath) : null,
     );
 
     String? attachmentFilePath;
@@ -271,28 +262,6 @@ class LocalNotificationsService {
       return response.data;
     } catch (e) {
       Logger.log('Failed to download file: $e');
-      return null;
-    }
-  }
-
-  Future<String?> _getFallbackUserAvatar(String assetPath) async {
-    try {
-      final directory = await getTemporaryDirectory();
-      const fileName = 'fallback_avatar.png';
-      final tempFile = File('${directory.path}/$fileName');
-
-      if (tempFile.existsSync()) {
-        return tempFile.path;
-      }
-
-      final byteData = await rootBundle.load(assetPath);
-      final bytes = byteData.buffer.asUint8List();
-
-      await tempFile.writeAsBytes(bytes);
-
-      return tempFile.path;
-    } catch (e) {
-      Logger.log('Failed to copy asset to temp file: $e');
       return null;
     }
   }
