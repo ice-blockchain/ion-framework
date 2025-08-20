@@ -23,6 +23,7 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
     this.leading,
     this.scrollController,
     this.backgroundColor,
+    this.backButtonIcon,
     super.key,
   });
 
@@ -103,6 +104,7 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
   final Widget? leading;
   final Color? backgroundColor;
   final ScrollController? scrollController;
+  final Widget? backButtonIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -144,6 +146,7 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
               ? NavigationBackButton(
                   () => (onBackPress ?? context.pop)(),
                   hideKeyboardOnBack: hideKeyboardOnBack,
+                  icon: backButtonIcon,
                 )
               : null),
       middle: titleWidget,

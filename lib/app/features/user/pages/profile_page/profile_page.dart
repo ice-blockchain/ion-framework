@@ -97,6 +97,11 @@ class ProfilePage extends HookConsumerWidget {
       [userMetadata.value?.cacheKey],
     );
 
+    final backButtonIcon = Assets.svg.iconProfileBack.icon(
+      size: NavigationBackButton.iconSize,
+      flipForRtl: true,
+    );
+
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
@@ -154,6 +159,7 @@ class ProfilePage extends HookConsumerWidget {
               child: NavigationAppBar(
                 showBackButton: showBackButton,
                 useScreenTopOffset: true,
+                backButtonIcon: backButtonIcon,
                 scrollController: scrollController,
                 horizontalPadding: 0,
                 title: Header(
@@ -188,10 +194,7 @@ class ProfilePage extends HookConsumerWidget {
                 alignment: AlignmentDirectional.topStart,
                 child: NavigationBackButton(
                   context.pop,
-                  icon: Assets.svg.iconProfileBack.icon(
-                    size: NavigationBackButton.iconSize,
-                    flipForRtl: true,
-                  ),
+                  icon: backButtonIcon,
                 ),
               ),
           ],
