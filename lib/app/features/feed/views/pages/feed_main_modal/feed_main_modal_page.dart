@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
@@ -105,8 +104,6 @@ class _ContentCreationBlockedModal extends HookConsumerWidget {
     final colors = context.theme.appColors;
     final locale = context.i18n;
 
-    final isLoading = useState(false);
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -130,20 +127,9 @@ class _ContentCreationBlockedModal extends HookConsumerWidget {
               SizedBox(height: 24.s),
               Button(
                 minimumSize: Size(double.infinity, 56.s),
-                leadingIcon: isLoading.value
-                    ? const IONLoadingIndicator()
-                    : Assets.svg.iconbuttonTryagain.icon(size: 24.s),
                 label: Text(locale.button_try_again),
-                disabled: isLoading.value,
-                type: isLoading.value ? ButtonType.disabled : ButtonType.primary,
-                onPressed: () async {
-                  try {
-                    isLoading.value = true;
-                    await invalidateCurrentUserMetadataProviders(ref);
-                    await Future<void>.delayed(const Duration(milliseconds: 500));
-                  } finally {
-                    isLoading.value = false;
-                  }
+                onPressed: () {
+                  invalidateCurrentUserMetadataProviders(ref);
                 },
               ),
             ],
