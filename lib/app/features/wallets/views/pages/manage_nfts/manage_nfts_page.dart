@@ -11,6 +11,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/views/pages/manage_nfts/components/all_chains_item.dart';
 import 'package:ion/app/features/wallets/views/pages/manage_nfts/components/manage_nft_item.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/view_models/nft_networks_view_model.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
@@ -22,6 +23,10 @@ class ManageNftsPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.watch(nftNetworksViewModelProvider);
+
+    useOnInit(() {
+      viewModel.searchQueryCommand.execute('');
+    });
 
     return SheetContent(
       body: Column(
