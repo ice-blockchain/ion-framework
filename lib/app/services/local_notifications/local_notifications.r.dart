@@ -108,7 +108,7 @@ class LocalNotificationsService {
     }
 
     // Use fallback avatar if no avatar URL provided or if processing failed
-    avatarFilePath ??= await _copyAssetToTempFile(Assets.images.iconProfileNoimage.path);
+    avatarFilePath ??= await _getFallbackUserAvatar(Assets.images.iconProfileNoimage.path);
 
     if (avatarFilePath != null) {
       messagePerson = Person(
@@ -151,7 +151,25 @@ class LocalNotificationsService {
       shortcutId: const Uuid().v4(),
     );
 
-    const iOSPlatformChannelSpecifics = DarwinNotificationDetails();
+    final iOSPerson = DarwinCommunicationPerson(
+      handle: '',
+      displayName: userName,
+      avatarFilePath: avatarFilePath,
+    );
+
+    final iOSPlatformChannelSpecifics = DarwinCommunicationNotificationDetails(
+      conversationIdentifier: userName ?? 'ion_miscellaneous',
+      messages: [
+        DarwinCommunicationMessage(
+          text: textMessage ?? '',
+          sender: iOSPerson,
+          dateSent: DateTime.now(),
+          attachmentFilePath: attachmentFilePath,
+        ),
+      ],
+      attachments:
+          attachmentFilePath != null ? [DarwinNotificationAttachment(attachmentFilePath)] : [],
+    );
 
     return NotificationDetails(
       android: androidPlatformChannelSpecifics,
@@ -255,18 +273,21 @@ class LocalNotificationsService {
     }
   }
 
-  Future<String?> _copyAssetToTempFile(String assetPath) async {
+  Future<String?> _getFallbackUserAvatar(String assetPath) async {
     try {
+      final directory = await getTemporaryDirectory();
+      const fileName = 'fallback_avatar.png';
+      final tempFile = File('${directory.path}/$fileName');
+
+      if (tempFile.existsSync()) {
+        return tempFile.path;
+      }
+
       final byteData = await rootBundle.load(assetPath);
       final bytes = byteData.buffer.asUint8List();
 
-      final directory = await getTemporaryDirectory();
-      final fileName = 'fallback_avatar_${DateTime.now().millisecondsSinceEpoch}.png';
-      final tempFile = File('${directory.path}/$fileName');
-
       await tempFile.writeAsBytes(bytes);
 
-      Logger.log('Copied asset to temp file: ${tempFile.path}');
       return tempFile.path;
     } catch (e) {
       Logger.log('Failed to copy asset to temp file: $e');

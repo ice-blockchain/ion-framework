@@ -289,8 +289,11 @@ class IonConnectPushDataPayload {
           },
         );
 
-        final imageMedia = message.data.visualMedias
-            .firstWhereOrNull((media) => media.mediaType == MediaType.image);
+        final imageMedia = message.data.visualMedias.firstWhereOrNull(
+          (media) =>
+              (media.mediaType == MediaType.unknown ? media.mediaTypeEncrypted : media.mediaType) ==
+              MediaType.image,
+        );
 
         if (imageMedia != null) {
           final decryptedMedia = await mediaEncryptionService.retrieveEncryptedMedia(
