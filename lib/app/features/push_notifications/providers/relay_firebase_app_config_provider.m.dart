@@ -52,7 +52,7 @@ class RelayFirebaseAppConfig extends _$RelayFirebaseAppConfig {
 
     // Using [writeRelay] with priority because it holds the actual relay
     // that was used to sent the last event.
-    // Note: [writeRelay] could be even a read relay fallback if all write relays are unavailable.
+    // Note: [writeRelay] could even be a read relay fallback if all write relays are unavailable.
     if (writeRelay != null) {
       final relayFirebaseConfig = await _getRelayFirebaseConfig(writeRelay);
       if (relayFirebaseConfig != null) {
