@@ -15,9 +15,8 @@ part 'followers_data_source_provider.r.g.dart';
 @riverpod
 List<EntitiesDataSource>? followersDataSource(
   Ref ref,
-  String pubkey, {
-  String? query,
-}) {
+  String pubkey,
+) {
   return [
     EntitiesDataSource(
       actionSource: ActionSourceUser(pubkey),
@@ -31,7 +30,6 @@ List<EntitiesDataSource>? followersDataSource(
           },
           search: SearchExtensions(
             [
-              if (query != null) QuerySearchExtension(searchQuery: query),
               GenericIncludeSearchExtension(
                 forKind: FollowListEntity.kind,
                 includeKind: UserMetadataEntity.kind,
