@@ -122,57 +122,104 @@ class TransactionsVisibilityStatusDao extends DatabaseAccessor<WalletsDatabase>
     });
   }
 
-  Stream<int> getAllUnseenTransactionsCount() {
-    final query = (select(transactionsTable)
-          ..where((tbl) => tbl.type.equals(TransactionType.receive.value)))
-        .join([
-      leftOuterJoin(
-        transactionVisibilityStatusTable,
-        transactionVisibilityStatusTable.txHash.equalsExp(transactionsTable.txHash) &
-            transactionVisibilityStatusTable.walletViewId.equalsExp(transactionsTable.walletViewId),
-      ),
-    ]);
+  /// Gets the count of unseen transactions, optionally filtered by symbol groups
+  ///
+  /// If [symbolGroups] is null or empty, counts all unseen transactions.
+  /// If [symbolGroups] is provided, only counts transactions for those symbol groups.
+  Stream<int> getUnseenTransactionsCount({Set<String>? symbolGroups}) {
+    if (symbolGroups != null) {
+      if (symbolGroups.isEmpty) return Stream.value(0);
 
-    // Count unseen transactions by unique coinId (across all networks)
-    return query.watch().asyncMap((rows) async {
-      final unseenCoins = <String>{};
-      for (final row in rows) {
-        final visibility = row.readTableOrNull(transactionVisibilityStatusTable);
-        if (visibility == null || visibility.status == TransactionVisibilityStatus.unseen) {
-          final transaction = row.readTable(transactionsTable);
-          final coinId = transaction.coinId;
-          if (coinId == null) continue;
-          final coin = await (select(coinsTable)..where((c) => c.id.equals(coinId))).getSingle();
-          {
-            unseenCoins.add(coin.symbolGroup);
-          }
-        }
-      }
-      return unseenCoins.length;
-    });
+      final validSymbolGroups = symbolGroups.where((group) => group.isNotEmpty).toSet();
+      if (validSymbolGroups.isEmpty) return Stream.value(0);
+
+      symbolGroups = validSymbolGroups;
+    }
+
+    return _buildUnseenTransactionsCountQuery(symbolGroups: symbolGroups).watchSingle();
+  }
+
+  Selectable<int> _buildUnseenTransactionsCountQuery({
+    List<String>? coinIds,
+    Set<String>? symbolGroups,
+  }) {
+    final symbolGroupColumn = coinsTable.symbolGroup;
+    final countExpr = symbolGroupColumn.count(distinct: true);
+
+    var query = selectOnly(transactionsTable)
+      ..addColumns([countExpr])
+      ..join([
+        leftOuterJoin(
+          transactionVisibilityStatusTable,
+          transactionVisibilityStatusTable.txHash.equalsExp(transactionsTable.txHash) &
+              transactionVisibilityStatusTable.walletViewId
+                  .equalsExp(transactionsTable.walletViewId),
+        ),
+        innerJoin(
+          coinsTable,
+          coinsTable.id.equalsExp(transactionsTable.coinId),
+        ),
+      ])
+      // Only receive transactions can be unseen
+      ..where(transactionsTable.type.equals(TransactionType.receive.value))
+      // Filter for unseen transactions (null status or explicit unseen status)
+      ..where(
+        transactionVisibilityStatusTable.status.isNull() |
+            transactionVisibilityStatusTable.status
+                .equals(TransactionVisibilityStatus.unseen.index),
+      )
+      ..where(transactionsTable.coinId.isNotNull());
+
+    if (coinIds != null && coinIds.isNotEmpty) {
+      query = query..where(transactionsTable.coinId.isIn(coinIds));
+    }
+
+    if (symbolGroups != null && symbolGroups.isNotEmpty) {
+      query = query..where(coinsTable.symbolGroup.isIn(symbolGroups));
+    }
+
+    return query.map((row) => row.read(countExpr) ?? 0);
   }
 
   Stream<bool> hasUnseenTransactions(List<String> coinIds) {
-    final query = (select(transactionsTable)
-          ..where(
-            (tbl) => tbl.coinId.isIn(coinIds) & tbl.type.equals(TransactionType.receive.value),
-          ))
-        .join([
-      leftOuterJoin(
-        transactionVisibilityStatusTable,
-        transactionVisibilityStatusTable.txHash.equalsExp(transactionsTable.txHash) &
-            transactionVisibilityStatusTable.walletViewId.equalsExp(transactionsTable.walletViewId),
-      ),
-    ]);
+    if (coinIds.isEmpty) return Stream.value(false);
 
-    return query.watch().map((rows) {
-      for (final row in rows) {
-        final visibility = row.readTableOrNull(transactionVisibilityStatusTable);
-        if (visibility == null || visibility.status == TransactionVisibilityStatus.unseen) {
-          return true;
-        }
-      }
-      return false;
-    });
+    final validCoinIds = coinIds.where((id) => id.isNotEmpty).toList();
+    if (validCoinIds.isEmpty) return Stream.value(false);
+
+    return _buildUnseenTransactionsExistsQuery(coinIds: validCoinIds)
+        .watchSingle()
+        .map((count) => count > 0);
+  }
+
+  Selectable<int> _buildUnseenTransactionsExistsQuery({
+    required List<String> coinIds,
+  }) {
+    final countExpr = transactionsTable.txHash.count();
+
+    final query = selectOnly(transactionsTable)
+      ..addColumns([countExpr])
+      ..join([
+        leftOuterJoin(
+          transactionVisibilityStatusTable,
+          transactionVisibilityStatusTable.txHash.equalsExp(transactionsTable.txHash) &
+              transactionVisibilityStatusTable.walletViewId
+                  .equalsExp(transactionsTable.walletViewId),
+        ),
+        innerJoin(
+          coinsTable,
+          coinsTable.id.equalsExp(transactionsTable.coinId),
+        ),
+      ])
+      ..limit(1)
+      ..where(transactionsTable.type.equals(TransactionType.receive.value))
+      ..where(
+        transactionVisibilityStatusTable.status.isNull() |
+            transactionVisibilityStatusTable.status
+                .equals(TransactionVisibilityStatus.unseen.index),
+      )
+      ..where(transactionsTable.coinId.isIn(coinIds) & transactionsTable.coinId.isNotNull());
+
+    return query.map((row) => row.read(countExpr) ?? 0);
   }
 }
