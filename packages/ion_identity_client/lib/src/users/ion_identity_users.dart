@@ -111,12 +111,16 @@ class IONIdentityUsers {
     required SearchUsersSocialProfileType searchType,
     required int limit,
     required int offset,
+    String? followedBy,
+    String? followerOf,
   }) async {
     return _searchUsersSocialProfileService.searchForUsersByKeyword(
       keyword: keyword,
       searchType: searchType,
       limit: limit,
       offset: offset,
+      followedBy: followedBy,
+      followerOf: followerOf,
     );
   }
 }
