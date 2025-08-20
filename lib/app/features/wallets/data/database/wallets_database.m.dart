@@ -59,7 +59,9 @@ class WalletsDatabase extends _$WalletsDatabase {
   int get schemaVersion => 16;
 
   static QueryExecutor _openConnection(String pubkey) {
-    return driftDatabase(name: 'wallets_database_$pubkey');
+    return driftDatabase(
+      name: 'wallets_database_$pubkey',
+    );
   }
 
   @override
