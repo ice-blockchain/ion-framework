@@ -13,21 +13,22 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'message_reactions_provider.r.g.dart';
 
 @riverpod
-Future<List<OptimisticMessageReactions>> loadInitialMessageReactions(
+Stream<List<OptimisticMessageReactions>> subscribeToMessageReactions(
   Ref ref,
   EventReference eventReference,
-) async {
+) async* {
   final conversationMessageReactionDao = ref.watch(conversationMessageReactionDaoProvider);
 
-  final reactionGroups =
-      await conversationMessageReactionDao.messageReactions(eventReference).first;
+  final reactionGroups = conversationMessageReactionDao.messageReactions(eventReference);
 
-  return [
-    OptimisticMessageReactions(
-      eventReference: eventReference,
-      reactions: reactionGroups,
-    ),
-  ];
+  yield* reactionGroups.map(
+    (reactions) => [
+      OptimisticMessageReactions(
+        reactions: reactions,
+        eventReference: eventReference,
+      ),
+    ],
+  );
 }
 
 @riverpod
@@ -57,8 +58,14 @@ OptimisticService<OptimisticMessageReactions> messageReactionService(Ref ref) {
 
 @riverpod
 Stream<OptimisticMessageReactions?> messageReactionWatch(Ref ref, EventReference eventReference) {
-  final service = ref.watch(messageReactionServiceProvider)
-    ..initialize(loadInitialMessageReactions(ref, eventReference));
+  final service = ref.watch(messageReactionServiceProvider);
+
+  final subscription = subscribeToMessageReactions(ref, eventReference).listen((s) {
+    print('Message reactions updated: ${s.first.reactions} reactions for $eventReference');
+    service.initialize(s);
+  });
+
+  ref.onDispose(subscription.cancel);
 
   return service.watch(eventReference.toString());
 }
@@ -80,6 +87,8 @@ class ToggleReactionNotifier extends _$ToggleReactionNotifier {
     current ??= OptimisticMessageReactions(reactions: [], eventReference: eventReference);
 
     await service.dispatch(
-        ToggleReactionIntent(emoji: emoji, currentMasterPubkey: currentUserMasterPubkey), current);
+      ToggleReactionIntent(emoji: emoji, currentMasterPubkey: currentUserMasterPubkey),
+      current,
+    );
   }
 }

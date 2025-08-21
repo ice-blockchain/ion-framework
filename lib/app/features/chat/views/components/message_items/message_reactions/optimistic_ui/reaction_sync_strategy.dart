@@ -13,7 +13,7 @@ class ReactionSyncStrategy implements SyncStrategy<OptimisticMessageReactions> {
   });
 
   final Future<void> Function(EventReference eventReference, String emoji) sendReaction;
-  final Future<void> Function(EventReference eventReference) deleteReaction;
+  final Future<void> Function(EventReference eventReference, String emoji) deleteReaction;
 
   @override
   Future<OptimisticMessageReactions> send(
@@ -39,7 +39,7 @@ class ReactionSyncStrategy implements SyncStrategy<OptimisticMessageReactions> {
 
       if (optimisticSet.isEmpty) {
         // Reaction removed
-        await deleteReaction(eventReference);
+        await deleteReaction(eventReference, emoji);
       } else if (previousReaction == null) {
         // New reaction
         await sendReaction(eventReference, emoji);
@@ -48,7 +48,7 @@ class ReactionSyncStrategy implements SyncStrategy<OptimisticMessageReactions> {
         if (optimisticSet.length > previousSet.length) {
           await sendReaction(eventReference, emoji);
         } else {
-          await deleteReaction(eventReference);
+          await deleteReaction(eventReference, emoji);
         }
       }
     }

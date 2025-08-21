@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/e2ee_delete_event_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_reaction_provider.r.dart';
@@ -22,21 +23,27 @@ ReactionSyncStrategy reactionSyncStrategy(Ref ref) {
       final e2eeReactionService = await ref.read(sendE2eeReactionServiceProvider.future);
       await e2eeReactionService.sendReaction(content: emoji, kind14Rumor: eventMessage);
     },
-    deleteReaction: (eventReference) async {
+    deleteReaction: (eventReference, emoji) async {
+      final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
+
+      if (currentUserMasterPubkey == null) return;
+
       final userReactionEvent =
-          await ref.read(conversationMessageReactionDaoProvider).getReaction(eventReference);
+          await ref.read(conversationMessageReactionDaoProvider).getUserReactionReference(
+                emoji: emoji,
+                eventReference: eventReference,
+                masterPubkey: currentUserMasterPubkey,
+              );
 
       if (userReactionEvent == null) return;
 
       final eventMessageDao = ref.read(eventMessageDaoProvider);
       final eventMessage = await eventMessageDao.getByReference(eventReference);
 
-      ref.read(
-        e2eeDeleteReactionProvider(
-          reactionEventReference: userReactionEvent as ImmutableEventReference,
-          participantsMasterPubkeys: eventMessage.participantsMasterPubkeys,
-        ),
-      );
+      await ref.read(e2eeDeleteReactionNotifierProvider.notifier).deleteReaction(
+            reactionEventReference: userReactionEvent as ImmutableEventReference,
+            participantsMasterPubkeys: eventMessage.participantsMasterPubkeys,
+          );
     },
   );
 }

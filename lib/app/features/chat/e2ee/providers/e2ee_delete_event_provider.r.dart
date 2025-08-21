@@ -22,16 +22,67 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'e2ee_delete_event_provider.r.g.dart';
 
 @riverpod
-Future<void> e2eeDeleteReaction(
-  Ref ref, {
-  required List<String> participantsMasterPubkeys,
-  required ImmutableEventReference reactionEventReference,
-}) async {
-  await _deleteReaction(
-    ref: ref,
-    reactionEventReference: reactionEventReference,
-    participantsMasterPubkeys: participantsMasterPubkeys,
-  );
+class E2eeDeleteReactionNotifier extends _$E2eeDeleteReactionNotifier {
+  @override
+  FutureOr<void> build() {}
+
+  Future<void> deleteReaction({
+    required List<String> participantsMasterPubkeys,
+    required ImmutableEventReference reactionEventReference,
+  }) async {
+    state = await AsyncValue.guard(() async {
+      final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
+      final eventSigner = await ref.watch(currentUserIonConnectEventSignerProvider.future);
+
+      final conversationPubkeysNotifier = ref.watch(conversationPubkeysProvider.notifier);
+
+      if (eventSigner == null) {
+        throw EventSignerNotFoundException();
+      }
+
+      if (currentUserMasterPubkey == null) {
+        throw UserMasterPubkeyNotFoundException();
+      }
+
+      final deleteRequest = DeletionRequest(
+        events: [
+          EventToDelete(
+            eventReference:
+                reactionEventReference.copyWith(kind: PrivateMessageReactionEntity.kind),
+          ),
+        ],
+      );
+
+      print('Sending deletion request for reaction: $reactionEventReference');
+
+      final eventMessage = await deleteRequest.toEventMessage(
+        NoPrivateSigner(eventSigner.publicKey),
+        masterPubkey: currentUserMasterPubkey,
+      );
+
+      final participantsKeysMap =
+          await conversationPubkeysNotifier.fetchUsersKeys(participantsMasterPubkeys);
+
+      await Future.wait(
+        participantsMasterPubkeys.map((masterPubkey) async {
+          final pubkeys = participantsKeysMap[masterPubkey];
+
+          if (pubkeys == null) {
+            throw UserPubkeyNotFoundException(masterPubkey);
+          }
+          for (final pubkey in pubkeys) {
+            await ref.read(sendE2eeChatMessageServiceProvider).sendWrappedMessage(
+                  eventSigner: eventSigner,
+                  masterPubkey: masterPubkey,
+                  eventMessage: eventMessage,
+                  wrappedKinds: [DeletionRequestEntity.kind.toString()],
+                  pubkey: pubkey,
+                );
+          }
+        }),
+      );
+    });
+  }
 }
 
 @riverpod
@@ -79,60 +130,6 @@ Future<void> e2eeDeleteConversation(
     ref: ref,
     forEveryone: forEveryone,
     conversationIds: conversationIds,
-  );
-}
-
-Future<void> _deleteReaction({
-  required Ref ref,
-  required ImmutableEventReference reactionEventReference,
-  required List<String> participantsMasterPubkeys,
-}) async {
-  final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
-  final eventSigner = await ref.watch(currentUserIonConnectEventSignerProvider.future);
-
-  final conversationPubkeysNotifier = ref.watch(conversationPubkeysProvider.notifier);
-
-  if (eventSigner == null) {
-    throw EventSignerNotFoundException();
-  }
-
-  if (currentUserMasterPubkey == null) {
-    throw UserMasterPubkeyNotFoundException();
-  }
-
-  final deleteRequest = DeletionRequest(
-    events: [
-      EventToDelete(
-        eventReference: reactionEventReference.copyWith(kind: PrivateMessageReactionEntity.kind),
-      ),
-    ],
-  );
-
-  final eventMessage = await deleteRequest.toEventMessage(
-    NoPrivateSigner(eventSigner.publicKey),
-    masterPubkey: currentUserMasterPubkey,
-  );
-
-  final participantsKeysMap =
-      await conversationPubkeysNotifier.fetchUsersKeys(participantsMasterPubkeys);
-
-  await Future.wait(
-    participantsMasterPubkeys.map((masterPubkey) async {
-      final pubkeys = participantsKeysMap[masterPubkey];
-
-      if (pubkeys == null) {
-        throw UserPubkeyNotFoundException(masterPubkey);
-      }
-      for (final pubkey in pubkeys) {
-        await ref.read(sendE2eeChatMessageServiceProvider).sendWrappedMessage(
-              eventSigner: eventSigner,
-              masterPubkey: masterPubkey,
-              eventMessage: eventMessage,
-              wrappedKinds: [DeletionRequestEntity.kind.toString()],
-              pubkey: pubkey,
-            );
-      }
-    }),
   );
 }
 

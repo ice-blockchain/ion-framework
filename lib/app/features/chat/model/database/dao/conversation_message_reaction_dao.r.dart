@@ -97,9 +97,25 @@ class ConversationMessageReactionDao extends DatabaseAccessor<ChatDatabase>
     return row.isNotEmpty;
   }
 
-  Future<EventReference?> getReaction(EventReference eventReference) async {
+  Future<EventReference?> getStoryReaction(EventReference eventReference) async {
     final result = await (select(reactionTable)
           ..where((table) => table.isDeleted.equals(false))
+          ..where((table) => table.messageEventReference.equalsValue(eventReference))
+          ..limit(1))
+        .getSingleOrNull();
+
+    return result?.reactionEventReference;
+  }
+
+  Future<EventReference?> getUserReactionReference({
+    required String emoji,
+    required String masterPubkey,
+    required EventReference eventReference,
+  }) async {
+    final result = await (select(reactionTable)
+          ..where((table) => table.content.equals(emoji))
+          ..where((table) => table.isDeleted.equals(false))
+          ..where((table) => table.masterPubkey.equals(masterPubkey))
           ..where((table) => table.messageEventReference.equalsValue(eventReference))
           ..limit(1))
         .getSingleOrNull();
@@ -115,7 +131,8 @@ class ConversationMessageReactionDao extends DatabaseAccessor<ChatDatabase>
 
     final stream = (select(reactionTable)
           ..where((table) => table.isDeleted.equals(false))
-          ..where((table) => table.messageEventReference.equalsValue(eventReference)))
+          ..where((table) => table.messageEventReference.equalsValue(eventReference))
+          ..limit(1))
         .watchSingleOrNull()
         .map((row) => row?.content);
 
