@@ -16,12 +16,13 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_data.f.dart';
 import 'package:ion/app/features/feed/polls/view/components/post_poll.dart';
+import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/post/components/post_body/components/post_media/post_media.dart';
 import 'package:ion/app/features/feed/views/components/url_preview_content/url_preview_content.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/views/hooks/use_parsed_media_content.dart';
+import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 import 'package:ion/app/utils/url.dart';
 
@@ -59,10 +60,11 @@ class PostBody extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final (:content, :media) = useParsedMediaContent(
-      data: postData,
-      key: ValueKey(postData.hashCode),
-    );
+    final (:content, :media) = ref.watch(parsedMediaProvider(postData)).valueOrNull ??
+        (
+          content: Delta().blank,
+          media: <MediaAttachment>[],
+        );
 
     final firstUrlInPost = useMemoized(
       () {

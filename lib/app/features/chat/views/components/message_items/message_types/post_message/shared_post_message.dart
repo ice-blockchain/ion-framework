@@ -3,7 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
@@ -12,14 +14,15 @@ import 'package:ion/app/features/chat/views/components/message_items/message_rea
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/article/article.dart';
 import 'package:ion/app/features/feed/views/components/post/post.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/ion_connect/views/hooks/use_parsed_media_content.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
 class SharedPostMessage extends HookConsumerWidget {
@@ -79,10 +82,11 @@ class SharedPostMessage extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final (:content, :media) = useParsedMediaContent(
-      data: postData,
-      key: ValueKey(postData.hashCode),
-    );
+    final (:content, :media) = ref.watch(parsedMediaProvider(postData)).valueOrNull ??
+        (
+          content: Delta().blank,
+          media: <MediaAttachment>[],
+        );
 
     final contentAsPlainText = useMemoized(() => Document.fromDelta(content).toPlainText().trim());
 
