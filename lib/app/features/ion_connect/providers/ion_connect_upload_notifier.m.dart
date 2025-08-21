@@ -45,6 +45,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     FileAlt? alt,
     EventSigner? customEventSigner,
     bool skipDimCheck = false,
+    CancelToken? cancelToken,
   }) async {
     // Validate that the MIME type is supported
     final mimeType = file.mimeType;
@@ -83,6 +84,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
         fileBytes: fileBytes,
         authToken: authToken,
         alt: alt,
+        cancelToken: cancelToken,
       );
     } catch (error, stackTrace) {
       Logger.error(
@@ -118,6 +120,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     required MediaFile file,
     required Uint8List fileBytes,
     required String authToken,
+    CancelToken? cancelToken,
     FileAlt? alt,
   }) async {
     final dio = ref.read(dioHttp2Provider);
@@ -132,6 +135,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
       authToken: authToken,
       alt: alt,
       fileBytes: fileBytes,
+      cancelToken: cancelToken,
     );
   }
 
@@ -141,6 +145,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     required Uint8List fileBytes,
     required String authToken,
     FileAlt? alt,
+    CancelToken? cancelToken,
   }) async {
     final fileName = file.name ?? file.basename;
     final multipartFile = MultipartFile.fromBytes(fileBytes, filename: fileName);
@@ -160,6 +165,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
             options: Options(
               headers: {'Authorization': authToken},
             ),
+            cancelToken: cancelToken,
           );
 
       final uploadResponse =

@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
+import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
 import 'package:ffmpeg_kit_flutter/ffprobe_kit.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -89,10 +92,12 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
   @override
   Future<MediaFile> compress(
     MediaFile file, {
+    Completer<FFmpegSession>? sessionIdCompleter,
     VideoCompressionSettings settings = VideoCompressionSettings.highQuality,
   }) async {
     try {
       final output = await generateOutputPath(extension: 'mp4');
+      final sessionResultCompleter = Completer<FFmpegSession>();
 
       final args = FFmpegCommands.compressVideo(
         inputPath: file.path,
@@ -108,7 +113,14 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
         movFlags: settings.movFlags.value,
       );
 
-      final session = await compressExecutor.execute(args);
+      final session = await compressExecutor.execute(
+        args,
+        sessionResultCompleter,
+        sessionIdCompleter: sessionIdCompleter,
+      );
+
+      await sessionResultCompleter.future;
+
       final returnCode = await session.getReturnCode();
       if (!ReturnCode.isSuccess(returnCode)) {
         final logs = await session.getAllLogsAsString();
@@ -145,6 +157,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
   }) async {
     try {
       var thumbPath = thumb;
+      final sessionResultCompleter = Completer<FFmpegSession>();
 
       // If no external thumb was provided, extract a single frame from the video
       if (thumbPath == null) {
@@ -154,7 +167,10 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
             videoPath: videoFile.path,
             outputPath: outputPath,
           ),
+          sessionResultCompleter,
         );
+
+        await sessionResultCompleter.future;
 
         final returnCode = await session.getReturnCode();
         if (!ReturnCode.isSuccess(returnCode)) {

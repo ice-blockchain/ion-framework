@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
+import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -41,18 +44,24 @@ class AudioCompressor implements Compressor<AudioCompressionSettings> {
   @override
   Future<MediaFile> compress(
     MediaFile file, {
+    Completer<FFmpegSession>? sessionIdCompleter,
     AudioCompressionSettings settings = AudioCompressionSettings.mediumQuality,
   }) async {
+    final sessionResultCompleter = Completer<FFmpegSession>();
     final outputPath = await generateOutputPath(extension: 'opus');
     try {
-      final session = await compressExecutor.execute(
+      await compressExecutor.execute(
         FFmpegCommands.audioToOpus(
           inputPath: file.path,
           outputPath: outputPath,
           bitrate: settings.bitrate,
           sampleRate: settings.sampleRate,
         ),
+        sessionResultCompleter,
+        sessionIdCompleter: sessionIdCompleter,
       );
+
+      final session = await sessionResultCompleter.future;
 
       final returnCode = await session.getReturnCode();
       if (ReturnCode.isSuccess(returnCode)) {
@@ -80,14 +89,21 @@ class AudioCompressor implements Compressor<AudioCompressionSettings> {
   /// If fails, throws an exception.
   ///
   Future<String> compressAudioToWav(String inputPath) async {
+    final sessionIdCompleter = Completer<FFmpegSession>();
+    final sessionResultCompleter = Completer<FFmpegSession>();
+
     final outputPath = await generateOutputPath(extension: 'wav');
     try {
-      final session = await compressExecutor.execute(
+      await compressExecutor.execute(
         FFmpegCommands.audioToWav(
           inputPath: inputPath,
           outputPath: outputPath,
         ),
+        sessionResultCompleter,
+        sessionIdCompleter: sessionIdCompleter,
       );
+
+      final session = await sessionResultCompleter.future;
 
       final returnCode = await session.getReturnCode();
       if (ReturnCode.isSuccess(returnCode)) {
@@ -109,14 +125,20 @@ class AudioCompressor implements Compressor<AudioCompressionSettings> {
   ///
   Future<MediaFile> combineAudioFiles(List<MediaFile> inputPaths) async {
     final extension = inputPaths.last.mimeType?.split('/').last ?? '';
+    final sessionResultCompleter = Completer<FFmpegSession>();
+    final sessionIdCompleter = Completer<FFmpegSession>();
     final outputPath = await generateOutputPath(extension: extension);
     try {
-      final session = await compressExecutor.execute(
+      await compressExecutor.execute(
         FFmpegCommands.combineAudioFiles(
           inputPaths: inputPaths.map((e) => e.path).toList(),
           outputPath: outputPath,
         ),
+        sessionResultCompleter,
+        sessionIdCompleter: sessionIdCompleter,
       );
+
+      final session = await sessionResultCompleter.future;
 
       final returnCode = await session.getReturnCode();
       if (ReturnCode.isSuccess(returnCode)) {

@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -55,6 +57,7 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
   @override
   Future<MediaFile> compress(
     MediaFile file, {
+    Completer<FFmpegSession>? sessionIdCompleter,
     ImageCompressionType to = ImageCompressionType.webp,
     ImageCompressionSettings settings = const ImageCompressionSettings(),
   }) async {
@@ -106,7 +109,15 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
           );
       }
 
-      final session = await compressExecutor.execute(command);
+      final sessionResultCompleter = Completer<FFmpegSession>();
+
+      await compressExecutor.execute(
+        command,
+        sessionResultCompleter,
+        sessionIdCompleter: sessionIdCompleter,
+      );
+
+      final session = await sessionResultCompleter.future;
 
       final returnCode = await session.getReturnCode();
 
