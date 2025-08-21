@@ -191,4 +191,8 @@ class RelayAuthService {
   static bool isRelayNotAuthoritativeError(Object? error) {
     return error is SendEventException && error.code.startsWith('relay-is-not-authoritative');
   }
+
+  static bool isRelayAuthoritativeError(Object? error) {
+    return error is SendEventException && error.code.startsWith('relay-is-authoritative');
+  }
 }

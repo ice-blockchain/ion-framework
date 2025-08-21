@@ -55,9 +55,6 @@ class IonConnectNotifier extends _$IonConnectNotifier {
   }) async {
     _warnSendIssues(events);
 
-    final eventKinds = events.map((event) => event.kind).toSet();
-    Logger.log('[RELAY] Sending events with kinds: $eventKinds');
-
     final sessionId = events.isNotEmpty ? events.first.id : null;
 
     if (sessionId != null) {
@@ -90,12 +87,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
           relay.sessionId = sessionId;
         }
 
-        await relay.sendEvents(events).timeout(
-              _defaultTimeout,
-              onTimeout: () => throw TimeoutException(
-                'Sending events {$eventKinds} timed out after ${_defaultTimeout.inSeconds} seconds',
-              ),
-            );
+        await _sendEventsToRelay(events, relay: relay);
 
         if (cache) {
           return events.map(_parseAndCache).toList();
@@ -416,6 +408,34 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       metadataBuilders.map((metadataBuilder) => metadataBuilder.buildMetadata(eventReferences)),
     );
     return Future.wait(metadatas.expand((metadata) => metadata).map(sign).toList());
+  }
+
+  Future<void> _sendEventsToRelay(
+    List<EventMessage> events, {
+    required IonConnectRelay relay,
+  }) async {
+    try {
+      await relay.sendEvents(events).timeout(
+            _defaultTimeout,
+            onTimeout: () => throw TimeoutException(
+              'Sending events ${events.map((event) => event.kind).toSet()} timed out after ${_defaultTimeout.inSeconds} seconds',
+            ),
+          );
+    } catch (error) {
+      // Ignore "relay-authoritative" errors as they are thrown by a
+      // relay when the app sends an event with attached 21750 metadata to an
+      // authoritative relay.
+      //
+      // That happens when the app sends an event to a relevant user relays
+      // and those relays are shared with the current user. In this case the
+      // error can be safely ignored as it basically means that the event
+      // was already published to the relay.
+      if (RelayAuthService.isRelayAuthoritativeError(error)) {
+        return;
+      } else {
+        rethrow;
+      }
+    }
   }
 
   IonConnectEntity _parseAndCache(EventMessage event) {
