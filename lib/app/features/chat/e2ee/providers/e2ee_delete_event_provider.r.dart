@@ -53,8 +53,6 @@ class E2eeDeleteReactionNotifier extends _$E2eeDeleteReactionNotifier {
         ],
       );
 
-      print('Sending deletion request for reaction: $reactionEventReference');
-
       final eventMessage = await deleteRequest.toEventMessage(
         NoPrivateSigner(eventSigner.publicKey),
         masterPubkey: currentUserMasterPubkey,

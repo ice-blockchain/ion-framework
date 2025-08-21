@@ -95,8 +95,6 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
 
     if (reactionsToDelete.isEmpty) return;
 
-    print('Deleting reactions: $reactionsToDelete');
-
     await Future.wait(
       reactionsToDelete.map((reactionEventReference) async {
         await conversationMessageReactionDao.remove(

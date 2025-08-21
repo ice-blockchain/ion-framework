@@ -69,9 +69,7 @@ Stream<OptimisticMessageReactions?> messageReactionWatch(
 ) {
   final service = ref.watch(messageReactionServiceProvider(eventReference));
 
-  final subscription = subscribeToMessageReactions(ref, eventReference).listen((s) {
-    service.initialize(s);
-  });
+  final subscription = subscribeToMessageReactions(ref, eventReference).listen(service.initialize);
 
   ref.onDispose(subscription.cancel);
 
