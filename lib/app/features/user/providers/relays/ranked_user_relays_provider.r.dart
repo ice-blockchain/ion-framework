@@ -34,14 +34,12 @@ class RankedCurrentUserRelays extends _$RankedCurrentUserRelays {
         ref.watch(envProvider.notifier).get<int>(EnvVariable.RELAY_PING_INTERVAL_SECONDS);
 
     final controller = StreamController<List<UserRelay>>();
-    final interval = Duration(seconds: pingIntervalSeconds);
-
     ref
         .watch(
-          pauseablePeriodicRunnerProvider.notifier,
+          pauseablePeriodicRunnerProvider,
         )
         .start(
-          interval: interval,
+          interval: Duration(seconds: pingIntervalSeconds),
           onTick: (cancelToken) =>
               controller.addStream(_rank(currentUserRelays, cancelToken: cancelToken)),
           runImmediately: true,

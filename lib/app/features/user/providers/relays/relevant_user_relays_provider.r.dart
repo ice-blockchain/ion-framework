@@ -8,6 +8,7 @@ import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/ranked_user_relays_provider.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_relays_ranker.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
+import 'package:ion/app/services/pauseable_periodic_runner/pauseable_periodic_runner.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'relevant_user_relays_provider.r.g.dart';
@@ -40,22 +41,22 @@ class RankedRelevantCurrentUserRelaysUrls extends _$RankedRelevantCurrentUserRel
   Stream<List<String>> build() async* {
     final relevantRelaysUrls = await ref.watch(relevantCurrentUserRelaysProvider.future);
 
-    final cancelToken = CancelToken();
-
-    yield* _rank(relevantRelaysUrls, cancelToken: cancelToken);
-
     final pingIntervalSeconds =
         ref.watch(envProvider.notifier).get<int>(EnvVariable.RELAY_PING_INTERVAL_SECONDS);
 
     final controller = StreamController<List<String>>();
-
-    final timer = Timer.periodic(Duration(seconds: pingIntervalSeconds), (_) {
-      controller.addStream(_rank(relevantRelaysUrls, cancelToken: cancelToken));
-    });
+    ref
+        .watch(
+          pauseablePeriodicRunnerProvider,
+        )
+        .start(
+          interval: Duration(seconds: pingIntervalSeconds),
+          onTick: (cancelToken) =>
+              controller.addStream(_rank(relevantRelaysUrls, cancelToken: cancelToken)),
+          runImmediately: true,
+        );
 
     ref.onDispose(() async {
-      timer.cancel();
-      cancelToken.cancel();
       await controller.close();
     });
 

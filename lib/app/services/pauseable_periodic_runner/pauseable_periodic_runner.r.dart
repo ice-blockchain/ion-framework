@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:dio/dio.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -14,8 +15,16 @@ part 'pauseable_periodic_runner.r.g.dart';
 /// - Pauses when app goes to background/inactive and remembers remaining time
 /// - On resume, schedules a one-shot for max(remaining, [minResumeDelay]), then returns to periodic cadence
 /// - Cancels and rotates a [CancelToken] for in-flight async work on each pause/resume and tick
-@Riverpod(keepAlive: true)
-class PauseablePeriodicRunner extends _$PauseablePeriodicRunner {
+class PauseablePeriodicRunner {
+  PauseablePeriodicRunner({
+    required this.ref,
+  });
+
+  final Ref ref;
+  Duration? _interval;
+  Duration _minResumeDelay = const Duration(seconds: 30);
+  void Function(CancelToken)? _onTick;
+
   Timer? _periodicTimer;
   Timer? _oneShotTimer;
   DateTime? _nextFireAt;
@@ -23,65 +32,14 @@ class PauseablePeriodicRunner extends _$PauseablePeriodicRunner {
 
   CancelToken _cancelToken = CancelToken();
 
-  void Function(CancelToken)? _onTick;
-  Duration? _interval;
-  Duration _minResumeDelay = const Duration(seconds: 30);
-
-  @override
-  void build() {
-    // Listen to app lifecycle changes and pause/resume accordingly.
-    ref
-      ..listen<AppLifecycleState>(appLifecycleProvider, (previous, next) {
-        // No-op until start() is called.
-        if (_onTick == null || _interval == null) return;
-
-        if (next == AppLifecycleState.resumed) {
-          // On resume: rotate cancel token and schedule a one-shot for max(remaining, minResumeDelay)
-          replaceCancelToken();
-          var delay = _remainingUntilNext ?? _interval!;
-          if (delay < _minResumeDelay) {
-            delay = _minResumeDelay;
-          }
-          _remainingUntilNext = null;
-          _scheduleOneShot(delay);
-        } else {
-          // Background/inactive: capture remaining time, stop timers, cancel in-flight work.
-          final now = DateTime.now();
-          if (_nextFireAt != null) {
-            var remaining = _nextFireAt!.difference(now);
-            if (remaining.isNegative) remaining = Duration.zero;
-            _remainingUntilNext = remaining;
-          } else {
-            _remainingUntilNext = _interval;
-          }
-          _periodicTimer?.cancel();
-          _periodicTimer = null;
-          _oneShotTimer?.cancel();
-          _oneShotTimer = null;
-
-          if (!_cancelToken.isCancelled) {
-            _cancelToken.cancel();
-          }
-        }
-      })
-      ..onDispose(() {
-        _periodicTimer?.cancel();
-        _oneShotTimer?.cancel();
-        if (!_cancelToken.isCancelled) {
-          _cancelToken.cancel();
-        }
-        _onTick = null;
-        _interval = null;
-        _nextFireAt = null;
-        _remainingUntilNext = null;
-      });
+  /// Cancels the current token (if not already cancelled) and returns a new one.
+  CancelToken replaceCancelToken() {
+    if (!_cancelToken.isCancelled) {
+      _cancelToken.cancel();
+    }
+    return _cancelToken = CancelToken();
   }
 
-  /// - [interval]: base periodic cadence
-  /// - [minResumeDelay]: floor delay after app resumes before next tick
-  /// - [onTick]: invoked with a fresh [CancelToken] on each tick
-  /// Starts the pause/resume-aware periodic runner.
-  /// - [runImmediately]: if true, triggers a tick immediately after starting
   void start({
     required Duration interval,
     required void Function(CancelToken) onTick,
@@ -96,14 +54,41 @@ class PauseablePeriodicRunner extends _$PauseablePeriodicRunner {
     if (runImmediately) {
       _fire();
     }
-  }
 
-  /// Cancels the current token (if not already cancelled) and returns a new one.
-  CancelToken replaceCancelToken() {
-    if (!_cancelToken.isCancelled) {
-      _cancelToken.cancel();
-    }
-    return _cancelToken = CancelToken();
+    // Listen to app lifecycle changes and pause/resume accordingly.
+    ref.listen<AppLifecycleState>(appLifecycleProvider, (previous, next) {
+      if (next == AppLifecycleState.resumed) {
+        // No-op until start() is called.
+        if (_onTick == null || _interval == null) return;
+
+        // On resume: rotate cancel token and schedule a one-shot for max(remaining, minResumeDelay)
+        replaceCancelToken();
+        var delay = _remainingUntilNext ?? _interval!;
+        if (delay < _minResumeDelay) {
+          delay = _minResumeDelay;
+        }
+        _remainingUntilNext = null;
+        _scheduleOneShot(delay);
+      } else {
+        // Background/inactive: capture remaining time, stop timers, cancel in-flight work.
+        final now = DateTime.now();
+        if (_nextFireAt != null) {
+          var remaining = _nextFireAt!.difference(now);
+          if (remaining.isNegative) remaining = Duration.zero;
+          _remainingUntilNext = remaining;
+        } else {
+          _remainingUntilNext = _interval;
+        }
+        _periodicTimer?.cancel();
+        _periodicTimer = null;
+        _oneShotTimer?.cancel();
+        _oneShotTimer = null;
+
+        if (!_cancelToken.isCancelled) {
+          _cancelToken.cancel();
+        }
+      }
+    });
   }
 
   void _fire() {
@@ -135,4 +120,21 @@ class PauseablePeriodicRunner extends _$PauseablePeriodicRunner {
     });
     _nextFireAt = DateTime.now().add(delay);
   }
+
+  Future<void> dispose() async {
+    _periodicTimer?.cancel();
+    _oneShotTimer?.cancel();
+    if (!_cancelToken.isCancelled) {
+      _cancelToken.cancel();
+    }
+  }
+}
+
+@riverpod
+PauseablePeriodicRunner pauseablePeriodicRunner(Ref ref) {
+  final pauseablePeriodicRunner = PauseablePeriodicRunner(ref: ref);
+  ref.onDispose(() async {
+    await pauseablePeriodicRunner.dispose();
+  });
+  return pauseablePeriodicRunner;
 }
