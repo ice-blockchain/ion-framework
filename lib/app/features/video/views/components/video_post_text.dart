@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/text_editor_preview.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_styles.dart';
@@ -14,7 +13,6 @@ import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 
 class VideoTextPost extends HookConsumerWidget {
   const VideoTextPost({
@@ -36,11 +34,7 @@ class VideoTextPost extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final (:content, :media) = ref.watch(parsedMediaProvider(postData)).valueOrNull ??
-        (
-          content: Delta().blank,
-          media: <MediaAttachment>[],
-        );
+    final (:content, :media) = ref.watch(cachedParsedMediaProvider(postData));
     final isTextExpanded = useState(false);
     final style = context.theme.appTextThemes.body2.copyWith(
       color: context.theme.appColors.secondaryBackground,

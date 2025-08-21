@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
@@ -24,7 +22,6 @@ import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -233,11 +230,7 @@ ChatMessageInfoItem? getRepliedMessageListItem({
       );
     }
 
-    final (:content, :media) = ref.watch(parsedMediaProvider(postData)).valueOrNull ??
-        (
-          content: Delta().blank,
-          media: <MediaAttachment>[],
-        );
+    final (:content, :media) = ref.watch(cachedParsedMediaProvider(postData));
 
     final contentAsPlainText = useMemoized(() => Document.fromDelta(content).toPlainText().trim());
 

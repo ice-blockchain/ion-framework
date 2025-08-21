@@ -22,7 +22,6 @@ import 'package:ion/app/features/feed/views/components/url_preview_content/url_p
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 import 'package:ion/app/utils/url.dart';
 
@@ -60,11 +59,7 @@ class PostBody extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final (:content, :media) = ref.watch(parsedMediaProvider(postData)).valueOrNull ??
-        (
-          content: Delta().blank,
-          media: <MediaAttachment>[],
-        );
+    final (:content, :media) = ref.watch(cachedParsedMediaProvider(postData));
 
     final firstUrlInPost = useMemoized(
       () {
