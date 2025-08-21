@@ -123,8 +123,9 @@ Future<MediaFile?> editMedia(
   Duration? maxVideoDuration,
   bool videoCoverSelectionEnabled = true,
 }) async {
-  final filePath =
-      path.isAbsolute(mediaFile.path) ? mediaFile.path : await ref.read(assetFilePathProvider(mediaFile.path).future);
+  final filePath = path.isAbsolute(mediaFile.path)
+      ? mediaFile.path
+      : await ref.read(assetFilePathProvider(mediaFile.path).future);
 
   if (filePath == null) {
     Logger.log(
