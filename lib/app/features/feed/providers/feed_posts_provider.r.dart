@@ -109,6 +109,16 @@ bool isVideoPost(Ref ref, IonConnectEntity entity) {
 }
 
 @riverpod
+bool isVideoReply(Ref ref, IonConnectEntity entity) {
+  if (entity is ModifiablePostEntity) {
+    return entity.data.parentEvent?.eventReference != null &&
+        entity.data.expiration == null &&
+        entity.data.hasVideo;
+  }
+  return false;
+}
+
+@riverpod
 bool isVideoRepost(Ref ref, IonConnectEntity entity) {
   final reposted = ref.read(getRepostedEntityProvider(entity));
   if (reposted is ModifiablePostEntity) {

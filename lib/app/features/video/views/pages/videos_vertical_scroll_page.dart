@@ -80,7 +80,8 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
     final filteredVideos = entities.where((item) {
       final videoPost = ref.read(isVideoPostProvider(item));
       final videoRepost = ref.read(isVideoRepostProvider(item));
-      return videoPost || videoRepost;
+      final videoReply = ref.read(isVideoReplyProvider(item));
+      return videoPost || videoRepost || videoReply;
     });
 
     final videos = filteredVideos.isEmpty ? [ionConnectEntity] : filteredVideos.toList();
