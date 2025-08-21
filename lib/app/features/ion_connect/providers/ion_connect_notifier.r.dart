@@ -422,7 +422,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
             ),
           );
     } catch (error) {
-      // Ignore "relay-authoritative" errors as they are thrown by a
+      // Ignore "relay-is-authoritative" errors as they are thrown by a
       // relay when the app sends an event with attached 21750 metadata to an
       // authoritative relay.
       //
