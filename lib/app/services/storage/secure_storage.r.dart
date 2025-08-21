@@ -10,7 +10,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'secure_storage.r.g.dart';
 
 class SecureStorage {
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  // Use accessibility settings that allow access when device is locked
+  // This is required for iOS notification service extensions
+  final FlutterSecureStorage _storage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
+  );
 
   Future<String?> getString({required String key}) {
     return _storage.read(key: key);
