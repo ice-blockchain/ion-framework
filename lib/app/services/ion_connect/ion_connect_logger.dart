@@ -73,6 +73,12 @@ class IonConnectLogger implements NostrDartLogger {
   // Track which OK responses we've already received to avoid duplicates
   final Map<String, Set<String>> _receivedOkResponses = {};
 
+  @override
+  bool get incomingMessageLoggingEnabled => false;
+
+  @override
+  bool get outgoingMessageLoggingEnabled => false;
+
   // Start a session with existing ID (for subscription IDs)
   void startSessionWithId(String sessionId) {
     _sessions[sessionId] = DateTime.now();
@@ -104,7 +110,7 @@ class IonConnectLogger implements NostrDartLogger {
       final finalTime = accumulatedTime > 0 ? accumulatedTime : sessionDuration;
 
       Logger.log(
-        '🚀 NETWORK_CALL | Session $sessionId completed in ${finalTime}ms',
+        '[DEBUG] Session $sessionId completed in ${finalTime}ms',
       );
 
       _sessions.remove(sessionId);
