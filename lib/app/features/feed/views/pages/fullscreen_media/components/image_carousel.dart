@@ -55,33 +55,35 @@ class ImageCarousel extends HookConsumerWidget {
 
     final isZoomed = ref.watch(imageZoomProvider);
 
-    return Column(
+    return Stack(
+      fit: StackFit.expand,
       children: [
-        Expanded(
-          child: PageView.builder(
-            controller: pageController,
-            physics: isZoomed ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
-            itemCount: images.length,
-            itemBuilder: (context, index) {
-              return CarouselImageItem(
-                key: ValueKey(images[index].url),
-                imageUrl: images[index].url,
-                authorPubkey: eventReference.masterPubkey,
-                zoomController: zoomController,
-                bottomOverlayBuilder: index == currentPage.value
-                    ? (context) => SafeArea(
-                          top: false,
-                          child: ColoredBox(
-                            color: Colors.transparent,
-                            child: CounterItemsFooter(
-                              eventReference: eventReference,
-                              color: onPrimaryAccentColor,
-                            ),
-                          ),
-                        )
-                    : null,
-              );
-            },
+        PageView.builder(
+          controller: pageController,
+          physics: isZoomed ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
+          itemCount: images.length,
+          itemBuilder: (context, index) {
+            return CarouselImageItem(
+              key: ValueKey(images[index].url),
+              imageUrl: images[index].url,
+              authorPubkey: eventReference.masterPubkey,
+              zoomController: zoomController,
+            );
+          },
+        ),
+        PositionedDirectional(
+          start: 0,
+          end: 0,
+          bottom: 0,
+          child: SafeArea(
+            top: false,
+            child: ColoredBox(
+              color: Colors.transparent,
+              child: CounterItemsFooter(
+                eventReference: eventReference,
+                color: onPrimaryAccentColor,
+              ),
+            ),
           ),
         ),
       ],
