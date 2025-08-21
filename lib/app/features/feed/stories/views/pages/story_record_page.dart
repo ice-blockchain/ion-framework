@@ -22,12 +22,14 @@ import 'package:ion/app/features/feed/stories/views/components/story_capture/con
 import 'package:ion/app/features/feed/stories/views/components/story_capture/controls/camera_recording_indicator.dart';
 import 'package:ion/app/features/gallery/data/models/camera_state.f.dart';
 import 'package:ion/app/features/gallery/providers/camera_provider.r.dart';
+import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
 import 'package:ion/app/features/user/providers/image_proccessor_notifier.m.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/media_service/banuba_service.r.dart';
 import 'package:ion/app/services/media_service/image_proccessing_config.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:path/path.dart' as path;
 
 class StoryRecordPage extends HookConsumerWidget {
   const StoryRecordPage({super.key});
@@ -199,11 +201,17 @@ class StoryRecordPage extends HookConsumerWidget {
           );
 
       if (edited != null && edited != file.path && context.mounted) {
+        final filePath = path.isAbsolute(file.path)
+            ? file.path
+            : await ref.read(assetFilePathProvider(file.path).future);
+
+        if (!context.mounted) return;
+
         final result = await StoryPreviewRoute(
           path: edited,
           mimeType: file.mimeType,
           fromEditor: true,
-          originalFilePath: file.path,
+          originalFilePath: filePath,
         ).push<StoryPreviewResult>(context);
 
         if (result != null && context.mounted) {
@@ -241,7 +249,10 @@ class StoryRecordPage extends HookConsumerWidget {
         if (mediaType == MediaType.image) {
           editedPath = await banubaService.editPhoto(originalPath);
         } else if (mediaType == MediaType.video) {
-          final result = await banubaService.editVideo(originalPath);
+          final result = await banubaService.editVideo(
+            originalPath,
+            coverSelectionEnabled: false,
+          );
           editedPath = result?.newPath;
         }
 
