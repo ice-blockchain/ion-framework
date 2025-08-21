@@ -137,7 +137,7 @@ class RelayPicker extends _$RelayPicker {
         final relayPool = filteredIndexerUrls.isNotEmpty ? filteredIndexerUrls : indexerUrls;
 
         if (relayPool.isEmpty) {
-          throw FailedToPickUserRelay('Indexer relay pool is empty.');
+          throw FailedToPickIndexerRelay();
         }
 
         final chosenIndexerUrl = _getFirstActiveRelayUrl(relayPool) ?? relayPool.random!;
