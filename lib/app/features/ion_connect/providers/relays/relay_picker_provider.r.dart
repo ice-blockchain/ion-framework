@@ -85,12 +85,16 @@ class RelayPicker extends _$RelayPicker {
         final filteredRankedRelays =
             _filterOutDislikedRelayUrls(currentUserRankedRelayUrls, dislikedUrls);
 
-        if (filteredRankedRelays.isEmpty) {
-          throw FailedToPickUserRelay('All available relays are disliked.');
+        // If we already tried all current user ranked relays and they were disliked,
+        // we continue retrying with the best relay from the full list.
+        final relayPool =
+            filteredRankedRelays.isNotEmpty ? filteredRankedRelays : currentUserRankedRelayUrls;
+
+        if (relayPool.isEmpty) {
+          throw FailedToPickUserRelay('Current user relay pool is empty.');
         }
 
-        final chosenRelayUrl =
-            _getFirstActiveRelayUrl(filteredRankedRelays) ?? filteredRankedRelays.first;
+        final chosenRelayUrl = _getFirstActiveRelayUrl(relayPool) ?? relayPool.first;
         return ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
 
       case ActionSourceUser():
@@ -107,12 +111,17 @@ class RelayPicker extends _$RelayPicker {
         final filteredReachableRelays =
             _filterOutDislikedRelayUrls(reachableRelayUrls, dislikedUrls);
 
-        if (filteredReachableRelays.isEmpty) {
-          throw FailedToPickUserRelay('All available relays are disliked.');
+        // If we already tried all reachable user relays and they were disliked,
+        // we continue retrying with the best relay from the full list.
+        final relayPool =
+            filteredReachableRelays.isNotEmpty ? filteredReachableRelays : reachableRelayUrls;
+
+        if (relayPool.isEmpty) {
+          throw FailedToPickUserRelay('User ${actionSource.pubkey} relay pool is empty.');
         }
 
-        final chosenRelayUrl = _getFirstActiveRelayUrl(filteredReachableRelays) ??
-            await _selectRelayUrlForOtherUser(reachableRelayUrls);
+        final chosenRelayUrl =
+            _getFirstActiveRelayUrl(relayPool) ?? await _selectRelayUrlForOtherUser(relayPool);
         return ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
 
       case ActionSourceIndexers():
@@ -123,12 +132,15 @@ class RelayPicker extends _$RelayPicker {
 
         final filteredIndexerUrls = _filterOutDislikedRelayUrls(indexerUrls, dislikedUrls);
 
-        if (filteredIndexerUrls.isEmpty) {
-          throw FailedToPickUserRelay('All indexer relays are disliked.');
+        // If we already tried all indexer relays and they were disliked,
+        // we continue retrying with the best relay from the full list.
+        final relayPool = filteredIndexerUrls.isNotEmpty ? filteredIndexerUrls : indexerUrls;
+
+        if (relayPool.isEmpty) {
+          throw FailedToPickIndexerRelay();
         }
 
-        final chosenIndexerUrl =
-            _getFirstActiveRelayUrl(filteredIndexerUrls) ?? filteredIndexerUrls.random!;
+        final chosenIndexerUrl = _getFirstActiveRelayUrl(relayPool) ?? relayPool.random!;
         return ref.read(relayProvider(chosenIndexerUrl, anonymous: actionSource.anonymous).future);
 
       case ActionSourceRelayUrl():

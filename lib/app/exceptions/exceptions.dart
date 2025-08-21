@@ -648,7 +648,7 @@ class FailedToInitVideoPlayer extends IONException {
     required this.dataSourceType,
     required this.dataSource,
   }) : super(
-            10124,
+            10125,
             'Failed to initialize video player'
             ' | dataSourceType: $dataSourceType'
             ' | dataSource: $dataSource');
@@ -658,5 +658,9 @@ class FailedToInitVideoPlayer extends IONException {
 }
 
 class CurrentUserMetadataNotFoundException extends IONException {
-  CurrentUserMetadataNotFoundException() : super(10125, 'Current user metadata not found');
+  CurrentUserMetadataNotFoundException() : super(10126, 'Current user metadata not found');
+}
+
+class FailedToPickIndexerRelay extends IONException {
+  FailedToPickIndexerRelay() : super(10127, 'Failed to pick indexer relay');
 }
