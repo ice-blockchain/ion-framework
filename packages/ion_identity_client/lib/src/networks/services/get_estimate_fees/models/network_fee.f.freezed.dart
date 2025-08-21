@@ -21,9 +21,11 @@ NetworkFee _$NetworkFeeFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$NetworkFee {
   @NumberToStringConverter()
-  String get maxFeePerGas => throw _privateConstructorUsedError;
+  String? get maxFeePerGas => throw _privateConstructorUsedError;
   @NumberToStringConverter()
-  String get maxPriorityFeePerGas => throw _privateConstructorUsedError;
+  String? get maxPriorityFeePerGas => throw _privateConstructorUsedError;
+  @NumberToStringConverter()
+  String? get feeRate => throw _privateConstructorUsedError;
   @DurationConverter()
   Duration? get waitTime => throw _privateConstructorUsedError;
 
@@ -44,8 +46,9 @@ abstract class $NetworkFeeCopyWith<$Res> {
       _$NetworkFeeCopyWithImpl<$Res, NetworkFee>;
   @useResult
   $Res call(
-      {@NumberToStringConverter() String maxFeePerGas,
-      @NumberToStringConverter() String maxPriorityFeePerGas,
+      {@NumberToStringConverter() String? maxFeePerGas,
+      @NumberToStringConverter() String? maxPriorityFeePerGas,
+      @NumberToStringConverter() String? feeRate,
       @DurationConverter() Duration? waitTime});
 }
 
@@ -64,19 +67,24 @@ class _$NetworkFeeCopyWithImpl<$Res, $Val extends NetworkFee>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? maxFeePerGas = null,
-    Object? maxPriorityFeePerGas = null,
+    Object? maxFeePerGas = freezed,
+    Object? maxPriorityFeePerGas = freezed,
+    Object? feeRate = freezed,
     Object? waitTime = freezed,
   }) {
     return _then(_value.copyWith(
-      maxFeePerGas: null == maxFeePerGas
+      maxFeePerGas: freezed == maxFeePerGas
           ? _value.maxFeePerGas
           : maxFeePerGas // ignore: cast_nullable_to_non_nullable
-              as String,
-      maxPriorityFeePerGas: null == maxPriorityFeePerGas
+              as String?,
+      maxPriorityFeePerGas: freezed == maxPriorityFeePerGas
           ? _value.maxPriorityFeePerGas
           : maxPriorityFeePerGas // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
+      feeRate: freezed == feeRate
+          ? _value.feeRate
+          : feeRate // ignore: cast_nullable_to_non_nullable
+              as String?,
       waitTime: freezed == waitTime
           ? _value.waitTime
           : waitTime // ignore: cast_nullable_to_non_nullable
@@ -94,8 +102,9 @@ abstract class _$$NetworkFeeImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@NumberToStringConverter() String maxFeePerGas,
-      @NumberToStringConverter() String maxPriorityFeePerGas,
+      {@NumberToStringConverter() String? maxFeePerGas,
+      @NumberToStringConverter() String? maxPriorityFeePerGas,
+      @NumberToStringConverter() String? feeRate,
       @DurationConverter() Duration? waitTime});
 }
 
@@ -112,19 +121,24 @@ class __$$NetworkFeeImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? maxFeePerGas = null,
-    Object? maxPriorityFeePerGas = null,
+    Object? maxFeePerGas = freezed,
+    Object? maxPriorityFeePerGas = freezed,
+    Object? feeRate = freezed,
     Object? waitTime = freezed,
   }) {
     return _then(_$NetworkFeeImpl(
-      maxFeePerGas: null == maxFeePerGas
+      maxFeePerGas: freezed == maxFeePerGas
           ? _value.maxFeePerGas
           : maxFeePerGas // ignore: cast_nullable_to_non_nullable
-              as String,
-      maxPriorityFeePerGas: null == maxPriorityFeePerGas
+              as String?,
+      maxPriorityFeePerGas: freezed == maxPriorityFeePerGas
           ? _value.maxPriorityFeePerGas
           : maxPriorityFeePerGas // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
+      feeRate: freezed == feeRate
+          ? _value.feeRate
+          : feeRate // ignore: cast_nullable_to_non_nullable
+              as String?,
       waitTime: freezed == waitTime
           ? _value.waitTime
           : waitTime // ignore: cast_nullable_to_non_nullable
@@ -137,8 +151,9 @@ class __$$NetworkFeeImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$NetworkFeeImpl implements _NetworkFee {
   const _$NetworkFeeImpl(
-      {@NumberToStringConverter() required this.maxFeePerGas,
-      @NumberToStringConverter() required this.maxPriorityFeePerGas,
+      {@NumberToStringConverter() this.maxFeePerGas,
+      @NumberToStringConverter() this.maxPriorityFeePerGas,
+      @NumberToStringConverter() this.feeRate,
       @DurationConverter() this.waitTime});
 
   factory _$NetworkFeeImpl.fromJson(Map<String, dynamic> json) =>
@@ -146,17 +161,20 @@ class _$NetworkFeeImpl implements _NetworkFee {
 
   @override
   @NumberToStringConverter()
-  final String maxFeePerGas;
+  final String? maxFeePerGas;
   @override
   @NumberToStringConverter()
-  final String maxPriorityFeePerGas;
+  final String? maxPriorityFeePerGas;
+  @override
+  @NumberToStringConverter()
+  final String? feeRate;
   @override
   @DurationConverter()
   final Duration? waitTime;
 
   @override
   String toString() {
-    return 'NetworkFee(maxFeePerGas: $maxFeePerGas, maxPriorityFeePerGas: $maxPriorityFeePerGas, waitTime: $waitTime)';
+    return 'NetworkFee(maxFeePerGas: $maxFeePerGas, maxPriorityFeePerGas: $maxPriorityFeePerGas, feeRate: $feeRate, waitTime: $waitTime)';
   }
 
   @override
@@ -168,6 +186,8 @@ class _$NetworkFeeImpl implements _NetworkFee {
                 other.maxFeePerGas == maxFeePerGas) &&
             (identical(other.maxPriorityFeePerGas, maxPriorityFeePerGas) ||
                 other.maxPriorityFeePerGas == maxPriorityFeePerGas) &&
+            (identical(other.feeRate, feeRate) ||
+                other.feeRate == feeRate) &&
             (identical(other.waitTime, waitTime) ||
                 other.waitTime == waitTime));
   }
@@ -175,7 +195,7 @@ class _$NetworkFeeImpl implements _NetworkFee {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, maxFeePerGas, maxPriorityFeePerGas, waitTime);
+      Object.hash(runtimeType, maxFeePerGas, maxPriorityFeePerGas, feeRate, waitTime);
 
   /// Create a copy of NetworkFee
   /// with the given fields replaced by the non-null parameter values.
@@ -195,8 +215,9 @@ class _$NetworkFeeImpl implements _NetworkFee {
 
 abstract class _NetworkFee implements NetworkFee {
   const factory _NetworkFee(
-      {@NumberToStringConverter() required final String maxFeePerGas,
-      @NumberToStringConverter() required final String maxPriorityFeePerGas,
+      {@NumberToStringConverter() final String? maxFeePerGas,
+      @NumberToStringConverter() final String? maxPriorityFeePerGas,
+      @NumberToStringConverter() final String? feeRate,
       @DurationConverter() final Duration? waitTime}) = _$NetworkFeeImpl;
 
   factory _NetworkFee.fromJson(Map<String, dynamic> json) =
@@ -204,10 +225,13 @@ abstract class _NetworkFee implements NetworkFee {
 
   @override
   @NumberToStringConverter()
-  String get maxFeePerGas;
+  String? get maxFeePerGas;
   @override
   @NumberToStringConverter()
-  String get maxPriorityFeePerGas;
+  String? get maxPriorityFeePerGas;
+  @override
+  @NumberToStringConverter()
+  String? get feeRate;
   @override
   @DurationConverter()
   Duration? get waitTime;

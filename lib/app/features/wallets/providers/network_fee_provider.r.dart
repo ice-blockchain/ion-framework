@@ -13,6 +13,7 @@ import 'package:ion/app/features/wallets/model/network_fee_type.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart' as ion;
+import 'package:meta/meta.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'network_fee_provider.r.g.dart';
@@ -63,7 +64,7 @@ Future<NetworkFeeInformation?> networkFee(
     );
   }
 
-  final networkFeeOptions = _buildNetworkFeeOptions(
+  final networkFeeOptions = buildNetworkFeeOptions(
     estimateFees: estimateFees,
     nativeCoin: nativeCoin,
     networkNativeToken: networkNativeToken,
@@ -90,27 +91,8 @@ ion.WalletAsset? _getSendableAsset(List<ion.WalletAsset> assets, CoinData? trans
   return result ?? nativeAsset();
 }
 
-NetworkFeeOption _buildNetworkFeeOption(
-  ion.NetworkFee fee,
-  NetworkFeeType type,
-  CoinData nativeCoin,
-  ion.WalletAsset networkNativeToken,
-) {
-  double calculateAmount(String maxFeePerGas) =>
-      double.parse(maxFeePerGas) / pow(10, networkNativeToken.decimals);
-  double calculatePriceUSD(double amount) => amount * nativeCoin.priceUSD;
-
-  final amount = calculateAmount(fee.maxFeePerGas);
-  return NetworkFeeOption(
-    amount: amount,
-    priceUSD: calculatePriceUSD(amount),
-    symbol: networkNativeToken.symbol,
-    arrivalTime: fee.waitTime,
-    type: type,
-  );
-}
-
-List<NetworkFeeOption> _buildNetworkFeeOptions({
+@visibleForTesting
+List<NetworkFeeOption> buildNetworkFeeOptions({
   required ion.EstimateFee estimateFees,
   required CoinData nativeCoin,
   required ion.WalletAsset networkNativeToken,
@@ -138,6 +120,48 @@ List<NetworkFeeOption> _buildNetworkFeeOptions({
         networkNativeToken,
       ),
   ];
+}
+
+NetworkFeeOption _buildNetworkFeeOption(
+  ion.NetworkFee fee,
+  NetworkFeeType type,
+  CoinData nativeCoin,
+  ion.WalletAsset networkNativeToken,
+) {
+  final amount = _calculateFeeAmount(fee, nativeCoin.network.isBitcoin, networkNativeToken);
+
+  return NetworkFeeOption(
+    amount: amount,
+    priceUSD: amount * nativeCoin.priceUSD,
+    symbol: networkNativeToken.symbol,
+    arrivalTime: fee.waitTime,
+    type: type,
+  );
+}
+
+double _calculateFeeAmount(
+  ion.NetworkFee fee,
+  bool isBitcoinNetwork,
+  ion.WalletAsset networkNativeToken,
+) {
+  if (isBitcoinNetwork && fee.feeRate != null) {
+    // Bitcoin: feeRate is satoshis/vByte, multiply by estimated tx size and convert to BTC
+    // Using typical Bitcoin transaction size of ~250 vBytes for simple transfer
+    const estimatedTxSizeVBytes = 250.0;
+    const satoshisPerBTC = 100000000;
+    final feeRateSatsPerVByte = double.parse(fee.feeRate!);
+    final totalSatoshis = feeRateSatsPerVByte * estimatedTxSizeVBytes;
+    // Convert satoshis to BTC
+    return totalSatoshis / satoshisPerBTC;
+  }
+
+  if (fee.maxFeePerGas != null) {
+    // EVM and other networks: use maxFeePerGas divided by decimals
+    return double.parse(fee.maxFeePerGas!) / pow(10, networkNativeToken.decimals);
+  }
+
+  Logger.error('No fee information available for network fee calculation');
+  return 0;
 }
 
 /// Check if a user has enough tokens to cover a fee

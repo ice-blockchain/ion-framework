@@ -13,8 +13,9 @@ part 'network_fee.f.freezed.dart';
 @freezed
 class NetworkFee with _$NetworkFee {
   const factory NetworkFee({
-    @NumberToStringConverter() required String maxFeePerGas,
-    @NumberToStringConverter() required String maxPriorityFeePerGas,
+    @NumberToStringConverter() String? maxFeePerGas,
+    @NumberToStringConverter() String? maxPriorityFeePerGas,
+    @NumberToStringConverter() String? feeRate,
     @DurationConverter() Duration? waitTime,
   }) = _NetworkFee;
 
