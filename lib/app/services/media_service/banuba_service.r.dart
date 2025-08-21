@@ -96,7 +96,9 @@ class BanubaService {
       {
         argVideoFilePath: filePath,
         argMaxVideoDurationMs: maxVideoDuration?.inMilliseconds,
-        argCoverSelectionEnabled: coverSelectionEnabled,
+        // TODO: remove it after update android banuba sdk to 1.47.0
+        // For now it's crash app for android if the skip cover selection
+        argCoverSelectionEnabled: Platform.isAndroid || coverSelectionEnabled,
       },
     );
 
@@ -121,9 +123,8 @@ Future<MediaFile?> editMedia(
   Duration? maxVideoDuration,
   bool videoCoverSelectionEnabled = true,
 }) async {
-  final filePath = path.isAbsolute(mediaFile.path)
-      ? mediaFile.path
-      : await ref.read(assetFilePathProvider(mediaFile.path).future);
+  final filePath =
+      path.isAbsolute(mediaFile.path) ? mediaFile.path : await ref.read(assetFilePathProvider(mediaFile.path).future);
 
   if (filePath == null) {
     Logger.log(
