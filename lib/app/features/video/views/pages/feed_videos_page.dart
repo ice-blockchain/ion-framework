@@ -33,8 +33,7 @@ class FeedVideosPage extends HookConsumerWidget {
       initialMediaIndex: initialMediaIndex,
       framedEventReference: framedEventReference,
       entities: entities,
-      hasMore: hasMore,
-      onLoadMore: ref.read(feedVideosProvider.notifier).fetchEntities,
+      onLoadMore: hasMore ? ref.read(feedVideosProvider.notifier).fetchEntities : null,
     );
   }
 }
