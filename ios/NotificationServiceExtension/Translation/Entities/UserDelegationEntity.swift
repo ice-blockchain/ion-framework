@@ -106,7 +106,7 @@ struct UserDelegate {
             }
             status = delegationStatus
         } catch {
-            print("Error parsing delegation status: \(error)")
+            NSLog("Error parsing delegation status: \(error)")
             status = .inactive  // Default to inactive if there's an error
         }
         let time = Date(

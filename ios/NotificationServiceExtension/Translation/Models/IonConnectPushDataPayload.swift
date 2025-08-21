@@ -7,7 +7,7 @@ class IonConnectPushDataPayload: Decodable {
     let event: EventMessage
     let decryptedEvent: EventMessage?
     let relevantEvents: [EventMessage]
-    let decryptedPlaceholders: [String: String]?
+    let decryptedUserMetadataPlaceholders: [String: String]?
 
     enum CodingKeys: String, CodingKey {
         case compression
@@ -33,6 +33,10 @@ class IonConnectPushDataPayload: Decodable {
                     "username": metadata.name,
                     "displayName": metadata.displayName,
                 ]
+                
+                if let picture = metadata.picture {
+                    placeholders?["picture"] = picture
+                }
             }
 
             return IonConnectPushDataPayload(
@@ -69,7 +73,7 @@ class IonConnectPushDataPayload: Decodable {
                     relevantEvents = []
                 }
             } catch {
-                print("Error decompressing data: \(error)")
+                NSLog("Error decompressing data: \(error)")
                 throw error
             }
         } else {
@@ -91,7 +95,7 @@ class IonConnectPushDataPayload: Decodable {
         }
 
         self.decryptedEvent = nil
-        self.decryptedPlaceholders = nil
+        self.decryptedUserMetadataPlaceholders = nil
     }
 
     /// Internal initializer for creating a payload with a decrypted event
@@ -106,7 +110,7 @@ class IonConnectPushDataPayload: Decodable {
         self.event = event
         self.decryptedEvent = decryptedEvent
         self.relevantEvents = relevantEvents
-        self.decryptedPlaceholders = decryptedPlaceholders
+        self.decryptedUserMetadataPlaceholders = decryptedPlaceholders
     }
 
     var mainEntity: IonConnectEntity? {
@@ -195,8 +199,8 @@ class IonConnectPushDataPayload: Decodable {
             data["username"] = mainEntityUserMetadata.data.name
             data["displayName"] = mainEntityUserMetadata.data.displayName
         } else {
-            if let decryptedPlaceholders = decryptedPlaceholders {
-                data.merge(decryptedPlaceholders) { (_, new) in new }
+            if let decryptedPlaceholders = decryptedUserMetadataPlaceholders {
+                for (k, v) in decryptedPlaceholders { data[k] = v }
             }
         }
 
@@ -227,7 +231,55 @@ class IonConnectPushDataPayload: Decodable {
 
         return data
     }
+    
+    func getMediaPlaceholders() async -> (avatar: String?, attachment: String?) {
+        guard let masterPubkey = mainEntity?.masterPubkey else {
+            return (avatar: nil, attachment: nil)
+        }
 
+        var avatarUrl: String?
+        var attachmentUrl: String?
+
+        let mainEntityUserMetadata = getUserMetadata(pubkey: masterPubkey)
+        if let mainEntityUserMetadata = mainEntityUserMetadata {
+            avatarUrl = mainEntityUserMetadata.data.picture
+        } else {
+            if let decryptedPlaceholders = decryptedUserMetadataPlaceholders {
+                avatarUrl = decryptedPlaceholders["picture"]
+            }
+        }
+        
+        
+        if let decryptedEvent = decryptedEvent {
+            if let entity = try? IonConnectGiftWrapEntity.fromEventMessage(event),
+                entity.data.kinds.contains(String(ReplaceablePrivateDirectMessageEntity.kind))
+            {
+                if let message = try? ReplaceablePrivateDirectMessageEntity.fromEventMessage(decryptedEvent) {
+                    let image = message.data.visualMedias.first(where: { mediaItem in
+                        return mediaItem.mediaType == .image
+                    })
+                    
+                    attachmentUrl = image?.thumb ?? image?.url
+                }
+            }
+        }
+        
+        var avatarFilePath: String?
+                
+        if let avatarUrl = avatarUrl {
+            let avatarOutputFilePath = FileManager.default.temporaryDirectory.appendingPathComponent("user_avatar.jpg")
+            do {
+                let outputFileURL = try await ImageConverter().convertWebPToJPEG(webpURLString: avatarUrl, outputJPEGURL: avatarOutputFilePath)
+                avatarFilePath = outputFileURL.path
+            } catch {
+                NSLog("Conversion failed: \(error)")
+            }
+            
+        }
+        
+        return (avatar: avatarFilePath, attachment: attachmentUrl)
+    }
+    
     func validate(currentPubkey: String) -> Bool {
         return checkEventsSignatures()
             && checkMainEventRelevant(currentPubkey: currentPubkey)
@@ -292,7 +344,7 @@ class IonConnectPushDataPayload: Decodable {
                     try UserDelegationEntity.fromEventMessage(delegationEvent)
                 return delegationEntity.data.validate(event)
             } catch {
-                print("Error parsing delegation entity: \(error)")
+                NSLog("Error parsing delegation entity: \(error)")
                 return false
             }
         }
@@ -381,4 +433,33 @@ enum PushNotificationType: String, Decodable {
     case chatMultiMediaMessage
     case chatMultiPhotoMessage
     case chatMultiVideoMessage
+    case chatPaymentRequestMessage
+    case chatPaymentReceivedMessage
+
+    var isChat: Bool {
+        switch self {
+        case .chatDocumentMessage,
+             .chatEmojiMessage,
+             .chatPhotoMessage,
+             .chatProfileMessage,
+             .chatReaction,
+             .chatSharePostMessage,
+             .chatShareStoryMessage,
+             .chatSharedStoryReplyMessage,
+             .chatTextMessage,
+             .chatVideoMessage,
+             .chatVoiceMessage,
+             .chatFirstContactMessage,
+             .chatGifMessage,
+             .chatMultiGifMessage,
+             .chatMultiMediaMessage,
+             .chatMultiPhotoMessage,
+             .chatMultiVideoMessage,
+             .chatPaymentRequestMessage,
+             .chatPaymentReceivedMessage:
+            return true
+        default:
+            return false
+        }
+    }
 }

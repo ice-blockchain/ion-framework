@@ -37,6 +37,8 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
     let chatMultiMediaMessage: NotificationTranslation?
     let chatMultiPhotoMessage: NotificationTranslation?
     let chatMultiVideoMessage: NotificationTranslation?
+    let chatPaymentRequestMessage: NotificationTranslation?
+    let chatPaymentReceivedMessage: NotificationTranslation?
     
     enum CodingKeys: String, CodingKey {
         case version = "_version"
@@ -48,5 +50,6 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
         case chatVideoMessage, chatVoiceMessage, chatFirstContactMessage
         case chatGifMessage, chatMultiGifMessage, chatMultiMediaMessage
         case chatMultiPhotoMessage, chatMultiVideoMessage
+        case chatPaymentRequestMessage, chatPaymentReceivedMessage
     }
 }

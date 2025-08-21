@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/services/compressors/compress_executor.r.dart';
@@ -14,7 +13,6 @@ import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:ion/app/theme/app_colors.dart';
-import 'package:ion/generated/assets.gen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -107,16 +105,11 @@ class LocalNotificationsService {
       avatarFilePath = await _getMediaFilePath(Uri.parse(avatarUrl), storeToCache: true);
     }
 
-    // Use fallback avatar if no avatar URL provided or if processing failed
-    avatarFilePath ??= await _copyAssetToTempFile(Assets.images.iconProfileNoimage.path);
-
-    if (avatarFilePath != null) {
-      messagePerson = Person(
-        key: userName,
-        name: userName,
-        icon: BitmapFilePathAndroidIcon(avatarFilePath),
-      );
-    }
+    messagePerson = Person(
+      key: userName,
+      name: userName,
+      icon: avatarFilePath != null ? BitmapFilePathAndroidIcon(avatarFilePath) : null,
+    );
 
     String? attachmentFilePath;
     if (attachmentUrl != null) {
@@ -124,21 +117,19 @@ class LocalNotificationsService {
     }
 
     StyleInformation? styleInformation;
-    if (messagePerson != null) {
-      styleInformation = MessagingStyleInformation(
-        messagePerson,
-        groupConversation: false,
-        messages: [
-          Message(
-            textMessage ?? '',
-            DateTime.now(),
-            messagePerson,
-            dataMimeType: attachmentFilePath != null ? ImageCompressionType.jpeg.mimeType : null,
-            dataUri: attachmentFilePath,
-          ),
-        ],
-      );
-    }
+    styleInformation = MessagingStyleInformation(
+      messagePerson,
+      groupConversation: false,
+      messages: [
+        Message(
+          textMessage ?? '',
+          DateTime.now(),
+          messagePerson,
+          dataMimeType: attachmentFilePath != null ? ImageCompressionType.jpeg.mimeType : null,
+          dataUri: attachmentFilePath,
+        ),
+      ],
+    );
 
     final androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'ion_miscellaneous',
@@ -151,7 +142,25 @@ class LocalNotificationsService {
       shortcutId: const Uuid().v4(),
     );
 
-    const iOSPlatformChannelSpecifics = DarwinNotificationDetails();
+    final iOSPerson = DarwinCommunicationPerson(
+      handle: userName ?? 'unknown_user',
+      displayName: userName,
+      avatarFilePath: avatarFilePath,
+    );
+
+    final iOSPlatformChannelSpecifics = DarwinCommunicationNotificationDetails(
+      conversationIdentifier: userName ?? 'ion_miscellaneous',
+      messages: [
+        DarwinCommunicationMessage(
+          text: textMessage ?? '',
+          sender: iOSPerson,
+          dateSent: DateTime.now(),
+          attachmentFilePath: attachmentFilePath,
+        ),
+      ],
+      attachments:
+          attachmentFilePath != null ? [DarwinNotificationAttachment(attachmentFilePath)] : [],
+    );
 
     return NotificationDetails(
       android: androidPlatformChannelSpecifics,
@@ -251,25 +260,6 @@ class LocalNotificationsService {
       return response.data;
     } catch (e) {
       Logger.log('Failed to download file: $e');
-      return null;
-    }
-  }
-
-  Future<String?> _copyAssetToTempFile(String assetPath) async {
-    try {
-      final byteData = await rootBundle.load(assetPath);
-      final bytes = byteData.buffer.asUint8List();
-
-      final directory = await getTemporaryDirectory();
-      final fileName = 'fallback_avatar_${DateTime.now().millisecondsSinceEpoch}.png';
-      final tempFile = File('${directory.path}/$fileName');
-
-      await tempFile.writeAsBytes(bytes);
-
-      Logger.log('Copied asset to temp file: ${tempFile.path}');
-      return tempFile.path;
-    } catch (e) {
-      Logger.log('Failed to copy asset to temp file: $e');
       return null;
     }
   }
