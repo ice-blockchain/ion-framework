@@ -29,14 +29,12 @@ class NotificationService: UNNotificationServiceExtension {
                     mutableNotificationContent.title = result.title
                     mutableNotificationContent.body = result.body
 
-                    if result.notificationType.isChat {
-                        communicationPushData = CommunicationPushData(
-                            title: result.title,
-                            body: result.body,
-                            avatarFilePath: result.avatarFilePath,
-                            attachmentFilePath: result.attachmentFilePaths
-                        )
-                    }
+                    communicationPushData = CommunicationPushData(
+                        title: result.title,
+                        body: result.body,
+                        avatarFilePath: result.avatarFilePath,
+                        attachmentFilePath: result.attachmentFilePaths
+                    )
 
                 }
             } catch {
