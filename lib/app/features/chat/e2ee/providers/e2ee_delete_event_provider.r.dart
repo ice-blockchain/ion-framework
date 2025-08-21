@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
-import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/conversation_to_delete.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
@@ -25,12 +24,12 @@ part 'e2ee_delete_event_provider.r.g.dart';
 @riverpod
 Future<void> e2eeDeleteReaction(
   Ref ref, {
-  required EventMessage reactionEvent,
   required List<String> participantsMasterPubkeys,
+  required ImmutableEventReference reactionEventReference,
 }) async {
   await _deleteReaction(
     ref: ref,
-    reactionEvent: reactionEvent,
+    reactionEventReference: reactionEventReference,
     participantsMasterPubkeys: participantsMasterPubkeys,
   );
 }
@@ -85,7 +84,7 @@ Future<void> e2eeDeleteConversation(
 
 Future<void> _deleteReaction({
   required Ref ref,
-  required EventMessage reactionEvent,
+  required ImmutableEventReference reactionEventReference,
   required List<String> participantsMasterPubkeys,
 }) async {
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
@@ -104,11 +103,7 @@ Future<void> _deleteReaction({
   final deleteRequest = DeletionRequest(
     events: [
       EventToDelete(
-        eventReference: ImmutableEventReference(
-          eventId: reactionEvent.id,
-          masterPubkey: reactionEvent.masterPubkey,
-          kind: PrivateMessageReactionEntity.kind,
-        ),
+        eventReference: reactionEventReference.copyWith(kind: PrivateMessageReactionEntity.kind),
       ),
     ],
   );
@@ -118,11 +113,11 @@ Future<void> _deleteReaction({
     masterPubkey: currentUserMasterPubkey,
   );
 
+  final participantsKeysMap =
+      await conversationPubkeysNotifier.fetchUsersKeys(participantsMasterPubkeys);
+
   await Future.wait(
     participantsMasterPubkeys.map((masterPubkey) async {
-      final participantsKeysMap =
-          await conversationPubkeysNotifier.fetchUsersKeys(participantsMasterPubkeys);
-
       final pubkeys = participantsKeysMap[masterPubkey];
 
       if (pubkeys == null) {

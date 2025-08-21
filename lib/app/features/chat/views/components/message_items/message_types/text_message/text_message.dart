@@ -48,7 +48,12 @@ class TextMessage extends HookConsumerWidget {
 
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
 
-    final entityData = ReplaceablePrivateDirectMessageData.fromEventMessage(eventMessage);
+    final entity = useMemoized(
+      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
+      [eventMessage],
+    );
+
+    final entityData = entity.data;
 
     final textStyle = context.theme.appTextThemes.body2.copyWith(
       color: isMe ? context.theme.appColors.onPrimaryAccent : context.theme.appColors.primaryText,
@@ -57,7 +62,8 @@ class TextMessage extends HookConsumerWidget {
     final metadata =
         firstUrl.value != null ? ref.watch(urlMetadataProvider(firstUrl.value!)) : null;
 
-    final hasReactionsOrMetadata = useHasReaction(eventMessage, ref) || metadata != null;
+    final hasReactionsOrMetadata =
+        useHasReaction(entity.toEventReference(), ref) || metadata != null;
 
     final messageItem = TextItem(
       eventMessage: eventMessage,

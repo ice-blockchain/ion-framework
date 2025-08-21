@@ -60,7 +60,7 @@ Stream<MessageDeliveryStatus> sharedPostMessageStatus(
           );
 
   final storyReactionReference =
-      await ref.read(conversationMessageReactionDaoProvider).storyReaction(eventReference);
+      await ref.read(conversationMessageReactionDaoProvider).getReaction(eventReference);
 
   final storyReactionDeliveryStatusStream = storyReactionReference != null
       ? ref.watch(conversationMessageDataDaoProvider).messageStatus(

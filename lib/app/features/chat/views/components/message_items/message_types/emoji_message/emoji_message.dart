@@ -32,12 +32,14 @@ class EmojiMessage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entity =
-        useMemoized(() => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage));
+    final entity = useMemoized(
+      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
+      [eventMessage],
+    );
 
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
 
-    final hasReaction = useHasReaction(eventMessage, ref);
+    final hasReaction = useHasReaction(entity.toEventReference(), ref);
 
     final messageItem = TextItem(
       eventMessage: eventMessage,

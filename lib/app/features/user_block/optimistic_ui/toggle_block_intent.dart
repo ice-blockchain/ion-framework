@@ -6,7 +6,7 @@ import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.d
 /// Intent to toggle block state for a user.
 final class ToggleBlockIntent implements OptimisticIntent<BlockedUser> {
   @override
-  BlockedUser optimistic(BlockedUser current, [String? dtag]) =>
+  BlockedUser optimistic(BlockedUser current) =>
       current.copyWith(isBlocked: !current.isBlocked);
 
   @override

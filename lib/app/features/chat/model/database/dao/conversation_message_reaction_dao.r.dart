@@ -51,11 +51,7 @@ class ConversationMessageReactionDao extends DatabaseAccessor<ChatDatabase>
     );
   }
 
-  Stream<List<MessageReactionGroup>> messageReactions(EventMessage kind14EventMessage) async* {
-    final eventReference =
-        ReplaceablePrivateDirectMessageEntity.fromEventMessage(kind14EventMessage)
-            .toEventReference();
-
+  Stream<List<MessageReaction>> messageReactions(EventReference eventReference) async* {
     final existingRows = (select(reactionTable)
           ..where((table) => table.isDeleted.equals(false))
           ..where((table) => table.messageEventReference.equalsValue(eventReference)))
@@ -78,9 +74,9 @@ class ConversationMessageReactionDao extends DatabaseAccessor<ChatDatabase>
       }
 
       return groupedReactions.entries.map((entry) {
-        return MessageReactionGroup(
+        return MessageReaction(
           emoji: entry.key,
-          eventMessages: entry.value,
+          masterPubkeys: entry.value.map((e) => e.masterPubkey).toSet().toList(),
         );
       }).toList();
     });
@@ -101,7 +97,7 @@ class ConversationMessageReactionDao extends DatabaseAccessor<ChatDatabase>
     return row.isNotEmpty;
   }
 
-  Future<EventReference?> storyReaction(EventReference eventReference) async {
+  Future<EventReference?> getReaction(EventReference eventReference) async {
     final result = await (select(reactionTable)
           ..where((table) => table.isDeleted.equals(false))
           ..where((table) => table.messageEventReference.equalsValue(eventReference))

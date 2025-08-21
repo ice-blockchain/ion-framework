@@ -175,7 +175,7 @@ class StoryReply extends _$StoryReply {
 
     final kind7EventReference = await ref
         .read(conversationMessageReactionDaoProvider)
-        .storyReaction(kind30014Entity.toEventReference());
+        .getReaction(kind30014Entity.toEventReference());
     final kind7EventMessage = kind7EventReference != null
         ? await ref.read(eventMessageDaoProvider).getByReference(kind7EventReference)
         : null;

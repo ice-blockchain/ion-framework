@@ -43,14 +43,16 @@ class DocumentMessage extends HookConsumerWidget {
     final localFile = useState<File?>(null);
 
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
+    final entity = useMemoized(
+      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
+      [eventMessage],
+    );
 
-    final eventReference =
-        ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage).toEventReference();
+    final eventReference = entity.toEventReference();
 
     final messageMedia =
         ref.watch(chatMediasProvider(eventReference: eventReference)).valueOrNull?.firstOrNull;
 
-    final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage);
     final mediaAttachment =
         messageMedia?.remoteUrl == null ? null : entity.data.media[messageMedia?.remoteUrl!];
 
@@ -76,7 +78,7 @@ class DocumentMessage extends HookConsumerWidget {
       [messageMedia?.cacheKey, mediaAttachment?.url],
     );
 
-    final hasReactions = useHasReaction(eventMessage, ref);
+    final hasReactions = useHasReaction(eventReference, ref);
 
     final messageItem = DocumentItem(
       eventMessage: eventMessage,
