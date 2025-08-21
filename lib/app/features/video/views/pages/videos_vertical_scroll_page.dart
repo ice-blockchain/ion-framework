@@ -41,21 +41,21 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
   const VideosVerticalScrollPage({
     required this.eventReference,
     required this.entities,
-    required this.onLoadMore,
+    this.onLoadMore,
     this.initialMediaIndex = 0,
     this.framedEventReference,
     this.onVideoSeen,
-    this.hasMore = false,
     super.key,
   });
 
   final EventReference eventReference;
   final int initialMediaIndex;
   final Iterable<IonConnectEntity> entities;
-  final void Function() onLoadMore;
+  final void Function()? onLoadMore;
   final void Function(IonConnectEntity? video)? onVideoSeen;
   final EventReference? framedEventReference;
-  final bool hasMore;
+
+  bool get hasMore => onLoadMore != null;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -134,9 +134,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
         void listener() {
           if (userPageController.offset < -150 ||
               (userPageController.offset > userPageController.position.maxScrollExtent + 150)) {
-            if (hasMore) {
-              onLoadMore();
-            } else if (context.canPop()) {
+            if (context.canPop() && !hasMore) {
               context.pop();
             }
           }
@@ -235,7 +233,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
   void _loadMore(WidgetRef ref, int index, int totalItems) {
     const threshold = 2;
     if (hasMore && index >= totalItems - threshold) {
-      onLoadMore();
+      onLoadMore?.call();
     }
   }
 
