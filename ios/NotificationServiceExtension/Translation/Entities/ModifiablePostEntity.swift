@@ -44,6 +44,11 @@ struct ModifiablePostData {
     let relatedEvents: [RelatedEvent]
     let relatedPubkeys: [RelatedPubkey]
     let quotedEvent: QuotedEvent?
+    let richText: RichText?
+    
+    var content: String {
+        return richText?.content ?? textContent
+    }
 
     static func fromEventMessage(_ eventMessage: EventMessage) -> ModifiablePostData {
         let textContent = eventMessage.content
@@ -80,12 +85,26 @@ struct ModifiablePostData {
                 }
             }
         }
+        
+        // Parse rich text from rich_text tags
+        var richText: RichText? = nil
+        for tag in eventMessage.tags {
+            if tag.count >= 3 && tag[0] == RichText.tagName {
+                do {
+                    richText = try RichText.fromTag(tag)
+                    break
+                } catch {
+                    NSLog("Error parsing rich text: \(error)")
+                }
+            }
+        }
 
         return ModifiablePostData(
             textContent: textContent,
             relatedEvents: relatedEvents,
             relatedPubkeys: relatedPubkeys,
-            quotedEvent: quotedEvent
+            quotedEvent: quotedEvent,
+            richText: richText
         )
     }
 }

@@ -33,7 +33,7 @@ class IonConnectPushDataPayload: Decodable {
                     "username": metadata.name,
                     "displayName": metadata.displayName,
                 ]
-                
+
                 if let picture = metadata.picture {
                     placeholders?["picture"] = picture
                 }
@@ -131,13 +131,26 @@ class IonConnectPushDataPayload: Decodable {
         } else if let post = entity as? PostEntity, post.data.quotedEvent != nil {
             return .repost
         } else if entity is ModifiablePostEntity || entity is PostEntity {
-            let currentUserMention = "p:\(currentPubkey)"
-            if let post = entity as? ModifiablePostEntity {
-                return post.data.textContent.contains(currentUserMention)
-                    ? .mention : .reply
-            } else if let post = entity as? PostEntity {
-                return post.data.textContent.contains(currentUserMention)
-                    ? .mention : .reply
+            let currentUserMention = ReplaceableEventReference(
+                masterPubkey: currentPubkey,
+                kind: UserMetadataEntity.kind
+            ).encode()
+
+            let content: String? = {
+                switch entity {
+                case let e as ModifiablePostEntity:
+                    return e.data.content
+                case let e as PostEntity:
+                    return e.data.content
+                default:
+                    return nil
+                }
+            }()
+
+            if let content = content, content.contains(currentUserMention) {
+                return .mention
+            } else {
+                return .reply
             }
         } else if entity is ReactionEntity {
             return .like
@@ -171,9 +184,9 @@ class IonConnectPushDataPayload: Decodable {
                     case .sharedPost:
                         return .chatSharePostMessage
                     case .requestFunds:
-                        return .paymentRequest
+                        return .chatPaymentRequestMessage
                     case .moneySent:
-                        return .paymentReceived
+                        return .chatPaymentReceivedMessage
                     case .visualMedia:
                         return getVisualMediaNotificationType(message: message)
                     }
@@ -231,7 +244,7 @@ class IonConnectPushDataPayload: Decodable {
 
         return data
     }
-    
+
     func getMediaPlaceholders() async -> (avatar: String?, attachment: String?) {
         guard let masterPubkey = mainEntity?.masterPubkey else {
             return (avatar: nil, attachment: nil)
@@ -248,8 +261,7 @@ class IonConnectPushDataPayload: Decodable {
                 avatarUrl = decryptedPlaceholders["picture"]
             }
         }
-        
-        
+
         if let decryptedEvent = decryptedEvent {
             if let entity = try? IonConnectGiftWrapEntity.fromEventMessage(event),
                 entity.data.kinds.contains(String(ReplaceablePrivateDirectMessageEntity.kind))
@@ -258,28 +270,31 @@ class IonConnectPushDataPayload: Decodable {
                     let image = message.data.visualMedias.first(where: { mediaItem in
                         return mediaItem.mediaType == .image
                     })
-                    
+
                     attachmentUrl = image?.thumb ?? image?.url
                 }
             }
         }
-        
+
         var avatarFilePath: String?
-                
+
         if let avatarUrl = avatarUrl {
             let avatarOutputFilePath = FileManager.default.temporaryDirectory.appendingPathComponent("user_avatar.jpg")
             do {
-                let outputFileURL = try await ImageConverter().convertWebPToJPEG(webpURLString: avatarUrl, outputJPEGURL: avatarOutputFilePath)
+                let outputFileURL = try await ImageConverter().convertWebPToJPEG(
+                    webpURLString: avatarUrl,
+                    outputJPEGURL: avatarOutputFilePath
+                )
                 avatarFilePath = outputFileURL.path
             } catch {
                 NSLog("Conversion failed: \(error)")
             }
-            
+
         }
-        
+
         return (avatar: avatarFilePath, attachment: attachmentUrl)
     }
-    
+
     func validate(currentPubkey: String) -> Bool {
         return checkEventsSignatures()
             && checkMainEventRelevant(currentPubkey: currentPubkey)
@@ -309,11 +324,11 @@ class IonConnectPushDataPayload: Decodable {
                 return pubkey.value == currentPubkey
             }
         } else if let genericRepost = entity as? GenericRepostEntity {
-            return genericRepost.data.eventReference.pubkey == currentPubkey
+            return genericRepost.data.eventReference.masterPubkey == currentPubkey
         } else if let repost = entity as? RepostEntity {
-            return repost.data.eventReference.pubkey == currentPubkey
+            return repost.data.eventReference.masterPubkey == currentPubkey
         } else if let reaction = entity as? ReactionEntity {
-            return reaction.data.eventReference.pubkey == currentPubkey
+            return reaction.data.eventReference.masterPubkey == currentPubkey
         } else if let followList = entity as? FollowListEntity {
             return followList.pubkeys.last == currentPubkey
         } else if let giftWrap = entity as? IonConnectGiftWrapEntity {
