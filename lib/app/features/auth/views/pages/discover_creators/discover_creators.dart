@@ -119,7 +119,7 @@ class DiscoverCreators extends HookConsumerWidget {
                   },
                 ),
               ),
-              SizedBox(height: 8.0.s + MediaQuery.paddingOf(context).bottom),
+              SizedBox(height: 16.0.s),
             ],
           ),
         ],
