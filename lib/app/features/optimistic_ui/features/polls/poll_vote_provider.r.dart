@@ -18,9 +18,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'poll_vote_provider.r.g.dart';
 
 @riverpod
-List<PollVoteState> loadInitialPollVotesFromCache(Ref ref) => [];
-
-@riverpod
 OptimisticOperationManager<PollVoteState> pollVoteManager(Ref ref) {
   keepAliveWhenAuthenticated(ref);
 
@@ -46,8 +43,7 @@ OptimisticOperationManager<PollVoteState> pollVoteManager(Ref ref) {
 OptimisticService<PollVoteState> pollVoteService(Ref ref) {
   keepAliveWhenAuthenticated(ref);
   final manager = ref.watch(pollVoteManagerProvider);
-  final initial = ref.watch(loadInitialPollVotesFromCacheProvider);
-  final service = OptimisticService<PollVoteState>(manager: manager)..initialize(initial);
+  final service = OptimisticService<PollVoteState>(manager: manager)..initialize([]);
   return service;
 }
 
