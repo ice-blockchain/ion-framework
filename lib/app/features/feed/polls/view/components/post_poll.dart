@@ -7,7 +7,6 @@ import 'package:ion/app/features/feed/polls/providers/poll_results_provider.r.da
 import 'package:ion/app/features/feed/polls/view/components/poll_vote.dart';
 import 'package:ion/app/features/feed/polls/view/components/poll_vote_result.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-// import 'package:ion/app/features/feed/polls/providers/poll_vote_notifier.m.dart';
 import 'package:ion/app/features/optimistic_ui/features/polls/poll_vote_provider.r.dart';
 
 class PostPoll extends ConsumerWidget {
