@@ -56,10 +56,20 @@ class WalletViewParser {
     Map<String, WalletViewAggregationItem> aggregation,
   ) async {
     final coinDTO = coinInWalletDTO.coin;
-    final network = networks[coinDTO.network]!;
+    final network = networks[coinDTO.network];
+
+    if (network == null) {
+      Logger.error(
+        'Network not found for coin ${coinDTO.name}(${coinDTO.id}) in ${coinDTO.network}',
+      );
+      return null;
+    }
 
     final coin = await _getValidCoinData(coinDTO, network);
-    if (coin == null) return null;
+    if (coin == null) {
+      Logger.error('Coin not found for coin ${coinDTO.name}(${coinDTO.id})');
+      return null;
+    }
 
     final amounts = _calculateCoinAmounts(
       coinInWalletDTO,
