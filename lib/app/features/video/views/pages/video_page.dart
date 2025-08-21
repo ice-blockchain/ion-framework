@@ -16,6 +16,7 @@ import 'package:ion/app/features/video/views/components/video_thumbnail_preview.
 import 'package:ion/app/features/video/views/hooks/use_video_ended.dart';
 import 'package:ion/app/hooks/use_auto_play.dart';
 import 'package:ion/app/hooks/use_route_presence.dart';
+import 'package:ion/app/services/media_service/aspect_ratio.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -74,7 +75,7 @@ class VideoPage extends HookConsumerWidget {
     useAutoPlay(this.playerController == null ? playerController : null);
 
     if (playerController == null || !playerController.value.isInitialized) {
-      final thumbnailAspectRatio = aspectRatio ?? 16 / 9;
+      final thumbnailAspectRatio = aspectRatio ?? MediaAspectRatio.landscape;
 
       Widget thumbnailWidget = VideoThumbnailPreview(
         thumbnailUrl: thumbnailUrl,

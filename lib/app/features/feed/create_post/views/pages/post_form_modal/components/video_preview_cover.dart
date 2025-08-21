@@ -10,6 +10,7 @@ import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/video_preview_duration.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/video_preview_edit_cover.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
+import 'package:ion/app/services/media_service/aspect_ratio.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:video_player/video_player.dart';
@@ -22,8 +23,8 @@ class VideoPreviewCover extends HookConsumerWidget {
 
   final ValueNotifier<MediaFile?> attachedVideoNotifier;
 
-  static const double minAspectRatio = 9 / 16;
-  static const double maxAspectRatio = 16 / 9;
+  static const double minAspectRatio = MediaAspectRatio.portrait;
+  static const double maxAspectRatio = MediaAspectRatio.landscape;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

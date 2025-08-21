@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/services/media_service/aspect_ratio.dart';
 
 class PostScreenshotPreview extends StatelessWidget {
   const PostScreenshotPreview({
@@ -20,7 +21,7 @@ class PostScreenshotPreview extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.0.s),
       child: AspectRatio(
-        aspectRatio: 9 / 16,
+        aspectRatio: MediaAspectRatio.portrait,
         child: ColoredBox(
           color: colors.attentionBlock,
           child: Center(
