@@ -46,13 +46,19 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
 
         // Send user delegation event in advance so all subsequent events pass delegation attestation
         try {
-          final userDelegationEvent =
-              await _buildUserDelegation(onVerifyIdentity: onVerifyIdentity);
+          final userDelegationEvent = await ref.read(delegationCompleteProvider.future)
+              ? null
+              : await _buildUserDelegation(onVerifyIdentity: onVerifyIdentity);
+
           // Set delay to attach published 10100 and 10002 during the connection authorization
           ref.read(relaysReplicaDelayProvider.notifier).setDelay();
-          await ref
-              .read(ionConnectNotifierProvider.notifier)
-              .sendEvents([userDelegationEvent, userRelaysEvent]);
+
+          await ref.read(ionConnectNotifierProvider.notifier).sendEvents([
+            // Do not attach / update user delegation event if delegation for the current device is already complete
+            if (userDelegationEvent != null) userDelegationEvent,
+            // User relays still might be updated if user selected different content creators
+            userRelaysEvent,
+          ]);
         } on PasskeyCancelledException {
           return;
         }
