@@ -54,8 +54,7 @@ class IonNetworkImage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-    final fullWidth = MediaQuery.sizeOf(context).width;
-    final cacheWidth = (width ?? fullWidth) * devicePixelRatio;
+    final cacheWidth = (width ?? MediaQuery.sizeOf(context).width) * devicePixelRatio;
     final cacheHeight = height != null ? height! * devicePixelRatio : null;
     int? memCacheWidth;
     int? memCacheHeight;
@@ -73,6 +72,7 @@ class IonNetworkImage extends HookWidget {
     }
 
     final fetchError = useRef<Object?>(null);
+    final cacheKey = Uri.tryParse(imageUrl)?.path ?? imageUrl;
 
     if (borderRadius != null) {
       return DecoratedBox(
@@ -83,6 +83,7 @@ class IonNetworkImage extends HookWidget {
               imageUrl,
               maxWidth: memCacheWidth,
               maxHeight: memCacheHeight,
+              cacheKey: cacheKey,
             ),
             fit: fit,
           ),
@@ -96,6 +97,7 @@ class IonNetworkImage extends HookWidget {
 
     return CachedNetworkImage(
       key: Key("${imageUrl}_${cacheWidth.toInt()}x${cacheHeight?.toInt() ?? 'auto'}"),
+      cacheKey: cacheKey,
       imageUrl: imageUrl,
       height: height,
       width: width,
