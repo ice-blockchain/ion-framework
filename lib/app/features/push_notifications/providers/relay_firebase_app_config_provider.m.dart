@@ -36,37 +36,51 @@ class RelayFirebaseAppConfig extends _$RelayFirebaseAppConfig {
     }
 
     final savedConfig = ref.watch(savedRelayFirebaseAppConfigProvider);
+
+    // Using a Firebase config from the current write relay, as it is responsible
+    // for processing sent events (including push notifications) from this app.
     final writeRelay = ref.watch(currentUserWriteRelayProvider);
 
     final relayUrls = [for (final userRelay in userRelays) userRelay.url];
 
-    // Use cached config if:
-    // 1. We have a saved config
-    // 2. The saved relay is still in user's relay list
-    // 3. writeRelay is null (at startup) OR matches the saved relay
-    // This prevents circular dependency when writeRelay is null at app startup
+    // Using cached firebase config when we're sure it is suitable.
     if (savedConfig != null &&
         relayUrls.contains(savedConfig.relayUrl) &&
         (writeRelay == null || writeRelay == savedConfig.relayUrl)) {
       return savedConfig;
     }
 
-    final actionSourceRelay = ref.watch(relayPickerProvider.notifier);
-    final noFirebaseConfigRelays = <String>{};
-
-    while (userRelays.length > noFirebaseConfigRelays.length) {
-      final relay = await actionSourceRelay.getActionSourceRelay(
-        const ActionSourceCurrentUser(),
-        actionType: ActionType.write,
-        dislikedUrls: DislikedRelayUrlsCollection(noFirebaseConfigRelays),
-      );
-      final relayUrl = relay.url;
-
-      final relayFirebaseConfig = await _getRelayFirebaseConfig(relayUrl);
+    // Using [writeRelay] with priority because it holds the actual relay
+    // that was used to sent the last event.
+    // Note: [writeRelay] could even be a read relay fallback if all write relays are unavailable.
+    if (writeRelay != null) {
+      final relayFirebaseConfig = await _getRelayFirebaseConfig(writeRelay);
       if (relayFirebaseConfig != null) {
         return relayFirebaseConfig;
-      } else {
-        noFirebaseConfigRelays.add(relayUrl);
+      }
+    }
+    // Fresh app start: no write relay is determined yet.
+    // We pick a write relay from the user relays pool that possesses a firebase config.
+    else {
+      final actionSourceRelay = ref.watch(relayPickerProvider.notifier);
+      final noFirebaseConfigRelays = <String>{};
+
+      // Continue until we've checked all relays or found a suitable one
+      while (userRelays.length > noFirebaseConfigRelays.length) {
+        final relay = await actionSourceRelay.getActionSourceRelay(
+          const ActionSourceCurrentUser(),
+          actionType: ActionType.write,
+          dislikedUrls: DislikedRelayUrlsCollection(noFirebaseConfigRelays),
+        );
+        final relayUrl = relay.url;
+
+        final relayFirebaseConfig = await _getRelayFirebaseConfig(relayUrl);
+        if (relayFirebaseConfig != null) {
+          return relayFirebaseConfig;
+        } else {
+          // Remember relays without Firebase support to avoid retrying
+          noFirebaseConfigRelays.add(relayUrl);
+        }
       }
     }
 
