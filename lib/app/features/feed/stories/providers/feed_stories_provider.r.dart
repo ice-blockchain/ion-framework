@@ -10,7 +10,6 @@ import 'package:ion/app/features/feed/providers/feed_following_content_provider.
 import 'package:ion/app/features/feed/providers/feed_for_you_content_provider.m.dart';
 import 'package:ion/app/features/feed/stories/data/models/user_story.f.dart';
 import 'package:ion/app/features/feed/stories/providers/current_user_story_provider.r.dart';
-import 'package:ion/app/features/feed/stories/providers/stories_count_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
@@ -40,8 +39,6 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
       if (currentUserStory != null) currentUserStory,
       ...userStories,
     };
-
-    _fetchCountersFor(stories);
 
     return (items: stories, hasMore: data.hasMore);
   }
@@ -89,12 +86,6 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
     }
 
     return userStoriesMap.values;
-  }
-
-  void _fetchCountersFor(Iterable<UserStory> stories) {
-    for (final story in stories) {
-      ref.read(storiesCountProvider(story.pubkey));
-    }
   }
 }
 

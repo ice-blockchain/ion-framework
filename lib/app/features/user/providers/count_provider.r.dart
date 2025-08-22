@@ -30,7 +30,6 @@ class Count extends _$Count {
     required ActionSource actionSource,
     Duration? cacheExpirationDuration,
     bool cache = true,
-    bool addCurrentPubkey = true,
   }) async {
     if (cache) {
       final countEntity = ref.watch(
@@ -54,7 +53,6 @@ class Count extends _$Count {
       key: key,
       actionSource: actionSource,
       requestData: requestData,
-      addCurrentPubkey: addCurrentPubkey,
     );
   }
 
@@ -62,7 +60,6 @@ class Count extends _$Count {
     required String key,
     required ActionSource actionSource,
     required EventCountRequestData requestData,
-    required bool addCurrentPubkey,
   }) async {
     final currentPubkey = ref.read(currentPubkeySelectorProvider);
     if (currentPubkey == null) {
@@ -79,11 +76,9 @@ class Count extends _$Count {
       ..addFilter(
         RequestFilter(
           kinds: const [EventCountResultEntity.kind, EventCountErrorEntity.kind],
-          tags: addCurrentPubkey
-              ? {
-                  '#p': [currentPubkey],
-                }
-              : null,
+          tags: {
+            '#e': [requestEvent.id],
+          },
         ),
       );
 
