@@ -27,7 +27,7 @@ class StoryListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // prefetch stories counter for the giver author
+    // prefetch stories counter for the given author
     ref.watch(storiesCountProvider(pubkey));
     final userMetadata = ref.watch(cachedUserMetadataProvider(pubkey));
     final userStory = ref.watch(feedStoriesByPubkeyProvider(pubkey, showOnlySelectedUser: true));
