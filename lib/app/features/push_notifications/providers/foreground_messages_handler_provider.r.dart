@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
@@ -12,6 +13,7 @@ import 'package:ion/app/features/push_notifications/data/models/ion_connect_push
 import 'package:ion/app/features/push_notifications/providers/configure_firebase_app_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_data_parser_provider.r.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_metadata_dao.m.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/firebase/firebase_messaging_service_provider.r.dart';
 import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -46,7 +48,7 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
       },
     );
 
-    if (await _shouldSkip(data: data)) {
+    if (await _shouldSkipOwnGiftWrap(data: data)) {
       return;
     }
 
@@ -69,6 +71,10 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     final avatar = parsedData?.avatar;
     final media = parsedData?.media;
 
+    if (_shouldSkipChatPush(data, parsedData?.notificationType)) {
+      return;
+    }
+
     final notificationsService = await ref.read(localNotificationsServiceProvider.future);
     await notificationsService.showNotification(
       title: title,
@@ -79,10 +85,9 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     );
   }
 
-  Future<bool> _shouldSkip({
+  Future<bool> _shouldSkipOwnGiftWrap({
     required IonConnectPushDataPayload data,
   }) async {
-    // Skipping gift wraps with own events
     if (data.event.kind == IonConnectGiftWrapEntity.kind) {
       final giftUnwrapService = await ref.watch(giftUnwrapServiceProvider.future);
       final currentPubkey = ref.watch(currentPubkeySelectorProvider);
@@ -95,6 +100,36 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
 
       return rumor.masterPubkey == currentPubkey;
     }
+
+    return false;
+  }
+
+  bool _shouldSkipChatPush(
+    IonConnectPushDataPayload data,
+    PushNotificationType? notificationType,
+  ) {
+    final isChatPush = notificationType?.isChat ?? false;
+    final rootNavigatorKeyContext = rootNavigatorKey.currentContext;
+
+    final decryptedEventMasterPubkey = data.decryptedEvent?.masterPubkey;
+    if (decryptedEventMasterPubkey != null &&
+        isChatPush &&
+        rootNavigatorKeyContext != null &&
+        rootNavigatorKeyContext.mounted) {
+      final router = GoRouter.of(rootNavigatorKeyContext);
+      final lastMatch = router.routerDelegate.currentConfiguration.last;
+      final currentRouteMatchList = lastMatch is ImperativeRouteMatch
+          ? lastMatch.matches
+          : router.routerDelegate.currentConfiguration;
+
+      final currentPath = currentRouteMatchList.uri.toString();
+
+      // Skip push if current route is already for the same chat
+      if (currentPath.contains(decryptedEventMasterPubkey)) {
+        return true;
+      }
+    }
+
     return false;
   }
 }
