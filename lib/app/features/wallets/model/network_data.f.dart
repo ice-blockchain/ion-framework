@@ -38,6 +38,7 @@ class NetworkData with _$NetworkData {
       );
 
   bool get isIonHistorySupported => tier == 1;
+  bool get isBitcoin => id == 'Bitcoin' || id == 'BitcoinSignet';
 
   String getExplorerUrl(String txHash) => explorerUrl.replaceAll('{txHash}', txHash);
 }
