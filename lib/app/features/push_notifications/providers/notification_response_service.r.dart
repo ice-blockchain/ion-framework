@@ -115,10 +115,17 @@ class NotificationResponseService {
   }
 
   Future<void> _openPostDetail(EventReference eventReference) async {
-    final currentLocation = _currentRouteMatchList.uri.toString();
-
     final route = PostDetailsRoute(eventReference: eventReference.encode());
-    if (route.location == currentLocation) {
+    final routePath = route.location.split('?').first;
+    final currentPath = _currentRouteMatchList.fullPath;
+
+    if (routePath == currentPath) {
+      final currentLocation = _currentRouteMatchList.uri.toString();
+      if (route.location == currentLocation) {
+        return;
+      }
+
+      route.pushReplacement(rootNavigatorKey.currentContext!);
       return;
     }
 
@@ -126,10 +133,17 @@ class NotificationResponseService {
   }
 
   Future<void> _openArticleDetail(EventReference eventReference) async {
-    final currentLocation = _currentRouteMatchList.uri.toString();
-
     final route = ArticleDetailsRoute(eventReference: eventReference.encode());
-    if (route.location == currentLocation) {
+    final routePath = route.location.split('?').first;
+    final currentPath = _currentRouteMatchList.fullPath;
+
+    if (routePath == currentPath) {
+      final currentLocation = _currentRouteMatchList.uri.toString();
+      if (route.location == currentLocation) {
+        return;
+      }
+
+      route.pushReplacement(rootNavigatorKey.currentContext!);
       return;
     }
 
@@ -137,10 +151,17 @@ class NotificationResponseService {
   }
 
   Future<void> _openProfileDetail(String pubkey) async {
-    final currentLocation = _currentRouteMatchList.uri.toString();
-
     final route = ProfileRoute(pubkey: pubkey);
-    if (route.location == currentLocation) {
+    final routePath = route.location.split('?').first;
+    final currentPath = _currentRouteMatchList.fullPath;
+
+    if (routePath == currentPath) {
+      final currentLocation = _currentRouteMatchList.uri.toString();
+      if (route.location == currentLocation) {
+        return;
+      }
+
+      route.pushReplacement(rootNavigatorKey.currentContext!);
       return;
     }
 
@@ -148,10 +169,17 @@ class NotificationResponseService {
   }
 
   Future<void> _openChat(String pubkey) async {
-    final currentLocation = _currentRouteMatchList.uri.toString();
-
     final route = ConversationRoute(receiverMasterPubkey: pubkey);
-    if (route.location == currentLocation) {
+    final routePath = route.location.split('?').first;
+    final currentPath = _currentRouteMatchList.fullPath;
+
+    if (routePath == currentPath) {
+      final currentLocation = _currentRouteMatchList.uri.toString();
+      if (route.location == currentLocation) {
+        return;
+      }
+
+      route.pushReplacement(rootNavigatorKey.currentContext!);
       return;
     }
 
