@@ -40,10 +40,12 @@ ReactionSyncStrategy reactionSyncStrategy(Ref ref) {
       final eventMessageDao = ref.read(eventMessageDaoProvider);
       final eventMessage = await eventMessageDao.getByReference(eventReference);
 
-      await ref.read(e2eeDeleteReactionNotifierProvider.notifier).deleteReaction(
-            reactionEventReference: userReactionEvent as ImmutableEventReference,
-            participantsMasterPubkeys: eventMessage.participantsMasterPubkeys,
-          );
+      if (userReactionEvent is ImmutableEventReference) {
+        await ref.read(e2eeDeleteReactionNotifierProvider.notifier).deleteReaction(
+              reactionEventReference: userReactionEvent,
+              participantsMasterPubkeys: eventMessage.participantsMasterPubkeys,
+            );
+      }
     },
   );
 }

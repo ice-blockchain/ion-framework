@@ -35,39 +35,37 @@ class MessageReactions extends HookConsumerWidget {
         ref.watch(messageReactionWatchProvider(eventReference)).valueOrNull?.reactions.toList() ??
             [];
 
-    return HookBuilder(
-      builder: (context) => Padding(
-        padding: EdgeInsetsDirectional.only(top: 8.0.s),
-        child: Wrap(
-          spacing: 0.0.s,
-          runSpacing: 4.0.s,
-          children: reactions.map((reaction) {
-            final isCurrentUserHasReaction = useMemoized(
-              () => reaction.masterPubkeys.contains(currentMasterPubkey),
-              [reaction.masterPubkeys, currentMasterPubkey],
-            );
+    return Padding(
+      padding: EdgeInsetsDirectional.only(top: 8.0.s),
+      child: Wrap(
+        spacing: 0.0.s,
+        runSpacing: 4.0.s,
+        children: reactions.map((reaction) {
+          final isCurrentUserHasReaction = useMemoized(
+            () => reaction.masterPubkeys.contains(currentMasterPubkey),
+            [reaction.masterPubkeys, currentMasterPubkey],
+          );
 
-            if (reaction.masterPubkeys.isEmpty) {
-              return const SizedBox.shrink();
-            }
+          if (reaction.masterPubkeys.isEmpty) {
+            return const SizedBox.shrink();
+          }
 
-            return _MessageReactionChip(
-              isMe: isMe,
-              emoji: reaction.emoji,
-              masterPubkeys: reaction.masterPubkeys,
-              currentUserHasReaction: isCurrentUserHasReaction,
-              onTap: () {
-                if (currentMasterPubkey == null) return;
+          return _MessageReactionChip(
+            isMe: isMe,
+            emoji: reaction.emoji,
+            masterPubkeys: reaction.masterPubkeys,
+            currentUserHasReaction: isCurrentUserHasReaction,
+            onTap: () {
+              if (currentMasterPubkey == null) return;
 
-                ref.read(toggleReactionNotifierProvider.notifier).toggle(
-                      emoji: reaction.emoji,
-                      eventReference: eventReference,
-                      currentUserMasterPubkey: currentMasterPubkey,
-                    );
-              },
-            );
-          }).toList(),
-        ),
+              ref.read(toggleReactionNotifierProvider.notifier).toggle(
+                    emoji: reaction.emoji,
+                    eventReference: eventReference,
+                    currentUserMasterPubkey: currentMasterPubkey,
+                  );
+            },
+          );
+        }).toList(),
       ),
     );
   }

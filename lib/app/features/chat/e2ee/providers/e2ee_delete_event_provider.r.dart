@@ -31,10 +31,10 @@ class E2eeDeleteReactionNotifier extends _$E2eeDeleteReactionNotifier {
     required ImmutableEventReference reactionEventReference,
   }) async {
     state = await AsyncValue.guard(() async {
-      final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
-      final eventSigner = await ref.watch(currentUserIonConnectEventSignerProvider.future);
+      final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
+      final eventSigner = await ref.read(currentUserIonConnectEventSignerProvider.future);
 
-      final conversationPubkeysNotifier = ref.watch(conversationPubkeysProvider.notifier);
+      final conversationPubkeysNotifier = ref.read(conversationPubkeysProvider.notifier);
 
       if (eventSigner == null) {
         throw EventSignerNotFoundException();
