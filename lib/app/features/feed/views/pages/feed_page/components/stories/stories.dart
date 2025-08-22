@@ -7,7 +7,9 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/stories/data/models/stories_references.f.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_item_content.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_list.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_list_skeleton.dart';
@@ -20,9 +22,26 @@ class Stories extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final (items: stories, :hasMore) = ref.watch(feedStoriesProvider);
-    final pubkeys = useMemoized(() => stories?.map((story) => story.pubkey).toSet() ?? {}, [
-      stories,
-    ]);
+
+    final viewedStoriesReferences = ref.watch(
+      viewedStoriesControllerProvider(
+        StoriesReferences(stories?.map((it) => it.story.toEventReference()).toList() ?? []),
+      ),
+    );
+
+    final pubkeys = useMemoized(
+      () {
+        final seenStories = stories
+                ?.where(
+                  (it) => viewedStoriesReferences?.contains(it.story.toEventReference()) ?? false,
+                )
+                .toSet() ??
+            {};
+        final unseenStories = stories?.where((it) => !seenStories.contains(it)).toSet() ?? {};
+        return {...unseenStories, ...seenStories}.map((it) => it.pubkey).toSet();
+      },
+      [stories, viewedStoriesReferences],
+    );
 
     return Column(
       children: [
