@@ -86,10 +86,7 @@ dependencies:
       ref: feature/rich-push-notifications
   flutter_localizations:
     sdk: flutter
-  flutter_quill:
-    git:
-      url: https://github.com/singerdmx/flutter-quill.git
-      ref: 542ab43e61a6774a3993b57de686577ad2e8fa81
+  flutter_quill: ^11.4.2
   flutter_screenutil: ^5.9.0
   flutter_secure_storage: ^9.2.4
   flutter_staggered_grid_view: ^0.7.0
