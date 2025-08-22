@@ -9,17 +9,17 @@ part 'ion_connect_uri_protocol_service.r.g.dart';
 /// https://github.com/nostr-protocol/nips/blob/master/21.md
 ///
 class IonConnectUriProtocolService {
-  static const String _prefix = 'nostr:';
+  static const String prefix = 'nostr:';
 
   String? decode(String uri) {
-    if (!uri.startsWith(_prefix)) {
+    if (!uri.startsWith(prefix)) {
       return null;
     }
 
-    return uri.substring(_prefix.length);
+    return uri.substring(prefix.length);
   }
 
-  String encode(String content) => _prefix + content;
+  String encode(String content) => prefix + content;
 }
 
 @riverpod

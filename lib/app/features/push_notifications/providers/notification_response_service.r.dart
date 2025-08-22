@@ -25,6 +25,7 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -116,8 +117,9 @@ class NotificationResponseService {
 
   Future<void> _openPostDetail(EventReference eventReference) async {
     final route = PostDetailsRoute(eventReference: eventReference.encode());
-    final routePath = route.location.split('?').first;
-    final currentPath = _currentRouteMatchList.fullPath;
+    // Get path without query parameters
+    final routePath = route.location.split(IonConnectUriProtocolService.prefix).first;
+    final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
     if (routePath == currentPath) {
       final currentLocation = _currentRouteMatchList.uri.toString();
@@ -134,8 +136,9 @@ class NotificationResponseService {
 
   Future<void> _openArticleDetail(EventReference eventReference) async {
     final route = ArticleDetailsRoute(eventReference: eventReference.encode());
-    final routePath = route.location.split('?').first;
-    final currentPath = _currentRouteMatchList.fullPath;
+    // Get path without query parameters
+    final routePath = route.location.split(IonConnectUriProtocolService.prefix).first;
+    final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
     if (routePath == currentPath) {
       final currentLocation = _currentRouteMatchList.uri.toString();
