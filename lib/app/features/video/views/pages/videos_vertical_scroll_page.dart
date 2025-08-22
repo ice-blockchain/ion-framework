@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -80,10 +81,21 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
       return videoPost || videoRepost;
     });
 
-    final videos = filteredVideos.isEmpty ? [ionConnectEntity] : filteredVideos;
+    final videos = filteredVideos.isEmpty ? [ionConnectEntity] : filteredVideos.toList();
 
     final List<_FlattenedVideo> flattenedVideos = useMemoized(
       () {
+        final currentEntityFlattenedVideo = videos.firstWhereOrNull(
+          (v) => v.id == ionConnectEntity.id,
+        );
+
+        //ensuring current entity is always the first before flattening them and filtering them by distinct
+        if (currentEntityFlattenedVideo != null) {
+          videos
+            ..remove(currentEntityFlattenedVideo)
+            ..insert(0, currentEntityFlattenedVideo);
+        }
+
         final result = <_FlattenedVideo>[];
         for (final entity in videos) {
           if (entity is ModifiablePostEntity || entity is PostEntity) {
