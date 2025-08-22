@@ -49,20 +49,19 @@ class LocalNotificationsService {
     String? payload,
     String? icon,
     String? attachment,
-    bool isConversationPush = false,
   }) async {
+    final notificationDetails = await _buildNotificationDetails(
+      avatarUrl: icon,
+      attachmentUrl: attachment,
+      userName: title,
+      textMessage: body,
+    );
+
     await _plugin.show(
       generateUuid().hashCode,
       title,
       body,
-      isConversationPush
-          ? await _messageNotificationDetails(
-              avatarUrl: icon,
-              attachmentUrl: attachment,
-              userName: title,
-              textMessage: body,
-            )
-          : _defaultNotificationDetails,
+      notificationDetails,
       payload: payload,
     );
   }
@@ -92,7 +91,7 @@ class LocalNotificationsService {
     );
   }
 
-  Future<NotificationDetails> _messageNotificationDetails({
+  Future<NotificationDetails> _buildNotificationDetails({
     String? avatarUrl,
     String? attachmentUrl,
     String? userName,
@@ -263,21 +262,6 @@ class LocalNotificationsService {
       return null;
     }
   }
-}
-
-NotificationDetails get _defaultNotificationDetails {
-  final androidPlatformChannelSpecifics = AndroidNotificationDetails(
-    'ion_miscellaneous',
-    'Miscellaneous',
-    color: AppColorsExtension.defaultColors().primaryAccent,
-    importance: Importance.max,
-    priority: Priority.high,
-  );
-  const iOSPlatformChannelSpecifics = DarwinNotificationDetails();
-  return NotificationDetails(
-    android: androidPlatformChannelSpecifics,
-    iOS: iOSPlatformChannelSpecifics,
-  );
 }
 
 @Riverpod(keepAlive: true)

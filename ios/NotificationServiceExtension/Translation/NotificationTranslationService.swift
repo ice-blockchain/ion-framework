@@ -5,7 +5,6 @@ import Foundation
 struct NotificationTranslationResult {
     let title: String
     let body: String
-    let notificationType: PushNotificationType
     let avatarFilePath: String?
     let attachmentFilePaths: String?
 }
@@ -82,7 +81,6 @@ class NotificationTranslationService {
         return NotificationTranslationResult(
             title: result.title,
             body: result.body,
-            notificationType: notificationType,
             avatarFilePath: media.avatar,
             attachmentFilePaths: media.attachment
         )
