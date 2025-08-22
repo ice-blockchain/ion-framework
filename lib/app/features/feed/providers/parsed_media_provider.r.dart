@@ -2,23 +2,38 @@
 
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/delta.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/services/markdown/quill.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-/// Returns [content] in Delta format with excluded media links
-/// and List of media attachments, extracted from the content.
-({Delta content, List<MediaAttachment> media}) useParsedMediaContent({
-  required EntityDataWithMediaContent data,
-  Key? key,
-}) {
-  return useMemoized(
-    () => parseMediaContent(data: data),
-    [data, key],
+part 'parsed_media_provider.r.g.dart';
+
+@riverpod
+({Delta content, List<MediaAttachment> media}) cachedParsedMedia(
+  Ref ref,
+  EntityDataWithMediaContent data,
+) {
+  keepAliveWhenAuthenticated(ref);
+
+  return ref.watch(parsedMediaProvider(data)).valueOrNull ??
+      (content: Delta().blank, media: <MediaAttachment>[]);
+}
+
+@riverpod
+FutureOr<({Delta content, List<MediaAttachment> media})> parsedMedia(
+  Ref ref,
+  EntityDataWithMediaContent data,
+) {
+  return compute(
+    (data) => parseMediaContent(data: data),
+    data,
   );
 }
 

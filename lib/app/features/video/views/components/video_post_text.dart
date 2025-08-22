@@ -3,17 +3,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/text_editor_preview.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_styles.dart';
 import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/views/hooks/use_parsed_media_content.dart';
 
-class VideoTextPost extends HookWidget {
+class VideoTextPost extends HookConsumerWidget {
   const VideoTextPost({
     required this.entity,
     super.key,
@@ -22,7 +23,7 @@ class VideoTextPost extends HookWidget {
   final IonConnectEntity entity;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final postData = switch (entity) {
       final ModifiablePostEntity post => post.data,
       final PostEntity post => post.data,
@@ -33,7 +34,7 @@ class VideoTextPost extends HookWidget {
       return const SizedBox.shrink();
     }
 
-    final (:content, :media) = useParsedMediaContent(data: postData);
+    final (:content, :media) = ref.watch(cachedParsedMediaProvider(postData));
     final isTextExpanded = useState(false);
     final style = context.theme.appTextThemes.body2.copyWith(
       color: context.theme.appColors.secondaryBackground,

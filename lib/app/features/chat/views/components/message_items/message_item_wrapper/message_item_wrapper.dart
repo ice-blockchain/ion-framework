@@ -18,10 +18,10 @@ import 'package:ion/app/features/chat/providers/message_status_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reaction_dialog/message_reaction_dialog.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/views/hooks/use_parsed_media_content.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -230,10 +230,7 @@ ChatMessageInfoItem? getRepliedMessageListItem({
       );
     }
 
-    final (:content, :media) = useParsedMediaContent(
-      data: postData,
-      key: ValueKey(postData.hashCode),
-    );
+    final (:content, :media) = ref.watch(cachedParsedMediaProvider(postData));
 
     final contentAsPlainText = useMemoized(() => Document.fromDelta(content).toPlainText().trim());
 

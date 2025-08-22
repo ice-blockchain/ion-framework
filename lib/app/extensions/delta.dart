@@ -31,4 +31,7 @@ extension DeltaExt on Delta {
   bool get isBlank {
     return isEmpty || operations.every((op) => op.data.toString().trim().isEmpty);
   }
+
+  Delta get blank => isBlank ? this : Delta()
+    ..insert('\n');
 }
