@@ -146,6 +146,8 @@ class _TextMessageContent extends HookWidget {
 
     final metadataWidth = useState<double>(0);
 
+    final textScaler = MediaQuery.textScalerOf(context);
+
     useEffect(
       () {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -156,14 +158,14 @@ class _TextMessageContent extends HookWidget {
         });
         return null;
       },
-      [eventMessage],
+      [eventMessage, textScaler],
     );
 
     final oneLineTextPainter = TextPainter(
       text: TextSpan(text: content, style: textStyle),
       textDirection: TextDirection.ltr,
       textWidthBasis: TextWidthBasis.longestLine,
-      textScaler: MediaQuery.textScalerOf(context),
+      textScaler: textScaler,
     )..layout(maxWidth: maxAvailableWidth - metadataWidth.value.s);
 
     final oneLineMetrics = oneLineTextPainter.computeLineMetrics();
@@ -197,7 +199,7 @@ class _TextMessageContent extends HookWidget {
         text: TextSpan(text: content, style: textStyle),
         textDirection: TextDirection.ltr,
         textWidthBasis: TextWidthBasis.longestLine,
-        textScaler: MediaQuery.textScalerOf(context),
+        textScaler: textScaler,
       )..layout(maxWidth: maxAvailableWidth);
 
       final lineMetrics = multiLineTextPainter.computeLineMetrics();
