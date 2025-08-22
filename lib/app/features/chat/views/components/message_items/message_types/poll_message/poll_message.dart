@@ -6,7 +6,7 @@ import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/model/message_author.f.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
-import 'package:ion/app/features/chat/model/message_reaction_group.f.dart';
+import 'package:ion/app/features/chat/model/message_reaction.f.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_author/message_author.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_item_wrapper/message_item_wrapper.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/poll_message/mock.dart';
@@ -30,7 +30,7 @@ class PollMessage extends HookWidget {
   final MessageAuthor? author;
   final EventMessage eventMessage;
   final bool isLastMessageFromAuthor;
-  final List<MessageReactionGroup>? reactions;
+  final List<MessageReaction>? reactions;
 
   @override
   Widget build(BuildContext context) {

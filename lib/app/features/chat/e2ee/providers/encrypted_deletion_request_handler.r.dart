@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/conversation_identifier.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/private_message_reaction_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
@@ -57,6 +58,7 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
   Future<void> handle(EventMessage rumor) async {
     unawaited(_deleteConversation(rumor));
     unawaited(deleteConversationMessages(rumor));
+    unawaited(_deleteMessageReaction(rumor));
     unawaited(userProfileSyncProvider.syncUserProfile(masterPubkeys: {rumor.masterPubkey}));
     unawaited(_deleteFundsRequest(rumor));
   }
@@ -76,6 +78,30 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
         eventMessageDao: eventMessageDao,
       );
     }
+  }
+
+  Future<void> _deleteMessageReaction(EventMessage rumor) async {
+    final deletionRequest = DeletionRequest.fromEventMessage(rumor);
+
+    final reactionsToDelete = deletionRequest.events
+        .whereType<EventToDelete>()
+        .where(
+          (event) =>
+              event.eventReference is ImmutableEventReference &&
+              event.eventReference.kind == PrivateMessageReactionEntity.kind,
+        )
+        .map((event) => event.eventReference as ImmutableEventReference)
+        .toList();
+
+    if (reactionsToDelete.isEmpty) return;
+
+    await Future.wait(
+      reactionsToDelete.map((reactionEventReference) async {
+        await conversationMessageReactionDao.remove(
+          reactionEventReference: reactionEventReference,
+        );
+      }),
+    );
   }
 
   Future<void> deleteConversationMessages(EventMessage rumor) async {

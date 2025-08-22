@@ -46,11 +46,14 @@ class AudioMessage extends HookConsumerWidget {
     useAutomaticKeepAlive();
 
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
-    final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage);
+    final entity = useMemoized(
+      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
+      [eventMessage],
+    );
 
     final audioUrl = useState<String?>(null);
 
-    final hasReactions = useHasReaction(eventMessage, ref);
+    final hasReactions = useHasReaction(entity.toEventReference(), ref);
 
     final messageMedia = ref
         .watch(chatMediasProvider(eventReference: entity.toEventReference()))

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
@@ -35,7 +36,11 @@ class ProfileShareMessage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
-    final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage);
+    final entity = useMemoized(
+      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
+      [eventMessage],
+    );
+
     final profilePubkey = EventReference.fromEncoded(entity.data.content).masterPubkey;
 
     final userMetadata = ref.watch(userMetadataProvider(profilePubkey)).valueOrNull;
@@ -52,7 +57,7 @@ class ProfileShareMessage extends HookConsumerWidget {
       repliedEventMessage: repliedEventMessage.valueOrNull,
     );
 
-    final hasReactions = useHasReaction(eventMessage, ref);
+    final hasReactions = useHasReaction(entity.toEventReference(), ref);
 
     if (userMetadata == null) {
       return const SizedBox.shrink();

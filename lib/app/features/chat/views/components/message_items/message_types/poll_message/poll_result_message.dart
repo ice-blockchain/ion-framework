@@ -14,7 +14,7 @@ class PollResultMessage extends StatelessWidget {
   final bool isMe;
   final DateTime createdAt;
   final EventMessage eventMessage;
-  final List<MessageReactionGroup>? reactions;
+  final List<MessageReaction>? reactions;
 
   @override
   Widget build(BuildContext context) {
