@@ -8,6 +8,7 @@ import 'package:ion/app/features/feed/polls/models/poll_data.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_vote.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/optimistic_ui/features/polls/poll_vote_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'poll_results_provider.r.g.dart';
@@ -26,6 +27,13 @@ class PollResults {
 class PollVoteCounts extends _$PollVoteCounts {
   @override
   List<int> build(EventReference eventReference, PollData pollData) {
+    // Prefer optimistic counts when available
+    final optimistic =
+        ref.watch(pollVoteWatchProvider(eventReference.toString())).valueOrNull?.voteCounts;
+    if (optimistic != null && optimistic.isNotEmpty) {
+      return optimistic;
+    }
+
     final cacheKey = EventCountResultEntity.cacheKeyBuilder(
       key: eventReference.toString(),
       type: EventCountResultType.pollVotes,
@@ -150,6 +158,10 @@ PollVoteEntity? userPollVote(Ref ref, EventReference eventReference) {
 
 @riverpod
 int? userVotedOptionIndex(Ref ref, EventReference eventReference) {
+  final optimistic =
+      ref.watch(pollVoteWatchProvider(eventReference.toString())).valueOrNull?.userVotedOptionIndex;
+  if (optimistic != null) return optimistic;
+
   final userVote = ref.watch(userPollVoteProvider(eventReference));
 
   if (userVote != null && userVote.data.selectedOptionIndexes.isNotEmpty) {
