@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -44,6 +45,14 @@ class NotificationResponseService {
   final UserMetadataEntity? Function(String pubkey) _getUserMetadata;
   final EventParser _eventParser;
   final String? _currentPubkey;
+
+  RouteMatchList get _currentRouteMatchList {
+    final router = GoRouter.of(rootNavigatorKey.currentContext!);
+    final lastMatch = router.routerDelegate.currentConfiguration.last;
+    return lastMatch is ImperativeRouteMatch
+        ? lastMatch.matches
+        : router.routerDelegate.currentConfiguration;
+  }
 
   Future<void> handleNotificationResponse(Map<String, dynamic> response) async {
     try {
@@ -106,22 +115,47 @@ class NotificationResponseService {
   }
 
   Future<void> _openPostDetail(EventReference eventReference) async {
-    await PostDetailsRoute(eventReference: eventReference.encode())
-        .push<void>(rootNavigatorKey.currentContext!);
+    final currentLocation = _currentRouteMatchList.uri.toString();
+
+    final route = PostDetailsRoute(eventReference: eventReference.encode());
+    if (route.location == currentLocation) {
+      return;
+    }
+
+    await route.push<void>(rootNavigatorKey.currentContext!);
   }
 
   Future<void> _openArticleDetail(EventReference eventReference) async {
-    await ArticleDetailsRoute(eventReference: eventReference.encode())
-        .push<void>(rootNavigatorKey.currentContext!);
+    final currentLocation = _currentRouteMatchList.uri.toString();
+
+    final route = ArticleDetailsRoute(eventReference: eventReference.encode());
+    if (route.location == currentLocation) {
+      return;
+    }
+
+    await route.push<void>(rootNavigatorKey.currentContext!);
   }
 
   Future<void> _openProfileDetail(String pubkey) async {
-    await ProfileRoute(pubkey: pubkey).push<void>(rootNavigatorKey.currentContext!);
+    final currentLocation = _currentRouteMatchList.uri.toString();
+
+    final route = ProfileRoute(pubkey: pubkey);
+    if (route.location == currentLocation) {
+      return;
+    }
+
+    await route.push<void>(rootNavigatorKey.currentContext!);
   }
 
   Future<void> _openChat(String pubkey) async {
-    await ConversationRoute(receiverMasterPubkey: pubkey)
-        .push<void>(rootNavigatorKey.currentContext!);
+    final currentLocation = _currentRouteMatchList.uri.toString();
+
+    final route = ConversationRoute(receiverMasterPubkey: pubkey);
+    if (route.location == currentLocation) {
+      return;
+    }
+
+    await route.push<void>(rootNavigatorKey.currentContext!);
   }
 }
 
