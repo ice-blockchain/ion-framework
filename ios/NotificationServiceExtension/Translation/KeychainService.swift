@@ -54,18 +54,32 @@ class KeychainService {
             throw KeychainError.noKeychainGroupIdentifier
         }
 
-        let query: [String: Any] = [
+        // First try to access with kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        // This matches the accessibility setting from Flutter secure storage
+        var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: storageKey,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
             kSecAttrAccessGroup as String: keychainGroupIdentifier,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
         ]
 
         var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        var status = SecItemCopyMatching(query as CFDictionary, &item)
+
+        // If access failed with specific accessibility, try without it
+        // This provides fallback for items stored with different accessibility settings
+        if status == errSecInteractionNotAllowed || status == errSecItemNotFound {
+            NSLog("First keychain access attempt failed with status \(status), trying fallback query")
+            
+            // Remove accessibility constraint and try again
+            query.removeValue(forKey: kSecAttrAccessible as String)
+            status = SecItemCopyMatching(query as CFDictionary, &item)
+        }
 
         if status != errSecSuccess {
+            NSLog("Keychain access failed with status: \(status)")
             throw KeychainError.keychainAccessFailed(status)
         }
 
