@@ -10,6 +10,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_interests_interaction.dart';
+import 'package:ion/app/features/feed/notifications/data/database/dao/user_sent_likes_dao.m.dart';
 import 'package:ion/app/features/feed/providers/counters/like_reaction_provider.r.dart';
 import 'package:ion/app/features/feed/providers/counters/likes_count_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
@@ -102,41 +103,56 @@ OptimisticOperationManager<PostLike> postLikeManager(Ref ref) {
 
 @riverpod
 class ToggleLikeNotifier extends _$ToggleLikeNotifier {
-  final _processingOperations = <String>{};
-
   @override
   void build() {
     keepAliveWhenAuthenticated(ref);
   }
 
   Future<void> toggle(EventReference eventReference) async {
-    final key = eventReference.toString();
+    final userSentLikesDao = ref.read(userSentLikesDaoProvider);
+    final service = ref.read(postLikeServiceProvider);
+    final id = eventReference.toString();
 
-    if (_processingOperations.contains(key)) return;
+    var current = ref.read(postLikeWatchProvider(id)).valueOrNull;
 
-    _processingOperations.add(key);
+    current ??= PostLike(
+      eventReference: eventReference,
+      likesCount: ref.read(likesCountProvider(eventReference)),
+      likedByMe: ref.read(isLikedProvider(eventReference)),
+    );
+    
+    if (current.likedByMe) {
+      await userSentLikesDao.deleteLike(eventReference);
+    } else {
+      final hasLiked = await userSentLikesDao.hasUserLiked(eventReference);
+      if (hasLiked) {
+        return;
+      }
+      
+      await userSentLikesDao.insertOrUpdateLike(
+        eventReference: eventReference,
+        status: 'pending',
+      );
+    }
 
     try {
-      final service = ref.read(postLikeServiceProvider);
-      final id = eventReference.toString();
-
-      var current = ref.read(postLikeWatchProvider(id)).valueOrNull;
-
-      current ??= PostLike(
-        eventReference: eventReference,
-        likesCount: ref.read(likesCountProvider(eventReference)),
-        likedByMe: ref.read(isLikedProvider(eventReference)),
-      );
-
       await service.dispatch(ToggleLikeIntent(), current);
 
       if (!current.likedByMe) {
         await _updateInterestsOnLike(eventReference);
       }
 
+      if (!current.likedByMe) {
+        await userSentLikesDao.updateLikeStatus(
+          eventReference: eventReference,
+          status: 'confirmed',
+        );
+      }
+
       await Future<void>.delayed(const Duration(milliseconds: 300));
-    } finally {
-      _processingOperations.remove(key);
+    } catch (e) {
+      await userSentLikesDao.deleteLike(eventReference);
+      rethrow;
     }
   }
 

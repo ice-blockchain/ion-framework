@@ -3,6 +3,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
+import 'package:ion/app/features/feed/notifications/data/database/dao/user_sent_likes_dao.m.dart';
 import 'package:ion/app/features/feed/providers/counters/like_reaction_provider.r.dart';
 import 'package:ion/app/features/feed/providers/delete_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
@@ -19,9 +20,14 @@ part 'like_sync_strategy_provider.r.g.dart';
 @riverpod
 SyncStrategy<PostLike> likeSyncStrategy(Ref ref) {
   final ionNotifier = ref.read(ionConnectNotifierProvider.notifier);
+  final userSentLikesDao = ref.read(userSentLikesDaoProvider);
 
   return LikeSyncStrategy(
     sendReaction: (reaction) async {
+      final hasLiked = await userSentLikesDao.hasUserLiked(reaction.eventReference);
+      if (hasLiked) {
+        return;
+      }
       final reactionEvent = await ionNotifier.sign(reaction);
       final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
       await Future.wait([
