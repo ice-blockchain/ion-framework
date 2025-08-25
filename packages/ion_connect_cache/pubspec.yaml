@@ -1,0 +1,23 @@
+name: ion_connect_cache
+description: A starting point for Dart libraries or applications.
+version: 1.0.0
+# repository: https://github.com/my_org/my_repo
+
+publish_to: none
+
+environment:
+  sdk: ^3.8.1
+
+# Add regular dependencies here.
+dependencies:
+  drift: ^2.28.1
+  nostr_dart:
+    git:
+      url: https://github.com/ice-blockchain/nostr-dart
+      ref: 0.0.41
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.24.0
+  drift_dev: ^2.28.0
+  build_runner: ^2.4.15
