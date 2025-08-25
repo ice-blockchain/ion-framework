@@ -39,7 +39,6 @@ FutureOr<int?> storiesCount(
       ),
       key: pubkey,
       type: EventCountResultType.stories,
-      addCurrentPubkey: false,
     ).future,
   ) as FutureOr<int?>;
 }

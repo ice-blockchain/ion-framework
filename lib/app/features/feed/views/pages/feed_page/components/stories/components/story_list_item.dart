@@ -9,6 +9,7 @@ import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_trending_videos_provider.r.dart';
 import 'package:ion/app/features/feed/stories/data/models/stories_references.f.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/stories_count_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_item_content.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/hooks/use_preload_story_media.dart';
@@ -26,6 +27,8 @@ class StoryListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // prefetch stories counter for the given author
+    ref.watch(storiesCountProvider(pubkey));
     final userMetadata = ref.watch(cachedUserMetadataProvider(pubkey));
     final userStory = ref.watch(feedStoriesByPubkeyProvider(pubkey, showOnlySelectedUser: true));
     final storyReference = StoriesReferences(userStory.map((e) => e.story.toEventReference()));

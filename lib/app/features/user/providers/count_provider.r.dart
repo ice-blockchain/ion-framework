@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import 'package:ion/app/exceptions/exceptions.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_error_entity.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_request_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
@@ -30,7 +29,6 @@ class Count extends _$Count {
     required ActionSource actionSource,
     Duration? cacheExpirationDuration,
     bool cache = true,
-    bool addCurrentPubkey = true,
   }) async {
     if (cache) {
       final countEntity = ref.watch(
@@ -54,7 +52,6 @@ class Count extends _$Count {
       key: key,
       actionSource: actionSource,
       requestData: requestData,
-      addCurrentPubkey: addCurrentPubkey,
     );
   }
 
@@ -62,13 +59,7 @@ class Count extends _$Count {
     required String key,
     required ActionSource actionSource,
     required EventCountRequestData requestData,
-    required bool addCurrentPubkey,
   }) async {
-    final currentPubkey = ref.read(currentPubkeySelectorProvider);
-    if (currentPubkey == null) {
-      throw UserMasterPubkeyNotFoundException();
-    }
-
     final relay = await ref
         .read(relayPickerProvider.notifier)
         .getActionSourceRelay(actionSource, actionType: ActionType.read);
@@ -79,11 +70,9 @@ class Count extends _$Count {
       ..addFilter(
         RequestFilter(
           kinds: const [EventCountResultEntity.kind, EventCountErrorEntity.kind],
-          tags: addCurrentPubkey
-              ? {
-                  '#p': [currentPubkey],
-                }
-              : null,
+          tags: {
+            '#e': [requestEvent.id],
+          },
         ),
       );
 
