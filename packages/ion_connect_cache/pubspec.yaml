@@ -21,3 +21,4 @@ dev_dependencies:
   test: ^1.24.0
   drift_dev: ^2.28.0
   build_runner: ^2.4.15
+  custom_lint: ^0.7.2
