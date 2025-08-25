@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -24,6 +25,7 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -44,6 +46,14 @@ class NotificationResponseService {
   final UserMetadataEntity? Function(String pubkey) _getUserMetadata;
   final EventParser _eventParser;
   final String? _currentPubkey;
+
+  RouteMatchList get _currentRouteMatchList {
+    final router = GoRouter.of(rootNavigatorKey.currentContext!);
+    final lastMatch = router.routerDelegate.currentConfiguration.last;
+    return lastMatch is ImperativeRouteMatch
+        ? lastMatch.matches
+        : router.routerDelegate.currentConfiguration;
+  }
 
   Future<void> handleNotificationResponse(Map<String, dynamic> response) async {
     try {
@@ -106,22 +116,77 @@ class NotificationResponseService {
   }
 
   Future<void> _openPostDetail(EventReference eventReference) async {
-    await PostDetailsRoute(eventReference: eventReference.encode())
-        .push<void>(rootNavigatorKey.currentContext!);
+    final route = PostDetailsRoute(eventReference: eventReference.encode());
+    // Get path without query parameters
+    final routePath = route.location.split(IonConnectUriProtocolService.prefix).first;
+    final currentPath = _currentRouteMatchList.fullPath.split(':').first;
+
+    if (routePath == currentPath) {
+      final currentLocation = _currentRouteMatchList.uri.toString();
+      if (route.location == currentLocation) {
+        return;
+      }
+
+      route.pushReplacement(rootNavigatorKey.currentContext!);
+      return;
+    }
+
+    await route.push<void>(rootNavigatorKey.currentContext!);
   }
 
   Future<void> _openArticleDetail(EventReference eventReference) async {
-    await ArticleDetailsRoute(eventReference: eventReference.encode())
-        .push<void>(rootNavigatorKey.currentContext!);
+    final route = ArticleDetailsRoute(eventReference: eventReference.encode());
+    // Get path without query parameters
+    final routePath = route.location.split(IonConnectUriProtocolService.prefix).first;
+    final currentPath = _currentRouteMatchList.fullPath.split(':').first;
+
+    if (routePath == currentPath) {
+      final currentLocation = _currentRouteMatchList.uri.toString();
+      if (route.location == currentLocation) {
+        return;
+      }
+
+      route.pushReplacement(rootNavigatorKey.currentContext!);
+      return;
+    }
+
+    await route.push<void>(rootNavigatorKey.currentContext!);
   }
 
   Future<void> _openProfileDetail(String pubkey) async {
-    await ProfileRoute(pubkey: pubkey).push<void>(rootNavigatorKey.currentContext!);
+    final route = ProfileRoute(pubkey: pubkey);
+    final routePath = route.location.split('?').first;
+    final currentPath = _currentRouteMatchList.fullPath;
+
+    if (routePath == currentPath) {
+      final currentLocation = _currentRouteMatchList.uri.toString();
+      if (route.location == currentLocation) {
+        return;
+      }
+
+      route.pushReplacement(rootNavigatorKey.currentContext!);
+      return;
+    }
+
+    await route.push<void>(rootNavigatorKey.currentContext!);
   }
 
   Future<void> _openChat(String pubkey) async {
-    await ConversationRoute(receiverMasterPubkey: pubkey)
-        .push<void>(rootNavigatorKey.currentContext!);
+    final route = ConversationRoute(receiverMasterPubkey: pubkey);
+    final routePath = route.location.split('?').first;
+    final currentPath = _currentRouteMatchList.fullPath;
+
+    if (routePath == currentPath) {
+      final currentLocation = _currentRouteMatchList.uri.toString();
+      if (route.location == currentLocation) {
+        return;
+      }
+
+      route.pushReplacement(rootNavigatorKey.currentContext!);
+      return;
+    }
+
+    await route.push<void>(rootNavigatorKey.currentContext!);
   }
 }
 
