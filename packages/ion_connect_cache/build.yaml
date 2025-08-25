@@ -1,0 +1,13 @@
+targets:
+  $default:
+    auto_apply_builders: false
+    builders:
+      drift_dev:
+        generate_for:
+          include:
+            - lib/**.d.dart
+        options:
+          use_sql_column_name_as_json_key: true
+          databases:
+            event_messages_database: lib/src/database/event_messages_database.m.dart
+
