@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:ion_connect_cache/src/database/event_messages_database.d.dart';
 import 'package:nostr_dart/nostr_dart.dart';
 
