@@ -46,7 +46,7 @@ class FeedMainModalPage extends ConsumerWidget {
         switchInCurve: Curves.easeIn,
         switchOutCurve: Curves.easeOut,
         child: hasNftCollectionState.when(
-          data: (hasContentNftCollection) => hasContentNftCollection
+          data: (hasContentNftCollection) => !hasContentNftCollection
               ? const _CreateContentModal()
               : const _ContentCreationBlockedModal(),
           loading: () => const _CreateContentLoadingModal(),
