@@ -40,9 +40,7 @@ class StoryViewerPage extends HookConsumerWidget {
     final singleUserStoriesViewerState = ref.watch(
       singleUserStoryViewingControllerProvider(storyViewerState.currentUserPubkey),
     );
-    final stories =
-        ref.watch(userStoriesProvider(storyViewerState.currentStory?.pubkey ?? pubkey))?.toList() ??
-            [];
+    final stories = ref.watch(userStoriesProvider(storyViewerState.currentStory?.pubkey ?? pubkey))?.toList() ?? [];
     final storiesReferences = StoriesReferences(stories.map((e) => e.toEventReference()));
     final viewedStories = ref.watch(viewedStoriesControllerProvider(storiesReferences)) ?? {};
 
@@ -80,8 +78,7 @@ class StoryViewerPage extends HookConsumerWidget {
 
     useOnInit(
       () {
-        final currentUserStoriesLeft =
-            stories.length - singleUserStoriesViewerState.currentStoryIndex - 1;
+        final currentUserStoriesLeft = stories.length - singleUserStoriesViewerState.currentStoryIndex - 1;
         final nextUserPubkey = storyViewerState.nextUserPubkey;
         if (currentUserStoriesLeft < 10 && nextUserPubkey.isNotEmpty) {
           ref.read(userStoriesProvider(nextUserPubkey));
@@ -89,6 +86,8 @@ class StoryViewerPage extends HookConsumerWidget {
       },
       [singleUserStoriesViewerState.currentStoryIndex],
     );
+
+    final isPaused = ref.watch(storyPauseControllerProvider);
 
     return KeyboardVisibilityBuilder(
       builder: (context, isKeyboardVisible) {
@@ -100,9 +99,7 @@ class StoryViewerPage extends HookConsumerWidget {
         return StatusBarColorWrapper.light(
           child: MediaQuery(
             // Prevent story's content from shrinking on keyboard open
-            data: media
-                .removeViewInsets(removeBottom: true)
-                .removeViewPadding(removeBottom: true, removeTop: true),
+            data: media.removeViewInsets(removeBottom: true).removeViewPadding(removeBottom: true, removeTop: true),
             child: Scaffold(
               resizeToAvoidBottomInset: false,
               backgroundColor: Colors.black,
@@ -127,7 +124,7 @@ class StoryViewerPage extends HookConsumerWidget {
                     child: IgnorePointer(
                       ignoring: isKeyboardVisible,
                       child: AnimatedOpacity(
-                        opacity: isKeyboardVisible ? 0 : 1,
+                        opacity: (isKeyboardVisible || isPaused) ? 0 : 1,
                         duration: const Duration(milliseconds: 150),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
