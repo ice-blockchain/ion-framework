@@ -41,7 +41,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
   const VideosVerticalScrollPage({
     required this.eventReference,
     required this.entities,
-    required this.onLoadMore,
+    this.onLoadMore,
     this.initialMediaIndex = 0,
     this.framedEventReference,
     this.onVideoSeen,
@@ -51,9 +51,11 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
   final EventReference eventReference;
   final int initialMediaIndex;
   final Iterable<IonConnectEntity> entities;
-  final void Function() onLoadMore;
+  final void Function()? onLoadMore;
   final void Function(IonConnectEntity? video)? onVideoSeen;
   final EventReference? framedEventReference;
+
+  bool get hasMore => onLoadMore != null;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -78,7 +80,8 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
     final filteredVideos = entities.where((item) {
       final videoPost = ref.read(isVideoPostProvider(item));
       final videoRepost = ref.read(isVideoRepostProvider(item));
-      return videoPost || videoRepost;
+      final videoReply = ref.read(isVideoReplyProvider(item));
+      return videoPost || videoRepost || videoReply;
     });
 
     final videos = filteredVideos.isEmpty ? [ionConnectEntity] : filteredVideos.toList();
@@ -132,7 +135,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
         void listener() {
           if (userPageController.offset < -150 ||
               (userPageController.offset > userPageController.position.maxScrollExtent + 150)) {
-            if (context.canPop()) {
+            if (context.canPop() && !hasMore) {
               context.pop();
             }
           }
@@ -230,8 +233,8 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
 
   void _loadMore(WidgetRef ref, int index, int totalItems) {
     const threshold = 2;
-    if (totalItems > threshold && index >= totalItems - threshold) {
-      onLoadMore();
+    if (hasMore && index >= totalItems - threshold) {
+      onLoadMore?.call();
     }
   }
 
