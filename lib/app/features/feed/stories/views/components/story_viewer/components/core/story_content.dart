@@ -95,8 +95,7 @@ class _StoryControlsPanel extends HookConsumerWidget {
     final controlsHeight = useState<double>(65.0.s);
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
     final isOwnerStory = currentPubkey == story.masterPubkey;
-    final canSendMessage =
-        ref.watch(canSendMessageProvider(story.masterPubkey)).valueOrNull ?? false;
+    final canSendMessage = ref.watch(canSendMessageProvider(story.masterPubkey)).valueOrNull ?? false;
 
     useEffect(
       () {
@@ -131,34 +130,40 @@ class _StoryControlsPanel extends HookConsumerWidget {
       (_, next) => ref.read(storyPauseControllerProvider.notifier).paused = next.isLoading,
     );
 
-    return Stack(
-      children: [
-        if (canSendMessage && !isOwnerStory)
+    final isPaused = ref.watch(storyPauseControllerProvider);
+
+    return AnimatedOpacity(
+      opacity: isPaused ? 0 : 1,
+      duration: const Duration(milliseconds: 150),
+      child: Stack(
+        children: [
+          if (canSendMessage && !isOwnerStory)
+            AnimatedPositionedDirectional(
+              key: panelKey,
+              duration: 50.ms,
+              curve: Curves.easeOut,
+              bottom: bottomPadding,
+              start: 0.s,
+              end: 52.0.s,
+              child: StoryInputField(
+                controller: textController,
+                onSubmitted: onSubmit,
+              ),
+            ),
           AnimatedPositionedDirectional(
-            key: panelKey,
             duration: 50.ms,
             curve: Curves.easeOut,
             bottom: bottomPadding,
-            start: 0.s,
-            end: 52.0.s,
-            child: StoryInputField(
-              controller: textController,
-              onSubmitted: onSubmit,
+            end: 16.0.s,
+            child: StoryViewerActionButtons(post: story),
+          ),
+          if (isKeyboardShown)
+            StoryReactionOverlay(
+              story: story,
+              textController: textController,
             ),
-          ),
-        AnimatedPositionedDirectional(
-          duration: 50.ms,
-          curve: Curves.easeOut,
-          bottom: bottomPadding,
-          end: 16.0.s,
-          child: StoryViewerActionButtons(post: story),
-        ),
-        if (isKeyboardShown)
-          StoryReactionOverlay(
-            story: story,
-            textController: textController,
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
