@@ -1197,12 +1197,11 @@ packages:
   flutter_quill:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "542ab43e61a6774a3993b57de686577ad2e8fa81"
-      resolved-ref: "542ab43e61a6774a3993b57de686577ad2e8fa81"
-      url: "https://github.com/singerdmx/flutter-quill.git"
-    source: git
-    version: "11.2.0"
+      name: flutter_quill
+      sha256: "8e33ef670abad16405582a37ce63ac82b7531998682e8bd8348d0f3da998b8ce"
+      url: "https://pub.dev"
+    source: hosted
+    version: "11.4.2"
   flutter_quill_delta_from_html:
     dependency: transitive
     description:
