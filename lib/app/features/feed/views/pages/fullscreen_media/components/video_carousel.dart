@@ -11,7 +11,6 @@ import 'package:ion/app/features/video/views/components/video_actions.dart';
 import 'package:ion/app/features/video/views/components/video_post_info.dart';
 import 'package:ion/app/features/video/views/hooks/use_wake_lock.dart';
 import 'package:ion/app/features/video/views/pages/video_page.dart';
-import 'package:ion/app/utils/future.dart';
 
 class VideoCarousel extends HookWidget {
   const VideoCarousel({
@@ -70,14 +69,6 @@ class VideoCarousel extends HookWidget {
           blurhash: video.blurhash,
           aspectRatio: video.aspectRatio,
           framedEventReference: framedEventReference,
-          onVideoEnded: () {
-            final nextPage = (index + 1) % videos.length;
-            pageController.animateToPage(
-              nextPage,
-              duration: 300.ms,
-              curve: Curves.easeInOut,
-            );
-          },
         );
       },
     );

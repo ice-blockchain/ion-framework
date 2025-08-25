@@ -13,7 +13,6 @@ import 'package:ion/app/features/video/views/components/video_not_found.dart';
 import 'package:ion/app/features/video/views/components/video_progress.dart';
 import 'package:ion/app/features/video/views/components/video_slider.dart';
 import 'package:ion/app/features/video/views/components/video_thumbnail_preview.dart';
-import 'package:ion/app/features/video/views/hooks/use_video_ended.dart';
 import 'package:ion/app/hooks/use_auto_play.dart';
 import 'package:ion/app/hooks/use_route_presence.dart';
 import 'package:ion/app/services/media_service/aspect_ratio.dart';
@@ -24,9 +23,8 @@ import 'package:visibility_detector/visibility_detector.dart';
 class VideoPage extends HookConsumerWidget {
   const VideoPage({
     required this.videoUrl,
-    this.onVideoEnded,
     this.authorPubkey,
-    this.looping = false,
+    this.looping = true,
     this.framedEventReference,
     this.videoInfo,
     this.bottomOverlay,
@@ -39,7 +37,6 @@ class VideoPage extends HookConsumerWidget {
     super.key,
   });
 
-  final VoidCallback? onVideoEnded;
   final String videoUrl;
   final String? authorPubkey;
   final EventReference? framedEventReference;
@@ -123,11 +120,6 @@ class VideoPage extends HookConsumerWidget {
         return () => playerController.removeListener(listener);
       },
       [playerController],
-    );
-
-    useVideoEnded(
-      playerController: playerController,
-      onVideoEnded: onVideoEnded,
     );
 
     useRoutePresence(
