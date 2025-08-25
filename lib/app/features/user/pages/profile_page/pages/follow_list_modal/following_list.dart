@@ -7,14 +7,13 @@ import 'package:ion/app/components/nothing_is_found/nothing_is_found.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/user/model/follow_type.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal/components/follow_app_bar.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal/components/follow_list_item.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal/components/follow_list_loading.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal/components/follow_search_bar.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
-import 'package:ion/app/features/user/providers/search_following_users_data_source_provider.r.dart';
+import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
 
 class FollowingList extends HookConsumerWidget {
   const FollowingList({required this.pubkey, super.key});
@@ -27,14 +26,27 @@ class FollowingList extends HookConsumerWidget {
     final searchQuery = useState('');
     final debouncedQuery = useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '';
 
-    final searchDataSource =
-        ref.watch(searchFollowingUsersDataSourceProvider(pubkey, query: debouncedQuery));
-    final searchPagedData = ref.watch(entitiesPagedDataProvider(searchDataSource));
-    final searchFollowees = searchPagedData?.data.items?.toList();
+    final searchPagedData = ref
+        .watch(
+          searchUsersProvider(
+            query: debouncedQuery,
+            followedByPubkey: pubkey,
+          ),
+        )
+        .valueOrNull;
+
+    final searchFollowees = searchPagedData?.users;
 
     return LoadMoreBuilder(
       hasMore: searchPagedData?.hasMore ?? false,
-      onLoadMore: ref.read(entitiesPagedDataProvider(searchDataSource).notifier).fetchEntities,
+      onLoadMore: () => ref
+          .read(
+            searchUsersProvider(
+              query: debouncedQuery,
+              followedByPubkey: pubkey,
+            ).notifier,
+          )
+          .loadMore(),
       slivers: [
         FollowAppBar(
           title: FollowType.following.getTitleWithCounter(context, followeePubkeys?.length ?? 0),
