@@ -548,7 +548,10 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
           actionSource: ActionSource.user(pubkey),
           authors: [pubkey],
           currentPubkey: currentPubkey,
-          searchExtensions: feedModifierFilter?.search,
+          searchExtensions: [
+            StoriesCountSearchExtension(),
+            if (feedModifierFilter != null) ...feedModifierFilter.search,
+          ],
           tags: feedModifierFilter?.tags,
         ),
     };

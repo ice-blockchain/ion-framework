@@ -16,7 +16,7 @@ import 'package:ion/app/features/feed/data/models/entities/event_count_result_da
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
 import 'package:ion/app/features/feed/stories/data/models/story_preview_result.f.dart';
-import 'package:ion/app/features/feed/stories/providers/current_user_story_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_preview/actions/story_share_button.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_preview/actions/story_topics_button.dart';
@@ -186,7 +186,7 @@ class StoryPreviewPage extends HookConsumerWidget {
 
   void _refreshProviders(WidgetRef ref) {
     final pubkey = ref.read(currentPubkeySelectorProvider) ?? '';
-    ref.read(currentUserStoryProvider.notifier).refresh();
+    ref.read(currentUserFeedStoryProvider.notifier).refresh();
     ref.read(userStoriesProvider(pubkey).notifier).refresh();
     ref.read(ionConnectCacheProvider.notifier).remove(
           EventCountResultEntity.cacheKeyBuilder(

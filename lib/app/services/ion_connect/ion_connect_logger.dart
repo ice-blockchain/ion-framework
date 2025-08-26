@@ -74,10 +74,10 @@ class IonConnectLogger implements NostrDartLogger {
   final Map<String, Set<String>> _receivedOkResponses = {};
 
   @override
-  bool get incomingMessageLoggingEnabled => false;
+  bool get incomingMessageLoggingEnabled => true;
 
   @override
-  bool get outgoingMessageLoggingEnabled => false;
+  bool get outgoingMessageLoggingEnabled => true;
 
   // Start a session with existing ID (for subscription IDs)
   void startSessionWithId(String sessionId) {

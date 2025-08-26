@@ -8,7 +8,7 @@ import 'package:ion/app/features/feed/data/models/feed_modifier.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_for_you_content_provider.m.dart';
 import 'package:ion/app/features/feed/stories/data/models/user_story.f.dart';
-import 'package:ion/app/features/feed/stories/providers/current_user_story_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/stories_count_provider.r.dart';
 import 'package:mocktail/mocktail.dart';

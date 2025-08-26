@@ -167,18 +167,16 @@ class EventCountResultData with _$EventCountResultData {
   }
 
   String getKey(EventCountResultType type) {
-    final tags = request.data.filters.first.tags;
+    final filter = request.data.filters.first;
 
-    if (tags == null || tags.isEmpty) {
-      throw UnknownEventCountResultKey(eventReference);
-    }
-
-    final qTag = tags['#q'];
-    final pTag = tags['#p'];
-    final eTag = tags['#e'];
-    final aTag = tags['#a'];
+    final qTag = filter.tags?['#q'];
+    final pTag = filter.tags?['#p'];
+    final eTag = filter.tags?['#e'];
+    final aTag = filter.tags?['#a'];
+    final authors = filter.authors;
 
     final key = switch (type) {
+      EventCountResultType.stories when authors != null && authors.isNotEmpty => authors.first,
       EventCountResultType.quotes =>
         qTag != null && qTag.isNotEmpty ? (qTag.first! as List<dynamic>).first : null,
       EventCountResultType.followers =>

@@ -396,3 +396,14 @@ class QuerySearchExtension extends SearchExtension {
   @override
   String get query => '"$searchQuery"';
 }
+
+/// For every kind [forKind] that the subscription finds also include the count of stories from the same author
+class StoriesCountSearchExtension extends IncludeSearchExtension {
+  StoriesCountSearchExtension({this.forKind = ModifiablePostEntity.kind});
+
+  @override
+  final int forKind;
+
+  @override
+  String get query => 'kind6400+kind30175+expiration';
+}

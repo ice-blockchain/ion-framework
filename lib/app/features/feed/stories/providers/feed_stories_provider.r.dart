@@ -9,7 +9,7 @@ import 'package:ion/app/features/feed/providers/feed_current_filter_provider.m.d
 import 'package:ion/app/features/feed/providers/feed_following_content_provider.m.dart';
 import 'package:ion/app/features/feed/providers/feed_for_you_content_provider.m.dart';
 import 'package:ion/app/features/feed/stories/data/models/user_story.f.dart';
-import 'package:ion/app/features/feed/stories/providers/current_user_story_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
@@ -22,7 +22,7 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
   @override
   ({Iterable<UserStory>? items, bool hasMore}) build() {
     final filter = ref.watch(feedCurrentFilterProvider);
-    final currentUserStory = ref.watch(currentUserStoryProvider);
+    final currentUserStory = ref.watch(currentUserFeedStoryProvider);
     final data = switch (filter.filter) {
       FeedFilter.following => ref.watch(
           feedFollowingContentProvider(FeedType.story)
