@@ -87,27 +87,27 @@ Future<void> deeplinkInitializer(Ref ref) async {
   final service = ref.read(deepLinkServiceProvider);
 
   Future<String?> handlePostDeepLink(
-    EventReference event,
-    String eventReference,
+    EventReference eventReference,
+    String encodedEventReference,
   ) async {
-    final entity = await ref.read(ionConnectEntityProvider(eventReference: event).future);
+    final entity = await ref.read(ionConnectEntityProvider(eventReference: eventReference).future);
 
     if (entity is ModifiablePostEntity) {
       if (entity.isStory) {
         return StoryViewerRoute(
           pubkey: entity.masterPubkey,
-          initialStoryReference: eventReference,
+          initialStoryReference: encodedEventReference,
         ).location;
       }
 
-      return PostDetailsRoute(eventReference: eventReference).location;
+      return PostDetailsRoute(eventReference: encodedEventReference).location;
     }
 
     return null;
   }
 
-  bool isFallbackUrl(String eventReference) {
-    if (eventReference == service._fallbackUrl) {
+  bool isFallbackUrl(String encodedEventReference) {
+    if (encodedEventReference == service._fallbackUrl) {
       return true;
     }
     final fallbackUri = Uri.parse(service._fallbackUrl);
@@ -115,27 +115,29 @@ Future<void> deeplinkInitializer(Ref ref) async {
     if (segments.isNotEmpty) {
       final lastSegment = segments.last;
 
-      return '/$lastSegment' == eventReference;
+      return '/$lastSegment' == encodedEventReference;
     }
 
     return false;
   }
 
   await service.init(
-    onDeeplink: (eventReference) async {
+    onDeeplink: (encodedEventReference) async {
       try {
-        if (isFallbackUrl(eventReference)) {
+        if (isFallbackUrl(encodedEventReference)) {
           // Just open the app in case of fallback url
           return;
         }
 
-        final event = EventReference.fromEncoded(eventReference);
+        final eventReference = EventReference.fromEncoded(encodedEventReference);
 
-        if (event is ReplaceableEventReference) {
-          final location = switch (event.kind) {
-            ModifiablePostEntity.kind => await handlePostDeepLink(event, eventReference),
-            ArticleEntity.kind => ArticleDetailsRoute(eventReference: eventReference).location,
-            UserMetadataEntity.kind => ProfileRoute(pubkey: event.masterPubkey).location,
+        if (eventReference is ReplaceableEventReference) {
+          final location = switch (eventReference.kind) {
+            ModifiablePostEntity.kind =>
+              await handlePostDeepLink(eventReference, encodedEventReference),
+            ArticleEntity.kind =>
+              ArticleDetailsRoute(eventReference: encodedEventReference).location,
+            UserMetadataEntity.kind => ProfileRoute(pubkey: eventReference.masterPubkey).location,
             _ => null,
           };
 
