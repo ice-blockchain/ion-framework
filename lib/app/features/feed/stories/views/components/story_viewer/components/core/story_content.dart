@@ -16,6 +16,7 @@ import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.d
 import 'package:ion/app/features/feed/stories/providers/story_reply_notification_provider.m.dart';
 import 'package:ion/app/features/feed/stories/providers/story_reply_provider.r.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/components.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_pause_visibility_wrapper.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/header/story_viewer_header.dart';
 import 'package:ion/app/utils/future.dart';
 
@@ -131,34 +132,36 @@ class _StoryControlsPanel extends HookConsumerWidget {
       (_, next) => ref.read(storyPauseControllerProvider.notifier).paused = next.isLoading,
     );
 
-    return Stack(
-      children: [
-        if (canSendMessage && !isOwnerStory)
+    return StoryPauseVisibilityWrapper(
+      child: Stack(
+        children: [
+          if (canSendMessage && !isOwnerStory)
+            AnimatedPositionedDirectional(
+              key: panelKey,
+              duration: 50.ms,
+              curve: Curves.easeOut,
+              bottom: bottomPadding,
+              start: 0.s,
+              end: 52.0.s,
+              child: StoryInputField(
+                controller: textController,
+                onSubmitted: onSubmit,
+              ),
+            ),
           AnimatedPositionedDirectional(
-            key: panelKey,
             duration: 50.ms,
             curve: Curves.easeOut,
             bottom: bottomPadding,
-            start: 0.s,
-            end: 52.0.s,
-            child: StoryInputField(
-              controller: textController,
-              onSubmitted: onSubmit,
+            end: 16.0.s,
+            child: StoryViewerActionButtons(post: story),
+          ),
+          if (isKeyboardShown)
+            StoryReactionOverlay(
+              story: story,
+              textController: textController,
             ),
-          ),
-        AnimatedPositionedDirectional(
-          duration: 50.ms,
-          curve: Curves.easeOut,
-          bottom: bottomPadding,
-          end: 16.0.s,
-          child: StoryViewerActionButtons(post: story),
-        ),
-        if (isKeyboardShown)
-          StoryReactionOverlay(
-            story: story,
-            textController: textController,
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

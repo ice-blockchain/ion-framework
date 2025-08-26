@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/views/components/message_items/components.dart';
 import 'package:ion/app/features/feed/stories/providers/story_reply_notification_provider.m.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_pause_visibility_wrapper.dart';
 
 class StoryReplyNotification extends ConsumerWidget {
   const StoryReplyNotification({super.key});
@@ -25,47 +26,49 @@ class StoryReplyNotification extends ConsumerWidget {
       top: 70.0.s,
       start: 0.0.s,
       end: 0.0.s,
-      child: Animate(
-        key: ValueKey(storyReplyNotification.selectedEmoji),
-        onComplete: (_) {
-          ref.read(storyReplyNotificationControllerProvider.notifier).hideNotification();
-        },
-        effects: [
-          FadeEffect(duration: 300.ms),
-          ThenEffect(delay: 2.seconds),
-          FadeEffect(
-            begin: 1,
-            end: 0,
-            duration: 300.ms,
-          ),
-        ],
-        child: Center(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16.0.s),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16.0.s,
-                  vertical: 8.0.s,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(16.0.s),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      emoji != null ? i18n.reaction_was_sent : i18n.reply_was_sent,
-                      style: appTextThemes.body2.copyWith(color: notificationColor),
-                    ),
-                    if (emoji != null)
+      child: StoryPauseVisibilityWrapper(
+        child: Animate(
+          key: ValueKey(storyReplyNotification.selectedEmoji),
+          onComplete: (_) {
+            ref.read(storyReplyNotificationControllerProvider.notifier).hideNotification();
+          },
+          effects: [
+            FadeEffect(duration: 300.ms),
+            ThenEffect(delay: 2.seconds),
+            FadeEffect(
+              begin: 1,
+              end: 0,
+              duration: 300.ms,
+            ),
+          ],
+          child: Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16.0.s),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.0.s,
+                    vertical: 8.0.s,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(16.0.s),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       Text(
-                        ' $emoji',
-                        style: TextStyle(fontSize: 16.0.s).platformEmojiAware(),
+                        emoji != null ? i18n.reaction_was_sent : i18n.reply_was_sent,
+                        style: appTextThemes.body2.copyWith(color: notificationColor),
                       ),
-                  ],
+                      if (emoji != null)
+                        Text(
+                          ' $emoji',
+                          style: TextStyle(fontSize: 16.0.s).platformEmojiAware(),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),

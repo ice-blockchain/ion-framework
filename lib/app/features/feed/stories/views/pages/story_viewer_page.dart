@@ -90,6 +90,8 @@ class StoryViewerPage extends HookConsumerWidget {
       [singleUserStoriesViewerState.currentStoryIndex],
     );
 
+    final isPaused = ref.watch(storyPauseControllerProvider);
+
     return KeyboardVisibilityBuilder(
       builder: (context, isKeyboardVisible) {
         final media = MediaQuery.of(context);
@@ -127,7 +129,7 @@ class StoryViewerPage extends HookConsumerWidget {
                     child: IgnorePointer(
                       ignoring: isKeyboardVisible,
                       child: AnimatedOpacity(
-                        opacity: isKeyboardVisible ? 0 : 1,
+                        opacity: (isKeyboardVisible || isPaused) ? 0 : 1,
                         duration: const Duration(milliseconds: 150),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,

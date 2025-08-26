@@ -7,6 +7,7 @@ import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_pause_visibility_wrapper.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/header/header.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -49,68 +50,70 @@ class StoryViewerHeader extends ConsumerWidget {
           top: 14.0.s,
           start: 16.0.s,
           end: 22.0.s,
-          child: GestureDetector(
-            onTap: () => ProfileRoute(pubkey: currentPost.masterPubkey).push<void>(context),
-            child: BadgesUserListItem(
-              pubkey: userMetadata.masterPubkey,
-              leading: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.s),
-                  boxShadow: [
-                    BoxShadow(
-                      offset: shadow.first.offset,
-                      blurRadius: shadow.first.blurRadius,
-                      color: shadow.first.color,
+          child: StoryPauseVisibilityWrapper(
+            child: GestureDetector(
+              onTap: () => ProfileRoute(pubkey: currentPost.masterPubkey).push<void>(context),
+              child: BadgesUserListItem(
+                pubkey: userMetadata.masterPubkey,
+                leading: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.s),
+                    boxShadow: [
+                      BoxShadow(
+                        offset: shadow.first.offset,
+                        blurRadius: shadow.first.blurRadius,
+                        color: shadow.first.color,
+                      ),
+                    ],
+                  ),
+                  child: IonConnectAvatar(
+                    size: ListItem.defaultAvatarSize,
+                    pubkey: currentPost.masterPubkey,
+                  ),
+                ),
+                title: Text(
+                  userMetadata.data.displayName,
+                  style: textThemes.subtitle3.copyWith(
+                    color: onPrimaryAccent,
+                    shadows: shadow,
+                  ),
+                ),
+                subtitle: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      prefixUsername(
+                        username: userMetadata.data.name,
+                        context: context,
+                      ),
+                      style: textThemes.caption.copyWith(
+                        color: onPrimaryAccent,
+                        shadows: shadow,
+                      ),
+                    ),
+                    SizedBox(width: 4.0.s),
+                    Text(
+                      '•',
+                      style: textThemes.caption.copyWith(
+                        color: onPrimaryAccent,
+                        shadows: shadow,
+                      ),
+                    ),
+                    SizedBox(width: 4.0.s),
+                    TimeAgo(
+                      time: currentPost.data.publishedAt.value.toDateTime,
+                      style: textThemes.caption.copyWith(
+                        color: onPrimaryAccent,
+                        shadows: shadow,
+                      ),
                     ),
                   ],
                 ),
-                child: IonConnectAvatar(
-                  size: ListItem.defaultAvatarSize,
-                  pubkey: currentPost.masterPubkey,
-                ),
+                trailing: HeaderActions(post: currentPost),
+                backgroundColor: Colors.transparent,
+                contentPadding: EdgeInsets.zero,
+                constraints: BoxConstraints(minHeight: 30.0.s),
               ),
-              title: Text(
-                userMetadata.data.displayName,
-                style: textThemes.subtitle3.copyWith(
-                  color: onPrimaryAccent,
-                  shadows: shadow,
-                ),
-              ),
-              subtitle: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    prefixUsername(
-                      username: userMetadata.data.name,
-                      context: context,
-                    ),
-                    style: textThemes.caption.copyWith(
-                      color: onPrimaryAccent,
-                      shadows: shadow,
-                    ),
-                  ),
-                  SizedBox(width: 4.0.s),
-                  Text(
-                    '•',
-                    style: textThemes.caption.copyWith(
-                      color: onPrimaryAccent,
-                      shadows: shadow,
-                    ),
-                  ),
-                  SizedBox(width: 4.0.s),
-                  TimeAgo(
-                    time: currentPost.data.publishedAt.value.toDateTime,
-                    style: textThemes.caption.copyWith(
-                      color: onPrimaryAccent,
-                      shadows: shadow,
-                    ),
-                  ),
-                ],
-              ),
-              trailing: HeaderActions(post: currentPost),
-              backgroundColor: Colors.transparent,
-              contentPadding: EdgeInsets.zero,
-              constraints: BoxConstraints(minHeight: 30.0.s),
             ),
           ),
         );
