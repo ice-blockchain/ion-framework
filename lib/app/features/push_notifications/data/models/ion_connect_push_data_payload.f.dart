@@ -441,4 +441,26 @@ enum PushNotificationType {
   chatMultiVideoMessage,
   chatPaymentRequestMessage,
   chatPaymentReceivedMessage;
+
+  bool get isChat => const {
+        chatDocumentMessage,
+        chatEmojiMessage,
+        chatPhotoMessage,
+        chatProfileMessage,
+        chatReaction,
+        chatSharePostMessage,
+        chatShareStoryMessage,
+        chatSharedStoryReplyMessage,
+        chatTextMessage,
+        chatVideoMessage,
+        chatVoiceMessage,
+        chatFirstContactMessage,
+        chatGifMessage,
+        chatMultiGifMessage,
+        chatMultiMediaMessage,
+        chatMultiPhotoMessage,
+        chatMultiVideoMessage,
+        chatPaymentRequestMessage,
+        chatPaymentReceivedMessage,
+      }.contains(this);
 }
