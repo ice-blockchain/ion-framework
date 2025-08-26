@@ -11,7 +11,6 @@ import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_expiration.f.dart';
-import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
@@ -134,7 +133,7 @@ class SendChatMedia extends _$SendChatMedia {
         );
 
     final uploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
-          alt: FileAlt.message,
+          alt: mediaFile.name,
           encryptedMediaFile.mediaFile,
           customEventSigner: oneTimeEventSigner,
           cancelToken: cancelToken,

@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/extensions/enum.dart';
 import 'package:ion/app/features/chat/community/models/community_admin_type.dart';
 import 'package:ion/app/features/chat/community/models/community_visibility_type.dart';
 import 'package:ion/app/features/chat/community/models/entities/community_definition_data.f.dart';
@@ -98,7 +99,7 @@ class CreateCommunityNotifier extends _$CreateCommunityNotifier {
     }
     final uploadAvatarResult = await ref
         .read(ionConnectUploadNotifierProvider.notifier)
-        .upload(avatarFile, alt: FileAlt.avatar);
+        .upload(avatarFile, alt: FileAlt.avatar.toShortString());
 
     return uploadAvatarResult;
   }

@@ -3,7 +3,6 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
-import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
@@ -19,7 +18,7 @@ class MediaUploadService {
     this.imageCompressionSettings = const ImageCompressionSettings(shouldCompressGif: true),
   });
   final Ref ref;
-  final FileAlt fileAlt;
+  final String fileAlt;
   final ImageCompressionSettings imageCompressionSettings;
 
   Future<({List<FileMetadata> fileMetadatas, MediaAttachment mediaAttachment})> uploadMedia(

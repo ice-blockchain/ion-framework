@@ -6,8 +6,6 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
-import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -38,7 +36,7 @@ class LargeMediaUploadService {
     required MediaFile file,
     required String authToken,
     required Uint8List fileBytes,
-    FileAlt? alt,
+    String? alt,
     String? caption,
     CancelToken? cancelToken,
   }) async {
@@ -259,7 +257,7 @@ class LargeMediaUploadService {
     required String authToken,
     required String fileNameB64,
     required String captionB64,
-    FileAlt? alt,
+    String? alt,
     CancelToken? cancelToken,
   }) async {
     final mimeType = file.mimeType;
@@ -267,7 +265,7 @@ class LargeMediaUploadService {
       'fileName $fileNameB64',
       'caption $captionB64', // legacy param preserved
       if (mimeType != null) 'contentType ${base64Encode(utf8.encode(mimeType))}',
-      if (alt != null) 'alt ${base64Encode(utf8.encode(alt.toShortString()))}',
+      if (alt != null) 'alt ${base64Encode(utf8.encode(alt))}',
     ];
 
     final concatValue = 'final;${partLocations.join(' ')}';

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:collection/collection.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -124,7 +125,7 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
 
   Future<UploadResult?> _upload(MediaFile? file, {required FileAlt alt}) {
     return file != null
-        ? ref.read(ionConnectUploadNotifierProvider.notifier).upload(file, alt: alt)
+        ? ref.read(ionConnectUploadNotifierProvider.notifier).upload(file, alt: alt.toShortString())
         : Future<UploadResult?>.value();
   }
 }

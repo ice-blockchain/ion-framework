@@ -11,6 +11,7 @@ import 'package:ion/app/components/text_editor/utils/build_empty_delta.dart';
 import 'package:ion/app/components/text_editor/utils/extract_tags.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/delta.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -363,7 +364,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     if (mediaFiles != null && mediaFiles.isNotEmpty) {
       final mediaUploadService = ref.read(
         mediaUploadProvider(
-          fileAlt: _getFileAlt(),
+          fileAlt: _getFileAlt().toShortString(),
           imageCompressionSettings: createOption != CreatePostOption.story
               ? const ImageCompressionSettings(shouldCompressGif: true)
               : const ImageCompressionSettings(),

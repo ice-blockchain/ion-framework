@@ -9,6 +9,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/dio_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
@@ -59,7 +60,7 @@ class DeviceKeypairUtils {
 
     // Find device keypair attachment by alt field
     return metadata.data.media.values
-        .where((attachment) => attachment.alt == FileAlt.attestationKey)
+        .where((attachment) => attachment.alt == FileAlt.attestationKey.toShortString())
         .firstOrNull;
   }
 
