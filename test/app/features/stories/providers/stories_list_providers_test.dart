@@ -31,7 +31,7 @@ class _FakeFeedForYouContent extends FeedForYouContent {
       _state;
 }
 
-class _FakeCurrentUserStory extends CurrentUserStory {
+class _FakeCurrentUserStory extends CurrentUserFeedStory {
   _FakeCurrentUserStory(this._story);
   final UserStory? _story;
 
@@ -65,7 +65,7 @@ ProviderContainer _containerWith(List<ModifiablePostEntity> posts) {
       feedForYouContentProvider(FeedType.story).overrideWith(
         () => _FakeFeedForYouContent(_stateWith(posts)),
       ),
-      currentUserStoryProvider.overrideWith(
+      currentUserFeedStoryProvider.overrideWith(
         () => _FakeCurrentUserStory(null),
       ),
       for (final post in posts) storiesCountProvider(post.masterPubkey).overrideWith((_) => 1),
