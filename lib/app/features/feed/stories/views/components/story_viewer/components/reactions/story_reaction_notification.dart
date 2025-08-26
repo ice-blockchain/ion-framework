@@ -5,9 +5,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/story_pause_visibility/story_pause_visibility_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/views/components/message_items/components.dart';
-import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_reply_notification_provider.m.dart';
 
 class StoryReplyNotification extends ConsumerWidget {
@@ -21,15 +21,12 @@ class StoryReplyNotification extends ConsumerWidget {
     final appTextThemes = context.theme.appTextThemes;
     final emoji = storyReplyNotification.selectedEmoji;
     final notificationColor = context.theme.appColors.onPrimaryAccent;
-    final isPaused = ref.watch(storyPauseControllerProvider);
 
     return PositionedDirectional(
       top: 70.0.s,
       start: 0.0.s,
       end: 0.0.s,
-      child: AnimatedOpacity(
-        opacity: isPaused ? 0 : 1,
-        duration: const Duration(milliseconds: 150),
+      child: StoryPauseVisibilityWrapper(
         child: Animate(
           key: ValueKey(storyReplyNotification.selectedEmoji),
           onComplete: (_) {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
+import 'package:ion/app/components/story_pause_visibility/story_pause_visibility_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -30,7 +31,6 @@ class StoryViewerHeader extends ConsumerWidget {
     final textThemes = context.theme.appTextThemes;
     final onPrimaryAccent = appColors.onPrimaryAccent;
     final primaryTextWithAlpha = appColors.primaryText.withValues(alpha: 0.25);
-    final isPaused = ref.watch(storyPauseControllerProvider);
 
     final shadow = [
       Shadow(
@@ -51,9 +51,7 @@ class StoryViewerHeader extends ConsumerWidget {
           top: 14.0.s,
           start: 16.0.s,
           end: 22.0.s,
-          child: AnimatedOpacity(
-            opacity: isPaused ? 0 : 1,
-            duration: const Duration(milliseconds: 150),
+          child: StoryPauseVisibilityWrapper(
             child: GestureDetector(
               onTap: () => ProfileRoute(pubkey: currentPost.masterPubkey).push<void>(context),
               child: BadgesUserListItem(
