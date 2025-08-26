@@ -29,15 +29,18 @@ class FeedAdvancedSearchVideosPage extends HookConsumerWidget {
     final dataSource = ref.watch(
       feedSearchPostsDataSourceProvider(query: query, category: category),
     );
-    final entities =
-        ref.watch(entitiesPagedDataProvider(dataSource).select((state) => state?.data.items ?? {}));
+    final entitiesPagedData = ref.watch(entitiesPagedDataProvider(dataSource));
+    final hasMore = entitiesPagedData?.hasMore ?? false;
+    final entities = entitiesPagedData?.data.items ?? {};
 
     return VideosVerticalScrollPage(
       eventReference: eventReference,
       initialMediaIndex: initialMediaIndex,
       framedEventReference: framedEventReference,
       entities: entities,
-      onLoadMore: () => ref.read(entitiesPagedDataProvider(dataSource).notifier).fetchEntities(),
+      onLoadMore: hasMore
+          ? () => ref.read(entitiesPagedDataProvider(dataSource).notifier).fetchEntities()
+          : null,
     );
   }
 }
