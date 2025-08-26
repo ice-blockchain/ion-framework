@@ -23,6 +23,11 @@ extension StringExtensions on String {
       return line.split(' ').map((word) => word.capitalize()).join(' ');
     }).join('\n');
   }
+
+  String truncate(int maxLength) {
+    if (length <= maxLength) return this;
+    return '${substring(0, maxLength)}...';
+  }
 }
 
 final placeholderRegExp = RegExp('{{(.*?)}}');

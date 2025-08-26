@@ -166,12 +166,14 @@ class _MetaDescription extends StatelessWidget {
   final String description;
   final bool isMe;
 
+  static const maxLength = 300;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsetsDirectional.only(top: 2.0.s),
       child: Text(
-        description,
+        description.truncate(maxLength),
         style: context.theme.appTextThemes.body2.copyWith(
           color:
               isMe ? context.theme.appColors.onPrimaryAccent : context.theme.appColors.primaryText,
