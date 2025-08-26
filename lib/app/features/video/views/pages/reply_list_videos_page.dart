@@ -22,9 +22,9 @@ class ReplyListVideosPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = ref.watch(repliesProvider(parentEventReference));
-    final entities = provider?.data.items ?? {};
-    final hasMore = provider?.hasMore ?? false;
+    final entitiesPagedData = ref.watch(repliesProvider(parentEventReference));
+    final entities = entitiesPagedData?.data.items ?? {};
+    final hasMore = entitiesPagedData?.hasMore ?? false;
     
     return VideosVerticalScrollPage(
       eventReference: eventReference,
