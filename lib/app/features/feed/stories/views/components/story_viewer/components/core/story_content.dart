@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/story_pause_visibility/story_pause_visibility_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dart';
@@ -17,6 +16,7 @@ import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.d
 import 'package:ion/app/features/feed/stories/providers/story_reply_notification_provider.m.dart';
 import 'package:ion/app/features/feed/stories/providers/story_reply_provider.r.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/components.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_pause_visibility_wrapper.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/header/story_viewer_header.dart';
 import 'package:ion/app/utils/future.dart';
 
