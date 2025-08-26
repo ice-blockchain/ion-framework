@@ -34,22 +34,17 @@ class Shape0 extends i0.VersionedTable {
   Shape0({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get eventReference =>
       columnsByName['event_reference']! as i1.GeneratedColumn<String>;
-  i1.GeneratedColumn<int> get sentAt =>
-      columnsByName['sent_at']! as i1.GeneratedColumn<int>;
-  i1.GeneratedColumn<String> get status =>
-      columnsByName['status']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get sentAt => columnsByName['sent_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get status => columnsByName['status']! as i1.GeneratedColumn<String>;
 }
 
 i1.GeneratedColumn<String> _column_0(String aliasedName) =>
-    i1.GeneratedColumn<String>('event_reference', aliasedName, false,
-        type: i1.DriftSqlType.string);
+    i1.GeneratedColumn<String>('event_reference', aliasedName, false, type: i1.DriftSqlType.string);
 i1.GeneratedColumn<int> _column_1(String aliasedName) =>
-    i1.GeneratedColumn<int>('sent_at', aliasedName, false,
-        type: i1.DriftSqlType.int);
+    i1.GeneratedColumn<int>('sent_at', aliasedName, false, type: i1.DriftSqlType.int);
 i1.GeneratedColumn<String> _column_2(String aliasedName) =>
     i1.GeneratedColumn<String>('status', aliasedName, false,
-        type: i1.DriftSqlType.string,
-        defaultValue: const CustomExpression('\'pending\''));
+        type: i1.DriftSqlType.string, defaultValue: const CustomExpression('\'pending\''));
 
 i0.MigrationStepWithVersion migrationSteps() {
   return (currentVersion, database) async {
@@ -65,5 +60,4 @@ i0.MigrationStepWithVersion migrationSteps() {
   };
 }
 
-i1.OnUpgrade stepByStep() =>
-    i0.VersionedSchema.stepByStepHelper(step: migrationSteps());
+i1.OnUpgrade stepByStep() => i0.VersionedSchema.stepByStepHelper(step: migrationSteps());

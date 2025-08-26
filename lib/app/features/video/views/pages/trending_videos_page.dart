@@ -27,7 +27,8 @@ class TrendingVideosPage extends HookConsumerWidget {
     return VideosVerticalScrollPage(
       eventReference: eventReference,
       entities: entities,
-      onLoadMore: hasMore ? () => ref.read(feedTrendingVideosProvider.notifier).fetchEntities() : null,
+      onLoadMore:
+          hasMore ? () => ref.read(feedTrendingVideosProvider.notifier).fetchEntities() : null,
       onVideoSeen: (IonConnectEntity? video) {
         if (video == null) {
           return;

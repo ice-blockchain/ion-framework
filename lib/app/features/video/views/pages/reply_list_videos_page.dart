@@ -25,7 +25,7 @@ class ReplyListVideosPage extends HookConsumerWidget {
     final entitiesPagedData = ref.watch(repliesProvider(parentEventReference));
     final entities = entitiesPagedData?.data.items ?? {};
     final hasMore = entitiesPagedData?.hasMore ?? false;
-    
+
     return VideosVerticalScrollPage(
       eventReference: eventReference,
       initialMediaIndex: initialMediaIndex,

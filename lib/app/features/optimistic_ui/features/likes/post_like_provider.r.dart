@@ -125,7 +125,7 @@ class ToggleLikeNotifier extends _$ToggleLikeNotifier {
       likesCount: ref.read(likesCountProvider(eventReference)),
       likedByMe: ref.read(isLikedProvider(eventReference)),
     );
-    
+
     if (current.likedByMe) {
       await userSentLikesDao.deleteLike(eventReference);
     } else {
@@ -133,7 +133,7 @@ class ToggleLikeNotifier extends _$ToggleLikeNotifier {
       if (hasLiked) {
         return;
       }
-      
+
       await userSentLikesDao.insertOrUpdateLike(
         eventReference: eventReference,
         status: UserSentLikeStatus.pending,

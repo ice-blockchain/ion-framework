@@ -67,8 +67,8 @@ class PostMedia extends HookConsumerWidget {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: sidePadding ?? 16.0.s),
       child: PostMediaItem(
+        media: knownMedia,
         onVideoTap: onVideoTap,
-        mediaItem: knownMedia[0],
         aspectRatio: aspectRatio,
         videoAutoplay: videoAutoplay,
         eventReference: eventReference,

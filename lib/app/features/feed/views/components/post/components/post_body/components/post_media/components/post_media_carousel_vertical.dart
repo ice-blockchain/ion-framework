@@ -52,7 +52,7 @@ class PostMediaCarouselVertical extends HookConsumerWidget {
             child: Stack(
               children: [
                 PostMediaItem(
-                  mediaItem: media[index],
+                  media: media,
                   mediaIndex: index,
                   videoIndex: media[index].mediaType == MediaType.video
                       ? media.take(index + 1).where((m) => m.mediaType == MediaType.video).length -
