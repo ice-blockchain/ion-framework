@@ -8,7 +8,6 @@ import 'package:ion/app/components/story_pause_visibility/story_pause_visibility
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/header/header.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
