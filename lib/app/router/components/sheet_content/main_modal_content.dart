@@ -18,9 +18,7 @@ class MainModalContent extends StatelessWidget {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          final metrics = controller.metrics;
-
-          if (metrics.hasDimensions) {
+          if (controller.hasClient && context.mounted) {
             context.pop();
           }
         }

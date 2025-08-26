@@ -146,7 +146,7 @@ dependencies:
   shared_preferences_platform_interface: ^2.4.1
   shimmer: ^3.0.0
   showcaseview: ^4.0.1
-  smooth_sheets: ^1.0.0-f324.0.10.2
+  smooth_sheets: ^0.14.0
   social_sharing_plus: ^1.2.3
   stream_transform: ^2.1.1
   super_sliver_list: ^0.4.1

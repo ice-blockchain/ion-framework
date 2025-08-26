@@ -179,7 +179,6 @@ part 'wallet_routes.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'rootNav');
 final bottomBarNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'tabNav');
-final transitionObserver = NavigationSheetTransitionObserver();
 
 @TypedStatefulShellRoute<AppShellRouteData>(
   branches: [
@@ -252,7 +251,6 @@ class ModalShellRouteData extends ShellRouteData {
   const ModalShellRouteData();
 
   static final $parentNavigatorKey = rootNavigatorKey;
-  static final $observers = <NavigatorObserver>[transitionObserver];
 
   @override
   Page<void> pageBuilder(

@@ -77,7 +77,7 @@ abstract class BaseRouteData extends GoRouteData {
   }
 }
 
-class FadeTransitionSheetPage extends ScrollableNavigationSheetPage<void> {
+class FadeTransitionSheetPage extends PagedSheetPage<void> {
   FadeTransitionSheetPage({
     required super.child,
     required GoRouterState state,
@@ -155,7 +155,7 @@ class MainModalSheetPage extends ModalSheetPage<void> {
           // If you want to use a scrollable widget as its content,
           // use ScrollableSheet instead.
           // See example in smooth_sheets package.
-          child: DraggableSheet(
+          child: Sheet(
             controller: DefaultSheetController.of(context),
             physics: const ClampingSheetPhysics(),
             child: MainModalContent(
@@ -175,9 +175,8 @@ class ScrollableModalSheetPageRoute extends ModalSheetPage<void> {
           swipeDismissible: true,
           barrierColor: context.theme.appColors.backgroundSheet,
           key: state.pageKey,
-          child: ScrollableSheet(
+          child: Sheet(
             controller: DefaultSheetController.of(context),
-            physics: const SnappingSheetPhysics(),
             child: MainModalContent(
               state: state,
               child: child,
