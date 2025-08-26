@@ -14,19 +14,19 @@ part 'event_reference.f.freezed.dart';
 
 abstract class EventReference {
   factory EventReference.fromEncoded(String input) {
-    final identifier =
-        IonConnectUriIdentifierService(bech32Service: Bech32Service()).decodeShareableIdentifiers(
-      payload: IonConnectUriProtocolService().decode(input),
-    );
+    final payload = IonConnectUriProtocolService().decode(input);
 
-    if (identifier == null) {
+    if (payload == null) {
       throw ShareableIdentifierDecodeException(input);
     }
 
-    return EventReference.fromUriIdentifier(identifier);
+    final identifier = IonConnectUriIdentifierService(bech32Service: Bech32Service())
+        .decodeShareableIdentifiers(payload: payload);
+
+    return EventReference.fromShareableIdentifier(identifier);
   }
 
-  factory EventReference.fromUriIdentifier(ShareableIdentifier identifier) {
+  factory EventReference.fromShareableIdentifier(ShareableIdentifier identifier) {
     return switch (identifier.prefix) {
       IonConnectProtocolIdentifierType.nevent =>
         ImmutableEventReference.fromShareableIdentifier(identifier),

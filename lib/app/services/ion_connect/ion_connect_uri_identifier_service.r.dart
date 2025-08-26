@@ -116,13 +116,10 @@ class IonConnectUriIdentifierService {
   /// 3: kind
   /// - for naddr, the 32-bit unsigned integer of the kind, big-endian
   /// - for nevent, optionally, the 32-bit unsigned integer of the kind, big-endian
-  ShareableIdentifier? decodeShareableIdentifiers({
-    required String? payload,
+  ShareableIdentifier decodeShareableIdentifiers({
+    required String payload,
   }) {
     try {
-      if (payload == null) {
-        return null;
-      }
       var special = '';
       final relays = <String>[];
       String? author;

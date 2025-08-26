@@ -16,6 +16,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -129,7 +130,10 @@ Future<void> deeplinkInitializer(Ref ref) async {
           return;
         }
 
-        final eventReference = EventReference.fromEncoded(encodedEventReference);
+        final shareableIdentifier = ref
+            .read(ionConnectUriIdentifierServiceProvider)
+            .decodeShareableIdentifiers(payload: encodedEventReference);
+        final eventReference = EventReference.fromShareableIdentifier(shareableIdentifier);
 
         if (eventReference is ReplaceableEventReference) {
           final location = switch (eventReference.kind) {
