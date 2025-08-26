@@ -2,21 +2,21 @@
 
 import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
-import 'package:ion/app/features/feed/notifications/data/database/tables/user_sent_likes_table.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/optimistic_ui/database/optimistic_ui_database.m.dart';
+import 'package:ion/app/features/optimistic_ui/database/tables/user_sent_likes_table.d.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_sent_likes_dao.m.g.dart';
 
 @Riverpod(keepAlive: true)
 UserSentLikesDao userSentLikesDao(Ref ref) => UserSentLikesDao(
-      db: ref.watch(notificationsDatabaseProvider),
+      db: ref.watch(optimisticUiDatabaseProvider),
     );
 
 @DriftAccessor(tables: [UserSentLikesTable])
-class UserSentLikesDao extends DatabaseAccessor<NotificationsDatabase> with _$UserSentLikesDaoMixin {
-  UserSentLikesDao({required NotificationsDatabase db}) : super(db);
+class UserSentLikesDao extends DatabaseAccessor<OptimisticUiDatabase> with _$UserSentLikesDaoMixin {
+  UserSentLikesDao({required OptimisticUiDatabase db}) : super(db);
 
   Future<bool> hasUserLiked(EventReference eventReference) async {
     final query = select(db.userSentLikesTable)
@@ -68,8 +68,7 @@ class UserSentLikesDao extends DatabaseAccessor<NotificationsDatabase> with _$Us
   }
 
   Future<List<UserSentLike>> getPendingLikes() async {
-    final query = select(db.userSentLikesTable)
-      ..where((tbl) => tbl.status.equals('pending'));
+    final query = select(db.userSentLikesTable)..where((tbl) => tbl.status.equals('pending'));
     return query.get();
   }
 }

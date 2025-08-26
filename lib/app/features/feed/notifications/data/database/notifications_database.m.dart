@@ -12,7 +12,6 @@ import 'package:ion/app/features/feed/notifications/data/database/tables/comment
 import 'package:ion/app/features/feed/notifications/data/database/tables/followers_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/likes_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/subscribed_users_content_table.d.dart';
-import 'package:ion/app/features/feed/notifications/data/database/tables/user_sent_likes_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -42,7 +41,6 @@ NotificationsDatabase notificationsDatabase(Ref ref) {
     LikesTable,
     FollowersTable,
     AccountNotificationSyncStateTable,
-    UserSentLikesTable,
   ],
   queries: {
     'aggregatedLikes': '''
@@ -117,7 +115,7 @@ class NotificationsDatabase extends _$NotificationsDatabase {
   final String pubkey;
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -181,9 +179,6 @@ class NotificationsDatabase extends _$NotificationsDatabase {
             m.createTable(schema.accountNotificationSyncStateTable),
             m.createTable(schema.subscribedUsersContentTable),
           ]);
-        },
-        from5To6: (m, schema) async {
-          await m.createTable(schema.userSentLikesTable);
         },
       ),
     );
