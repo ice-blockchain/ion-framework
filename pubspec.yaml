@@ -112,7 +112,7 @@ dependencies:
   markdown_quill:
     git:
       url: https://github.com/ice-blockchain/markdown_quill
-      ref: master
+      ref: 5d8aaecb8d8d7425ccf3bd5753b751af8628b1e8
   meta: ^1.15.0
   mime: ^2.0.0
   mocktail: ^1.0.4
@@ -244,6 +244,7 @@ flutter_gen:
 # So, because ice depends on both qr_code_scanner ^1.0.1 and ion_identity_client from path, version solving failed.
 dependency_overrides:
   analyzer_plugin: ^0.13.1
+  flutter_quill: ^11.4.2
   js: ^0.7.1
 
 sentry:
