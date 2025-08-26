@@ -15,7 +15,7 @@ class StoryPauseVisibilityWrapper extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isPaused = ref.watch(storyPauseControllerProvider);
-    
+
     return AnimatedOpacity(
       opacity: isPaused ? 0 : 1,
       duration: const Duration(milliseconds: 150),

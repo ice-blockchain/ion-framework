@@ -96,7 +96,8 @@ class _StoryControlsPanel extends HookConsumerWidget {
     final controlsHeight = useState<double>(65.0.s);
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
     final isOwnerStory = currentPubkey == story.masterPubkey;
-    final canSendMessage = ref.watch(canSendMessageProvider(story.masterPubkey)).valueOrNull ?? false;
+    final canSendMessage =
+        ref.watch(canSendMessageProvider(story.masterPubkey)).valueOrNull ?? false;
 
     useEffect(
       () {
