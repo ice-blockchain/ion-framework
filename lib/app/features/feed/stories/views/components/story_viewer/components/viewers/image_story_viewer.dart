@@ -61,7 +61,7 @@ class ImageStoryViewer extends HookConsumerWidget {
 
     if (hasQuotedPost) {
       return ColoredBox(
-        color: context.theme.appColors.attentionBlock,
+        color: Colors.black,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 20.0.s),
           child: FractionallySizedBox(
