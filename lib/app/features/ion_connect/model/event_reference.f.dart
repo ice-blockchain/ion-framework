@@ -23,13 +23,17 @@ abstract class EventReference {
       throw ShareableIdentifierDecodeException(input);
     }
 
+    return EventReference.fromUriIdentifier(identifier);
+  }
+
+  factory EventReference.fromUriIdentifier(ShareableIdentifier identifier) {
     return switch (identifier.prefix) {
       IonConnectProtocolIdentifierType.nevent =>
         ImmutableEventReference.fromShareableIdentifier(identifier),
       IonConnectProtocolIdentifierType.naddr ||
       IonConnectProtocolIdentifierType.nprofile =>
         ReplaceableEventReference.fromShareableIdentifier(identifier),
-      _ => throw ShareableIdentifierDecodeException(input),
+      _ => throw UnimplementedError('Unsupported identifier prefix: ${identifier.prefix}'),
     };
   }
 
