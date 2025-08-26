@@ -337,8 +337,9 @@ class E2eeRecentChatTile extends HookConsumerWidget {
       avatarUrl: isDeleted ? null : userMetadata?.data.picture,
       eventReference: eventReference,
       unreadMessagesCount: unreadMessagesCount.valueOrNull ?? 0,
-      lastMessageContent:
-          entity.messageType == MessageType.document ? entity.primaryMedia?.alt ?? '' : '',
+      lastMessageContent: entity.messageType == MessageType.document
+          ? entity.primaryMedia?.alt ?? ''
+          : entity.content,
       lastMessageAt: (conversation.latestMessage?.createdAt ?? conversation.joinedAt).toDateTime,
       isVerified: isUserVerified,
       onTap: () {
