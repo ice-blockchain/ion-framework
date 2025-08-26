@@ -33,7 +33,7 @@ class UserSentLikesDao extends DatabaseAccessor<OptimisticUiDatabase> with _$Use
 
   Future<void> insertOrUpdateLike({
     required EventReference eventReference,
-    required String status,
+    required UserSentLikeStatus status,
     DateTime? sentAt,
   }) async {
     final now = sentAt ?? DateTime.now();
@@ -50,7 +50,7 @@ class UserSentLikesDao extends DatabaseAccessor<OptimisticUiDatabase> with _$Use
 
   Future<void> updateLikeStatus({
     required EventReference eventReference,
-    required String status,
+    required UserSentLikeStatus status,
   }) async {
     await (update(db.userSentLikesTable)
           ..where((tbl) => tbl.eventReference.equals(eventReference.toString())))
@@ -68,7 +68,7 @@ class UserSentLikesDao extends DatabaseAccessor<OptimisticUiDatabase> with _$Use
   }
 
   Future<List<UserSentLike>> getPendingLikes() async {
-    final query = select(db.userSentLikesTable)..where((tbl) => tbl.status.equals('pending'));
+    final query = select(db.userSentLikesTable)..where((tbl) => tbl.status.equals(UserSentLikeStatus.pending.asInt()));
     return query.get();
   }
 }

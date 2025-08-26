@@ -10,7 +10,6 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_interests_interaction.dart';
-import 'package:ion/app/features/optimistic_ui/database/dao/user_sent_likes_dao.m.dart';
 import 'package:ion/app/features/feed/providers/counters/like_reaction_provider.r.dart';
 import 'package:ion/app/features/feed/providers/counters/likes_count_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
@@ -19,6 +18,8 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart'
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/optimistic_ui/core/operation_manager.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_service.dart';
+import 'package:ion/app/features/optimistic_ui/database/dao/user_sent_likes_dao.m.dart';
+import 'package:ion/app/features/optimistic_ui/database/tables/user_sent_likes_table.d.dart';
 import 'package:ion/app/features/optimistic_ui/features/likes/like_sync_strategy_provider.r.dart';
 import 'package:ion/app/features/optimistic_ui/features/likes/model/post_like.f.dart';
 import 'package:ion/app/features/optimistic_ui/features/likes/toggle_like_intent.dart';
@@ -131,7 +132,7 @@ class ToggleLikeNotifier extends _$ToggleLikeNotifier {
       
       await userSentLikesDao.insertOrUpdateLike(
         eventReference: eventReference,
-        status: 'pending',
+        status: UserSentLikeStatus.pending,
       );
     }
 
@@ -145,7 +146,7 @@ class ToggleLikeNotifier extends _$ToggleLikeNotifier {
       if (!current.likedByMe) {
         await userSentLikesDao.updateLikeStatus(
           eventReference: eventReference,
-          status: 'confirmed',
+          status: UserSentLikeStatus.confirmed,
         );
       }
 

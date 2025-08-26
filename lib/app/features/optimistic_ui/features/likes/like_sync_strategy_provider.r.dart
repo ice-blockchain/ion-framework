@@ -3,13 +3,13 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
-import 'package:ion/app/features/optimistic_ui/database/dao/user_sent_likes_dao.m.dart';
 import 'package:ion/app/features/feed/providers/counters/like_reaction_provider.r.dart';
 import 'package:ion/app/features/feed/providers/delete_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_sync_strategy.dart';
+import 'package:ion/app/features/optimistic_ui/database/dao/user_sent_likes_dao.m.dart';
 import 'package:ion/app/features/optimistic_ui/features/likes/like_sync_strategy.dart';
 import 'package:ion/app/features/optimistic_ui/features/likes/model/post_like.f.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';

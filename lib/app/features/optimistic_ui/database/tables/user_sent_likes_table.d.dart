@@ -3,11 +3,19 @@
 import 'package:drift/drift.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 
+enum UserSentLikeStatus {
+  pending,
+  confirmed,
+  failed;
+
+  int asInt() => index;
+}
+
 @DataClassName('UserSentLike')
 class UserSentLikesTable extends Table {
   TextColumn get eventReference => text().map(const EventReferenceConverter())();
   IntColumn get sentAt => integer()();
-  TextColumn get status => text().withDefault(const Constant('pending'))(); // pending, confirmed
+  IntColumn get status => intEnum<UserSentLikeStatus>().withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {eventReference};
