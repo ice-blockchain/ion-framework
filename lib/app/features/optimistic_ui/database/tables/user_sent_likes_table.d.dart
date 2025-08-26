@@ -15,7 +15,7 @@ enum UserSentLikeStatus {
 class UserSentLikesTable extends Table {
   TextColumn get eventReference => text().map(const EventReferenceConverter())();
   IntColumn get sentAt => integer()();
-  IntColumn get status => intEnum<UserSentLikeStatus>().withDefault(const Constant(0))();
+  IntColumn get status => intEnum<UserSentLikeStatus>()();
 
   @override
   Set<Column> get primaryKey => {eventReference};

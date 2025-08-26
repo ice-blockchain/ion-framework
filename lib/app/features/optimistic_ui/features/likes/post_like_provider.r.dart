@@ -114,6 +114,10 @@ class ToggleLikeNotifier extends _$ToggleLikeNotifier {
     final service = ref.read(postLikeServiceProvider);
     final id = eventReference.toString();
 
+    if (await userSentLikesDao.hasUserLiked(eventReference)) {
+      return;
+    }
+
     var current = ref.read(postLikeWatchProvider(id)).valueOrNull;
 
     current ??= PostLike(
