@@ -64,21 +64,18 @@ class ImageStoryViewer extends HookConsumerWidget {
         color: context.theme.appColors.attentionBlock,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 20.0.s),
-          child: FractionallySizedBox(
-            heightFactor: 0.7,
-            child: TapToSeeHint(
-              onTap: () {
-                final eventReference =
-                    quotedEvent?.eventReference ?? sourcePostReference!.eventReference;
-                PostDetailsRoute(
-                  eventReference: eventReference.encode(),
-                ).push<void>(context);
-              },
-              onVisibilityChanged: (isVisible) {
-                ref.read(storyPauseControllerProvider.notifier).paused = isVisible;
-              },
-              child: imageWidget,
-            ),
+          child: TapToSeeHint(
+            onTap: () {
+              final eventReference =
+                  quotedEvent?.eventReference ?? sourcePostReference!.eventReference;
+              PostDetailsRoute(
+                eventReference: eventReference.encode(),
+              ).push<void>(context);
+            },
+            onVisibilityChanged: (isVisible) {
+              ref.read(storyPauseControllerProvider.notifier).paused = isVisible;
+            },
+            child: imageWidget,
           ),
         ),
       );
