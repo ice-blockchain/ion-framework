@@ -110,6 +110,13 @@ class ConfirmationSheet extends ConsumerWidget {
                     address: formData.receiverAddress,
                     pubkey: formData.contactPubkey,
                   ),
+                  if (formData.memo != null) ...[
+                    SizedBox(height: 16.0.s),
+                    ListItem.text(
+                      title: Text(locale.wallet_memo),
+                      value: formData.memo!,
+                    ),
+                  ],
                   SizedBox(height: 16.0.s),
                   if (formData.senderWallet?.address case final String address) ...[
                     ListItem.textWithIcon(

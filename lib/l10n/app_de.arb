@@ -381,6 +381,7 @@
   "wallet_address_create_one": "Eine {network}-Adresse ist erforderlich. Erstellen Sie eine in wenigen Schritten.",
   "wallet_address_create_button": "Adresse erstellen",
   "wallet_enter_address": "Adresse eingeben",
+  "wallet_memo": "Verwendungszweck",
   "wallet_usdt_amount": "USDT-Betrag",
   "wallet_arrival_time": "Ankunftszeit",
   "wallet_arrival_time_info": "Die Geschwindigkeit hängt von der Netzwerklast ab. Verzögerungen möglich.",

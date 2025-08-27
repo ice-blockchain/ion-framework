@@ -40,5 +40,9 @@ class NetworkData with _$NetworkData {
   bool get isIonHistorySupported => tier == 1;
   bool get isBitcoin => id == 'Bitcoin' || id == 'BitcoinSignet';
 
+  bool get isMemoSupported => id == 'XrpLedger' || id == 'XrpLedgerTestnet' || 
+                             id == 'Ton' || id == 'TonTestnet' || 
+                             id == 'Stellar' || id == 'StellarTestnet';
+
   String getExplorerUrl(String txHash) => explorerUrl.replaceAll('{txHash}', txHash);
 }

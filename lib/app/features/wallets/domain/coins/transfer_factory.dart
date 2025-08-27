@@ -8,6 +8,7 @@ class _TransferFactory {
     required double amountValue,
     required WalletAsset sendableAsset,
     NetworkFeeType? networkFeeType,
+    String? memo,
   }) {
     final amount = BigInt.from(amountValue * BigInt.from(10).pow(sendableAsset.decimals).toDouble())
         .toString();
@@ -22,6 +23,7 @@ class _TransferFactory {
         to: receiverAddress,
         amount: amount,
         priority: priority,
+        memo: memo,
       ),
       erc20: (asset) => Erc20Transfer(
         contract: asset.contract!,
@@ -49,6 +51,7 @@ class _TransferFactory {
         to: receiverAddress,
         assetCode: asset.symbol,
         issuer: asset.mint,
+        memo: memo,
       ),
       tep74: (asset) => Tep74Transfer(
         amount: amount,

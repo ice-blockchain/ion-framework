@@ -20,9 +20,10 @@ import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/utils/wallet_address_validator.dart';
 import 'package:ion/app/features/wallets/views/components/not_enough_coins_for_network_fee_message.dart';
-import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/buttons/coin_amount_input.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/coin_amount_input.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/coins_network_fee_selector.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/contact_input_switcher.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/memo_input_field.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/features/wallets/views/utils/network_validator.dart';
@@ -99,6 +100,10 @@ class SendCoinsForm extends HookConsumerWidget {
         !exceedsMaxAmount;
 
     final feeSectionSpacing = SizedBox(height: 20.0.s);
+    final isContactSelected =
+        formController.isContactPreselected && formController.contactPubkey != null;
+    final isMemoAvailable =
+        (network.value?.isMemoSupported ?? false) && formController.contactPubkey == null;
 
     return SheetContent(
       body: KeyboardDismissOnTap(
@@ -138,8 +143,7 @@ class SendCoinsForm extends HookConsumerWidget {
                         },
                       ),
                       SizedBox(height: 12.0.s),
-                      if (formController.isContactPreselected &&
-                          formController.contactPubkey != null)
+                      if (isContactSelected)
                         UserPaymentFlowCard(pubkey: formController.contactPubkey!)
                       else
                         ContactInputSwitcher(
@@ -172,6 +176,13 @@ class SendCoinsForm extends HookConsumerWidget {
                             }
                           },
                         ),
+                      if (isMemoAvailable) ...[
+                        SizedBox(height: 12.0.s),
+                        MemoInputField(
+                          onMemoChanged: notifier.setMemo,
+                          memo: formController.memo,
+                        ),
+                      ],
                       SizedBox(height: 12.0.s),
                       CoinAmountInput(
                         controller: amountController,
