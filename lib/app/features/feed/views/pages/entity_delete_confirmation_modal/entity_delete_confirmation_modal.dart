@@ -13,7 +13,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/delete/delete_confirmation_type.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/feed/providers/delete_entity_provider.r.dart';
-import 'package:ion/app/features/feed/stories/providers/current_user_story_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -115,7 +115,7 @@ class EntityDeleteConfirmationModal extends HookConsumerWidget {
         ),
     };
     ref.read(feedStoriesProvider.notifier).refresh();
-    ref.read(currentUserStoryProvider.notifier).refresh();
+    ref.read(currentUserFeedStoryProvider.notifier).refresh();
     ref.read(userStoriesProvider(pubkey).notifier).removeStory(id);
     ref.read(ionConnectCacheProvider.notifier).remove(
           EventCountResultEntity.cacheKeyBuilder(
