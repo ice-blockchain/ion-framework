@@ -172,6 +172,8 @@ class _MetaDescription extends StatelessWidget {
       padding: EdgeInsetsDirectional.only(top: 2.0.s),
       child: Text(
         description,
+        maxLines: 8,
+        overflow: TextOverflow.ellipsis,
         style: context.theme.appTextThemes.body2.copyWith(
           color:
               isMe ? context.theme.appColors.onPrimaryAccent : context.theme.appColors.primaryText,
