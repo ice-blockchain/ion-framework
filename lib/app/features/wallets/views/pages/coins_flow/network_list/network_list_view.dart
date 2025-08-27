@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
@@ -28,7 +29,7 @@ import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 
 enum NetworkListViewType { send, receive, request }
 
-class NetworkListView extends ConsumerWidget {
+class NetworkListView extends HookConsumerWidget {
   const NetworkListView({
     this.type = NetworkListViewType.send,
     this.onSelectReturnType = false,
@@ -53,6 +54,8 @@ class NetworkListView extends ConsumerWidget {
           ?.coinsGroup,
     };
 
+    final isProcessing = useRef(false);
+
     final coinsState = coinsGroup == null
         ? const AsyncValue<List<CoinInWalletData>>.loading()
         : ref.watch(syncedCoinsBySymbolGroupProvider(coinsGroup.symbolGroup));
@@ -65,7 +68,15 @@ class NetworkListView extends ConsumerWidget {
               return NetworkItem(
                 coinInWallet: coin,
                 network: coin.coin.network,
-                onTap: () => _onTap(context, ref, coin.coin.network),
+                onTap: () async {
+                  try {
+                    if (isProcessing.value) return;
+                    isProcessing.value = true;
+                    await _onTap(context, ref, coin.coin.network);
+                  } finally {
+                    isProcessing.value = false;
+                  }
+                },
               );
             },
           )
@@ -97,7 +108,11 @@ class NetworkListView extends ConsumerWidget {
     );
   }
 
-  Future<void> _onTap(BuildContext context, WidgetRef ref, NetworkData network) async {
+  Future<void> _onTap(
+    BuildContext context,
+    WidgetRef ref,
+    NetworkData network,
+  ) async {
     if (onSelectReturnType) {
       Navigator.of(context).pop(network);
       return;
