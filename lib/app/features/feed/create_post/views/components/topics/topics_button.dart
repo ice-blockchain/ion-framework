@@ -27,8 +27,7 @@ class TopicsButton extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final topicsButtonKey = useRef(GlobalKey());
-    final topicsTooltipVisible =
-        ref.watch(topicTooltipVisibilityNotifierProvider).valueOrNull.falseOrValue;
+    final topicsTooltipVisible = ref.watch(topicTooltipVisibilityNotifierProvider).falseOrValue;
     final availableInterests = ref.watch(
       feedUserInterestsProvider(type).select((state) => state.valueOrNull),
     );
@@ -44,13 +43,10 @@ class TopicsButton extends HookConsumerWidget {
 
     useOnInit(
       () {
-        if (!topicsTooltipVisible) return;
-        Future<void>.delayed(const Duration(milliseconds: 250)).then((_) {
-          if (!context.mounted) return;
-          ShowCaseWidget.of(context).startShowCase(
-            [topicsButtonKey.value],
-          );
-        });
+        if (!topicsTooltipVisible || !context.mounted) return;
+        ShowCaseWidget.of(context).startShowCase(
+          [topicsButtonKey.value],
+        );
       },
       [topicsTooltipVisible],
     );
@@ -86,13 +82,15 @@ class TopicsButton extends HookConsumerWidget {
       ),
       targetBorderRadius: BorderRadius.circular(14.s),
       onDismissed: () {
-        ref.read(topicTooltipVisibilityNotifierProvider.notifier).markAsSeen();
+        ref.read(topicTooltipVisibilityNotifierProvider.notifier).hide();
+      },
+      onTap: () {
+        ref.read(topicTooltipVisibilityNotifierProvider.notifier).hide();
+        _onTap(context);
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () {
-          SelectTopicsRoute(feedType: type).push<void>(context);
-        },
+        onTap: () => _onTap(context),
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14.0.s),
@@ -131,5 +129,9 @@ class TopicsButton extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _onTap(BuildContext context) {
+    SelectTopicsRoute(feedType: type).push<void>(context);
   }
 }

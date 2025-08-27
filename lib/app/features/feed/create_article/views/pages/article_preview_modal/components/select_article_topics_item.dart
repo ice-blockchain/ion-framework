@@ -24,18 +24,14 @@ class SelectArticleTopicsItem extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final topicsButtonKey = useRef(GlobalKey());
-    final topicsTooltipVisible =
-        ref.watch(topicTooltipVisibilityNotifierProvider).valueOrNull.falseOrValue;
+    final topicsTooltipVisible = ref.watch(topicTooltipVisibilityNotifierProvider).falseOrValue;
 
     useOnInit(
       () {
-        if (!topicsTooltipVisible) return;
-        Future<void>.delayed(const Duration(milliseconds: 250)).then((_) {
-          if (!context.mounted) return;
-          ShowCaseWidget.of(context).startShowCase(
-            [topicsButtonKey.value],
-          );
-        });
+        if (!topicsTooltipVisible || !context.mounted) return;
+        ShowCaseWidget.of(context).startShowCase(
+          [topicsButtonKey.value],
+        );
       },
       [topicsTooltipVisible],
     );
@@ -51,7 +47,11 @@ class SelectArticleTopicsItem extends HookConsumerWidget {
             ),
             targetBorderRadius: BorderRadius.circular(10.s),
             onDismissed: () {
-              ref.read(topicTooltipVisibilityNotifierProvider.notifier).markAsSeen();
+              ref.read(topicTooltipVisibilityNotifierProvider.notifier).hide();
+            },
+            onTap: () {
+              ref.read(topicTooltipVisibilityNotifierProvider.notifier).hide();
+              _onTap(context);
             },
             child: ListItem(
               title: Text(
@@ -88,9 +88,7 @@ class SelectArticleTopicsItem extends HookConsumerWidget {
                     : context.theme.appColors.primaryText,
               ),
               constraints: BoxConstraints(minHeight: 40.0.s),
-              onTap: () {
-                SelectTopicsRoute(feedType: FeedType.article).push<void>(context);
-              },
+              onTap: () => _onTap(context),
             ),
           ),
         ),
@@ -99,6 +97,10 @@ class SelectArticleTopicsItem extends HookConsumerWidget {
         ),
       ],
     );
+  }
+
+  void _onTap(BuildContext context) {
+    SelectTopicsRoute(feedType: FeedType.article).push<void>(context);
   }
 }
 

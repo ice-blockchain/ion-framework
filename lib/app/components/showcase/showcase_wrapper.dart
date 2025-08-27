@@ -12,6 +12,7 @@ class ShowcaseWrapper extends StatelessWidget {
     required this.tooltipWidth,
     this.isUpArrow = true,
     this.targetBorderRadius = BorderRadius.zero,
+    this.onTap,
     this.onDismissed,
     super.key,
   });
@@ -22,6 +23,7 @@ class ShowcaseWrapper extends StatelessWidget {
   final double tooltipWidth;
   final bool isUpArrow;
   final BorderRadius targetBorderRadius;
+  final VoidCallback? onTap;
   final VoidCallback? onDismissed;
 
   @override
@@ -32,7 +34,7 @@ class ShowcaseWrapper extends StatelessWidget {
       overlayColor: context.theme.appColors.backgroundSheet,
       height: null,
       width: tooltipWidth,
-      onTargetClick: () => _onDismissed(context),
+      onTargetClick: () => _onTapped(context),
       onBarrierClick: () => _onDismissed(context),
       disposeOnTap: true,
       container: tooltipBuilder(
@@ -50,6 +52,11 @@ class ShowcaseWrapper extends StatelessWidget {
       ),
       child: child,
     );
+  }
+
+  void _onTapped(BuildContext context) {
+    ShowCaseWidget.of(context).dismiss();
+    (onTap ?? onDismissed)?.call();
   }
 
   void _onDismissed(BuildContext context) {
