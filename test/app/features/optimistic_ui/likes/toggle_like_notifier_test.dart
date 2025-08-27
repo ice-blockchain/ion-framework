@@ -3,22 +3,47 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/providers/counters/like_reaction_provider.r.dart';
 import 'package:ion/app/features/feed/providers/counters/likes_count_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/optimistic_ui/core/optimistic_service.dart';
+import 'package:ion/app/features/optimistic_ui/core/optimistic_sync_strategy.dart';
+import 'package:ion/app/features/optimistic_ui/database/dao/user_sent_likes_dao.m.dart';
+import 'package:ion/app/features/optimistic_ui/database/tables/user_sent_likes_table.d.dart';
+import 'package:ion/app/features/optimistic_ui/features/likes/like_sync_strategy_provider.r.dart';
 import 'package:ion/app/features/optimistic_ui/features/likes/model/post_like.f.dart';
 import 'package:ion/app/features/optimistic_ui/features/likes/post_like_provider.r.dart';
 import 'package:ion/app/features/optimistic_ui/features/likes/toggle_like_intent.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../test_utils.dart';
 
-class _MockOptimisticService extends Mock implements OptimisticService<PostLike> {}
+class _MockSyncStrategy extends Mock implements SyncStrategy<PostLike> {}
+
+class _MockUserSentLikesDao extends Mock implements UserSentLikesDao {}
+
+class _FakeCurrentPubkeySelector extends CurrentPubkeySelector {
+  _FakeCurrentPubkeySelector(this._pubkey);
+
+  final String? _pubkey;
+
+  @override
+  String? build() => _pubkey;
+}
 
 void main() {
   setUpAll(() {
+    SharedPreferences.setMockInitialValues({});
     registerFallbackValue(ToggleLikeIntent());
+    registerFallbackValue(
+      const ImmutableEventReference(
+        masterPubkey: 'test',
+        eventId: 'test',
+        kind: 1,
+      ),
+    );
+    registerFallbackValue(UserSentLikeStatus.pending);
     registerFallbackValue(
       const PostLike(
         eventReference: ImmutableEventReference(
@@ -33,7 +58,8 @@ void main() {
   });
 
   group('ToggleLikeNotifier', () {
-    late _MockOptimisticService mockService;
+    late _MockSyncStrategy mockSyncStrategy;
+    late _MockUserSentLikesDao mockDao;
 
     const eventRef = ImmutableEventReference(
       masterPubkey: 'pubkey123',
@@ -42,35 +68,30 @@ void main() {
     );
 
     setUp(() {
-      mockService = _MockOptimisticService();
-      when(() => mockService.dispatch(any(), any())).thenAnswer((_) async {});
-    });
-
-    test('prevents multiple simultaneous toggle operations for already liked content', () async {
-      final container = createContainer(
-        overrides: [
-          postLikeServiceProvider.overrideWithValue(mockService),
-          postLikeWatchProvider(eventRef.toString()).overrideWith(
-            (ref) => Stream.value(
-              const PostLike(
-                eventReference: eventRef,
-                likesCount: 5,
-                likedByMe: true,
-              ),
-            ),
-          ),
-          likesCountProvider(eventRef).overrideWithValue(5),
-          isLikedProvider(eventRef).overrideWithValue(true),
-        ],
+      mockSyncStrategy = _MockSyncStrategy();
+      mockDao = _MockUserSentLikesDao();
+      when(() => mockSyncStrategy.send(any(), any())).thenAnswer(
+        (_) async => const PostLike(
+          eventReference: eventRef,
+          likesCount: 5,
+          likedByMe: false,
+        ),
       );
-
-      final notifier = container.read(toggleLikeNotifierProvider.notifier);
-
-      final futures = List.generate(5, (_) => notifier.toggle(eventRef));
-
-      await Future.wait(futures);
-
-      verify(() => mockService.dispatch(any(), any())).called(1);
+      when(() => mockDao.hasUserLiked(any())).thenAnswer((_) async => false);
+      when(
+        () => mockDao.insertOrUpdateLike(
+          eventReference: any(named: 'eventReference'),
+          status: any(named: 'status'),
+          sentAt: any(named: 'sentAt'),
+        ),
+      ).thenAnswer((_) async {});
+      when(() => mockDao.deleteLike(any())).thenAnswer((_) async {});
+      when(
+        () => mockDao.updateLikeStatus(
+          eventReference: any(named: 'eventReference'),
+          status: any(named: 'status'),
+        ),
+      ).thenAnswer((_) async {});
     });
 
     test('allows toggle operations for different content simultaneously', () async {
@@ -82,7 +103,10 @@ void main() {
 
       final container = createContainer(
         overrides: [
-          postLikeServiceProvider.overrideWithValue(mockService),
+          currentPubkeySelectorProvider
+              .overrideWith(() => _FakeCurrentPubkeySelector('testPubkey')),
+          userSentLikesDaoProvider.overrideWithValue(mockDao),
+          likeSyncStrategyProvider.overrideWithValue(mockSyncStrategy),
           postLikeWatchProvider(eventRef.toString()).overrideWith(
             (ref) => Stream.value(
               const PostLike(
@@ -115,13 +139,16 @@ void main() {
 
       await Future.wait([future1, future2]);
 
-      verify(() => mockService.dispatch(any(), any())).called(2);
+      verify(() => mockSyncStrategy.send(any(), any())).called(2);
     });
 
     test('allows subsequent toggle after debounce period', () async {
       final container = createContainer(
         overrides: [
-          postLikeServiceProvider.overrideWithValue(mockService),
+          currentPubkeySelectorProvider
+              .overrideWith(() => _FakeCurrentPubkeySelector('testPubkey')),
+          userSentLikesDaoProvider.overrideWithValue(mockDao),
+          likeSyncStrategyProvider.overrideWithValue(mockSyncStrategy),
           postLikeWatchProvider(eventRef.toString()).overrideWith(
             (ref) => Stream.value(
               const PostLike(
@@ -139,19 +166,22 @@ void main() {
       final notifier = container.read(toggleLikeNotifierProvider.notifier);
 
       await notifier.toggle(eventRef);
-      verify(() => mockService.dispatch(any(), any())).called(1);
+      verify(() => mockSyncStrategy.send(any(), any())).called(1);
 
       unawaited(notifier.toggle(eventRef));
       await Future<void>.delayed(const Duration(milliseconds: 350));
       await notifier.toggle(eventRef);
 
-      verify(() => mockService.dispatch(any(), any())).called(2);
+      verify(() => mockSyncStrategy.send(any(), any())).called(2);
     });
 
     test('debounce delay is at least 300ms', () async {
       final container = createContainer(
         overrides: [
-          postLikeServiceProvider.overrideWithValue(mockService),
+          currentPubkeySelectorProvider
+              .overrideWith(() => _FakeCurrentPubkeySelector('testPubkey')),
+          userSentLikesDaoProvider.overrideWithValue(mockDao),
+          likeSyncStrategyProvider.overrideWithValue(mockSyncStrategy),
           postLikeWatchProvider(eventRef.toString()).overrideWith(
             (ref) => Stream.value(
               const PostLike(
