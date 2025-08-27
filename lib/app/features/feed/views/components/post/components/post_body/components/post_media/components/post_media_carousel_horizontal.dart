@@ -41,7 +41,7 @@ class PostMediaCarouselHorizontal extends HookConsumerWidget {
               for (int i = 0; i < media.length; i++)
                 ScreenSideOffset.small(
                   child: PostMediaItem(
-                    mediaItem: media[i],
+                    media: media,
                     mediaIndex: i,
                     videoIndex: media[i].mediaType == MediaType.video
                         ? media.take(i + 1).where((m) => m.mediaType == MediaType.video).length - 1

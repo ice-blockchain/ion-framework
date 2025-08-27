@@ -1,34 +1,43 @@
 // SPDX-License-Identifier: ice License 1.0
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/counter_items_footer/counter_items_footer.dart';
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/feed/views/components/feed_network_image/feed_network_image.dart';
 import 'package:ion/app/features/feed/views/pages/fullscreen_media/hooks/use_image_zoom.dart';
 import 'package:ion/app/features/feed/views/pages/fullscreen_media/providers/image_zoom_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
+import 'package:ion/app/features/video/views/components/video_actions.dart';
+import 'package:ion/app/features/video/views/components/video_post_info.dart';
+import 'package:ion/app/features/video/views/pages/video_page.dart';
 
-class ImageCarousel extends HookConsumerWidget {
-  const ImageCarousel({
-    required this.images,
+class MediaCarousel extends HookConsumerWidget {
+  const MediaCarousel({
+    required this.media,
     required this.initialIndex,
     required this.eventReference,
+    required this.entity,
+    required this.frameReference,
     super.key,
   });
 
-  final List<MediaAttachment> images;
+  final List<MediaAttachment> media;
   final int initialIndex;
   final EventReference eventReference;
+  final IonConnectEntity entity;
+  final EventReference? frameReference;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pageController = usePageController(initialPage: initialIndex);
     final onPrimaryAccentColor = context.theme.appColors.onPrimaryAccent;
 
-    final zoomController = useImageZoom(ref, withReset: true);
     final currentPage = useState(initialIndex);
 
     useEffect(
@@ -38,7 +47,6 @@ class ImageCarousel extends HookConsumerWidget {
             final newPage = pageController.page!.round();
             if (newPage != currentPage.value) {
               currentPage.value = newPage;
-              zoomController.resetZoom?.call();
             }
           }
         }
@@ -50,7 +58,7 @@ class ImageCarousel extends HookConsumerWidget {
           }
         };
       },
-      [pageController, zoomController],
+      [pageController],
     );
 
     final isZoomed = ref.watch(imageZoomProvider);
@@ -61,13 +69,29 @@ class ImageCarousel extends HookConsumerWidget {
         PageView.builder(
           controller: pageController,
           physics: isZoomed ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
-          itemCount: images.length,
+          itemCount: media.length,
           itemBuilder: (context, index) {
+            final mediaItem = media[index];
+            final isVideo = mediaItem.mediaType == MediaType.video;
+            if (isVideo) {
+              return VideoPage(
+                key: ValueKey('video_${mediaItem.url}'),
+                videoInfo: VideoPostInfo(videoPost: entity),
+                bottomOverlay: VideoActions(eventReference: eventReference),
+                videoUrl: mediaItem.url,
+                authorPubkey: eventReference.masterPubkey,
+                thumbnailUrl: mediaItem.thumb,
+                blurhash: mediaItem.blurhash,
+                aspectRatio: mediaItem.aspectRatio,
+                framedEventReference: frameReference,
+              );
+            }
+
             return CarouselImageItem(
-              key: ValueKey(images[index].url),
-              imageUrl: images[index].url,
+              key: ValueKey(mediaItem.url),
+              imageUrl: mediaItem.url,
               authorPubkey: eventReference.masterPubkey,
-              zoomController: zoomController,
+              isActive: index == currentPage.value,
             );
           },
         ),
@@ -91,22 +115,34 @@ class ImageCarousel extends HookConsumerWidget {
   }
 }
 
-class CarouselImageItem extends StatelessWidget {
+class CarouselImageItem extends HookConsumerWidget {
   const CarouselImageItem({
     required this.imageUrl,
     required this.authorPubkey,
-    required this.zoomController,
+    required this.isActive,
     this.bottomOverlayBuilder,
     super.key,
   });
 
   final String imageUrl;
   final String authorPubkey;
-  final ImageZoomController zoomController;
   final Widget Function(BuildContext)? bottomOverlayBuilder;
+  final bool isActive;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final zoomController = useImageZoom(ref, withReset: true);
+
+    useEffect(
+      () {
+        if (isActive) {
+          zoomController.resetZoom?.call();
+        }
+        return null;
+      },
+      [isActive],
+    );
+
     final primaryTextColor = context.theme.appColors.primaryText;
     final maxScale = 6.0.s;
 

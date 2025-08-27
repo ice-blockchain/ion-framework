@@ -68,7 +68,8 @@ class UserSentLikesDao extends DatabaseAccessor<OptimisticUiDatabase> with _$Use
   }
 
   Future<List<UserSentLike>> getPendingLikes() async {
-    final query = select(db.userSentLikesTable)..where((tbl) => tbl.status.equalsValue(UserSentLikeStatus.pending));
+    final query = select(db.userSentLikesTable)
+      ..where((tbl) => tbl.status.equalsValue(UserSentLikeStatus.pending));
     return query.get();
   }
 }

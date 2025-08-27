@@ -13,9 +13,9 @@ import 'package:ion/app/typedefs/typedefs.dart';
 
 class PostMediaItem extends HookWidget {
   const PostMediaItem({
-    required this.mediaItem,
     required this.aspectRatio,
     required this.eventReference,
+    required this.media,
     this.mediaIndex = 0,
     this.videoIndex = 0,
     this.onVideoTap,
@@ -24,7 +24,6 @@ class PostMediaItem extends HookWidget {
     super.key,
   });
 
-  final MediaAttachment mediaItem;
   final int mediaIndex;
   final int videoIndex;
   final bool videoAutoplay;
@@ -32,12 +31,18 @@ class PostMediaItem extends HookWidget {
   final EventReference eventReference;
   final EventReference? framedEventReference;
   final OnVideoTapCallback? onVideoTap;
+  final List<MediaAttachment> media;
 
   @override
   Widget build(BuildContext context) {
+    final mediaItem = media[mediaIndex];
+
     return GestureDetector(
       key: ValueKey(mediaItem.url),
-      onTap: () => onVideoTap != null && mediaItem.mediaType == MediaType.video
+      // call onVideoTap callback only on posts where all media are videos
+      onTap: () => onVideoTap != null &&
+              mediaItem.mediaType == MediaType.video &&
+              media.every((item) => item.mediaType == MediaType.video)
           ? onVideoTap?.call(
               eventReference: eventReference.encode(),
               initialMediaIndex: videoIndex,

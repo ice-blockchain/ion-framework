@@ -6,10 +6,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/views/pages/fullscreen_media/components/image_carousel.dart';
+import 'package:ion/app/features/feed/views/pages/fullscreen_media/components/media_carousel.dart';
 import 'package:ion/app/features/feed/views/pages/fullscreen_media/components/single_media_view.dart';
-import 'package:ion/app/features/feed/views/pages/fullscreen_media/components/video_carousel.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 
 class MediaContentHandler extends HookConsumerWidget {
@@ -28,7 +28,7 @@ class MediaContentHandler extends HookConsumerWidget {
   final EventReference? framedEventReference;
   final int initialMediaIndex;
 
-  static List<MediaAttachment> _filterKnownMedia(List<MediaAttachment> media) {
+  List<MediaAttachment> _filterKnownMedia(List<MediaAttachment> media) {
     return media.where((mediaItem) => mediaItem.mediaType != MediaType.unknown).toList();
   }
 
@@ -49,14 +49,7 @@ class MediaContentHandler extends HookConsumerWidget {
     final currentIndex = initialMediaIndex.clamp(0, allMedia.length - 1);
     final selectedMedia = allMedia[currentIndex];
 
-    final isVideoSelected = selectedMedia.mediaType == MediaType.video;
-
-    final filteredMedia = useMemoized(
-      () => allMedia.where((media) => media.mediaType == selectedMedia.mediaType).toList(),
-      [allMedia, selectedMedia.mediaType],
-    );
-
-    if (filteredMedia.length <= 1) {
+    if (allMedia.length <= 1) {
       return SingleMediaView(
         post: post,
         article: article,
@@ -66,22 +59,15 @@ class MediaContentHandler extends HookConsumerWidget {
       );
     }
 
-    final filteredIndex = filteredMedia.indexWhere((media) => media.url == selectedMedia.url);
+    final filteredIndex = allMedia.indexWhere((media) => media.url == selectedMedia.url);
     final startIndex = filteredIndex >= 0 ? filteredIndex : 0;
 
-    return isVideoSelected
-        ? VideoCarousel(
-            post: post,
-            article: article,
-            videos: filteredMedia,
-            initialIndex: startIndex,
-            eventReference: eventReference,
-            framedEventReference: framedEventReference,
-          )
-        : ImageCarousel(
-            images: filteredMedia,
-            initialIndex: startIndex,
-            eventReference: eventReference,
-          );
+    return MediaCarousel(
+      entity: (post ?? article!) as IonConnectEntity,
+      media: allMedia,
+      initialIndex: startIndex,
+      eventReference: eventReference,
+      frameReference: framedEventReference,
+    );
   }
 }
