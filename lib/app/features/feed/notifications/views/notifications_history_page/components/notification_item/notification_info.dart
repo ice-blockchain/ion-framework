@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
@@ -35,6 +36,7 @@ class NotificationInfo extends HookConsumerWidget {
     }).toList();
 
     final eventTypeLabel = _getEventTypeLabel(ref, notification: notification);
+    final isAuthor = _getIsAuthor(ref, notification: notification);
 
     if (userDatas.contains(null)) {
       return const _Loading();
@@ -44,7 +46,7 @@ class NotificationInfo extends HookConsumerWidget {
       final LikesIonNotification notification =>
         notification.getDescription(context, eventTypeLabel),
       final CommentIonNotification notification =>
-        notification.getDescription(context, eventTypeLabel),
+        notification.getDescription(context, eventTypeLabel, isAuthor),
       final ContentIonNotification notification => notification.getDescription(context),
       _ => notification.getDescription(context)
     };
@@ -121,6 +123,17 @@ class NotificationInfo extends HookConsumerWidget {
       ArticleEntity() => ref.context.i18n.common_article,
       _ => '',
     };
+  }
+
+  bool _getIsAuthor(WidgetRef ref, {required IonNotification notification}) {
+    final relatedEntity = _getRelatedEntity(ref, notification: notification);
+
+    if (relatedEntity == null) return false;
+
+    final authorPubkey = relatedEntity.masterPubkey;
+    final currentUserPubkey = ref.read(currentPubkeySelectorProvider);
+
+    return authorPubkey == currentUserPubkey;
   }
 
   IonConnectEntity? _getRelatedEntity(WidgetRef ref, {required IonNotification notification}) {

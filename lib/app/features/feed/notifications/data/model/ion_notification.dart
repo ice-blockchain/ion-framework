@@ -49,9 +49,11 @@ final class CommentIonNotification extends IonNotification {
   }
 
   @override
-  String getDescription(BuildContext context, [String eventTypeLabel = '']) {
+  String getDescription(BuildContext context, [String eventTypeLabel = '', bool isAuthor = false]) {
     return switch (type) {
-      CommentIonNotificationType.reply => context.i18n.notifications_reply(eventTypeLabel),
+      CommentIonNotificationType.reply => isAuthor
+          ? context.i18n.notifications_reply(eventTypeLabel)
+          : context.i18n.notifications_reply_other_user(eventTypeLabel),
       CommentIonNotificationType.quote => context.i18n.notifications_share(eventTypeLabel),
       CommentIonNotificationType.repost => context.i18n.notifications_repost(eventTypeLabel),
     };

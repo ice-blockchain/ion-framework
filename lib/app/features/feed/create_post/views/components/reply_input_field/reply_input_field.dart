@@ -210,6 +210,7 @@ class ReplyInputField extends HookConsumerWidget {
                     parentEvent: eventReference,
                     mediaFiles: attachedMediaNotifier.value,
                     createOption: CreatePostOption.reply,
+                    shouldShowTooltip: false,
                     onSubmitted: () {
                       _clear(
                         focusNode: focusNode,

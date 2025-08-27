@@ -33,6 +33,7 @@ class PostSubmitButton extends HookConsumerWidget {
     this.mediaFiles = const [],
     this.mediaAttachments = const {},
     this.onSubmitted,
+    this.shouldShowTooltip = true,
   });
 
   final QuillController textEditorController;
@@ -51,6 +52,8 @@ class PostSubmitButton extends HookConsumerWidget {
 
   final VoidCallback? onSubmitted;
 
+  final bool shouldShowTooltip;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     IonConnectEntity? modifiedEntity;
@@ -61,7 +64,7 @@ class PostSubmitButton extends HookConsumerWidget {
     final draftPoll = ref.watch(pollDraftNotifierProvider);
     final whoCanReply = ref.watch(selectedWhoCanReplyOptionProvider);
     final selectedTopics = ref.watch(selectedInterestsNotifierProvider);
-    final shownTooltip = useRef(false);
+    final shownTooltip = useRef(!shouldShowTooltip);
 
     final isSubmitButtonEnabled = useCanSubmitPost(
       textEditorController: textEditorController,
