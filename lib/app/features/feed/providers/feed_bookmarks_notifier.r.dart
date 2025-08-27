@@ -123,7 +123,8 @@ class FeedBookmarksNotifier extends _$FeedBookmarksNotifier {
           ..addAll(bookmarksCollection.data.eventReferences);
         if (bookmarksCollection.data.type == BookmarksSetType.homeFeedCollectionsAll.dTagName) {
           unawaited(
-              ref.read(ionConnectDbCacheProvider.notifier).saveEventReference(eventReference));
+            ref.read(ionConnectDbCacheProvider.notifier).saveEventReference(eventReference),
+          );
         }
         if (bookmarksCollection.data.type != BookmarksSetType.homeFeedCollectionsAll.dTagName) {
           final isIncluded = ref.read(

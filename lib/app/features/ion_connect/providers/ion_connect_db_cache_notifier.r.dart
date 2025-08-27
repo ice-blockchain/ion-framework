@@ -26,7 +26,7 @@ Future<IonConnectCacheServiceDriftImpl> ionConnectPersistentCacheService(Ref ref
 @riverpod
 class IonConnectDbCache extends _$IonConnectDbCache {
   @override
-  void build() async {}
+  void build() {}
 
   Stream<List<IonConnectEntity>> watchAll(List<EventReference> eventReferences) async* {
     final parser = ref.read(eventParserProvider);
