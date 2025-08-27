@@ -11,7 +11,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_noti
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
-import 'package:ion/app/features/user/providers/relays_reachability_provider.r.dart';
+import 'package:ion/app/features/user/providers/relays/relays_reachability_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
