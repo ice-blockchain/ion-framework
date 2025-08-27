@@ -69,10 +69,13 @@ class NetworkListView extends HookConsumerWidget {
                 coinInWallet: coin,
                 network: coin.coin.network,
                 onTap: () async {
-                  if (isProcessing.value) return;
-                  isProcessing.value = true;
-                  await _onTap(context, ref, coin.coin.network);
-                  isProcessing.value = false;
+                  try {
+                    if (isProcessing.value) return;
+                    isProcessing.value = true;
+                    await _onTap(context, ref, coin.coin.network);
+                  } finally {
+                    isProcessing.value = false;
+                  }
                 },
               );
             },
