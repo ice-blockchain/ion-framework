@@ -12,7 +12,6 @@ import 'package:ion/app/features/core/providers/app_info_provider.r.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/following_feed_database.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
-import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart';
 import 'package:ion/app/features/user_block/providers/blocked_users_database_provider.r.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -274,7 +273,6 @@ class DebugPage extends ConsumerWidget {
       _DebugPageDatabaseType.wallets => ref.read(walletsDatabaseProvider),
       _DebugPageDatabaseType.chat => ref.read(chatDatabaseProvider),
       _DebugPageDatabaseType.notifications => ref.read(notificationsDatabaseProvider),
-      _DebugPageDatabaseType.eventMessages => ref.read(eventMessagesDatabaseProvider),
       _DebugPageDatabaseType.blockedUsers => ref.read(blockedUsersDatabaseProvider),
       _DebugPageDatabaseType.followingFeed => ref.read(followingFeedDatabaseProvider),
     };
@@ -285,7 +283,6 @@ enum _DebugPageDatabaseType {
   wallets('Wallets Database'),
   chat('Chat Database'),
   notifications('Notifications Database'),
-  eventMessages('Event Messages Database'),
   blockedUsers('Blocked Users Database'),
   followingFeed('Following Feed Database');
 

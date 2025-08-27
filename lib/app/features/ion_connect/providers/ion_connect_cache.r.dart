@@ -51,7 +51,7 @@ class IonConnectCache extends _$IonConnectCache {
     _ionConnectCacheStreamController.sink.add(entity);
 
     if (entity is DbCacheableEntity) {
-      ref.read(ionConnectDbCacheProvider.notifier).save(entity as DbCacheableEntity);
+      unawaited(ref.read(ionConnectDbCacheProvider.notifier).save(entity as DbCacheableEntity));
     }
   }
 

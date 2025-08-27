@@ -12,6 +12,7 @@ import 'package:ion/app/features/chat/community/models/entities/community_join_d
 import 'package:ion/app/features/chat/community/models/entities/tags/conversation_identifier.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_message_reaction_data.f.dart';
+import 'package:ion/app/features/chat/extensions/event_message.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.steps.dart';
 import 'package:ion/app/features/chat/model/group_subject.f.dart';
 import 'package:ion/app/features/chat/model/message_reaction.f.dart';

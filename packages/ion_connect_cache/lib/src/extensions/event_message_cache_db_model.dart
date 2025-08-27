@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:ion_connect_cache/src/database/event_messages_database.d.dart';
+import 'package:ion_connect_cache/src/database/ion_connect_cache_database.d.dart';
 import 'package:nostr_dart/nostr_dart.dart';
 
 extension IonConnectCacheEventMessageDbModelExtensions on EventMessageCacheDbModel {
@@ -8,26 +8,30 @@ extension IonConnectCacheEventMessageDbModelExtensions on EventMessageCacheDbMod
     return EventMessage(
       id: id,
       kind: kind,
+      tags: tags,
       pubkey: pubkey,
+      content: content,
       createdAt: createdAt,
       sig: sig,
-      content: content,
-      //tags: tags,
-      tags: [],
     );
   }
 
-  static EventMessageCacheDbModel fromEventMessage(EventMessage eventMessage) {
+  static EventMessageCacheDbModel fromEventMessage({
+    required String masterPubkey,
+    required String eventReference,
+    required EventMessage eventMessage,
+  }) {
     return EventMessageCacheDbModel(
       id: eventMessage.id,
       kind: eventMessage.kind,
+      tags: eventMessage.tags,
+      masterPubkey: masterPubkey,
       pubkey: eventMessage.pubkey,
-      createdAt: eventMessage.createdAt,
-      sig: eventMessage.sig,
       content: eventMessage.content,
-      //tags: eventMessage.tags,
-      //masterPubkey: _extractMasterPubkey(eventMessage),
-      masterPubkey: '',
+      eventReference: eventReference,
+      createdAt: eventMessage.createdAt,
+      insertedAt: DateTime.now().millisecondsSinceEpoch,
+      sig: eventMessage.sig,
     );
   }
 }

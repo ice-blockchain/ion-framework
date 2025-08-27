@@ -14,7 +14,6 @@ import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
-import 'package:ion/app/features/ion_connect/repository/event_messages_repository.r.dart';
 import 'package:ion/app/features/optimistic_ui/features/bookmark/bookmark_provider.r.dart';
 import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -123,7 +122,8 @@ class FeedBookmarksNotifier extends _$FeedBookmarksNotifier {
           ..add(eventReference)
           ..addAll(bookmarksCollection.data.eventReferences);
         if (bookmarksCollection.data.type == BookmarksSetType.homeFeedCollectionsAll.dTagName) {
-          unawaited(ref.read(ionConnectDbCacheProvider.notifier).saveRef(eventReference));
+          unawaited(
+              ref.read(ionConnectDbCacheProvider.notifier).saveEventReference(eventReference));
         }
         if (bookmarksCollection.data.type != BookmarksSetType.homeFeedCollectionsAll.dTagName) {
           final isIncluded = ref.read(
@@ -177,8 +177,8 @@ bool isBookmarkedInCollection(
 @riverpod
 Future<List<EventReference>> filteredBookmarksRefs(
   Ref ref, {
-  required String collectionDTag,
   required String query,
+  required String collectionDTag,
 }) async {
   final collectionEntity =
       await ref.watch(feedBookmarksNotifierProvider(collectionDTag: collectionDTag).future);
@@ -188,9 +188,10 @@ Future<List<EventReference>> filteredBookmarksRefs(
   if (query.isEmpty) return allRefs;
 
   final rawEvents = await ref
-      .read(eventMessagesRepositoryProvider)
-      .getFiltered(eventReferences: allRefs, query: query);
-  return rawEvents.map((event) => event.eventReference).toList();
+      .read(ionConnectDbCacheProvider.notifier)
+      .getAllFiltered(eventReferences: allRefs, query: query);
+
+  return rawEvents.map((event) => event.toEventReference()).toList();
 }
 
 @Riverpod(keepAlive: true)
