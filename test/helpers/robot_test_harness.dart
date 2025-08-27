@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/views/components/content_scaler.dart';
+import 'package:smooth_sheets/smooth_sheets.dart';
 
 /// Test harness wrapper: providers, router, MaterialApp setup
 /// Eliminates test setup duplication and provides consistent environment
@@ -39,12 +40,28 @@ class RobotTestHarness extends StatelessWidget {
                     localizationsDelegates: localizationsDelegates,
                     supportedLocales: supportedLocales ?? [const Locale('en')],
                     locale: locale,
+                    builder: (context, child) {
+                      if (child == null) return const SizedBox.shrink();
+                      return SheetViewport(
+                        child: PagedSheet(
+                          navigator: child,
+                        ),
+                      );
+                    },
                   )
                 : MaterialApp(
                     home: childBuilder(ref),
                     localizationsDelegates: localizationsDelegates,
                     supportedLocales: supportedLocales ?? [const Locale('en')],
                     locale: locale,
+                    builder: (context, child) {
+                      if (child == null) return const SizedBox.shrink();
+                      return SheetViewport(
+                        child: PagedSheet(
+                          navigator: child,
+                        ),
+                      );
+                    },
                   );
             return app;
           },
