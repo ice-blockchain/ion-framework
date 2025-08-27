@@ -42,9 +42,15 @@ class BrotliCompressor implements Compressor<BrotliCompressionSettings> {
             extension: 'br',
             outputFilePath: arg.outputFilePath,
             originalMimeType: arg.originalMimeType,
+            name: arg.name,
           );
         },
-        (path: file.path, outputFilePath: outputFilePath, originalMimeType: file.originalMimeType),
+        (
+          path: file.path,
+          outputFilePath: outputFilePath,
+          originalMimeType: file.originalMimeType,
+          name: file.name,
+        ),
       );
     } catch (error, stackTrace) {
       Logger.log('Error during Brotli compression!', error: error, stackTrace: stackTrace);
@@ -85,6 +91,7 @@ class BrotliCompressor implements Compressor<BrotliCompressionSettings> {
     required String extension,
     required String outputFilePath,
     String? originalMimeType,
+    String? name,
   }) async {
     final outputFile = File(outputFilePath);
     await outputFile.writeAsBytes(bytes);
@@ -93,6 +100,7 @@ class BrotliCompressor implements Compressor<BrotliCompressionSettings> {
       path: outputFilePath,
       mimeType: MimeType.brotli.value,
       originalMimeType: originalMimeType,
+      name: name,
       width: 0,
       height: 0,
     );

@@ -10,6 +10,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/upload_limit_modal_type.dart';
 import 'package:ion/app/features/chat/views/pages/upload_limit_reached_modal/upload_limit_reached_modal.dart';
+import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/permissions/data/models/permissions_types.dart';
 import 'package:ion/app/features/core/permissions/views/components/permission_aware_widget.dart';
 import 'package:ion/app/features/core/permissions/views/components/permission_dialogs/permission_request_sheet.dart';
@@ -17,6 +18,7 @@ import 'package:ion/app/features/core/permissions/views/components/permission_di
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:mime/mime.dart';
@@ -184,37 +186,60 @@ class _DocumentButton extends ConsumerWidget {
       iconPath: Assets.svg.walletChatDocument,
       title: context.i18n.common_document,
       onTap: () async {
-        final result = await FilePicker.platform.pickFiles(
+        final filePickerResult = await FilePicker.platform.pickFiles(
           allowCompression: false,
         );
-        final firstFile = result?.files.first;
-        if (firstFile != null && context.mounted && firstFile.path != null) {
-          final mimeType = lookupMimeType(firstFile.path!);
-          if (firstFile.size > ReplaceablePrivateDirectMessageData.fileMessageSizeLimit) {
-            unawaited(
-              showModalBottomSheet(
-                context: context,
-                builder: (context) => const UploadLimitReachedModal(
-                  type: UploadLimitModalType.file,
-                ),
-              ),
-            );
-            return;
+        final file = filePickerResult?.files.first;
+        if (file != null && file.path != null) {
+          final mimeType = lookupMimeType(file.path!);
+          final mediaType = MediaType.fromMimeType(mimeType ?? '');
+          var mediaFile = MediaFile(
+            name: file.name,
+            path: file.path!,
+            mimeType: mimeType,
+            width: file.size,
+            height: file.size,
+          );
+
+          if (mediaType == MediaType.unknown) {
+            if (file.size > ReplaceablePrivateDirectMessageData.fileMessageSizeLimit) {
+              if (context.mounted) {
+                unawaited(
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => const UploadLimitReachedModal(
+                      type: UploadLimitModalType.file,
+                    ),
+                  ),
+                );
+                return;
+              }
+            }
+          } else if (mediaType == MediaType.video) {
+            final duration = await ref.read(videoCompressorProvider).getVideoDuration(file.path!);
+            if (duration != null &&
+                duration.inSeconds >
+                    ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds) {
+              if (context.mounted) {
+                unawaited(
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => const UploadLimitReachedModal(
+                      type: UploadLimitModalType.video,
+                    ),
+                  ),
+                );
+                return;
+              }
+            }
+            if (duration != null) {
+              mediaFile = mediaFile.copyWith(
+                duration: duration.inSeconds,
+              );
+            }
           }
 
-          unawaited(
-            onSubmitted(
-              content: firstFile.name,
-              mediaFiles: [
-                MediaFile(
-                  path: firstFile.path!,
-                  mimeType: mimeType,
-                  width: firstFile.size,
-                  height: firstFile.size,
-                ),
-              ],
-            ),
-          );
+          unawaited(onSubmitted(mediaFiles: [mediaFile]));
         }
       },
     );

@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
@@ -139,7 +140,7 @@ class UploadDeviceKeypairNotifier extends _$UploadDeviceKeypairNotifier {
     try {
       return await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
             mediaFile,
-            alt: FileAlt.attestationKey,
+            alt: FileAlt.attestationKey.toShortString(),
             skipDimCheck: true,
           );
     } finally {

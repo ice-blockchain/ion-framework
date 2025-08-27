@@ -9,6 +9,7 @@ import 'package:ion/app/components/text_editor/components/custom_blocks/text_edi
 import 'package:ion/app/components/text_editor/utils/extract_tags.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/delta.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/create_article/providers/draft_article_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -342,7 +343,7 @@ class CreateArticle extends _$CreateArticle {
 
     final result = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
           compressedImage,
-          alt: FileAlt.article,
+          alt: FileAlt.article.toShortString(),
         );
     return result;
   }
@@ -380,7 +381,7 @@ class CreateArticle extends _$CreateArticle {
     if (mediaIds != null && mediaIds.isNotEmpty) {
       final mediaUploadService = ref.read(
         mediaUploadProvider(
-          fileAlt: FileAlt.article,
+          fileAlt: FileAlt.article.toShortString(),
         ),
       );
 

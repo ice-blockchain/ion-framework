@@ -7,12 +7,10 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
-import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/core/providers/dio_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_config_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/file_storage_url_provider.r.dart';
@@ -42,7 +40,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
   /// after a successful upload.
   Future<UploadResult> upload(
     MediaFile file, {
-    FileAlt? alt,
+    String? alt,
     EventSigner? customEventSigner,
     bool skipDimCheck = false,
     CancelToken? cancelToken,
@@ -121,7 +119,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     required Uint8List fileBytes,
     required String authToken,
     CancelToken? cancelToken,
-    FileAlt? alt,
+    String? alt,
   }) async {
     final dio = ref.read(dioHttp2Provider);
     final feedConfig = await ref.watch(feedConfigProvider.future);
@@ -144,7 +142,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     required MediaFile file,
     required Uint8List fileBytes,
     required String authToken,
-    FileAlt? alt,
+    String? alt,
     CancelToken? cancelToken,
   }) async {
     final fileName = file.name ?? file.basename;
@@ -153,7 +151,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     final formData = FormData.fromMap({
       'file': multipartFile,
       'caption': fileName,
-      if (alt != null) 'alt': alt.toShortString(),
+      if (alt != null) 'alt': alt,
       'size': multipartFile.length,
       'content_type': file.mimeType,
     });

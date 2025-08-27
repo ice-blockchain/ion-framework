@@ -7,6 +7,5 @@ enum FileAlt {
   video,
   story,
   article,
-  message,
   attestationKey,
 }

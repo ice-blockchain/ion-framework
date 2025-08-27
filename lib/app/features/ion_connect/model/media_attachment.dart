@@ -3,7 +3,6 @@
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
-import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/utils/validators.dart';
 
@@ -33,7 +32,7 @@ class MediaAttachment {
       url: mediaFile.path,
       mimeType: mediaFile.mimeType ?? '',
       dimension: '${mediaFile.width}x${mediaFile.height}',
-      alt: FileAlt.message,
+      alt: mediaFile.name,
       originalFileHash: '',
       image: mediaFile.path,
       blurhash: mediaFile.blurhash,
@@ -105,7 +104,7 @@ class MediaAttachment {
       url: url!,
       mimeType: mimeType!,
       dimension: dimension,
-      alt: EnumExtensions.fromShortString(FileAlt.values, alt!),
+      alt: alt,
       originalFileHash: originalFileHash!,
       thumb: thumb,
       image: image,
@@ -123,7 +122,7 @@ class MediaAttachment {
         url: json['url'] as String,
         mimeType: json['mimeType'] as String,
         dimension: json['dimension'] as String?,
-        alt: EnumExtensions.fromShortString(FileAlt.values, json['alt'] as String),
+        alt: json['alt'] as String?,
         originalFileHash: json['originalFileHash'] as String,
         encryptionKey: json['encryptionKey'] as String?,
         encryptionNonce: json['encryptionNonce'] as String?,
@@ -139,7 +138,7 @@ class MediaAttachment {
         'url': url,
         'mimeType': mimeType,
         if (dimension != null) 'dimension': dimension,
-        if (alt != null) 'alt': alt!.toShortString(),
+        if (alt != null) 'alt': alt,
         'originalFileHash': originalFileHash,
         'encryptionKey': encryptionKey,
         'encryptionNonce': encryptionNonce,
@@ -156,7 +155,7 @@ class MediaAttachment {
 
   final String? dimension;
 
-  final FileAlt? alt;
+  final String? alt;
 
   final String originalFileHash;
 
@@ -220,7 +219,7 @@ class MediaAttachment {
       'url $url',
       'm $mimeType',
       if (dimension != null) 'dim $dimension',
-      if (alt != null) 'alt ${alt!.toShortString()}',
+      if (alt != null) 'alt $alt',
       'ox $originalFileHash',
       if (encryptionKey != null && encryptionNonce != null)
         'encryption-key $encryptionKey $encryptionNonce $encryptionMac aes-gcm',
@@ -243,7 +242,7 @@ class MediaAttachment {
     String? url,
     String? mimeType,
     String? dimension,
-    FileAlt? alt,
+    String? alt,
     String? originalFileHash,
     String? thumb,
     String? image,

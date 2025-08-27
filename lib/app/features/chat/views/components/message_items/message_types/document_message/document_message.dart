@@ -53,8 +53,7 @@ class DocumentMessage extends HookConsumerWidget {
     final messageMedia =
         ref.watch(chatMediasProvider(eventReference: eventReference)).valueOrNull?.firstOrNull;
 
-    final mediaAttachment =
-        messageMedia?.remoteUrl == null ? null : entity.data.media[messageMedia?.remoteUrl!];
+    final mediaAttachment = entity.data.primaryMedia;
 
     useEffect(
       () {
@@ -82,7 +81,7 @@ class DocumentMessage extends HookConsumerWidget {
 
     final messageItem = DocumentItem(
       eventMessage: eventMessage,
-      contentDescription: entity.data.content,
+      contentDescription: mediaAttachment?.alt ?? '',
     );
 
     final repliedEventMessage = ref.watch(repliedMessageListItemProvider(messageItem));
@@ -99,10 +98,7 @@ class DocumentMessage extends HookConsumerWidget {
     return MessageItemWrapper(
       isMe: isMe,
       margin: margin,
-      messageItem: DocumentItem(
-        eventMessage: eventMessage,
-        contentDescription: entity.data.content,
-      ),
+      messageItem: messageItem,
       contentPadding: EdgeInsets.symmetric(
         horizontal: 12.0.s,
         vertical: 12.0.s,
@@ -137,7 +133,7 @@ class DocumentMessage extends HookConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 Text(
-                                  entity.data.content,
+                                  mediaAttachment?.alt ?? '',
                                   style: context.theme.appTextThemes.body2.copyWith(
                                     color: isMe
                                         ? context.theme.appColors.onPrimaryAccent

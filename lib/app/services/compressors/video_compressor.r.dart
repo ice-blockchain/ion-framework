@@ -136,6 +136,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
         path: output,
         mimeType: MimeType.video.value,
         originalMimeType: file.originalMimeType,
+        name: file.name,
         width: outWidth,
         height: outHeight,
         duration: file.duration,
@@ -223,6 +224,25 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       );
     }
     return (width: width, height: height);
+  }
+
+  Future<Duration?> getVideoDuration(String filePath) async {
+    try {
+      final session = await FFprobeKit.getMediaInformation(filePath);
+      final mediaInformation = session.getMediaInformation();
+
+      if (mediaInformation != null) {
+        final durationString = mediaInformation.getDuration();
+        if (durationString != null) {
+          final durationSeconds = double.parse(durationString);
+          return Duration(milliseconds: (durationSeconds * 1000).round());
+        }
+      }
+    } catch (e, stackTrace) {
+      Logger.log('Error during video duration extraction!', error: e, stackTrace: stackTrace);
+      return null;
+    }
+    return null;
   }
 }
 

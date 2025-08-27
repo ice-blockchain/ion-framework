@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
 import 'package:ion/app/features/auth/providers/onboarding_data_provider.m.dart';
@@ -261,7 +262,7 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
       if (avatar != null) {
         return await ref
             .read(ionConnectUploadNotifierProvider.notifier)
-            .upload(avatar, alt: FileAlt.avatar);
+            .upload(avatar, alt: FileAlt.avatar.toShortString());
       }
     } catch (error, stackTrace) {
       // intentionally ignore upload avatar exceptions
