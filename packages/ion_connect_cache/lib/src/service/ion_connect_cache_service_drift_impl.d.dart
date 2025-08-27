@@ -64,7 +64,7 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
   Future<EventMessage?> get(String eventReference, {DateTime? after}) async {
     final expirationExpression = after != null
         ? eventMessagesTable.insertedAt.isBiggerThanValue(after.millisecondsSinceEpoch)
-        : Constant(true);
+        : const Constant(true);
 
     final dbModel =
         await (select(eventMessagesTable)
@@ -82,10 +82,10 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     List<String> eventReferences = const [],
   }) {
     final q = '%${query.toLowerCase()}%';
-    final kindFilter = kinds.isNotEmpty ? (eventMessagesTable.kind.isIn(kinds)) : Constant(true);
+    final kindFilter = kinds.isNotEmpty ? (eventMessagesTable.kind.isIn(kinds)) : const Constant(true);
     final referenceFilter = eventReferences.isNotEmpty
         ? (eventMessagesTable.eventReference.isIn(eventReferences))
-        : Constant(true);
+        : const Constant(true);
 
     return (select(eventMessagesTable)
           ..where(
