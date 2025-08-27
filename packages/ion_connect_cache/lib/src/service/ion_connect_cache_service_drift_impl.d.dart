@@ -61,18 +61,15 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
   }
 
   @override
-  Future<EventMessage?> get(String id, {Duration? expiration}) async {
-    final now = DateTime.now();
-    final expirationTime = expiration != null ? now.subtract(expiration) : now;
+  Future<EventMessage?> get(String eventReference, {DateTime? after}) async {
+    final expirationExpression = after != null
+        ? eventMessagesTable.insertedAt.isBiggerThanValue(after.millisecondsSinceEpoch)
+        : Constant(true);
 
     final dbModel =
         await (select(eventMessagesTable)
               ..limit(1)
-              ..where(
-                (tbl) =>
-                    tbl.id.equals(id) &
-                    tbl.insertedAt.isSmallerThanValue(expirationTime.millisecondsSinceEpoch),
-              ))
+              ..where((tbl) => tbl.id.equals(eventReference) & expirationExpression))
             .getSingleOrNull();
 
     return dbModel?.toEventMessage();

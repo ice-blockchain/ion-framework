@@ -11,13 +11,13 @@ abstract class IonConnectCacheService {
     List<(String masterPubkey, String eventReference, EventMessage eventMessage)> values,
   );
 
-  Future<EventMessage?> get(String eventReference, {Duration? expiration});
+  Future<EventMessage?> get(String eventReference, {DateTime? after});
   Future<List<EventMessage>> getAll(List<String> eventReferences);
   Future<Set<String>> getAllNonExistingReferences(Set<String> eventReferences);
   Future<List<EventMessage>> getAllFiltered({
     required String query,
-    List<int> kinds,
-    List<String> eventReferences,
+    List<int> kinds = const [],
+    List<String> eventReferences = const [],
   });
 
   Stream<List<EventMessage>> watchAll(List<String> eventReferences);

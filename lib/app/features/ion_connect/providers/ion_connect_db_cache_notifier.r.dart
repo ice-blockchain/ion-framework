@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -94,7 +93,7 @@ class IonConnectDbCache extends _$IonConnectDbCache {
       final eventMessage = await e.toEntityEventMessage();
 
       return (
-        eventMessage.masterPubkey,
+        e.toEventReference().masterPubkey,
         e.toEventReference().toString(),
         eventMessage,
       );
