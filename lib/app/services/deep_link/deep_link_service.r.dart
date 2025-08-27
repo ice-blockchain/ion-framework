@@ -10,12 +10,10 @@ import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
-import 'package:ion/app/features/chat/community/models/entities/tags/master_pubkey_tag.f.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
@@ -141,13 +139,16 @@ Future<void> deeplinkInitializer(Ref ref) async {
       ],
     );
 
-    final eventReference = relaysData.toReplaceableEventReference(pubkey);
-    final eventMessage = await relaysData
-        .toEventMessage(NoPrivateSigner(pubkey), tags: [MasterPubkeyTag(value: pubkey).toTag()]);
+    final relaysEntity = UserRelaysEntity(
+      id: '',
+      pubkey: pubkey,
+      masterPubkey: pubkey,
+      signature: '',
+      createdAt: DateTime.now().microsecondsSinceEpoch,
+      data: relaysData,
+    );
 
-    await ref
-        .read(ionConnectDbCacheProvider.notifier)
-        .saveEventMessage(eventMessage, eventReference: eventReference);
+    await ref.read(ionConnectDbCacheProvider.notifier).save(relaysEntity);
   }
 
   await service.init(
