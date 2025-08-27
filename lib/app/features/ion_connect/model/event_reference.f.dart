@@ -49,7 +49,7 @@ abstract class EventReference {
 
   int? get kind;
 
-  String encode();
+  String encode({List<String>? relays});
 
   List<String> toTag();
 
@@ -92,13 +92,14 @@ class ImmutableEventReference with _$ImmutableEventReference implements EventRef
   }
 
   @override
-  String encode() {
+  String encode({List<String>? relays}) {
     return IonConnectUriProtocolService().encode(
       IonConnectUriIdentifierService(bech32Service: Bech32Service()).encodeShareableIdentifiers(
         prefix: IonConnectProtocolIdentifierType.nevent,
         special: eventId,
         author: masterPubkey,
         kind: kind,
+        relays: relays,
       ),
     );
   }
@@ -179,12 +180,13 @@ class ReplaceableEventReference with _$ReplaceableEventReference implements Even
   }
 
   @override
-  String encode() {
+  String encode({List<String>? relays}) {
     if (kind == UserMetadataEntity.kind) {
       return IonConnectUriProtocolService().encode(
         IonConnectUriIdentifierService(bech32Service: Bech32Service()).encodeShareableIdentifiers(
           prefix: IonConnectProtocolIdentifierType.nprofile,
           special: masterPubkey,
+          relays: relays,
         ),
       );
     } else {
@@ -194,6 +196,7 @@ class ReplaceableEventReference with _$ReplaceableEventReference implements Even
           special: dTag,
           author: masterPubkey,
           kind: kind,
+          relays: relays,
         ),
       );
     }
