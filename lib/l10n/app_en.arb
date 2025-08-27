@@ -299,6 +299,7 @@
   "notifications_liked_two": "[:username] and [:username] liked your {type}",
   "notifications_liked_many": "[:username] and {number} others liked your {type}",
   "notifications_reply": "[:username] replied to your {type}",
+  "notifications_reply_other_user": "[:username] replied to the {type}",
   "notifications_share": "[:username] shared your {type}",
   "notifications_repost": "[:username] reposted your {type}",
   "notifications_empty_state": "You don't have any notifications",

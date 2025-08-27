@@ -238,6 +238,8 @@ class _ActionsSection extends StatelessWidget {
               ],
               mediaAttachments: attachedMediaLinksNotifier.value,
               createOption: createOption,
+              shouldShowTooltip:
+                  parentEvent == null && quotedEvent == null && modifiedEvent == null,
             ),
           ],
         ),
