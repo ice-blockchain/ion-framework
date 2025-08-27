@@ -9,6 +9,7 @@ import 'package:appsflyer_sdk/appsflyer_sdk.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/master_pubkey_tag.f.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
@@ -22,6 +23,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -127,18 +129,22 @@ Future<void> deeplinkInitializer(Ref ref) async {
     return false;
   }
 
-  Future<void> cacheRelays(List<String> relays, {required String pubkey}) async {
-    if (relays.isEmpty) return;
+  Future<void> cacheRelays(List<String> encodedRelays, {required String pubkey}) async {
+    if (encodedRelays.isEmpty) return;
 
     final relaysData = UserRelaysData(
       list: [
-        for (final encodedRelay in relays)
-          UserRelay.fromTag(jsonDecode(encodedRelay) as List<String>),
+        for (final encodedRelay in encodedRelays)
+          UserRelay.fromTag(
+            List<String>.from(jsonDecode(encodedRelay) as List<dynamic>),
+          ),
       ],
     );
+
     final eventReference = relaysData.toReplaceableEventReference(pubkey);
     final eventMessage = await relaysData
         .toEventMessage(NoPrivateSigner(pubkey), tags: [MasterPubkeyTag(value: pubkey).toTag()]);
+
     await ref
         .read(ionConnectDbCacheProvider.notifier)
         .saveEventMessage(eventMessage, eventReference: eventReference);
@@ -152,9 +158,16 @@ Future<void> deeplinkInitializer(Ref ref) async {
           return;
         }
 
+        final encodedShareableIdentifier =
+            IonConnectUriProtocolService().decode(encodedEventReference);
+
+        if (encodedShareableIdentifier == null) {
+          throw ShareableIdentifierDecodeException(encodedEventReference);
+        }
+
         final shareableIdentifier = ref
             .read(ionConnectUriIdentifierServiceProvider)
-            .decodeShareableIdentifiers(payload: encodedEventReference);
+            .decodeShareableIdentifiers(payload: encodedShareableIdentifier);
 
         final eventReference = EventReference.fromShareableIdentifier(shareableIdentifier);
 

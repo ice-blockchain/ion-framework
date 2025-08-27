@@ -7,11 +7,9 @@ import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.
 
 void main() {
   late IonConnectUriIdentifierService service;
-  late Bech32Service bech32Service;
 
   setUp(() {
-    bech32Service = Bech32Service();
-    service = IonConnectUriIdentifierService(bech32Service: bech32Service);
+    service = IonConnectUriIdentifierService(bech32Service: Bech32Service());
   });
 
   group('encodeShareableIdentifiers', () {
@@ -41,7 +39,6 @@ void main() {
             'nprofile1qqsv7r6t6vs2sjpn7evhw8dwd84szqun4xfnqculuh5mtha6fwlm0wcp9pdjyu3z9s38wumn8ghj7wf59ccnqvpwxymzuv3nxvargdp5xv3zcgnhwf5hgefzt5qjvkezwg3zcgnhwden5te0xy6rzt3ex5hr2wfwxucr5dp5xsejytpzwfjkzepzt5qjskezwg3zcgnhwden5te0xyurzt35xyhrzdpj9cerzde6xs6rgvez9s38yetpvs396p6vguv',
       );
 
-      // Verifying the result
       expect(result, isNotNull);
       expect(result.prefix, IonConnectProtocolIdentifierType.nprofile);
       expect(result.special, 'cf0f4bd320a84833f659771dae69eb010393a99330639fe5e9b5dfba4bbfb7bb');
@@ -58,7 +55,6 @@ void main() {
             'naddr1qqjrqvfe8qunjeps95mnxwt995mkvvnp95uxvdnr95crqcmyvvukvvmyxa3kgqfgtv38yg3vyfmhxue69uhnjdpwxycrqt33xchryven8g6rgdpnygkzyamjd96x2gjaqyn9kgnjygkzyamnwvaz7te3xscjuwf49c6njt3hxqargdp5xv3zcgnjv4skggjaqy59kgnjygkzyamnwvaz7te38qcjudp39ccngv3wxgcnww35xs6rxg3vyfex2ctyyfwsygx0pa9axg9gfqelvkthrkhxn6cpqwf6nyesvw07t6d4m7ayh0ahhvpsgqqqwh0szdtljw',
       );
 
-      // Verifying the result
       expect(result, isNotNull);
       expect(result.prefix, IonConnectProtocolIdentifierType.naddr);
       expect(result.special, '019899d0-739e-7f2a-8f6c-00cdc9f3d7cd');
