@@ -740,9 +740,42 @@
   "chat_search_empty": "Search here for users, chats, groups, and channels...",
   "chat_search_no_community_empty": "Search here for users, chats...",
   "chat_privacy_cant_send_message": "You can’t message this user due to their privacy settings.",
-  "chat_money_request_title": "Payment requested",
-  "chat_money_received_title": "Payment received",
-  "chat_money_sent_title": "Payment sent",
+  "chat_money_my_request_preview_title": "You requested {amount}",
+  "@chat_money_my_request_preview_title": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "chat_money_request_preview_title": "Requested {amount}",
+  "@chat_money_request_preview_title": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "chat_money_received_preview_title": "Sent you {amount}",
+  "@chat_money_received_preview_title": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "chat_money_sent_preview_title": "You sent {amount}",
+  "@chat_money_sent_preview_title": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "chat_money_my_request_title": "You requested",
+  "chat_money_request_title": "Requested",
+  "chat_money_received_title": "You received",
+  "chat_money_sent_title": "You sent",
   "chat_money_received_button": "View transaction",
   "chat_profile_view_button": "View profile",
   "chat_learn_more_modal_title": "Privacy First, Always",

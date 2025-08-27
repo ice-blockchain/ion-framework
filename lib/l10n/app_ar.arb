@@ -676,8 +676,42 @@
   "chat_delete_modal_description": "هل أنت متأكد أنك تريد حذف كل المحادثات المحددة؟",
   "chat_search_empty": "ابحث هنا عن المستخدمين، المحادثات، المجموعات، والقنوات...",
   "chat_search_no_community_empty": "ابحث هنا عن المستخدمين والمحادثات...",
-  "chat_money_request_title": "تم طلب المال",
-  "chat_money_received_title": "تم استلام المال",
+   "chat_money_my_request_preview_title": "لقد طلبت {amount}",
+  "@chat_money_my_request_preview_title": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "chat_money_request_preview_title": "تم طلب {amount}",
+  "@chat_money_request_preview_title": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "chat_money_received_preview_title": "أرسل لك {amount}",
+  "@chat_money_received_preview_title": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "chat_money_sent_preview_title": "لقد أرسلت {amount}",
+  "@chat_money_sent_preview_title": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "chat_money_my_request_title": "لقد طلبت",
+  "chat_money_request_title": "طُلب",
+  "chat_money_received_title": "استلمت",
+  "chat_money_sent_title": "أرسلت",
   "chat_money_received_button": "عرض المعاملة",
   "chat_profile_share_button": "اكتب رسالة",
   "chat_learn_more_modal_title": "الخصوصية أولاً، دائماً",

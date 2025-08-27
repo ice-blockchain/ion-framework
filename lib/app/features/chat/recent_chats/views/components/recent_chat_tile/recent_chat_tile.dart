@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/extensions/object.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
@@ -13,13 +14,17 @@ import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/views/pages/recent_chat_overlay/recent_chat_overlay.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_metadata/message_metadata.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/emoji_message/emoji_message.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
+import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
+import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -201,6 +206,7 @@ class RecentChatTile extends HookConsumerWidget {
                                   messageType: messageType,
                                   eventReference: eventReference,
                                   lastMessageContent: lastMessageContent,
+                                  lastMessage: conversation.latestMessage,
                                 ),
                               ),
                               if (isMe)
@@ -303,6 +309,7 @@ class ChatPreview extends HookConsumerWidget {
   const ChatPreview({
     required this.messageType,
     required this.lastMessageContent,
+    this.lastMessage,
     this.eventReference,
     this.textColor,
     this.maxLines = 2,
@@ -311,6 +318,7 @@ class ChatPreview extends HookConsumerWidget {
 
   final int maxLines;
   final String lastMessageContent;
+  final EventMessage? lastMessage;
   final Color? textColor;
   final EventReference? eventReference;
   final MessageType messageType;
@@ -325,8 +333,8 @@ class ChatPreview extends HookConsumerWidget {
       MessageType.audio => context.i18n.common_voice_message,
       MessageType.visualMedia => context.i18n.common_media,
       MessageType.document => lastMessageContent,
-      MessageType.requestFunds => context.i18n.chat_money_request_title,
-      MessageType.moneySent => _getMoneySentTitle(ref, lastMessageContent),
+      MessageType.requestFunds => _getRequestFundsTitle(ref, lastMessage), // Request
+      MessageType.moneySent => _getMoneySentTitle(ref, lastMessage),
       MessageType.profile => ref
               .watch(
                 userMetadataProvider(
@@ -370,12 +378,36 @@ class ChatPreview extends HookConsumerWidget {
     );
   }
 
-  String _getMoneySentTitle(WidgetRef ref, String messageContent) {
+  (bool, String) getPaymentData(WidgetRef ref, EventMessage? message) {
+    var coinsAmount = '';
+    if (message != null) {
+      final fundsRequest = ref.watch(fundsRequestForMessageProvider(message)).value;
+      if (fundsRequest != null) {
+        final assetId = fundsRequest.data.content.assetId?.emptyOrValue;
+        final coin = ref.watch(coinByIdProvider(assetId.emptyOrValue)).value;
+
+        final amount = fundsRequest.data.content.amount?.let(double.parse) ?? 0.0;
+        final coinAbbr = coin?.abbreviation;
+        coinsAmount = formatCrypto(amount, coinAbbr.emptyOrValue.isEmpty ? '' : '$coinAbbr');
+      }
+    }
     final messagePubkey = EventReference.fromEncoded(lastMessageContent).masterPubkey;
-    final isMyPubkey = ref.watch(currentPubkeySelectorProvider) == messagePubkey;
-    return isMyPubkey
-        ? ref.context.i18n.chat_money_sent_title
-        : ref.context.i18n.chat_money_received_title;
+
+    return (ref.watch(currentPubkeySelectorProvider) == messagePubkey, coinsAmount);
+  }
+
+  String _getMoneySentTitle(WidgetRef ref, EventMessage? message) {
+    final paymentData = getPaymentData(ref, message);
+    return paymentData.$1
+        ? ref.context.i18n.chat_money_sent_preview_title(paymentData.$2) 
+        : ref.context.i18n.chat_money_received_preview_title(paymentData.$2); 
+  }
+
+  String _getRequestFundsTitle(WidgetRef ref, EventMessage? message) {
+    final paymentData = getPaymentData(ref, message);
+    return paymentData.$1
+        ? ref.context.i18n.chat_money_my_request_preview_title(paymentData.$2) 
+        : ref.context.i18n.chat_money_request_preview_title(paymentData.$2); 
   }
 }
 
