@@ -52,6 +52,7 @@ class SendE2eeChatMessageService {
   SendE2eeChatMessageService(this.ref);
 
   final Ref ref;
+
   Future<EventMessage> sendMessage({
     required String content,
     required String conversationId,
@@ -198,7 +199,7 @@ class SendE2eeChatMessageService {
                   pubkey: pubkey,
                   eventSigner: eventSigner,
                   masterPubkey: masterPubkey,
-                  wrappedKinds: kind != null ? [kind.toString(), messageKind] : [messageKind],
+                  wrappedKinds: kind != null ? [messageKind, kind.toString()] : [messageKind],
                   eventMessage: remoteEventMessage,
                 );
               }
