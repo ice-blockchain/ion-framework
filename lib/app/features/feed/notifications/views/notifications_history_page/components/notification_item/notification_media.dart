@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/views/components/feed_network_image/feed_n
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/generated/assets.gen.dart';
 
 class NotificationMedia extends HookConsumerWidget {
   const NotificationMedia({required this.entity, super.key});
@@ -27,25 +28,9 @@ class NotificationMedia extends HookConsumerWidget {
       _ => entity.toEventReference(),
     };
 
-    final imageUrl = _getImageUrl(ref);
-
-    if (imageUrl == null) {
-      return const SizedBox.shrink();
-    }
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8.0.s),
-      child: FeedIONConnectNetworkImage(
-        imageUrl: imageUrl,
-        fit: BoxFit.cover,
-        authorPubkey: eventReference.masterPubkey,
-      ),
-    );
-  }
-
-  String? _getImageUrl(WidgetRef ref) {
-    if (entity.toEventReference().isArticleReference) {
-      if (entity is! ArticleEntity) return null;
-      return (entity as ArticleEntity).data.image;
+    if (entity is ArticleEntity) {
+      final imageUrl = (entity as ArticleEntity).data.image;
+      return _NotificationImage(url: imageUrl, eventReference: eventReference);
     }
 
     final postData = switch (entity) {
@@ -54,9 +39,54 @@ class NotificationMedia extends HookConsumerWidget {
       _ => null,
     };
 
-    if (postData is! EntityDataWithMediaContent) return null;
+    if (postData is! EntityDataWithMediaContent) return const SizedBox.shrink();
 
     final (:content, :media) = ref.watch(cachedParsedMediaProvider(postData));
-    return media.firstWhereOrNull((item) => item.mediaType == MediaType.image)?.url;
+    final firstMedia = media
+        .firstWhereOrNull((item) => [MediaType.image, MediaType.video].contains(item.mediaType));
+
+    if (firstMedia == null) {
+      return const SizedBox.shrink();
+    }
+
+    if (firstMedia.mediaType == MediaType.video) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          _NotificationImage(url: firstMedia.image, eventReference: eventReference),
+          Assets.svg.iconVideoPlay.icon(
+            color: context.theme.appColors.secondaryBackground,
+            fit: BoxFit.scaleDown,
+            size: 5.0.s,
+          ),
+        ],
+      );
+    }
+    return _NotificationImage(url: firstMedia.image, eventReference: eventReference);
+  }
+}
+
+class _NotificationImage extends StatelessWidget {
+  const _NotificationImage({
+    required this.url,
+    required this.eventReference,
+  });
+
+  final String? url;
+  final EventReference eventReference;
+
+  @override
+  Widget build(BuildContext context) {
+    if (url == null) {
+      return const SizedBox.shrink();
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8.0.s),
+      child: FeedIONConnectNetworkImage(
+        imageUrl: url!,
+        fit: BoxFit.cover,
+        authorPubkey: eventReference.masterPubkey,
+      ),
+    );
   }
 }
