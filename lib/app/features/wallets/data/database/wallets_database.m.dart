@@ -179,6 +179,13 @@ class WalletsDatabase extends _$WalletsDatabase {
         },
         from14To15: (m, schema) async {
           await m.createTable(transactionVisibilityStatusTable);
+
+          await customStatement('''
+            INSERT INTO transaction_visibility_status_table (tx_hash, wallet_view_id, status)
+            SELECT DISTINCT tx_hash, wallet_view_id, 1
+            FROM transactions_table_v2
+            WHERE type = 'receive' AND coin_id IS NOT NULL
+          ''');
         },
         from15To16: (m, schema) async {
           final columnExists = await isColumnExists(
