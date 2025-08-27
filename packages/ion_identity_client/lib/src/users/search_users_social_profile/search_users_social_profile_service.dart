@@ -18,6 +18,8 @@ class SearchUsersSocialProfileService {
     required SearchUsersSocialProfileType searchType,
     required int limit,
     required int offset,
+    String? followedBy,
+    String? followerOf,
   }) async =>
       _dataSource.searchForUsersByKeyword(
         keyword: keyword,
@@ -25,5 +27,7 @@ class SearchUsersSocialProfileService {
         limit: limit,
         offset: offset,
         username: username,
+        followedBy: followedBy,
+        followerOf: followerOf,
       );
 }

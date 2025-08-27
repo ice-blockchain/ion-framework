@@ -15,6 +15,8 @@ class SearchUsers extends _$SearchUsers {
   FutureOr<({List<UserMetadataEntity>? users, bool hasMore})?> build({
     required String query,
     Duration? expirationDuration,
+    String? followedByPubkey,
+    String? followerOfPubkey,
   }) async {
     final masterPubkey = ref.watch(currentPubkeySelectorProvider);
     final paginatedUsersMetadataData = await ref.watch(
@@ -67,6 +69,8 @@ class SearchUsers extends _$SearchUsers {
       offset: offset,
       keyword: query.trim(),
       searchType: SearchUsersSocialProfileType.contains,
+      followedBy: followedByPubkey,
+      followerOf: followerOfPubkey,
     );
   }
 }

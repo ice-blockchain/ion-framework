@@ -22,6 +22,8 @@ class SearchUsersSocialProfileDataSource {
     required int limit,
     required int offset,
     required String username,
+    String? followedBy,
+    String? followerOf,
   }) async {
     final token = _tokenStorage.getToken(username: username);
     if (token == null) {
@@ -35,6 +37,8 @@ class SearchUsersSocialProfileDataSource {
         'keyword': keyword,
         'offset': offset,
         'type': searchType.name,
+        if (followedBy != null) 'followedBy': followedBy,
+        if (followerOf != null) 'followerOf': followerOf,
       },
       headers: RequestHeaders.getAuthorizationHeaders(
         username: username,
