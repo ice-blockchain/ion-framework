@@ -73,7 +73,7 @@ void main() {
         author: '0dbf0a9e694522618ba64e6d7a4cd0e38711fe75dd6bf1830682862df12229f0',
         kind: 0,
         relays: [
-          '"["r","wss://94.100.16.233:4443","write"]"',
+          '["r","wss://94.100.16.233:4443","write"]',
           '["r","wss://141.95.59.70:4443","read"]',
           '["r","wss://181.41.142.217:4443","read"]',
         ],
@@ -84,7 +84,7 @@ void main() {
       expect(result.author, '0dbf0a9e694522618ba64e6d7a4cd0e38711fe75dd6bf1830682862df12229f0');
       expect(result.kind, 0);
       expect(result.relays, [
-        '"["r","wss://94.100.16.233:4443","write"]"',
+        '["r","wss://94.100.16.233:4443","write"]',
         '["r","wss://141.95.59.70:4443","read"]',
         '["r","wss://181.41.142.217:4443","read"]',
       ]);
