@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:appsflyer_sdk/appsflyer_sdk.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/quill_delta.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -80,11 +82,15 @@ DeepLinkService deepLinkService(Ref ref) {
   final templateId = env.get<String>(EnvVariable.AF_ONE_LINK_TEMPLATE_ID);
   final brandDomain = env.get<String>(EnvVariable.AF_BRAND_DOMAIN);
   final baseHost = env.get<String>(EnvVariable.AF_BASE_HOST);
+  final sharePreviewImageUrl = env.get<String>(EnvVariable.SHARE_PREVIEW_IMAGE_URL);
+  final shareAppName = env.get<String>(EnvVariable.SHARE_APP_NAME);
   return DeepLinkService(
     ref.watch(appsflyerSdkProvider),
     templateId: templateId,
     brandDomain: brandDomain,
     baseHost: baseHost,
+    sharePreviewImageUrl: sharePreviewImageUrl,
+    shareAppName: shareAppName,
   );
 }
 
@@ -221,15 +227,21 @@ final class DeepLinkService {
     required String templateId,
     required String brandDomain,
     required String baseHost,
+    required String sharePreviewImageUrl,
+    required String shareAppName,
   })  : _templateId = templateId,
         _brandDomain = brandDomain,
-        _baseHost = baseHost;
+        _baseHost = baseHost,
+        _sharePreviewImageUrl = sharePreviewImageUrl,
+        _shareAppName = shareAppName;
 
   final AppsflyerSdk _appsflyerSdk;
 
   final String _templateId;
   final String _brandDomain;
   final String _baseHost;
+  final String _sharePreviewImageUrl;
+  final String _shareAppName;
 
   static final oneLinkUrlRegex = RegExp(
     r'@?(https://(ion\.onelink\.me|app\.online\.io|testnet\.app\.online\.io)/[A-Za-z0-9\-_/\?&%=#]*)',
@@ -296,7 +308,12 @@ final class DeepLinkService {
   /// The method has a timeout to prevent hanging indefinitely.
   ///
   /// [path] - The path to encode in the deep link
-  Future<String> createDeeplink(String path) async {
+  Future<String> createDeeplink({
+    required String path,
+    String? userDisplayName,
+    String? content,
+    String? imageUrl,
+  }) async {
     if (!_isInitialized) {
       Logger.log('AppsFlyer initialization failed');
       return _fallbackUrl;
@@ -308,7 +325,14 @@ final class DeepLinkService {
       _appsflyerSdk.generateInviteLink(
         AppsFlyerInviteLinkParams(
           brandDomain: _brandDomain,
-          customParams: {'deep_link_value': path},
+          customParams: {
+            'deep_link_value': path,
+            ...?_buildOgParams(
+              content: content,
+              imageUrl: imageUrl,
+              userDisplayName: userDisplayName,
+            ),
+          },
         ),
         (dynamic data) => _handleInviteLinkSuccess(data, completer),
         (dynamic error) => _handleInviteLinkError(error, completer, 'SDK callback error'),
@@ -324,6 +348,27 @@ final class DeepLinkService {
         return _fallbackUrl;
       },
     );
+  }
+
+  Map<String, String>? _buildOgParams({
+    String? content,
+    String? imageUrl,
+    String? userDisplayName,
+  }) {
+    if (userDisplayName == null && content == null && imageUrl == null) {
+      return null;
+    }
+
+    final description = _convertDeltaToPlainText(content);
+    final effectiveUserDisplayName =
+        userDisplayName != null ? '$userDisplayName on $_shareAppName' : '';
+    final effectiveDescription = description.isNotEmpty ? ' : "$description"' : '';
+
+    return {
+      'af_og_title': _shareAppName,
+      'af_og_description': '$effectiveUserDisplayName$effectiveDescription',
+      'af_og_image': imageUrl ?? _sharePreviewImageUrl,
+    };
   }
 
   void _handleInviteLinkSuccess(dynamic data, Completer<String> completer) {
@@ -367,6 +412,22 @@ final class DeepLinkService {
     }
 
     return Map<String, String?>.from(payload as Map<String, dynamic>);
+  }
+
+  /// Converts a Quill Delta JSON string to plain text
+  String _convertDeltaToPlainText(String? value) {
+    if (value == null) {
+      return '';
+    }
+    try {
+      final deltaJson = jsonDecode(value) as List<dynamic>;
+      final delta = Delta.fromJson(deltaJson);
+      final document = Document.fromDelta(delta);
+      final result = document.toPlainText().trim();
+      return result.isEmpty ? '' : result;
+    } catch (e) {
+      return '';
+    }
   }
 
   void resolveDeeplink(String url) => _appsflyerSdk.resolveOneLinkUrl(url);

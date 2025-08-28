@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/image/ion_network_image.dart';
 import 'package:ion/app/components/url_preview/url_preview.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -11,7 +12,7 @@ import 'package:ogp_data_extract/ogp_data_extract.dart';
 
 part 'components/meta_data_preview.dart';
 
-class UrlPreviewBlock extends HookWidget {
+class UrlPreviewBlock extends HookConsumerWidget {
   const UrlPreviewBlock({
     required this.url,
     required this.isMe,
@@ -22,10 +23,10 @@ class UrlPreviewBlock extends HookWidget {
   final String url;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     useAutomaticKeepAlive();
     return GestureDetector(
-      onTap: () => openUrlInAppBrowser(url),
+      onTap: () => openDeepLinkOrInAppBrowser(url, ref),
       child: IntrinsicHeight(
         child: UrlPreview(
           url: url,
