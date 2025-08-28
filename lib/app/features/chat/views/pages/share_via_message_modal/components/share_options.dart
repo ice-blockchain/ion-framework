@@ -10,6 +10,7 @@ import 'package:ion/app/components/separated/separated_row.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
+import 'package:ion/app/features/chat/providers/event_share_url_provider.r.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_copy_link_option.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_options_menu_item.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_post_to_story_content.dart';
@@ -34,14 +35,13 @@ class ShareOptions extends HookConsumerWidget {
     final isCapturing = useState(false);
 
     final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
+    final shareUrl = ref.watch(eventShareUrlProvider(eventReference)).valueOrNull;
 
-    if (entity == null) {
+    if (entity == null || shareUrl == null) {
       return const SizedBox.shrink();
     }
 
     final isPost = entity is ModifiablePostEntity && entity.data.expiration == null;
-
-    final shareUrl = eventReference.encode();
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,

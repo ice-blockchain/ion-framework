@@ -14,22 +14,26 @@ part 'event_reference.f.freezed.dart';
 
 abstract class EventReference {
   factory EventReference.fromEncoded(String input) {
-    final identifier =
-        IonConnectUriIdentifierService(bech32Service: Bech32Service()).decodeShareableIdentifiers(
-      payload: IonConnectUriProtocolService().decode(input),
-    );
+    final payload = IonConnectUriProtocolService().decode(input);
 
-    if (identifier == null) {
+    if (payload == null) {
       throw ShareableIdentifierDecodeException(input);
     }
 
+    final identifier = IonConnectUriIdentifierService(bech32Service: Bech32Service())
+        .decodeShareableIdentifiers(payload: payload);
+
+    return EventReference.fromShareableIdentifier(identifier);
+  }
+
+  factory EventReference.fromShareableIdentifier(ShareableIdentifier identifier) {
     return switch (identifier.prefix) {
       IonConnectProtocolIdentifierType.nevent =>
         ImmutableEventReference.fromShareableIdentifier(identifier),
       IonConnectProtocolIdentifierType.naddr ||
       IonConnectProtocolIdentifierType.nprofile =>
         ReplaceableEventReference.fromShareableIdentifier(identifier),
-      _ => throw ShareableIdentifierDecodeException(input),
+      _ => throw UnimplementedError('Unsupported identifier prefix: ${identifier.prefix}'),
     };
   }
 
@@ -45,7 +49,7 @@ abstract class EventReference {
 
   int? get kind;
 
-  String encode();
+  String encode({List<String>? relays});
 
   List<String> toTag();
 
@@ -88,13 +92,14 @@ class ImmutableEventReference with _$ImmutableEventReference implements EventRef
   }
 
   @override
-  String encode() {
+  String encode({List<String>? relays}) {
     return IonConnectUriProtocolService().encode(
       IonConnectUriIdentifierService(bech32Service: Bech32Service()).encodeShareableIdentifiers(
         prefix: IonConnectProtocolIdentifierType.nevent,
         special: eventId,
         author: masterPubkey,
         kind: kind,
+        relays: relays,
       ),
     );
   }
@@ -175,12 +180,13 @@ class ReplaceableEventReference with _$ReplaceableEventReference implements Even
   }
 
   @override
-  String encode() {
+  String encode({List<String>? relays}) {
     if (kind == UserMetadataEntity.kind) {
       return IonConnectUriProtocolService().encode(
         IonConnectUriIdentifierService(bech32Service: Bech32Service()).encodeShareableIdentifiers(
           prefix: IonConnectProtocolIdentifierType.nprofile,
           special: masterPubkey,
+          relays: relays,
         ),
       );
     } else {
@@ -190,6 +196,7 @@ class ReplaceableEventReference with _$ReplaceableEventReference implements Even
           special: dTag,
           author: masterPubkey,
           kind: kind,
+          relays: relays,
         ),
       );
     }

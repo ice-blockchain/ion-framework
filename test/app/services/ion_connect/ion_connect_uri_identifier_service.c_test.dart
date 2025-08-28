@@ -4,70 +4,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ion/app/services/bech32/bech32_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_protocol_identifier_type.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
-import 'package:mocktail/mocktail.dart';
-
-class MockBech32Service extends Mock implements Bech32Service {}
 
 void main() {
   late IonConnectUriIdentifierService service;
-  late MockBech32Service mockBech32Service;
-
-  setUpAll(() {
-    registerFallbackValue(IonConnectProtocolIdentifierType.note);
-  });
 
   setUp(() {
-    mockBech32Service = MockBech32Service();
-    service = IonConnectUriIdentifierService(
-      bech32Service: mockBech32Service,
-    );
-  });
-
-  group('decode', () {
-    test('throws when trying to decode shareable identifier', () {
-      when(() => mockBech32Service.decode(any())).thenReturn(
-        (prefix: IonConnectProtocolIdentifierType.nprofile, data: 'test'),
-      );
-
-      expect(
-        () => service.decode(payload: 'nprofile1...'),
-        throwsException,
-      );
-    });
-
-    test('decodes non-shareable identifier', () {
-      when(() => mockBech32Service.decode(any())).thenReturn(
-        (prefix: IonConnectProtocolIdentifierType.note, data: 'test'),
-      );
-
-      final result = service.decode(payload: 'note1asdadasasdasdadasd');
-      expect(result.prefix, IonConnectProtocolIdentifierType.note);
-    });
-  });
-
-  group('encode', () {
-    test('throws when trying to encode shareable identifier', () {
-      expect(
-        () => service.encode(
-          prefix: IonConnectProtocolIdentifierType.nprofile,
-          data: 'test',
-        ),
-        throwsException,
-      );
-    });
-
-    test('encodes non-shareable identifier', () {
-      when(() => mockBech32Service.encode(any(), any())).thenReturn('note1test');
-
-      final result = service.encode(
-        prefix: IonConnectProtocolIdentifierType.note,
-        data: 'test',
-      );
-      expect(result.startsWith('note1'), isTrue);
-    });
+    service = IonConnectUriIdentifierService(bech32Service: Bech32Service());
   });
 
   group('encodeShareableIdentifiers', () {
+    test('encodes nprofile with all fields', () {
+      final result = service.encodeShareableIdentifiers(
+        prefix: IonConnectProtocolIdentifierType.nprofile,
+        special: '477318cfb5427b9cfc66a9fa376150c1ddbc62115ae27cef72417eb959691396',
+      );
+      expect(result.startsWith('nprofile1'), isTrue);
+    });
+
     test('throws when trying to encode non-shareable identifier', () {
       expect(
         () => service.encodeShareableIdentifiers(
@@ -77,48 +30,67 @@ void main() {
         throwsException,
       );
     });
-
-    test('encodes nprofile with all fields', () {
-      when(() => mockBech32Service.encode(any(), any(), length: any(named: 'length')))
-          .thenReturn('nprofile1test');
-
-      final result = service.encodeShareableIdentifiers(
-        prefix: IonConnectProtocolIdentifierType.nprofile,
-        special: '477318cfb5427b9cfc66a9fa376150c1ddbc62115ae27cef72417eb959691396',
-      );
-      expect(result.startsWith('nprofile1'), isTrue);
-    });
   });
 
   group('decodeShareableIdentifiers', () {
-    test('returns null for null input', () {
-      final result = service.decodeShareableIdentifiers(payload: null);
-      expect(result, isNull);
+    test('decodes nprofile with all fields', () {
+      final result = service.decodeShareableIdentifiers(
+        payload:
+            'nprofile1qqsv7r6t6vs2sjpn7evhw8dwd84szqun4xfnqculuh5mtha6fwlm0wcp9pdjyu3z9s38wumn8ghj7wf59ccnqvpwxymzuv3nxvargdp5xv3zcgnhwf5hgefzt5qjvkezwg3zcgnhwden5te0xy6rzt3ex5hr2wfwxucr5dp5xsejytpzwfjkzepzt5qjskezwg3zcgnhwden5te0xyurzt35xyhrzdpj9cerzde6xs6rgvez9s38yetpvs396p6vguv',
+      );
+
+      expect(result, isNotNull);
+      expect(result.prefix, IonConnectProtocolIdentifierType.nprofile);
+      expect(result.special, 'cf0f4bd320a84833f659771dae69eb010393a99330639fe5e9b5dfba4bbfb7bb');
+      expect(result.relays, [
+        '["r","wss://94.100.16.233:4443","write"]',
+        '["r","wss://141.95.59.70:4443","read"]',
+        '["r","wss://181.41.142.217:4443","read"]',
+      ]);
     });
 
-    test('decodes nprofile with all fields', () {
-      // Mocking the bech32Service to return a valid decoded result
-      when(() => mockBech32Service.decode(any(), length: any(named: 'length'))).thenReturn(
-        (
-          prefix: IonConnectProtocolIdentifierType.nprofile,
-          data: '0020477318cfb5427b9cfc66a9fa376150c1ddbc62115ae27cef72417eb959691396'
-        ),
-      );
-
+    test('decodes naddr with all fields', () {
       final result = service.decodeShareableIdentifiers(
-        payload: 'nprofile1test',
+        payload:
+            'naddr1qqjrqvfe8qunjeps95mnxwt995mkvvnp95uxvdnr95crqcmyvvukvvmyxa3kgqfgtv38yg3vyfmhxue69uhnjdpwxycrqt33xchryven8g6rgdpnygkzyamjd96x2gjaqyn9kgnjygkzyamnwvaz7te3xscjuwf49c6njt3hxqargdp5xv3zcgnjv4skggjaqy59kgnjygkzyamnwvaz7te38qcjudp39ccngv3wxgcnww35xs6rxg3vyfex2ctyyfwsygx0pa9axg9gfqelvkthrkhxn6cpqwf6nyesvw07t6d4m7ayh0ahhvpsgqqqwh0szdtljw',
       );
 
-      // Verifying the result
       expect(result, isNotNull);
-      expect(result?.prefix, IonConnectProtocolIdentifierType.nprofile);
-      expect(result?.special, '477318cfb5427b9cfc66a9fa376150c1ddbc62115ae27cef72417eb959691396');
+      expect(result.prefix, IonConnectProtocolIdentifierType.naddr);
+      expect(result.special, '019899d0-739e-7f2a-8f6c-00cdc9f3d7cd');
+      expect(result.author, 'cf0f4bd320a84833f659771dae69eb010393a99330639fe5e9b5dfba4bbfb7bb');
+      expect(result.relays, [
+        '["r","wss://94.100.16.233:4443","write"]',
+        '["r","wss://141.95.59.70:4443","read"]',
+        '["r","wss://181.41.142.217:4443","read"]',
+      ]);
+    });
+
+    test('encode -> decode identifier', () {
+      final encoded = service.encodeShareableIdentifiers(
+        prefix: IonConnectProtocolIdentifierType.nprofile,
+        special: '477318cfb5427b9cfc66a9fa376150c1ddbc62115ae27cef72417eb959691396',
+        author: '0dbf0a9e694522618ba64e6d7a4cd0e38711fe75dd6bf1830682862df12229f0',
+        kind: 0,
+        relays: [
+          '["r","wss://94.100.16.233:4443","write"]',
+          '["r","wss://141.95.59.70:4443","read"]',
+          '["r","wss://181.41.142.217:4443","read"]',
+        ],
+      );
+      final result = service.decodeShareableIdentifiers(payload: encoded);
+      expect(result.prefix, IonConnectProtocolIdentifierType.nprofile);
+      expect(result.special, '477318cfb5427b9cfc66a9fa376150c1ddbc62115ae27cef72417eb959691396');
+      expect(result.author, '0dbf0a9e694522618ba64e6d7a4cd0e38711fe75dd6bf1830682862df12229f0');
+      expect(result.kind, 0);
+      expect(result.relays, [
+        '["r","wss://94.100.16.233:4443","write"]',
+        '["r","wss://141.95.59.70:4443","read"]',
+        '["r","wss://181.41.142.217:4443","read"]',
+      ]);
     });
 
     test('throws on invalid input', () {
-      when(() => mockBech32Service.decode(any(), length: any(named: 'length')))
-          .thenThrow(Exception('Invalid input'));
-
       expect(
         () => service.decodeShareableIdentifiers(payload: 'invalid'),
         throwsException,

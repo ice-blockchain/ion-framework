@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:app_links/app_links.dart';
@@ -8,14 +9,19 @@ import 'package:appsflyer_sdk/appsflyer_sdk.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -87,27 +93,27 @@ Future<void> deeplinkInitializer(Ref ref) async {
   final service = ref.read(deepLinkServiceProvider);
 
   Future<String?> handlePostDeepLink(
-    EventReference event,
-    String eventReference,
+    EventReference eventReference,
+    String encodedEventReference,
   ) async {
-    final entity = await ref.read(ionConnectEntityProvider(eventReference: event).future);
+    final entity = await ref.read(ionConnectEntityProvider(eventReference: eventReference).future);
 
     if (entity is ModifiablePostEntity) {
       if (entity.isStory) {
         return StoryViewerRoute(
           pubkey: entity.masterPubkey,
-          initialStoryReference: eventReference,
+          initialStoryReference: encodedEventReference,
         ).location;
       }
 
-      return PostDetailsRoute(eventReference: eventReference).location;
+      return PostDetailsRoute(eventReference: encodedEventReference).location;
     }
 
     return null;
   }
 
-  bool isFallbackUrl(String eventReference) {
-    if (eventReference == service._fallbackUrl) {
+  bool isFallbackUrl(String encodedEventReference) {
+    if (encodedEventReference == service._fallbackUrl) {
       return true;
     }
     final fallbackUri = Uri.parse(service._fallbackUrl);
@@ -115,27 +121,66 @@ Future<void> deeplinkInitializer(Ref ref) async {
     if (segments.isNotEmpty) {
       final lastSegment = segments.last;
 
-      return '/$lastSegment' == eventReference;
+      return '/$lastSegment' == encodedEventReference;
     }
 
     return false;
   }
 
+  Future<void> cacheRelays(List<String> encodedRelays, {required String pubkey}) async {
+    if (encodedRelays.isEmpty) return;
+
+    final relaysData = UserRelaysData(
+      list: [
+        for (final encodedRelay in encodedRelays)
+          UserRelay.fromTag(
+            List<String>.from(jsonDecode(encodedRelay) as List<dynamic>),
+          ),
+      ],
+    );
+
+    final relaysEntity = UserRelaysEntity(
+      id: '',
+      pubkey: pubkey,
+      masterPubkey: pubkey,
+      signature: '',
+      createdAt: DateTime.now().microsecondsSinceEpoch,
+      data: relaysData,
+    );
+
+    await ref.read(ionConnectDbCacheProvider.notifier).save(relaysEntity);
+  }
+
   await service.init(
-    onDeeplink: (eventReference) async {
+    onDeeplink: (encodedEventReference) async {
       try {
-        if (isFallbackUrl(eventReference)) {
+        if (isFallbackUrl(encodedEventReference)) {
           // Just open the app in case of fallback url
           return;
         }
 
-        final event = EventReference.fromEncoded(eventReference);
+        final encodedShareableIdentifier =
+            IonConnectUriProtocolService().decode(encodedEventReference);
 
-        if (event is ReplaceableEventReference) {
-          final location = switch (event.kind) {
-            ModifiablePostEntity.kind => await handlePostDeepLink(event, eventReference),
-            ArticleEntity.kind => ArticleDetailsRoute(eventReference: eventReference).location,
-            UserMetadataEntity.kind => ProfileRoute(pubkey: event.masterPubkey).location,
+        if (encodedShareableIdentifier == null) {
+          throw ShareableIdentifierDecodeException(encodedEventReference);
+        }
+
+        final shareableIdentifier = ref
+            .read(ionConnectUriIdentifierServiceProvider)
+            .decodeShareableIdentifiers(payload: encodedShareableIdentifier);
+
+        final eventReference = EventReference.fromShareableIdentifier(shareableIdentifier);
+
+        await cacheRelays(shareableIdentifier.relays, pubkey: eventReference.masterPubkey);
+
+        if (eventReference is ReplaceableEventReference) {
+          final location = switch (eventReference.kind) {
+            ModifiablePostEntity.kind =>
+              await handlePostDeepLink(eventReference, encodedEventReference),
+            ArticleEntity.kind =>
+              ArticleDetailsRoute(eventReference: encodedEventReference).location,
+            UserMetadataEntity.kind => ProfileRoute(pubkey: eventReference.masterPubkey).location,
             _ => null,
           };
 
