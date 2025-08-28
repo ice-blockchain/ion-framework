@@ -22,7 +22,7 @@ class FeedVideosPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final video = ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference));
+    final video = ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
     final entities = <IonConnectEntity>[
       if (video != null) video,
       ...ref.watch(feedVideosProvider.select((state) => state.items ?? {})),

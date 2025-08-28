@@ -70,7 +70,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
     final animationDuration = 100.ms;
 
     final ionConnectEntity =
-        ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference));
+        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
 
     if (ionConnectEntity == null ||
         (ionConnectEntity is! ModifiablePostEntity && ionConnectEntity is! PostEntity)) {
