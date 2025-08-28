@@ -15,8 +15,10 @@ import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/views/pages/recent_chat_overlay/recent_chat_overlay.dart';
+import 'package:ion/app/features/chat/views/components/message_items/message_item_wrapper/message_item_wrapper.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_metadata/message_metadata.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/emoji_message/emoji_message.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
@@ -201,6 +203,7 @@ class RecentChatTile extends HookConsumerWidget {
                                   messageType: messageType,
                                   eventReference: eventReference,
                                   lastMessageContent: lastMessageContent,
+                                  lastMessage: conversation.latestMessage,
                                 ),
                               ),
                               if (isMe)
@@ -303,6 +306,7 @@ class ChatPreview extends HookConsumerWidget {
   const ChatPreview({
     required this.messageType,
     required this.lastMessageContent,
+    this.lastMessage,
     this.eventReference,
     this.textColor,
     this.maxLines = 2,
@@ -311,6 +315,7 @@ class ChatPreview extends HookConsumerWidget {
 
   final int maxLines;
   final String lastMessageContent;
+  final EventMessage? lastMessage;
   final Color? textColor;
   final EventReference? eventReference;
   final MessageType messageType;
@@ -325,8 +330,8 @@ class ChatPreview extends HookConsumerWidget {
       MessageType.audio => context.i18n.common_voice_message,
       MessageType.visualMedia => context.i18n.common_media,
       MessageType.document => lastMessageContent,
-      MessageType.requestFunds => context.i18n.chat_money_request_title,
-      MessageType.moneySent => _getMoneySentTitle(ref, lastMessageContent),
+      MessageType.requestFunds => getRequestFundsTitle(ref, lastMessage) ?? lastMessageContent,
+      MessageType.moneySent => getMoneySentTitle(ref, lastMessage) ?? lastMessageContent,
       MessageType.profile => ref
               .watch(
                 userMetadataProvider(
@@ -368,14 +373,6 @@ class ChatPreview extends HookConsumerWidget {
         ),
       ],
     );
-  }
-
-  String _getMoneySentTitle(WidgetRef ref, String messageContent) {
-    final messagePubkey = EventReference.fromEncoded(lastMessageContent).masterPubkey;
-    final isMyPubkey = ref.watch(currentPubkeySelectorProvider) == messagePubkey;
-    return isMyPubkey
-        ? ref.context.i18n.chat_money_sent_title
-        : ref.context.i18n.chat_money_received_title;
   }
 }
 

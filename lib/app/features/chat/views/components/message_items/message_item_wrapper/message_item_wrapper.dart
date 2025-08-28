@@ -15,6 +15,7 @@ import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/message_status_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reaction_dialog/message_reaction_dialog.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
@@ -248,11 +249,11 @@ ChatMessageInfoItem? getRepliedMessageListItem({
     MessageType.visualMedia => null,
     MessageType.requestFunds => MoneyItem(
         eventMessage: repliedEventMessage,
-        contentDescription: ref.context.i18n.chat_money_request_title,
+        contentDescription: getRequestFundsTitle(ref, repliedEventMessage) ?? '',
       ),
     MessageType.moneySent => MoneyItem(
         eventMessage: repliedEventMessage,
-        contentDescription: ref.context.i18n.chat_money_received_title,
+        contentDescription: getMoneySentTitle(ref, repliedEventMessage) ?? '',
       ),
     MessageType.text => TextItem(
         eventMessage: repliedEventMessage,
@@ -271,4 +272,35 @@ ChatMessageInfoItem? getRepliedMessageListItem({
         contentDescription: repliedEntity.data.content,
       ),
   };
+}
+
+String? getMoneySentTitle(WidgetRef ref, EventMessage? eventMessage) {
+  if (eventMessage != null) {
+    final moneyData = ref.watch(transactionDisplayDataProvider(eventMessage)).value;
+
+    if (moneyData != null) {
+      final coinsAmount = '${moneyData.amount} ${moneyData.coin}';
+
+      return ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey))
+          ? ref.context.i18n.chat_money_sent_preview_title(coinsAmount)
+          : ref.context.i18n.chat_money_received_preview_title(coinsAmount);
+    }
+  }
+  return null;
+}
+
+String? getRequestFundsTitle(WidgetRef ref, EventMessage? eventMessage) {
+  if (eventMessage != null) {
+    final moneyData = ref.watch(fundsRequestDisplayDataProvider(eventMessage)).value;
+
+    if (moneyData != null) {
+      final coinsAmount = '${moneyData.amount} ${moneyData.coin}';
+
+      return ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey))
+          ? ref.context.i18n.chat_money_my_request_preview_title(coinsAmount)
+          : ref.context.i18n.chat_money_request_preview_title(coinsAmount);
+    }
+  }
+
+  return null;
 }

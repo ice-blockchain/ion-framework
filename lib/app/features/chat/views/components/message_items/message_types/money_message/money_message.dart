@@ -206,7 +206,8 @@ class _MoneyMessageContent extends HookConsumerWidget {
     final title = switch ((type, isMe)) {
       (MoneyMessageType.sent, false) => context.i18n.chat_money_received_title,
       (MoneyMessageType.sent, true) => context.i18n.chat_money_sent_title,
-      (MoneyMessageType.requested, _) => context.i18n.chat_money_request_title,
+      (MoneyMessageType.requested, false) => context.i18n.chat_money_request_title,
+      (MoneyMessageType.requested, true) => context.i18n.chat_money_my_request_title,
     };
 
     final messageItem = ChatMessageInfoItem.money(

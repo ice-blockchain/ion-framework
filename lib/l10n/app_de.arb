@@ -717,6 +717,42 @@
   "chat_message_delete_modal_description_single": "Möchten Sie diese Nachricht wirklich löschen?",
   "chat_search_empty": "Suche nach Nutzern, Chats, Gruppen, Kanälen...",
   "chat_search_no_community_empty": "Suche nach Nutzern, Chats...",
+   "chat_money_my_request_preview_title": "Du hast {amount} angefordert",
+  "@chat_money_my_request_preview_title": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "chat_money_request_preview_title": "Hat {amount} angefordert",
+  "@chat_money_request_preview_title": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "chat_money_received_preview_title": "Hat dir {amount} gesendet",
+  "@chat_money_received_preview_title": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "chat_money_sent_preview_title": "Du hast {amount} gesendet",
+  "@chat_money_sent_preview_title": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "chat_money_my_request_title": "Du hast angefordert",
+  "chat_money_request_title": "Angefordert",
+  "chat_money_received_title": "Du hast erhalten",
+  "chat_money_sent_title": "Du hast gesendet",
   "chat_money_request_title": "Geld angefordert",
   "chat_money_received_title": "Geld erhalten",
   "chat_money_sent_title": "Geld gesendet",
