@@ -27,6 +27,10 @@ class TransactionListItemLeadingIcon extends StatelessWidget {
   }
 
   Color _getIconColor(BuildContext context) {
+    if (status == TransactionStatus.failed) {
+      return context.theme.appColors.attentionRed;
+    }
+
     return switch (type) {
       TransactionType.receive => context.theme.appColors.secondaryBackground,
       TransactionType.send => context.theme.appColors.secondaryText,
@@ -36,14 +40,15 @@ class TransactionListItemLeadingIcon extends StatelessWidget {
   Color _getBackgroundColor(BuildContext context) {
     return switch (type) {
       TransactionType.receive => context.theme.appColors.success,
-      TransactionType.send => context.theme.appColors.onSecondaryBackground,
+      TransactionType.send => context.theme.appColors.onPrimaryAccent,
     };
   }
 
   @override
   Widget build(BuildContext context) {
     final direction = Directionality.of(context);
-    final showBroadcastedTransactionIcon = status == TransactionStatus.broadcasted;
+    final showStatusLabel =
+        status == TransactionStatus.broadcasted || status == TransactionStatus.failed;
     final mainIconSize = 36.0.s;
     final broadcastedIconMargin = 4.0.s;
     final widgetWidth = mainIconSize + broadcastedIconMargin;
@@ -75,12 +80,16 @@ class TransactionListItemLeadingIcon extends StatelessWidget {
               child: type.iconAsset.icon(color: _getIconColor(context)),
             ),
           ),
-          if (showBroadcastedTransactionIcon)
+          if (showStatusLabel)
             Positioned.directional(
               end: 0,
               bottom: 0,
               textDirection: direction,
-              child: Assets.svg.iconhourglass.icon(size: 14.0.s),
+              child: switch (status) {
+                TransactionStatus.broadcasted => Assets.svg.iconhourglass.icon(size: 14.0.s),
+                TransactionStatus.failed => Assets.svg.iconError.icon(size: 14.0.s),
+                _ => const SizedBox.shrink(),
+              },
             ),
         ],
       ),

@@ -26,6 +26,18 @@ class TimelineItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final icon = data.isFailed
+        ? Assets.svg.iconStepsCheckFailde
+        : data.isDone
+            ? Assets.svg.iconStepsCheckActive
+            : Assets.svg.iconStepsCheckInactive;
+
+    final color = data.isFailed
+        ? context.theme.appColors.attentionRed
+        : data.isDone
+            ? context.theme.appColors.success
+            : context.theme.appColors.tertiaryText;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -33,13 +45,11 @@ class TimelineItem extends StatelessWidget {
           children: [
             Center(
               child: SvgPicture.asset(
-                data.isDone ? Assets.svg.iconStepsCheckActive : Assets.svg.iconStepsCheckInactive,
+                icon,
                 width: 16.0.s,
                 height: 16.0.s,
                 colorFilter: ColorFilter.mode(
-                  data.isDone
-                      ? context.theme.appColors.success
-                      : context.theme.appColors.tertiaryText,
+                  color,
                   BlendMode.srcIn,
                 ),
               ),
@@ -60,7 +70,7 @@ class TimelineItem extends StatelessWidget {
                 child: Text(
                   data.title,
                   style: context.theme.appTextThemes.caption.copyWith(
-                    color: data.isDone
+                    color: data.isDone || data.isFailed
                         ? context.theme.appColors.primaryText
                         : context.theme.appColors.tertiaryText,
                   ),

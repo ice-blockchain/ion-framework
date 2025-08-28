@@ -200,16 +200,15 @@ class SyncTransactionsService {
       return;
     }
 
-    final success = network.isIonHistorySupported &&
-        await _transactionLoader.load(
-          wallet: wallet,
-          walletViewId: walletViewId,
-          isFullLoad: isFullLoad,
-        );
-
-    if (!success) {
-      await _transferStatusUpdater.update(wallet);
+    if (network.isIonHistorySupported) {
+      await _transactionLoader.load(
+        wallet: wallet,
+        walletViewId: walletViewId,
+        isFullLoad: isFullLoad,
+      );
     }
+
+    await _transferStatusUpdater.update(wallet);
 
     if (updateHistoryLoaded && isFullLoad) {
       await _cryptoWalletsRepository.save(wallet: wallet, isHistoryLoaded: true);
