@@ -15,7 +15,7 @@ part 'ion_connect_db_cache_notifier.r.g.dart';
 abstract class DbCacheableEntity implements EntityEventSerializable {}
 
 @Riverpod(keepAlive: true)
-Future<IonConnectCacheServiceDriftImpl> ionConnectPersistentCacheService(Ref ref) async {
+Future<IonConnectCacheService> ionConnectPersistentCacheService(Ref ref) async {
   final path = await getApplicationDocumentsDirectory();
   return IonConnectCacheServiceDriftImpl.persistent(
     '${path.path}/ion_connect_cache.sqlite',
