@@ -75,16 +75,23 @@ List<PostRepost> loadRepostsFromCache(Ref ref) {
     manager.snapshot.map((pr) => MapEntry(pr.eventReference, pr)),
   );
 
-  final allEntities = ref.watch(ionConnectCacheProvider).values.map((e) => e.entity).toList();
+  final repostEntities = ref.watch(
+    ionConnectCacheProvider.select(
+      (result) {
+        final allEntities = result.values.map((e) => e.entity).toList();
+        final reposts = allEntities
+            .where((entity) => entity.masterPubkey == currentPubkey)
+            .where((entity) => entity is RepostEntity || entity is GenericRepostEntity)
+            .toList();
 
-  final repostEntities = allEntities
-      .where((entity) => entity.masterPubkey == currentPubkey)
-      .where((entity) => entity is RepostEntity || entity is GenericRepostEntity)
-      .toList();
+        return RepostEntities(items: reposts);
+      },
+    ),
+  );
 
   final postReposts = <PostRepost>[];
 
-  for (final entity in repostEntities) {
+  for (final entity in repostEntities.items) {
     final eventReference = entity is RepostEntity
         ? entity.data.eventReference
         : (entity as GenericRepostEntity).data.eventReference;
