@@ -46,7 +46,9 @@ class BookmarkButton extends HookConsumerWidget {
       () {
         // sync to DB if bookmarked from cache only
         if (isBookmarked) {
-          ref.read(ionConnectDbCacheProvider.notifier).saveRef(eventReference, network: false);
+          ref
+              .read(ionConnectDbCacheProvider.notifier)
+              .saveEventReference(eventReference, network: false);
         }
         return null;
       },

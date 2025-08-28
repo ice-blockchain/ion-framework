@@ -3,11 +3,7 @@
 import 'package:collection/collection.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/master_pubkey_tag.f.dart';
-import 'package:ion/app/features/chat/model/database/chat_database.m.dart' as chat_db;
-import 'package:ion/app/features/ion_connect/database/event_messages_database.m.dart'
-    as event_messages_db;
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 
 extension KeysExtensions on EventMessage {
   String get masterPubkey {
@@ -19,60 +15,5 @@ extension KeysExtensions on EventMessage {
     }
 
     return masterPubkey;
-  }
-
-  event_messages_db.EventMessageDbModel toIonConnectDbModel(EventReference eventReference) {
-    return event_messages_db.EventMessageDbModel(
-      id: id,
-      kind: kind,
-      pubkey: pubkey,
-      masterPubkey: masterPubkey,
-      createdAt: createdAt,
-      sig: sig,
-      content: content,
-      tags: tags,
-      eventReference: eventReference,
-    );
-  }
-
-  chat_db.EventMessageDbModel toChatDbModel(EventReference eventReference) {
-    return chat_db.EventMessageDbModel(
-      id: id,
-      kind: kind,
-      pubkey: pubkey,
-      masterPubkey: masterPubkey,
-      createdAt: createdAt,
-      content: content,
-      tags: tags,
-      eventReference: eventReference,
-    );
-  }
-}
-
-extension IonConnectEventMessageDbModelExtensions on event_messages_db.EventMessageDbModel {
-  EventMessage toEventMessage() {
-    return EventMessage(
-      id: id,
-      kind: kind,
-      pubkey: pubkey,
-      createdAt: createdAt,
-      sig: sig,
-      content: content,
-      tags: tags,
-    );
-  }
-}
-
-extension ChatEventMessageDbModelExtensions on chat_db.EventMessageDbModel {
-  EventMessage toEventMessage() {
-    return EventMessage(
-      id: id,
-      kind: kind,
-      pubkey: pubkey,
-      createdAt: createdAt,
-      content: content,
-      tags: tags,
-      sig: null,
-    );
   }
 }

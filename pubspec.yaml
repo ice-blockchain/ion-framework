@@ -101,6 +101,8 @@ dependencies:
   icloud_storage: ^2.2.0
   image_cropper: ^8.1.0
   intl: any
+  ion_connect_cache:
+    path: packages/ion_connect_cache
   ion_identity_client:
     path: packages/ion_identity_client
   ion_screenshot_detector:
