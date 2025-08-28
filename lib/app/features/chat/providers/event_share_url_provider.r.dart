@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'dart:convert';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
