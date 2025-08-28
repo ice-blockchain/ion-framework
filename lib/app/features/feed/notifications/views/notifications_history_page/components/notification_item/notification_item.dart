@@ -7,9 +7,10 @@ import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
+import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_content.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_icons.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info.dart';
-import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_related_entity.dart';
+import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_media.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -46,23 +47,46 @@ class NotificationItem extends ConsumerWidget {
       onTap: () => _onTap(context, entity),
       behavior: HitTestBehavior.opaque,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 16.0.s),
-          ScreenSideOffset.small(
-            child: NotificationIcons(notification: notification),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 16.0.s),
+                    ScreenSideOffset.small(
+                      child: NotificationIcons(notification: notification),
+                    ),
+                    SizedBox(height: 8.0.s),
+                    ScreenSideOffset.small(
+                      child: NotificationInfo(
+                        notification: notification,
+                      ),
+                    ),
+                    if (entity != null)
+                      Padding(
+                        padding: EdgeInsetsGeometry.only(top: 6.s),
+                        child: ScreenSideOffset.small(
+                          child: NotificationContent(entity: entity),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (entity != null)
+                Container(
+                  margin: EdgeInsetsDirectional.only(end: 16.s),
+                  height: 50.s,
+                  width: 50.s,
+                  child: NotificationMedia(
+                    entity: entity,
+                  ),
+                ),
+            ],
           ),
-          SizedBox(height: 8.0.s),
-          ScreenSideOffset.small(
-            child: NotificationInfo(
-              notification: notification,
-            ),
-          ),
-          if (entity != null)
-            NotificationRelatedEntity(
-              entity: entity,
-              notification: notification,
-            ),
           SizedBox(height: 16.0.s),
           const SectionSeparator(),
         ],
