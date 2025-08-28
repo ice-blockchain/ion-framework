@@ -281,7 +281,7 @@ String? getMoneySentTitle(WidgetRef ref, EventMessage? eventMessage) {
     if (moneyData != null) {
       final coinsAmount = '${moneyData.amount} ${moneyData.coin}';
 
-      return ref.read(isCurrentUserSelectorProvider(eventMessage.masterPubkey))
+      return ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey))
           ? ref.context.i18n.chat_money_sent_preview_title(coinsAmount)
           : ref.context.i18n.chat_money_received_preview_title(coinsAmount);
     }
@@ -296,7 +296,7 @@ String? getRequestFundsTitle(WidgetRef ref, EventMessage? eventMessage) {
     if (moneyData != null) {
       final coinsAmount = '${moneyData.amount} ${moneyData.coin}';
 
-      return ref.read(isCurrentUserSelectorProvider(eventMessage.masterPubkey))
+      return ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey))
           ? ref.context.i18n.chat_money_my_request_preview_title(coinsAmount)
           : ref.context.i18n.chat_money_request_preview_title(coinsAmount);
     }
