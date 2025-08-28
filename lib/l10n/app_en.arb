@@ -393,6 +393,7 @@
   "wallet_address_create_one": "A {network} address is required to continue. Create one in just a few taps.",
   "wallet_address_create_button": "Create address",
   "wallet_enter_address": "Enter address",
+  "wallet_memo": "Memo",
   "wallet_usdt_amount": "USDT amount",
   "wallet_arrival_time": "Arrival time",
   "wallet_arrival_time_info": "Transaction speed depends on blockchain network load. Typically, it takes seconds to over 10 minutes, but high congestion can cause higher delays.",

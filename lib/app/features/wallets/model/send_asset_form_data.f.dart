@@ -20,6 +20,7 @@ class SendAssetFormData with _$SendAssetFormData {
     NetworkData? network,
     Wallet? senderWallet,
     String? contactPubkey,
+    String? memo,
     WalletAsset? networkNativeToken,
     NetworkFeeOption? selectedNetworkFeeOption,
     FundsRequestEntity? request,

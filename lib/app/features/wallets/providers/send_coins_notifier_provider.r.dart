@@ -165,6 +165,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       onVerifyIdentity: onVerifyIdentity,
       receiverAddress: form.receiverAddress,
       feeType: form.selectedNetworkFeeOption?.type,
+      memo: form.memo,
     );
   }
 

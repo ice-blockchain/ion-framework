@@ -181,4 +181,8 @@ class SendAssetFormController extends _$SendAssetFormController {
   set exceedsMaxAmount(bool value) {
     state = state.copyWith(exceedsMaxAmount: value);
   }
+
+  void setMemo(String memo) {
+    state = state.copyWith(memo: memo);
+  }
 }
