@@ -4,10 +4,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -43,6 +45,23 @@ IonConnectEntity? ionConnectEntityWithCounters(
       forKind: eventReference.kind,
     ).extensions,
   ]).toString();
+
+  final hasCounterData = ref.read(ionConnectCacheProvider).containsKey(
+    EventCountResultEntity.cacheKeyBuilder(
+      key: eventReference.toString(),
+      type: EventCountResultType.reactions,
+    ),
+  );
+
+  if (!hasCounterData && network) {
+    return ref.watch(
+      ionConnectSyncEntityProvider(
+        eventReference: eventReference,
+        search: search,
+        cache: false, 
+      ),
+    );
+  }
 
   return ref.watch(
     ionConnectSyncEntityProvider(
