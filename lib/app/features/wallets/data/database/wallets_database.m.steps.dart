@@ -2884,6 +2884,176 @@ class Shape17 extends i0.VersionedTable {
 
 i1.GeneratedColumn<String> _column_62(String aliasedName) =>
     i1.GeneratedColumn<String>('nft_identifier', aliasedName, true, type: i1.DriftSqlType.string);
+
+final class Schema17 extends i0.VersionedSchema {
+  Schema17({required super.database}) : super(version: 17);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    coinsTable,
+    syncCoinsTable,
+    networksTable,
+    transactionsTableV2,
+    transactionVisibilityStatusTable,
+    cryptoWalletsTable,
+    fundsRequestsTable,
+  ];
+  late final Shape12 coinsTable = Shape12(
+      source: i0.VersionedTable(
+        entityName: 'coins_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(id)',
+        ],
+        columns: [
+          _column_0,
+          _column_1,
+          _column_2,
+          _column_3,
+          _column_4,
+          _column_5,
+          _column_6,
+          _column_7,
+          _column_8,
+          _column_9,
+          _column_54,
+          _column_57,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape1 syncCoinsTable = Shape1(
+      source: i0.VersionedTable(
+        entityName: 'sync_coins_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(coin_id)',
+        ],
+        columns: [
+          _column_10,
+          _column_11,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape6 networksTable = Shape6(
+      source: i0.VersionedTable(
+        entityName: 'networks_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(id)',
+        ],
+        columns: [
+          _column_0,
+          _column_12,
+          _column_13,
+          _column_14,
+          _column_15,
+          _column_47,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape17 transactionsTableV2 = Shape17(
+      source: i0.VersionedTable(
+        entityName: 'transactions_table_v2',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(tx_hash, wallet_view_id)',
+        ],
+        columns: [
+          _column_16,
+          _column_17,
+          _column_5,
+          _column_18,
+          _column_49,
+          _column_50,
+          _column_51,
+          _column_58,
+          _column_21,
+          _column_22,
+          _column_23,
+          _column_24,
+          _column_25,
+          _column_26,
+          _column_27,
+          _column_28,
+          _column_29,
+          _column_62,
+          _column_30,
+          _column_31,
+          _column_52,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape16 transactionVisibilityStatusTable = Shape16(
+      source: i0.VersionedTable(
+        entityName: 'transaction_visibility_status_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(tx_hash, wallet_view_id)',
+        ],
+        columns: [
+          _column_17,
+          _column_51,
+          _column_61,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape4 cryptoWalletsTable = Shape4(
+      source: i0.VersionedTable(
+        entityName: 'crypto_wallets_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(id)',
+        ],
+        columns: [
+          _column_0,
+          _column_33,
+          _column_5,
+          _column_34,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape15 fundsRequestsTable = Shape15(
+      source: i0.VersionedTable(
+        entityName: 'funds_requests_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(event_id)',
+        ],
+        columns: [
+          _column_35,
+          _column_36,
+          _column_59,
+          _column_5,
+          _column_38,
+          _column_39,
+          _column_40,
+          _column_41,
+          _column_42,
+          _column_28,
+          _column_29,
+          _column_43,
+          _column_44,
+          _column_53,
+          _column_46,
+          _column_60,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+}
+
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
@@ -2900,6 +3070,7 @@ i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema14 schema) from13To14,
   required Future<void> Function(i1.Migrator m, Schema15 schema) from14To15,
   required Future<void> Function(i1.Migrator m, Schema16 schema) from15To16,
+  required Future<void> Function(i1.Migrator m, Schema17 schema) from16To17,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -2978,6 +3149,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from15To16(migrator, schema);
         return 16;
+      case 16:
+        final schema = Schema17(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from16To17(migrator, schema);
+        return 17;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -3000,6 +3176,7 @@ i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema14 schema) from13To14,
   required Future<void> Function(i1.Migrator m, Schema15 schema) from14To15,
   required Future<void> Function(i1.Migrator m, Schema16 schema) from15To16,
+  required Future<void> Function(i1.Migrator m, Schema17 schema) from16To17,
 }) =>
     i0.VersionedSchema.stepByStepHelper(
         step: migrationSteps(
@@ -3018,4 +3195,5 @@ i1.OnUpgrade stepByStep({
       from13To14: from13To14,
       from14To15: from14To15,
       from15To16: from15To16,
+      from16To17: from16To17,
     ));
