@@ -21,8 +21,20 @@ class SecureStorage {
     ),
   );
 
-  Future<String?> getString({required String key}) {
-    return _storage.read(key: key);
+  Future<String?> getString({required String key}) async {
+    final value = await _storage.read(key: key);
+    if (value != null) return value;
+
+    // Backwards compatibility with old secure storage options
+    final oldStorageValue = await _storage.read(
+      key: key,
+      iOptions: IOSOptions.defaultOptions,
+      aOptions: AndroidOptions.defaultOptions,
+    );
+    if (oldStorageValue != null) {
+      unawaited(setString(key: key, value: oldStorageValue));
+    }
+    return oldStorageValue;
   }
 
   Future<void> setString({required String key, required String value}) {
@@ -30,7 +42,15 @@ class SecureStorage {
   }
 
   Future<void> remove({required String key}) {
-    return _storage.delete(key: key);
+    return Future.wait([
+      _storage.delete(key: key),
+      // Backwards compatibility with old secure storage options
+      _storage.delete(
+        key: key,
+        iOptions: IOSOptions.defaultOptions,
+        aOptions: AndroidOptions.defaultOptions,
+      ),
+    ]);
   }
 
   /// Forcefully clear secure storage after app installation or reinstallation.
@@ -42,6 +62,11 @@ class SecureStorage {
     if (prefs.getBool(key) == null) {
       await Future.wait([
         _storage.deleteAll(),
+        // Backwards compatibility with old secure storage options
+        _storage.deleteAll(
+          iOptions: IOSOptions.defaultOptions,
+          aOptions: AndroidOptions.defaultOptions,
+        ),
         prefs.setBool(key, true),
       ]);
     }
