@@ -138,5 +138,5 @@ IonConnectEntity? getRepostedEntity(Ref ref, IonConnectEntity entity) {
     repostedEventReference = entity.data.eventReference;
   }
   if (repostedEventReference == null) return null;
-  return ref.read(ionConnectEntityWithCountersProvider(eventReference: repostedEventReference));
+  return ref.read(ionConnectSyncEntityWithCountersProvider(eventReference: repostedEventReference));
 }

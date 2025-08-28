@@ -55,7 +55,7 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
         final sendChatMessageService = ref.read(sendE2eeChatMessageServiceProvider);
 
         final feedItemEntity =
-            ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference));
+            ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
 
         final feedItemEventMessage = await switch (feedItemEntity) {
           final ModifiablePostEntity entity => entity.toEntityEventMessage(),

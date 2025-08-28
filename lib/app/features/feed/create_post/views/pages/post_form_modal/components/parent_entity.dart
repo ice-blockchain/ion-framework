@@ -30,7 +30,7 @@ class ParentEntity extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final parentEntity =
-        ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference));
+        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
     final userMetadata = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
 
     if (parentEntity == null || userMetadata == null) {
