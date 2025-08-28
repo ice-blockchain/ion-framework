@@ -120,8 +120,12 @@ class IonConnectDbCache extends _$IonConnectDbCache {
   Future<void> saveAllNonExistingRefs(List<EventReference> eventRefs) async {
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
-    final nonExistingRefs =
-        await cacheService.getAllNonExistingReferences(eventRefs.map((e) => e.toString()).toSet());
+    final existingRefs = await cacheService.getAll(eventRefs.map((e) => e.toString()).toList());
+    final nonExistingRefs = eventRefs
+        .map((e) => e.toString())
+        .toSet()
+        .difference(existingRefs.map((e) => e.id).toSet())
+        .toList();
 
     const pageSize = 100;
     final entities = <EntityEventSerializable>[];

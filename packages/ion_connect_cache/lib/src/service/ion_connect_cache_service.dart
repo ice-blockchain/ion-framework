@@ -13,7 +13,6 @@ abstract class IonConnectCacheService {
 
   Future<EventMessage?> get(String eventReference, {DateTime? after});
   Future<List<EventMessage>> getAll(List<String> eventReferences);
-  Future<Set<String>> getAllNonExistingReferences(Set<String> eventReferences);
   Future<List<EventMessage>> getAllFiltered({
     required String query,
     List<int> kinds = const [],

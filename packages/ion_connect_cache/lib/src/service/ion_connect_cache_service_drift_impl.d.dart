@@ -19,11 +19,7 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
   IonConnectCacheServiceDriftImpl({required IONConnectCacheDatabase db}) : super(db);
 
   IonConnectCacheServiceDriftImpl.inMemory()
-    : super(
-        IONConnectCacheDatabase(
-          NativeDatabase.memory(setup: (database) => database.execute('PRAGMA foreign_keys = ON;')),
-        ),
-      );
+    : super(IONConnectCacheDatabase(NativeDatabase.memory()));
 
   IonConnectCacheServiceDriftImpl.persistent(String path)
     : super(IONConnectCacheDatabase(NativeDatabase.createInBackground(File(path))));
@@ -82,7 +78,9 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     List<String> eventReferences = const [],
   }) {
     final q = '%${query.toLowerCase()}%';
-    final kindFilter = kinds.isNotEmpty ? (eventMessagesTable.kind.isIn(kinds)) : const Constant(true);
+    final kindFilter = kinds.isNotEmpty
+        ? (eventMessagesTable.kind.isIn(kinds))
+        : const Constant(true);
     final referenceFilter = eventReferences.isNotEmpty
         ? (eventMessagesTable.eventReference.isIn(eventReferences))
         : const Constant(true);
@@ -104,15 +102,6 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     return (select(eventMessagesTable)..where((tbl) => tbl.eventReference.isIn(eventReferences)))
         .get()
         .then((rows) => rows.map((row) => row.toEventMessage()).toList());
-  }
-
-  @override
-  Future<Set<String>> getAllNonExistingReferences(Set<String> eventReferences) async {
-    final query = select(db.eventMessagesTable)
-      ..where((event) => event.eventReference.isIn(eventReferences));
-
-    final existingReferences = (await query.map((message) => message.eventReference).get()).toSet();
-    return eventReferences.difference(existingReferences);
   }
 
   @override
