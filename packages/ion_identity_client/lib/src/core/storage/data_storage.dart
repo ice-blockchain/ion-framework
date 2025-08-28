@@ -90,7 +90,17 @@ class DataStorage<T> {
   }
 
   Future<void> _loadFromStorage() async {
-    final jsonStr = await _secureStorage.read(key: _storageKey);
+    var jsonStr = await _secureStorage.read(key: _storageKey);
+
+    if (jsonStr == null) {
+      // Backwards compatibility with old secure storage options
+      jsonStr =
+          await _secureStorage.read(key: _storageKey, aOptions: AndroidOptions.defaultOptions);
+      if (jsonStr != null) {
+        await _saveToStorage();
+      }
+    }
+
     if (jsonStr == null) {
       return; // No data to load, keep cache empty.
     }

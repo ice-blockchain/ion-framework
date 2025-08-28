@@ -146,7 +146,9 @@ mixin _TokenStorage {
       return _flutterSecureStorage!;
     }
 
-    _flutterSecureStorage = const FlutterSecureStorage();
+    _flutterSecureStorage = const FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
     return _flutterSecureStorage!;
   }
 }
@@ -171,7 +173,9 @@ mixin _PrivateKeyStorage {
       return _flutterSecureStorage!;
     }
 
-    _flutterSecureStorage = const FlutterSecureStorage();
+    _flutterSecureStorage = const FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
     return _flutterSecureStorage!;
   }
 }
@@ -196,7 +200,9 @@ mixin _BiometricsStateStorage {
       return _flutterSecureStorage!;
     }
 
-    _flutterSecureStorage = const FlutterSecureStorage();
+    _flutterSecureStorage = const FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
     return _flutterSecureStorage!;
   }
 }
@@ -221,7 +227,9 @@ mixin _LocalPasskeyCredsStateStorage {
       return _flutterSecureStorage!;
     }
 
-    _flutterSecureStorage = const FlutterSecureStorage();
+    _flutterSecureStorage = const FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
     return _flutterSecureStorage!;
   }
 }
