@@ -34,8 +34,9 @@ class LoginForm extends HookConsumerWidget {
         children: [
           IdentityKeyNameInput(
             errorText: switch (loginActionState.error) {
+              final PasskeyCancelledException _ => null,
               final IONIdentityException identityException => identityException.title(context),
-              _ => loginActionState.error?.toString()
+              _ => loginActionState.error?.toString(),
             },
             controller: identityKeyNameController,
             scrollPadding: EdgeInsetsDirectional.only(bottom: 88.0.s),

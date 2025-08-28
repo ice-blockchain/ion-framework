@@ -134,7 +134,6 @@ class PasskeysSigner {
         localCredsOnly: localCredsOnly,
       );
     } on NoCredentialsAvailableException {
-      // final assertionRequestData = await sign(challenge);
       if (localCredsOnly) {
         await localPasskeyCredsStateStorage.updateLocalPasskeyCredsState(
           username: username,
@@ -142,7 +141,6 @@ class PasskeysSigner {
         );
       }
       throw const NoLocalPasskeyCredsFoundIONIdentityException();
-      // return assertionRequestData;
     } on PasskeyAuthCancelledException {
       throw const PasskeyCancelledException();
     }
@@ -191,6 +189,12 @@ class PasskeysSigner {
       rethrow;
     } on PasskeyAuthCancelledException {
       throw const PasskeyCancelledException();
+    } on UnhandledAuthenticatorException catch (e) {
+      final msg = (e.message ?? '').toLowerCase();
+      if (msg.contains('cancel') && msg.contains('user')) {
+        throw const PasskeyCancelledException();
+      }
+      throw const PasskeyValidationException();
     } catch (e) {
       throw const PasskeyValidationException();
     }

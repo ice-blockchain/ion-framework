@@ -229,7 +229,9 @@ class SignInStep extends HookConsumerWidget {
               localCredsOnly: false,
               twoFaTypes: twoFAOptions.value,
             );
-            await onSuggestToCreatePasskeyCreds(username);
+            if (ref.context.mounted && !ref.read(loginActionNotifierProvider).hasError) {
+              await onSuggestToCreatePasskeyCreds(username);
+            }
           }
         }
       } else if (loginPassword != null) {
