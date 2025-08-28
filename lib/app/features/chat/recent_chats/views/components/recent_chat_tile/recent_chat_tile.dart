@@ -330,8 +330,8 @@ class ChatPreview extends HookConsumerWidget {
       MessageType.audio => context.i18n.common_voice_message,
       MessageType.visualMedia => context.i18n.common_media,
       MessageType.document => lastMessageContent,
-      MessageType.requestFunds => getRequestFundsTitle(ref, lastMessage),
-      MessageType.moneySent => getMoneySentTitle(ref, lastMessage),
+      MessageType.requestFunds => getRequestFundsTitle(ref, lastMessage) ?? lastMessageContent,
+      MessageType.moneySent => getMoneySentTitle(ref, lastMessage) ?? lastMessageContent,
       MessageType.profile => ref
               .watch(
                 userMetadataProvider(

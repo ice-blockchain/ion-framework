@@ -6,7 +6,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/extensions/object.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/chat_medias_provider.r.dart';
@@ -25,8 +24,6 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
-import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -252,11 +249,11 @@ ChatMessageInfoItem? getRepliedMessageListItem({
     MessageType.visualMedia => null,
     MessageType.requestFunds => MoneyItem(
         eventMessage: repliedEventMessage,
-        contentDescription: getRequestFundsTitle(ref, repliedEventMessage),
+        contentDescription: getRequestFundsTitle(ref, repliedEventMessage) ?? '',
       ),
     MessageType.moneySent => MoneyItem(
         eventMessage: repliedEventMessage,
-        contentDescription: getMoneySentTitle(ref, repliedEventMessage),
+        contentDescription: getMoneySentTitle(ref, repliedEventMessage) ?? '',
       ),
     MessageType.text => TextItem(
         eventMessage: repliedEventMessage,
@@ -277,50 +274,33 @@ ChatMessageInfoItem? getRepliedMessageListItem({
   };
 }
 
-bool getIsMyPubKey(WidgetRef ref, EventMessage message) {
-  final messagePubkey = message.masterPubkey;
+String? getMoneySentTitle(WidgetRef ref, EventMessage? eventMessage) {
+  if (eventMessage != null) {
+    final moneyData = ref.watch(transactionDisplayDataProvider(eventMessage)).value;
 
-  return ref.watch(currentPubkeySelectorProvider) == messagePubkey;
+    if (moneyData != null) {
+      final coinsAmount = '${moneyData.amount} ${moneyData.coin}';
+
+      return ref.read(isCurrentUserSelectorProvider(eventMessage.masterPubkey))
+          ? ref.context.i18n.chat_money_sent_preview_title(coinsAmount)
+          : ref.context.i18n.chat_money_received_preview_title(coinsAmount);
+    }
+  }
+  return null;
 }
 
-String getMoneySentTitle(WidgetRef ref, EventMessage? message) {
-  var coinsAmount = '';
-  var isMyPubkey = false;
-  if (message != null) {
-    final transactionData = ref.watch(transactionDataForMessageProvider(message)).value;
+String? getRequestFundsTitle(WidgetRef ref, EventMessage? eventMessage) {
+  if (eventMessage != null) {
+    final moneyData = ref.watch(fundsRequestDisplayDataProvider(eventMessage)).value;
 
-    if (transactionData != null) {
-      final asset = transactionData.cryptoAsset.mapOrNull(coin: (asset) => asset);
+    if (moneyData != null) {
+      final coinsAmount = '${moneyData.amount} ${moneyData.coin}';
 
-      final coinAbbr = asset?.coin.abbreviation;
-      final amount = asset?.amount ?? 0.0;
-      coinsAmount = formatCrypto(amount, coinAbbr.emptyOrValue.isEmpty ? '' : '$coinAbbr');
-      isMyPubkey = getIsMyPubKey(ref, message);
+      return ref.read(isCurrentUserSelectorProvider(eventMessage.masterPubkey))
+          ? ref.context.i18n.chat_money_my_request_preview_title(coinsAmount)
+          : ref.context.i18n.chat_money_request_preview_title(coinsAmount);
     }
   }
 
-  return isMyPubkey
-      ? ref.context.i18n.chat_money_sent_preview_title(coinsAmount)
-      : ref.context.i18n.chat_money_received_preview_title(coinsAmount);
-}
-
-String getRequestFundsTitle(WidgetRef ref, EventMessage? message) {
-  var coinsAmount = '';
-  var isMyPubkey = false;
-  if (message != null) {
-    final fundsRequest = ref.watch(fundsRequestForMessageProvider(message)).value;
-    if (fundsRequest != null) {
-      final assetId = fundsRequest.data.content.assetId?.emptyOrValue;
-      final coin = ref.watch(coinByIdProvider(assetId.emptyOrValue)).value;
-
-      final amount = fundsRequest.data.content.amount?.let(double.parse) ?? 0.0;
-      final coinAbbr = coin?.abbreviation;
-      coinsAmount = formatCrypto(amount, coinAbbr.emptyOrValue.isEmpty ? '' : '$coinAbbr');
-      isMyPubkey = getIsMyPubKey(ref, message);
-    }
-  }
-
-  return isMyPubkey
-      ? ref.context.i18n.chat_money_my_request_preview_title(coinsAmount)
-      : ref.context.i18n.chat_money_request_preview_title(coinsAmount);
+  return null;
 }
