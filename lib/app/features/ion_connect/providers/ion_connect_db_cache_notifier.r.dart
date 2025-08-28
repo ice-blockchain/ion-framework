@@ -61,7 +61,7 @@ class IonConnectDbCache extends _$IonConnectDbCache {
   }
 
   Future<List<IonConnectEntity>> getAllFiltered({
-    required String query,
+    required String keyword,
     List<int> kinds = const [],
     List<EventReference> eventReferences = const [],
   }) async {
@@ -69,8 +69,8 @@ class IonConnectDbCache extends _$IonConnectDbCache {
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
     final eventMessages = await cacheService.getAllFiltered(
-      query: query,
       kinds: kinds,
+      keyword: keyword,
       eventReferences: eventReferences.map((e) => e.toString()).toList(),
     );
 
@@ -118,13 +118,19 @@ class IonConnectDbCache extends _$IonConnectDbCache {
   }
 
   Future<void> saveAllNonExistingRefs(List<EventReference> eventRefs) async {
+    final parser = ref.read(eventParserProvider);
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
     final existingRefs = await cacheService.getAll(eventRefs.map((e) => e.toString()).toList());
     final nonExistingRefs = eventRefs
         .map((e) => e.toString())
         .toSet()
-        .difference(existingRefs.map((e) => e.id).toSet())
+        .difference(
+          existingRefs.map((e) {
+            final parsed = parser.parse(e);
+            return parsed.toEventReference().toString();
+          }).toSet(),
+        )
         .toList();
 
     const pageSize = 100;

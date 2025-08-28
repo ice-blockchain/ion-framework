@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart';
+import 'package:drift/extensions/json1.dart';
 import 'package:drift/native.dart';
 import 'package:ion_connect_cache/src/database/ion_connect_cache_database.d.dart';
 import 'package:ion_connect_cache/src/database/tables/event_messages_table.d.dart';
@@ -17,9 +18,6 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     with _$IonConnectCacheServiceDriftImplMixin
     implements IonConnectCacheService {
   IonConnectCacheServiceDriftImpl({required IONConnectCacheDatabase db}) : super(db);
-
-  IonConnectCacheServiceDriftImpl.inMemory()
-    : super(IONConnectCacheDatabase(NativeDatabase.memory()));
 
   IonConnectCacheServiceDriftImpl.persistent(String path)
     : super(IONConnectCacheDatabase(NativeDatabase.createInBackground(File(path))));
@@ -65,7 +63,7 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     final dbModel =
         await (select(eventMessagesTable)
               ..limit(1)
-              ..where((tbl) => tbl.id.equals(eventReference) & expirationExpression))
+              ..where((tbl) => tbl.eventReference.equals(eventReference) & expirationExpression))
             .getSingleOrNull();
 
     return dbModel?.toEventMessage();
@@ -73,11 +71,11 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
 
   @override
   Future<List<EventMessage>> getAllFiltered({
-    required String query,
+    required String keyword,
     List<int> kinds = const [],
     List<String> eventReferences = const [],
   }) {
-    final q = '%${query.toLowerCase()}%';
+    final q = '%${keyword.toLowerCase()}%';
     final kindFilter = kinds.isNotEmpty
         ? (eventMessagesTable.kind.isIn(kinds))
         : const Constant(true);
@@ -88,7 +86,7 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     return (select(eventMessagesTable)
           ..where(
             (tbl) =>
-                (tbl.content.lower().like(q) | tbl.tags.lower().like(q)) &
+                (tbl.content.lower().like(q) | tbl.tags.jsonExtract(r'$[*][*]').equals(keyword)) &
                 kindFilter &
                 referenceFilter,
           )
@@ -112,8 +110,8 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
   }
 
   @override
-  Future<int> remove(String id) async {
-    return (delete(eventMessagesTable)..where((tbl) => tbl.id.equals(id))).go();
+  Future<int> remove(String eventReference) async {
+    return (delete(eventMessagesTable)..where((tbl) => tbl.eventReference.equals(eventReference))).go();
   }
 
   @override

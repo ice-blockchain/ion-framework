@@ -24,11 +24,11 @@ class BookmarksPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCollectionDTag = useState(BookmarksSetType.homeFeedCollectionsAll.dTagName);
     final rawQuery = useState<String>('');
-    final query = useDebounced(rawQuery.value, 300.milliseconds) ?? '';
+    final keyword = useDebounced(rawQuery.value, 300.milliseconds) ?? '';
     final collectionEntityState = ref.watch(
       filteredBookmarksRefsProvider(
+        keyword: keyword,
         collectionDTag: selectedCollectionDTag.value,
-        query: query,
       ),
     );
 

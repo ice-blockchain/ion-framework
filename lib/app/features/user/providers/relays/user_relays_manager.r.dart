@@ -99,7 +99,7 @@ class UserRelaysManager extends _$UserRelaysManager {
   Future<void> handleCachedReadOnlyRelay(String relayUrl) async {
     final cachedRelayEntities = (await ref
             .read(ionConnectDbCacheProvider.notifier)
-            .getAllFiltered(query: relayUrl, kinds: [UserRelaysEntity.kind]))
+            .getAllFiltered(keyword: relayUrl, kinds: [UserRelaysEntity.kind]))
         .cast<UserRelaysEntity>();
 
     final updatedEntities = <UserRelaysEntity>[];
