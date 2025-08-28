@@ -43,8 +43,7 @@ class RequestAssetsRepository {
         .asyncMap(
           (transactionId) => _transactionsDao
               .getTransactions(txHashes: [transactionId]).then((list) => list.firstOrNull),
-        )
-        .startWith(null);
+        );
 
     yield* requestStream.combineLatest(
       transactionStream,
