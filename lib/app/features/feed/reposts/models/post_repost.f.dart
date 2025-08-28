@@ -2,6 +2,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_model.dart';
 
 part 'post_repost.f.freezed.dart';
@@ -28,4 +29,11 @@ class PostRepost with _$PostRepost implements OptimisticModel {
     // If user has reposted but total is 0, return 1 to maintain UI consistency
     return (repostedByMe && total == 0) ? 1 : total;
   }
+}
+
+@freezed
+class RepostEntities with _$RepostEntities {
+  const factory RepostEntities({
+    required List<CacheableEntity> items,
+  }) = _RepostEntities;
 }
