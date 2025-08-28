@@ -56,7 +56,7 @@ class WalletsDatabase extends _$WalletsDatabase {
   final String pubkey;
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   static QueryExecutor _openConnection(String pubkey) {
     return driftDatabase(name: 'wallets_database_$pubkey');
@@ -189,6 +189,14 @@ class WalletsDatabase extends _$WalletsDatabase {
           if (!columnExists) {
             await m.addColumn(schema.transactionsTableV2, schema.transactionsTableV2.nftIdentifier);
           }
+        },
+        from16To17: (m, schema) async {
+          await customStatement('''
+            INSERT INTO transaction_visibility_status_table (tx_hash, wallet_view_id, status)
+            SELECT DISTINCT tx_hash, wallet_view_id, 1
+            FROM transactions_table_v2
+            WHERE type = 'receive' AND coin_id IS NOT NULL
+          ''');
         },
       ),
     );
