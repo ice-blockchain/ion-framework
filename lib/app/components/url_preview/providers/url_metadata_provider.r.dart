@@ -15,7 +15,9 @@ Future<OgpData?> urlMetadata(Ref ref, String url) async {
   }
 
   try {
-    return await OgpDataExtract.execute(url);
+    // Using this agent because AppsFlyer generates meta data for certain social media apps.
+    // link: https://support.appsflyer.com/hc/en-us/articles/208874366-Create-a-OneLink-link-for-your-campaigns#social-media-preview-og-tags
+    return await OgpDataExtract.execute(url, userAgent: 'TelegramBot (like TwitterBot)');
   } catch (e) {
     return null;
   }

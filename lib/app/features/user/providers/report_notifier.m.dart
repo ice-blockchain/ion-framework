@@ -44,10 +44,12 @@ class ReportNotifier extends _$ReportNotifier {
 
     final encodedReason = switch (reason) {
       ReportReasonUser() => await deepLinkService.createDeeplink(
-          ReplaceableEventReference(masterPubkey: reason.pubkey, kind: UserMetadataEntity.kind)
-              .encode(),
+          path:
+              ReplaceableEventReference(masterPubkey: reason.pubkey, kind: UserMetadataEntity.kind)
+                  .encode(),
         ),
-      ReportReasonContent() => await deepLinkService.createDeeplink(reason.eventReference.encode()),
+      ReportReasonContent() =>
+        await deepLinkService.createDeeplink(path: reason.eventReference.encode()),
     };
 
     return switch (reason) {
