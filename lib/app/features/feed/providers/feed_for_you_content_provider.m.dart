@@ -88,30 +88,67 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
     var fetchedEvents = 0;
 
-    final followingDistribution = _getFeedFollowingDistribution(limit: limit);
-    await for (final entity in _fetchUnseenFollowing(limit: followingDistribution)) {
+    await for (final entity in _fetchUnseenFollowing(limit: limit)) {
       yield entity;
       fetchedEvents++;
     }
-    Logger.info('$_logTag Got [$fetchedEvents] unseen following events');
 
-    var fetchedGlobalAccounts = 0;
-    final globalAccountsDistribution = _getFeedGlobalAccountsDistribution(limit: limit);
-
-    await for (final entity
-        in _fetchUnseenFollowing(limit: globalAccountsDistribution, global: true)) {
-      yield entity;
-      fetchedGlobalAccounts++;
+    if (fetchedEvents < limit) {
+      await for (final entity in _fetchUnseenGlobalAccounts(limit: limit)) {
+        yield entity;
+        fetchedEvents++;
+      }
     }
-
-    fetchedEvents += fetchedGlobalAccounts;
-    Logger.info('$_logTag Got [$fetchedGlobalAccounts] unseen global accounts events');
 
     if (fetchedEvents < limit) {
       yield* _fetchForYou(limit: limit - fetchedEvents);
     }
 
     Logger.info('$_logTag Done requesting events');
+  }
+
+  Stream<IonConnectEntity> _fetchUnseenFollowing({required int limit}) async* {
+    try {
+      Logger.info('$_logTag Requesting [$limit] unseen following events');
+
+      var fetched = 0;
+      final distribution = _getFeedFollowingDistribution(limit: limit);
+
+      await for (final entity in _fetchFollowing(limit: distribution)) {
+        yield entity;
+        fetched++;
+      }
+
+      Logger.info('$_logTag Got [$fetched] unseen following events');
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: '$_logTag Error fetching unseen following events',
+      );
+    }
+  }
+
+  Stream<IonConnectEntity> _fetchUnseenGlobalAccounts({required int limit}) async* {
+    try {
+      Logger.info('$_logTag Requesting [$limit] unseen global accounts events');
+
+      var fetched = 0;
+      final distribution = _getFeedGlobalAccountsDistribution(limit: limit);
+
+      await for (final entity in _fetchFollowing(limit: distribution, global: true)) {
+        yield entity;
+        fetched++;
+      }
+
+      Logger.info('$_logTag Got [$fetched] unseen global accounts events');
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: '$_logTag Error fetching unseen global accounts events',
+      );
+    }
   }
 
   Stream<IonConnectEntity> _fetchForYou({required int limit}) async* {
@@ -235,9 +272,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
   }
 
-  Stream<IonConnectEntity> _fetchUnseenFollowing({required int limit, bool global = false}) async* {
-    Logger.info('$_logTag Requesting [$limit] unseen following events');
-
+  Stream<IonConnectEntity> _fetchFollowing({required int limit, bool global = false}) async* {
     final provider = feedFollowingContentProvider(
       feedType,
       feedModifier: feedModifier,
