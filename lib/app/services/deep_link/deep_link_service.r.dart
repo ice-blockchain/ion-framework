@@ -7,8 +7,7 @@ import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:appsflyer_sdk/appsflyer_sdk.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_quill/flutter_quill.dart';
-import 'package:flutter_quill/quill_delta.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -308,11 +307,11 @@ final class DeepLinkService {
   /// The method has a timeout to prevent hanging indefinitely.
   ///
   /// [path] - The path to encode in the deep link
+  /// [description] - The description to use for the deep link
   Future<String> createDeeplink({
     required String path,
-    String? userDisplayName,
-    String? content,
-    String? imageUrl,
+    String? ogImageUrl,
+    String? ogDescription,
   }) async {
     if (!_isInitialized) {
       Logger.log('AppsFlyer initialization failed');
@@ -328,9 +327,8 @@ final class DeepLinkService {
           customParams: {
             'deep_link_value': path,
             ...?_buildOgParams(
-              content: content,
-              imageUrl: imageUrl,
-              userDisplayName: userDisplayName,
+              ogImageUrl: ogImageUrl,
+              ogDescription: ogDescription,
             ),
           },
         ),
@@ -351,23 +349,21 @@ final class DeepLinkService {
   }
 
   Map<String, String>? _buildOgParams({
-    String? content,
-    String? imageUrl,
-    String? userDisplayName,
+    String? ogImageUrl,
+    String? ogDescription,
   }) {
-    if (userDisplayName == null && content == null && imageUrl == null) {
+    // Covers the case when deep link is being used for the reporting
+    if (ogImageUrl == null && ogDescription == null) {
       return null;
     }
 
-    final description = _convertDeltaToPlainText(content);
-    final effectiveUserDisplayName =
-        userDisplayName != null ? '$userDisplayName on $_shareAppName' : '';
-    final effectiveDescription = description.isNotEmpty ? ' : "$description"' : '';
+    // AppsFlyer requires a non-null or empty description because otherwise all og params will be ignored
+    final finalDescription = ogDescription ?? ' ';
 
     return {
       'af_og_title': _shareAppName,
-      'af_og_description': '$effectiveUserDisplayName$effectiveDescription',
-      'af_og_image': imageUrl ?? _sharePreviewImageUrl,
+      'af_og_description': finalDescription,
+      'af_og_image': ogImageUrl ?? _sharePreviewImageUrl,
     };
   }
 
@@ -412,22 +408,6 @@ final class DeepLinkService {
     }
 
     return Map<String, String?>.from(payload as Map<String, dynamic>);
-  }
-
-  /// Converts a Quill Delta JSON string to plain text
-  String _convertDeltaToPlainText(String? value) {
-    if (value == null) {
-      return '';
-    }
-    try {
-      final deltaJson = jsonDecode(value) as List<dynamic>;
-      final delta = Delta.fromJson(deltaJson);
-      final document = Document.fromDelta(delta);
-      final result = document.toPlainText().trim();
-      return result.isEmpty ? '' : result;
-    } catch (e) {
-      return '';
-    }
   }
 
   void resolveDeeplink(String url) => _appsflyerSdk.resolveOneLinkUrl(url);

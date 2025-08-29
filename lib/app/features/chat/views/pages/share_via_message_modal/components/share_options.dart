@@ -11,16 +11,13 @@ import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/chat/providers/event_share_url_provider.r.dart';
+import 'package:ion/app/features/chat/providers/share_options_provider.r.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_copy_link_option.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_options_menu_item.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_post_to_story_content.dart';
-import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/share/social_share_service.r.dart';
 import 'package:ion/app/utils/screenshot_utils.dart';
@@ -38,20 +35,18 @@ class ShareOptions extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isCapturing = useState(false);
 
-    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
     final shareUrl = ref.watch(eventShareUrlProvider(eventReference)).valueOrNull;
-    final userMetadata = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
+    final shareOptionsData = ref.watch(shareOptionsDataProvider(eventReference));
 
-    if (entity == null || shareUrl == null || userMetadata == null) {
+    if (shareUrl == null || shareOptionsData == null) {
       return const SizedBox.shrink();
     }
 
+    final description = _generateDescription(context, shareOptionsData);
+
+    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
     final isPostOrStory = entity is ModifiablePostEntity;
-
     final isPost = isPostOrStory && entity.data.expiration == null;
-    final userDisplayName = userMetadata.data.displayName;
-
-    final (content, imageUrl) = _getContentAndImageUrl(entity, userMetadata);
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -71,10 +66,9 @@ class ShareOptions extends HookConsumerWidget {
               ),
             ShareCopyLinkOption(
               shareUrl: shareUrl,
-              userDisplayName: userDisplayName,
-              content: content,
               iconSize: iconSize,
-              imageUrl: imageUrl,
+              imageUrl: shareOptionsData.imageUrl,
+              description: description,
             ),
             ShareOptionsMenuItem(
               buttonType: ButtonType.dropdown,
@@ -83,9 +77,8 @@ class ShareOptions extends HookConsumerWidget {
               onPressed: () {
                 ref.read(socialShareServiceProvider).shareToWhatsApp(
                       shareUrl,
-                      userDisplayName: userDisplayName,
-                      content: content,
-                      imageUrl: imageUrl,
+                      imageUrl: shareOptionsData.imageUrl,
+                      description: description,
                     );
               },
             ),
@@ -96,9 +89,8 @@ class ShareOptions extends HookConsumerWidget {
               onPressed: () {
                 ref.read(socialShareServiceProvider).shareToTelegram(
                       shareUrl,
-                      userDisplayName: userDisplayName,
-                      content: content,
-                      imageUrl: imageUrl,
+                      imageUrl: shareOptionsData.imageUrl,
+                      description: description,
                     );
               },
             ),
@@ -109,9 +101,8 @@ class ShareOptions extends HookConsumerWidget {
               onPressed: () {
                 ref.read(socialShareServiceProvider).shareToTwitter(
                       shareUrl,
-                      userDisplayName: userDisplayName,
-                      content: content,
-                      imageUrl: imageUrl,
+                      imageUrl: shareOptionsData.imageUrl,
+                      description: description,
                     );
               },
             ),
@@ -122,9 +113,8 @@ class ShareOptions extends HookConsumerWidget {
               onPressed: () {
                 ref.read(socialShareServiceProvider).shareToMore(
                       shareUrl: shareUrl,
-                      userDisplayName: userDisplayName,
-                      content: content,
-                      imageUrl: imageUrl,
+                      imageUrl: shareOptionsData.imageUrl,
+                      description: description,
                     );
               },
             ),
@@ -175,25 +165,27 @@ class ShareOptions extends HookConsumerWidget {
     }
   }
 
-  (String? content, String? imageUrl) _getContentAndImageUrl(
-    IonConnectEntity entity,
-    UserMetadataEntity userMetadata,
-  ) {
-    switch (entity) {
-      case ModifiablePostEntity():
-        final content = entity.data.richText?.content ?? entity.data.textContent;
-        String? imageUrl;
-        if (!entity.isStory) {
-          final firstMedia = entity.data.media.values.firstOrNull;
-          imageUrl = firstMedia?.image ?? firstMedia?.url;
-        }
-        return (content, imageUrl);
-      case ArticleEntity():
-        return (entity.data.title, entity.data.image);
-      case UserMetadataEntity():
-        return (userMetadata.data.displayName, userMetadata.data.picture);
-      case _:
-        return (null, null);
-    }
+  String _generateDescription(BuildContext context, ShareOptionsData data) {
+    final effectiveUserDisplayName = context.i18n.share_user_on_app(
+      data.shareAppName,
+      data.userDisplayName,
+    );
+
+    return switch (data.contentType) {
+      ShareContentType.story => context.i18n.share_story_watch_message(
+          effectiveUserDisplayName,
+        ),
+      ShareContentType.post => _buildPostDescription(
+          userDisplayName: effectiveUserDisplayName,
+          content: data.content,
+        ),
+      ShareContentType.article => data.articleTitle ?? '',
+      ShareContentType.userProfile => data.userDisplayName,
+    };
+  }
+
+  String _buildPostDescription({required String userDisplayName, required String? content}) {
+    final description = content?.isNotEmpty ?? false ? ' : "$content"' : '';
+    return '$userDisplayName$description';
   }
 }
