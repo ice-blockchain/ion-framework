@@ -42,7 +42,7 @@ class ArticleDetailsPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final articleEntity =
-        ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference));
+        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
     final isOwnedByCurrentUser =
         ref.watch(isCurrentUserSelectorProvider(eventReference.masterPubkey));
 

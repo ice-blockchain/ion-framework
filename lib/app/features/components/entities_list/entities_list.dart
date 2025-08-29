@@ -117,7 +117,7 @@ class _EntityListItem extends ConsumerWidget {
   bool _isRepostedEntityDeleted(WidgetRef ref, IonConnectEntity entity) {
     if (entity is GenericRepostEntity) {
       final repostedEntity = ref
-          .watch(ionConnectEntityWithCountersProvider(eventReference: entity.data.eventReference));
+          .watch(ionConnectSyncEntityWithCountersProvider(eventReference: entity.data.eventReference));
       return repostedEntity == null ||
           (repostedEntity is SoftDeletableEntity && repostedEntity.isDeleted);
     }

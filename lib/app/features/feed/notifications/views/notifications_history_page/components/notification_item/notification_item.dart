@@ -37,7 +37,7 @@ class NotificationItem extends ConsumerWidget {
     IonConnectEntity? entity;
 
     if (eventReference != null) {
-      entity = ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference));
+      entity = ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
       if (entity == null || _isDeleted(ref, entity) || _isRepostedEntityDeleted(ref, entity)) {
         return const SizedBox.shrink();
       }
@@ -101,7 +101,7 @@ class NotificationItem extends ConsumerWidget {
   bool _isRepostedEntityDeleted(WidgetRef ref, IonConnectEntity entity) {
     if (entity is GenericRepostEntity) {
       final repostedEntity = ref
-          .watch(ionConnectEntityWithCountersProvider(eventReference: entity.data.eventReference));
+          .watch(ionConnectSyncEntityWithCountersProvider(eventReference: entity.data.eventReference));
       return repostedEntity == null ||
           (repostedEntity is SoftDeletableEntity && repostedEntity.isDeleted);
     }

@@ -68,7 +68,7 @@ class ShareSendButton extends HookConsumerWidget {
             loading.value = true;
             try {
               final entity =
-                  ref.read(ionConnectEntityWithCountersProvider(eventReference: eventReference));
+                  ref.read(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
 
               if (entity is UserMetadataEntity) {
                 unawaited(shareProfileToChat());

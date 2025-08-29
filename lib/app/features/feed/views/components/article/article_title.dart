@@ -16,7 +16,7 @@ class ArticleTitle extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entity = ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference));
+    final entity = ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
 
     if (entity is! ArticleEntity) {
       return const SizedBox.shrink();
