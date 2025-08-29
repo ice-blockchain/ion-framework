@@ -117,8 +117,7 @@ String _convertDeltaToPlainText(String? value) {
     final deltaJson = jsonDecode(value) as List<dynamic>;
     final delta = Delta.fromJson(deltaJson);
     final document = Document.fromDelta(delta);
-    final result = document.toPlainText().trim();
-    return result.isEmpty ? '' : result;
+    return document.toPlainText().trim();
   } catch (e) {
     return '';
   }

@@ -42,7 +42,7 @@ class ShareOptions extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final description = _generateDescription(context, shareOptionsData);
+    final description = _buildDescription(context, shareOptionsData);
 
     final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
     final isPostOrStory = entity is ModifiablePostEntity;
@@ -165,7 +165,7 @@ class ShareOptions extends HookConsumerWidget {
     }
   }
 
-  String _generateDescription(BuildContext context, ShareOptionsData data) {
+  String _buildDescription(BuildContext context, ShareOptionsData data) {
     final effectiveUserDisplayName = context.i18n.share_user_on_app(
       data.shareAppName,
       data.userDisplayName,
