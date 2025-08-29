@@ -212,31 +212,24 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   Stream<IonConnectEntity> _fetchUnseenFollowing({required int limit}) async* {
     Logger.info('$_logTag Requesting [$limit] unseen following events');
 
-    final notifier = ref.read(
-      feedFollowingContentProvider(
-        feedType,
-        feedModifier: feedModifier,
-        fetchSeen: false,
-        autoFetch: false,
-      ).notifier,
-    );
-    final provider = ref.read(
-      feedFollowingContentProvider(
-        feedType,
-        feedModifier: feedModifier,
-        fetchSeen: false,
-        autoFetch: false,
-      ),
+    final provider = feedFollowingContentProvider(
+      feedType,
+      feedModifier: feedModifier,
+      fetchSeen: false,
+      autoFetch: false,
     );
 
-    if (!provider.hasMore) {
+    final providerNotifier = ref.read(provider.notifier);
+    final providerData = ref.read(provider);
+
+    if (!providerData.hasMore) {
       state = state.copyWith(hasMoreFollowing: false);
       return;
     }
 
-    yield* notifier.requestEntities(limit: limit);
+    yield* providerNotifier.requestEntities(limit: limit);
 
-    if (!provider.hasMore) {
+    if (!providerData.hasMore) {
       state = state.copyWith(hasMoreFollowing: false);
     }
   }

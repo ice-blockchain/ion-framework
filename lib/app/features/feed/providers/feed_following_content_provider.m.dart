@@ -32,6 +32,7 @@ import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provi
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
+import 'package:ion/app/features/user/providers/global_accounts_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -44,8 +45,15 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
   FeedFollowingContentState build(
     FeedType feedType, {
     FeedModifier? feedModifier,
+
+    /// Whether to fetch seen events from the local DB when all unseen events are exhausted.
     bool fetchSeen = true,
+
+    /// Whether to automatically fetch the first batch of events when the provider is instantiated.
     bool autoFetch = true,
+
+    /// Whether to use global accounts instead of the current user's following list.
+    bool global = false,
   }) {
     if (autoFetch) {
       Future.microtask(fetchEntities);
@@ -191,16 +199,20 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
     }
   }
 
+  /// Returns the list of pubkeys to be used as data sources for fetching events.
+  ///
+  /// If [global] is true, using not-followed global accounts' pubkeys.
+  /// Otherwise, it uses the followed accounts' pubkeys.
   Future<List<String>> _getDataSourcePubkeys() async {
     final followList = await ref.read(currentUserFollowListProvider.future);
+    final followListPubkeys = followList?.data.list.map((item) => item.pubkey) ?? [];
 
-    if (followList == null || followList.data.list.isEmpty) return [];
-
-    final dataSourcePubkeys = [
-      for (final followee in followList.data.list) followee.pubkey,
-    ];
-
-    return dataSourcePubkeys.toList();
+    if (global) {
+      final globalAccounts = await ref.read(globalAccountsProvider.future);
+      return globalAccounts.pubkeys.toSet().difference(followListPubkeys.toSet()).toList();
+    } else {
+      return followListPubkeys.toList();
+    }
   }
 
   Future<void> _refreshUnseenPagination() async {
@@ -630,7 +642,7 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
     return relevantUsersPubkeys;
   }
 
-  String get _logTag => '[FEED FOLLOWING ${feedType.name}]';
+  String get _logTag => '[FEED FOLLOWING ${feedType.name}${global ? " (GLOBAL)" : ""}]';
 }
 
 @Freezed(equal: false)
