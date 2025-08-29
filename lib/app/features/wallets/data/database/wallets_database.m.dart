@@ -192,7 +192,7 @@ class WalletsDatabase extends _$WalletsDatabase {
         },
         from16To17: (m, schema) async {
           await customStatement('''
-            INSERT INTO transaction_visibility_status_table (tx_hash, wallet_view_id, status)
+            INSERT OR REPLACE INTO transaction_visibility_status_table (tx_hash, wallet_view_id, status)
             SELECT DISTINCT tx_hash, wallet_view_id, 1
             FROM transactions_table_v2
             WHERE type = 'receive' AND coin_id IS NOT NULL
