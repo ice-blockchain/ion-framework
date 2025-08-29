@@ -17,6 +17,7 @@ import 'package:ion/app/services/compressors/brotli_compressor.r.dart';
 import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/services/media_service/mime_resolver/mime_resolver.dart';
 import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -80,7 +81,13 @@ class MediaEncryptionService {
         final decryptedFileBytes = Uint8List.fromList(decryptedFileBytesList);
         final decryptedFile = File.fromRawPath(decryptedFileBytes);
 
-        final mimeType = lookupMimeType(decryptedFile.path, headerBytes: decryptedFileBytes);
+        final mimeType =
+            ionMimeTypeResolver.lookup(decryptedFile.path, headerBytes: decryptedFileBytes);
+
+        Logger.log(
+          'Identified media mimeType for decrypted media: $mimeType with first bytes ${decryptedFileBytes.sublist(0, 5)}',
+        );
+
         if (mimeType == null) {
           throw FailedToDecryptFileException();
         }
