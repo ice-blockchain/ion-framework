@@ -5,12 +5,23 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/constants/countries.f.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
+import 'package:ion/app/features/protect_account/phone/provider/skip_countries_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'country_provider.r.g.dart';
 
 @riverpod
-List<Country> countries(Ref ref) => countriesData;
+List<Country> countries(Ref ref) {
+  final skipIsoSet = ref.watch(skipCountriesIsoSetProvider).valueOrNull;
+  if (skipIsoSet == null || skipIsoSet.isEmpty) {
+    return countriesData;
+  }
+  return countriesData
+      .whereNot(
+        (c) => skipIsoSet.contains(c.isoCode.toUpperCase()),
+      )
+      .toList();
+}
 
 @riverpod
 class SelectedCountry extends _$SelectedCountry {
