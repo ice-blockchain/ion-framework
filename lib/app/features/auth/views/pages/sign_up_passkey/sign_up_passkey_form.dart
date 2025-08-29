@@ -47,6 +47,7 @@ class SignUpPasskeyForm extends HookConsumerWidget {
         children: [
           IdentityKeyNameInput(
             errorText: switch (registerActionState.error) {
+              final PasskeyCancelledException _ => null,
               final IONIdentityException identityException => identityException.title(context),
               _ => registerActionState.error?.toString()
             },
