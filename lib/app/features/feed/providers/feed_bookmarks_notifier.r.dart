@@ -178,7 +178,7 @@ bool isBookmarkedInCollection(
 @riverpod
 Future<List<EventReference>> filteredBookmarksRefs(
   Ref ref, {
-  required String query,
+  required String keyword,
   required String collectionDTag,
 }) async {
   final collectionEntity =
@@ -186,11 +186,11 @@ Future<List<EventReference>> filteredBookmarksRefs(
 
   final allRefs = collectionEntity?.data.eventReferences ?? [];
 
-  if (query.isEmpty) return allRefs;
+  if (keyword.isEmpty) return allRefs;
 
   final rawEvents = await ref
       .read(ionConnectDbCacheProvider.notifier)
-      .getAllFiltered(eventReferences: allRefs, query: query);
+      .getAllFiltered(eventReferences: allRefs, keyword: keyword);
 
   return rawEvents.map((event) => event.toEventReference()).toList();
 }
