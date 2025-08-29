@@ -210,8 +210,7 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
     if (global) {
       final globalAccounts = await ref.read(globalAccountsProvider.future);
       final globalAccountsPubkeys =
-          globalAccounts.accounts.map((account) => account.masterPubKey).toSet();
-      //TODO::add relays caching (if not)
+          globalAccounts.list.map((account) => account.masterPubKey).toSet();
       return globalAccountsPubkeys.difference(followListPubkeys.toSet()).toList();
     } else {
       return followListPubkeys.toList();

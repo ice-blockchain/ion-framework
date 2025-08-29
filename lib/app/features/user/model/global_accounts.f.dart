@@ -7,13 +7,13 @@ part 'global_accounts.f.freezed.dart';
 part 'global_accounts.f.g.dart';
 
 @Freezed(toJson: false)
-class GlobalAccounts with _$GlobalAccounts {
-  const factory GlobalAccounts({
-    required List<GlobalAccount> accounts,
-  }) = _GlobalAccounts;
+class GlobalAccountsData with _$GlobalAccountsData {
+  const factory GlobalAccountsData({
+    required List<GlobalAccount> list,
+  }) = _GlobalAccountsData;
 
-  factory GlobalAccounts.fromJson(List<dynamic> json) =>
-      _$GlobalAccountsFromJson({'accounts': json});
+  factory GlobalAccountsData.fromJson(List<dynamic> json) =>
+      _$GlobalAccountsDataFromJson({'list': json});
 }
 
 @Freezed(toJson: false)
