@@ -12,7 +12,6 @@ import 'package:ion/app/features/feed/data/models/entities/event_count_result_da
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/user/model/tab_entity_type.dart';
 import 'package:ion/app/features/user/model/user_content_type.dart';
-import 'package:ion/app/features/user/pages/components/header_action/header_action.dart';
 import 'package:ion/app/features/user/pages/components/profile_avatar/profile_avatar.dart';
 import 'package:ion/app/features/user/pages/profile_page/cant_find_profile_page.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/header/header.dart';
@@ -167,16 +166,6 @@ class ProfilePage extends HookConsumerWidget {
                   pubkey: pubkey,
                   showBackButton: !isCurrentUserProfile,
                 ),
-                actions: [
-                  SizedBox(width: 12.0.s),
-                  Padding(
-                    padding: EdgeInsetsDirectional.only(end: 16.s),
-                    child: SizedBox(
-                      height: HeaderAction.buttonSize,
-                      child: ProfileContextMenu(pubkey: pubkey),
-                    ),
-                  ),
-                ],
               ),
             ),
             Align(
@@ -184,7 +173,7 @@ class ProfilePage extends HookConsumerWidget {
               child: Padding(
                 padding: EdgeInsetsDirectional.only(end: 16.s),
                 child: SizedBox(
-                  height: HeaderAction.buttonSize,
+                  height: NavigationAppBar.screenHeaderHeight,
                   child: ProfileContextMenu(pubkey: pubkey),
                 ),
               ),
