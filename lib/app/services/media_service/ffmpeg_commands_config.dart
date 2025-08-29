@@ -177,4 +177,21 @@ class FFmpegCommands {
       outputPath,
     ];
   }
+
+  /// Commands for scaling image to thumbnail size
+  static List<String> scaleImageToThumbnail({
+    required String inputPath,
+    required String outputPath,
+    required String scaleResolution,
+    required int quality,
+  }) =>
+      [
+        '-i',
+        inputPath,
+        '-vf',
+        scaleResolution,
+        '-q:v',
+        quality.toString(),
+        outputPath,
+      ];
 }

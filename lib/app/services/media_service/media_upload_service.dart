@@ -9,6 +9,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifi
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/media_service/blurhash_service.r.dart';
+import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_scale_arg.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
 class MediaUploadService {
@@ -50,15 +51,29 @@ class MediaUploadService {
           settings: imageCompressionSettings,
         );
     final blurhash = await ref.read(generateBlurhashProvider(compressedImage));
+
+    final thumbImage = await ref.read(imageCompressorProvider).compress(
+          compressedImage,
+          settings: const ImageCompressionSettings(scaleResolution: FfmpegScaleArg.p80),
+        );
+
     final uploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
           compressedImage,
           alt: fileAlt,
         );
+    final thumbUploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
+          thumbImage,
+          alt: fileAlt,
+        );
     final mediaAttachment = uploadResult.mediaAttachment.copyWith(
       blurhash: blurhash,
+      thumb: thumbUploadResult.fileMetadata.url,
+      image: thumbUploadResult.fileMetadata.url,
     );
     final fileMetadata = uploadResult.fileMetadata.copyWith(
       blurhash: blurhash,
+      thumb: thumbUploadResult.fileMetadata.url,
+      image: thumbUploadResult.fileMetadata.url,
     );
     return (fileMetadatas: [fileMetadata], mediaAttachment: mediaAttachment);
   }
