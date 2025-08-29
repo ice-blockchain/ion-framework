@@ -426,7 +426,7 @@ class TrendingVideosRoute extends BaseRouteData with _$TrendingVideosRoute {
           child: TrendingVideosPage(
             eventReference: EventReference.fromEncoded(eventReference),
           ),
-          type: IceRouteType.swipeDismissible,
+          type: IceRouteType.single,
         );
 
   final String eventReference;
@@ -445,7 +445,7 @@ class FeedVideosRoute extends BaseRouteData with _$FeedVideosRoute {
                 : null,
             initialMediaIndex: initialMediaIndex,
           ),
-          type: IceRouteType.swipeDismissible,
+          type: IceRouteType.single,
         );
 
   final String eventReference;
@@ -470,7 +470,7 @@ class FeedAdvancedSearchVideosRoute extends BaseRouteData with _$FeedAdvancedSea
                 ? EventReference.fromEncoded(framedEventReference)
                 : null,
           ),
-          type: IceRouteType.swipeDismissible,
+          type: IceRouteType.single,
         );
 
   final String query;
@@ -495,7 +495,7 @@ class ReplyListVideosRoute extends BaseRouteData with _$ReplyListVideosRoute {
                 ? EventReference.fromEncoded(framedEventReference)
                 : null,
           ),
-          type: IceRouteType.swipeDismissible,
+          type: IceRouteType.single,
         );
 
   final String parentEventReference;

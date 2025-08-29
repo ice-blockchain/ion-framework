@@ -59,7 +59,7 @@ class ProfileVideosRoute extends BaseRouteData with _$ProfileVideosRoute {
                 ? EventReference.fromEncoded(framedEventReference)
                 : null,
           ),
-          type: IceRouteType.swipeDismissible,
+          type: IceRouteType.single,
         );
 
   final String pubkey;
