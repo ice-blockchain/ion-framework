@@ -46,6 +46,8 @@ class _UrlMetadataImage extends StatelessWidget {
     return FeedNetworkImage(
       imageUrl: imageUrl,
       fit: BoxFit.cover,
+      height: 157.s,
+      width: double.infinity,
       borderRadius: BorderRadiusDirectional.only(
         topStart: Radius.circular(12.0.s),
         topEnd: Radius.circular(12.0.s),

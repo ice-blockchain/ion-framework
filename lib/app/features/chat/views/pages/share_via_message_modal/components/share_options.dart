@@ -11,6 +11,7 @@ import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/chat/providers/event_share_url_provider.r.dart';
+import 'package:ion/app/features/chat/providers/share_options_provider.r.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_copy_link_option.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_options_menu_item.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_post_to_story_content.dart';
@@ -34,14 +35,18 @@ class ShareOptions extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isCapturing = useState(false);
 
-    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
     final shareUrl = ref.watch(eventShareUrlProvider(eventReference)).valueOrNull;
+    final shareOptionsData = ref.watch(shareOptionsDataProvider(eventReference));
 
-    if (entity == null || shareUrl == null) {
+    if (shareUrl == null || shareOptionsData == null) {
       return const SizedBox.shrink();
     }
 
-    final isPost = entity is ModifiablePostEntity && entity.data.expiration == null;
+    final description = _buildDescription(context, shareOptionsData);
+
+    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
+    final isPostOrStory = entity is ModifiablePostEntity;
+    final isPost = isPostOrStory && entity.data.expiration == null;
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -59,13 +64,22 @@ class ShareOptions extends HookConsumerWidget {
                 label: context.i18n.feed_add_story,
                 onPressed: isCapturing.value ? () {} : () => _onSharePostToStory(ref, isCapturing),
               ),
-            ShareCopyLinkOption(shareUrl: shareUrl, iconSize: iconSize),
+            ShareCopyLinkOption(
+              shareUrl: shareUrl,
+              iconSize: iconSize,
+              imageUrl: shareOptionsData.imageUrl,
+              description: description,
+            ),
             ShareOptionsMenuItem(
               buttonType: ButtonType.dropdown,
               icon: Assets.svg.iconFeedWhatsapp.icon(size: iconSize),
               label: context.i18n.feed_whatsapp,
               onPressed: () {
-                ref.read(socialShareServiceProvider).shareToWhatsApp(shareUrl);
+                ref.read(socialShareServiceProvider).shareToWhatsApp(
+                      shareUrl,
+                      imageUrl: shareOptionsData.imageUrl,
+                      description: description,
+                    );
               },
             ),
             ShareOptionsMenuItem(
@@ -73,7 +87,11 @@ class ShareOptions extends HookConsumerWidget {
               icon: Assets.svg.iconFeedTelegram.icon(size: iconSize),
               label: context.i18n.feed_telegram,
               onPressed: () {
-                ref.read(socialShareServiceProvider).shareToTelegram(shareUrl);
+                ref.read(socialShareServiceProvider).shareToTelegram(
+                      shareUrl,
+                      imageUrl: shareOptionsData.imageUrl,
+                      description: description,
+                    );
               },
             ),
             ShareOptionsMenuItem(
@@ -81,7 +99,11 @@ class ShareOptions extends HookConsumerWidget {
               icon: Assets.svg.iconLoginXlogo.icon(size: iconSize),
               label: context.i18n.feed_x,
               onPressed: () {
-                ref.read(socialShareServiceProvider).shareToTwitter(shareUrl);
+                ref.read(socialShareServiceProvider).shareToTwitter(
+                      shareUrl,
+                      imageUrl: shareOptionsData.imageUrl,
+                      description: description,
+                    );
               },
             ),
             ShareOptionsMenuItem(
@@ -89,7 +111,11 @@ class ShareOptions extends HookConsumerWidget {
               icon: Assets.svg.iconFeedMore.icon(size: iconSize),
               label: context.i18n.feed_more,
               onPressed: () {
-                ref.read(socialShareServiceProvider).shareToMore(shareUrl);
+                ref.read(socialShareServiceProvider).shareToMore(
+                      shareUrl: shareUrl,
+                      imageUrl: shareOptionsData.imageUrl,
+                      description: description,
+                    );
               },
             ),
           ],
@@ -137,5 +163,29 @@ class ShareOptions extends HookConsumerWidget {
         isCapturing.value = false;
       }
     }
+  }
+
+  String _buildDescription(BuildContext context, ShareOptionsData data) {
+    final effectiveUserDisplayName = context.i18n.share_user_on_app(
+      data.shareAppName,
+      data.userDisplayName,
+    );
+
+    return switch (data.contentType) {
+      ShareContentType.story => context.i18n.share_story_watch_message(
+          effectiveUserDisplayName,
+        ),
+      ShareContentType.post => _buildPostDescription(
+          userDisplayName: effectiveUserDisplayName,
+          content: data.content,
+        ),
+      ShareContentType.article => data.articleTitle ?? '',
+      ShareContentType.userProfile => data.userDisplayName,
+    };
+  }
+
+  String _buildPostDescription({required String userDisplayName, required String? content}) {
+    final description = content?.isNotEmpty ?? false ? ' : "$content"' : '';
+    return '$userDisplayName$description';
   }
 }

@@ -80,6 +80,8 @@ class _MetaImage extends HookWidget {
       child: IonNetworkImage(
         imageUrl: imageUrl,
         fit: BoxFit.cover,
+        width: 254.s,
+        height: 146.s,
         borderRadius: BorderRadius.circular(12.0.s),
         errorWidget: (context, url, error) {
           if (!hasError.value) {

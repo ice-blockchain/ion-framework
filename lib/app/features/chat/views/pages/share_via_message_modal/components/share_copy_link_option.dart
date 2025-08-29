@@ -11,10 +11,18 @@ import 'package:ion/app/services/share/social_share_service.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ShareCopyLinkOption extends HookConsumerWidget {
-  const ShareCopyLinkOption({required this.shareUrl, required this.iconSize, super.key});
+  const ShareCopyLinkOption({
+    required this.shareUrl,
+    required this.iconSize,
+    this.imageUrl,
+    this.description,
+    super.key,
+  });
 
   final String shareUrl;
   final double iconSize;
+  final String? imageUrl;
+  final String? description;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -59,7 +67,11 @@ class ShareCopyLinkOption extends HookConsumerWidget {
       ),
       label: isCopied.value ? context.i18n.common_copied : context.i18n.feed_copy_link,
       onPressed: () {
-        ref.read(socialShareServiceProvider).shareToClipboard(shareUrl);
+        ref.read(socialShareServiceProvider).shareToClipboard(
+              shareUrl: shareUrl,
+              imageUrl: imageUrl,
+              description: description,
+            );
         isCopied.value = true;
       },
     );
