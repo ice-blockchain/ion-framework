@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/providers/counters/models/replied_events_map.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -22,9 +23,14 @@ class RepliedEvents extends _$RepliedEvents {
       yield const {};
       return;
     }
-
-    final cache = ref.watch(ionConnectCacheProvider);
-    var repliesForEventsMap = _buildInitialMap(cache, currentMasterPubkey);
+    var repliesForEventsMap = <String, List<String>>{};
+    final cachedRepliesForEvents = ref.watch(
+      ionConnectCacheProvider.select((cache) {
+        final resultMap = _buildInitialMap(cache, currentMasterPubkey);
+        return RepliesMap(resultMap);
+      }),
+    );
+    repliesForEventsMap.addAll(cachedRepliesForEvents.replies);
 
     yield Map.unmodifiable(repliesForEventsMap);
 
