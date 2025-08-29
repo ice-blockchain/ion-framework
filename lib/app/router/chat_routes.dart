@@ -371,7 +371,7 @@ class ChatMediaRoute extends BaseRouteData with _$ChatMediaRoute {
             eventReference: EventReference.fromEncoded(eventReference),
             initialIndex: initialIndex,
           ),
-          type: IceRouteType.swipeDismissible,
+          type: IceRouteType.single,
           isFullscreenMedia: true,
         );
 

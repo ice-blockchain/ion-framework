@@ -66,7 +66,7 @@ class FullscreenMediaRoute extends BaseRouteData with _$FullscreenMediaRoute {
                 ? EventReference.fromEncoded(framedEventReference)
                 : null,
           ),
-          type: IceRouteType.swipeDismissible,
+          type: IceRouteType.single,
           isFullscreenMedia: true,
         );
 

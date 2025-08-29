@@ -761,24 +761,7 @@ class _CupertinoBackGestureDetectorState<T> extends State<_CupertinoBackGestureD
   }
 
   void _handlePointerDown(PointerDownEvent event) {
-    if (!widget.enabledCallback()) return;
-
-    final hit = HitTestResult();
-
-    final view = View.of(context);
-    final views = RendererBinding.instance.platformDispatcher.views.toList();
-    final viewId = views.indexOf(view);
-
-    if (viewId == -1) return; // View not found, don't proceed
-
-    RendererBinding.instance.hitTestInView(hit, event.position, viewId);
-
-    final gestureBlockedByScrollable = hit.path.any((entry) {
-      final target = entry.target;
-      return target is RenderViewport && target.axisDirection == AxisDirection.right;
-    });
-
-    if (!gestureBlockedByScrollable) {
+    if (widget.enabledCallback()) {
       _recognizer.addPointer(event);
     }
   }
