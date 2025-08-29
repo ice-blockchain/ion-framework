@@ -142,18 +142,22 @@ PollVoteEntity? userPollVote(Ref ref, EventReference eventReference) {
   final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
   if (currentUserPubkey == null) return null;
 
-  final allCacheEntries = ref.watch(ionConnectCacheProvider);
-  final allPollVotes = allCacheEntries.values
-      .map((entry) => entry.entity)
-      .whereType<PollVoteEntity>()
-      .where(
-        (vote) =>
-            vote.masterPubkey == currentUserPubkey &&
-            vote.data.pollEventId == eventReference.toString(),
-      )
-      .toList();
+  final pollVote = ref.watch(
+    ionConnectCacheProvider.select((allCacheEntries) {
+      final allPollVotes = allCacheEntries.values
+          .map((entry) => entry.entity)
+          .whereType<PollVoteEntity>()
+          .where(
+            (vote) =>
+                vote.masterPubkey == currentUserPubkey &&
+                vote.data.pollEventId == eventReference.toString(),
+          )
+          .toList();
 
-  return allPollVotes.firstOrNull;
+      return allPollVotes.firstOrNull;
+    }),
+  );
+  return pollVote;
 }
 
 @riverpod
