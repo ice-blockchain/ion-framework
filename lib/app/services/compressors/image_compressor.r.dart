@@ -36,7 +36,7 @@ class ImageCompressionSettings {
   const ImageCompressionSettings({
     this.quality = 70,
     this.shouldCompressGif = false,
-    this.scaleResolution = FfmpegScaleArg.fullHd,
+    this.scaleResolution = FfmpegScaleArg.p1080,
   });
 
   final int quality;
@@ -158,6 +158,48 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
     final image = frame.image;
 
     return (width: image.width, height: image.height);
+  }
+
+  ///
+  /// scale image
+  ///
+  Future<MediaFile> scaleImage(
+    MediaFile file, {
+    FfmpegScaleArg scaleResolution = FfmpegScaleArg.p240,
+    int quality = 70,
+  }) async {
+    if (file.mimeType != MimeType.image.value) {
+      throw CompressImageException(Exception('Mime type is not supported for scaling'));
+    }
+
+    final sessionIdCompleter = Completer<FFmpegSession>();
+
+    final output = await generateOutputPath(extension: '.webp');
+    final command = FFmpegCommands.scaleImageToThumbnail(
+      inputPath: file.path,
+      outputPath: output,
+      scaleResolution: scaleResolution.resolution,
+      quality: quality,
+    );
+
+    final session = await compressExecutor.execute(command, sessionIdCompleter);
+    await sessionIdCompleter.future;
+
+    final returnCode = await session.getReturnCode();
+    if (!ReturnCode.isSuccess(returnCode)) {
+      final logs = await session.getAllLogsAsString();
+      final stackTrace = await session.getFailStackTrace();
+      Logger.log('Failed to scale image to thumbnail. Logs: $logs, StackTrace: $stackTrace');
+      throw CompressImageException(returnCode);
+    }
+    final outputDimension = await getImageDimension(path: output);
+    return MediaFile(
+      path: output,
+      mimeType: file.mimeType,
+      originalMimeType: file.originalMimeType,
+      width: outputDimension.width,
+      height: outputDimension.height,
+    );
   }
 }
 
