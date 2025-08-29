@@ -16,7 +16,7 @@ Future<GlobalAccounts> globalAccounts(Ref ref) async {
   final result = await repository.getConfig<GlobalAccounts>(
     'global_accounts',
     cacheStrategy: AppConfigCacheStrategy.file,
-    parser: (data) => GlobalAccounts.fromJson(jsonDecode(data) as Map<String, dynamic>),
+    parser: (data) => GlobalAccounts.fromJson(jsonDecode(data) as List<dynamic>),
     checkVersion: true,
   );
   return result;

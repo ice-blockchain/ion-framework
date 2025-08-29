@@ -11,5 +11,6 @@ class GlobalAccounts with _$GlobalAccounts {
     required List<String> pubkeys,
   }) = _GlobalAccounts;
 
-  factory GlobalAccounts.fromJson(Map<String, dynamic> json) => _$GlobalAccountsFromJson(json);
+  factory GlobalAccounts.fromJson(List<dynamic> json) =>
+      _$GlobalAccountsFromJson({'pubkeys': json});
 }

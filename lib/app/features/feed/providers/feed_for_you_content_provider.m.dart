@@ -40,15 +40,26 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   @override
   FeedForYouContentState build(FeedType feedType, {FeedModifier? feedModifier}) {
     Future.microtask(fetchEntities);
-    ref.listen(
-      feedFollowingContentProvider(
-        feedType,
-        feedModifier: feedModifier,
-        fetchSeen: false,
-        autoFetch: false,
-      ),
-      noop,
-    );
+    ref
+      ..listen(
+        feedFollowingContentProvider(
+          feedType,
+          feedModifier: feedModifier,
+          fetchSeen: false,
+          autoFetch: false,
+        ),
+        noop,
+      )
+      ..listen(
+        feedFollowingContentProvider(
+          feedType,
+          feedModifier: feedModifier,
+          fetchSeen: false,
+          autoFetch: false,
+          global: true,
+        ),
+        noop,
+      );
     return const FeedForYouContentState(
       items: null,
       isLoading: false,
@@ -75,18 +86,29 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   Stream<IonConnectEntity> requestEntities({required int limit}) async* {
     Logger.info('$_logTag Requesting events');
 
-    var unseenFollowing = 0;
-    final followingDistribution = _getFeedFollowingDistribution(limit: limit);
+    var fetchedEvents = 0;
 
+    final followingDistribution = _getFeedFollowingDistribution(limit: limit);
     await for (final entity in _fetchUnseenFollowing(limit: followingDistribution)) {
       yield entity;
-      unseenFollowing++;
+      fetchedEvents++;
+    }
+    Logger.info('$_logTag Got [$fetchedEvents] unseen following events');
+
+    var fetchedGlobalAccounts = 0;
+    final globalAccountsDistribution = _getFeedGlobalAccountsDistribution(limit: limit);
+
+    await for (final entity
+        in _fetchUnseenFollowing(limit: globalAccountsDistribution, global: true)) {
+      yield entity;
+      fetchedGlobalAccounts++;
     }
 
-    Logger.info('$_logTag Got [$unseenFollowing] unseen following events');
+    fetchedEvents += fetchedGlobalAccounts;
+    Logger.info('$_logTag Got [$fetchedGlobalAccounts] unseen global accounts events');
 
-    if (unseenFollowing < limit) {
-      yield* _fetchForYou(limit: limit - unseenFollowing);
+    if (fetchedEvents < limit) {
+      yield* _fetchForYou(limit: limit - fetchedEvents);
     }
 
     Logger.info('$_logTag Done requesting events');
@@ -124,9 +146,13 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   int _getFeedFollowingDistribution({required int limit}) {
     return switch (feedType) {
-      FeedType.post || FeedType.video || FeedType.article => (0.7 * limit).ceil(),
+      FeedType.post || FeedType.video || FeedType.article => (0.65 * limit).ceil(),
       FeedType.story => limit,
     };
+  }
+
+  int _getFeedGlobalAccountsDistribution({required int limit}) {
+    return (0.05 * limit).ceil();
   }
 
   Future<Map<FeedModifier, int>> _getFeedModifiersDistribution({required int limit}) async {
@@ -209,7 +235,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
   }
 
-  Stream<IonConnectEntity> _fetchUnseenFollowing({required int limit}) async* {
+  Stream<IonConnectEntity> _fetchUnseenFollowing({required int limit, bool global = false}) async* {
     Logger.info('$_logTag Requesting [$limit] unseen following events');
 
     final provider = feedFollowingContentProvider(
@@ -217,6 +243,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       feedModifier: feedModifier,
       fetchSeen: false,
       autoFetch: false,
+      global: global,
     );
 
     final providerNotifier = ref.read(provider.notifier);
