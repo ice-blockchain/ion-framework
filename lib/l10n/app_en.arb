@@ -923,5 +923,7 @@
   "create_post_add_topic_tooltip_title": "Topic",
   "create_post_add_topic_tooltip_description": "Adding a topic helps to improve visibility and engagement, making the platform more useful and attractive to users",
   "report_user_description": "This is a report for the user",
-  "report_content_description": "This is a report for the content"
+  "report_content_description": "This is a report for the content",
+  "share_user_on_app": "{userDisplayName} on {shareAppName}",
+  "share_story_watch_message": "Watch this story by {userDisplayName} before it disappears."
 }
