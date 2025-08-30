@@ -42,7 +42,7 @@ class OneToOneMessagingHeader extends ConsumerWidget {
       return const _HeaderSkeleton();
     }
 
-    final receiverPicture = isDeleted ? null : userMetadata?.picture;
+    final receiverPicture = isDeleted ? null : userMetadata?.avatarUrl;
     final receiverName = userMetadata?.name;
     final receiverDisplayName = userMetadata?.displayName;
 

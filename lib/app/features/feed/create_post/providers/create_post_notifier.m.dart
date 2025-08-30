@@ -320,12 +320,12 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     await Future.wait([
       ionNotifier.sendEvents([...fileEvents, postEvent]),
       for (final pubkey in pubkeysToPublish)
-        ref.read(ionConnectNotifierProvider.notifier).sendEvent(
-              postEvent,
-              actionSource: ActionSourceUser(pubkey),
-              metadataBuilders: metadataBuilders,
-              cache: false,
-            ),
+        ionNotifier.sendEvent(
+          postEvent,
+          actionSource: ActionSourceUser(pubkey),
+          metadataBuilders: metadataBuilders,
+          cache: false,
+        ),
     ]);
 
     return ModifiablePostEntity.fromEventMessage(postEvent);

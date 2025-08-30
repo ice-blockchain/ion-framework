@@ -15,6 +15,14 @@ enum FfmpegScaleArg {
     name: '80p',
     resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(80\,iw)):h=if(gt(ih\,iw)\,min(80\,ih)\,-2)',
   ),
+  p120(
+    name: '120p',
+    resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(120\,iw)):h=if(gt(ih\,iw)\,min(120\,ih)\,-2)',
+  ),
+  p180(
+    name: '180p',
+    resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(180\,iw)):h=if(gt(ih\,iw)\,min(180\,ih)\,-2)',
+  ),
   p240(
     name: '240p',
     resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(240\,iw)):h=if(gt(ih\,iw)\,min(240\,ih)\,-2)',

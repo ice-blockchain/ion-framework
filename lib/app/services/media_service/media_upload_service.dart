@@ -50,32 +50,36 @@ class MediaUploadService {
           file,
           settings: imageCompressionSettings,
         );
-    final blurhash = await ref.read(generateBlurhashProvider(compressedImage));
 
-    final thumbImage = await ref.read(imageCompressorProvider).compress(
+    final thumbImage = await ref.read(imageCompressorProvider).scaleImage(
           compressedImage,
-          settings: const ImageCompressionSettings(scaleResolution: FfmpegScaleArg.p80),
+        );
+    final thumbUploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
+          thumbImage,
+          alt: fileAlt,
         );
 
     final uploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
           compressedImage,
           alt: fileAlt,
         );
-    final thumbUploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
-          thumbImage,
-          alt: fileAlt,
-        );
+
+    final blurhash = await ref.read(generateBlurhashProvider(compressedImage));
+
     final mediaAttachment = uploadResult.mediaAttachment.copyWith(
       blurhash: blurhash,
       thumb: thumbUploadResult.fileMetadata.url,
-      image: thumbUploadResult.fileMetadata.url,
+      image: uploadResult.fileMetadata.url,
     );
     final fileMetadata = uploadResult.fileMetadata.copyWith(
       blurhash: blurhash,
       thumb: thumbUploadResult.fileMetadata.url,
-      image: thumbUploadResult.fileMetadata.url,
+      image: uploadResult.fileMetadata.url,
     );
-    return (fileMetadatas: [fileMetadata], mediaAttachment: mediaAttachment);
+    final thumbFileMetadata = thumbUploadResult.fileMetadata.copyWith(
+      url: thumbUploadResult.fileMetadata.url,
+    );
+    return (fileMetadatas: [fileMetadata, thumbFileMetadata], mediaAttachment: mediaAttachment);
   }
 
   Future<({List<FileMetadata> fileMetadatas, MediaAttachment mediaAttachment})> uploadVideo(
@@ -87,25 +91,33 @@ class MediaUploadService {
           compressedVideo,
           alt: fileAlt,
         );
-    final thumbImage = await videoCompressor.getThumbnail(compressedVideo, thumb: file.thumb);
-    final thumbUploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
+    final videoImage = await videoCompressor.getThumbnail(compressedVideo, thumb: file.thumb);
+    final videoImageUploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
+          videoImage,
+          alt: fileAlt,
+        );
+    final thumbImage = await ref
+        .read(imageCompressorProvider)
+        .scaleImage(videoImage, scaleResolution: FfmpegScaleArg.p480);
+    final thumbImageUploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
           thumbImage,
           alt: fileAlt,
         );
-    final thumbUrl = thumbUploadResult.fileMetadata.url;
-    final blurhash = await ref.read(generateBlurhashProvider(thumbImage));
+    final imageUrl = videoImageUploadResult.fileMetadata.url;
+    final thumbUrl = thumbImageUploadResult.fileMetadata.url;
+    final blurhash = await ref.read(generateBlurhashProvider(videoImage));
     final mediaAttachment = videoUploadResult.mediaAttachment.copyWith(
+      image: imageUrl,
       thumb: thumbUrl,
-      image: thumbUrl,
       blurhash: blurhash,
     );
     final videoFileMetadata = videoUploadResult.fileMetadata.copyWith(
       thumb: thumbUrl,
-      image: thumbUrl,
+      image: imageUrl,
       blurhash: blurhash,
     );
     return (
-      fileMetadatas: [videoFileMetadata, thumbUploadResult.fileMetadata],
+      fileMetadatas: [videoFileMetadata, videoImageUploadResult.fileMetadata],
       mediaAttachment: mediaAttachment,
     );
   }
