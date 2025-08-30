@@ -27,7 +27,7 @@ class ProfileAvatar extends ConsumerWidget {
 
     return showAvatarPicker
         ? AvatarPicker(
-            avatarUrl: userMetadataValue?.data.picture,
+            avatarUrl: userMetadataValue?.data.avatarUrl,
             avatarSize: pictureSize,
             borderRadius: borderRadius,
             iconSize: 20.0.s,
@@ -38,7 +38,7 @@ class ProfileAvatar extends ConsumerWidget {
             size: pictureSize,
             borderRadius: borderRadius,
             fit: BoxFit.cover,
-            imageUrl: userMetadataValue?.data.picture,
+            imageUrl: userMetadataValue?.data.avatarUrl,
           );
   }
 }

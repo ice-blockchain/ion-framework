@@ -52,7 +52,7 @@ class CurrentUserStoryListItem extends HookConsumerWidget {
                 hasStories: hasStories,
                 gradient: hasStories ? gradient : null,
                 isViewed: allStoriesViewed,
-                imageUrl: userMetadata.data.picture,
+                imageUrl: userMetadata.data.avatarUrl,
               ),
               const PlusButtonWithPermission(),
             ],

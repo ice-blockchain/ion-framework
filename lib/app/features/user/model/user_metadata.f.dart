@@ -75,8 +75,6 @@ class UserMetadata with _$UserMetadata implements EventSerializable, Replaceable
     Map<String, IonContentNftCollection>? ionContentNftCollections,
   }) = _UserMetadata;
 
-  const UserMetadata._();
-
   factory UserMetadata.fromEventMessage(EventMessage eventMessage) {
     final userDataContent = UserDataEventMessageContent.fromJson(
       json.decode(eventMessage.content) as Map<String, dynamic>,
@@ -107,6 +105,11 @@ class UserMetadata with _$UserMetadata implements EventSerializable, Replaceable
       ionContentNftCollections: userDataContent.ionContentNftCollections,
     );
   }
+
+  const UserMetadata._();
+
+  String? get avatarUrl =>
+      media.values.where((element) => picture == element.url).firstOrNull?.thumb ?? picture;
 
   @override
   FutureOr<EventMessage> toEventMessage(
