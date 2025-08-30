@@ -190,8 +190,7 @@ class FFmpegCommands {
         inputPath,
         '-vf',
         scaleResolution,
-        '-q:v',
-        quality.toString(),
+        //'$scaleResolution,format=rgb24,geq=0:0:0', // RGB kanallarını 0 yap (black)
         outputPath,
       ];
 }

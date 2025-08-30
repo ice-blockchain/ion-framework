@@ -12,6 +12,8 @@ import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart' hide UserMetadata;
 import 'package:ion/app/features/user/providers/user_social_profile_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
+import 'package:ion/app/services/compressors/image_compressor.r.dart';
+import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_scale_arg.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/utils/url.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -35,19 +37,32 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
             ? normalizeUrl(userMetadata.website!)
             : userMetadata.website,
       );
+      final avatarThumb = avatar != null
+          ? await ref
+              .read(imageCompressorProvider)
+              .scaleImage(avatar, scaleResolution: FfmpegScaleArg.p120)
+          : null;
 
-      final (uploadedAvatar, uploadedBanner) =
-          await (_upload(avatar, alt: FileAlt.avatar), _upload(banner, alt: FileAlt.banner)).wait;
+      final (uploadedAvatar, uploadedBanner, uploadedAvatarThumb) = await (
+        _upload(avatar, alt: FileAlt.avatar),
+        _upload(banner, alt: FileAlt.banner),
+        _upload(avatarThumb, alt: FileAlt.avatar)
+      ).wait;
 
-      final files = [uploadedAvatar, uploadedBanner]
+      final files = [uploadedAvatar, uploadedBanner, uploadedAvatarThumb]
           .whereType<UploadResult>()
           .map((result) => result.fileMetadata);
 
       if (uploadedAvatar != null) {
         final attachment = uploadedAvatar.mediaAttachment;
+        final uploadedAvatarThumbAttachment = uploadedAvatarThumb?.mediaAttachment;
+
         data = data.copyWith(
           picture: attachment.url,
-          media: {...data.media, attachment.url: attachment},
+          media: {
+            ...data.media,
+            attachment.url: attachment.copyWith(thumb: uploadedAvatarThumbAttachment?.url),
+          },
         );
       }
 
