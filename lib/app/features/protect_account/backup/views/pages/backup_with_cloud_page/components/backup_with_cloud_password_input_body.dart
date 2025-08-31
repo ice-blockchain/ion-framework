@@ -14,6 +14,7 @@ import 'package:ion/app/features/components/verify_identity/components/password_
 import 'package:ion/app/features/protect_account/backup/providers/cloud_stored_recovery_keys_names_provider.r.dart';
 import 'package:ion/app/features/protect_account/backup/providers/create_recovery_key_action_notifier.r.dart';
 import 'package:ion/app/features/protect_account/backup/providers/recovery_key_cloud_backup_notifier.r.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/recovery_credentials_enabled_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
 final class BackupWithCloudPasswordInputBody extends HookConsumerWidget {
@@ -123,6 +124,7 @@ final class BackupWithCloudPasswordInputBody extends HookConsumerWidget {
                         );
                     final state = ref.read(recoveryKeyCloudBackupNotifierProvider);
                     if (!state.hasError && context.mounted) {
+                      ref.read(recoveryCredentialsEnabledProvider.notifier).setEnabled();
                       ref.invalidate(cloudStoredRecoveryKeysNamesProvider);
                       await BackupWithCloudSuccessRoute().push<void>(context);
                     }
