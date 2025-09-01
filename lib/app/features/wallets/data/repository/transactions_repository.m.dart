@@ -461,7 +461,6 @@ class TransactionsRepository {
     return fallbackAddress;
   }
 
-
   Future<void> updateTransaction({
     required String txHash,
     required String walletViewId,
