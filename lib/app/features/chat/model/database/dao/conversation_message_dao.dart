@@ -93,39 +93,46 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
   }
 
   Stream<Map<DateTime, List<EventMessage>>> getMessages(String conversationId) {
-    // Listen only to changes in conversationMessageTable
-    final query = select(conversationMessageTable)
-      ..where((tbl) => tbl.conversationId.equals(conversationId));
+    final query = select(conversationMessageTable).join([
+      innerJoin(
+        eventMessageTable,
+        eventMessageTable.eventReference.equalsExp(conversationMessageTable.messageEventReference),
+      ),
+    ])
+      ..where(conversationMessageTable.conversationId.equals(conversationId))
+      ..where(
+        notExistsQuery(
+          select(messageStatusTable)
+            ..where((tbl) => tbl.status.equals(MessageDeliveryStatus.deleted.index))
+            ..where(
+              (table) => table.messageEventReference.equalsExp(eventMessageTable.eventReference),
+            ),
+        ),
+      );
 
-    return query.watch().asyncMap((conversationMessages) async {
-      // Get all event references from the conversation messages
-      final eventReferences = conversationMessages.map((msg) => msg.messageEventReference).toList();
-
-      if (eventReferences.isEmpty) {
-        return <DateTime, List<EventMessage>>{};
-      }
-
-      // Fetch corresponding event messages only
-      final eventMessages = await (select(eventMessageTable)
-            ..where((tbl) => tbl.eventReference.isInValues(eventReferences)))
-          .get();
-
-      // Group by date
+    return query.watch().map((List<TypedResult> rows) {
       final groupedMessages = <DateTime, List<EventMessage>>{};
-      for (final eventMessage in eventMessages) {
-        final em = eventMessage.toEventMessage();
-        final publishedAtDate = em.publishedAt.toDateTime;
+
+      for (final row in rows) {
+        final eventMessage = row.readTable(eventMessageTable).toEventMessage();
+
+        final publishedAtDate = eventMessage.publishedAt.toDateTime;
         final dateKey = DateTime(
           publishedAtDate.year,
           publishedAtDate.month,
           publishedAtDate.day,
         );
-        groupedMessages.putIfAbsent(dateKey, () => []).add(em);
-        groupedMessages[dateKey]!.sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
+
+        groupedMessages.putIfAbsent(dateKey, () => []).add(eventMessage);
+      }
+
+      // Sort all message lists after grouping is complete
+      for (final messages in groupedMessages.values) {
+        messages.sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
       }
 
       return groupedMessages;
-    });
+    }).startWithStream(Stream.value(<DateTime, List<EventMessage>>{}));
   }
 
   Future<EventMessage> getEventMessage({required EventReference eventReference}) async {
