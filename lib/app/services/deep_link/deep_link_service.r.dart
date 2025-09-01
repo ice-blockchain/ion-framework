@@ -101,7 +101,8 @@ Future<void> deeplinkInitializer(Ref ref) async {
     EventReference eventReference,
     String encodedEventReference,
   ) async {
-    final entity = await ref.read(ionConnectEntityWithCountersProvider(eventReference: eventReference).future);
+    final entity =
+        await ref.read(ionConnectEntityWithCountersProvider(eventReference: eventReference).future);
 
     if (entity is ModifiablePostEntity) {
       if (entity.isStory) {
