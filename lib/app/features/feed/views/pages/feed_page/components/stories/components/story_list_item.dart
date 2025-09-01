@@ -11,6 +11,7 @@ import 'package:ion/app/features/feed/stories/data/models/stories_references.f.d
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_item_content.dart';
+import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_list_separator.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/hooks/use_preload_story_media.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -52,14 +53,17 @@ class StoryListItem extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    return Material(
-      color: Colors.transparent,
-      child: StoryItemContent(
-        pubkey: pubkey,
-        name: userMetadata.data.name,
-        gradient: gradient.value,
-        isViewed: allStoriesViewed,
-        onTap: () => StoryViewerRoute(pubkey: pubkey).push<void>(context),
+    return Padding(
+      padding: EdgeInsetsDirectional.only(start: StoryListSeparator.width),
+      child: Material(
+        color: Colors.transparent,
+        child: StoryItemContent(
+          pubkey: pubkey,
+          name: userMetadata.data.name,
+          gradient: gradient.value,
+          isViewed: allStoriesViewed,
+          onTap: () => StoryViewerRoute(pubkey: pubkey).push<void>(context),
+        ),
       ),
     );
   }
