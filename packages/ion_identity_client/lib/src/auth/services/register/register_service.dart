@@ -37,13 +37,14 @@ class RegisterService {
   /// Throws:
   /// - [PasskeyNotAvailableException] if the device cannot authenticate using passkeys.
   /// - Other exceptions may be thrown during API interactions or token storage.
-  Future<void> registerUser(String? earlyAccessEmail) async {
+  Future<void> registerUser(GetRequestId getRequestId, String? earlyAccessEmail) async {
     final passkeyAuthAvailable = await identitySigner.isPasskeyAvailable();
     if (!passkeyAuthAvailable) {
       throw const PasskeyNotAvailableException();
     }
     await _completeRegistration(
       identitySigner.registerWithPasskey,
+      getRequestId,
       earlyAccessEmail,
     );
   }
@@ -59,6 +60,7 @@ class RegisterService {
   /// 5. Stores the received authentication tokens.
   Future<void> registerWithPassword(
     String password,
+    GetRequestId getRequestId,
     String? earlyAccessEmail,
   ) async {
     await _completeRegistration(
@@ -68,21 +70,26 @@ class RegisterService {
         username: username,
         credentialKind: CredentialKind.PasswordProtectedKey,
       ),
+      getRequestId,
       earlyAccessEmail,
     );
   }
 
   Future<void> _completeRegistration(
     Future<CredentialRequestData> Function(UserRegistrationChallenge) getCredentials,
+    GetRequestId getRequestId,
     String? earlyAccessEmail,
   ) async {
     final userRegistrationChallenge =
         await dataSource.registerInit(username: username, earlyAccessEmail: earlyAccessEmail);
     final credentialData = await getCredentials(userRegistrationChallenge);
+
+    final requestId = await getRequestId(username);
     final registrationCompleteResponse = await dataSource.registerComplete(
       credentialData: credentialData,
       temporaryAuthenticationToken: userRegistrationChallenge.temporaryAuthenticationToken!,
       earlyAccessEmail: earlyAccessEmail,
+      requestId: requestId,
     );
     await tokenStorage.setTokens(
       username: username,

@@ -46,6 +46,7 @@ class RegisterDataSource {
   Future<RegistrationCompleteResponse> registerComplete({
     required CredentialRequestData credentialData,
     required String temporaryAuthenticationToken,
+    required String requestId,
     String? earlyAccessEmail,
   }) {
     return networkClient.post(
@@ -55,7 +56,10 @@ class RegisterDataSource {
               .toJson(),
       decoder: (result, _) =>
           parseJsonObject(result, fromJson: RegistrationCompleteResponse.fromJson),
-      headers: RequestHeaders.getTokenHeader(token: temporaryAuthenticationToken),
+      headers: {
+        ...RequestHeaders.getTokenHeader(token: temporaryAuthenticationToken),
+        RequestHeaders.deviceIdentificationRequestId: requestId,
+      },
     );
   }
 
