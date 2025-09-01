@@ -27,7 +27,7 @@ class QuotedEntity extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ionConnectEntity =
-        ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference));
+        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
 
     if (ionConnectEntity == null) {
       return const Skeleton(child: PostSkeleton());

@@ -14,7 +14,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'ion_connect_entity_with_counters_provider.r.g.dart';
 
 @riverpod
-IonConnectEntity? ionConnectEntityWithCounters(
+IonConnectEntity? ionConnectSyncEntityWithCounters(
   Ref ref, {
   required EventReference eventReference,
   bool network = true,
@@ -51,5 +51,46 @@ IonConnectEntity? ionConnectEntityWithCounters(
       network: network,
       cache: cache,
     ),
+  );
+}
+
+@riverpod
+Future<IonConnectEntity?> ionConnectEntityWithCounters(
+  Ref ref, {
+  required EventReference eventReference,
+  bool network = true,
+  bool cache = true,
+}) async {
+  final currentUser = ref.watch(currentIdentityKeyNameSelectorProvider);
+  if (currentUser == null) {
+    throw const CurrentUserNotFoundException();
+  }
+
+  // Do not query counters and deps if the entity if not a post or article (e.g. a repost)
+  if (eventReference is! ReplaceableEventReference ||
+      (eventReference.kind != ModifiablePostEntity.kind &&
+          eventReference.kind != ArticleEntity.kind)) {
+    return ref.watch(ionConnectEntityProvider(eventReference: eventReference).future);
+  }
+
+  final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
+  if (currentUserPubkey == null) {
+    throw const CurrentUserNotFoundException();
+  }
+
+  final search = SearchExtensions([
+    ...SearchExtensions.withCounters(
+      currentPubkey: currentUserPubkey,
+      forKind: eventReference.kind,
+    ).extensions,
+  ]).toString();
+
+  return ref.watch(
+    ionConnectEntityProvider(
+      eventReference: eventReference,
+      search: search,
+      network: network,
+      cache: cache,
+    ).future,
   );
 }

@@ -21,7 +21,7 @@ class ArticlesCarouselItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final article = ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference));
+    final article = ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
 
     if (article is! ArticleEntity || article.isDeleted) {
       return const SizedBox.shrink();

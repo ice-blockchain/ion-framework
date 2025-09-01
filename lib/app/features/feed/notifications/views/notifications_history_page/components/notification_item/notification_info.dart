@@ -147,7 +147,7 @@ class NotificationInfo extends HookConsumerWidget {
       return null;
     }
 
-    final entity = ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference));
+    final entity = ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
 
     if (entity == null) {
       return null;
@@ -167,7 +167,7 @@ class NotificationInfo extends HookConsumerWidget {
 
       if (relatedEventReference != null) {
         return ref
-            .watch(ionConnectEntityWithCountersProvider(eventReference: relatedEventReference));
+            .watch(ionConnectSyncEntityWithCountersProvider(eventReference: relatedEventReference));
       }
     }
 
