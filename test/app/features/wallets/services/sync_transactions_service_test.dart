@@ -442,9 +442,9 @@ void main() {
           () => mockTransferStatusUpdater.update(mockUserWallets[1]),
         ).called(1);
 
-        verifyNever(
+        verify(
           () => mockTransferStatusUpdater.update(mockUserWallets[0]),
-        );
+        ).called(1);
 
         verifyNever(
           () => mockCryptoWalletsRepository.save(
@@ -590,9 +590,9 @@ void main() {
           ),
         ).called(1);
 
-        verifyNever(
+        verify(
           () => mockTransferStatusUpdater.update(mockUserWallets[0]),
-        );
+        ).called(1);
 
         verifyNever(
           () => mockCryptoWalletsRepository.save(
