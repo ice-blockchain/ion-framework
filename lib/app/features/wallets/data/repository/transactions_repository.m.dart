@@ -290,6 +290,7 @@ class TransactionsRepository {
     List<String> txHashes = const [],
     List<String> walletAddresses = const [],
     List<String> walletViewIds = const [],
+    List<String> eventIds = const [],
     List<TransactionStatus> statuses = const [],
     int limit = 20,
     int offset = 0,
@@ -306,6 +307,7 @@ class TransactionsRepository {
       nftIdentifiers: nftIdentifiers.map((e) => e.value).toList(),
       networkId: network?.id,
       walletViewIds: walletViewIds,
+      eventIds: eventIds,
       statuses: statuses,
       assetType: assetType,
       type: type,
@@ -457,6 +459,50 @@ class TransactionsRepository {
     if (direct != null) return direct;
     if (alternatives?.length == 1) return alternatives!.first;
     return fallbackAddress;
+  }
+
+
+  Future<void> updateTransaction({
+    required String txHash,
+    required String walletViewId,
+    String? status,
+    String? eventId,
+    String? externalHash,
+    DateTime? dateConfirmed,
+    DateTime? dateRequested,
+    String? fee,
+  }) async {
+    final existing = await _transactionsDao.getTransactions(
+      txHashes: [txHash],
+      walletViewIds: [walletViewId],
+      limit: 1,
+    );
+
+    if (existing.isEmpty) {
+      Logger.warning(
+        'TransactionsRepository: Transaction $txHash with walletViewId $walletViewId not found for update',
+      );
+      return;
+    }
+
+    final transaction = existing.first;
+    final mapped = _coinMapper.fromDomainToDB([transaction]).first;
+
+    final updatedTransaction = mapped.copyWith(
+      status: Value(status ?? mapped.status),
+      eventId: Value(eventId ?? mapped.eventId),
+      externalHash: Value(externalHash ?? mapped.externalHash),
+      dateConfirmed: Value(dateConfirmed ?? mapped.dateConfirmed),
+      dateRequested: Value(dateRequested ?? mapped.dateRequested),
+      fee: Value(fee ?? mapped.fee),
+    );
+
+    final updated = await _transactionsDao.save([updatedTransaction]);
+    Logger.log(
+      updated
+          ? 'TransactionsRepository: Successfully updated transaction $txHash'
+          : 'TransactionsRepository: No changes made to transaction $txHash',
+    );
   }
 }
 

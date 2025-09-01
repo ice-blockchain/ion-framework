@@ -20,6 +20,10 @@ class TransactionListItemLeadingIcon extends StatelessWidget {
   final TransactionStatus status;
 
   Color _getBorderColor(BuildContext context) {
+    if (status == TransactionStatus.failed) {
+      return context.theme.appColors.onTertiaryFill;
+    }
+
     return switch (type) {
       TransactionType.receive => context.theme.appColors.success,
       TransactionType.send => context.theme.appColors.onTertiaryFill,
@@ -38,6 +42,10 @@ class TransactionListItemLeadingIcon extends StatelessWidget {
   }
 
   Color _getBackgroundColor(BuildContext context) {
+    if (status == TransactionStatus.failed) {
+      return context.theme.appColors.onPrimaryAccent;
+    }
+
     return switch (type) {
       TransactionType.receive => context.theme.appColors.success,
       TransactionType.send => context.theme.appColors.onPrimaryAccent,

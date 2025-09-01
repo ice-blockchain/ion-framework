@@ -88,6 +88,7 @@ class TransactionDetailsPage extends ConsumerWidget {
                                     imageUrl: coin.coinsGroup.iconUrl,
                                     type: WalletItemIconType.medium(),
                                   ),
+                                  isFailed: transactionData.status == TransactionStatus.failed,
                                   transactionType: transactionData.type,
                                 ),
                                 nft: (nft) => Padding(

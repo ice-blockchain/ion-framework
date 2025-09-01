@@ -18,7 +18,10 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart'
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/user_profile/providers/user_profile_sync_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/request_assets_repository.r.dart';
+import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
+import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
+import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'encrypted_deletion_request_handler.r.g.dart';
@@ -34,6 +37,7 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
     this.eventSigner,
     this.userProfileSyncProvider,
     this.requestAssetsRepository,
+    this.transactionsRepository,
   );
 
   final ConversationMessageDao conversationMessageDao;
@@ -42,6 +46,7 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
   final EventMessageDao eventMessageDao;
   final UserProfileSync userProfileSyncProvider;
   final RequestAssetsRepository requestAssetsRepository;
+  final TransactionsRepository transactionsRepository;
 
   final Env env;
   final String masterPubkey;
@@ -61,6 +66,7 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
     unawaited(_deleteMessageReaction(rumor));
     unawaited(userProfileSyncProvider.syncUserProfile(masterPubkeys: {rumor.masterPubkey}));
     unawaited(_deleteFundsRequest(rumor));
+    unawaited(_deleteWalletAsset(rumor));
   }
 
   Future<void> _deleteConversation(EventMessage rumor) async {
@@ -177,6 +183,38 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
       }
     }
   }
+
+  Future<void> _deleteWalletAsset(EventMessage rumor) async {
+    final deletionRequest = DeletionRequest.fromEventMessage(rumor);
+
+    final eventsToDelete = deletionRequest.events.whereType<EventToDelete>().toList();
+
+    final walletAssetDeletions = eventsToDelete
+        .where(
+          (event) =>
+              event.eventReference is ImmutableEventReference &&
+              event.eventReference.kind == WalletAssetEntity.kind,
+        )
+        .map((event) => event.eventReference as ImmutableEventReference)
+        .toList();
+
+    if (walletAssetDeletions.isNotEmpty) {
+      for (final eventReference in walletAssetDeletions) {
+        final transaction = await transactionsRepository.getTransactions(
+          eventIds: [eventReference.eventId],
+          limit: 1,
+        ).then((result) => result.firstOrNull);
+
+        if (transaction != null) {
+          await transactionsRepository.updateTransaction(
+            txHash: transaction.txHash,
+            walletViewId: transaction.walletViewId,
+            status: TransactionStatus.failed.toJson(),
+          );
+        }
+      }
+    }
+  }
 }
 
 @riverpod
@@ -197,5 +235,6 @@ Future<EncryptedDeletionRequestHandler?> encryptedDeletionRequestHandler(Ref ref
     eventSigner,
     ref.watch(userProfileSyncProvider.notifier),
     ref.watch(requestAssetsRepositoryProvider),
+    await ref.watch(transactionsRepositoryProvider.future),
   );
 }

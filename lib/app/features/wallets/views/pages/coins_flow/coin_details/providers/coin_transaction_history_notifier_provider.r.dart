@@ -134,7 +134,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
     final repository = await ref.read(transactionsRepositoryProvider.future);
     final coinIds = _getFilteredCoinIds();
 
-    // Stream 1: Watch for new transactions (both in-progress and confirmed) since initial load
+    // Stream 1: Watch for new transactions  since initial load
     _newTransactionsWatcher = repository
         .watchTransactions(
           coinIds: coinIds,
@@ -150,20 +150,23 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
         .distinct((list1, list2) => const ListEquality<TransactionData>().equals(list1, list2))
         .listen(_onTransactionsUpdated, onError: _onWatcherError);
 
-    // Stream 2: Watch for in-progress transaction status updates
+    // Stream 2: Watch for in-progress and failed transaction status updates
     _inProgressTransactionsWatcher = repository
         .watchTransactions(
           coinIds: coinIds,
           network: _network,
           walletViewIds: [_walletViewId],
           walletAddresses: _coinWalletAddresses,
-          statuses: TransactionStatus.inProgressStatuses,
+          statuses: [
+            ...TransactionStatus.inProgressStatuses,
+            TransactionStatus.failed,
+          ],
           limit: 100, // 100 for rare cases, on average no more than 20 is expected
         )
         .distinct((list1, list2) => const ListEquality<TransactionData>().equals(list1, list2))
         .listen(_onTransactionsUpdated, onError: _onWatcherError);
 
-    Logger.info('$_tag Started real-time watching for new and in-progress transactions');
+    Logger.info('$_tag Started real-time watching for new, in-progress, and failed transactions');
   }
 
   void _onTransactionsUpdated(List<TransactionData> transactions) {

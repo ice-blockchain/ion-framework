@@ -69,10 +69,10 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
 
         if (existing == null) return toInsertRaw;
 
-        // We don't need to update next fields after initialization
         return toInsertRaw.copyWith(
           id: Value(existing.id ?? toInsertRaw.id),
           fee: Value(existing.fee ?? toInsertRaw.fee),
+          eventId: Value(existing.eventId ?? toInsertRaw.eventId),
           userPubkey: Value(existing.userPubkey ?? toInsertRaw.userPubkey),
           dateRequested: Value(existing.dateRequested ?? toInsertRaw.dateRequested),
           dateConfirmed: Value(existing.dateConfirmed ?? toInsertRaw.dateConfirmed),
@@ -124,6 +124,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         walletAddresses: walletAddresses,
         walletViewIds: walletViewIds,
         externalHashes: externalHashes,
+        eventIds: eventIds,
         statuses: statuses,
         symbol: symbol,
         type: type,
@@ -163,6 +164,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         walletAddresses: walletAddresses,
         walletViewIds: walletViewIds,
         externalHashes: externalHashes,
+        eventIds: eventIds,
         statuses: statuses,
         symbol: symbol,
         networkId: networkId,
@@ -237,6 +239,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
     List<String> walletAddresses = const [],
     List<String> walletViewIds = const [],
     List<String> externalHashes = const [],
+    List<String> eventIds = const [],
     List<TransactionStatus> statuses = const [],
     String? symbol,
     TransactionType? type,
@@ -270,6 +273,10 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
 
     if (externalHashes.isNotEmpty) {
       expr = expr & tbl.externalHash.isIn(externalHashes);
+    }
+
+    if (eventIds.isNotEmpty) {
+      expr = expr & tbl.eventId.isIn(eventIds);
     }
 
     if (walletViewIds.isNotEmpty) {
@@ -413,6 +420,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
           ? TransactionStatus.fromJson(transaction.status!)
           : TransactionStatus.broadcasted,
       userPubkey: transaction.userPubkey,
+      eventId: transaction.eventId,
     );
   }
 

@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
+import 'package:ion/app/features/wallets/domain/transactions/failed_transfer_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/periodic_transactions_sync_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
@@ -17,9 +18,12 @@ class MockSyncTransactionsService extends Mock implements SyncTransactionsServic
 
 class MockTransactionsRepository extends Mock implements TransactionsRepository {}
 
+class MockFailedTransferService extends Mock implements FailedTransferService {}
+
 void main() {
   late MockSyncTransactionsService mockSyncTransactionsService;
   late MockTransactionsRepository mockTransactionsRepository;
+  late MockFailedTransferService mockFailedTransferService;
   late PeriodicTransactionsSyncService service;
 
   setUpAll(() {
@@ -30,9 +34,11 @@ void main() {
   setUp(() {
     mockSyncTransactionsService = MockSyncTransactionsService();
     mockTransactionsRepository = MockTransactionsRepository();
+    mockFailedTransferService = MockFailedTransferService();
     service = PeriodicTransactionsSyncService(
       mockSyncTransactionsService,
       mockTransactionsRepository,
+      mockFailedTransferService,
       initialSyncDelay: const Duration(microseconds: 10),
     );
   });

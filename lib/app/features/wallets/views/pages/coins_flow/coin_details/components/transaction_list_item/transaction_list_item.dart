@@ -9,6 +9,7 @@ import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_transaction_data.f.dart';
+import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/transaction_list_item_leading_icon.dart';
@@ -29,6 +30,9 @@ class TransactionListItem extends ConsumerWidget {
   final CoinTransactionData transactionData;
 
   Color _getTextColor(BuildContext context) {
+    if (transactionData.origin.status == TransactionStatus.failed) {
+      return context.theme.appColors.primaryText;
+    }
     return switch (transactionData.transactionType) {
       TransactionType.receive => context.theme.appColors.success,
       TransactionType.send => context.theme.appColors.primaryText,

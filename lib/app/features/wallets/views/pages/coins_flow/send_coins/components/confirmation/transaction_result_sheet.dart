@@ -9,6 +9,7 @@ import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/providers/transaction_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/nft_item.dart';
@@ -70,6 +71,7 @@ class TransactionResultSheet extends ConsumerWidget {
                           type: WalletItemIconType.medium(),
                         ),
                         transactionType: TransactionType.send,
+                        isFailed: transactionData.status == TransactionStatus.failed,
                       ),
                       nft: (nft) => Padding(
                         padding: EdgeInsets.symmetric(
