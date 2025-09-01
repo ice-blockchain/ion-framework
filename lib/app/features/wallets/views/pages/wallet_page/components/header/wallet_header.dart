@@ -12,7 +12,6 @@ import 'package:ion/app/features/components/wallet_switcher/wallet_switcher.dart
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
-import 'package:ion/app/features/wallets/views/pages/wallet_scan_modal_page.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_button/navigation_button.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -22,8 +21,7 @@ class WalletHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dappsEnabled =
-        ref.watch(featureFlagsProvider.notifier).get(WalletFeatureFlag.dappsEnabled);
+    final dappsEnabled = ref.watch(featureFlagsProvider.notifier).get(WalletFeatureFlag.dappsEnabled);
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -71,15 +69,7 @@ class ScanButton extends ConsumerWidget {
   }
 
   Future<void> _onScanPressed(WidgetRef ref) async {
-    final scannedAddress = await showModalBottomSheet<String>(
-      context: ref.context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Padding(
-        padding: EdgeInsetsDirectional.only(top: 64.0.s),
-        child: const WalletScanModalPage(),
-      ),
-    );
+    final scannedAddress = await ScanWalletRoute().push<String>(ref.context);
     if (scannedAddress == null || !ref.context.mounted) return;
 
     // Navigation to the CoinSendRoute doesn't work while the bottom sheet animation is running
