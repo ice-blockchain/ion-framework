@@ -7,6 +7,9 @@ import 'package:ion/app/components/counter_items_footer/counter_items_footer.dar
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/views/components/feed_network_image/feed_network_image.dart';
 import 'package:ion/app/features/feed/views/pages/fullscreen_media/hooks/use_image_zoom.dart';
 import 'package:ion/app/features/feed/views/pages/fullscreen_media/providers/image_zoom_provider.r.dart';
@@ -16,6 +19,7 @@ import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/video/views/components/video_actions.dart';
 import 'package:ion/app/features/video/views/components/video_post_info.dart';
 import 'package:ion/app/features/video/views/pages/video_page.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 
 class MediaCarousel extends HookConsumerWidget {
   const MediaCarousel({
@@ -77,7 +81,10 @@ class MediaCarousel extends HookConsumerWidget {
               return VideoPage(
                 key: ValueKey('video_${mediaItem.url}'),
                 videoInfo: VideoPostInfo(videoPost: entity),
-                bottomOverlay: VideoActions(eventReference: eventReference),
+                bottomOverlay: VideoActions(
+                  eventReference: eventReference,
+                  onReplyTap: () => _onReplyTap(context),
+                ),
                 videoUrl: mediaItem.url,
                 authorPubkey: eventReference.masterPubkey,
                 thumbnailUrl: mediaItem.thumb,
@@ -106,12 +113,21 @@ class MediaCarousel extends HookConsumerWidget {
               child: CounterItemsFooter(
                 eventReference: eventReference,
                 color: onPrimaryAccentColor,
+                onReplyTap: () => _onReplyTap(context),
               ),
             ),
           ),
         ),
       ],
     );
+  }
+
+  void _onReplyTap(BuildContext context) {
+    if (entity is ModifiablePostEntity || entity is PostEntity) {
+      PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
+    } else if (entity is ArticleEntity) {
+      ArticleDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
+    }
   }
 }
 

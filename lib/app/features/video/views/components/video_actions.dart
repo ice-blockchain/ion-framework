@@ -8,10 +8,12 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 class VideoActions extends StatelessWidget {
   const VideoActions({
     required this.eventReference,
+    this.onReplyTap,
     super.key,
   });
 
   final EventReference eventReference;
+  final VoidCallback? onReplyTap;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +26,7 @@ class VideoActions extends StatelessWidget {
         ),
         eventReference: eventReference,
         color: context.theme.appColors.secondaryBackground,
+        onReplyTap: onReplyTap,
       ),
     );
   }

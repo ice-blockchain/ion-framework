@@ -17,6 +17,7 @@ class CounterItemsFooter extends HookConsumerWidget {
     this.itemPadding,
     this.sidePadding,
     this.color,
+    this.onReplyTap,
     super.key,
   });
 
@@ -24,6 +25,7 @@ class CounterItemsFooter extends HookConsumerWidget {
   final EdgeInsetsDirectional? itemPadding;
   final double? sidePadding;
   final Color? color;
+  final VoidCallback? onReplyTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,6 +42,7 @@ class CounterItemsFooter extends HookConsumerWidget {
             eventReference: eventReference,
             padding: itemPadding + EdgeInsetsDirectional.symmetric(horizontal: sidePadding),
             color: color,
+            onTap: onReplyTap,
           ),
         ),
         Center(

@@ -15,6 +15,7 @@ import 'package:ion/app/features/video/views/components/video_actions.dart';
 import 'package:ion/app/features/video/views/components/video_post_info.dart';
 import 'package:ion/app/features/video/views/hooks/use_wake_lock.dart';
 import 'package:ion/app/features/video/views/pages/video_page.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 
 class SingleMediaView extends HookWidget {
   const SingleMediaView({
@@ -43,7 +44,10 @@ class SingleMediaView extends HookWidget {
       final entity = (post ?? article!) as IonConnectEntity;
       return VideoPage(
         videoInfo: VideoPostInfo(videoPost: entity),
-        bottomOverlay: VideoActions(eventReference: eventReference),
+        bottomOverlay: VideoActions(
+          eventReference: eventReference,
+          onReplyTap: () => _onReplyTap(context),
+        ),
         videoUrl: media.url,
         authorPubkey: eventReference.masterPubkey,
         thumbnailUrl: media.thumb,
@@ -66,10 +70,19 @@ class SingleMediaView extends HookWidget {
               eventReference: eventReference,
               color: onPrimaryAccentColor,
               itemPadding: EdgeInsetsDirectional.symmetric(vertical: 12.0.s),
+              onReplyTap: () => _onReplyTap(context),
             ),
           ),
         ),
       ),
     );
+  }
+
+  void _onReplyTap(BuildContext context) {
+    if (post != null) {
+      PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
+    } else if (article != null) {
+      ArticleDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
+    }
   }
 }

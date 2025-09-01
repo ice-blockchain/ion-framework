@@ -6,6 +6,7 @@ class ProfileRoutes {
   static const routes = <TypedRoute<RouteData>>[
     TypedGoRoute<ProfileRoute>(path: 'user/:pubkey'),
     TypedGoRoute<ProfileVideosRoute>(path: 'user-videos-fullstack/:pubkey'),
+    TypedGoRoute<FullscreenMediaRoute>(path: 'fullscreen-media-fullstack'),
     TypedGoRoute<ProfileEditRoute>(path: 'profile_edit'),
     TypedGoRoute<BookmarksRoute>(path: 'bookmarks'),
     TypedGoRoute<EditBookmarksRoute>(path: 'bookmarks_edit'),
@@ -292,4 +293,26 @@ class CreateQuoteProfileRoute extends BaseRouteData with _$CreateQuoteProfileRou
   final String quotedEvent;
   final String? content;
   final String? attachedMedia;
+}
+
+class FullscreenMediaRoute extends BaseRouteData with _$FullscreenMediaRoute {
+  FullscreenMediaRoute({
+    required this.initialMediaIndex,
+    required this.eventReference,
+    this.framedEventReference,
+  }) : super(
+          child: FullscreenMediaPage(
+            initialMediaIndex: initialMediaIndex,
+            eventReference: EventReference.fromEncoded(eventReference),
+            framedEventReference: framedEventReference != null
+                ? EventReference.fromEncoded(framedEventReference)
+                : null,
+          ),
+          type: IceRouteType.swipeDismissible,
+          isFullscreenMedia: true,
+        );
+
+  final int initialMediaIndex;
+  final String eventReference;
+  final String? framedEventReference;
 }
