@@ -14,6 +14,7 @@ import 'package:ion/app/features/ion_connect/model/entity_expiration.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
+import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/ion_connect/ed25519_key_store.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -110,22 +111,50 @@ class SendChatMedia extends _$SendChatMedia {
     MediaFile mediaFile,
     String masterPubkey, {
     CancelToken? cancelToken,
+    bool isThumbnail = false,
   }) async {
     final mediaAttachments = <MediaAttachment>[];
     final oneTimeEventSigner = await Ed25519KeyStore.generate();
     final env = ref.read(envProvider.notifier);
 
     final isVideo = mediaFile.mimeType == MimeType.video.value;
+    final isImage = mediaFile.mimeType == MimeType.image.value;
 
-    var blurHash = await ref.read(generateBlurhashProvider(mediaFile));
+    String? blurHash;
     String? thumbUrl;
 
+    final imageProcessor = ref.read(imageCompressorProvider);
+
     if (isVideo) {
-      final thumbMediaFile = await ref.read(videoCompressorProvider).getThumbnail(mediaFile);
-      blurHash = await ref.read(generateBlurhashProvider(thumbMediaFile));
-      final thumbMediaAttachment = (await _processMedia(thumbMediaFile, masterPubkey)).first;
+      final firstFrame = await ref.read(videoCompressorProvider).getThumbnail(mediaFile);
+      final thumbMediaFile = await imageProcessor.scaleImage(
+        firstFrame,
+      );
+
+      final thumbMediaAttachment = (await _processMedia(
+        thumbMediaFile,
+        masterPubkey,
+        isThumbnail: true,
+      ))
+          .first;
+
       mediaAttachments.add(thumbMediaAttachment);
       thumbUrl = thumbMediaAttachment.url;
+      blurHash = await ref.read(generateBlurhashProvider(thumbMediaFile));
+    } else if (isImage && !isThumbnail) {
+      final thumbMediaFile = await ref.read(imageCompressorProvider).scaleImage(
+            mediaFile,
+          );
+
+      final imageMediaAttachment = (await _processMedia(
+        thumbMediaFile,
+        masterPubkey,
+        isThumbnail: true,
+      ))
+          .first;
+      mediaAttachments.add(imageMediaAttachment);
+      thumbUrl = imageMediaAttachment.url;
+      blurHash = await ref.read(generateBlurhashProvider(thumbMediaFile));
     }
 
     final encryptedMediaFile = await ref.read(mediaEncryptionServiceProvider).encryptMediaFile(
@@ -138,11 +167,6 @@ class SendChatMedia extends _$SendChatMedia {
           customEventSigner: oneTimeEventSigner,
           cancelToken: cancelToken,
         );
-
-    final isImage = mediaFile.mimeType == MimeType.image.value;
-    if (isImage) {
-      thumbUrl = uploadResult.mediaAttachment.url;
-    }
 
     final mediaMetadataEvent = await uploadResult.fileMetadata
         .copyWith(blurhash: blurHash, thumb: thumbUrl)

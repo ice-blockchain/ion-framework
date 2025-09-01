@@ -24,8 +24,8 @@ class IonConnectAvatar extends ConsumerWidget {
   final BoxShadow? shadow;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final imageUrl =
-        ref.watch(userMetadataProvider(pubkey).select((state) => state.valueOrNull?.data.picture));
+    final imageUrl = ref
+        .watch(userMetadataProvider(pubkey).select((state) => state.valueOrNull?.data.avatarUrl));
 
     final avatar = Avatar(
       imageWidget: imageUrl != null

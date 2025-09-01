@@ -29,8 +29,12 @@ class NotificationMedia extends HookConsumerWidget {
     };
 
     if (entity is ArticleEntity) {
-      final imageUrl = (entity as ArticleEntity).data.image;
-      return _NotificationImage(url: imageUrl, eventReference: eventReference);
+      final articleData = (entity as ArticleEntity).data;
+      final imageUrl = articleData.image;
+      final thumbUrl =
+          articleData.media.values.where((item) => imageUrl == item.url).firstOrNull?.thumb;
+
+      return _NotificationImage(url: imageUrl ?? thumbUrl, eventReference: eventReference);
     }
 
     final postData = switch (entity) {
@@ -53,7 +57,10 @@ class NotificationMedia extends HookConsumerWidget {
       return Stack(
         fit: StackFit.expand,
         children: [
-          _NotificationImage(url: firstMedia.image, eventReference: eventReference),
+          _NotificationImage(
+            url: firstMedia.thumb ?? firstMedia.image,
+            eventReference: eventReference,
+          ),
           Assets.svg.iconVideoPlay.icon(
             color: context.theme.appColors.secondaryBackground,
             fit: BoxFit.scaleDown,
@@ -62,7 +69,10 @@ class NotificationMedia extends HookConsumerWidget {
         ],
       );
     }
-    return _NotificationImage(url: firstMedia.image, eventReference: eventReference);
+    return _NotificationImage(
+      url: firstMedia.thumb ?? firstMedia.image,
+      eventReference: eventReference,
+    );
   }
 }
 

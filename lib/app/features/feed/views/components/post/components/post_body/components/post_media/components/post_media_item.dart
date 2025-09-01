@@ -58,16 +58,20 @@ class PostMediaItem extends HookWidget {
         child: AspectRatio(
           aspectRatio: aspectRatio,
           child: switch (mediaItem.mediaType) {
-            MediaType.image => FeedIONConnectNetworkImage(
-                imageUrl: mediaItem.url,
-                fit: BoxFit.cover,
-                authorPubkey: eventReference.masterPubkey,
+            MediaType.image => LayoutBuilder(
+                builder: (context, constraints) {
+                  return FeedIONConnectNetworkImage(
+                    imageUrl: mediaItem.url,
+                    fit: BoxFit.cover,
+                    authorPubkey: eventReference.masterPubkey,
+                  );
+                },
               ),
             MediaType.video => VideoPreview(
                 autoplay: videoAutoplay,
                 videoUrl: mediaItem.url,
                 authorPubkey: eventReference.masterPubkey,
-                thumbnailUrl: mediaItem.thumb,
+                thumbnailUrl: mediaItem.image,
                 framedEventReference: framedEventReference,
                 visibilityThreshold: 0.5,
               ),
