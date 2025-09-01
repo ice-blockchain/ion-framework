@@ -66,22 +66,28 @@ class IONIdentityAuth {
   }) =>
       registerService.verifyEmailEarlyAccess(email: email);
 
-  Future<void> registerUser(String? earlyAccessEmail) =>
-      registerService.registerUser(earlyAccessEmail);
+  Future<void> registerUser(GetRequestId getRequestId, String? earlyAccessEmail) =>
+      registerService.registerUser(getRequestId, earlyAccessEmail);
 
-  Future<void> registerUserWithPassword(String password, String? earlyAccessEmail) =>
-      registerService.registerWithPassword(password, earlyAccessEmail);
+  Future<void> registerUserWithPassword(
+    String password,
+    GetRequestId getRequestId,
+    String? earlyAccessEmail,
+  ) =>
+      registerService.registerWithPassword(password, getRequestId, earlyAccessEmail);
 
   Future<void> verifyUserLoginFlow() => loginService.verifyUserLoginFlow();
 
   Future<void> loginUser({
     required OnVerifyIdentity<AssertionRequestData> onVerifyIdentity,
     required List<TwoFAType> twoFATypes,
+    required GetRequestId getRequestId,
     required bool localCredsOnly,
   }) =>
       loginService.loginUser(
         onVerifyIdentity: onVerifyIdentity,
         twoFATypes: twoFATypes,
+        getRequestId: getRequestId,
         localCredsOnly: localCredsOnly,
       );
 
