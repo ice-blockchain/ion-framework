@@ -94,7 +94,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
 
     if (fetchedEvents < limit) {
-      await for (final entity in _fetchUnseenGlobalAccounts(limit: limit)) {
+      await for (final entity in _fetchUnseenGlobalAccounts(limit: limit - fetchedEvents)) {
         yield entity;
         fetchedEvents++;
       }
