@@ -177,6 +177,7 @@ class ScrollableModalSheetPageRoute extends ModalSheetPage<void> {
           key: state.pageKey,
           child: Sheet(
             controller: DefaultSheetController.of(context),
+            physics: const BouncingSheetPhysics(),
             child: MainModalContent(
               state: state,
               child: child,
