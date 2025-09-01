@@ -37,11 +37,15 @@ class RequestAssetsRepository {
   Stream<FundsRequestEntity?> watchRequestAssetById(String id) async* {
     final requestStream = _fundsRequestDao.watchFundsRequestById(id);
 
-    final transactionStream =
-        requestStream.map((request) => request?.transactionId).whereNotNull().asyncMap(
-              (transactionId) => _transactionsDao
-                  .getTransactions(txHashes: [transactionId]).then((list) => list.firstOrNull),
-            );
+    final transactionStream = requestStream.asyncMap((request) {
+      final transactionId = request?.transactionId;
+      if (transactionId == null) {
+        return null;
+      }
+
+      return _transactionsDao
+          .getTransactions(txHashes: [transactionId]).then((list) => list.firstOrNull);
+    });
 
     yield* requestStream.combineLatest(
       transactionStream,
