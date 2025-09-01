@@ -84,9 +84,7 @@ class MediaEncryptionService {
         final mimeType = attachment.originalMimeType ??
             ionMimeTypeResolver.lookup(decryptedFile.path, headerBytes: decryptedFileBytes);
 
-        Logger.log(
-          'Identified media mimeType for decrypted media: $mimeType with first bytes ${decryptedFileBytes.sublist(0, 5)}',
-        );
+        Logger.log('Identified media mimeType for decrypted media: $mimeType}');
 
         if (mimeType == null) {
           throw FailedToDecryptFileException();
