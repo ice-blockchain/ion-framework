@@ -81,7 +81,7 @@ class MediaEncryptionService {
         final decryptedFileBytes = Uint8List.fromList(decryptedFileBytesList);
         final decryptedFile = File.fromRawPath(decryptedFileBytes);
 
-        final mimeType =
+        final mimeType = attachment.originalMimeType ??
             ionMimeTypeResolver.lookup(decryptedFile.path, headerBytes: decryptedFileBytes);
 
         Logger.log(
