@@ -20,27 +20,79 @@ class SocialShareService {
 
   final DeepLinkService _deepLinkService;
 
-  Future<void> shareToWhatsApp(String shareUrl) =>
-      _shareToPlatform(SocialPlatform.whatsapp, shareUrl);
+  Future<void> shareToWhatsApp(
+    String shareUrl, {
+    String? imageUrl,
+    String? description,
+  }) =>
+      _shareToPlatform(
+        SocialPlatform.whatsapp,
+        shareUrl: shareUrl,
+        imageUrl: imageUrl,
+        description: description,
+      );
 
-  Future<void> shareToTwitter(String shareUrl) =>
-      _shareToPlatform(SocialPlatform.twitter, shareUrl);
+  Future<void> shareToTwitter(
+    String shareUrl, {
+    String? imageUrl,
+    String? description,
+  }) =>
+      _shareToPlatform(
+        SocialPlatform.twitter,
+        shareUrl: shareUrl,
+        imageUrl: imageUrl,
+        description: description,
+      );
 
-  Future<void> shareToTelegram(String shareUrl) =>
-      _shareToPlatform(SocialPlatform.telegram, shareUrl);
+  Future<void> shareToTelegram(
+    String shareUrl, {
+    String? imageUrl,
+    String? description,
+  }) =>
+      _shareToPlatform(
+        SocialPlatform.telegram,
+        shareUrl: shareUrl,
+        imageUrl: imageUrl,
+        description: description,
+      );
 
-  Future<void> _shareToPlatform(SocialPlatform platform, String shareUrl) async {
-    final url = await _deepLinkService.createDeeplink(shareUrl);
+  Future<void> _shareToPlatform(
+    SocialPlatform platform, {
+    required String shareUrl,
+    String? imageUrl,
+    String? description,
+  }) async {
+    final url = await _deepLinkService.createDeeplink(
+      path: shareUrl,
+      ogImageUrl: imageUrl,
+      ogDescription: description,
+    );
     await SocialSharingPlus.shareToSocialMedia(platform, url);
   }
 
-  Future<void> shareToMore(String shareUrl) async {
-    final url = await _deepLinkService.createDeeplink(shareUrl);
+  Future<void> shareToMore({
+    required String shareUrl,
+    String? imageUrl,
+    String? description,
+  }) async {
+    final url = await _deepLinkService.createDeeplink(
+      path: shareUrl,
+      ogImageUrl: imageUrl,
+      ogDescription: description,
+    );
     await Share.share(url);
   }
 
-  Future<void> shareToClipboard(String shareUrl) async {
-    final url = await _deepLinkService.createDeeplink(shareUrl);
+  Future<void> shareToClipboard({
+    required String shareUrl,
+    String? imageUrl,
+    String? description,
+  }) async {
+    final url = await _deepLinkService.createDeeplink(
+      path: shareUrl,
+      ogImageUrl: imageUrl,
+      ogDescription: description,
+    );
     copyToClipboard(url);
   }
 }

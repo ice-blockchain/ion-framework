@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:appsflyer_sdk/appsflyer_sdk.dart';
 import 'package:flutter/foundation.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -80,11 +81,15 @@ DeepLinkService deepLinkService(Ref ref) {
   final templateId = env.get<String>(EnvVariable.AF_ONE_LINK_TEMPLATE_ID);
   final brandDomain = env.get<String>(EnvVariable.AF_BRAND_DOMAIN);
   final baseHost = env.get<String>(EnvVariable.AF_BASE_HOST);
+  final sharePreviewImageUrl = env.get<String>(EnvVariable.SHARE_PREVIEW_IMAGE_URL);
+  final shareAppName = env.get<String>(EnvVariable.SHARE_APP_NAME);
   return DeepLinkService(
     ref.watch(appsflyerSdkProvider),
     templateId: templateId,
     brandDomain: brandDomain,
     baseHost: baseHost,
+    sharePreviewImageUrl: sharePreviewImageUrl,
+    shareAppName: shareAppName,
   );
 }
 
@@ -221,15 +226,21 @@ final class DeepLinkService {
     required String templateId,
     required String brandDomain,
     required String baseHost,
+    required String sharePreviewImageUrl,
+    required String shareAppName,
   })  : _templateId = templateId,
         _brandDomain = brandDomain,
-        _baseHost = baseHost;
+        _baseHost = baseHost,
+        _sharePreviewImageUrl = sharePreviewImageUrl,
+        _shareAppName = shareAppName;
 
   final AppsflyerSdk _appsflyerSdk;
 
   final String _templateId;
   final String _brandDomain;
   final String _baseHost;
+  final String _sharePreviewImageUrl;
+  final String _shareAppName;
 
   static final oneLinkUrlRegex = RegExp(
     r'@?(https://(ion\.onelink\.me|app\.online\.io|testnet\.app\.online\.io)/[A-Za-z0-9\-_/\?&%=#]*)',
@@ -296,7 +307,12 @@ final class DeepLinkService {
   /// The method has a timeout to prevent hanging indefinitely.
   ///
   /// [path] - The path to encode in the deep link
-  Future<String> createDeeplink(String path) async {
+  /// [description] - The description to use for the deep link
+  Future<String> createDeeplink({
+    required String path,
+    String? ogImageUrl,
+    String? ogDescription,
+  }) async {
     if (!_isInitialized) {
       Logger.log('AppsFlyer initialization failed');
       return _fallbackUrl;
@@ -308,7 +324,13 @@ final class DeepLinkService {
       _appsflyerSdk.generateInviteLink(
         AppsFlyerInviteLinkParams(
           brandDomain: _brandDomain,
-          customParams: {'deep_link_value': path},
+          customParams: {
+            'deep_link_value': path,
+            ...?_buildOgParams(
+              ogImageUrl: ogImageUrl,
+              ogDescription: ogDescription,
+            ),
+          },
         ),
         (dynamic data) => _handleInviteLinkSuccess(data, completer),
         (dynamic error) => _handleInviteLinkError(error, completer, 'SDK callback error'),
@@ -324,6 +346,25 @@ final class DeepLinkService {
         return _fallbackUrl;
       },
     );
+  }
+
+  Map<String, String>? _buildOgParams({
+    String? ogImageUrl,
+    String? ogDescription,
+  }) {
+    // Covers the case when deep link is being used for the reporting
+    if (ogImageUrl == null && ogDescription == null) {
+      return null;
+    }
+
+    // AppsFlyer requires a non-null or empty description because otherwise all og params will be ignored
+    final finalDescription = ogDescription ?? ' ';
+
+    return {
+      'af_og_title': _shareAppName,
+      'af_og_description': finalDescription,
+      'af_og_image': ogImageUrl ?? _sharePreviewImageUrl,
+    };
   }
 
   void _handleInviteLinkSuccess(dynamic data, Completer<String> completer) {

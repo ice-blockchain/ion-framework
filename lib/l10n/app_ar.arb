@@ -829,5 +829,7 @@
   "wallet_address_confirmation": "تأكيد العنوان",
   "wallet_address_confirmation_info": "قبل إرسال العملة الرقمية إلى هذا العنوان، تأكد من أن عنوان المحفظة والشبكة المحددة على جهة المرسل يتطابقان تمامًا مع العملة والشبكة المختارة. إذا لم يتطابقا، فستفقد أموالك بشكل دائم.",
   "report_user_description": "هذا تقرير للمستخدم",
-  "report_content_description": "هذا تقرير للمحتوى"
+  "report_content_description": "هذا تقرير للمحتوى",
+  "share_user_on_app": "{userDisplayName} على {shareAppName}",
+  "share_story_watch_message": "شاهد هذه القصة من {userDisplayName} قبل أن تختفي."
 }

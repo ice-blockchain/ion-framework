@@ -892,5 +892,7 @@
   "device_keypair_button_restore_now": "Jetzt wiederherstellen",
   "nickname_not_owned_suffix": "(! nicht im Besitz)",
   "report_user_description": "Dies ist ein Bericht für den Benutzer",
-  "report_content_description": "Dies ist ein Bericht für den Inhalt"
+  "report_content_description": "Dies ist ein Bericht für den Inhalt",
+  "share_user_on_app": "{userDisplayName} auf {shareAppName}",
+  "share_story_watch_message": "Schauen Sie sich diese Story von {userDisplayName} an, bevor sie verschwindet."
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/url_preview/url_preview.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/feed_network_image/feed_network_image.dart';
@@ -11,7 +11,7 @@ import 'package:ogp_data_extract/ogp_data_extract.dart';
 
 part 'components/url_metadata_preview.dart';
 
-class UrlPreviewContent extends HookWidget {
+class UrlPreviewContent extends HookConsumerWidget {
   const UrlPreviewContent({
     required this.url,
     this.clickable = true,
@@ -22,9 +22,9 @@ class UrlPreviewContent extends HookWidget {
   final bool clickable;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
-      onTap: clickable ? () => openUrlInAppBrowser(normalizeUrl(url)) : null,
+      onTap: clickable ? () => openDeepLinkOrInAppBrowser(normalizeUrl(url), ref) : null,
       behavior: HitTestBehavior.opaque,
       child: UrlPreview(
         key: ValueKey(url),
