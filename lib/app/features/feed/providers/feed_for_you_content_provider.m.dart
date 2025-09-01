@@ -273,16 +273,24 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }
 
   Stream<IonConnectEntity> _fetchFollowing({required int limit, bool global = false}) async* {
-    final provider = feedFollowingContentProvider(
-      feedType,
-      feedModifier: feedModifier,
-      fetchSeen: false,
-      autoFetch: false,
-      global: global,
+    final providerNotifier = ref.read(
+      feedFollowingContentProvider(
+        feedType,
+        feedModifier: feedModifier,
+        fetchSeen: false,
+        autoFetch: false,
+        global: global,
+      ).notifier,
     );
-
-    final providerNotifier = ref.read(provider.notifier);
-    final providerData = ref.read(provider);
+    final providerData = ref.read(
+      feedFollowingContentProvider(
+        feedType,
+        feedModifier: feedModifier,
+        fetchSeen: false,
+        autoFetch: false,
+        global: global,
+      ),
+    );
 
     if (!providerData.hasMore) {
       state = state.copyWith(hasMoreFollowing: false);
