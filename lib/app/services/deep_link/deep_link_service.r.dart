@@ -7,10 +7,10 @@ import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:appsflyer_sdk/appsflyer_sdk.dart';
 import 'package:flutter/foundation.dart';
-
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -81,7 +81,7 @@ DeepLinkService deepLinkService(Ref ref) {
   final templateId = env.get<String>(EnvVariable.AF_ONE_LINK_TEMPLATE_ID);
   final brandDomain = env.get<String>(EnvVariable.AF_BRAND_DOMAIN);
   final baseHost = env.get<String>(EnvVariable.AF_BASE_HOST);
-  final sharePreviewImageUrl = env.get<String>(EnvVariable.SHARE_PREVIEW_IMAGE_URL);
+  final sharePreviewImageUrl = env.get<String?>(EnvVariable.SHARE_PREVIEW_IMAGE_URL);
   final shareAppName = env.get<String>(EnvVariable.SHARE_APP_NAME);
   return DeepLinkService(
     ref.watch(appsflyerSdkProvider),
@@ -227,7 +227,7 @@ final class DeepLinkService {
     required String templateId,
     required String brandDomain,
     required String baseHost,
-    required String sharePreviewImageUrl,
+    required String? sharePreviewImageUrl,
     required String shareAppName,
   })  : _templateId = templateId,
         _brandDomain = brandDomain,
@@ -240,7 +240,7 @@ final class DeepLinkService {
   final String _templateId;
   final String _brandDomain;
   final String _baseHost;
-  final String _sharePreviewImageUrl;
+  final String? _sharePreviewImageUrl;
   final String _shareAppName;
 
   static final oneLinkUrlRegex = RegExp(
@@ -360,11 +360,13 @@ final class DeepLinkService {
 
     // AppsFlyer requires a non-null or empty description because otherwise all og params will be ignored
     final finalDescription = ogDescription ?? ' ';
+    final previewImageUrl = ogImageUrl ?? _sharePreviewImageUrl;
 
     return {
       'af_og_title': _shareAppName,
       'af_og_description': finalDescription,
-      'af_og_image': ogImageUrl ?? _sharePreviewImageUrl,
+      // AppsFlyer requires a non-null or empty image because otherwise all og params will be not set
+      'af_og_image': previewImageUrl.isEmpty ? ' ' : previewImageUrl!,
     };
   }
 
