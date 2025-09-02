@@ -63,6 +63,7 @@ final class IonConnectRelaysRanker {
     String relayUrl, [
     CancelToken? cancelToken,
   ]) async {
+    final stopWatch = Stopwatch()..start();
     try {
       final parsedRelayUrl = Uri.parse(relayUrl);
       final relayUri = Uri(
@@ -71,7 +72,7 @@ final class IonConnectRelaysRanker {
         port: parsedRelayUrl.hasPort ? parsedRelayUrl.port : null,
       );
       const timeout = Duration(seconds: 30);
-      final stopWatch = Stopwatch()..start();
+
       await dio.headUri<void>(
         relayUri,
         options: Options(
@@ -83,10 +84,11 @@ final class IonConnectRelaysRanker {
         ),
         cancelToken: cancelToken,
       );
-      stopWatch.stop();
       return RankedRelay(url: relayUrl, latency: stopWatch.elapsedMilliseconds);
     } catch (e) {
       return RankedRelay.unreachable(url: relayUrl);
+    } finally {
+      stopWatch.stop();
     }
   }
 }

@@ -118,6 +118,19 @@ class UserRelay with _$UserRelay {
     );
   }
 
+  factory UserRelay.fromJson(Map<String, String> json) {
+    final url = json['url'];
+    if (url == null) {
+      throw const FormatException('Missing field: url');
+    }
+    final type = json['type'];
+    return UserRelay(
+      url: url,
+      read: type != 'write',
+      write: type != 'read',
+    );
+  }
+
   List<String> toTag() {
     final tag = [tagName, url];
     if (read && !write) {
