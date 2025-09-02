@@ -63,7 +63,7 @@ ShareOptionsData? _getShareOptionsData(
   UserMetadata userMetadata,
   String shareAppName,
 ) {
-  final userDisplayName = userMetadata.displayName;
+  final userDisplayName = '${userMetadata.displayName} (@${userMetadata.name})';
 
   switch (entity) {
     case ModifiablePostEntity():
