@@ -40,11 +40,13 @@ class _TransferFactory {
         mint: asset.mint,
         to: receiverAddress,
         amount: amount,
+        createDestinationAccount: true,
       ),
       spl2022: (asset) => Spl2022Transfer(
         mint: asset.mint,
         to: receiverAddress,
         amount: amount,
+        createDestinationAccount: true,
       ),
       sep41: (asset) => Sep41Transfer(
         amount: amount,
