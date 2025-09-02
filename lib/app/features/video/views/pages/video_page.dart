@@ -251,7 +251,7 @@ class _VideoPlayerWidget extends StatelessWidget {
     if (controller.value.aspectRatio < 1) {
       return SizedBox.expand(
         child: FittedBox(
-          fit: BoxFit.cover,
+          fit: BoxFit.fitWidth,
           child: SizedBox(
             width: controller.value.size.width,
             height: controller.value.size.height,
