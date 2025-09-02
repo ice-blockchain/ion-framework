@@ -35,6 +35,7 @@ class VideoThumbnailPreview extends ConsumerWidget {
               imageUrl: thumbnailUrl!,
               authorPubkey: authorPubkey ?? '',
               fit: fit,
+              placeholder: (_, __) => const CenteredLoadingIndicator(),
             ),
         ],
       );
@@ -46,6 +47,7 @@ class VideoThumbnailPreview extends ConsumerWidget {
         imageUrl: thumbnailUrl!,
         authorPubkey: authorPubkey ?? '',
         fit: fit,
+        placeholder: (_, __) => const CenteredLoadingIndicator(),
       );
     }
 
