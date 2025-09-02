@@ -199,20 +199,22 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
         .toList();
 
     if (walletAssetDeletions.isNotEmpty) {
-      for (final eventReference in walletAssetDeletions) {
-        final transaction = await transactionsRepository.getTransactions(
-          eventIds: [eventReference.eventId],
-          limit: 1,
-        ).then((result) => result.firstOrNull);
+      await Future.wait(
+        walletAssetDeletions.map((eventReference) async {
+          final transaction = await transactionsRepository.getTransactions(
+            eventIds: [eventReference.eventId],
+            limit: 1,
+          ).then((result) => result.firstOrNull);
 
-        if (transaction != null) {
-          await transactionsRepository.updateTransaction(
-            txHash: transaction.txHash,
-            walletViewId: transaction.walletViewId,
-            status: TransactionStatus.failed.toJson(),
-          );
-        }
-      }
+          if (transaction != null) {
+            await transactionsRepository.updateTransaction(
+              txHash: transaction.txHash,
+              walletViewId: transaction.walletViewId,
+              status: TransactionStatus.failed.toJson(),
+            );
+          }
+        }),
+      );
     }
   }
 }
