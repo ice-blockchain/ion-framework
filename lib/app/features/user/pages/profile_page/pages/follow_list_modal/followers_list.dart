@@ -14,7 +14,6 @@ import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal
 import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal/components/follow_search_bar.dart';
 import 'package:ion/app/features/user/providers/followers_count_provider.r.dart';
 import 'package:ion/app/features/user/providers/followers_provider.r.dart';
-import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
 
 class FollowersList extends HookConsumerWidget {
   const FollowersList({required this.pubkey, super.key});
@@ -28,12 +27,14 @@ class FollowersList extends HookConsumerWidget {
     final searchQuery = useState('');
     final debouncedQuery = useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '';
 
-    final result = ref.watch(
-      followersProvider(
-        pubkey: pubkey,
-        query: debouncedQuery,
-      ),
-    );
+    final result = ref
+        .watch(
+          followersProvider(
+            pubkey: pubkey,
+            query: debouncedQuery,
+          ),
+        )
+        .valueOrNull;
     final hasMore = result?.hasMore ?? false;
     final entities = result?.users;
 
@@ -59,9 +60,9 @@ class FollowersList extends HookConsumerWidget {
       hasMore: hasMore,
       onLoadMore: () => ref
           .read(
-            searchUsersProvider(
+            followersProvider(
+              pubkey: pubkey,
               query: debouncedQuery,
-              followerOfPubkey: pubkey,
             ).notifier,
           )
           .loadMore(),
