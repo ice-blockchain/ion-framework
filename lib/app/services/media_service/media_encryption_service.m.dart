@@ -40,13 +40,12 @@ class MediaEncryptionService {
   Future<File> retrieveEncryptedMedia(
     MediaAttachment attachment, {
     required String authorPubkey,
-    bool tryLoadThumbnail = false,
   }) async {
     try {
       if (attachment.encryptionKey != null &&
           attachment.encryptionNonce != null &&
           attachment.encryptionMac != null) {
-        final url = tryLoadThumbnail ? attachment.thumb ?? attachment.url : attachment.url;
+        final url = attachment.url;
         final mac = base64Decode(attachment.encryptionMac!);
         final nonce = base64Decode(attachment.encryptionNonce!);
         final secretKey = base64Decode(attachment.encryptionKey!);
