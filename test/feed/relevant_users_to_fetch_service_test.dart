@@ -285,13 +285,6 @@ class FakeFollowingFeedSeenEventsRepository implements FollowingFeedSeenEventsRe
   }
 
   @override
-  Stream<List<({EventReference eventReference, int createdAt})>> watchByReferences({
-    required Iterable<EventReference> eventsReferences,
-  }) {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<DateTime?> getRepostedEventSeenAt(EventReference eventReference) {
     throw UnimplementedError();
   }
@@ -329,6 +322,15 @@ class FakeFollowingFeedSeenEventsRepository implements FollowingFeedSeenEventsRe
     required EventReference eventReference,
     required EventReference nextEventReference,
     required FeedType feedType,
+    FeedModifier? feedModifier,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<({int createdAt, EventReference eventReference})>> watch({
+    Iterable<EventReference>? eventsReferences,
+    FeedType? feedType,
     FeedModifier? feedModifier,
   }) {
     throw UnimplementedError();
