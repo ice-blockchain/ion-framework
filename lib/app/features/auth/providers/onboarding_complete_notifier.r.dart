@@ -22,6 +22,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
+import 'package:ion/app/features/user/providers/device_identification_proofs.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_social_profile_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
@@ -40,27 +41,8 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
     state = const AsyncLoading();
     state = await AsyncValue.guard(
       () async {
-        final userRelays = await _assignUserRelays();
-
-        // BE requires sending user relays alongside the user delegation event
-        final userRelaysEvent = await _buildUserRelaysEvent(userRelays: userRelays);
-
-        // Send user delegation event in advance so all subsequent events pass delegation attestation
-        try {
-          final userDelegationEvent = await ref.read(delegationCompleteProvider.future)
-              ? null
-              : await _buildUserDelegation(onVerifyIdentity: onVerifyIdentity);
-
-          // Set delay to attach published 10100 and 10002 during the connection authorization
-          ref.read(relaysReplicaDelayProvider.notifier).setDelay();
-
-          await ref.read(ionConnectNotifierProvider.notifier).sendEvents([
-            // Do not attach / update user delegation event if delegation for the current device is already complete
-            if (userDelegationEvent != null) userDelegationEvent,
-            // User relays still might be updated if user selected different content creators
-            userRelaysEvent,
-          ]);
-        } on PasskeyCancelledException {
+        final useDelegationEvent = await _sendUserDelegation(onVerifyIdentity);
+        if (useDelegationEvent == null) {
           return;
         }
 
@@ -75,9 +57,12 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
             await _updateUserSocialProfile(userMetadata: userMetadata);
 
         final usernameProofsEvents = _buildUsernameProofsEvents(updateUserSocialProfileResponse);
+        final deviceIdentificationProofsEvents =
+            await _getDeviceIdentificationProofsEvents(useDelegationEvent: useDelegationEvent);
 
-        final updatedProfileBadges =
-            await _buildProfileBadges(usernameProofsEvents: usernameProofsEvents);
+        final updatedProfileBadges = await _buildProfileBadges(
+          proofsEvents: [...usernameProofsEvents, ...deviceIdentificationProofsEvents],
+        );
 
         final followList = _buildFollowList(updateUserSocialProfileResponse.referralMasterKey);
 
@@ -90,7 +75,7 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
             if (uploadedAvatar != null) uploadedAvatar.fileMetadata,
             if (updatedProfileBadges != null) updatedProfileBadges,
           ],
-          additionalEvents: usernameProofsEvents,
+          additionalEvents: [...usernameProofsEvents, ...deviceIdentificationProofsEvents],
         );
       },
     );
@@ -112,6 +97,34 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
         }
       },
     );
+  }
+
+  Future<EventMessage?> _sendUserDelegation(
+    OnVerifyIdentity<GenerateSignatureResponse> onVerifyIdentity,
+  ) async {
+    final userRelays = await _assignUserRelays();
+    // BE requires sending user relays alongside the user delegation event
+    final userRelaysEvent = await _buildUserRelaysEvent(userRelays: userRelays);
+
+    try {
+      final userDelegationEvent = await ref.read(delegationCompleteProvider.future)
+          ? null
+          : await _buildUserDelegation(onVerifyIdentity: onVerifyIdentity);
+
+      // Set delay to attach published 10100 and 10002 during the connection authorization
+      ref.read(relaysReplicaDelayProvider.notifier).setDelay();
+
+      await ref.read(ionConnectNotifierProvider.notifier).sendEvents([
+        // Do not attach / update user delegation event if delegation for the current device is already complete
+        if (userDelegationEvent != null) userDelegationEvent,
+        // User relays still might be updated if user selected different content creators
+        userRelaysEvent,
+      ]);
+
+      return userDelegationEvent;
+    } on PasskeyCancelledException {
+      return null;
+    }
   }
 
   Future<List<UserRelay>> _assignUserRelays() async {
@@ -184,9 +197,19 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
   }
 
   Future<ProfileBadgesData?> _buildProfileBadges({
-    required List<EventMessage> usernameProofsEvents,
+    required List<EventMessage> proofsEvents,
   }) {
-    return ref.read(updateProfileBadgesWithUsernameProofsProvider(usernameProofsEvents).future);
+    return ref.read(updateProfileBadgesWithProofsProvider(proofsEvents).future);
+  }
+
+  Future<List<EventMessage>> _getDeviceIdentificationProofsEvents({
+    required EventMessage useDelegationEvent,
+  }) {
+    return ref.read(
+      deviceIdentificationProofsProvider(
+        delegationEvent: useDelegationEvent,
+      ).future,
+    );
   }
 
   Future<Map<String, String>> _buildUserWallets() async {

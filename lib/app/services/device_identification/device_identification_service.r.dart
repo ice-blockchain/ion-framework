@@ -42,7 +42,7 @@ class DeviceIdentificationService extends _$DeviceIdentificationService {
     final eventSigner =
         await ref.read(ionConnectEventSignerProvider(identityKeyName).notifier).initEventSigner();
     if (eventSigner == null) {
-      throw FailedToCreateEventSigner(identityKeyName: identityKeyName);
+      throw EventSignerNotFoundException();
     }
     final platformInfo = ref.read(platformInfoServiceProvider);
     final signature = await _buildSignature(eventSigner: eventSigner, platformInfo: platformInfo);
