@@ -45,6 +45,18 @@ class TransactionsVisibilityStatusDao extends DatabaseAccessor<WalletsDatabase>
     }
   }
 
+  Future<List<({String txHash, String walletViewId})>> getSeenPairs({String? walletViewId}) async {
+    final query = select(transactionVisibilityStatusTable)
+      ..where((tbl) => tbl.status.equals(TransactionVisibilityStatus.seen.index));
+
+    if (walletViewId != null) {
+      query.where((tbl) => tbl.walletViewId.equals(walletViewId));
+    }
+
+    final rows = await query.get();
+    return rows.map((r) => (txHash: r.txHash, walletViewId: r.walletViewId)).toList();
+  }
+
   Future<void> _addOrUpdateVisibilityStatusForCoinIds(
     List<String> coinIds,
     TransactionVisibilityStatus status,

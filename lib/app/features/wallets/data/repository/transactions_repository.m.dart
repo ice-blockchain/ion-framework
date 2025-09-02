@@ -24,6 +24,7 @@ import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
+import 'package:ion/app/features/wallets/providers/transactions_visibility_cloud_backup.r.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_parser.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -35,14 +36,19 @@ part 'transactions_repository.m.g.dart';
 typedef TransactionsPage = ({List<TransactionData> transactions, String? nextPageToken});
 
 @Riverpod(keepAlive: true)
-Future<TransactionsRepository> transactionsRepository(Ref ref) async => TransactionsRepository(
-      ref.watch(coinsDaoProvider),
-      await ref.watch(walletsNotifierProvider.future),
-      ref.watch(networksDaoProvider),
-      ref.watch(transactionsDaoProvider),
-      await ref.watch(ionIdentityClientProvider.future),
-      CoinTransactionsMapper(),
-    );
+Future<TransactionsRepository> transactionsRepository(Ref ref) async {
+  ref.watch(transactionsVisibilityCloudAutoBackupProvider);
+
+  return TransactionsRepository(
+    ref.watch(coinsDaoProvider),
+    await ref.watch(walletsNotifierProvider.future),
+    ref.watch(networksDaoProvider),
+    ref.watch(transactionsDaoProvider),
+    await ref.watch(ionIdentityClientProvider.future),
+    CoinTransactionsMapper(),
+    ref.watch(transactionsVisibilityCloudBackupProvider),
+  );
+}
 
 class TransactionsRepository {
   TransactionsRepository(
@@ -52,8 +58,12 @@ class TransactionsRepository {
     this._transactionsDao,
     this._ionIdentityClient,
     this._coinMapper,
+    this._visibilityCloudBackup,
   ) {
     _loadDeprecatedTransactions();
+    // Kick off a restore after DB is available for the user
+    // Safe if cloud is unavailable or file missing
+    unawaited(_visibilityCloudBackup.restoreAll());
   }
 
   final CoinsDao _coinsDao;
@@ -63,6 +73,7 @@ class TransactionsRepository {
   final IONIdentityClient _ionIdentityClient;
   final CoinTransactionsMapper _coinMapper;
   final Completer<Map<String, TransactionData>> _deprecatedTransactionsCompleter = Completer();
+  final TransactionsVisibilityCloudBackup _visibilityCloudBackup;
 
   void _loadDeprecatedTransactions() {
     if (_deprecatedTransactionsCompleter.isCompleted) {
@@ -86,8 +97,7 @@ class TransactionsRepository {
 
   Future<DateTime?> getLastCreatedAt() => _transactionsDao.lastCreatedAt();
 
-  Future<DateTime?> firstCreatedAt({DateTime? after}) =>
-      _transactionsDao.getFirstCreatedAt(after: after);
+  Future<DateTime?> firstCreatedAt({DateTime? after}) => _transactionsDao.getFirstCreatedAt(after: after);
 
   Future<void> saveTransactionDetails(TransactionDetails details) async {
     final mapped = _coinMapper.fromTransactionDetails(details);
