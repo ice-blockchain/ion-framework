@@ -26,14 +26,13 @@ class Stories extends HookConsumerWidget {
 
     final pubkeys = useMemoized(
       () {
-        final seenStories = stories
-                ?.where(
-                  (it) => viewedStoriesReferences?.contains(it.story.toEventReference()) ?? false,
-                )
-                .toSet() ??
-            {};
-        final unseenStories = stories?.where((it) => !seenStories.contains(it)).toSet() ?? {};
-        return {...unseenStories, ...seenStories}.map((it) => it.pubkey).toSet();
+        final storyReferences =
+            stories?.map((story) => story.story.toEventReference()).toSet() ?? {};
+
+        final unseenStories = storyReferences.difference(viewedStoriesReferences ?? {});
+        return [...unseenStories, ...storyReferences.difference(unseenStories)]
+            .map((storyReference) => storyReference.masterPubkey)
+            .toSet();
       },
       [stories, viewedStoriesReferences],
     );
