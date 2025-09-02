@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
-import 'package:ion/app/features/feed/stories/data/models/stories_references.f.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/views/pages/story_viewer_page.dart';
@@ -72,8 +71,7 @@ void main() {
             .overrideWith((_) => UserPreferencesService(alice, mockStorage)),
         goRouterProvider.overrideWithValue(router),
         userStoriesProvider(alice).overrideWith(() => FakeUserStories([aliceStories.story])),
-        viewedStoriesControllerProvider(StoriesReferences([aliceStories.story.toEventReference()]))
-            .overrideWith(FakeViewedStoriesController.new),
+        viewedStoriesProvider.overrideWith(FakeViewedStoriesController.new),
       ],
     );
 
