@@ -5,8 +5,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
-import 'package:ion/app/features/feed/providers/feed_trending_videos_provider.r.dart';
 import 'package:ion/app/features/feed/stories/data/models/stories_references.f.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
@@ -33,16 +31,7 @@ class StoryListItem extends HookConsumerWidget {
     final viewedStories = ref.watch(viewedStoriesControllerProvider(storyReference));
     final gradient = useRef(storyBorderGradients[Random().nextInt(storyBorderGradients.length)]);
 
-    final posts = ref.watch(feedPostsProvider.select((state) => state.items));
-    final trendingVideos = ref.watch(feedTrendingVideosProvider.select((state) => state.items));
-    final stories = ref.watch(feedStoriesProvider.select((state) => state.items));
-
-    usePreloadStoryMedia(
-      ref,
-      posts == null || trendingVideos == null || stories == null
-          ? null
-          : userStory.firstOrNull?.story,
-    );
+    usePreloadStoryMedia(ref, userStory.firstOrNull?.story);
 
     final allStoriesViewed = useMemoized(
       () => viewedStories == null || viewedStories.isNotEmpty,
