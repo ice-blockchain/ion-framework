@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/feed/stories/data/models/stories_references.f.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_item_content.dart';
@@ -27,20 +26,20 @@ class StoryListItem extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userMetadata = ref.watch(cachedUserMetadataProvider(pubkey));
     final userStory = ref.watch(feedStoriesByPubkeyProvider(pubkey, showOnlySelectedUser: true));
-    final storyReference = StoriesReferences(userStory.map((e) => e.story.toEventReference()));
-    final viewedStories = ref.watch(viewedStoriesControllerProvider(storyReference));
+    final lastStoryReference = userStory.lastOrNull?.story.toEventReference();
+
     final gradient = useRef(storyBorderGradients[Random().nextInt(storyBorderGradients.length)]);
 
     usePreloadStoryMedia(ref, userStory.firstOrNull?.story);
 
-    final allStoriesViewed = useMemoized(
-      () => viewedStories == null || viewedStories.isNotEmpty,
-      [viewedStories],
-    );
-
-    if (userMetadata == null) {
+    if (userMetadata == null || lastStoryReference == null) {
       return const SizedBox.shrink();
     }
+
+    final isViewed = ref.watch(
+      viewedStoriesProvider
+          .select((viewedStories) => viewedStories?.contains(lastStoryReference) ?? false),
+    );
 
     return Padding(
       padding: EdgeInsetsDirectional.only(start: StoryListSeparator.width),
@@ -50,7 +49,7 @@ class StoryListItem extends HookConsumerWidget {
           pubkey: pubkey,
           name: userMetadata.data.name,
           gradient: gradient.value,
-          isViewed: allStoriesViewed,
+          isViewed: isViewed,
           onTap: () => StoryViewerRoute(pubkey: pubkey).push<void>(context),
         ),
       ),

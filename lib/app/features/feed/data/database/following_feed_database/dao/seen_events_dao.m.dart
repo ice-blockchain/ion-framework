@@ -66,11 +66,21 @@ class SeenEventsDao extends DatabaseAccessor<FollowingFeedDatabase> with _$SeenE
     return query.getSingleOrNull();
   }
 
-  Stream<List<SeenEvent>> watchByReferences({
-    required Iterable<EventReference> eventsReferences,
+  Stream<List<SeenEvent>> watch({
+    Iterable<EventReference>? eventsReferences,
+    FeedType? feedType,
+    FeedModifier? feedModifier,
   }) {
     final query = select(db.seenEventsTable)
-      ..where((tbl) => tbl.eventReference.isInValues(eventsReferences));
+      ..where(
+        (tbl) => tbl.feedModifier.equals(const FeedModifierConverter().toSql(feedModifier)),
+      );
+    if (feedType != null) {
+      query.where((tbl) => tbl.feedType.equalsValue(feedType));
+    }
+    if (eventsReferences != null) {
+      query.where((tbl) => tbl.eventReference.isInValues(eventsReferences));
+    }
 
     return query.watch();
   }

@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/feed/stories/data/models/stories_references.f.dart';
 import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/current_user_avatar_with_permission.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/plus_button_with_permission.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 
 class CurrentUserStoryListItem extends HookConsumerWidget {
@@ -26,15 +23,12 @@ class CurrentUserStoryListItem extends HookConsumerWidget {
     final currentUserMetadata = ref.watch(currentUserMetadataProvider);
     final userStory = ref.watch(currentUserFeedStoryProvider);
     final storyReference = userStory?.story.toEventReference();
-    final storiesReferences = StoriesReferences(
-      storyReference != null ? [storyReference] : const <EventReference>[],
-    );
-    final viewedStories = ref.watch(viewedStoriesControllerProvider(storiesReferences));
+
     final hasStories = userStory != null;
 
-    final allStoriesViewed = useMemoized(
-      () => hasStories && (viewedStories == null || viewedStories.isNotEmpty),
-      [userStory, viewedStories],
+    final isViewed = ref.watch(
+      viewedStoriesProvider
+          .select((viewedStories) => viewedStories?.contains(storyReference) ?? false),
     );
 
     return currentUserMetadata.maybeWhen(
@@ -51,7 +45,7 @@ class CurrentUserStoryListItem extends HookConsumerWidget {
                 pubkey: pubkey,
                 hasStories: hasStories,
                 gradient: hasStories ? gradient : null,
-                isViewed: allStoriesViewed,
+                isViewed: isViewed,
                 imageUrl: userMetadata.data.avatarUrl,
               ),
               const PlusButtonWithPermission(),

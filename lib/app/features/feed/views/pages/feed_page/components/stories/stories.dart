@@ -7,7 +7,6 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/feed/stories/data/models/stories_references.f.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_item_content.dart';
@@ -23,11 +22,7 @@ class Stories extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final (items: stories, :hasMore) = ref.watch(feedStoriesProvider);
 
-    final viewedStoriesReferences = ref.watch(
-      viewedStoriesControllerProvider(
-        StoriesReferences(stories?.map((it) => it.story.toEventReference()).toList() ?? []),
-      ),
-    );
+    final viewedStoriesReferences = ref.watch(viewedStoriesProvider);
 
     final pubkeys = useMemoized(
       () {
