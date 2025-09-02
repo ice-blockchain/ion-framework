@@ -16,9 +16,11 @@ import 'package:ion/app/features/chat/views/pages/share_via_message_modal/compon
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/share/social_share_service.r.dart';
 import 'package:ion/app/utils/screenshot_utils.dart';
+import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:mime/mime.dart';
 
@@ -33,9 +35,19 @@ class ShareOptions extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isCapturing = useState(false);
 
-    final shareUrl = ref.watch(eventShareUrlProvider(eventReference)).valueOrNull;
-    final shareOptionsData = ref.watch(shareOptionsDataProvider(eventReference));
+    final userMetadata = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
+    if (userMetadata == null) {
+      return const SizedBox.shrink();
+    }
+    final shareOptionsData = ref.watch(
+      shareOptionsDataProvider(
+        eventReference,
+        userMetadata.data,
+        prefixUsername(username: userMetadata.data.name, context: context),
+      ),
+    );
 
+    final shareUrl = ref.watch(eventShareUrlProvider(eventReference)).valueOrNull;
     if (shareUrl == null || shareOptionsData == null) {
       return const SizedBox.shrink();
     }
