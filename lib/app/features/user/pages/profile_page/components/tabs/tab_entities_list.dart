@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
@@ -18,7 +19,7 @@ import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 
-class TabEntitiesList extends ConsumerWidget {
+class TabEntitiesList extends HookConsumerWidget {
   const TabEntitiesList({
     required this.type,
     required this.pubkey,
@@ -54,6 +55,8 @@ class TabEntitiesList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    useAutomaticKeepAlive();
+
     final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
     final isBlockedOrBlockedBy =
         ref.watch(isBlockedOrBlockedByNotifierProvider(pubkey)).valueOrNull ?? false;
