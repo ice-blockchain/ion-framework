@@ -296,10 +296,12 @@ class IonConnectPushDataPayload {
         );
 
         if (imageMedia != null) {
+          final thumbMedia = message.data.media.values.firstWhereOrNull(
+            (media) => media.url == imageMedia.thumb,
+          );
           final decryptedMedia = await mediaEncryptionService.retrieveEncryptedMedia(
-            imageMedia,
+            thumbMedia ?? imageMedia,
             authorPubkey: message.pubkey,
-            tryLoadThumbnail: true,
           );
           attachmentUrl = decryptedMedia.path;
         }
