@@ -147,7 +147,8 @@ class NotificationInfo extends HookConsumerWidget {
       return null;
     }
 
-    final entity = ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
+    final entity =
+        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
 
     if (entity == null) {
       return null;
