@@ -81,13 +81,12 @@ DeepLinkService deepLinkService(Ref ref) {
   final templateId = env.get<String>(EnvVariable.AF_ONE_LINK_TEMPLATE_ID);
   final brandDomain = env.get<String>(EnvVariable.AF_BRAND_DOMAIN);
   final baseHost = env.get<String>(EnvVariable.AF_BASE_HOST);
-  final shareAppName = env.get<String>(EnvVariable.SHARE_APP_NAME);
+
   return DeepLinkService(
     ref.watch(appsflyerSdkProvider),
     templateId: templateId,
     brandDomain: brandDomain,
     baseHost: baseHost,
-    shareAppName: shareAppName,
   );
 }
 
@@ -225,18 +224,15 @@ final class DeepLinkService {
     required String templateId,
     required String brandDomain,
     required String baseHost,
-    required String shareAppName,
   })  : _templateId = templateId,
         _brandDomain = brandDomain,
-        _baseHost = baseHost,
-        _shareAppName = shareAppName;
+        _baseHost = baseHost;
 
   final AppsflyerSdk _appsflyerSdk;
 
   final String _templateId;
   final String _brandDomain;
   final String _baseHost;
-  final String _shareAppName;
 
   static final oneLinkUrlRegex = RegExp(
     r'@?(https://(ion\.onelink\.me|app\.online\.io|testnet\.app\.online\.io)/[A-Za-z0-9\-_/\?&%=#]*)',
@@ -306,6 +302,7 @@ final class DeepLinkService {
   /// [description] - The description to use for the deep link
   Future<String> createDeeplink({
     required String path,
+    String? ogTitle,
     String? ogImageUrl,
     String? ogDescription,
   }) async {
@@ -323,6 +320,7 @@ final class DeepLinkService {
           customParams: {
             'deep_link_value': path,
             ...?_buildOgParams(
+              ogTitle: ogTitle,
               ogImageUrl: ogImageUrl,
               ogDescription: ogDescription,
             ),
@@ -345,11 +343,12 @@ final class DeepLinkService {
   }
 
   Map<String, String>? _buildOgParams({
+    String? ogTitle,
     String? ogImageUrl,
     String? ogDescription,
   }) {
     // Covers the case when deep link is being used for the reporting
-    if (ogImageUrl == null && ogDescription == null) {
+    if (ogImageUrl == null && ogDescription == null && ogTitle == null) {
       return null;
     }
 
@@ -358,7 +357,7 @@ final class DeepLinkService {
     final image = ogImageUrl.isEmpty ? ' ' : ogImageUrl!;
 
     return {
-      'af_og_title': _shareAppName,
+      'af_og_title': ogTitle!,
       'af_og_description': description,
       'af_og_image': image,
     };
