@@ -51,26 +51,3 @@ class GalleryCameraRoute extends BaseRouteData with _$GalleryCameraRoute {
 
   final MediaPickerType mediaPickerType;
 }
-
-@TypedGoRoute<FullscreenMediaRoute>(path: '${MediaPickerRoutes.routesPrefix}/fullscreen-media')
-class FullscreenMediaRoute extends BaseRouteData with _$FullscreenMediaRoute {
-  FullscreenMediaRoute({
-    required this.initialMediaIndex,
-    required this.eventReference,
-    this.framedEventReference,
-  }) : super(
-          child: FullscreenMediaPage(
-            initialMediaIndex: initialMediaIndex,
-            eventReference: EventReference.fromEncoded(eventReference),
-            framedEventReference: framedEventReference != null
-                ? EventReference.fromEncoded(framedEventReference)
-                : null,
-          ),
-          type: IceRouteType.swipeDismissible,
-          isFullscreenMedia: true,
-        );
-
-  final int initialMediaIndex;
-  final String eventReference;
-  final String? framedEventReference;
-}

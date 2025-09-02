@@ -23,12 +23,14 @@ class RepliesCounterButton extends HookConsumerWidget {
     required this.eventReference,
     this.color,
     this.padding,
+    this.onTap,
     super.key,
   });
 
   final EventReference eventReference;
   final Color? color;
   final EdgeInsetsGeometry? padding;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,6 +42,10 @@ class RepliesCounterButton extends HookConsumerWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
+        if (onTap case final onTap?) {
+          onTap();
+          return;
+        }
         if (isLoading.value) {
           return;
         }

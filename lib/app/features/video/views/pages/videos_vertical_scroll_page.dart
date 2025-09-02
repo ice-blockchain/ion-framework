@@ -26,6 +26,7 @@ import 'package:ion/app/features/video/views/hooks/use_status_bar_color.dart';
 import 'package:ion/app/features/video/views/hooks/use_wake_lock.dart';
 import 'package:ion/app/features/video/views/pages/video_page.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -208,8 +209,10 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
             },
             itemBuilder: (_, index) => VideoPage(
               videoInfo: VideoPostInfo(videoPost: flattenedVideos[index].entity),
-              bottomOverlay:
-                  VideoActions(eventReference: flattenedVideos[index].entity.toEventReference()),
+              bottomOverlay: VideoActions(
+                eventReference: flattenedVideos[index].entity.toEventReference(),
+                onReplyTap: () => PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context),
+              ),
               videoUrl: flattenedVideos[index].media.url,
               authorPubkey: eventReference.masterPubkey,
               thumbnailUrl: flattenedVideos[index].media.thumb,
