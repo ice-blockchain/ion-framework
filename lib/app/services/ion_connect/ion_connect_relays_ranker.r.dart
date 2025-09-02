@@ -35,7 +35,7 @@ final class IonConnectRelaysRanker {
     for (final relayUrl in relaysUrls) {
       _getRankedRelay(relayUrl, cancelToken).then(
         (result) {
-          Logger.log('[RELAY] Relays ping results $result');
+          Logger.log('[RELAY] Relays ping results ${result.latency}');
           measurements
             ..add(result)
             ..sort((a, b) => a.latency.compareTo(b.latency));
