@@ -81,14 +81,12 @@ DeepLinkService deepLinkService(Ref ref) {
   final templateId = env.get<String>(EnvVariable.AF_ONE_LINK_TEMPLATE_ID);
   final brandDomain = env.get<String>(EnvVariable.AF_BRAND_DOMAIN);
   final baseHost = env.get<String>(EnvVariable.AF_BASE_HOST);
-  final sharePreviewImageUrl = env.get<String?>(EnvVariable.SHARE_PREVIEW_IMAGE_URL);
   final shareAppName = env.get<String>(EnvVariable.SHARE_APP_NAME);
   return DeepLinkService(
     ref.watch(appsflyerSdkProvider),
     templateId: templateId,
     brandDomain: brandDomain,
     baseHost: baseHost,
-    sharePreviewImageUrl: sharePreviewImageUrl,
     shareAppName: shareAppName,
   );
 }
@@ -227,12 +225,10 @@ final class DeepLinkService {
     required String templateId,
     required String brandDomain,
     required String baseHost,
-    required String? sharePreviewImageUrl,
     required String shareAppName,
   })  : _templateId = templateId,
         _brandDomain = brandDomain,
         _baseHost = baseHost,
-        _sharePreviewImageUrl = sharePreviewImageUrl,
         _shareAppName = shareAppName;
 
   final AppsflyerSdk _appsflyerSdk;
@@ -240,7 +236,6 @@ final class DeepLinkService {
   final String _templateId;
   final String _brandDomain;
   final String _baseHost;
-  final String? _sharePreviewImageUrl;
   final String _shareAppName;
 
   static final oneLinkUrlRegex = RegExp(
@@ -358,15 +353,14 @@ final class DeepLinkService {
       return null;
     }
 
-    // AppsFlyer requires a non-null or empty description because otherwise all og params will be ignored
-    final finalDescription = ogDescription ?? ' ';
-    final previewImageUrl = ogImageUrl ?? _sharePreviewImageUrl;
+    // AppsFlyer requires a non-null or empty description because otherwise all og params will be not set at all
+    final description = ogDescription.isEmpty ? ' ' : ogDescription!;
+    final image = ogImageUrl.isEmpty ? ' ' : ogImageUrl!;
 
     return {
       'af_og_title': _shareAppName,
-      'af_og_description': finalDescription,
-      // AppsFlyer requires a non-null or empty image because otherwise all og params will be not set
-      'af_og_image': previewImageUrl.isEmpty ? ' ' : previewImageUrl!,
+      'af_og_description': description,
+      'af_og_image': image,
     };
   }
 
