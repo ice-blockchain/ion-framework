@@ -664,10 +664,3 @@ class CurrentUserMetadataNotFoundException extends IONException {
 class FailedToPickIndexerRelay extends IONException {
   FailedToPickIndexerRelay() : super(10127, 'Failed to pick indexer relay');
 }
-
-class FailedToCreateEventSigner extends IONException {
-  FailedToCreateEventSigner({required this.identityKeyName})
-      : super(10128, 'Failed to create event signer for $identityKeyName');
-
-  final String identityKeyName;
-}
