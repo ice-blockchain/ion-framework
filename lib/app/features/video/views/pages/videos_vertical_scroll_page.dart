@@ -211,7 +211,8 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
               videoInfo: VideoPostInfo(videoPost: flattenedVideos[index].entity),
               bottomOverlay: VideoActions(
                 eventReference: flattenedVideos[index].entity.toEventReference(),
-                onReplyTap: () => PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context),
+                onReplyTap: () =>
+                    PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context),
               ),
               videoUrl: flattenedVideos[index].media.url,
               authorPubkey: eventReference.masterPubkey,

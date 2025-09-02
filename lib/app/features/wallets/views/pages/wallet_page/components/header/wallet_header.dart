@@ -21,7 +21,8 @@ class WalletHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dappsEnabled = ref.watch(featureFlagsProvider.notifier).get(WalletFeatureFlag.dappsEnabled);
+    final dappsEnabled =
+        ref.watch(featureFlagsProvider.notifier).get(WalletFeatureFlag.dappsEnabled);
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: Colors.white,
