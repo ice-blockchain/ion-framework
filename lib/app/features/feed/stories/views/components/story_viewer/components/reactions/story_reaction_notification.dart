@@ -8,7 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/views/components/message_items/components.dart';
 import 'package:ion/app/features/feed/stories/providers/story_reply_notification_provider.m.dart';
-import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_pause_visibility_wrapper.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_overlay_content_visibility_wrapper.dart';
 
 class StoryReplyNotification extends ConsumerWidget {
   const StoryReplyNotification({super.key});
@@ -26,7 +26,7 @@ class StoryReplyNotification extends ConsumerWidget {
       top: 70.0.s,
       start: 0.0.s,
       end: 0.0.s,
-      child: StoryPauseVisibilityWrapper(
+      child: StoryOverlayContentVisibilityWrapper(
         child: Animate(
           key: ValueKey(storyReplyNotification.selectedEmoji),
           onComplete: (_) {

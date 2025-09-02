@@ -7,7 +7,7 @@ import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_pause_visibility_wrapper.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_overlay_content_visibility_wrapper.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/header/header.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -50,7 +50,7 @@ class StoryViewerHeader extends ConsumerWidget {
           top: 14.0.s,
           start: 16.0.s,
           end: 22.0.s,
-          child: StoryPauseVisibilityWrapper(
+          child: StoryOverlayContentVisibilityWrapper(
             child: GestureDetector(
               onTap: () => ProfileRoute(pubkey: currentPost.masterPubkey).push<void>(context),
               child: BadgesUserListItem(

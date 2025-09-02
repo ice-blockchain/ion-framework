@@ -13,6 +13,14 @@ class StoryPauseController extends _$StoryPauseController {
 }
 
 @riverpod
+class StoryOverlayContentVisibilityController extends _$StoryOverlayContentVisibilityController {
+  @override
+  bool build() => true;
+
+  set visible(bool value) => state = value;
+}
+
+@riverpod
 class StoryMenuController extends _$StoryMenuController {
   @override
   bool build() => false;

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
 
-class StoryPauseVisibilityWrapper extends ConsumerWidget {
-  const StoryPauseVisibilityWrapper({
+class StoryOverlayContentVisibilityWrapper extends ConsumerWidget {
+  const StoryOverlayContentVisibilityWrapper({
     required this.child,
     super.key,
   });
@@ -14,10 +14,10 @@ class StoryPauseVisibilityWrapper extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isPaused = ref.watch(storyPauseControllerProvider);
+    final isVisible = ref.watch(storyOverlayContentVisibilityControllerProvider);
 
     return AnimatedOpacity(
-      opacity: isPaused ? 0 : 1,
+      opacity: isVisible ? 1 : 0,
       duration: const Duration(milliseconds: 150),
       child: child,
     );

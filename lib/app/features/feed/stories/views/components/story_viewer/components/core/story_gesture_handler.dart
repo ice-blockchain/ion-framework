@@ -47,8 +47,14 @@ class StoryGestureHandler extends HookConsumerWidget {
           onTapRight();
         }
       },
-      onLongPressStart: (_) => ref.read(storyPauseControllerProvider.notifier).paused = true,
-      onLongPressEnd: (_) => ref.read(storyPauseControllerProvider.notifier).paused = false,
+      onLongPressStart: (_) {
+        ref.read(storyPauseControllerProvider.notifier).paused = true;
+        ref.read(storyOverlayContentVisibilityControllerProvider.notifier).visible = false;
+      },
+      onLongPressEnd: (_) {
+        ref.read(storyPauseControllerProvider.notifier).paused = false;
+        ref.read(storyOverlayContentVisibilityControllerProvider.notifier).visible = true;
+      },
       child: child,
     );
   }
