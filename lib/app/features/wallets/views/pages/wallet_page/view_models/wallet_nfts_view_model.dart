@@ -10,7 +10,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 typedef NftsState = ({List<NftData> allNfts, List<NftData> filteredNfts});
 
-final walletNftsViewModelProvider = Provider.autoDispose(
+final walletNftsViewModelProvider = Provider(
   (ref) {
     final nftFilterService = ref.watch(nftNetworkFilterManagerProvider);
 
