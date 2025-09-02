@@ -71,6 +71,7 @@ class ProfilePage extends HookConsumerWidget {
       useScrollTopOnTabPress(context, scrollController: scrollController);
     }
     final (:opacity) = useAnimatedOpacityOnScroll(scrollController, topOffset: paddingTop);
+    final pageController = usePageController();
 
     final backgroundColor = context.theme.appColors.secondaryBackground;
 
@@ -129,13 +130,15 @@ class ProfilePage extends HookConsumerWidget {
                     PinnedHeaderSliver(
                       child: ColoredBox(
                         color: backgroundColor,
-                        child: const ProfileTabsHeader(),
+                        child: ProfileTabsHeader(pageController: pageController),
                       ),
                     ),
                     const SliverToBoxAdapter(child: SectionSeparator()),
                   ];
                 },
-                body: TabBarView(
+                body: PageView(
+                  controller: pageController,
+                  allowImplicitScrolling: true,
                   children: TabEntityType.values
                       .map(
                         (type) => type == TabEntityType.replies
