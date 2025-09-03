@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -25,6 +26,7 @@ import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/media_service/image_proccessing_config.dart';
+import 'package:ion/app/services/referrer/referrer_service.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class FillProfile extends HookConsumerWidget {
@@ -34,6 +36,7 @@ class FillProfile extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(GlobalKey<FormState>.new);
     final onboardingData = ref.watch(onboardingDataProvider);
+    final referrerData = ref.watch(getReferrerProvider);
     final isAvatarCompressing = ref.watch(
       imageProcessorNotifierProvider(ImageProcessingType.avatar)
           .select((state) => state is ImageProcessorStateCropped),
@@ -44,6 +47,7 @@ class FillProfile extends HookConsumerWidget {
     final nickname = useState(onboardingData.name ?? '');
     final debouncedNickname = useDebounced(nickname.value.trim(), const Duration(seconds: 1));
     final initialReferral = onboardingData.referralName ?? '';
+    final referralController = useTextEditingController(text: initialReferral);
     final referral = useState(onboardingData.referralName ?? '');
     final debouncedReferral = useDebounced(referral.value.trim(), const Duration(seconds: 1));
 
@@ -108,6 +112,26 @@ class FillProfile extends HookConsumerWidget {
       [debouncedReferral, context],
     );
 
+    // Update controller when referrerData loads and controller is empty
+    useEffect(
+      () {
+        referrerData.whenData((referrerValue) {
+          if (referrerValue != null &&
+              referrerValue.isNotEmpty &&
+              referralController.text.isEmpty) {
+            // Validate the referrerData value before setting it
+            final validationError = validateNickname(referrerValue, context);
+            if (validationError == null) {
+              referralController.text = referrerValue;
+              referral.value = referrerValue;
+            }
+          }
+        });
+        return null;
+      },
+      [referrerData, context],
+    );
+
     final verifyNicknameErrorMessage = useVerifyNicknameAvailabilityErrorMessage(ref);
     final verifyReferralErrorMessage = useVerifyReferralExistsErrorMessage(ref);
 
@@ -158,7 +182,7 @@ class FillProfile extends HookConsumerWidget {
                         SizedBox(height: 16.0.s),
                         ReferralInput(
                           isLive: true,
-                          initialValue: initialReferral,
+                          controller: referralController,
                           textInputAction: TextInputAction.done,
                           onChanged: (newValue) {
                             referral.value = newValue;
