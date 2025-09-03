@@ -108,7 +108,8 @@ class IonConnectNotifier extends _$IonConnectNotifier {
         if (triedRelayUrl != null && !RelayAuthService.isRelayAuthError(error)) {
           Logger.log('[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error');
           Logger.log(
-              '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays');
+            '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays',
+          );
           dislikedRelaysUrls.add(triedRelayUrl);
           if (UserRelaysManager.isRelayReadOnlyError(error)) {
             await ref
@@ -124,7 +125,8 @@ class IonConnectNotifier extends _$IonConnectNotifier {
 
     stopwatch.stop();
     Logger.log(
-        '[SESSION-COMPLETE] Session $sessionId completed in ${stopwatch.elapsedMilliseconds}ms');
+      '[SESSION-COMPLETE] Session $sessionId completed in ${stopwatch.elapsedMilliseconds}ms',
+    );
     return result;
   }
 
@@ -268,7 +270,8 @@ class IonConnectNotifier extends _$IonConnectNotifier {
         if (triedRelayUrl != null && !RelayAuthService.isRelayAuthError(error)) {
           Logger.log('[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error');
           Logger.log(
-              '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays');
+            '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays',
+          );
           dislikedRelaysUrls.add(triedRelayUrl);
         }
         Logger.log(
