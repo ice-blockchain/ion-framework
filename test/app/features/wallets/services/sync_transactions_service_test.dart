@@ -94,7 +94,7 @@ void main() {
     MockSetupHelper.setupTransactionLoaderMocks(mockTransactionLoader, returnValue: true);
     MockSetupHelper.setupTransferStatusUpdaterMocks(mockTransferStatusUpdater);
     MockSetupHelper.setupTransactionsVisibilityCloudBackupMocks(
-        mockTransactionsVisibilityCloudBackup);
+        mockTransactionsVisibilityCloudBackup,);
   }
 
   group('SyncTransactionsService', () {
