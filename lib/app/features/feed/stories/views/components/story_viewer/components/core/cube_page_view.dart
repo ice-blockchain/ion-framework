@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/features/components/quick_page_swiper/quick_page_swiper.dart';
 
 /// This widget is adapted from https://github.com/aeyrium/cube_transition
 /// with modifications to the disposal behavior of the PageController to prevent an exception
@@ -120,23 +121,28 @@ class CubePageViewState extends State<CubePageView> {
     return Center(
       child: ValueListenableBuilder<double>(
         valueListenable: _pageNotifier,
-        builder: (_, value, child) => PageView.builder(
-          scrollDirection: widget.scrollDirection,
-          controller: _pageController,
-          onPageChanged: widget.onPageChanged,
-          itemCount: widget.itemCount ?? widget.children?.length ?? 0,
-          itemBuilder: (_, index) {
-            if (widget.itemBuilder != null) {
-              return widget.itemBuilder!(context, index, value);
-            }
-            return CubeWidget(
-              index: index,
-              pageNotifier: value,
-              rotationDirection: widget.scrollDirection,
-              transformStyle: widget.transformStyle,
-              child: widget.children![index],
-            );
-          },
+        builder: (_, value, child) => QuickPageSwiper(
+          pageController: _pageController,
+          direction: Axis.horizontal,
+          child: PageView.builder(
+            scrollDirection: widget.scrollDirection,
+            controller: _pageController,
+            onPageChanged: widget.onPageChanged,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: widget.itemCount ?? widget.children?.length ?? 0,
+            itemBuilder: (_, index) {
+              if (widget.itemBuilder != null) {
+                return widget.itemBuilder!(context, index, value);
+              }
+              return CubeWidget(
+                index: index,
+                pageNotifier: value,
+                rotationDirection: widget.scrollDirection,
+                transformStyle: widget.transformStyle,
+                child: widget.children![index],
+              );
+            },
+          ),
         ),
       ),
     );
