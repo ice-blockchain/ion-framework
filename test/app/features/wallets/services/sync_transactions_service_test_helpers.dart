@@ -148,4 +148,12 @@ class MockSetupHelper {
       ),
     ];
   }
+
+  static void setupTransactionsVisibilityCloudBackupMocks(
+    MockTransactionsVisibilityCloudBackup mockTransactionsVisibilityCloudBackup,
+  ) {
+    when(() => mockTransactionsVisibilityCloudBackup.restoreAll()).thenAnswer((_) async {
+      return;
+    });
+  }
 }

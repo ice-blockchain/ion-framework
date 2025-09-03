@@ -76,6 +76,8 @@ void main() {
     MockSetupHelper.setupCryptoWalletMocks(mockCryptoWalletsRepository);
     MockSetupHelper.setupTransactionLoaderMocks(mockTransactionLoader);
     MockSetupHelper.setupTransferStatusUpdaterMocks(mockTransferStatusUpdater);
+    MockSetupHelper.setupTransactionsVisibilityCloudBackupMocks(
+        mockTransactionsVisibilityCloudBackup);
   }
 
   void setupBroadcastedTransfersMocks() {
@@ -90,6 +92,8 @@ void main() {
     );
     MockSetupHelper.setupTransactionLoaderMocks(mockTransactionLoader, returnValue: true);
     MockSetupHelper.setupTransferStatusUpdaterMocks(mockTransferStatusUpdater);
+    MockSetupHelper.setupTransactionsVisibilityCloudBackupMocks(
+        mockTransactionsVisibilityCloudBackup);
   }
 
   group('SyncTransactionsService', () {
@@ -194,6 +198,8 @@ void main() {
       });
 
       test('skips sync when wallet network is not supported', () async {
+        setupStandardMocks();
+
         when(() => mockNetworksRepository.getAllAsMap()).thenAnswer(
           (_) async => {
             'network1': FakeNetworkData.create(
@@ -291,6 +297,8 @@ void main() {
       });
 
       test('skips sync when wallet is not connected to any wallet view', () async {
+        setupStandardMocks();
+
         when(() => mockNetworksRepository.getAllAsMap()).thenAnswer(
           (_) async => {
             'network1': FakeNetworkData.create(
