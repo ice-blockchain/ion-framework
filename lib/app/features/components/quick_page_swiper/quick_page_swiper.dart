@@ -20,80 +20,71 @@ class QuickPageSwiper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onVerticalDragUpdate: (details) {
-        if (direction != Axis.vertical) {
-          return;
-        }
-        // “Pull” the scroll position by exactly the finger movement:
-        pageController.jumpTo(
-          pageController.offset - details.delta.dy,
-        );
-      },
-      onVerticalDragEnd: (details) {
-        if (direction != Axis.vertical) {
-          return;
-        }
+    return switch (direction) {
+      Axis.vertical => GestureDetector(
+          onVerticalDragUpdate: (details) {
+            // “Pull” the scroll position by exactly the finger movement:
+            pageController.jumpTo(
+              pageController.offset - details.delta.dy,
+            );
+          },
+          onVerticalDragEnd: (details) {
+            final vy = details.velocity.pixelsPerSecond.dy;
+            final page = pageController.page ?? pageController.initialPage.toDouble();
 
-        final vy = details.velocity.pixelsPerSecond.dy;
-        final page = pageController.page ?? pageController.initialPage.toDouble();
+            // Decide which page to go to
+            int targetPage;
+            if (vy < -swipeThreshold) {
+              // fast swipe *up* → next page
+              targetPage = page.ceil();
+            } else if (vy > swipeThreshold) {
+              // fast swipe *down* → previous page
+              targetPage = page.floor();
+            } else {
+              // gentle swipe → whichever page is closest
+              targetPage = page.round();
+            }
 
-        // Decide which page to go to
-        int targetPage;
-        if (vy < -swipeThreshold) {
-          // fast swipe *up* → next page
-          targetPage = page.ceil();
-        } else if (vy > swipeThreshold) {
-          // fast swipe *down* → previous page
-          targetPage = page.floor();
-        } else {
-          // gentle swipe → whichever page is closest
-          targetPage = page.round();
-        }
+            pageController.animateToPage(
+              targetPage,
+              duration: swipeDuration,
+              curve: Curves.easeOut,
+            );
+          },
+          child: child,
+        ),
+      Axis.horizontal => GestureDetector(
+          onHorizontalDragUpdate: (details) {
+            // “Pull” the scroll position by exactly the finger movement:
+            pageController.jumpTo(
+              pageController.offset - details.delta.dx,
+            );
+          },
+          onHorizontalDragEnd: (details) {
+            final vx = details.velocity.pixelsPerSecond.dx;
+            final page = pageController.page ?? pageController.initialPage.toDouble();
 
-        pageController.animateToPage(
-          targetPage,
-          duration: swipeDuration,
-          curve: Curves.easeOut,
-        );
-      },
-      onHorizontalDragUpdate: (details) {
-        if (direction != Axis.horizontal) {
-          return;
-        }
-        // “Pull” the scroll position by exactly the finger movement:
-        pageController.jumpTo(
-          pageController.offset - details.delta.dx,
-        );
-      },
-      onHorizontalDragEnd: (details) {
-        if (direction != Axis.horizontal) {
-          return;
-        }
+            // Decide which page to go to
+            int targetPage;
+            if (vx < -swipeThreshold) {
+              // fast swipe *left* → next page
+              targetPage = page.ceil();
+            } else if (vx > swipeThreshold) {
+              // fast swipe *right* → previous page
+              targetPage = page.floor();
+            } else {
+              // gentle swipe → whichever page is closest
+              targetPage = page.round();
+            }
 
-        final vx = details.velocity.pixelsPerSecond.dx;
-        final page = pageController.page ?? pageController.initialPage.toDouble();
-
-        // Decide which page to go to
-        int targetPage;
-        if (vx < -swipeThreshold) {
-          // fast swipe *left* → next page
-          targetPage = page.ceil();
-        } else if (vx > swipeThreshold) {
-          // fast swipe *right* → previous page
-          targetPage = page.floor();
-        } else {
-          // gentle swipe → whichever page is closest
-          targetPage = page.round();
-        }
-
-        pageController.animateToPage(
-          targetPage,
-          duration: swipeDuration,
-          curve: Curves.easeOut,
-        );
-      },
-      child: child,
-    );
+            pageController.animateToPage(
+              targetPage,
+              duration: swipeDuration,
+              curve: Curves.easeOut,
+            );
+          },
+          child: child,
+        )
+    };
   }
 }
