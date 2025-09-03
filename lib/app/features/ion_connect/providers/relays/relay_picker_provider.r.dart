@@ -31,16 +31,20 @@ class RelayPicker extends _$RelayPicker {
     ActionSource actionSource, {
     required ActionType actionType,
     DislikedRelayUrlsCollection dislikedUrls = const DislikedRelayUrlsCollection({}),
+    String? sessionId,
   }) async {
     return switch (actionType) {
-      ActionType.read => _getReadActionSourceRelay(actionSource, dislikedUrls: dislikedUrls),
-      ActionType.write => _getWriteActionSourceRelay(actionSource, dislikedUrls: dislikedUrls),
+      ActionType.read =>
+        _getReadActionSourceRelay(actionSource, dislikedUrls: dislikedUrls, sessionId: sessionId),
+      ActionType.write =>
+        _getWriteActionSourceRelay(actionSource, dislikedUrls: dislikedUrls, sessionId: sessionId),
     };
   }
 
   Future<IonConnectRelay> _getWriteActionSourceRelay(
     ActionSource actionSource, {
     DislikedRelayUrlsCollection dislikedUrls = const DislikedRelayUrlsCollection({}),
+    String? sessionId,
   }) async {
     final reachableRelays = switch (actionSource) {
       ActionSourceCurrentUser() => await _getCurrentUserReachableRelays().then(_filterWriteRelays),
@@ -52,8 +56,9 @@ class RelayPicker extends _$RelayPicker {
         )
     };
 
+    final sessionPrefix = sessionId != null ? '[SESSION] Session $sessionId - ' : '';
     Logger.log(
-      '[RELAY] Selecting a write relay for action source: $actionSource, reachable write relay list: $reachableRelays, $dislikedUrls',
+      '$sessionPrefix[RELAY] Selecting a write relay for action source: $actionSource, reachable write relay list: $reachableRelays, $dislikedUrls',
     );
 
     final reachableRelayUrls = reachableRelays.map((relay) => relay.url).toList();
@@ -61,21 +66,32 @@ class RelayPicker extends _$RelayPicker {
 
     if (filteredWriteRelayUrls.isEmpty) {
       Logger.warning(
-        '[RELAY] No available write relays found for action source: $actionSource. Fallback to read action source relay.',
+        '$sessionPrefix[RELAY] No available write relays found for action source: $actionSource. Fallback to read action source relay.',
       );
-      return _getReadActionSourceRelay(actionSource, dislikedUrls: dislikedUrls);
+      return _getReadActionSourceRelay(
+        actionSource,
+        dislikedUrls: dislikedUrls,
+        sessionId: sessionId,
+      );
     }
 
     final chosenRelayUrl =
         _getFirstActiveRelayUrl(filteredWriteRelayUrls) ?? filteredWriteRelayUrls.random!;
+    Logger.log(
+      '$sessionPrefix[RELAY] Write relay selected: $chosenRelayUrl from pool: $filteredWriteRelayUrls',
+    );
     return ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
   }
 
   Future<IonConnectRelay> _getReadActionSourceRelay(
     ActionSource actionSource, {
     DislikedRelayUrlsCollection dislikedUrls = const DislikedRelayUrlsCollection({}),
+    String? sessionId,
   }) async {
-    Logger.log('[RELAY] Selecting a read relay for action source: $actionSource, $dislikedUrls');
+    final sessionPrefix = sessionId != null ? '[SESSION] Session $sessionId - ' : '';
+    Logger.log(
+      '$sessionPrefix[RELAY] Selecting a read relay for action source: $actionSource, $dislikedUrls',
+    );
 
     switch (actionSource) {
       case ActionSourceCurrentUser():
@@ -95,6 +111,9 @@ class RelayPicker extends _$RelayPicker {
         }
 
         final chosenRelayUrl = _getFirstActiveRelayUrl(relayPool) ?? relayPool.first;
+        Logger.log(
+          '$sessionPrefix[RELAY] Current user read relay selected: $chosenRelayUrl from pool: $relayPool',
+        );
         return ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
 
       case ActionSourceUser():
@@ -102,6 +121,7 @@ class RelayPicker extends _$RelayPicker {
           return _getReadActionSourceRelay(
             ActionSource.currentUser(anonymous: actionSource.anonymous),
             dislikedUrls: dislikedUrls,
+            sessionId: sessionId,
           );
         }
 
@@ -122,6 +142,9 @@ class RelayPicker extends _$RelayPicker {
 
         final chosenRelayUrl =
             _getFirstActiveRelayUrl(relayPool) ?? await _selectRelayUrlForOtherUser(relayPool);
+        Logger.log(
+          '$sessionPrefix[RELAY] User read relay selected: $chosenRelayUrl from pool: $relayPool',
+        );
         return ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
 
       case ActionSourceIndexers():
@@ -141,9 +164,15 @@ class RelayPicker extends _$RelayPicker {
         }
 
         final chosenIndexerUrl = _getFirstActiveRelayUrl(relayPool) ?? relayPool.random!;
+        Logger.log(
+          '$sessionPrefix[RELAY] Indexer relay selected: $chosenIndexerUrl from pool: $relayPool',
+        );
         return ref.read(relayProvider(chosenIndexerUrl, anonymous: actionSource.anonymous).future);
 
       case ActionSourceRelayUrl():
+        Logger.log(
+          '$sessionPrefix[RELAY] Direct relay URL selected: ${actionSource.url}',
+        );
         return ref.read(relayProvider(actionSource.url, anonymous: actionSource.anonymous).future);
     }
   }

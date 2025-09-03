@@ -22,22 +22,20 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart'
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_logger_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/long_living_subscription_relay_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_auth_provider.r.dart';
-import 'package:ion/app/features/ion_connect/providers/relays/relay_logging_wrapper.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_picker_provider.r.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/providers/relays/current_user_write_relay.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
-
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 part 'ion_connect_notifier.r.g.dart';
 
@@ -55,37 +53,38 @@ class IonConnectNotifier extends _$IonConnectNotifier {
   }) async {
     _warnSendIssues(events);
 
-    final sessionId = events.isNotEmpty ? events.first.id : null;
+    final sessionId = const Uuid().v4();
+    final eventIds = events.map((e) => e.id).toList();
+    final stopwatch = Stopwatch()..start();
 
-    if (sessionId != null) {
-      ref.read(ionConnectLoggerProvider)?.startSessionWithId(sessionId);
-    }
+    Logger.log(
+      '[SESSION-START] Starting session $sessionId with events: $eventIds, source: $actionSource',
+    );
 
     final dislikedRelaysUrls = <String>{};
 
     IonConnectRelay? triedRelay;
 
-    return withRetry(
+    final result = await withRetry(
       ({error}) async {
         triedRelay = null;
         final relay = await ref.read(relayPickerProvider.notifier).getActionSourceRelay(
               actionSource,
               actionType: ActionType.write,
               dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
+              sessionId: sessionId,
             );
         triedRelay = relay;
 
-        Logger.log('[RELAY] ${relay.url} is chosen for sending events, $dislikedRelaysUrls');
+        Logger.log(
+          '[SESSION-RELAY-CHOSEN] Session $sessionId - ${relay.url} chosen, disliked: $dislikedRelaysUrls',
+        );
 
         _handleWriteRelay(actionSource, relay.url);
 
         await ref
             .read(relayAuthProvider(relay))
             .handleRelayAuthOnAction(actionSource: actionSource, error: error);
-
-        if (relay is RelayLoggingWrapper && sessionId != null) {
-          relay.sessionId = sessionId;
-        }
 
         await _sendEventsToRelay(events, relay: relay);
 
@@ -99,14 +98,17 @@ class IonConnectNotifier extends _$IonConnectNotifier {
         // Retry in case of any error except when no relay is selected.
         // This is to avoid retrying when there are no available relays left or they are not assigned (registration).
         final triedRelayUrl = error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
-        Logger.log('[RELAY] $triedRelayUrl retry: ${triedRelayUrl != null} for error: $error');
+        Logger.log(
+          '[SESSION-RETRY] Session $sessionId - $triedRelayUrl retry: ${triedRelayUrl != null} for error: $error',
+        );
         return triedRelayUrl != null;
       },
       onRetry: (error) async {
         final triedRelayUrl = error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
         if (triedRelayUrl != null && !RelayAuthService.isRelayAuthError(error)) {
-          Logger.error(error ?? '', message: '[RELAY] Got error $error');
-          Logger.log('[RELAY] $triedRelayUrl Adding to the list of disliked relays');
+          Logger.log('[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error');
+          Logger.log(
+              '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays');
           dislikedRelaysUrls.add(triedRelayUrl);
           if (UserRelaysManager.isRelayReadOnlyError(error)) {
             await ref
@@ -114,8 +116,16 @@ class IonConnectNotifier extends _$IonConnectNotifier {
                 .handleCachedReadOnlyRelay(triedRelayUrl);
           }
         }
+        Logger.log(
+          '[SESSION-RETRY] Session $sessionId retry attempt at ${stopwatch.elapsedMilliseconds}ms',
+        );
       },
     );
+
+    stopwatch.stop();
+    Logger.log(
+        '[SESSION-COMPLETE] Session $sessionId completed in ${stopwatch.elapsedMilliseconds}ms');
+    return result;
   }
 
   Future<List<IonConnectEntity>?> sendEvents(
@@ -189,6 +199,12 @@ class IonConnectNotifier extends _$IonConnectNotifier {
         subscriptionBuilder,
     VoidCallback? onEose,
   }) async* {
+    final sessionId = const Uuid().v4();
+    final stopwatch = Stopwatch()..start();
+    Logger.log(
+      '[SESSION-REQUEST] Starting session $sessionId for subscription: ${requestMessage.subscriptionId}, source: $actionSource',
+    );
+
     final dislikedRelaysUrls = <String>{};
     IonConnectRelay? triedRelay;
 
@@ -206,29 +222,21 @@ class IonConnectNotifier extends _$IonConnectNotifier {
                   actionSource,
                   actionType: actionType ?? ActionType.read,
                   dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
+                  sessionId: sessionId,
                 );
         triedRelay = relay;
 
-        Logger.log('[RELAY] ${relay.url} is chosen for reading events, $dislikedRelaysUrls');
+        Logger.log(
+          '[SESSION-RELAY-CHOSEN] Session $sessionId - ${relay.url} chosen, disliked: $dislikedRelaysUrls',
+        );
 
         await ref
             .read(relayAuthProvider(relay))
             .handleRelayAuthOnAction(actionSource: actionSource, error: error);
 
-        final logger = ref.read(ionConnectLoggerProvider);
-        logger?.startRequestTimer(relay.url);
-
         final events = subscriptionBuilder != null
             ? subscriptionBuilder(requestMessage, relay)
             : ion.requestEvents(requestMessage, relay);
-
-        if (subscriptionBuilder == null) {
-          logger?.logRequestSent(
-            relay.url,
-            requestMessage,
-            subscriptionId: requestMessage.subscriptionId,
-          );
-        }
 
         await for (final event in events) {
           // Note: The ion.requestEvents method automatically handles unsubscription for certain messages.
@@ -250,16 +258,22 @@ class IonConnectNotifier extends _$IonConnectNotifier {
         // Retry in case of any error except when no relay is selected.
         // This is to avoid retrying when there are no available relays left or they are not assigned (registration).
         final triedRelayUrl = error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
-        Logger.log('[RELAY] $triedRelayUrl retry: ${triedRelayUrl != null} for error: $error');
+        Logger.log(
+          '[SESSION-RETRY] Session $sessionId - $triedRelayUrl retry: ${triedRelayUrl != null} for error: $error',
+        );
         return triedRelayUrl != null;
       },
       onRetry: (error) {
         final triedRelayUrl = error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
         if (triedRelayUrl != null && !RelayAuthService.isRelayAuthError(error)) {
-          Logger.error(error ?? '', message: '[RELAY] Got error $error');
-          Logger.log('[RELAY] $triedRelayUrl Adding to the list of disliked relays');
+          Logger.log('[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error');
+          Logger.log(
+              '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays');
           dislikedRelaysUrls.add(triedRelayUrl);
         }
+        Logger.log(
+          '[SESSION-RETRY] Session $sessionId retry attempt at ${stopwatch.elapsedMilliseconds}ms',
+        );
       },
     );
   }
@@ -456,7 +470,6 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       BadgeDefinitionEntity.kind,
       EventCountRequestEntity.kind,
     ];
-
     for (final event in events) {
       if (!excludedKinds.contains(event.kind) &&
           !event.tags.any((tag) => tag[0] == MasterPubkeyTag.tagName)) {
