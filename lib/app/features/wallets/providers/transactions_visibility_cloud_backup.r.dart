@@ -8,15 +8,49 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/wallets/data/database/dao/transactions_visibility_status_dao.m.dart';
 import 'package:ion/app/services/cloud_storage/cloud_storage_service.r.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-final transactionsVisibilityCloudBackupProvider =
-    Provider<TransactionsVisibilityCloudBackup>((ref) {
+part 'transactions_visibility_cloud_backup.r.g.dart';
+
+@Riverpod(keepAlive: true)
+TransactionsVisibilityCloudBackup transactionsVisibilityCloudBackup(
+  Ref ref,
+) {
   return TransactionsVisibilityCloudBackup(
     ref: ref,
     cloud: ref.watch(cloudStorageProvider),
     visibilityDao: ref.watch(transactionsVisibilityStatusDaoProvider),
   );
-});
+}
+
+@Riverpod(keepAlive: true)
+StreamSubscription<dynamic> transactionsVisibilityCloudAutoBackup(
+  Ref ref,
+) {
+  final dao = ref.watch(transactionsVisibilityStatusDaoProvider);
+  Timer? debounce;
+  var lastSeenCount = 0;
+
+  final sub = dao.select(dao.transactionVisibilityStatusTable).watch().listen((rows) async {
+    // Only backup if the number of seen entries actually changed
+    final seenCount = rows.where((r) => r.status == TransactionVisibilityStatus.seen).length;
+    if (seenCount != lastSeenCount) {
+      lastSeenCount = seenCount;
+
+      // Debounce to avoid multiple rapid uploads
+      debounce?.cancel();
+      debounce = Timer(const Duration(seconds: 2), () async {
+        await ref.read(transactionsVisibilityCloudBackupProvider).backupAll();
+      });
+    }
+  });
+
+  ref.onDispose(() {
+    debounce?.cancel();
+    sub.cancel();
+  });
+  return sub;
+}
 
 /// On Ios we backup the visibility status to the cloud
 /// On Android we don't cause we don't want to show user googleauth screen
@@ -95,29 +129,3 @@ class TransactionsVisibilityCloudBackup {
 
   String _esc(String s) => s.replaceAll("'", "''");
 }
-
-final transactionsVisibilityCloudAutoBackupProvider = Provider<StreamSubscription<dynamic>>((ref) {
-  final dao = ref.watch(transactionsVisibilityStatusDaoProvider);
-  Timer? debounce;
-  var lastSeenCount = 0;
-
-  final sub = dao.select(dao.transactionVisibilityStatusTable).watch().listen((rows) async {
-    // Only backup if the number of seen entries actually changed
-    final seenCount = rows.where((r) => r.status == TransactionVisibilityStatus.seen).length;
-    if (seenCount != lastSeenCount) {
-      lastSeenCount = seenCount;
-
-      // Debounce to avoid multiple rapid uploads
-      debounce?.cancel();
-      debounce = Timer(const Duration(seconds: 2), () async {
-        await ref.read(transactionsVisibilityCloudBackupProvider).backupAll();
-      });
-    }
-  });
-
-  ref.onDispose(() {
-    debounce?.cancel();
-    sub.cancel();
-  });
-  return sub;
-});
