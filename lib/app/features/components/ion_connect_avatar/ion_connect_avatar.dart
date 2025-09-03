@@ -11,9 +11,6 @@ class IonConnectAvatar extends ConsumerWidget {
   const IonConnectAvatar({
     required this.pubkey,
     required this.size,
-
-    /// Cached only data might be used to avoid initial AsyncValue loading state and speed up the UI
-    this.cached = false,
     this.borderRadius,
     this.fit,
     this.shadow,
@@ -22,32 +19,25 @@ class IonConnectAvatar extends ConsumerWidget {
 
   final String pubkey;
   final double size;
-  final bool cached;
   final BorderRadiusGeometry? borderRadius;
   final BoxFit? fit;
   final BoxShadow? shadow;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = cached
-        ? AsyncData(ref.watch(cachedUserMetadataProvider(pubkey)))
-        : ref.watch(userMetadataProvider(pubkey));
+    final userMetadata = ref.watch(userMetadataSyncProvider(pubkey));
 
     final avatar = Avatar(
-      imageWidget: userMetadata.maybeWhen(
-        data: (userMetadata) {
-          final imageUrl = userMetadata?.data.avatarUrl;
-          return imageUrl != null
+      imageWidget: userMetadata != null
+          ? userMetadata.data.avatarUrl != null
               ? IonConnectNetworkImage(
-                  imageUrl: imageUrl,
+                  imageUrl: userMetadata.data.avatarUrl!,
                   authorPubkey: pubkey,
                   height: size,
                   width: size,
                 )
-              : DefaultAvatar(size: size);
-        },
-        orElse: SizedBox.shrink,
-      ),
+              : DefaultAvatar(size: size)
+          : const SizedBox.shrink(),
       size: size,
       borderRadius: borderRadius,
       fit: fit,

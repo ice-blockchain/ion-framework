@@ -53,6 +53,21 @@ class UserMetadata extends _$UserMetadata {
 }
 
 @riverpod
+UserMetadataEntity? userMetadataSync(Ref ref, String pubkey) {
+  return ref.watch(
+    ionConnectSyncEntityProvider(
+      eventReference: ReplaceableEventReference(
+        masterPubkey: pubkey,
+        kind: UserMetadataEntity.kind,
+      ),
+      // Always include ProfileBadgesSearchExtension to avoid provider rebuilds
+      // when badge data changes from null to cached
+      search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
+    ),
+  ) as UserMetadataEntity?;
+}
+
+@riverpod
 UserMetadataEntity? cachedUserMetadata(
   Ref ref,
   String pubkey,

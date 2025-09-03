@@ -54,7 +54,6 @@ class StoryItemContent extends HookConsumerWidget {
                       child: IonConnectAvatar(
                         size: width - borderSize * 4,
                         pubkey: pubkey,
-                        cached: true,
                       ),
                     ),
                   )
@@ -62,7 +61,6 @@ class StoryItemContent extends HookConsumerWidget {
                   IonConnectAvatar(
                     size: width - borderSize * 2,
                     pubkey: pubkey,
-                    cached: true,
                   ),
                 if (child != null) child!,
               ],
