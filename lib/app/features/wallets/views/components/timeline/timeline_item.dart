@@ -27,7 +27,7 @@ class TimelineItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = data.isFailed
-        ? Assets.svg.iconStepsCheckFailde
+        ? Assets.svg.iconStepsCheckFailed
         : data.isDone
             ? Assets.svg.iconStepsCheckActive
             : Assets.svg.iconStepsCheckInactive;
