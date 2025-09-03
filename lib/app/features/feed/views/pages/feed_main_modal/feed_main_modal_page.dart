@@ -128,6 +128,7 @@ class _ContentCreationBlockedModal extends HookConsumerWidget {
               Button(
                 minimumSize: Size(double.infinity, 56.s),
                 label: Text(locale.button_try_again),
+                leadingIcon: Assets.svg.iconbuttonTryagain.icon(size: 24.s),
                 onPressed: () {
                   invalidateCurrentUserMetadataProviders(ref);
                 },
@@ -147,7 +148,7 @@ class _CreateContentLoadingModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: 333.s),
+      constraints: BoxConstraints(maxHeight: 291.s),
       child: const Center(
         child: IONLoadingIndicatorThemed(),
       ),
