@@ -46,7 +46,6 @@ Future<TransactionsRepository> transactionsRepository(Ref ref) async {
     ref.watch(transactionsDaoProvider),
     await ref.watch(ionIdentityClientProvider.future),
     CoinTransactionsMapper(),
-    ref.watch(transactionsVisibilityCloudBackupProvider),
   );
 }
 
@@ -58,7 +57,6 @@ class TransactionsRepository {
     this._transactionsDao,
     this._ionIdentityClient,
     this._coinMapper,
-    this._visibilityCloudBackup,
   ) {
     _loadDeprecatedTransactions();
   }
@@ -70,7 +68,6 @@ class TransactionsRepository {
   final IONIdentityClient _ionIdentityClient;
   final CoinTransactionsMapper _coinMapper;
   final Completer<Map<String, TransactionData>> _deprecatedTransactionsCompleter = Completer();
-  final TransactionsVisibilityCloudBackup _visibilityCloudBackup;
 
   void _loadDeprecatedTransactions() {
     if (_deprecatedTransactionsCompleter.isCompleted) {
@@ -107,8 +104,7 @@ class TransactionsRepository {
       _coinMapper.fromDomainToDB(transactions),
     );
 
-    final saved = await _transactionsDao.save(merged);
-    return saved;
+    return _transactionsDao.save(merged);
   }
 
   Future<void> saveEntities(

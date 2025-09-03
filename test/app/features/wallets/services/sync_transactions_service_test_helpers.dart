@@ -14,6 +14,8 @@ class MockWalletViewsService extends Mock implements WalletViewsService {}
 
 class MockTransactionsRepository extends Mock implements TransactionsRepository {}
 
+class MockTransactionsVisibilityCloudBackup extends Mock implements TransactionsVisibilityCloudBackup {}
+
 /// Contains common setup methods for tests
 class MockSetupHelper {
   static void setupNetworkMocks(
