@@ -14,6 +14,7 @@ class ReferralInput extends StatelessWidget {
     this.textInputAction,
     this.onChanged,
     this.initialValue,
+    this.controller,
     this.errorText,
     this.isLive = false,
   });
@@ -23,6 +24,8 @@ class ReferralInput extends StatelessWidget {
   final ValueChanged<String>? onChanged;
 
   final String? initialValue;
+
+  final TextEditingController? controller;
 
   final String? errorText;
 
@@ -35,6 +38,7 @@ class ReferralInput extends StatelessWidget {
       prefixIconAssetName: Assets.svg.iconFieldInviter,
       labelText: context.i18n.fill_profile_input_referral,
       textInputAction: textInputAction,
+      controller: controller,
       initialValue: initialValue,
       isLive: isLive,
       showNoErrorsIndicator: isLive,
