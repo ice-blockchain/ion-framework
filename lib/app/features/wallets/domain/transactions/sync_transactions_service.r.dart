@@ -63,7 +63,8 @@ class SyncTransactionsService {
 
   Future<void> syncAll() async {
     await _userWallets.map((wallet) async {
-      final isHistoryLoaded = await _cryptoWalletsRepository.isHistoryLoadedForWallet(walletId: wallet.id);
+      final isHistoryLoaded =
+          await _cryptoWalletsRepository.isHistoryLoadedForWallet(walletId: wallet.id);
 
       await _syncWallet(
         wallet: wallet,
@@ -104,7 +105,9 @@ class SyncTransactionsService {
     final walletsWithBroadcastedTransfers =
         broadcastedTransfers.map((tx) => tx.senderWalletAddress).whereType<String>().toSet();
 
-    return _userWallets.where((wallet) => walletsWithBroadcastedTransfers.contains(wallet.address)).toList();
+    return _userWallets
+        .where((wallet) => walletsWithBroadcastedTransfers.contains(wallet.address))
+        .toList();
   }
 
   Future<void> syncBroadcastedTransactionsForWallet(String walletAddress) async {

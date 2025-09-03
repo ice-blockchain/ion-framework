@@ -9,7 +9,8 @@ import 'package:ion/app/features/wallets/data/database/dao/transactions_visibili
 import 'package:ion/app/services/cloud_storage/cloud_storage_service.r.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 
-final transactionsVisibilityCloudBackupProvider = Provider<TransactionsVisibilityCloudBackup>((ref) {
+final transactionsVisibilityCloudBackupProvider =
+    Provider<TransactionsVisibilityCloudBackup>((ref) {
   return TransactionsVisibilityCloudBackup(
     ref: ref,
     cloud: ref.watch(cloudStorageProvider),
@@ -65,7 +66,8 @@ class TransactionsVisibilityCloudBackup {
 
     if (!Platform.isIOS) {
       await visibilityDao.transaction(() async {
-        await visibilityDao.customStatement('UPDATE transaction_visibility_status_table SET status = 1;');
+        await visibilityDao
+            .customStatement('UPDATE transaction_visibility_status_table SET status = 1;');
       });
 
       await localStorage.setBool(key: restoredKey, value: true);
