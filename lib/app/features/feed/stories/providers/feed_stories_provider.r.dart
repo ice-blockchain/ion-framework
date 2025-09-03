@@ -20,7 +20,7 @@ part 'feed_stories_provider.r.g.dart';
 @riverpod
 class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
   @override
-  ({Iterable<UserStory>? items, bool hasMore}) build() {
+  ({Iterable<UserStory> items, bool hasMore, bool ready}) build() {
     final filter = ref.watch(feedCurrentFilterProvider);
     final currentUserStory = ref.watch(currentUserFeedStoryProvider);
     final data = switch (filter.filter) {
@@ -40,7 +40,11 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
       if (userStories != null) ...userStories,
     };
 
-    return (items: stories, hasMore: data.hasMore);
+    return (
+      items: stories,
+      hasMore: data.hasMore,
+      ready: userStories != null && userStories.length >= 4
+    );
   }
 
   @override
@@ -55,7 +59,7 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
   @override
   void refresh() {
     getDelegate().refresh();
-    final stories = state.items?.toList() ?? [];
+    final stories = state.items.toList();
     for (final story in stories) {
       ref.read(ionConnectCacheProvider.notifier).remove(
             EventCountResultEntity.cacheKeyBuilder(
@@ -91,7 +95,7 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
 
 @riverpod
 List<UserStory> feedStoriesByPubkey(Ref ref, String pubkey, {bool showOnlySelectedUser = false}) {
-  final stories = ref.watch(feedStoriesProvider.select((state) => state.items?.toList() ?? []));
+  final stories = ref.watch(feedStoriesProvider.select((state) => state.items.toList()));
   final userIndex = stories.indexWhere((userStories) => userStories.pubkey == pubkey);
 
   if (userIndex == -1) return [];

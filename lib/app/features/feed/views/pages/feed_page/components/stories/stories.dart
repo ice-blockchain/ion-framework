@@ -20,14 +20,13 @@ class Stories extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final (items: stories, :hasMore) = ref.watch(feedStoriesProvider);
+    final (items: stories, :hasMore, :ready) = ref.watch(feedStoriesProvider);
 
     final viewedStoriesReferences = ref.watch(viewedStoriesProvider);
 
     final pubkeys = useMemoized(
       () {
-        final storyReferences =
-            stories?.map((story) => story.story.toEventReference()).toSet() ?? {};
+        final storyReferences = stories.map((story) => story.story.toEventReference()).toSet();
 
         final unseenStories = storyReferences.difference(viewedStoriesReferences ?? {});
         return [...unseenStories, ...storyReferences.difference(unseenStories)]
@@ -40,7 +39,7 @@ class Stories extends HookConsumerWidget {
     return Column(
       children: [
         SizedBox(height: 8.0.s),
-        if (stories == null)
+        if (!ready)
           const StoryListSkeleton()
         else
           LoadMoreBuilder(
