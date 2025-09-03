@@ -58,7 +58,7 @@ class RelayPicker extends _$RelayPicker {
 
     final sessionPrefix = sessionId != null ? '[SESSION] Session $sessionId - ' : '';
     Logger.log(
-      '$sessionPrefix[RELAY] Selecting a write relay for action source: $actionSource, reachable write relay list: $reachableRelays, $dislikedUrls',
+      '$sessionPrefix[RELAY] Selecting a write relay for action source: $actionSource, reachable write relay list: $reachableRelays, disliked: ${dislikedUrls.urls}',
     );
 
     final reachableRelayUrls = reachableRelays.map((relay) => relay.url).toList();
@@ -78,7 +78,7 @@ class RelayPicker extends _$RelayPicker {
     final chosenRelayUrl =
         _getFirstActiveRelayUrl(filteredWriteRelayUrls) ?? filteredWriteRelayUrls.random!;
     Logger.log(
-      '$sessionPrefix[RELAY] Write relay selected: $chosenRelayUrl from pool: $filteredWriteRelayUrls',
+      '$sessionPrefix[RELAY] Write relay selected: $chosenRelayUrl from pool: $filteredWriteRelayUrls, disliked: ${dislikedUrls.urls}',
     );
     return ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
   }
@@ -112,7 +112,7 @@ class RelayPicker extends _$RelayPicker {
 
         final chosenRelayUrl = _getFirstActiveRelayUrl(relayPool) ?? relayPool.first;
         Logger.log(
-          '$sessionPrefix[RELAY] Current user read relay selected: $chosenRelayUrl from pool: $relayPool',
+          '$sessionPrefix[RELAY] Current user read relay selected: $chosenRelayUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
         );
         return ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
 
@@ -143,7 +143,7 @@ class RelayPicker extends _$RelayPicker {
         final chosenRelayUrl =
             _getFirstActiveRelayUrl(relayPool) ?? await _selectRelayUrlForOtherUser(relayPool);
         Logger.log(
-          '$sessionPrefix[RELAY] User read relay selected: $chosenRelayUrl from pool: $relayPool',
+          '$sessionPrefix[RELAY] User read relay selected: $chosenRelayUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
         );
         return ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
 
@@ -165,7 +165,7 @@ class RelayPicker extends _$RelayPicker {
 
         final chosenIndexerUrl = _getFirstActiveRelayUrl(relayPool) ?? relayPool.random!;
         Logger.log(
-          '$sessionPrefix[RELAY] Indexer relay selected: $chosenIndexerUrl from pool: $relayPool',
+          '$sessionPrefix[RELAY] Indexer relay selected: $chosenIndexerUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
         );
         return ref.read(relayProvider(chosenIndexerUrl, anonymous: actionSource.anonymous).future);
 

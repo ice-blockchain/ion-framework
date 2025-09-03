@@ -32,10 +32,10 @@ import 'package:ion/app/features/user/providers/relays/current_user_write_relay.
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:uuid/uuid.dart';
 
 part 'ion_connect_notifier.r.g.dart';
 
@@ -53,7 +53,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
   }) async {
     _warnSendIssues(events);
 
-    final sessionId = const Uuid().v4();
+    final sessionId = generateUuid();
     final eventIds = events.map((e) => e.id).toList();
     final stopwatch = Stopwatch()..start();
 
@@ -75,10 +75,6 @@ class IonConnectNotifier extends _$IonConnectNotifier {
               sessionId: sessionId,
             );
         triedRelay = relay;
-
-        Logger.log(
-          '[SESSION-RELAY-CHOSEN] Session $sessionId - ${relay.url} chosen, disliked: $dislikedRelaysUrls',
-        );
 
         _handleWriteRelay(actionSource, relay.url);
 
@@ -106,7 +102,10 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       onRetry: (error) async {
         final triedRelayUrl = error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
         if (triedRelayUrl != null && !RelayAuthService.isRelayAuthError(error)) {
-          Logger.log('[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error');
+          Logger.error(
+            error ?? '',
+            message: '[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error',
+          );
           Logger.log(
             '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays',
           );
@@ -201,7 +200,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
         subscriptionBuilder,
     VoidCallback? onEose,
   }) async* {
-    final sessionId = const Uuid().v4();
+    final sessionId = generateUuid();
     final stopwatch = Stopwatch()..start();
     Logger.log(
       '[SESSION-REQUEST] Starting session $sessionId for subscription: ${requestMessage.subscriptionId}, source: $actionSource',
@@ -227,10 +226,6 @@ class IonConnectNotifier extends _$IonConnectNotifier {
                   sessionId: sessionId,
                 );
         triedRelay = relay;
-
-        Logger.log(
-          '[SESSION-RELAY-CHOSEN] Session $sessionId - ${relay.url} chosen, disliked: $dislikedRelaysUrls',
-        );
 
         await ref
             .read(relayAuthProvider(relay))
@@ -268,7 +263,10 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       onRetry: (error) {
         final triedRelayUrl = error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
         if (triedRelayUrl != null && !RelayAuthService.isRelayAuthError(error)) {
-          Logger.log('[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error');
+          Logger.error(
+            error ?? '',
+            message: '[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error',
+          );
           Logger.log(
             '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays',
           );
