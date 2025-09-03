@@ -45,9 +45,7 @@ class Stories extends HookConsumerWidget {
         else
           LoadMoreBuilder(
             slivers: [
-              StoryList(
-                pubkeys: pubkeys,
-              ),
+              StoryList(pubkeys: pubkeys),
             ],
             hasMore: hasMore,
             onLoadMore: () => _onLoadMore(ref),

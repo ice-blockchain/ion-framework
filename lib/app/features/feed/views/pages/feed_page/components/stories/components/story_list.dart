@@ -36,7 +36,6 @@ class StoryList extends ConsumerWidget {
         itemBuilder: (_, index) {
           if (index == 0) {
             return CurrentUserStoryListItem(
-              pubkey: currentUserPubkey,
               gradient: storyBorderGradients.first,
             );
           }

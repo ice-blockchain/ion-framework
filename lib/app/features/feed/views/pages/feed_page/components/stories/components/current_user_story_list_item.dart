@@ -10,12 +10,10 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 
 class CurrentUserStoryListItem extends HookConsumerWidget {
   const CurrentUserStoryListItem({
-    required this.pubkey,
     required this.gradient,
     super.key,
   });
 
-  final String pubkey;
   final Gradient? gradient;
 
   @override
@@ -42,7 +40,7 @@ class CurrentUserStoryListItem extends HookConsumerWidget {
             alignment: Alignment.center,
             children: [
               CurrentUserAvatarWithPermission(
-                pubkey: pubkey,
+                pubkey: userMetadata.masterPubkey,
                 hasStories: hasStories,
                 gradient: hasStories ? gradient : null,
                 isViewed: isViewed,

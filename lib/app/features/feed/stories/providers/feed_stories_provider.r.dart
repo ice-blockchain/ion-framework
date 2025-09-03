@@ -34,10 +34,10 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
         ),
     };
 
-    final userStories = _userStories(data.items) ?? {};
+    final userStories = _userStories(data.items);
     final stories = {
       if (currentUserStory != null) currentUserStory,
-      ...userStories,
+      if (userStories != null) ...userStories,
     };
 
     return (items: stories, hasMore: data.hasMore);
