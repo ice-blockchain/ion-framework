@@ -8,7 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'current_nfts_provider.r.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 Future<List<NftData>> currentNfts(Ref ref) async {
   final nftsRepository = ref.watch(nftsRepositoryProvider);
 

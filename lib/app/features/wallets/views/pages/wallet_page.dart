@@ -82,13 +82,18 @@ class WalletPage extends HookConsumerWidget {
               ],
             ),
           ),
-          if (activeTab.value == WalletTabType.nfts)
-            const SliverToBoxAdapter(
-              child: NftsTabHeader(),
-            )
-          else
-            const CoinsTabHeader(),
-          _ActiveTabContent(activeTab: activeTab.value),
+          ...switch (activeTab.value) {
+            WalletTabType.coins => const [
+                CoinsTabHeader(),
+                CoinsTab(),
+              ],
+            WalletTabType.nfts => const [
+                SliverToBoxAdapter(
+                  child: NftsTabHeader(),
+                ),
+                NftsTab(),
+              ],
+          },
         ],
         onRefresh: () async {
           final currentUserFollowList = ref.read(currentUserFollowListProvider).valueOrNull;
@@ -113,21 +118,5 @@ class WalletPage extends HookConsumerWidget {
         ),
       ),
     );
-  }
-}
-
-class _ActiveTabContent extends StatelessWidget {
-  const _ActiveTabContent({
-    required this.activeTab,
-  });
-
-  final WalletTabType activeTab;
-
-  @override
-  Widget build(BuildContext context) {
-    return switch (activeTab) {
-      WalletTabType.coins => const CoinsTab(),
-      WalletTabType.nfts => const NftsTab(),
-    };
   }
 }
