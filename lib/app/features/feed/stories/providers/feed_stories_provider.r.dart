@@ -41,6 +41,7 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
     return (
       items: stories,
       hasMore: data.hasMore,
+      // Approx number of items needed to fill the viewport
       ready: stories.length >= (currentUserStory != null ? 5 : 4) || !data.hasMore
     );
   }
