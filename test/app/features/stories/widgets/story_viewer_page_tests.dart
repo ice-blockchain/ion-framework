@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
-import 'package:ion/app/features/feed/stories/data/models/user_story.f.dart';
 import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
 import 'package:ion/app/features/feed/stories/views/pages/story_viewer_page.dart';
 import 'package:ion/app/router/providers/go_router_provider.r.dart';
@@ -114,9 +113,7 @@ void main() {
 
       await StoryViewerRobot.launch(
         tester,
-        stories: [
-          UserStory(pubkey: viewerPubkey, story: lastVideoPost),
-        ],
+        stories: [lastVideoPost],
         viewerPubkey: viewerPubkey,
         autoPush: true,
         extraOverrides: [

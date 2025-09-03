@@ -6,14 +6,8 @@ import 'package:ion/app/features/feed/stories/data/models/models.dart';
 import '../../../../fixtures/posts/post_fixtures.dart';
 
 void main() {
-  final userA = UserStory(
-    pubkey: 'alice',
-    story: buildPost('a1'),
-  );
-  final userB = UserStory(
-    pubkey: 'bob',
-    story: buildPost('b1'),
-  );
+  final userA = buildPost('a1');
+  final userB = buildPost('b1', author: 'bob');
 
   group('SingleUserStoriesViewerState navigation getters', () {
     test('hasPreviousStory behaves at boundaries', () {
@@ -50,7 +44,7 @@ void main() {
         currentUserIndex: 1,
       );
 
-      expect(multiState.currentStory?.story.id, equals('b1'));
+      expect(multiState.currentStory?.id, equals('b1'));
       expect(multiState.currentUserPubkey, equals('bob'));
     });
 
@@ -71,7 +65,7 @@ void main() {
       expect(multiState.nextUserPubkey, equals('bob'));
 
       multiState = multiState.copyWith(currentUserIndex: 1);
-      expect(multiState.nextUserPubkey, equals(''));
+      expect(multiState.nextUserPubkey, isNull);
     });
 
     test('pubkeyAtIndex returns pubkey or empty string', () {
@@ -80,7 +74,7 @@ void main() {
         currentUserIndex: 0,
       );
       expect(multiState.pubkeyAtIndex(1), equals('bob'));
-      expect(multiState.pubkeyAtIndex(5), equals(''));
+      expect(multiState.pubkeyAtIndex(5), isNull);
     });
   });
 }

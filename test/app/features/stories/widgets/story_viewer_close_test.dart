@@ -70,7 +70,7 @@ void main() {
         userPreferencesServiceProvider(identityKeyName: alice)
             .overrideWith((_) => UserPreferencesService(alice, mockStorage)),
         goRouterProvider.overrideWithValue(router),
-        userStoriesProvider(alice).overrideWith(() => FakeUserStories([aliceStories.story])),
+        userStoriesProvider(alice).overrideWith(() => FakeUserStories([aliceStories])),
         viewedStoriesProvider.overrideWith(FakeViewedStoriesController.new),
       ],
     );

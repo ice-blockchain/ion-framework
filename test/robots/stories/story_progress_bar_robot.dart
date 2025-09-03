@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/stories/data/models/user_story.f.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/components.dart';
@@ -20,7 +19,7 @@ class StoryProgressBarRobot extends BaseRobot with ProviderScopeMixin, StoryStat
 
   static Future<StoryProgressBarRobot> launch(
     WidgetTester tester, {
-    required List<UserStory> stories,
+    required List<ModifiablePostEntity> stories,
     required String viewerPubkey,
   }) async {
     await ScreenUtil.ensureScreenSize();

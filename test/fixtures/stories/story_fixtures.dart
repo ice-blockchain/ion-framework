@@ -2,7 +2,6 @@
 
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/stories/data/models/user_story.f.dart';
 
 import '../posts/post_fixtures.dart';
 
@@ -13,14 +12,11 @@ class StoryFixtures {
   static const bob = 'bob';
   static const charlie = 'charlie';
 
-  static UserStory userStory({
+  static ModifiablePostEntity userStory({
     String pubkey = alice,
     MediaType mediaType = MediaType.image,
   }) {
-    return UserStory(
-      pubkey: pubkey,
-      story: buildPost('single_story', author: pubkey, mediaType: mediaType),
-    );
+    return buildPost('single_story', author: pubkey, mediaType: mediaType);
   }
 
   static List<ModifiablePostEntity> stories({

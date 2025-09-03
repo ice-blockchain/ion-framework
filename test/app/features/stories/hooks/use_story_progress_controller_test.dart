@@ -56,17 +56,16 @@ void main() {
 
   group('useStoryProgressController', () {
     testWidgets('image story completes after 5 s', (tester) async {
-      final userStories = StoryFixtures.userStory();
-      final firstStory = userStories.story;
+      final userStory = StoryFixtures.userStory();
       var completed = false;
 
       await tester.pumpWithHarness(
         childBuilder: (ref) => _StoryConsumer(
-          post: firstStory,
+          post: userStory,
           onCompleted: () => completed = true,
         ),
         overrides: StoryViewerRobot.storyViewerOverrides(
-          post: firstStory,
+          post: userStory,
           pubkey: StoryFixtures.alice,
         ),
       );
@@ -77,7 +76,7 @@ void main() {
 
       container
           .read(
-            storyImageLoadStatusProvider(firstStory.id).notifier,
+            storyImageLoadStatusProvider(userStory.id).notifier,
           )
           .markLoaded();
 
@@ -87,19 +86,18 @@ void main() {
 
     testWidgets('video story completes when position == duration', (tester) async {
       const duration = Duration(seconds: 3);
-      final userStories = StoryFixtures.userStory(mediaType: MediaType.video);
-      final firstStory = userStories.story;
+      final userStory = StoryFixtures.userStory(mediaType: MediaType.video);
       final videoController = FakeVideoController(duration);
       var completed = false;
 
       await tester.pumpWithHarness(
         childBuilder: (ref) => _StoryConsumer(
-          post: firstStory,
+          post: userStory,
           onCompleted: () => completed = true,
         ),
         overrides: [
           ...StoryViewerRobot.storyViewerOverrides(
-            post: firstStory,
+            post: userStory,
             pubkey: StoryFixtures.alice,
           ),
           videoPlayerControllerFactoryProvider('dummy')
