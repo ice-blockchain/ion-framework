@@ -94,7 +94,8 @@ class TransactionsRepository {
 
   Future<DateTime?> getLastCreatedAt() => _transactionsDao.lastCreatedAt();
 
-  Future<DateTime?> firstCreatedAt({DateTime? after}) => _transactionsDao.getFirstCreatedAt(after: after);
+  Future<DateTime?> firstCreatedAt({DateTime? after}) =>
+      _transactionsDao.getFirstCreatedAt(after: after);
 
   Future<void> saveTransactionDetails(TransactionDetails details) async {
     final mapped = _coinMapper.fromTransactionDetails(details);
