@@ -39,9 +39,10 @@ class StoryViewerPage extends HookConsumerWidget {
     final singleUserStoriesViewerState = ref.watch(
       singleUserStoryViewingControllerProvider(storyViewerState.currentUserPubkey),
     );
-    final stories =
-        ref.watch(userStoriesProvider(storyViewerState.currentStory?.pubkey ?? pubkey))?.toList() ??
-            [];
+    final stories = ref
+            .watch(userStoriesProvider(storyViewerState.currentStory?.masterPubkey ?? pubkey))
+            ?.toList() ??
+        [];
     final viewedStories = ref.watch(viewedStoriesProvider) ?? {};
 
     useOnInit(
@@ -68,9 +69,10 @@ class StoryViewerPage extends HookConsumerWidget {
               .moveToStoryIndex(initialStoryIndex ?? firstNotViewedStoryIndex);
         }
       },
-      // Do not include dependencies to perform the action only once.
-      // Otherwise it causes a bug:
-      // Mark the current story as seen on open -> viewedStories changes -> moveToStoryIndex...
+      // Do not include [viewedStories] to dependencies intentionally.
+      // Opening a story leads to marking it as viewed,
+      // that triggers [viewedStories] update which would re-trigger [moveToStoryIndex].
+      [stories],
     );
 
     useRoutePresence(
@@ -83,7 +85,7 @@ class StoryViewerPage extends HookConsumerWidget {
         final currentUserStoriesLeft =
             stories.length - singleUserStoriesViewerState.currentStoryIndex - 1;
         final nextUserPubkey = storyViewerState.nextUserPubkey;
-        if (currentUserStoriesLeft < 10 && nextUserPubkey.isNotEmpty) {
+        if (currentUserStoriesLeft < 10 && nextUserPubkey != null) {
           ref.read(userStoriesProvider(nextUserPubkey));
         }
       },

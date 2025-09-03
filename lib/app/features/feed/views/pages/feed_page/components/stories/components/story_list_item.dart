@@ -26,11 +26,11 @@ class StoryListItem extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userMetadata = ref.watch(cachedUserMetadataProvider(pubkey));
     final userStory = ref.watch(feedStoriesByPubkeyProvider(pubkey, showOnlySelectedUser: true));
-    final storyReference = userStory.firstOrNull?.story.toEventReference();
+    final storyReference = userStory.firstOrNull?.toEventReference();
 
     final gradient = useRef(storyBorderGradients[Random().nextInt(storyBorderGradients.length)]);
 
-    usePreloadStoryMedia(ref, userStory.firstOrNull?.story);
+    usePreloadStoryMedia(ref, userStory.firstOrNull);
 
     if (userMetadata == null || storyReference == null) {
       return const SizedBox.shrink();

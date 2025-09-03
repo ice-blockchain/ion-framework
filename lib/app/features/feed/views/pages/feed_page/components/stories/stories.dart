@@ -26,7 +26,7 @@ class Stories extends HookConsumerWidget {
 
     final pubkeys = useMemoized(
       () {
-        final storyReferences = stories.map((story) => story.story.toEventReference()).toSet();
+        final storyReferences = stories.map((story) => story.toEventReference()).toSet();
 
         final unseenStories = storyReferences.difference(viewedStoriesReferences ?? {});
         return [...unseenStories, ...storyReferences.difference(unseenStories)]

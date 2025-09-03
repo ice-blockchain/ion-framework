@@ -20,7 +20,7 @@ class CurrentUserStoryListItem extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserMetadata = ref.watch(currentUserMetadataProvider);
     final userStory = ref.watch(currentUserFeedStoryProvider);
-    final storyReference = userStory?.story.toEventReference();
+    final storyReference = userStory?.toEventReference();
 
     final hasStories = userStory != null;
 

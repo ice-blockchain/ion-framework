@@ -8,9 +8,7 @@ import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_current_filter_provider.m.dart';
 import 'package:ion/app/features/feed/providers/feed_following_content_provider.m.dart';
 import 'package:ion/app/features/feed/providers/feed_for_you_content_provider.m.dart';
-import 'package:ion/app/features/feed/stories/data/models/user_story.f.dart';
 import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
-import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -20,7 +18,7 @@ part 'feed_stories_provider.r.g.dart';
 @riverpod
 class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
   @override
-  ({Iterable<UserStory> items, bool hasMore, bool ready}) build() {
+  ({Iterable<ModifiablePostEntity> items, bool hasMore, bool ready}) build() {
     final filter = ref.watch(feedCurrentFilterProvider);
     final currentUserStory = ref.watch(currentUserFeedStoryProvider);
     final data = switch (filter.filter) {
@@ -34,7 +32,7 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
         ),
     };
 
-    final userStories = _userStories(data.items);
+    final userStories = data.items?.whereType<ModifiablePostEntity>();
     final stories = {
       if (currentUserStory != null) currentUserStory,
       if (userStories != null) ...userStories,
@@ -43,7 +41,7 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
     return (
       items: stories,
       hasMore: data.hasMore,
-      ready: userStories != null && userStories.length >= 4
+      ready: stories.length >= (currentUserStory != null ? 5 : 4) || !data.hasMore
     );
   }
 
@@ -63,40 +61,22 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
     for (final story in stories) {
       ref.read(ionConnectCacheProvider.notifier).remove(
             EventCountResultEntity.cacheKeyBuilder(
-              key: story.pubkey,
+              key: story.masterPubkey,
               type: EventCountResultType.stories,
             ),
           );
     }
   }
-
-  Iterable<UserStory>? _userStories(Iterable<IonConnectEntity>? entities) {
-    if (entities == null) return null;
-
-    final postEntities =
-        entities.whereType<ModifiablePostEntity>().where((post) => post.data.expiration != null);
-
-    final userStoriesMap = <String, UserStory>{};
-
-    for (final post in postEntities) {
-      final pubkey = post.masterPubkey;
-
-      final userStory = UserStory(
-        pubkey: pubkey,
-        story: post,
-      );
-
-      userStoriesMap[pubkey] = userStory;
-    }
-
-    return userStoriesMap.values;
-  }
 }
 
 @riverpod
-List<UserStory> feedStoriesByPubkey(Ref ref, String pubkey, {bool showOnlySelectedUser = false}) {
+List<ModifiablePostEntity> feedStoriesByPubkey(
+  Ref ref,
+  String pubkey, {
+  bool showOnlySelectedUser = false,
+}) {
   final stories = ref.watch(feedStoriesProvider.select((state) => state.items.toList()));
-  final userIndex = stories.indexWhere((userStories) => userStories.pubkey == pubkey);
+  final userIndex = stories.indexWhere((userStories) => userStories.masterPubkey == pubkey);
 
   if (userIndex == -1) return [];
 

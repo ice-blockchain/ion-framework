@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/stories/data/models/story_viewer_state.f.dart';
-import 'package:ion/app/features/feed/stories/data/models/user_story.f.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/core.dart';
 
@@ -21,7 +21,7 @@ class StoriesSwiper extends HookConsumerWidget {
     Key? key,
   }) : super(key: key ?? storiesSwiperKey);
 
-  final List<UserStory> userStories;
+  final List<ModifiablePostEntity> userStories;
   final int currentUserIndex;
   final String pubkey;
   final bool showOnlySelectedUser;
@@ -60,33 +60,35 @@ class StoriesSwiper extends HookConsumerWidget {
         return CubeWidget(
           index: userIndex,
           pageNotifier: pageNotifier,
-          child: UserStoryPageView(
-            pubkey: userPubkey,
-            isCurrentUser: isCurrentUser,
-            onClose: closeViewer,
-            onNextUser: () {
-              if (userPageController.hasClients && userIndex < userStories.length - 1) {
-                userPageController.nextPage(
-                  duration: _pageTransitionDuration,
-                  curve: Curves.easeInOut,
-                );
-                userStoriesNotifier.advance(onClose: () => context.pop());
-              } else {
-                closeViewer();
-              }
-            },
-            onPreviousUser: () {
-              if (userPageController.hasClients && userIndex > 0) {
-                userPageController.previousPage(
-                  duration: _pageTransitionDuration,
-                  curve: Curves.easeInOut,
-                );
-                userStoriesNotifier.rewind(onClose: () => context.pop());
-              } else {
-                closeViewer();
-              }
-            },
-          ),
+          child: userPubkey == null
+              ? const SizedBox.shrink()
+              : UserStoryPageView(
+                  pubkey: userPubkey,
+                  isCurrentUser: isCurrentUser,
+                  onClose: closeViewer,
+                  onNextUser: () {
+                    if (userPageController.hasClients && userIndex < userStories.length - 1) {
+                      userPageController.nextPage(
+                        duration: _pageTransitionDuration,
+                        curve: Curves.easeInOut,
+                      );
+                      userStoriesNotifier.advance(onClose: () => context.pop());
+                    } else {
+                      closeViewer();
+                    }
+                  },
+                  onPreviousUser: () {
+                    if (userPageController.hasClients && userIndex > 0) {
+                      userPageController.previousPage(
+                        duration: _pageTransitionDuration,
+                        curve: Curves.easeInOut,
+                      );
+                      userStoriesNotifier.rewind(onClose: () => context.pop());
+                    } else {
+                      closeViewer();
+                    }
+                  },
+                ),
         );
       },
     );
