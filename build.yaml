@@ -39,5 +39,4 @@ targets:
             chat_database: lib/app/features/chat/model/database/chat_database.m.dart
             notifications_database: lib/app/features/feed/notifications/data/database/notifications_database.m.dart
             wallets_database: lib/app/features/wallets/data/database/wallets_database.m.dart
-            event_messages_database: lib/app/features/ion_connect/database/event_messages_database.m.dart
             following_feed_database: lib/app/features/feed/data/database/following_feed_database/following_feed_database.m.dart

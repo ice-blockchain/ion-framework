@@ -12,6 +12,7 @@ import 'package:ion/app/features/wallets/data/database/tables/crypto_wallets_tab
 import 'package:ion/app/features/wallets/data/database/tables/duration_type.dart';
 import 'package:ion/app/features/wallets/data/database/tables/funds_requests_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/networks_table.d.dart';
+import 'package:ion/app/features/wallets/data/database/tables/nfts_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/sync_coins_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transaction_visibility_status_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transactions_table.d.dart';
@@ -48,6 +49,7 @@ WalletsDatabase walletsDatabase(Ref ref) {
     TransactionVisibilityStatusTable,
     CryptoWalletsTable,
     FundsRequestsTable,
+    NftsTable,
   ],
 )
 class WalletsDatabase extends _$WalletsDatabase {
@@ -56,7 +58,7 @@ class WalletsDatabase extends _$WalletsDatabase {
   final String pubkey;
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   static QueryExecutor _openConnection(String pubkey) {
     return driftDatabase(name: 'wallets_database_$pubkey');
@@ -197,6 +199,9 @@ class WalletsDatabase extends _$WalletsDatabase {
             FROM transactions_table_v2
             WHERE type = 'receive' AND coin_id IS NOT NULL
           ''');
+        },
+        from17To18: (m, schema) async {
+          await m.createTable(schema.nftsTable);
         },
       ),
     );

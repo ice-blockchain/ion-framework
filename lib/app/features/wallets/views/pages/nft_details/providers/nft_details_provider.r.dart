@@ -9,7 +9,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'nft_details_provider.r.g.dart';
 
 @riverpod
-NftData? nftDetails(Ref ref, NftIdentifier identifier) {
+Future<NftData?> nftDetails(Ref ref, NftIdentifier identifier) {
   final nftsRepository = ref.watch(nftsRepositoryProvider);
 
   return nftsRepository.getNftByIdentifier(identifier);
