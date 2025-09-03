@@ -77,7 +77,8 @@ void main() {
     MockSetupHelper.setupTransactionLoaderMocks(mockTransactionLoader);
     MockSetupHelper.setupTransferStatusUpdaterMocks(mockTransferStatusUpdater);
     MockSetupHelper.setupTransactionsVisibilityCloudBackupMocks(
-        mockTransactionsVisibilityCloudBackup);
+      mockTransactionsVisibilityCloudBackup,
+    );
   }
 
   void setupBroadcastedTransfersMocks() {
@@ -92,14 +93,12 @@ void main() {
     );
     MockSetupHelper.setupTransactionLoaderMocks(mockTransactionLoader, returnValue: true);
     MockSetupHelper.setupTransferStatusUpdaterMocks(mockTransferStatusUpdater);
-    MockSetupHelper.setupTransactionsVisibilityCloudBackupMocks(
-        mockTransactionsVisibilityCloudBackup);
+    MockSetupHelper.setupTransactionsVisibilityCloudBackupMocks(mockTransactionsVisibilityCloudBackup);
   }
 
   group('SyncTransactionsService', () {
     group('syncAll', () {
-      test('syncs 3 wallets with ion history support and transaction loader returns false',
-          () async {
+      test('syncs 3 wallets with ion history support and transaction loader returns false', () async {
         setupStandardMocks();
 
         when(
@@ -415,8 +414,7 @@ void main() {
         setupBroadcastedTransfersMocks();
 
         final broadcastedTransfers = MockSetupHelper.createBroadcastedTransfersTestData();
-        when(() => mockTransactionsRepository.getBroadcastedTransfers())
-            .thenAnswer((_) async => broadcastedTransfers);
+        when(() => mockTransactionsRepository.getBroadcastedTransfers()).thenAnswer((_) async => broadcastedTransfers);
 
         when(
           () => mockTransactionLoader.load(
@@ -469,8 +467,7 @@ void main() {
       test('skips sync when no broadcasted transfers are found', () async {
         setupBroadcastedTransfersMocks();
 
-        when(() => mockTransactionsRepository.getBroadcastedTransfers())
-            .thenAnswer((_) async => []);
+        when(() => mockTransactionsRepository.getBroadcastedTransfers()).thenAnswer((_) async => []);
 
         await service.syncBroadcastedTransfers();
 
