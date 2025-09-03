@@ -61,9 +61,6 @@ class TransactionsRepository {
     this._visibilityCloudBackup,
   ) {
     _loadDeprecatedTransactions();
-    // Kick off a restore after DB is available for the user
-    // Safe if cloud is unavailable or file missing
-    unawaited(_visibilityCloudBackup.restoreAll());
   }
 
   final CoinsDao _coinsDao;
@@ -109,7 +106,8 @@ class TransactionsRepository {
       _coinMapper.fromDomainToDB(transactions),
     );
 
-    return _transactionsDao.save(merged);
+    final saved = await _transactionsDao.save(merged);
+    return saved;
   }
 
   Future<void> saveEntities(
