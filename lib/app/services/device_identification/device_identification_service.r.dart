@@ -10,6 +10,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/platform_info_service/platform_info_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -39,29 +40,33 @@ class DeviceIdentificationService extends _$DeviceIdentificationService {
     // wait till initialized
     await future;
 
-    final eventSigner =
-        await ref.read(ionConnectEventSignerProvider(identityKeyName).notifier).initEventSigner();
-    if (eventSigner == null) {
-      throw EventSignerNotFoundException();
+    try {
+      final eventSigner =
+          await ref.read(ionConnectEventSignerProvider(identityKeyName).notifier).initEventSigner();
+      if (eventSigner == null) {
+        throw EventSignerNotFoundException();
+      }
+      final platformInfo = ref.read(platformInfoServiceProvider);
+      final signature = await _buildSignature(eventSigner: eventSigner, platformInfo: platformInfo);
+      final data = await FpjsProPlugin.getVisitorData(tags: {'signature': signature});
+      return data.requestId;
+    } catch (error, stackTrace) {
+      Logger.log(
+        'Failed to get request id',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      throw const DeviceIdentityVerificationException();
     }
-    final platformInfo = ref.read(platformInfoServiceProvider);
-    final signature = await _buildSignature(eventSigner: eventSigner, platformInfo: platformInfo);
-    final data = await FpjsProPlugin.getVisitorData(tags: {'signature': signature});
-    return data.requestId;
   }
 
-  /// Payload is an array of the following info joined by `:` in this exact order:
-  /// - OS
-  /// - OS version
-  /// - current TS
   Future<String> _buildSignature({
     required EventSigner eventSigner,
     required PlatformInfoService platformInfo,
   }) async {
     final os = platformInfo.name;
-    final osVersion = await platformInfo.release;
     final now = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000; // seconds since UTC epoch
-    final payload = '$os:$osVersion:$now'.toLowerCase();
+    final payload = '$os:$now'.toLowerCase();
     final messageHex = hex.encode(utf8.encode(payload));
     final signedPayload = await eventSigner.sign(message: messageHex);
 

@@ -664,3 +664,11 @@ class CurrentUserMetadataNotFoundException extends IONException {
 class FailedToPickIndexerRelay extends IONException {
   FailedToPickIndexerRelay() : super(10127, 'Failed to pick indexer relay');
 }
+
+class DeviceIdentityVerificationException extends IONException {
+  const DeviceIdentityVerificationException()
+      : super(
+          10128,
+          'Device verification failed: unsupported usage detected; access denied because the request was performed artificially',
+        );
+}

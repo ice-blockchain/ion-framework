@@ -633,6 +633,8 @@
   "error_identity_no_local_passkey_creds_found_title": "Identity key verification required",
   "error_identity_no_local_passkey_creds_found_description": "Verify the ownership of this account by scanning a QR code on the next step using the device where your key is stored.",
   "error_identity_2fa_required_title": "2FA Authentication Required",
+  "error_device_identity_error_title": "Device verification failed",
+  "error_device_identity_error_description": "Unsupported usage detected; access denied because the request was performed artificially",
   "error_identity_2fa_required_description": "Two-factor authentication is required to access this account. Please complete the 2FA process to proceed.",
   "error_payment_no_destination_title": "Unable to Transfer",
   "error_payment_no_destination_description": "To receive this coin, the receiver must have an existing {abbreviation} balance",
