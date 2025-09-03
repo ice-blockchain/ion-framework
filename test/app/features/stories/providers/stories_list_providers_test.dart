@@ -127,7 +127,7 @@ void main() {
 
       final result = container.read(feedStoriesByPubkeyProvider(bob));
 
-      expect(result.first.pubkey, equals(bob));
+      expect(result.first.masterPubkey, equals(bob));
       expect(result.length, equals(2));
     });
 

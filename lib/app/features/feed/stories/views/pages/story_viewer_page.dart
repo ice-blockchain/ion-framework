@@ -61,12 +61,13 @@ class StoryViewerPage extends HookConsumerWidget {
         final initialStoryIndex = initialStoryReference != null
             ? stories.indexWhere((story) => story.toEventReference() == initialStoryReference)
             : null;
-        if (initialStoryIndex != null || firstNotViewedStoryIndex != -1) {
+        final moveToIndex = initialStoryIndex ?? firstNotViewedStoryIndex;
+        if (moveToIndex != -1 && moveToIndex != storyViewerState.currentUserIndex) {
           ref
               .watch(
                 singleUserStoryViewingControllerProvider(pubkey).notifier,
               )
-              .moveToStoryIndex(initialStoryIndex ?? firstNotViewedStoryIndex);
+              .moveToStoryIndex(moveToIndex);
         }
       },
       // Do not include [viewedStories] to dependencies intentionally.

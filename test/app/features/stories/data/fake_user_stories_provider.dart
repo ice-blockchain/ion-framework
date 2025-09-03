@@ -9,5 +9,5 @@ class FakeUserStories extends UserStories {
   final Iterable<ModifiablePostEntity> _stories;
 
   @override
-  Iterable<ModifiablePostEntity>? build(String pubkey) => _stories;
+  Iterable<ModifiablePostEntity> build(String pubkey) => _stories;
 }

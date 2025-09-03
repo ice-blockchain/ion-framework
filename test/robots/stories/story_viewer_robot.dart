@@ -11,6 +11,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/core.dart';
 import 'package:ion/app/features/feed/stories/views/pages/story_viewer_page.dart';
 import 'package:ion/app/router/providers/go_router_provider.r.dart';
@@ -21,6 +22,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../app/features/stories/data/fake_feed_stories_state.dart';
 import '../../app/features/stories/data/fake_user_stories_provider.dart';
+import '../../app/features/stories/data/fake_viewed_stories_controller.dart';
 import '../../helpers/robot_test_harness.dart';
 import '../../mocks.dart';
 import '../base_robot.dart';
@@ -65,6 +67,7 @@ class StoryViewerRobot extends BaseRobot with ProviderScopeMixin, StoryStateMixi
         userPreferencesServiceProvider(identityKeyName: identity)
             .overrideWith((_) => UserPreferencesService(identity, mockStorage)),
         goRouterProvider.overrideWith((_) => router),
+        viewedStoriesProvider.overrideWith(FakeViewedStoriesController.new),
         ...extraOverrides,
       ],
       localizationsDelegates: I18n.localizationsDelegates,
@@ -149,10 +152,11 @@ class StoryViewerRobot extends BaseRobot with ProviderScopeMixin, StoryStateMixi
     required ModifiablePostEntity post,
     required String pubkey,
   }) {
+    final posts = [post];
     return [
-      feedStoriesProvider.overrideWith(() => FakeFeedStories([post])),
-      feedStoriesByPubkeyProvider(pubkey).overrideWith((_) => [post]),
-      userStoriesProvider(pubkey).overrideWith(() => FakeUserStories([post])),
+      feedStoriesProvider.overrideWith(() => FakeFeedStories(posts)),
+      feedStoriesByPubkeyProvider(pubkey).overrideWith((_) => posts),
+      userStoriesProvider(pubkey).overrideWith(() => FakeUserStories(posts)),
     ];
   }
 }

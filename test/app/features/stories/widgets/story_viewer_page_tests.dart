@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/views/pages/story_viewer_page.dart';
 import 'package:ion/app/router/providers/go_router_provider.r.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
@@ -21,6 +22,7 @@ import '../../../../fixtures/posts/post_fixtures.dart';
 import '../../../../fixtures/stories/story_fixtures.dart';
 import '../../../../mocks.dart';
 import '../../../../robots/stories/story_viewer_robot.dart';
+import '../data/fake_user_stories_provider.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -122,6 +124,7 @@ void main() {
           localStorageProvider.overrideWithValue(mockStorage),
           userPreferencesServiceProvider(identityKeyName: viewerPubkey)
               .overrideWith((_) => UserPreferencesService(viewerPubkey, mockStorage)),
+          userStoriesProvider(viewerPubkey).overrideWith(() => FakeUserStories([lastVideoPost])),
           goRouterProvider.overrideWithValue(router),
         ],
       );
