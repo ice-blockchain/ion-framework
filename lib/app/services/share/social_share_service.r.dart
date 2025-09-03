@@ -22,36 +22,42 @@ class SocialShareService {
 
   Future<void> shareToWhatsApp(
     String shareUrl, {
+    required String title,
     String? imageUrl,
     String? description,
   }) =>
       _shareToPlatform(
         SocialPlatform.whatsapp,
         shareUrl: shareUrl,
+        title: title,
         imageUrl: imageUrl,
         description: description,
       );
 
   Future<void> shareToTwitter(
     String shareUrl, {
+    required String title,
     String? imageUrl,
     String? description,
   }) =>
       _shareToPlatform(
         SocialPlatform.twitter,
         shareUrl: shareUrl,
+        title: title,
         imageUrl: imageUrl,
         description: description,
       );
 
   Future<void> shareToTelegram(
     String shareUrl, {
+    required String title,
     String? imageUrl,
     String? description,
   }) =>
       _shareToPlatform(
         SocialPlatform.telegram,
         shareUrl: shareUrl,
+        title: title,
         imageUrl: imageUrl,
         description: description,
       );
@@ -59,11 +65,13 @@ class SocialShareService {
   Future<void> _shareToPlatform(
     SocialPlatform platform, {
     required String shareUrl,
+    required String title,
     String? imageUrl,
     String? description,
   }) async {
     final url = await _deepLinkService.createDeeplink(
       path: shareUrl,
+      ogTitle: title,
       ogImageUrl: imageUrl,
       ogDescription: description,
     );
@@ -72,11 +80,13 @@ class SocialShareService {
 
   Future<void> shareToMore({
     required String shareUrl,
+    required String title,
     String? imageUrl,
     String? description,
   }) async {
     final url = await _deepLinkService.createDeeplink(
       path: shareUrl,
+      ogTitle: title,
       ogImageUrl: imageUrl,
       ogDescription: description,
     );
@@ -85,11 +95,13 @@ class SocialShareService {
 
   Future<void> shareToClipboard({
     required String shareUrl,
+    required String title,
     String? imageUrl,
     String? description,
   }) async {
     final url = await _deepLinkService.createDeeplink(
       path: shareUrl,
+      ogTitle: title,
       ogImageUrl: imageUrl,
       ogDescription: description,
     );

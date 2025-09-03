@@ -12,7 +12,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart' hide UserMetadata;
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'share_options_provider.r.g.dart';
@@ -46,24 +46,26 @@ enum ShareContentType {
 ShareOptionsData? shareOptionsData(
   Ref ref,
   EventReference eventReference,
+  UserMetadata userMetadata,
+  String prefixUsername,
 ) {
   final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
-  final userMetadata = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
 
-  if (entity == null || userMetadata == null) {
+  if (entity == null) {
     return null;
   }
 
   final shareAppName = ref.read(envProvider.notifier).get<String>(EnvVariable.SHARE_APP_NAME);
-  return _getShareOptionsData(entity, userMetadata.data, shareAppName);
+  return _getShareOptionsData(entity, userMetadata, shareAppName, prefixUsername);
 }
 
 ShareOptionsData? _getShareOptionsData(
   IonConnectEntity entity,
   UserMetadata userMetadata,
   String shareAppName,
+  String prefixUsername,
 ) {
-  final userDisplayName = userMetadata.displayName;
+  final userDisplayName = '${userMetadata.displayName} ($prefixUsername)';
 
   switch (entity) {
     case ModifiablePostEntity():

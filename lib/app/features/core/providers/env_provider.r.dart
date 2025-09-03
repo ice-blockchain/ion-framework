@@ -39,7 +39,6 @@ enum EnvVariable {
   OPTIMISTIC_UI_ENABLED,
   INDEXER_BASE_URL,
   NFT_IDENTITY_BASE_URL,
-  SHARE_PREVIEW_IMAGE_URL,
   SHARE_APP_NAME,
 }
 
@@ -116,8 +115,6 @@ class Env extends _$Env {
       EnvVariable.INDEXER_BASE_URL => const String.fromEnvironment('INDEXER_BASE_URL') as T,
       EnvVariable.NFT_IDENTITY_BASE_URL =>
         const String.fromEnvironment('NFT_IDENTITY_BASE_URL') as T,
-      EnvVariable.SHARE_PREVIEW_IMAGE_URL =>
-        const String.fromEnvironment('SHARE_PREVIEW_IMAGE_URL') as T,
       EnvVariable.SHARE_APP_NAME => const String.fromEnvironment('SHARE_APP_NAME') as T,
     };
   }

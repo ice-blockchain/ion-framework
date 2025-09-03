@@ -14,6 +14,7 @@ class ShareCopyLinkOption extends HookConsumerWidget {
   const ShareCopyLinkOption({
     required this.shareUrl,
     required this.iconSize,
+    required this.title,
     this.imageUrl,
     this.description,
     super.key,
@@ -21,6 +22,7 @@ class ShareCopyLinkOption extends HookConsumerWidget {
 
   final String shareUrl;
   final double iconSize;
+  final String title;
   final String? imageUrl;
   final String? description;
 
@@ -69,6 +71,7 @@ class ShareCopyLinkOption extends HookConsumerWidget {
       onPressed: () {
         ref.read(socialShareServiceProvider).shareToClipboard(
               shareUrl: shareUrl,
+              title: title,
               imageUrl: imageUrl,
               description: description,
             );
