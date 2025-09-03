@@ -27,6 +27,9 @@ class RegisterActionNotifier extends _$RegisterActionNotifier {
                   deviceIdentificationServiceProviderNotifier.getRequestIdFor(username),
               earlyAccessEmail,
             );
+      } on DeviceIdentityDuplicateException {
+        // TODO: show modal
+        return;
       } on PasskeyCancelledException {
         return;
       }
@@ -41,12 +44,17 @@ class RegisterActionNotifier extends _$RegisterActionNotifier {
       final earlyAccessEmail = ref.read(earlyAccessEmailProvider);
       final deviceIdentificationServiceProviderNotifier =
           ref.read(deviceIdentificationServiceProvider.notifier);
-      await ionIdentity(username: keyName).auth.registerUserWithPassword(
-            password,
-            (username) async =>
-                deviceIdentificationServiceProviderNotifier.getRequestIdFor(username),
-            earlyAccessEmail,
-          );
+      try {
+        await ionIdentity(username: keyName).auth.registerUserWithPassword(
+              password,
+              (username) async =>
+                  deviceIdentificationServiceProviderNotifier.getRequestIdFor(username),
+              earlyAccessEmail,
+            );
+      } on DeviceIdentityDuplicateException {
+        // TODO: show modal
+        return;
+      }
     });
   }
 }

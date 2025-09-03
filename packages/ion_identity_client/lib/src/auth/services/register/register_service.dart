@@ -95,5 +95,8 @@ class RegisterService {
       username: username,
       newTokens: registrationCompleteResponse.authentication,
     );
+    if (registrationCompleteResponse.duplicateOf != null) {
+      throw const DeviceIdentityDuplicateException();
+    }
   }
 }
