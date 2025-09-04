@@ -7,10 +7,9 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/services/compressors/compress_executor.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
+import 'package:ion/app/services/converters/dart_webp_to_jpeg_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
-import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:ion/app/theme/app_colors.dart';
 import 'package:path_provider/path_provider.dart';
@@ -217,14 +216,10 @@ class LocalNotificationsService {
       final tempFile = File(tempFilePath);
       await tempFile.writeAsBytes(data);
 
-      // Need to compress from webp to jpg since conversations push notifications not support webp
-      final compressor = ImageCompressor(compressExecutor: CompressExecutor());
-      final compressedMedia = await compressor.compress(
-        MediaFile(path: tempFilePath),
-        to: ImageCompressionType.jpeg,
-      );
+      // Need to convert from webp to jpeg since conversations push notifications not support webp
+      final convertedMedia = await webpToJpeg(tempFilePath);
 
-      final compressedFile = File(compressedMedia.path);
+      final compressedFile = File(convertedMedia.path);
 
       if (tempFile.existsSync()) {
         await tempFile.delete();
@@ -233,15 +228,15 @@ class LocalNotificationsService {
       if (storeToCache) {
         await compressedFile.copy(cachedFilePath);
 
-        if (compressedMedia.path != cachedFilePath && compressedFile.existsSync()) {
+        if (convertedMedia.path != cachedFilePath && compressedFile.existsSync()) {
           await compressedFile.delete();
         }
 
         Logger.log('Media file cached: $cachedFilePath');
         return cachedFilePath;
       } else {
-        Logger.log('Media file processed without caching: ${compressedMedia.path}');
-        return compressedMedia.path;
+        Logger.log('Media file processed without caching: ${convertedMedia.path}');
+        return convertedMedia.path;
       }
     } catch (e) {
       Logger.log('Error processing media file: $e');
