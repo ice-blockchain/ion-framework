@@ -51,6 +51,7 @@ class FundsRequestMapper {
         pubkey: db.userPubkey,
         request: db.request,
         transaction: transaction,
+        transactionId: db.transactionId,
         deleted: db.deleted,
       ),
     );

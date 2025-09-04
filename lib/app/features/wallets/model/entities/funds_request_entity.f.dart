@@ -64,6 +64,7 @@ class FundsRequestData with _$FundsRequestData {
     String? pubkey,
     String? request,
     TransactionData? transaction,
+    String? transactionId,
     @Default(false) bool deleted,
   }) = _FundsRequestData;
 
