@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/hooks/use_referrer_controller.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/onboarding_data_provider.m.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
@@ -26,7 +26,6 @@ import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/media_service/image_proccessing_config.dart';
-import 'package:ion/app/services/referrer/referrer_service.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class FillProfile extends HookConsumerWidget {
@@ -36,7 +35,6 @@ class FillProfile extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(GlobalKey<FormState>.new);
     final onboardingData = ref.watch(onboardingDataProvider);
-    final referrerData = ref.watch(getReferrerProvider);
     final isAvatarCompressing = ref.watch(
       imageProcessorNotifierProvider(ImageProcessingType.avatar)
           .select((state) => state is ImageProcessorStateCropped),
@@ -46,14 +44,17 @@ class FillProfile extends HookConsumerWidget {
     final initialNickname = onboardingData.name ?? '';
     final nickname = useState(onboardingData.name ?? '');
     final debouncedNickname = useDebounced(nickname.value.trim(), const Duration(seconds: 1));
-    final initialReferral = onboardingData.referralName ?? '';
-    final referralController = useTextEditingController(text: initialReferral);
-    final referral = useState(onboardingData.referralName ?? '');
-    final debouncedReferral = useDebounced(referral.value.trim(), const Duration(seconds: 1));
+
+    final referralController = useReferrerController(ref, context);
+    final debouncedReferral = useDebounced(
+      referralController.text.trim(),
+      const Duration(seconds: 1),
+    );
 
     final isLoading = useState(false);
 
     final onSubmit = useCallback(() async {
+      final referral = referralController.text;
       if (formKey.currentState!.validate()) {
         isLoading.value = true;
         await Future.wait(
@@ -61,15 +62,15 @@ class FillProfile extends HookConsumerWidget {
             ref
                 .read(userNicknameNotifierProvider.notifier)
                 .verifyNicknameAvailability(nickname: nickname.value),
-            if (referral.value.isNotEmpty)
+            if (referral.isNotEmpty)
               ref
                   .read(userReferralNotifierProvider.notifier)
-                  .verifyReferralExists(referral: referral.value),
+                  .verifyReferralExists(referral: referral),
           ],
         );
         isLoading.value = false;
         if (ref.read(userNicknameNotifierProvider).hasError ||
-            (referral.value.isNotEmpty && ref.read(userReferralNotifierProvider).hasError)) {
+            (referral.isNotEmpty && ref.read(userReferralNotifierProvider).hasError)) {
           return;
         }
 
@@ -81,8 +82,8 @@ class FillProfile extends HookConsumerWidget {
         }
         ref.read(onboardingDataProvider.notifier).name = nickname.value;
         ref.read(onboardingDataProvider.notifier).displayName = name.value;
-        if (referral.value.isNotEmpty) {
-          ref.read(onboardingDataProvider.notifier).referralName = referral.value;
+        if (referral.isNotEmpty) {
+          ref.read(onboardingDataProvider.notifier).referralName = referral;
         }
         if (context.mounted) {
           await SelectLanguagesRoute().push<void>(context);
@@ -110,26 +111,6 @@ class FillProfile extends HookConsumerWidget {
         }
       },
       [debouncedReferral, context],
-    );
-
-    // Update controller when referrerData loads and controller is empty
-    useEffect(
-      () {
-        referrerData.whenData((referrerValue) {
-          if (referrerValue != null &&
-              referrerValue.isNotEmpty &&
-              referralController.text.isEmpty) {
-            // Validate the referrerData value before setting it
-            final validationError = validateNickname(referrerValue, context);
-            if (validationError == null) {
-              referralController.text = referrerValue;
-              referral.value = referrerValue;
-            }
-          }
-        });
-        return null;
-      },
-      [referrerData, context],
     );
 
     final verifyNicknameErrorMessage = useVerifyNicknameAvailabilityErrorMessage(ref);
@@ -185,7 +166,6 @@ class FillProfile extends HookConsumerWidget {
                           controller: referralController,
                           textInputAction: TextInputAction.done,
                           onChanged: (newValue) {
-                            referral.value = newValue;
                             verifyReferralErrorMessage.value = null;
                           },
                           errorText: verifyReferralErrorMessage.value,
@@ -196,7 +176,9 @@ class FillProfile extends HookConsumerWidget {
                           loading: isAvatarCompressing || isLoading.value,
                           onPressed: onSubmit,
                         ),
-                        SizedBox(height: 40.0.s + MediaQuery.paddingOf(context).bottom),
+                        SizedBox(
+                          height: 40.0.s + MediaQuery.paddingOf(context).bottom,
+                        ),
                       ],
                     ),
                   ),

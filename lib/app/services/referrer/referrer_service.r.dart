@@ -9,7 +9,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'referrer_service.r.g.dart';
 
 @riverpod
-Future<String?> getReferrer(Ref ref) async {
+Future<String?> installReferrer(Ref ref) async {
   if (Platform.isAndroid != true) {
     return null;
   }
