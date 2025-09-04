@@ -96,6 +96,7 @@ class _RequestedMoneyMessage extends ConsumerWidget {
 
     final amount = fundsRequest.data.content.amount?.let(double.parse) ?? 0.0;
     final equivalentUsd = fundsRequest.data.content.amountUsd?.let(double.parse) ?? 0.0;
+    final isPaid = fundsRequest.data.transaction != null || fundsRequest.data.transactionId != null;
 
     return _MoneyMessageContent(
       isMe: isMe,
@@ -110,7 +111,7 @@ class _RequestedMoneyMessage extends ConsumerWidget {
       button: RequestedMoneyMessageButton(
         isMe: isMe,
         eventId: eventReference.eventId,
-        isPaid: fundsRequest.data.transaction != null,
+        isPaid: isPaid,
         isDeleted: fundsRequest.data.deleted,
         request: fundsRequest,
         eventMessage: eventMessage,
