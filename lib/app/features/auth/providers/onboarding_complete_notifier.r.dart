@@ -41,8 +41,8 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
     state = const AsyncLoading();
     state = await AsyncValue.guard(
       () async {
-        final useDelegationEvent = await _sendUserDelegation(onVerifyIdentity);
-        if (useDelegationEvent == null) {
+        final userDelegationEvent = await _sendUserDelegation(onVerifyIdentity);
+        if (userDelegationEvent == null) {
           return;
         }
 
@@ -58,7 +58,7 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
 
         final usernameProofsEvents = _buildUsernameProofsEvents(updateUserSocialProfileResponse);
         final deviceIdentificationProofsEvents =
-            await _getDeviceIdentificationProofsEvents(useDelegationEvent: useDelegationEvent);
+            await _getDeviceIdentificationProofsEvents(userDelegationEvent: userDelegationEvent);
 
         final updatedProfileBadges = await _buildProfileBadges(
           proofsEvents: [...usernameProofsEvents, ...deviceIdentificationProofsEvents],
@@ -90,7 +90,18 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
           try {
             final userDelegationEvent =
                 await _buildUserDelegation(onVerifyIdentity: onVerifyIdentity);
-            await ref.read(ionConnectNotifierProvider.notifier).sendEvents([userDelegationEvent]);
+            final deviceIdentificationProofsEvents = await _getDeviceIdentificationProofsEvents(
+              userDelegationEvent: userDelegationEvent,
+            );
+            final updatedProfileBadges = await _buildProfileBadges(
+              proofsEvents: deviceIdentificationProofsEvents,
+            );
+            await ref.read(ionConnectNotifierProvider.notifier).sendEntitiesData(
+              [
+                if (updatedProfileBadges != null) updatedProfileBadges,
+              ],
+              additionalEvents: [userDelegationEvent, ...deviceIdentificationProofsEvents],
+            );
           } on PasskeyCancelledException {
             return;
           }
@@ -203,11 +214,11 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
   }
 
   Future<List<EventMessage>> _getDeviceIdentificationProofsEvents({
-    required EventMessage useDelegationEvent,
+    required EventMessage userDelegationEvent,
   }) {
     return ref.read(
       deviceIdentificationProofsProvider(
-        delegationEvent: useDelegationEvent,
+        delegationEvent: userDelegationEvent,
       ).future,
     );
   }
