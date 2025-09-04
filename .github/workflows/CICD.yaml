@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - master
-      - release/v*
+      - release-staging/v*
   workflow_dispatch:
     inputs:
       environment:
@@ -33,8 +33,8 @@ on:
         type: bool
 
 env:
-  APP_ENV: ${{ inputs.environment || (startsWith(github.ref, 'refs/heads/release/') && 'production') || 'staging' }}
-  DEPLOYMENT_TYPE: ${{ inputs.deployment || (startsWith(github.ref, 'refs/heads/release/') && 'store') || 'firebase' }}
+  APP_ENV: ${{ inputs.environment || (startsWith(github.ref, 'refs/heads/release-staging/') && 'staging') || 'staging' }}
+  DEPLOYMENT_TYPE: ${{ inputs.deployment || (startsWith(github.ref, 'refs/heads/release-staging/') && 'store') || 'firebase' }}
 
 jobs:
   flutter:
@@ -47,9 +47,9 @@ jobs:
         id: set_version
         run: |
           APP_VERSION=""
-          if [[ "${{ startsWith(github.ref, 'refs/heads/release/') }}" == 'true' ]]; then
+          if [[ "${{ startsWith(github.ref, 'refs/heads/release-staging/') }}" == 'true' ]]; then
             temp_ref_name="${{ github.ref_name }}"
-            APP_VERSION="${temp_ref_name#release/v}"
+            APP_VERSION="${temp_ref_name#release-staging/v}"
           elif [[ -n "${{ github.event.inputs.version }}" ]]; then
             APP_VERSION="${{ github.event.inputs.version }}"
           else
