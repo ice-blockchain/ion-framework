@@ -226,10 +226,9 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
     required String? senderAddress,
     required String? receiverAddress,
   }) async {
+    final transactionsRepository = await ref.read(transactionsRepositoryProvider.future);
     // Save transaction into DB
-    await ref.read(transactionsRepositoryProvider.future).then(
-          (repo) => repo.saveTransactionDetails(details),
-        );
+    await transactionsRepository.saveTransactionDetails(details);
 
     if (details.participantPubkey == null || senderAddress == null || receiverAddress == null) {
       return;
@@ -293,6 +292,13 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       receiverPubkey: details.participantPubkey!,
       content: content,
       tags: [tag],
+    );
+
+    // Update the transaction with the eventId from the relay
+    await transactionsRepository.updateTransaction(
+      txHash: details.txHash,
+      walletViewId: details.walletViewId,
+      eventId: event.id,
     );
   }
 }

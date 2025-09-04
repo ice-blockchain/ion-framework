@@ -13,6 +13,7 @@ class TransactionAmountSummary extends StatelessWidget {
     required this.usdAmount,
     required this.icon,
     required this.transactionType,
+    this.isFailed = false,
     super.key,
   });
 
@@ -21,6 +22,7 @@ class TransactionAmountSummary extends StatelessWidget {
   final double usdAmount;
   final Widget icon;
   final TransactionType transactionType;
+  final bool isFailed;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +39,7 @@ class TransactionAmountSummary extends StatelessWidget {
             Text(
               '${transactionType.sign}${formatCrypto(amount, currency)}',
               style: textTheme.headline2.copyWith(
-                color: transactionType == TransactionType.receive
+                color: transactionType == TransactionType.receive && !isFailed
                     ? colors.success
                     : colors.primaryText,
               ),

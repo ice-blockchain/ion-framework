@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
+import 'package:ion/app/features/wallets/domain/transactions/failed_transfer_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
@@ -22,18 +23,21 @@ Future<PeriodicTransactionsSyncService> periodicTransactionsSyncService(Ref ref)
   return PeriodicTransactionsSyncService(
     await ref.watch(syncTransactionsServiceProvider.future),
     await ref.watch(transactionsRepositoryProvider.future),
+    await ref.watch(failedTransferServiceProvider.future),
   );
 }
 
 class PeriodicTransactionsSyncService {
   PeriodicTransactionsSyncService(
     this._syncTransactionsService,
-    this._transactionsRepository, {
+    this._transactionsRepository,
+    this._failedTransferService, {
     this.initialSyncDelay = const Duration(seconds: 30),
   });
 
   final SyncTransactionsService _syncTransactionsService;
   final TransactionsRepository _transactionsRepository;
+  final FailedTransferService _failedTransferService;
   final Map<String, bool> _walletSyncInProgress = {};
   final Duration initialSyncDelay;
 
@@ -213,6 +217,8 @@ class PeriodicTransactionsSyncService {
       final updateMessage =
           'Wallet $walletAddress sync updated $updatedCount transactions to confirmed. Updated: [$updatedDetails]';
       Logger.log(updateMessage);
+
+      await _handleFailedTransfersDeletion(updatedTransactions, walletAddress);
     } else {
       Logger.log('No transactions were updated during sync for wallet $walletAddress');
     }
@@ -225,6 +231,36 @@ class PeriodicTransactionsSyncService {
       throw WalletSyncRetryException(
         walletAddress: walletAddress,
         remainingTransactions: totalTransactionsAfter,
+      );
+    }
+  }
+
+  Future<void> _handleFailedTransfersDeletion(
+    List<TransactionData> updatedTransactions,
+    String walletAddress,
+  ) async {
+    try {
+      // Get current status of updated transactions to check if any became failed
+      final txHashes = updatedTransactions.map((tx) => tx.txHash).nonNulls.toList();
+      if (txHashes.isEmpty) return;
+
+      final currentTransactions = await _transactionsRepository.getTransactions(
+        txHashes: txHashes,
+      );
+
+      for (final transaction in currentTransactions) {
+        if (transaction.status == TransactionStatus.failed &&
+            transaction.userPubkey != null &&
+            transaction.eventId != null) {
+          await _failedTransferService.markTransferAsFailed(transaction);
+        }
+      }
+    } catch (e, stack) {
+      Logger.error(
+        e,
+        stackTrace: stack,
+        message:
+            'Periodic sync: Failed to delete failed transfers from relay for wallet $walletAddress',
       );
     }
   }

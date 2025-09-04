@@ -527,6 +527,7 @@
   "transaction_details_title": "Transaktionsdetails",
   "transaction_details_view_on_explorer": "Im Explorer ansehen",
   "transaction_details_timeline_pending": "Ausstehend",
+  "transaction_details_timeline_failed": "Fehlgeschlagen",
   "transaction_details_timeline_executing": "Wird ausgeführt",
   "transaction_details_timeline_successful": "Transaktion erfolgreich",
   "post_menu_not_interested": "Nicht interessiert",

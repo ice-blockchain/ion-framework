@@ -507,6 +507,7 @@
   "send_nft_confirm_network": "الشبكة",
   "transaction_details_title": "تفاصيل المعاملة",
   "transaction_details_view_on_explorer": "عرض على المستكشف",
+  "transaction_details_timeline_failed": "المعاملة فشلت",
   "transaction_details_timeline_pending": "قيد الانتظار",
   "transaction_details_timeline_executing": "قيد التنفيذ",
   "transaction_details_timeline_successful": "المعاملة ناجحة",

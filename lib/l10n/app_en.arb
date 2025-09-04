@@ -544,6 +544,7 @@
   "transaction_details_title": "Transaction details",
   "transaction_details_view_on_explorer": "View on explorer",
   "transaction_details_timeline_pending": "Pending",
+  "transaction_details_timeline_failed": "Failed",
   "transaction_details_timeline_executing": "In the process of execution",
   "transaction_details_timeline_successful": "Transaction successful",
   "post_menu_not_interested": "Not interested",

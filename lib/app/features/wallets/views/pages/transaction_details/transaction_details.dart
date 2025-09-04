@@ -88,6 +88,7 @@ class TransactionDetailsPage extends ConsumerWidget {
                                     imageUrl: coin.coinsGroup.iconUrl,
                                     type: WalletItemIconType.medium(),
                                   ),
+                                  isFailed: transactionData.status == TransactionStatus.failed,
                                   transactionType: transactionData.type,
                                 ),
                                 nft: (nft) => Padding(
@@ -105,11 +106,17 @@ class TransactionDetailsPage extends ConsumerWidget {
                           SizedBox(height: 12.0.s),
                           Timeline(
                             items: [
-                              TimelineItemData(
-                                title: locale.transaction_details_timeline_pending,
-                                isDone: true,
-                                date: transactionData.dateRequested,
-                              ),
+                              if (transactionData.status == TransactionStatus.failed)
+                                TimelineItemData(
+                                  title: locale.transaction_details_timeline_failed,
+                                  isFailed: true,
+                                )
+                              else
+                                TimelineItemData(
+                                  title: locale.transaction_details_timeline_pending,
+                                  isDone: true,
+                                  date: transactionData.dateRequested,
+                                ),
                               TimelineItemData(
                                 title: locale.transaction_details_timeline_executing,
                                 isDone: transactionData.dateBroadcasted != null ||
