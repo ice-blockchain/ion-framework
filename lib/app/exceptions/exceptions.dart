@@ -664,3 +664,8 @@ class CurrentUserMetadataNotFoundException extends IONException {
 class FailedToPickIndexerRelay extends IONException {
   FailedToPickIndexerRelay() : super(10127, 'Failed to pick indexer relay');
 }
+
+class FailedtoRetryOnRelayUrl extends IONException {
+  FailedtoRetryOnRelayUrl(String relayUrl)
+      : super(10128, 'Failed to retry on relay url: $relayUrl');
+}

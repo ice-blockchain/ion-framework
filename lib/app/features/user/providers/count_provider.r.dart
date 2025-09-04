@@ -62,7 +62,8 @@ class Count extends _$Count {
         .read(relayPickerProvider.notifier)
         .getActionSourceRelay(actionSource, actionType: ActionType.read);
 
-    final requestEvent = await _buildRequestEvent(relayUrl: relay.url, requestData: requestData);
+    final requestEvent =
+        await _buildRequestEvent(relayUrl: relay.first.url, requestData: requestData);
 
     final subscriptionMessage = RequestMessage()
       ..addFilter(
@@ -74,7 +75,7 @@ class Count extends _$Count {
         ),
       );
 
-    final subscription = relay.subscribe(subscriptionMessage);
+    final subscription = relay.first.subscribe(subscriptionMessage);
 
     try {
       final messagesFuture = subscription.messages
@@ -99,7 +100,7 @@ class Count extends _$Count {
 
       await ref.read(ionConnectNotifierProvider.notifier).sendEvent(
             requestEvent,
-            actionSource: ActionSourceRelayUrl(relay.url),
+            actionSource: ActionSourceRelayUrl(relay.first.url),
             cache: false,
           );
 
@@ -117,7 +118,7 @@ class Count extends _$Count {
         return responseEntity.data.content;
       }
     } finally {
-      relay.unsubscribe(subscription.id);
+      relay.first.unsubscribe(subscription.id);
     }
   }
 
