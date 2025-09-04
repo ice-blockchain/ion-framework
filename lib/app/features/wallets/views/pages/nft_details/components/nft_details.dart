@@ -29,7 +29,7 @@ class NftDetails extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final nftData = ref.watch(nftDetailsProvider(nftIdentifier));
+    final nftData = ref.watch(nftDetailsProvider(nftIdentifier)).value;
 
     if (nftData == null) {
       return const NftDetailsLoading();

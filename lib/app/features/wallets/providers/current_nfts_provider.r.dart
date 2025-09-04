@@ -14,7 +14,13 @@ Future<List<NftData>> currentNfts(Ref ref) async {
 
   final walletViewData = await ref.watch(currentWalletViewDataProvider.future);
 
-  final nfts = await walletViewData.nfts.map(nftsRepository.getNftExtras).wait;
+  // Replace wallet NFTs to reflect current server state
+  await nftsRepository.replaceWalletNfts(walletViewData.nfts, walletId: walletViewData.id);
 
-  return nfts;
+  // Enrich with metadata in parallel
+  final futures = walletViewData.nfts
+      .map((nft) => nftsRepository.getNftExtras(nft, walletId: walletViewData.id))
+      .toList();
+
+  return Future.wait(futures);
 }
