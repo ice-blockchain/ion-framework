@@ -23,12 +23,14 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
     final currentUserStory = ref.watch(currentUserFeedStoryProvider);
     final data = switch (filter.filter) {
       FeedFilter.following => ref.watch(
-          feedFollowingContentProvider(FeedType.story)
-              .select((data) => (items: data.items, hasMore: data.hasMore)),
+          feedFollowingContentProvider(FeedType.story).select(
+            (data) => (items: data.items, hasMore: data.hasMore, isLoading: data.isLoading),
+          ),
         ),
       FeedFilter.forYou => ref.watch(
-          feedForYouContentProvider(FeedType.story)
-              .select((data) => (items: data.items, hasMore: data.hasMore)),
+          feedForYouContentProvider(FeedType.story).select(
+            (data) => (items: data.items, hasMore: data.hasMore, isLoading: data.isLoading),
+          ),
         ),
     };
 
@@ -42,7 +44,7 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
       items: stories,
       hasMore: data.hasMore,
       // Approx number of items needed to fill the viewport
-      ready: stories.length >= (currentUserStory != null ? 5 : 4) || !data.hasMore
+      ready: stories.length >= (currentUserStory != null ? 5 : 4) || !data.isLoading
     );
   }
 

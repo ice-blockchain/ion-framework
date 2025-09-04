@@ -273,33 +273,44 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }
 
   Stream<IonConnectEntity> _fetchFollowing({required int limit, bool global = false}) async* {
-    final providerNotifier = ref.read(
-      feedFollowingContentProvider(
-        feedType,
-        feedModifier: feedModifier,
-        fetchSeen: false,
-        autoFetch: false,
-        global: global,
-      ).notifier,
-    );
-    final providerData = ref.read(
-      feedFollowingContentProvider(
-        feedType,
-        feedModifier: feedModifier,
-        fetchSeen: false,
-        autoFetch: false,
-        global: global,
-      ),
-    );
-
-    if (!providerData.hasMore) {
+    if (!ref
+        .read(
+          feedFollowingContentProvider(
+            feedType,
+            feedModifier: feedModifier,
+            fetchSeen: false,
+            autoFetch: false,
+            global: global,
+          ),
+        )
+        .hasMore) {
       state = state.copyWith(hasMoreFollowing: false);
       return;
     }
 
-    yield* providerNotifier.requestEntities(limit: limit);
+    yield* ref
+        .read(
+          feedFollowingContentProvider(
+            feedType,
+            feedModifier: feedModifier,
+            fetchSeen: false,
+            autoFetch: false,
+            global: global,
+          ).notifier,
+        )
+        .requestEntities(limit: limit);
 
-    if (!providerData.hasMore) {
+    if (!ref
+        .read(
+          feedFollowingContentProvider(
+            feedType,
+            feedModifier: feedModifier,
+            fetchSeen: false,
+            autoFetch: false,
+            global: global,
+          ),
+        )
+        .hasMore) {
       state = state.copyWith(hasMoreFollowing: false);
     }
   }
@@ -675,7 +686,9 @@ class FeedForYouContentState with _$FeedForYouContentState implements PagedState
 
   const FeedForYouContentState._();
 
-  bool get hasMoreForYou => modifiersPagination.values.any(
+  bool get hasMoreForYou =>
+      modifiersPagination.isEmpty ||
+      modifiersPagination.values.any(
         (modifierPagination) => modifierPagination.values.any((pagination) => pagination.hasMore),
       );
 
