@@ -65,68 +65,74 @@ class IonConnectNotifier extends _$IonConnectNotifier {
 
     IonConnectRelay? triedRelay;
 
-    final result = await withRetry(
-      ({error}) async {
-        triedRelay = null;
-        final relay = await ref.read(relayPickerProvider.notifier).getActionSourceRelay(
-              actionSource,
-              actionType: ActionType.write,
-              dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
-              sessionId: sessionId,
-            );
-        triedRelay = relay;
+    try {
+      return await withRetry(
+        ({error}) async {
+          triedRelay = null;
+          final relay = await ref.read(relayPickerProvider.notifier).getActionSourceRelay(
+                actionSource,
+                actionType: ActionType.write,
+                dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
+                sessionId: sessionId,
+              );
+          triedRelay = relay;
 
-        _handleWriteRelay(actionSource, relay.url);
+          _handleWriteRelay(actionSource, relay.url);
 
-        await ref
-            .read(relayAuthProvider(relay))
-            .handleRelayAuthOnAction(actionSource: actionSource, error: error);
+          await ref
+              .read(relayAuthProvider(relay))
+              .handleRelayAuthOnAction(actionSource: actionSource, error: error);
 
-        await _sendEventsToRelay(events, relay: relay);
+          await _sendEventsToRelay(events, relay: relay);
 
-        if (cache) {
-          return events.map(_parseAndCache).toList();
-        }
-
-        return null;
-      },
-      retryWhen: (error) {
-        // Retry in case of any error except when no relay is selected.
-        // This is to avoid retrying when there are no available relays left or they are not assigned (registration).
-        final triedRelayUrl = error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
-        Logger.log(
-          '[SESSION-RETRY] Session $sessionId - $triedRelayUrl retry: ${triedRelayUrl != null} for error: $error',
-        );
-        return triedRelayUrl != null;
-      },
-      onRetry: (error) async {
-        final triedRelayUrl = error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
-        if (triedRelayUrl != null && !RelayAuthService.isRelayAuthError(error)) {
-          Logger.error(
-            error ?? '',
-            message: '[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error',
-          );
-          Logger.log(
-            '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays',
-          );
-          dislikedRelaysUrls.add(triedRelayUrl);
-          if (UserRelaysManager.isRelayReadOnlyError(error)) {
-            await ref
-                .read(userRelaysManagerProvider.notifier)
-                .handleCachedReadOnlyRelay(triedRelayUrl);
+          if (cache) {
+            return events.map(_parseAndCache).toList();
           }
-        }
-        Logger.log(
-          '[SESSION-RETRY] Session $sessionId retry attempt at ${stopwatch.elapsedMilliseconds}ms',
-        );
-      },
-    );
 
-    stopwatch.stop();
-    Logger.log(
-      '[SESSION-COMPLETE] Session $sessionId completed in ${stopwatch.elapsedMilliseconds}ms',
-    );
-    return result;
+          return null;
+        },
+        retryWhen: (error) {
+          // Retry in case of any error except when no relay is selected.
+          // This is to avoid retrying when there are no available relays left or they are not assigned (registration).
+          final triedRelayUrl =
+              error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
+          Logger.log(
+            '[SESSION-RETRY] Session $sessionId - $triedRelayUrl retry: ${triedRelayUrl != null} for error: $error',
+          );
+          return triedRelayUrl != null;
+        },
+        onRetry: (error) async {
+          final triedRelayUrl =
+              error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
+          if (triedRelayUrl != null && !RelayAuthService.isRelayAuthError(error)) {
+            Logger.error(
+              error ?? '',
+              message: '[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error',
+            );
+            Logger.log(
+              '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays',
+            );
+            dislikedRelaysUrls.add(triedRelayUrl);
+            if (UserRelaysManager.isRelayReadOnlyError(error)) {
+              await ref
+                  .read(userRelaysManagerProvider.notifier)
+                  .handleCachedReadOnlyRelay(triedRelayUrl);
+            }
+          }
+          Logger.log(
+            '[SESSION-RETRY] Session $sessionId retry attempt at ${stopwatch.elapsedMilliseconds}ms',
+          );
+        },
+      );
+    } catch (e) {
+      Logger.error(e, message: '[SESSION-ERROR] Session $sessionId failed: $e');
+      rethrow;
+    } finally {
+      stopwatch.stop();
+      Logger.log(
+        '[SESSION-COMPLETE] Session $sessionId completed in ${stopwatch.elapsedMilliseconds}ms',
+      );
+    }
   }
 
   Future<List<IonConnectEntity>?> sendEvents(
@@ -200,83 +206,96 @@ class IonConnectNotifier extends _$IonConnectNotifier {
         subscriptionBuilder,
     VoidCallback? onEose,
   }) async* {
-    final sessionId = generateUuid();
+    final sessionId = requestMessage.subscriptionId;
     final stopwatch = Stopwatch()..start();
+
     Logger.log(
-      '[SESSION-REQUEST] Starting session $sessionId for subscription: ${requestMessage.subscriptionId}, source: $actionSource',
+      '[SESSION-REQUEST] Starting session with subscription: $sessionId source: $actionSource',
     );
 
     final dislikedRelaysUrls = <String>{};
     IonConnectRelay? triedRelay;
 
-    yield* withRetryStream(
-      ({error}) async* {
-        triedRelay = null;
-        final relay = subscriptionBuilder != null
-            ? await ref.read(
-                longLivingSubscriptionRelayProvider(
-                  actionSource,
-                  dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
-                ).future,
-              )
-            : await ref.read(relayPickerProvider.notifier).getActionSourceRelay(
-                  actionSource,
-                  actionType: actionType ?? ActionType.read,
-                  dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
-                  sessionId: sessionId,
-                );
-        triedRelay = relay;
+    try {
+      yield* withRetryStream(
+        ({error}) async* {
+          triedRelay = null;
+          final relay = subscriptionBuilder != null
+              ? await ref.read(
+                  longLivingSubscriptionRelayProvider(
+                    actionSource,
+                    dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
+                  ).future,
+                )
+              : await ref.read(relayPickerProvider.notifier).getActionSourceRelay(
+                    actionSource,
+                    actionType: actionType ?? ActionType.read,
+                    dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
+                    sessionId: sessionId,
+                  );
+          triedRelay = relay;
 
-        await ref
-            .read(relayAuthProvider(relay))
-            .handleRelayAuthOnAction(actionSource: actionSource, error: error);
+          await ref
+              .read(relayAuthProvider(relay))
+              .handleRelayAuthOnAction(actionSource: actionSource, error: error);
 
-        final events = subscriptionBuilder != null
-            ? subscriptionBuilder(requestMessage, relay)
-            : ion.requestEvents(requestMessage, relay);
+          final events = subscriptionBuilder != null
+              ? subscriptionBuilder(requestMessage, relay)
+              : ion.requestEvents(requestMessage, relay);
 
-        await for (final event in events) {
-          // Note: The ion.requestEvents method automatically handles unsubscription for certain messages.
-          // If the subscription needs to be retried or closed in response to a different message than those handled by ion.requestEvents,
-          // then additional unsubscription logic should be implemented here.
-          if (event is NoticeMessage || event is ClosedMessage) {
-            throw RelayRequestFailedException(
-              relayUrl: relay.url,
-              event: event,
-            );
-          } else if (event is EventMessage) {
-            yield event;
-          } else if (event is EoseMessage && onEose != null) {
-            onEose();
+          await for (final event in events) {
+            // Note: The ion.requestEvents method automatically handles unsubscription for certain messages.
+            // If the subscription needs to be retried or closed in response to a different message than those handled by ion.requestEvents,
+            // then additional unsubscription logic should be implemented here.
+            if (event is NoticeMessage || event is ClosedMessage) {
+              throw RelayRequestFailedException(
+                relayUrl: relay.url,
+                event: event,
+              );
+            } else if (event is EventMessage) {
+              yield event;
+            } else if (event is EoseMessage && onEose != null) {
+              onEose();
+            }
           }
-        }
-      },
-      retryWhen: (error) {
-        // Retry in case of any error except when no relay is selected.
-        // This is to avoid retrying when there are no available relays left or they are not assigned (registration).
-        final triedRelayUrl = error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
-        Logger.log(
-          '[SESSION-RETRY] Session $sessionId - $triedRelayUrl retry: ${triedRelayUrl != null} for error: $error',
-        );
-        return triedRelayUrl != null;
-      },
-      onRetry: (error) {
-        final triedRelayUrl = error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
-        if (triedRelayUrl != null && !RelayAuthService.isRelayAuthError(error)) {
-          Logger.error(
-            error ?? '',
-            message: '[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error',
-          );
+        },
+        retryWhen: (error) {
+          // Retry in case of any error except when no relay is selected.
+          // This is to avoid retrying when there are no available relays left or they are not assigned (registration).
+          final triedRelayUrl =
+              error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
           Logger.log(
-            '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays',
+            '[SESSION-RETRY] Session $sessionId - $triedRelayUrl retry: ${triedRelayUrl != null} for error: $error',
           );
-          dislikedRelaysUrls.add(triedRelayUrl);
-        }
-        Logger.log(
-          '[SESSION-RETRY] Session $sessionId retry attempt at ${stopwatch.elapsedMilliseconds}ms',
-        );
-      },
-    );
+          return triedRelayUrl != null;
+        },
+        onRetry: (error) {
+          final triedRelayUrl =
+              error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
+          if (triedRelayUrl != null && !RelayAuthService.isRelayAuthError(error)) {
+            Logger.error(
+              error ?? '',
+              message: '[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error',
+            );
+            Logger.log(
+              '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays',
+            );
+            dislikedRelaysUrls.add(triedRelayUrl);
+          }
+          Logger.log(
+            '[SESSION-RETRY] Session $sessionId retry attempt at ${stopwatch.elapsedMilliseconds}ms',
+          );
+        },
+      );
+    } catch (e) {
+      Logger.error(e, message: '[SESSION-ERROR] Session $sessionId failed: $e');
+      rethrow;
+    } finally {
+      stopwatch.stop();
+      Logger.log(
+        '[SESSION-COMPLETE] Session with subscription: $sessionId completed in ${stopwatch.elapsedMilliseconds}ms',
+      );
+    }
   }
 
   Future<EventMessage?> requestEvent(
