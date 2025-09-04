@@ -21,6 +21,13 @@ NftsDao nftsDao(Ref ref) => NftsDao(db: ref.watch(walletsDatabaseProvider));
 class NftsDao extends DatabaseAccessor<WalletsDatabase> with _$NftsDaoMixin {
   NftsDao({required WalletsDatabase db}) : super(db);
 
+  Future<void> replaceWalletNfts(List<NftData> nfts, {required String walletId}) async {
+    await transaction(() async {
+      await (delete(nftsTable)..where((t) => t.walletId.equals(walletId))).go();
+      await upsertBaseNfts(nfts, walletId: walletId);
+    });
+  }
+
   Future<void> upsertBaseNfts(List<NftData> nfts, {required String walletId}) async {
     final now = DateTime.now();
     await batch((b) {

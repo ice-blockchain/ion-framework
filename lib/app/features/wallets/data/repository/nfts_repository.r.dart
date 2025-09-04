@@ -27,6 +27,10 @@ class NftsRepository {
   final Dio _dio;
   final NftsDao _nftsDao;
 
+  Future<void> replaceWalletNfts(List<NftData> nfts, {required String walletId}) {
+    return _nftsDao.replaceWalletNfts(nfts, walletId: walletId);
+  }
+
   Future<void> upsertBaseNfts(List<NftData> nfts, {required String walletId}) {
     return _nftsDao.upsertBaseNfts(nfts, walletId: walletId);
   }
