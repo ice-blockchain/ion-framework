@@ -6,8 +6,10 @@ import 'package:ion/app/extensions/num.dart';
 class StoryListSeparator extends StatelessWidget {
   const StoryListSeparator({super.key});
 
+  static double get width => 12.0.s;
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(width: 12.0.s);
+    return SizedBox(width: width);
   }
 }

@@ -39,10 +39,7 @@ class UserStoriesViewingNotifier extends _$UserStoriesViewingNotifier {
 
     state = state.copyWith(
       userStories: [
-        UserStory(
-          pubkey: initialPubkey,
-          story: storyEntity as ModifiablePostEntity,
-        ),
+        storyEntity as ModifiablePostEntity,
       ],
       currentUserIndex: 0,
     );

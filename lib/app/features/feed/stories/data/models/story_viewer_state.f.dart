@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:ion/app/features/feed/stories/data/models/user_story.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 
 part 'story_viewer_state.f.freezed.dart';
 
@@ -20,7 +20,7 @@ class SingleUserStoriesViewerState with _$SingleUserStoriesViewerState {
 @freezed
 class UserStoriesViewerState with _$UserStoriesViewerState {
   const factory UserStoriesViewerState({
-    required List<UserStory> userStories,
+    required List<ModifiablePostEntity> userStories,
     required int currentUserIndex,
   }) = _UserStoriesViewerState;
 
@@ -29,7 +29,7 @@ class UserStoriesViewerState with _$UserStoriesViewerState {
   bool get hasNextUser => currentUserIndex < userStories.length - 1;
   bool get hasPreviousUser => currentUserIndex > 0;
 
-  UserStory? get currentStory {
+  ModifiablePostEntity? get currentStory {
     if (userStories.isEmpty) return null;
 
     return userStories.elementAtOrNull(currentUserIndex);
@@ -38,14 +38,14 @@ class UserStoriesViewerState with _$UserStoriesViewerState {
   String get currentUserPubkey {
     if (userStories.isEmpty) return '';
 
-    return userStories[currentUserIndex].pubkey;
+    return userStories[currentUserIndex].masterPubkey;
   }
 
-  String get nextUserPubkey {
+  String? get nextUserPubkey {
     return pubkeyAtIndex(currentUserIndex + 1);
   }
 
-  String pubkeyAtIndex(int index) {
-    return userStories.elementAtOrNull(index)?.pubkey ?? '';
+  String? pubkeyAtIndex(int index) {
+    return userStories.elementAtOrNull(index)?.masterPubkey;
   }
 }

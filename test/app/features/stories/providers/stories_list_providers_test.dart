@@ -7,7 +7,6 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/feed_modifier.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_for_you_content_provider.m.dart';
-import 'package:ion/app/features/feed/stories/data/models/user_story.f.dart';
 import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/stories_count_provider.r.dart';
@@ -33,10 +32,10 @@ class _FakeFeedForYouContent extends FeedForYouContent {
 
 class _FakeCurrentUserStory extends CurrentUserFeedStory {
   _FakeCurrentUserStory(this._story);
-  final UserStory? _story;
+  final ModifiablePostEntity? _story;
 
   @override
-  UserStory? build() => _story;
+  ModifiablePostEntity? build() => _story;
 }
 
 ModifiablePostEntity _post({
@@ -75,38 +74,7 @@ ProviderContainer _containerWith(List<ModifiablePostEntity> posts) {
 
 void main() {
   group('storiesProvider – transformation logic', () {
-    test('filters out posts with no expiration', () async {
-      final posts = [
-        _post(
-          id: 'image_1',
-          author: 'alice',
-          mediaType: MediaType.image,
-          createdAt: DateTime(2024),
-          expiration: DateTime(2025),
-        ),
-        _post(
-          id: 'audio_ignored',
-          author: 'bob',
-          mediaType: MediaType.audio,
-          createdAt: DateTime(2024),
-        ),
-        _post(
-          id: 'video_1',
-          author: 'bob',
-          mediaType: MediaType.video,
-          createdAt: DateTime(2024, 1, 2),
-          expiration: DateTime(2025),
-        ),
-      ];
-
-      final container = _containerWith(posts);
-      final result = container.read(feedStoriesProvider);
-
-      final keptIds = result.items?.map((e) => e.story.id).toList();
-      expect(keptIds, unorderedEquals(['image_1', 'video_1']));
-    });
-
-    test('returns N UserStories for N distinct authors', () async {
+    test('returns N stories for N distinct authors', () async {
       final posts = [
         _post(
           id: 'p1',
@@ -134,8 +102,8 @@ void main() {
       final container = _containerWith(posts);
       final result = container.read(feedStoriesProvider);
 
-      expect(result.items?.length, 3);
-      expect(result.items?.map((u) => u.pubkey).toSet(), equals({'alice', 'bob', 'carol'}));
+      expect(result.items.length, 3);
+      expect(result.items.map((u) => u.masterPubkey).toSet(), equals({'alice', 'bob', 'carol'}));
     });
   });
 
@@ -159,7 +127,7 @@ void main() {
 
       final result = container.read(feedStoriesByPubkeyProvider(bob));
 
-      expect(result.first.pubkey, equals(bob));
+      expect(result.first.masterPubkey, equals(bob));
       expect(result.length, equals(2));
     });
 

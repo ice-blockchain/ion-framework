@@ -22,20 +22,22 @@ class IonConnectAvatar extends ConsumerWidget {
   final BorderRadiusGeometry? borderRadius;
   final BoxFit? fit;
   final BoxShadow? shadow;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final imageUrl = ref
-        .watch(userMetadataProvider(pubkey).select((state) => state.valueOrNull?.data.avatarUrl));
+    final userMetadata = ref.watch(userMetadataSyncProvider(pubkey));
 
     final avatar = Avatar(
-      imageWidget: imageUrl != null
-          ? IonConnectNetworkImage(
-              imageUrl: imageUrl,
-              authorPubkey: pubkey,
-              height: size,
-              width: size,
-            )
-          : DefaultAvatar(size: size),
+      imageWidget: userMetadata != null
+          ? userMetadata.data.avatarUrl != null
+              ? IonConnectNetworkImage(
+                  imageUrl: userMetadata.data.avatarUrl!,
+                  authorPubkey: pubkey,
+                  height: size,
+                  width: size,
+                )
+              : DefaultAvatar(size: size)
+          : const SizedBox.shrink(),
       size: size,
       borderRadius: borderRadius,
       fit: fit,

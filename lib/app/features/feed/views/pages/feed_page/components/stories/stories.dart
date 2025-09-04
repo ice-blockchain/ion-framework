@@ -7,7 +7,6 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/feed/stories/data/models/stories_references.f.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_item_content.dart';
@@ -21,24 +20,18 @@ class Stories extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final (items: stories, :hasMore) = ref.watch(feedStoriesProvider);
+    final (items: stories, :hasMore, :ready) = ref.watch(feedStoriesProvider);
 
-    final viewedStoriesReferences = ref.watch(
-      viewedStoriesControllerProvider(
-        StoriesReferences(stories?.map((it) => it.story.toEventReference()).toList() ?? []),
-      ),
-    );
+    final viewedStoriesReferences = ref.watch(viewedStoriesProvider);
 
     final pubkeys = useMemoized(
       () {
-        final seenStories = stories
-                ?.where(
-                  (it) => viewedStoriesReferences?.contains(it.story.toEventReference()) ?? false,
-                )
-                .toSet() ??
-            {};
-        final unseenStories = stories?.where((it) => !seenStories.contains(it)).toSet() ?? {};
-        return {...unseenStories, ...seenStories}.map((it) => it.pubkey).toSet();
+        final storyReferences = stories.map((story) => story.toEventReference()).toSet();
+
+        final unseenStories = storyReferences.difference(viewedStoriesReferences ?? {});
+        return [...unseenStories, ...storyReferences.difference(unseenStories)]
+            .map((storyReference) => storyReference.masterPubkey)
+            .toSet();
       },
       [stories, viewedStoriesReferences],
     );
@@ -46,14 +39,12 @@ class Stories extends HookConsumerWidget {
     return Column(
       children: [
         SizedBox(height: 8.0.s),
-        if (stories == null)
+        if (!ready)
           const StoryListSkeleton()
         else
           LoadMoreBuilder(
             slivers: [
-              StoryList(
-                pubkeys: pubkeys,
-              ),
+              StoryList(pubkeys: pubkeys),
             ],
             hasMore: hasMore,
             onLoadMore: () => _onLoadMore(ref),

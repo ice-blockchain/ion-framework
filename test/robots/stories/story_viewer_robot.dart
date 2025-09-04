@@ -8,10 +8,10 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/stories/data/models/user_story.f.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/core.dart';
 import 'package:ion/app/features/feed/stories/views/pages/story_viewer_page.dart';
 import 'package:ion/app/router/providers/go_router_provider.r.dart';
@@ -22,6 +22,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../app/features/stories/data/fake_feed_stories_state.dart';
 import '../../app/features/stories/data/fake_user_stories_provider.dart';
+import '../../app/features/stories/data/fake_viewed_stories_controller.dart';
 import '../../helpers/robot_test_harness.dart';
 import '../../mocks.dart';
 import '../base_robot.dart';
@@ -33,7 +34,7 @@ class StoryViewerRobot extends BaseRobot with ProviderScopeMixin, StoryStateMixi
 
   static Future<StoryViewerRobot> launch(
     WidgetTester tester, {
-    required List<UserStory> stories,
+    required List<ModifiablePostEntity> stories,
     required String viewerPubkey,
     String identity = 'test_user',
     List<Override> extraOverrides = const [],
@@ -66,6 +67,7 @@ class StoryViewerRobot extends BaseRobot with ProviderScopeMixin, StoryStateMixi
         userPreferencesServiceProvider(identityKeyName: identity)
             .overrideWith((_) => UserPreferencesService(identity, mockStorage)),
         goRouterProvider.overrideWith((_) => router),
+        viewedStoriesProvider.overrideWith(FakeViewedStoriesController.new),
         ...extraOverrides,
       ],
       localizationsDelegates: I18n.localizationsDelegates,
@@ -150,11 +152,11 @@ class StoryViewerRobot extends BaseRobot with ProviderScopeMixin, StoryStateMixi
     required ModifiablePostEntity post,
     required String pubkey,
   }) {
-    final stories = UserStory(pubkey: pubkey, story: post);
+    final posts = [post];
     return [
-      feedStoriesProvider.overrideWith(() => FakeFeedStories([stories])),
-      feedStoriesByPubkeyProvider(pubkey).overrideWith((_) => [stories]),
-      userStoriesProvider(pubkey).overrideWith(() => FakeUserStories([post])),
+      feedStoriesProvider.overrideWith(() => FakeFeedStories(posts)),
+      feedStoriesByPubkeyProvider(pubkey).overrideWith((_) => posts),
+      userStoriesProvider(pubkey).overrideWith(() => FakeUserStories(posts)),
     ];
   }
 }

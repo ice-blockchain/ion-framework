@@ -7,7 +7,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/feed/stories/data/models/stories_references.f.dart';
 import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
@@ -40,11 +39,11 @@ class StoryViewerPage extends HookConsumerWidget {
     final singleUserStoriesViewerState = ref.watch(
       singleUserStoryViewingControllerProvider(storyViewerState.currentUserPubkey),
     );
-    final stories =
-        ref.watch(userStoriesProvider(storyViewerState.currentStory?.pubkey ?? pubkey))?.toList() ??
-            [];
-    final storiesReferences = StoriesReferences(stories.map((e) => e.toEventReference()));
-    final viewedStories = ref.watch(viewedStoriesControllerProvider(storiesReferences)) ?? {};
+    final stories = ref
+            .watch(userStoriesProvider(storyViewerState.currentStory?.masterPubkey ?? pubkey))
+            ?.toList() ??
+        [];
+    final viewedStories = ref.watch(viewedStoriesProvider) ?? {};
 
     useOnInit(
       () {
@@ -62,15 +61,19 @@ class StoryViewerPage extends HookConsumerWidget {
         final initialStoryIndex = initialStoryReference != null
             ? stories.indexWhere((story) => story.toEventReference() == initialStoryReference)
             : null;
-        if (initialStoryIndex != null || firstNotViewedStoryIndex != -1) {
+        final moveToIndex = initialStoryIndex ?? firstNotViewedStoryIndex;
+        if (moveToIndex != -1 && moveToIndex != storyViewerState.currentUserIndex) {
           ref
               .watch(
                 singleUserStoryViewingControllerProvider(pubkey).notifier,
               )
-              .moveToStoryIndex(initialStoryIndex ?? firstNotViewedStoryIndex);
+              .moveToStoryIndex(moveToIndex);
         }
       },
-      [stories.isEmpty, viewedStories],
+      // Do not include [viewedStories] to dependencies intentionally.
+      // Opening a story leads to marking it as viewed,
+      // that triggers [viewedStories] update which would re-trigger [moveToStoryIndex].
+      [stories],
     );
 
     useRoutePresence(
@@ -83,7 +86,7 @@ class StoryViewerPage extends HookConsumerWidget {
         final currentUserStoriesLeft =
             stories.length - singleUserStoriesViewerState.currentStoryIndex - 1;
         final nextUserPubkey = storyViewerState.nextUserPubkey;
-        if (currentUserStoriesLeft < 10 && nextUserPubkey.isNotEmpty) {
+        if (currentUserStoriesLeft < 10 && nextUserPubkey != null) {
           ref.read(userStoriesProvider(nextUserPubkey));
         }
       },

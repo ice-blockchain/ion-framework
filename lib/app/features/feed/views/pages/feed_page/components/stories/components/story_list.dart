@@ -10,7 +10,6 @@ import 'package:ion/app/features/feed/create_post/providers/create_post_notifier
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/current_user_story_list_item.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_list_item.dart';
-import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_list_separator.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
 
 class StoryList extends ConsumerWidget {
@@ -32,13 +31,11 @@ class StoryList extends ConsumerWidget {
 
     return SliverPadding(
       padding: EdgeInsets.symmetric(horizontal: ScreenSideOffset.defaultSmallMargin),
-      sliver: SliverList.separated(
+      sliver: SliverList.builder(
         itemCount: filteredPubkeys.length + 1,
-        separatorBuilder: (_, __) => const StoryListSeparator(),
         itemBuilder: (_, index) {
           if (index == 0) {
             return CurrentUserStoryListItem(
-              pubkey: currentUserPubkey,
               gradient: storyBorderGradients.first,
             );
           }

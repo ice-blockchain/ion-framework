@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
-import 'package:ion/app/features/feed/stories/data/models/stories_references.f.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
@@ -38,7 +37,7 @@ class UserStoryPageView extends HookConsumerWidget {
       singleUserStoryViewingControllerProvider(pubkey).notifier,
     );
     final stories = ref.watch(userStoriesProvider(pubkey))?.toList() ?? [];
-    final storiesReferences = StoriesReferences(stories.map((e) => e.toEventReference()));
+
     if (stories.isEmpty) {
       return const Center(
         child: IONLoadingIndicator(),
@@ -49,9 +48,7 @@ class UserStoryPageView extends HookConsumerWidget {
         isCurrentUser ? stories[singleUserStoriesViewingState.currentStoryIndex] : stories.first;
     useOnInit(
       () {
-        ref
-            .read(viewedStoriesControllerProvider(storiesReferences).notifier)
-            .markStoryAsViewed(currentStory);
+        ref.read(viewedStoriesProvider.notifier).markStoryAsViewed(currentStory);
       },
       [currentStory.id],
     );
