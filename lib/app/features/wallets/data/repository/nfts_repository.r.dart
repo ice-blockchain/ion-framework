@@ -19,7 +19,7 @@ NftsRepository nftsRepository(Ref ref) => NftsRepository(
     );
 
 class NftsRepository {
-  NftsRepository(
+  const NftsRepository(
     this._dio,
     this._nftsDao,
   );
@@ -52,12 +52,8 @@ class NftsRepository {
       await _nftsDao.upsertMetadataJson(nft: nft, metadata: data);
 
       return _merge(nft, data);
-    } on DioException {
-      return nft; // network error → base NFT
-    } on FormatException {
-      return nft; // bad json → base NFT
     } on Exception {
-      return nft; // any other error → base NFT
+      return nft; // return base NFT
     }
   }
 
