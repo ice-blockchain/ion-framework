@@ -21,11 +21,13 @@ NftsRepository nftsRepository(Ref ref) => NftsRepository(
 class NftsRepository {
   const NftsRepository(
     this._dio,
-    this._nftsDao,
-  );
+    this._nftsDao, [
+    this._networkTimeout = const Duration(seconds: 12),
+  ]);
 
   final Dio _dio;
   final NftsDao _nftsDao;
+  final Duration _networkTimeout;
 
   Future<void> replaceWalletNfts(List<NftData> nfts, {required String walletId}) {
     return _nftsDao.replaceWalletNfts(nfts, walletId: walletId);
@@ -42,8 +44,7 @@ class NftsRepository {
         return _merge(nft, json.decode(cachedJson) as Map<String, dynamic>);
       }
 
-      final response =
-          await _dio.get<Map<String, dynamic>>(nft.tokenUri).timeout(const Duration(seconds: 12));
+      final response = await _dio.get<Map<String, dynamic>>(nft.tokenUri).timeout(_networkTimeout);
       final data = response.data;
       if (response.statusCode != 200 || data == null) {
         return nft; // fail soft, return base NFT
