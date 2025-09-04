@@ -153,33 +153,31 @@ class _BottomNavBarContent extends ConsumerWidget {
                     ),
                   ],
           ),
-          child: Padding(
-            padding: EdgeInsetsDirectional.only(bottom: bottomPadding),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: TabItem.values.map((tabItem) {
-                final isSelected = currentTab == tabItem;
+          padding: EdgeInsetsDirectional.only(bottom: bottomPadding),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: TabItem.values.map((tabItem) {
+              final isSelected = currentTab == tabItem;
 
-                return Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => onTabPressed(tabItem),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: _navBarVerticalPadding.s),
-                      color: context.theme.appColors.secondaryBackground,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          tabItem.getIcon(isSelected: isSelected),
-                          if (tabItem == TabItem.chat) const UnreadMessagesCounter(),
-                          if (tabItem == TabItem.wallet) const UnseenTransactionsCounter(),
-                        ],
-                      ),
+              return Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onTabPressed(tabItem),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: _navBarVerticalPadding.s),
+                    color: context.theme.appColors.secondaryBackground,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        tabItem.getIcon(isSelected: isSelected),
+                        if (tabItem == TabItem.chat) const UnreadMessagesCounter(),
+                        if (tabItem == TabItem.wallet) const UnseenTransactionsCounter(),
+                      ],
                     ),
                   ),
-                );
-              }).toList(),
-            ),
+                ),
+              );
+            }).toList(),
           ),
         ),
         if (conversationsEditMode && currentTab == TabItem.chat) const ConversationEditBottomBar(),
