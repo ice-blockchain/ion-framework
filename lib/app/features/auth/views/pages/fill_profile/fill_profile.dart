@@ -25,6 +25,7 @@ import 'package:ion/app/features/user/providers/user_referral_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion/app/services/clipboard/clipboard.dart';
 import 'package:ion/app/services/media_service/image_proccessing_config.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -52,6 +53,8 @@ class FillProfile extends HookConsumerWidget {
     );
 
     final isLoading = useState(false);
+    //to insure that we are suggesting to use clipboard value only once
+    final hasCheckedClipboardForReferral = useRef(false);
 
     final onSubmit = useCallback(() async {
       final referral = referralController.text;
@@ -90,6 +93,27 @@ class FillProfile extends HookConsumerWidget {
         }
       }
     });
+
+    final onFocused = useCallback(
+      (bool hasFocus) async {
+        if (hasFocus && referralController.text.isEmpty && !hasCheckedClipboardForReferral.value) {
+          hasCheckedClipboardForReferral.value = true;
+          //make sure that field selection is visible before requesting clipboard permission
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+          final clipboardValue = await getClipboardText();
+          if (!context.mounted) {
+            return;
+          }
+          if (clipboardValue.isNotEmpty) {
+            final validationError = validateNickname(clipboardValue, context);
+            if (validationError == null) {
+              referralController.text = clipboardValue;
+            }
+          }
+        }
+      },
+      [referralController, hasCheckedClipboardForReferral],
+    );
 
     useOnInit(
       () {
@@ -168,6 +192,7 @@ class FillProfile extends HookConsumerWidget {
                           onChanged: (newValue) {
                             verifyReferralErrorMessage.value = null;
                           },
+                          onFocused: onFocused,
                           errorText: verifyReferralErrorMessage.value,
                         ),
                         SizedBox(height: 26.0.s),

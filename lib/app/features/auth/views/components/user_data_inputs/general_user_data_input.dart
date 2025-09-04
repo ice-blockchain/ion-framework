@@ -14,6 +14,7 @@ class GeneralUserDataInput extends HookWidget {
     required this.labelText,
     this.controller,
     this.onChanged,
+    this.onFocused,
     this.validator,
     this.maxLines = 1,
     this.minLines,
@@ -43,6 +44,7 @@ class GeneralUserDataInput extends HookWidget {
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final String? errorText;
+  final ValueChanged<bool>? onFocused;
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +77,7 @@ class GeneralUserDataInput extends HookWidget {
             )
           : null,
       errorText: errorText,
+      onFocused: onFocused,
     );
   }
 }

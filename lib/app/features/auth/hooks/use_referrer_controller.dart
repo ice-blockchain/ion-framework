@@ -5,7 +5,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/onboarding_data_provider.m.dart';
 import 'package:ion/app/features/auth/views/components/user_data_inputs/nickname_input.dart';
-import 'package:ion/app/services/clipboard/clipboard.dart';
 import 'package:ion/app/services/referrer/referrer_service.r.dart';
 
 /// Custom hook that manages the referral input controller with automatic referrer detection
@@ -25,19 +24,6 @@ TextEditingController useReferrerController(WidgetRef ref, BuildContext context)
           final validationError = validateNickname(referrerValue, context);
           if (validationError == null) {
             referralController.text = referrerValue;
-          }
-        }
-
-        //delay to insure that page with referral is opened before requesting permission for using clipboard
-        await Future.delayed(
-          const Duration(seconds: 1),
-        );
-        //if referrer value from provider wasn't user, try using it from clipboard
-        final clipboardValue = await getClipboardText();
-        if (clipboardValue.isNotEmpty && referralController.text.isEmpty && context.mounted) {
-          final validationError = validateNickname(clipboardValue, context);
-          if (validationError == null) {
-            referralController.text = clipboardValue;
           }
         }
       });

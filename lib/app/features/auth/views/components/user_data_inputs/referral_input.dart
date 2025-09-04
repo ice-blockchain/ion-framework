@@ -13,6 +13,7 @@ class ReferralInput extends StatelessWidget {
     super.key,
     this.textInputAction,
     this.onChanged,
+    this.onFocused,
     this.initialValue,
     this.controller,
     this.errorText,
@@ -31,10 +32,13 @@ class ReferralInput extends StatelessWidget {
 
   final bool isLive;
 
+  final ValueChanged<bool>? onFocused;
+
   @override
   Widget build(BuildContext context) {
     return GeneralUserDataInput(
       onChanged: onChanged,
+      onFocused: onFocused,
       prefixIconAssetName: Assets.svg.iconFieldInviter,
       labelText: context.i18n.fill_profile_input_referral,
       textInputAction: textInputAction,
