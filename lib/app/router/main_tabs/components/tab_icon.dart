@@ -19,7 +19,7 @@ class TabIcon extends StatelessWidget {
       height: 50.0.s,
       child: icon.icon(
         size: 24.0.s,
-        fit: BoxFit.none,
+        fit: BoxFit.contain,
         color: isSelected
             ? context.theme.appColors.primaryAccent
             : context.theme.appColors.tertiaryText,
