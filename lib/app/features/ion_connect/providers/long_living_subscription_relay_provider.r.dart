@@ -28,10 +28,10 @@ Future<IonConnectRelay> longLivingSubscriptionRelay(
         dislikedUrls: dislikedUrls,
       );
   unawaited(
-    relay.onClose.first.then((_) {
+    relay.first.onClose.first.then((_) {
       ref.invalidateSelf();
     }),
   );
 
-  return relay;
+  return relay.first;
 }
