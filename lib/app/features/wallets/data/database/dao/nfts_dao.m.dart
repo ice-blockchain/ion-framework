@@ -122,9 +122,4 @@ class NftsDao extends DatabaseAccessor<WalletsDatabase> with _$NftsDaoMixin {
       ),
     );
   }
-
-  Future<void> clear() async {
-    await (update(nftsTable)..where((t) => const Constant(true)))
-        .write(const NftsTableCompanion(metadataJson: Value('')));
-  }
 }

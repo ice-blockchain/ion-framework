@@ -31,10 +31,6 @@ class NftsRepository {
     return _nftsDao.replaceWalletNfts(nfts, walletId: walletId);
   }
 
-  Future<void> upsertBaseNfts(List<NftData> nfts, {required String walletId}) {
-    return _nftsDao.upsertBaseNfts(nfts, walletId: walletId);
-  }
-
   Future<NftData?> getNftByIdentifier(NftIdentifier identifier) {
     return _nftsDao.getByIdentifier(identifier);
   }
