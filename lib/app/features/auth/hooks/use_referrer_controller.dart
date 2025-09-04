@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/onboarding_data_provider.m.dart';
 import 'package:ion/app/features/auth/views/components/user_data_inputs/nickname_input.dart';
+import 'package:ion/app/services/clipboard/clipboard.dart';
 import 'package:ion/app/services/referrer/referrer_service.r.dart';
 
 /// Custom hook that manages the referral input controller with automatic referrer detection
@@ -29,11 +29,8 @@ TextEditingController useReferrerController(WidgetRef ref, BuildContext context)
         }
 
         //if referrer value from provider wasn't user, try using it from clipboard
-        final clipboardValue = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
-        if (clipboardValue != null &&
-            clipboardValue.isNotEmpty &&
-            referralController.text.isEmpty &&
-            context.mounted) {
+        final clipboardValue = await getClipboardText();
+        if (clipboardValue.isNotEmpty && referralController.text.isEmpty && context.mounted) {
           final validationError = validateNickname(clipboardValue, context);
           if (validationError == null) {
             referralController.text = clipboardValue;
