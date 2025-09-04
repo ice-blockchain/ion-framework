@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -13,6 +15,7 @@ import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/relays_reachability_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_relays_manager.r.g.dart';
@@ -49,6 +52,7 @@ class UserRelaysManager extends _$UserRelaysManager {
         pubkeys.where((pubkey) => pubkey != currentUserReachableRelays?.masterPubkey).toList();
 
     if (pubkeysToFetch.isEmpty) {
+      await pingRelays(result);
       return result;
     }
 
@@ -61,6 +65,7 @@ class UserRelaysManager extends _$UserRelaysManager {
     );
 
     if (pubkeysToFetch.isEmpty) {
+      await pingRelays(result);
       return result;
     }
 
@@ -77,6 +82,7 @@ class UserRelaysManager extends _$UserRelaysManager {
     );
 
     if (pubkeysToFetch.isEmpty) {
+      await pingRelays(result);
       return result;
     }
 
@@ -84,10 +90,80 @@ class UserRelaysManager extends _$UserRelaysManager {
 
     fetchedRelays.addAll(relaysFromIdentity);
     result.addAll(relaysFromIdentity);
-
     await _clearReachabilityInfoFor(fetchedRelays);
 
+    await pingRelays(result);
+
     return result;
+  }
+
+  Future<void> pingRelays(List<UserRelaysEntity> relays) async {
+    // print('relaysMap - original: $relays');
+    // print('relaysMap - original URLs: ${relays.expand((r) => r.urls).toList()}');
+
+    // Create futures for all relay pings to run concurrently
+    final futures = <Future<void>>[];
+    final unreachableUrls = <String>{};
+    final relaysToRemove = <UserRelaysEntity>[];
+
+    for (final relay in relays) {
+      for (final url in relay.urls) {
+        futures.add(
+          _pingRelayUrl(url).then((isReachable) {
+            if (!isReachable) {
+              unreachableUrls.add(url);
+              // print('Added unreachable URL: $url');
+            }
+          }),
+        );
+      }
+    }
+
+    // Wait for all pings to complete concurrently
+    await Future.wait(futures);
+
+    // print('Unreachable URLs collected: $unreachableUrls');
+
+    // Update relays by filtering out unreachable URLs
+    for (var i = 0; i < relays.length; i++) {
+      final relay = relays[i];
+      final reachableRelaysList =
+          relay.data.list.where((userRelay) => !unreachableUrls.contains(userRelay.url)).toList();
+
+      // print('Relay ${relay.masterPubkey}: URLs before: ${relay.data.list.length}, after: ${reachableRelaysList.length}');
+
+      if (reachableRelaysList.isEmpty) {
+        relaysToRemove.add(relay);
+      } else if (reachableRelaysList.length != relay.data.list.length) {
+        // Create updated relay entity with filtered URLs
+        relays[i] = relay.copyWith(
+          data: relay.data.copyWith(list: reachableRelaysList),
+        );
+      }
+    }
+
+    // Remove relays with no reachable URLs
+    relays.removeWhere(relaysToRemove.contains);
+    // print('relaysMap - after pinging: $relays');
+    // print('relaysMap - remaining URLs: ${relays.expand((r) => r.urls).toList()}');
+  }
+
+  Future<bool> _pingRelayUrl(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      final host = uri.host;
+      final port = uri.port;
+      final socket = await Socket.connect(
+        host,
+        port,
+        timeout: const Duration(seconds: 2),
+      );
+      await socket.close();
+      return true;
+    } catch (e) {
+      Logger.error('[RELAY] Error pinging relay $url: $e');
+      return false;
+    }
   }
 
   /// Marks a relay as read-only in the local cache.
