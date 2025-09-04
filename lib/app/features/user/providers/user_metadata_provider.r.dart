@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -9,6 +11,7 @@ import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_picker_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user_profile/database/dao/user_delegation_dao.m.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_metadata_dao.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -111,7 +114,15 @@ Future<bool> isUserDeleted(Ref ref, String pubkey) async {
     final userMetadataFromWriteRelay = await ref
         .watch(userMetadataProvider(pubkey, actionType: ActionType.write, cache: false).future);
 
-    return userMetadataFromWriteRelay == null;
+    final isDeleted = userMetadataFromWriteRelay == null;
+
+    if (isDeleted) {
+      // If user metadata is deleted, we delete it from the database
+      unawaited(ref.watch(userMetadataDaoProvider).deleteMetadata([pubkey]));
+      unawaited(ref.watch(userDelegationDaoProvider).deleteDelegation([pubkey]));
+    }
+
+    return isDeleted;
   } else {
     return false;
   }

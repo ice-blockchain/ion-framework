@@ -14,7 +14,6 @@ import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
-
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_badge_info_dao.m.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_delegation_dao.m.dart';
@@ -111,12 +110,5 @@ class UserProfileSync extends _$UserProfileSync {
     await userBadgesDao.insertAllProfileBadges(profileBadges);
     await userBadgesDao.insertAllBadgeDefinitions(badgeDefinitions);
     await userBadgesDao.insertAllBadgeAwards(badgeAwards);
-
-    final loadedMetadataMasterPubkeys = usersMetadata.map((e) => e.masterPubkey).toSet();
-    final missingMetadataMasterPubkeys =
-        masterPubkeysToSync.difference(loadedMetadataMasterPubkeys).toList();
-
-    await userMetadataDao.deleteMetadata(missingMetadataMasterPubkeys);
-    await userDelegationDao.deleteDelegation(missingMetadataMasterPubkeys);
   }
 }
