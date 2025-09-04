@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/onboarding_data_provider.m.dart';
@@ -18,12 +19,24 @@ TextEditingController useReferrerController(WidgetRef ref, BuildContext context)
   // Update controller when referrerData loads and controller is empty
   useEffect(
     () {
-      referrerData.whenData((referrerValue) {
+      referrerData.whenData((referrerValue) async {
         if (referrerValue != null && referrerValue.isNotEmpty && referralController.text.isEmpty) {
           // Validate the referrerData value before setting it
           final validationError = validateNickname(referrerValue, context);
           if (validationError == null) {
             referralController.text = referrerValue;
+          }
+        }
+
+        //if referrer value from provider wasn't user, try using it from clipboard
+        final clipboardValue = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
+        if (clipboardValue != null &&
+            clipboardValue.isNotEmpty &&
+            referralController.text.isEmpty &&
+            context.mounted) {
+          final validationError = validateNickname(clipboardValue, context);
+          if (validationError == null) {
+            referralController.text = clipboardValue;
           }
         }
       });
