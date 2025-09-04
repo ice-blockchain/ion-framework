@@ -154,7 +154,7 @@ class _BottomNavBarContent extends ConsumerWidget {
                   ],
           ),
           child: Padding(
-            padding: EdgeInsets.only(bottom: bottomPadding),
+            padding: EdgeInsetsDirectional.only(bottom: bottomPadding),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: TabItem.values.map((tabItem) {
