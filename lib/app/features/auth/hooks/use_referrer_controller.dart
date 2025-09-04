@@ -28,6 +28,10 @@ TextEditingController useReferrerController(WidgetRef ref, BuildContext context)
           }
         }
 
+        //delay to insure that page with referral is opened before requesting permission for using clipboard
+        await Future.delayed(
+          const Duration(seconds: 1),
+        );
         //if referrer value from provider wasn't user, try using it from clipboard
         final clipboardValue = await getClipboardText();
         if (clipboardValue.isNotEmpty && referralController.text.isEmpty && context.mounted) {
