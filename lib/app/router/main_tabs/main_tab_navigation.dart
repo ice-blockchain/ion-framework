@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:io';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -11,6 +14,8 @@ import 'package:ion/app/features/chat/recent_chats/views/components/conversation
 import 'package:ion/app/features/chat/views/components/unread_messages_counter.dart';
 import 'package:ion/app/features/wallets/views/components/unseen_transactions_counter.dart';
 import 'package:ion/app/router/main_tabs/components/components.dart';
+
+const _navBarVerticalPadding = 9.0;
 
 class MainTabNavigation extends HookWidget {
   const MainTabNavigation({
@@ -111,9 +116,20 @@ class _BottomNavBarContent extends ConsumerWidget {
   final TabItem currentTab;
   final ValueChanged<TabItem> onTabPressed;
 
+  double _getBottomPadding(BuildContext context) {
+    final mqPaddings = MediaQuery.paddingOf(context);
+    return Platform.isIOS
+        // On iOS we need to get under safe area a bit(8px), because the safe area is bigger than the home indicator itself
+        ? max(0, mqPaddings.bottom - _navBarVerticalPadding.s - 8.s)
+        // On Android the size of the system gesture inset is about the same as the home indicator, so we can just use it
+        // in case of 2/3 button navigation using the size of System navigation bar
+        : mqPaddings.bottom;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final conversationsEditMode = ref.watch(conversationsEditModeProvider);
+    final bottomPadding = _getBottomPadding(context);
 
     return Stack(
       children: [
@@ -129,17 +145,19 @@ class _BottomNavBarContent extends ConsumerWidget {
                     ),
                   ],
           ),
-          child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: bottomPadding),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: TabItem.values.map((tabItem) {
                 final isSelected = currentTab == tabItem;
+
                 return Expanded(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => onTabPressed(tabItem),
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 9.0.s),
+                      padding: EdgeInsets.symmetric(vertical: _navBarVerticalPadding.s),
                       color: context.theme.appColors.secondaryBackground,
                       child: Stack(
                         alignment: Alignment.center,
