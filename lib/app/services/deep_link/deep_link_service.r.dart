@@ -151,7 +151,7 @@ Future<void> deeplinkInitializer(Ref ref) async {
       data: relaysData,
     );
 
-    await ref.read(ionConnectDbCacheProvider.notifier).save(relaysEntity);
+    await ref.read(ionConnectDatabaseCacheProvider.notifier).save(relaysEntity);
   }
 
   await service.init(

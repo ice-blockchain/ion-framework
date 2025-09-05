@@ -98,7 +98,7 @@ class UserRelaysManager extends _$UserRelaysManager {
   /// on the next request for the user relays.
   Future<void> handleCachedReadOnlyRelay(String relayUrl) async {
     final cachedRelayEntities = (await ref
-            .read(ionConnectDbCacheProvider.notifier)
+            .read(ionConnectDatabaseCacheProvider.notifier)
             .getAllFiltered(keyword: relayUrl, kinds: [UserRelaysEntity.kind]))
         .cast<UserRelaysEntity>();
 
@@ -124,9 +124,9 @@ class UserRelaysManager extends _$UserRelaysManager {
 
     await Future.wait([
       ref
-          .read(ionConnectDbCacheProvider.notifier)
+          .read(ionConnectDatabaseCacheProvider.notifier)
           .removeAll(outdatedEntities.map((entity) => entity.toEventReference()).toList()),
-      ref.read(ionConnectDbCacheProvider.notifier).saveAll(updatedEntities),
+      ref.read(ionConnectDatabaseCacheProvider.notifier).saveAll(updatedEntities),
     ]);
   }
 
@@ -199,7 +199,7 @@ class UserRelaysManager extends _$UserRelaysManager {
         )
         .toList();
 
-    return (await ref.read(ionConnectDbCacheProvider.notifier).getAll(eventReferences))
+    return (await ref.read(ionConnectDatabaseCacheProvider.notifier).getAll(eventReferences))
         .cast<UserRelaysEntity?>()
         .nonNulls
         .toList();

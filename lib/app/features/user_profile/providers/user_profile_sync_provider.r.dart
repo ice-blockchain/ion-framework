@@ -83,6 +83,7 @@ class UserProfileSync extends _$UserProfileSync {
     if (masterPubkeysToSync.isEmpty) return;
 
     final usersProfileEntities = await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
+          cache: false,
           eventReferences: masterPubkeysToSync
               .map(
                 (pubkey) =>
@@ -96,7 +97,6 @@ class UserProfileSync extends _$UserProfileSync {
             ),
             ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
           ]).toString(),
-          cache: false,
         );
 
     final usersMetadata = usersProfileEntities.whereType<UserMetadataEntity>().toList();

@@ -10,6 +10,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
 import 'package:ion/app/features/user/model/tab_entity_type.dart';
 import 'package:ion/app/features/user/model/user_content_type.dart';
 import 'package:ion/app/features/user/pages/components/profile_avatar/profile_avatar.dart';
@@ -78,8 +79,13 @@ class ProfilePage extends HookConsumerWidget {
       () {
         didRefresh.value = true;
         if (userMetadata.value == null) return;
+
+        ref
+            .read(ionConnectDatabaseCacheProvider.notifier)
+            .removeAll([userMetadata.value!.toEventReference()]);
+
         invalidateCurrentUserMetadataProviders(ref);
-        ref.read(ionConnectCacheProvider.notifier).remove(userMetadata.value!.cacheKey);
+
         ref.read(ionConnectCacheProvider.notifier).remove(
               EventCountResultEntity.cacheKeyBuilder(
                 key: pubkey,

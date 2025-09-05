@@ -100,8 +100,8 @@ class Replies extends _$Replies {
       if (currentPubkey == null) return;
 
       await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
-            eventReferences: toFetch,
             cache: false,
+            eventReferences: toFetch,
             search: SearchExtensions([
               PollVotesCountSearchExtension(),
               PollVotesSearchExtension(currentPubkey: currentPubkey),

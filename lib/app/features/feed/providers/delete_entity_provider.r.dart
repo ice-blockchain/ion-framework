@@ -24,6 +24,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_delete_file_notifier.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -183,6 +184,8 @@ class DeleteEntityController extends _$DeleteEntityController {
   void _deleteFromCache(IonConnectEntity entity) {
     if (entity is CacheableEntity) {
       ref.read(ionConnectCacheProvider.notifier).remove(entity.cacheKey);
+      //TODO: once we will migrate to use cache keys move this to ionConnectCacheProvider
+      ref.read(ionConnectDatabaseCacheProvider.notifier).removeAll([entity.toEventReference()]);
     }
   }
 

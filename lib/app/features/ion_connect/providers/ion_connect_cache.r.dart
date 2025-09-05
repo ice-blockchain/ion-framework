@@ -40,18 +40,22 @@ class IonConnectCache extends _$IonConnectCache {
     return {};
   }
 
-  void cache(CacheableEntity entity) {
-    final entry = CacheEntry(
-      entity: entity,
-      createdAt: DateTime.now(),
-    );
+  void cache(IonConnectEntity entity) {
+    if (entity is CacheableEntity) {
+      final entry = CacheEntry(
+        entity: entity,
+        createdAt: DateTime.now(),
+      );
 
-    state = {...state, entity.cacheKey: entry};
+      state = {...state, entity.cacheKey: entry};
 
-    _ionConnectCacheStreamController.sink.add(entity);
+      _ionConnectCacheStreamController.sink.add(entity);
+    }
 
     if (entity is DbCacheableEntity) {
-      unawaited(ref.read(ionConnectDbCacheProvider.notifier).save(entity as DbCacheableEntity));
+      unawaited(
+        ref.read(ionConnectDatabaseCacheProvider.notifier).save(entity as DbCacheableEntity),
+      );
     }
   }
 

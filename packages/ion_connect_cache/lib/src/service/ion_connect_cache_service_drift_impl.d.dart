@@ -8,6 +8,7 @@ import 'package:drift/native.dart';
 import 'package:ion_connect_cache/src/database/ion_connect_cache_database.d.dart';
 import 'package:ion_connect_cache/src/database/tables/event_messages_table.d.dart';
 import 'package:ion_connect_cache/src/extensions/event_message_cache_db_model.dart';
+import 'package:ion_connect_cache/src/models/database_cache_entry.dart';
 import 'package:ion_connect_cache/src/service/ion_connect_cache_service.dart';
 import 'package:nostr_dart/nostr_dart.dart';
 
@@ -24,26 +25,26 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
 
   @override
   Future<EventMessage> save(
-    (String masterPubkey, String eventReference, EventMessage eventMessage) value,
+    ({String masterPubkey, String eventReference, EventMessage eventMessage}) value,
   ) {
     final dbModel = IonConnectCacheEventMessageDbModelExtensions.fromEventMessage(
-      masterPubkey: value.$1,
-      eventReference: value.$2,
-      eventMessage: value.$3,
+      masterPubkey: value.masterPubkey,
+      eventMessage: value.eventMessage,
+      eventReference: value.eventReference,
     );
 
-    return into(eventMessagesTable).insertOnConflictUpdate(dbModel).then((_) => value.$3);
+    return into(eventMessagesTable).insertOnConflictUpdate(dbModel).then((_) => value.eventMessage);
   }
 
   @override
   Future<List<EventMessage>> saveAll(
-    List<(String masterPubkey, String eventReference, EventMessage eventMessage)> values,
+    List<({String masterPubkey, String eventReference, EventMessage eventMessage})> values,
   ) async {
     final dbModels = values.map((value) {
       return IonConnectCacheEventMessageDbModelExtensions.fromEventMessage(
-        masterPubkey: value.$1,
-        eventReference: value.$2,
-        eventMessage: value.$3,
+        masterPubkey: value.masterPubkey,
+        eventMessage: value.eventMessage,
+        eventReference: value.eventReference,
       );
     });
 
@@ -51,26 +52,28 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
       batch.insertAllOnConflictUpdate(eventMessagesTable, dbModels);
     });
 
-    return values.map((e) => e.$3).toList();
+    return values.map((e) => e.eventMessage).toList();
   }
 
   @override
-  Future<EventMessage?> get(String eventReference, {DateTime? after}) async {
-    final expirationExpression = after != null
-        ? eventMessagesTable.insertedAt.isBiggerThanValue(after.millisecondsSinceEpoch)
-        : const Constant(true);
-
+  Future<DatabaseCacheEntry?> get(String eventReference) async {
     final dbModel =
         await (select(eventMessagesTable)
               ..limit(1)
-              ..where((tbl) => tbl.eventReference.equals(eventReference) & expirationExpression))
+              ..where((tbl) => tbl.eventReference.equals(eventReference)))
             .getSingleOrNull();
 
-    return dbModel?.toEventMessage();
+    if (dbModel == null) {
+      return null;
+    }
+    return DatabaseCacheEntry(
+      eventMessage: dbModel.toEventMessage(),
+      insertedAt: DateTime.fromMillisecondsSinceEpoch(dbModel.insertedAt),
+    );
   }
 
   @override
-  Future<List<EventMessage>> getAllFiltered({
+  Future<List<DatabaseCacheEntry?>> getAllFiltered({
     required String keyword,
     List<int> kinds = const [],
     List<String> eventReferences = const [],
@@ -92,14 +95,28 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
           )
           ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
         .get()
-        .then((rows) => rows.map((row) => row.toEventMessage()).toList());
+        .then(
+          (rows) => rows.map((row) {
+            DatabaseCacheEntry(
+              eventMessage: row.toEventMessage(),
+              insertedAt: DateTime.fromMillisecondsSinceEpoch(row.insertedAt),
+            );
+          }).toList(),
+        );
   }
 
   @override
-  Future<List<EventMessage>> getAll(List<String> eventReferences) {
-    return (select(eventMessagesTable)..where((tbl) => tbl.eventReference.isIn(eventReferences)))
-        .get()
-        .then((rows) => rows.map((row) => row.toEventMessage()).toList());
+  Future<List<DatabaseCacheEntry?>> getAll(List<String> eventReferences) {
+    return (select(
+      eventMessagesTable,
+    )..where((tbl) => tbl.eventReference.isIn(eventReferences))).get().then(
+      (rows) => rows.map((row) {
+        return DatabaseCacheEntry(
+          eventMessage: row.toEventMessage(),
+          insertedAt: DateTime.fromMillisecondsSinceEpoch(row.insertedAt),
+        );
+      }).toList(),
+    );
   }
 
   @override
@@ -111,7 +128,9 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
 
   @override
   Future<int> remove(String eventReference) async {
-    return (delete(eventMessagesTable)..where((tbl) => tbl.eventReference.equals(eventReference))).go();
+    return (delete(
+      eventMessagesTable,
+    )..where((tbl) => tbl.eventReference.equals(eventReference))).go();
   }
 
   @override

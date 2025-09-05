@@ -62,7 +62,10 @@ class SharedPostMessage extends HookConsumerWidget {
 
     final postFromNetwork = ref
         .watch(
-          ionConnectEntityProvider(eventReference: postEntity.toEventReference(), cache: false),
+          ionConnectEntityProvider(
+            eventReference: postEntity.toEventReference(),
+            cache: false,
+          ),
         )
         .valueOrNull;
 

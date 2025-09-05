@@ -123,7 +123,7 @@ class FeedBookmarksNotifier extends _$FeedBookmarksNotifier {
           ..addAll(bookmarksCollection.data.eventReferences);
         if (bookmarksCollection.data.type == BookmarksSetType.homeFeedCollectionsAll.dTagName) {
           unawaited(
-            ref.read(ionConnectDbCacheProvider.notifier).saveEventReference(eventReference),
+            ref.read(ionConnectDatabaseCacheProvider.notifier).saveEventReference(eventReference),
           );
         }
         if (bookmarksCollection.data.type != BookmarksSetType.homeFeedCollectionsAll.dTagName) {
@@ -189,7 +189,7 @@ Future<List<EventReference>> filteredBookmarksRefs(
   if (keyword.isEmpty) return allRefs;
 
   final rawEvents = await ref
-      .read(ionConnectDbCacheProvider.notifier)
+      .read(ionConnectDatabaseCacheProvider.notifier)
       .getAllFiltered(eventReferences: allRefs, keyword: keyword);
 
   return rawEvents.map((event) => event.toEventReference()).toList();
@@ -203,7 +203,7 @@ void feedBookmarksSync(Ref ref) {
       final collection = next.value;
       if (collection != null) {
         ref
-            .read(ionConnectDbCacheProvider.notifier)
+            .read(ionConnectDatabaseCacheProvider.notifier)
             .saveAllNonExistingRefs(collection.data.eventReferences);
       }
     },
