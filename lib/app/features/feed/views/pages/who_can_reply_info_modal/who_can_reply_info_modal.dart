@@ -63,7 +63,7 @@ class WhoCanReplyInfoModal extends HookConsumerWidget {
     };
     if (whoCanReplySetting == null) return '';
 
-    final userMetadata = ref.watch(cachedUserMetadataProvider(eventReference.masterPubkey));
+    final userMetadata = ref.watch(userMetadataSyncProvider(eventReference.masterPubkey));
     String commonDescription() => context.i18n.who_can_reply_info_modal_description(
           userMetadata?.data.displayName ?? '',
           context.i18n.who_can_reply_info_modal_setting(whoCanReplySetting.tagValue),

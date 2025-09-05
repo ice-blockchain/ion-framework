@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion_connect_cache/src/models/database_cache_entry.dart';
 import 'package:nostr_dart/nostr_dart.dart';
 
 abstract class IonConnectCacheService {
   Future<EventMessage> save(
-    (String masterPubkey, String eventReference, EventMessage eventMessage) value,
+    ({String masterPubkey, String eventReference, EventMessage eventMessage}) value,
   );
 
   Future<List<EventMessage>> saveAll(
-    List<(String masterPubkey, String eventReference, EventMessage eventMessage)> values,
+    List<({String masterPubkey, String eventReference, EventMessage eventMessage})> values,
   );
 
-  Future<EventMessage?> get(String eventReference, {DateTime? after});
-  Future<List<EventMessage>> getAll(List<String> eventReferences);
-  Future<List<EventMessage>> getAllFiltered({
+  Future<DatabaseCacheEntry?> get(String eventReference);
+  Future<List<DatabaseCacheEntry?>> getAll(List<String> eventReferences);
+  Future<List<DatabaseCacheEntry?>> getAllFiltered({
     required String keyword,
     List<int> kinds = const [],
     List<String> eventReferences = const [],

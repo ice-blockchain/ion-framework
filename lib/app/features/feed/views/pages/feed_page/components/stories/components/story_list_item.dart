@@ -24,7 +24,7 @@ class StoryListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(cachedUserMetadataProvider(pubkey));
+    final userMetadata = ref.watch(userMetadataSyncProvider(pubkey));
     final userStory = ref.watch(feedStoriesByPubkeyProvider(pubkey, showOnlySelectedUser: true));
     final storyReference = userStory.firstOrNull?.toEventReference();
 
