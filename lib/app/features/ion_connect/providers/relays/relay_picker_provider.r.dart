@@ -68,7 +68,11 @@ class RelayPicker extends _$RelayPicker {
         '$sessionPrefix[RELAY] No available write relays found for action source: $actionSource. Fallback to read action source relay.',
       );
 
-      return _getReadActionSourceRelays(actionSource, dislikedUrls: dislikedUrls);
+      return _getReadActionSourceRelays(
+        actionSource,
+        dislikedUrls: dislikedUrls,
+        sessionId: sessionId,
+      );
     }
 
     final chosenRelayUrl =
