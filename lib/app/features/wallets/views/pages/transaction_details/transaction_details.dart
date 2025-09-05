@@ -33,16 +33,28 @@ const _abbreviationsToExclude = {'TON', 'ION', 'ICE'};
 
 class TransactionDetailsPage extends ConsumerWidget {
   const TransactionDetailsPage({
+    required this.walletViewId,
+    required this.txHash,
     required this.exploreRouteLocationBuilder,
     super.key,
   });
 
+  final String walletViewId;
+  final String txHash;
   final String Function(String url) exploreRouteLocationBuilder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = context.i18n;
-    final transactionData = ref.watch(transactionNotifierProvider)!;
+    final transactionData = ref.watch(transactionNotifierProvider(
+      walletViewId: walletViewId,
+      txHash: txHash,
+    ));
+
+    if (transactionData == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     final arrivalTime = transactionData.status == TransactionStatus.confirmed &&
             transactionData.dateConfirmed != null
         ? DateFormat('dd.MM.yyyy HH:mm:ss').format(transactionData.dateConfirmed!.toLocal())
@@ -57,7 +69,7 @@ class TransactionDetailsPage extends ConsumerWidget {
         : transactionData.receiverAddress;
 
     final assetAbbreviation =
-        transactionData.assetData.mapOrNull(coin: (value) => value.coinsGroup)?.abbreviation;
+        transactionData.assetData.mapOrNull(coin: (coin) => coin.coinsGroup)?.abbreviation;
 
     final disableExplorer = _abbreviationsToExclude.contains(assetAbbreviation) &&
         transactionData.status != TransactionStatus.confirmed;

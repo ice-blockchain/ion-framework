@@ -14,12 +14,10 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
-import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
 import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/funds_request_delete_notifier.r.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
-import 'package:ion/app/features/wallets/providers/transaction_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -237,15 +235,13 @@ class ViewTransactionButton extends ConsumerWidget {
           return;
         }
 
-        final coinGroup = CoinsGroup.fromCoin(coinData);
-
-        ref.read(transactionNotifierProvider.notifier).details =
-            TransactionDetails.fromTransactionData(transactionData, coinsGroup: coinGroup);
-
         if (!context.mounted) {
           return;
         }
-        unawaited(CoinTransactionDetailsChatRoute().push<void>(context));
+        unawaited(CoinTransactionDetailsChatRoute(
+          walletViewId: transactionData.walletViewId,
+          txHash: transactionData.txHash,
+        ).push<void>(context));
       },
     );
   }

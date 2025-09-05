@@ -14,7 +14,6 @@ import 'package:ion/app/features/components/verify_identity/verify_identity_prom
 import 'package:ion/app/features/wallets/model/network_fee_option.f.dart';
 import 'package:ion/app/features/wallets/providers/send_nft_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/send_nft_notifier_provider.r.dart';
-import 'package:ion/app/features/wallets/providers/transaction_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/arrival_time/list_item_arrival_time.dart';
 import 'package:ion/app/features/wallets/views/components/network_fee/list_item_network_fee.dart';
 import 'package:ion/app/features/wallets/views/components/nft_item.dart';
@@ -43,8 +42,10 @@ class SendNftConfirmPage extends ConsumerWidget {
       )
       ..listenSuccess(sendNftNotifierProvider, (transactionDetails) {
         if (context.mounted && transactionDetails != null) {
-          ref.read(transactionNotifierProvider.notifier).details = transactionDetails;
-          NftTransactionResultRoute().go(context);
+          NftTransactionResultRoute(
+            walletViewId: transactionDetails.walletViewId,
+            txHash: transactionDetails.txHash,
+          ).go(context);
         }
       });
 
