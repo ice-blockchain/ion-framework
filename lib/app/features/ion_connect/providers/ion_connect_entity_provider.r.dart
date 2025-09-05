@@ -321,32 +321,32 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
     if (cache) {
       // In-memory cache first
       if (remainingEvents.isNotEmpty) {
-      final inMemoryEntities = remainingEvents
-        .map(
-          (eventReference) => ref.read(
-          ionConnectCacheProvider.select(
-            cacheSelector(
-            CacheableEntity.cacheKeyBuilder(eventReference: eventReference),
-            expirationDuration: expirationDuration,
-            ),
-          ),
-          ),
-        )
-        .whereType<IonConnectEntity>()
-        .toList();
-      results.addAll(inMemoryEntities);
-      remainingEvents.removeAll(inMemoryEntities.map((e) => e.toEventReference()));
+        final inMemoryEntities = remainingEvents
+            .map(
+              (eventReference) => ref.read(
+                ionConnectCacheProvider.select(
+                  cacheSelector(
+                    CacheableEntity.cacheKeyBuilder(eventReference: eventReference),
+                    expirationDuration: expirationDuration,
+                  ),
+                ),
+              ),
+            )
+            .whereType<IonConnectEntity>()
+            .toList();
+        results.addAll(inMemoryEntities);
+        remainingEvents.removeAll(inMemoryEntities.map((e) => e.toEventReference()));
       }
 
       // Then database cache
       if (remainingEvents.isNotEmpty) {
-      final cacheService = ref.read(ionConnectDatabaseCacheProvider.notifier);
-      final databaseEntities = await cacheService.getAllFiltered(
-        cacheKeys: remainingEvents.map((e) => e.toString()).toList(),
-        expirationDuration: expirationDuration,
-      );
-      results.addAll(databaseEntities);
-      remainingEvents.removeAll(databaseEntities.map((e) => e.toEventReference()));
+        final cacheService = ref.read(ionConnectDatabaseCacheProvider.notifier);
+        final databaseEntities = await cacheService.getAllFiltered(
+          cacheKeys: remainingEvents.map((e) => e.toString()).toList(),
+          expirationDuration: expirationDuration,
+        );
+        results.addAll(databaseEntities);
+        remainingEvents.removeAll(databaseEntities.map((e) => e.toEventReference()));
       }
     }
 

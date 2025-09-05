@@ -83,7 +83,6 @@ class UserProfileSync extends _$UserProfileSync {
     if (masterPubkeysToSync.isEmpty) return;
 
     final usersProfileEntities = await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
-       
           eventReferences: masterPubkeysToSync
               .map(
                 (pubkey) =>
