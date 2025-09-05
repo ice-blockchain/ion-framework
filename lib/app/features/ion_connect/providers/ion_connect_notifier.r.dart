@@ -68,25 +68,26 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       return withRetry(
         ({error}) async {
           triedRelay = null;
-          final relaysUserMap = await ref.read(relayPickerProvider.notifier).getActionSourceRelays(
-                actionSource,
-                actionType: ActionType.write,
-                dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
-              );
-          for (final relaysUserMap in relaysUserMap.entries) {
-            triedRelay = relaysUserMap.key;
+          final relay = (await ref.read(relayPickerProvider.notifier).getActionSourceRelays(
+                    actionSource,
+                    actionType: ActionType.write,
+                    dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
+                  ))
+              .keys
+              .first;
 
-            _handleWriteRelay(actionSource, relaysUserMap.key.url);
+          triedRelay = relay;
 
-            await ref
-                .read(relayAuthProvider(relaysUserMap.key))
-                .handleRelayAuthOnAction(actionSource: actionSource, error: error);
+          _handleWriteRelay(actionSource, relay.url);
 
-            await _sendEventsToRelay(events, relay: relaysUserMap.key);
+          await ref
+              .read(relayAuthProvider(relay))
+              .handleRelayAuthOnAction(actionSource: actionSource, error: error);
 
-            if (cache) {
-              return events.map(_parseAndCache).toList();
-            }
+          await _sendEventsToRelay(events, relay: relay);
+
+          if (cache) {
+            return events.map(_parseAndCache).toList();
           }
 
           return null;
