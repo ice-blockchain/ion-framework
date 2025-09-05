@@ -21,9 +21,9 @@ IonConnectEntity? rootPostEntity(
   final entity = ref
       .watch(
         ionConnectEntityProvider(
-          eventReference: eventReference,
-          network: network,
           cache: cache,
+          network: network,
+          eventReference: eventReference,
         ),
       )
       .valueOrNull;
@@ -48,9 +48,9 @@ IonConnectEntity? rootPostEntity(
   return ref
       .watch(
         ionConnectEntityProvider(
-          eventReference: rootEvent.eventReference,
-          network: network,
           cache: cache,
+          network: network,
+          eventReference: rootEvent.eventReference,
         ),
       )
       .valueOrNull;

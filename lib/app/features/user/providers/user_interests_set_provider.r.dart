@@ -21,13 +21,13 @@ Future<InterestSetEntity?> userInterestsSet(
 }) async {
   return await ref.watch(
     ionConnectEntityProvider(
+      cache: cache,
+      network: network,
       eventReference: ReplaceableEventReference(
         masterPubkey: pubkey,
         kind: InterestSetEntity.kind,
         dTag: type.toShortString(),
       ),
-      network: network,
-      cache: cache,
     ).future,
   ) as InterestSetEntity?;
 }

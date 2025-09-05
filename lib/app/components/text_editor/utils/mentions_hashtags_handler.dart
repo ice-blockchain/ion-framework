@@ -50,7 +50,7 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
   }
 
   void onMentionSuggestionSelected(({String pubkey, String username}) pubkeyUsernamePair) {
-    final userMetadata = ref.read(cachedUserMetadataProvider(pubkeyUsernamePair.pubkey));
+    final userMetadata = ref.read(userMetadataSyncProvider(pubkeyUsernamePair.pubkey));
     if (userMetadata == null) return;
     final userMetadataEncoded = userMetadata.toEventReference().encode();
 

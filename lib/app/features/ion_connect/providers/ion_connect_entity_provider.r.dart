@@ -12,7 +12,6 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart'
 import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_picker_provider.r.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -20,7 +19,62 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'ion_connect_entity_provider.r.g.dart';
 
 @riverpod
-IonConnectEntity? ionConnectCachedEntity(
+Future<IonConnectEntity?> ionConnectEntity(
+  Ref ref, {
+  required EventReference eventReference,
+  bool cache = true,
+  bool network = true,
+  String? search,
+  ActionType? actionType,
+  Duration? expirationDuration,
+}) async {
+  final currentUser = ref.watch(currentIdentityKeyNameSelectorProvider);
+  if (currentUser == null) {
+    throw const CurrentUserNotFoundException();
+  }
+
+  // Try to get from in-memory cache, then database cache, if found in database cache
+  // put it also in in-memory cache
+  if (cache) {
+    final inMemoryEntity = ref.watch(
+      ionConnectCacheProvider.select(
+        cacheSelector(
+          CacheableEntity.cacheKeyBuilder(eventReference: eventReference),
+          expirationDuration: expirationDuration,
+        ),
+      ),
+    );
+
+    if (inMemoryEntity != null) {
+      return inMemoryEntity;
+    }
+
+    final cacheService = ref.read(ionConnectDatabaseCacheProvider.notifier);
+
+    final databaseEntity = await cacheService.get(
+      eventReference,
+      expirationDuration: expirationDuration,
+    );
+
+    if (databaseEntity != null) {
+      return databaseEntity;
+    }
+  }
+
+  if (network) {
+    return ref.watch(
+      ionConnectNetworkEntityProvider(
+        search: search,
+        actionType: actionType,
+        eventReference: eventReference,
+      ).future,
+    );
+  }
+  return null;
+}
+
+@riverpod
+IonConnectEntity? ionConnectInMemoryEntity(
   Ref ref, {
   required EventReference eventReference,
   Duration? expirationDuration,
@@ -34,6 +88,17 @@ IonConnectEntity? ionConnectCachedEntity(
       ),
     );
 
+// We have to keep this provider in order to not break existing sync entity provider
+// logic
+//TODO: remove in future refactor
+@riverpod
+Future<IonConnectEntity?> ionConnectDatabaseEntity(
+  Ref ref, {
+  required EventReference eventReference,
+}) async {
+  return ref.read(ionConnectDatabaseCacheProvider.notifier).get(eventReference);
+}
+
 @riverpod
 Future<IonConnectEntity?> ionConnectNetworkEntity(
   Ref ref, {
@@ -43,6 +108,7 @@ Future<IonConnectEntity?> ionConnectNetworkEntity(
   ActionSource? actionSource,
 }) async {
   final aSource = actionSource ?? ActionSourceUser(eventReference.masterPubkey);
+
   if (eventReference is ImmutableEventReference) {
     final requestMessage = RequestMessage()
       ..addFilter(
@@ -195,57 +261,12 @@ class IonConnectNetworkEntitiesManager extends _$IonConnectNetworkEntitiesManage
 }
 
 @riverpod
-Future<IonConnectEntity?> ionConnectDbEntity(
-  Ref ref, {
-  required EventReference eventReference,
-}) async {
-  return ref.read(ionConnectDbCacheProvider.notifier).get(eventReference);
-}
-
-@riverpod
-Future<IonConnectEntity?> ionConnectEntity(
-  Ref ref, {
-  required EventReference eventReference,
-  bool network = true,
-  bool cache = true,
-  ActionType? actionType,
-  Duration? expirationDuration,
-  String? search,
-}) async {
-  final currentUser = ref.watch(currentIdentityKeyNameSelectorProvider);
-  if (currentUser == null) {
-    throw const CurrentUserNotFoundException();
-  }
-  if (cache) {
-    final entity = ref.watch(
-      ionConnectCachedEntityProvider(
-        eventReference: eventReference,
-        expirationDuration: expirationDuration,
-      ),
-    );
-    if (entity != null) {
-      return entity;
-    }
-  }
-  if (network) {
-    return ref.watch(
-      ionConnectNetworkEntityProvider(
-        search: search,
-        actionType: actionType,
-        eventReference: eventReference,
-      ).future,
-    );
-  }
-  return null;
-}
-
-@riverpod
 IonConnectEntity? ionConnectSyncEntity(
   Ref ref, {
   required EventReference eventReference,
-  bool network = true,
   bool cache = true,
-  bool db = false,
+  bool database = false,
+  bool network = true,
   String? search,
 }) {
   final currentUser = ref.watch(currentIdentityKeyNameSelectorProvider);
@@ -253,22 +274,26 @@ IonConnectEntity? ionConnectSyncEntity(
     throw const CurrentUserNotFoundException();
   }
   if (cache) {
-    final entity = ref.watch(ionConnectCachedEntityProvider(eventReference: eventReference));
-    if (entity != null) {
-      return entity;
+    final inMemoryEntity =
+        ref.watch(ionConnectInMemoryEntityProvider(eventReference: eventReference));
+    if (inMemoryEntity != null) {
+      return inMemoryEntity;
     }
   }
 
-  if (db) {
-    final entityState = ref.watch(ionConnectDbEntityProvider(eventReference: eventReference));
-    if (entityState.isLoading) {
+  if (database) {
+    final databaseEntityState =
+        ref.watch(ionConnectDatabaseEntityProvider(eventReference: eventReference));
+    if (databaseEntityState.isLoading) {
       return null;
     }
-    final entity = entityState.valueOrNull;
-    if (entity != null) {
-      return entity;
+
+    final databaseEntity = databaseEntityState.valueOrNull;
+    if (databaseEntity != null) {
+      return databaseEntity;
     }
   }
+
   if (network) {
     return ref
         .watch(ionConnectNetworkEntityProvider(eventReference: eventReference, search: search))
@@ -289,12 +314,22 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
     bool network = true,
     Duration? expirationDuration,
   }) async {
-    final cachedResults = <IonConnectEntity>[];
-    final networkResults = <IonConnectEntity>[];
+    final remainingEvents = eventReferences.toSet();
+    final results = <IonConnectEntity>[];
 
+    // Database cache
     if (cache) {
-      cachedResults.addAll(
-        eventReferences
+      final cacheService = ref.read(ionConnectDatabaseCacheProvider.notifier);
+      final dbEntities = await cacheService.getAll(
+        remainingEvents.toList(),
+        expirationDuration: expirationDuration,
+      );
+      results.addAll(dbEntities);
+      remainingEvents.removeAll(dbEntities.map((e) => e.toEventReference()));
+
+      // In-memory cache
+      if (remainingEvents.isNotEmpty) {
+        final memEntities = remainingEvents
             .map(
               (eventReference) => ref.read(
                 ionConnectCacheProvider.select(
@@ -305,58 +340,46 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
                 ),
               ),
             )
-            .nonNulls
-            .toList(),
-      );
+            .whereType<IonConnectEntity>()
+            .toList();
+        results.addAll(memEntities);
+
+        remainingEvents.removeAll(memEntities.map((e) => e.toEventReference()));
+      }
     }
 
-    if (network) {
-      final notCachedEvents = eventReferences
-          .toSet()
-          .difference(cachedResults.map((e) => e.toEventReference()).toSet())
-          .toList();
-
+    // Network fetch
+    if (network && remainingEvents.isNotEmpty) {
       final relaysMap = await ref.read(optimalUserRelaysServiceProvider).fetch(
             strategy: OptimalRelaysStrategy.mostUsers,
-            masterPubkeys: notCachedEvents.map((e) => e.masterPubkey).toSet().toList(),
+            masterPubkeys: remainingEvents.map((e) => e.masterPubkey).toSet().toList(),
           );
 
-      final eventReferencesMap = relaysMap.map(
-        (url, masterPubkeys) => MapEntry(
-          url,
-          notCachedEvents.where((e) => masterPubkeys.contains(e.masterPubkey)).toList(),
-        ),
-      );
-
-      final streams = <Stream<IonConnectEntity>>[];
-
-      for (final url in eventReferencesMap.keys) {
-        final eventReferences = eventReferencesMap[url] ?? [];
-        if (eventReferences.isEmpty) continue;
-
-        final stream = ref
-            .read(ionConnectNetworkEntitiesManagerProvider.notifier)
-            .fetch(
-              search: search,
-              eventReferences: eventReferences,
-              actionSource: ActionSource.relayUrl(url),
-            )
-            .handleError((Object e, StackTrace stack) {
-          Logger.log('Error fetching network entities for $url', stackTrace: stack, error: e);
-        });
-
-        streams.add(stream);
-      }
+      final streams = relaysMap.entries
+          .map((entry) {
+            final url = entry.key;
+            final refs =
+                remainingEvents.where((e) => entry.value.contains(e.masterPubkey)).toList();
+            if (refs.isEmpty) return null;
+            return ref
+                .read(ionConnectNetworkEntitiesManagerProvider.notifier)
+                .fetch(
+                  search: search,
+                  eventReferences: refs,
+                  actionSource: ActionSource.relayUrl(url),
+                )
+                .handleError((Object e, StackTrace stack) {
+              Logger.log('Error fetching network entities for $url', stackTrace: stack, error: e);
+            });
+          })
+          .whereType<Stream<IonConnectEntity>>()
+          .toList();
 
       if (streams.isNotEmpty) {
-        networkResults.addAll(await StreamGroup.merge(streams).toList());
+        results.addAll(await StreamGroup.merge(streams).toList());
       }
     }
 
-    Logger.log(
-      'Cached results: ${cachedResults.whereType<UserMetadataEntity>().length}, Network results: ${networkResults.whereType<UserMetadataEntity>().length}',
-    );
-
-    return [...cachedResults, ...networkResults];
+    return results;
   }
 }
