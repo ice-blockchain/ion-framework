@@ -246,10 +246,6 @@ class IonConnectNotifier extends _$IonConnectNotifier {
           for (final relay in relaysUserMap.entries) {
             triedRelay = relay.key;
 
-            Logger.log(
-              '[RELAY] ${relay.key.url} is chosen for reading events, $dislikedRelaysUrls',
-            );
-
             await ref
                 .read(relayAuthProvider(relay.key))
                 .handleRelayAuthOnAction(actionSource: actionSource, error: error);

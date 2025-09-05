@@ -25,7 +25,6 @@ sealed class ActionSource with _$ActionSource {
     @Default(false) bool anonymous,
   }) = ActionSourceIndexers;
 
-  // optimal relays
   const factory ActionSource.optimalRelays({
     required List<String> masterPubkeys,
     required OptimalRelaysStrategy strategy,
