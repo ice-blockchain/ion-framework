@@ -106,6 +106,8 @@ dependencies:
   intl: any
   ion_connect_cache:
     path: packages/ion_connect_cache
+  ion_content_labeler:
+    path: packages/ion_content_labeler
   ion_identity_client:
     path: packages/ion_identity_client
   ion_screenshot_detector:
