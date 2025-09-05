@@ -5,13 +5,12 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/search/model/feed_search_source.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
-import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'feed_search_filter_relays_provider.r.g.dart';
 
 @riverpod
-Future<Map<String, List<String>>> feedSearchFilterRelays(
+Future<List<String>> feedSearchFilterRelayMasterPubkeys(
   Ref ref,
   FeedSearchSource source,
 ) async {
@@ -27,10 +26,5 @@ Future<Map<String, List<String>>> feedSearchFilterRelays(
     if (followList != null) ...followList.masterPubkeys,
   }.toList();
 
-  final relayMapping = await ref.read(optimalUserRelaysServiceProvider).fetch(
-        masterPubkeys: masterPubkeys,
-        strategy: OptimalRelaysStrategy.mostUsers,
-      );
-
-  return relayMapping;
+  return masterPubkeys;
 }

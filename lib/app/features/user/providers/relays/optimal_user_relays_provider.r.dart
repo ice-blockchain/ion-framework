@@ -47,10 +47,14 @@ class OptimalUserRelaysService {
     final userToRelays =
         await _getUserRelays(masterPubkeys, failedRelayUrls: failedRelayUrls ?? []);
 
-    return switch (strategy) {
+    final optimalRelays = switch (strategy) {
       OptimalRelaysStrategy.mostUsers => _getSharedRelaysByMostUsers(userToRelays),
       OptimalRelaysStrategy.bestLatency => await _getSharedRelaysByBestLatency(userToRelays),
     };
+
+    Logger.log('[RELAY] optimalRelays: $optimalRelays');
+
+    return optimalRelays;
   }
 
   Future<Map<String, List<String>>> _getUserRelays(
@@ -60,8 +64,11 @@ class OptimalUserRelaysService {
     final reachableUserRelays = await _getReachableUserRelays(masterPubkeys);
     return {
       for (final userRelay in reachableUserRelays)
-        userRelay.masterPubkey:
-            userRelay.urls.where((url) => !failedRelayUrls.contains(url)).toList(),
+        userRelay.masterPubkey: (() {
+          final filteredUrls =
+              userRelay.urls.where((url) => !failedRelayUrls.contains(url)).toList();
+          return filteredUrls.isEmpty ? [userRelay.urls.first] : filteredUrls;
+        })(),
     };
   }
 

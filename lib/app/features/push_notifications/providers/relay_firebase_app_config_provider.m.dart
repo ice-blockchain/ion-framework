@@ -66,12 +66,12 @@ class RelayFirebaseAppConfig extends _$RelayFirebaseAppConfig {
 
       // Continue until we've checked all relays or found a suitable one
       while (userRelays.length > noFirebaseConfigRelays.length) {
-        final relay = await actionSourceRelay.getActionSourceRelay(
+        final relay = await actionSourceRelay.getActionSourceRelays(
           const ActionSourceCurrentUser(),
           actionType: ActionType.write,
           dislikedUrls: DislikedRelayUrlsCollection(noFirebaseConfigRelays),
         );
-        final relayUrl = relay.first.url;
+        final relayUrl = relay.keys.first.url;
 
         final relayFirebaseConfig = await _getRelayFirebaseConfig(relayUrl);
         if (relayFirebaseConfig != null) {
