@@ -139,11 +139,7 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
   }) {
-    final query = _buildFilteredQuery(
-      kinds: kinds,
-      keyword: keyword,
-      cacheKeys: cacheKeys,
-    );
+    final query = _buildFilteredQuery(kinds: kinds, keyword: keyword, cacheKeys: cacheKeys);
     return query.watch().map((rows) => rows.map((row) => row.toEventMessage()).toList());
   }
 
@@ -154,9 +150,7 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
 
   @override
   Future<int> remove(String cacheKey) {
-    return (delete(
-      eventMessagesTable,
-    )..where((tbl) => tbl.cacheKey.equals(cacheKey))).go();
+    return (delete(eventMessagesTable)..where((tbl) => tbl.cacheKey.equals(cacheKey))).go();
   }
 
   @override
@@ -164,22 +158,26 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     String? keyword,
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
-  }) {
-    final query = _buildFilteredQuery(kinds: kinds, keyword: keyword, cacheKeys: cacheKeys);
-    return query.map((row) => row.cacheKey).get().then((refs) {
-      if (refs.isEmpty) return 0;
-      return (delete(eventMessagesTable)..where((tbl) => tbl.cacheKey.isIn(refs))).go();
-    });
+  }) async {
+    final conditions = _buildConditions(
+      keyword: keyword,
+      kinds: kinds,
+      cacheKeys: cacheKeys,
+    );
+    final deleteQuery = delete(eventMessagesTable);
+    if (conditions.isNotEmpty) {
+      deleteQuery.where((tbl) => conditions.reduce((previous, next) => previous & next));
+    }
+    return deleteQuery.go();
   }
 
-  // Shared query builder for getAllFiltered and watchAll
-  SimpleSelectStatement<$EventMessagesTableTable, EventMessageCacheDbModel> _buildFilteredQuery({
+  // Shared conditions builder for filtering queries
+  List<Expression<bool>> _buildConditions({
     String? keyword,
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
   }) {
     final conditions = <Expression<bool>>[];
-
     final q = keyword != null ? '%${keyword.toLowerCase()}%' : null;
 
     if (kinds.isNotEmpty) {
@@ -194,7 +192,20 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
             eventMessagesTable.tags.jsonExtract(r'$[*][*]').equals(keyword),
       );
     }
+    return conditions;
+  }
 
+  // Shared query builder for getAllFiltered and watchAll
+  SimpleSelectStatement<$EventMessagesTableTable, EventMessageCacheDbModel> _buildFilteredQuery({
+    String? keyword,
+    List<int> kinds = const [],
+    List<String> cacheKeys = const [],
+  }) {
+    final conditions = _buildConditions(
+      keyword: keyword,
+      kinds: kinds,
+      cacheKeys: cacheKeys,
+    );
     final query = select(eventMessagesTable);
     if (conditions.isNotEmpty) {
       query.where((tbl) => conditions.reduce((previous, next) => previous & next));

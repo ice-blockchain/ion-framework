@@ -80,8 +80,8 @@ class SharedStoryMessage extends HookConsumerWidget {
     final storyFromNetwork = ref
         .watch(
           ionConnectEntityProvider(
-            cache: false,
             eventReference: storyEntity.toEventReference(),
+            cache: false,
           ),
         )
         .valueOrNull;

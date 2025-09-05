@@ -138,7 +138,7 @@ class _EntityListItem extends ConsumerWidget {
   /// In such cases, we just have to wait until the metadata and block list appears
   /// in cache and then show the post (or not, if author is blocked/blocking).
   bool _hasMetadata(WidgetRef ref, IonConnectEntity entity) {
-    final userMetadata = ref.watch(userMetadataSyncProvider(entity.masterPubkey));
+    final userMetadata = ref.watch(userMetadataSyncProvider(entity.masterPubkey, network: false));
     return userMetadata != null;
   }
 }

@@ -8,7 +8,7 @@ abstract class IonConnectCacheService {
   Future<List<EventMessage>> saveAll(List<({String cacheKey, EventMessage eventMessage})> values);
 
   Future<DatabaseCacheEntry?> get(String cacheKey);
-  Future<List<DatabaseCacheEntry?>> getAllFiltered({
+  Future<List<DatabaseCacheEntry>> getAllFiltered({
     String? keyword,
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
