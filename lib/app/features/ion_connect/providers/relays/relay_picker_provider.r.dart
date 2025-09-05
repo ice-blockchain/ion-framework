@@ -195,11 +195,12 @@ class RelayPicker extends _$RelayPicker {
             );
         final result = <IonConnectRelay, Set<String>>{};
 
-        for (final url in relays.keys) {
-          final relay =
-              await ref.read(relayProvider(url, anonymous: actionSource.anonymous).future);
-          result[relay] = relays[url]!.toSet();
+        for (final userRelayEntry in relays.entries) {
+          final ionConnectRelay = await ref
+              .read(relayProvider(userRelayEntry.key, anonymous: actionSource.anonymous).future);
+          result[ionConnectRelay] = userRelayEntry.value.toSet();
         }
+
         Logger.log(
           '$sessionPrefix[RELAY] Optimal relays selected: $result, disliked: ${dislikedUrls.urls}',
         );
