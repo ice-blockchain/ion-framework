@@ -36,11 +36,11 @@ class RelayPicker extends _$RelayPicker {
   }) async {
     return switch (actionType) {
       ActionType.read => _getReadActionSourceRelays(actionSource, dislikedUrls: dislikedUrls),
-      ActionType.write => _getWriteActionSourceRelay(actionSource, dislikedUrls: dislikedUrls),
+      ActionType.write => _getWriteActionSourceRelays(actionSource, dislikedUrls: dislikedUrls),
     };
   }
 
-  Future<Map<IonConnectRelay, Set<String>>> _getWriteActionSourceRelay(
+  Future<Map<IonConnectRelay, Set<String>>> _getWriteActionSourceRelays(
     ActionSource actionSource, {
     DislikedRelayUrlsCollection dislikedUrls = const DislikedRelayUrlsCollection({}),
     String? sessionId,
