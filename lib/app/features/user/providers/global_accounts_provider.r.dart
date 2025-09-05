@@ -4,7 +4,7 @@ import 'dart:convert';
 
 import 'package:ion/app/features/config/data/models/app_config_cache_strategy.dart';
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/user/model/global_accounts.f.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

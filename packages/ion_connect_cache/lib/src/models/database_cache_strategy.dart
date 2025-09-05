@@ -1,0 +1,1 @@
+enum DatabaseCacheStrategy { alwaysReturn, returnIfNotExpired }

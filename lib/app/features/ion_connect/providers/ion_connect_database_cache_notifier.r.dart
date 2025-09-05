@@ -12,7 +12,7 @@ import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'ion_connect_db_cache_notifier.r.g.dart';
+part 'ion_connect_database_cache_notifier.r.g.dart';
 
 abstract class DbCacheableEntity implements EntityEventSerializable {}
 
@@ -57,7 +57,11 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     await cacheService.saveAll(values);
   }
 
-  Future<IonConnectEntity?> get(String cacheKey, {Duration? expirationDuration}) async {
+  Future<IonConnectEntity?> get(
+    String cacheKey, {
+    Duration? expirationDuration,
+    DatabaseCacheStrategy cacheStrategy = DatabaseCacheStrategy.alwaysReturn,
+  }) async {
     final parser = ref.read(eventParserProvider);
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
@@ -66,7 +70,8 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
       return null;
     }
 
-    if (isExpired(result.insertedAt, expirationDuration)) {
+    if (cacheStrategy == DatabaseCacheStrategy.returnIfNotExpired &&
+        isExpired(result.insertedAt, expirationDuration)) {
       return null;
     }
 
@@ -78,6 +83,7 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
     Duration? expirationDuration,
+    DatabaseCacheStrategy cacheStrategy = DatabaseCacheStrategy.alwaysReturn,
   }) async {
     final parser = ref.read(eventParserProvider);
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
@@ -90,7 +96,8 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
 
     return results.nonNulls
         .map((result) {
-          if (isExpired(result.insertedAt, expirationDuration)) {
+          if (cacheStrategy == DatabaseCacheStrategy.returnIfNotExpired &&
+              isExpired(result.insertedAt, expirationDuration)) {
             return null;
           }
           return parser.parse(result.eventMessage);
@@ -123,10 +130,6 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
         .difference(
           existingResults
               .map((result) {
-                if (result == null) {
-                  return null;
-                }
-
                 final parsed = parser.parse(result.eventMessage);
                 return parsed.toEventReference().toString();
               })

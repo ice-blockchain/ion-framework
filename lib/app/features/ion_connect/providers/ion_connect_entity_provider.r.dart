@@ -9,7 +9,7 @@ import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_picker_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
@@ -319,32 +319,34 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
 
     // Database cache
     if (cache) {
+      // In-memory cache first
+      if (remainingEvents.isNotEmpty) {
+      final inMemoryEntities = remainingEvents
+        .map(
+          (eventReference) => ref.read(
+          ionConnectCacheProvider.select(
+            cacheSelector(
+            CacheableEntity.cacheKeyBuilder(eventReference: eventReference),
+            expirationDuration: expirationDuration,
+            ),
+          ),
+          ),
+        )
+        .whereType<IonConnectEntity>()
+        .toList();
+      results.addAll(inMemoryEntities);
+      remainingEvents.removeAll(inMemoryEntities.map((e) => e.toEventReference()));
+      }
+
+      // Then database cache
+      if (remainingEvents.isNotEmpty) {
       final cacheService = ref.read(ionConnectDatabaseCacheProvider.notifier);
-      final dbEntities = await cacheService.getAllFiltered(
+      final databaseEntities = await cacheService.getAllFiltered(
         cacheKeys: remainingEvents.map((e) => e.toString()).toList(),
         expirationDuration: expirationDuration,
       );
-      results.addAll(dbEntities);
-      remainingEvents.removeAll(dbEntities.map((e) => e.toEventReference()));
-
-      // In-memory cache
-      if (remainingEvents.isNotEmpty) {
-        final memEntities = remainingEvents
-            .map(
-              (eventReference) => ref.read(
-                ionConnectCacheProvider.select(
-                  cacheSelector(
-                    CacheableEntity.cacheKeyBuilder(eventReference: eventReference),
-                    expirationDuration: expirationDuration,
-                  ),
-                ),
-              ),
-            )
-            .whereType<IonConnectEntity>()
-            .toList();
-        results.addAll(memEntities);
-
-        remainingEvents.removeAll(memEntities.map((e) => e.toEventReference()));
+      results.addAll(databaseEntities);
+      remainingEvents.removeAll(databaseEntities.map((e) => e.toEventReference()));
       }
     }
 

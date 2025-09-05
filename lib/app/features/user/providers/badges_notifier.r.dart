@@ -174,7 +174,7 @@ bool isUserVerified(
 @riverpod
 bool isNicknameProven(Ref ref, String pubkey) {
   var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(pubkey))?.data;
-  var userMetadata = ref.watch(userMetadataSyncProvider(pubkey));
+  var userMetadata = ref.watch(userMetadataSyncProvider(pubkey, network: false));
 
   if (profileBadgesData == null) {
     final res = ref.watch(profileBadgesDataProvider(pubkey));
