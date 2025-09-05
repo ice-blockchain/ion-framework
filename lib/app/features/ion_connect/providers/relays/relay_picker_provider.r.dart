@@ -35,15 +35,8 @@ class RelayPicker extends _$RelayPicker {
     String? sessionId,
   }) async {
     return switch (actionType) {
-const (<<<<)<<< HEAD
-      ActionType.read =>
-        _getReadActionSourceRelay(actionSource, dislikedUrls: dislikedUrls, sessionId: sessionId),
-      ActionType.write =>
-        _getWriteActionSourceRelay(actionSource, dislikedUrls: dislikedUrls, sessionId: sessionId),
-===const (===,)=
       ActionType.read => _getReadActionSourceRelays(actionSource, dislikedUrls: dislikedUrls),
       ActionType.write => _getWriteActionSourceRelay(actionSource, dislikedUrls: dislikedUrls),
-const (>>>>>>)> 0c5dd2b9a (feat: improve optimal user relay action source)
     };
   }
 
@@ -74,7 +67,7 @@ const (>>>>>>)> 0c5dd2b9a (feat: improve optimal user relay action source)
       Logger.warning(
         '$sessionPrefix[RELAY] No available write relays found for action source: $actionSource. Fallback to read action source relay.',
       );
-     
+
       return _getReadActionSourceRelays(actionSource, dislikedUrls: dislikedUrls);
     }
 
@@ -116,6 +109,9 @@ const (>>>>>>)> 0c5dd2b9a (feat: improve optimal user relay action source)
         }
 
         final chosenRelayUrl = _getFirstActiveRelayUrl(relayPool) ?? relayPool.first;
+        Logger.log(
+          '$sessionPrefix[RELAY] Current user read relay selected: $chosenRelayUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
+        );
         final chosenRelay =
             await ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
         return {
@@ -148,6 +144,9 @@ const (>>>>>>)> 0c5dd2b9a (feat: improve optimal user relay action source)
 
         final chosenRelayUrl =
             _getFirstActiveRelayUrl(relayPool) ?? await _selectRelayUrlForOtherUser(relayPool);
+        Logger.log(
+          '$sessionPrefix[RELAY] User ${actionSource.pubkey} read relay selected: $chosenRelayUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
+        );
         final chosenRelay =
             await ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
         return {chosenRelay: {}};
@@ -169,11 +168,17 @@ const (>>>>>>)> 0c5dd2b9a (feat: improve optimal user relay action source)
         }
 
         final chosenIndexerUrl = _getFirstActiveRelayUrl(relayPool) ?? relayPool.random!;
+        Logger.log(
+          '$sessionPrefix[RELAY] Indexer relay selected: $chosenIndexerUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
+        );
         final chosenRelay = await ref
             .read(relayProvider(chosenIndexerUrl, anonymous: actionSource.anonymous).future);
         return {chosenRelay: {}};
 
       case ActionSourceRelayUrl():
+        Logger.log(
+          '$sessionPrefix[RELAY] Direct relay URL selected: ${actionSource.url}',
+        );
         final chosenRelay = await ref
             .read(relayProvider(actionSource.url, anonymous: actionSource.anonymous).future);
         return {chosenRelay: {}};
@@ -191,6 +196,9 @@ const (>>>>>>)> 0c5dd2b9a (feat: improve optimal user relay action source)
               await ref.read(relayProvider(url, anonymous: actionSource.anonymous).future);
           result[relay] = relays[url]!.toSet();
         }
+        Logger.log(
+          '$sessionPrefix[RELAY] Optimal relays selected: $result, disliked: ${dislikedUrls.urls}',
+        );
         return result;
     }
   }
