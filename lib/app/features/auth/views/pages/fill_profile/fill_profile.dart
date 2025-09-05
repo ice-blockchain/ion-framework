@@ -8,6 +8,7 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/hooks/use_referrer_controller.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/onboarding_data_provider.m.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
@@ -24,6 +25,7 @@ import 'package:ion/app/features/user/providers/user_referral_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion/app/services/clipboard/clipboard.dart';
 import 'package:ion/app/services/media_service/image_proccessing_config.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -43,13 +45,19 @@ class FillProfile extends HookConsumerWidget {
     final initialNickname = onboardingData.name ?? '';
     final nickname = useState(onboardingData.name ?? '');
     final debouncedNickname = useDebounced(nickname.value.trim(), const Duration(seconds: 1));
-    final initialReferral = onboardingData.referralName ?? '';
-    final referral = useState(onboardingData.referralName ?? '');
-    final debouncedReferral = useDebounced(referral.value.trim(), const Duration(seconds: 1));
+
+    final referralController = useReferrerController(ref, context);
+    final debouncedReferral = useDebounced(
+      referralController.text.trim(),
+      const Duration(seconds: 1),
+    );
 
     final isLoading = useState(false);
+    //to insure that we are suggesting to use clipboard value only once
+    final hasCheckedClipboardForReferral = useRef(false);
 
     final onSubmit = useCallback(() async {
+      final referral = referralController.text;
       if (formKey.currentState!.validate()) {
         isLoading.value = true;
         await Future.wait(
@@ -57,15 +65,15 @@ class FillProfile extends HookConsumerWidget {
             ref
                 .read(userNicknameNotifierProvider.notifier)
                 .verifyNicknameAvailability(nickname: nickname.value),
-            if (referral.value.isNotEmpty)
+            if (referral.isNotEmpty)
               ref
                   .read(userReferralNotifierProvider.notifier)
-                  .verifyReferralExists(referral: referral.value),
+                  .verifyReferralExists(referral: referral),
           ],
         );
         isLoading.value = false;
         if (ref.read(userNicknameNotifierProvider).hasError ||
-            (referral.value.isNotEmpty && ref.read(userReferralNotifierProvider).hasError)) {
+            (referral.isNotEmpty && ref.read(userReferralNotifierProvider).hasError)) {
           return;
         }
 
@@ -77,14 +85,35 @@ class FillProfile extends HookConsumerWidget {
         }
         ref.read(onboardingDataProvider.notifier).name = nickname.value;
         ref.read(onboardingDataProvider.notifier).displayName = name.value;
-        if (referral.value.isNotEmpty) {
-          ref.read(onboardingDataProvider.notifier).referralName = referral.value;
+        if (referral.isNotEmpty) {
+          ref.read(onboardingDataProvider.notifier).referralName = referral;
         }
         if (context.mounted) {
           await SelectLanguagesRoute().push<void>(context);
         }
       }
     });
+
+    final onFocused = useCallback(
+      (bool hasFocus) async {
+        if (hasFocus && referralController.text.isEmpty && !hasCheckedClipboardForReferral.value) {
+          hasCheckedClipboardForReferral.value = true;
+          //make sure that field selection is visible before requesting clipboard permission
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+          final clipboardValue = await getClipboardText();
+          if (!context.mounted) {
+            return;
+          }
+          if (clipboardValue.isNotEmpty) {
+            final validationError = validateNickname(clipboardValue, context);
+            if (validationError == null) {
+              referralController.text = clipboardValue;
+            }
+          }
+        }
+      },
+      [referralController, hasCheckedClipboardForReferral],
+    );
 
     useOnInit(
       () {
@@ -158,12 +187,12 @@ class FillProfile extends HookConsumerWidget {
                         SizedBox(height: 16.0.s),
                         ReferralInput(
                           isLive: true,
-                          initialValue: initialReferral,
+                          controller: referralController,
                           textInputAction: TextInputAction.done,
                           onChanged: (newValue) {
-                            referral.value = newValue;
                             verifyReferralErrorMessage.value = null;
                           },
+                          onFocused: onFocused,
                           errorText: verifyReferralErrorMessage.value,
                         ),
                         SizedBox(height: 26.0.s),
@@ -172,7 +201,9 @@ class FillProfile extends HookConsumerWidget {
                           loading: isAvatarCompressing || isLoading.value,
                           onPressed: onSubmit,
                         ),
-                        SizedBox(height: 40.0.s + MediaQuery.paddingOf(context).bottom),
+                        SizedBox(
+                          height: 40.0.s + MediaQuery.paddingOf(context).bottom,
+                        ),
                       ],
                     ),
                   ),

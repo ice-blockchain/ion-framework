@@ -11,6 +11,7 @@ environment:
 
 dependencies:
   android_id: ^0.4.0
+  android_play_install_referrer: ^0.4.0
   app_links: ^6.4.0
   appsflyer_sdk:
     git:
