@@ -38,7 +38,7 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
     final eventMessagesStream =
-        cacheService.watchAll(eventReferences.map((e) => e.toString()).toList());
+        cacheService.watchAll(cacheKeys: eventReferences.map((e) => e.toString()).toList());
 
     yield* eventMessagesStream.map((eventMessages) => eventMessages.map(parser.parse).toList());
   }
@@ -77,7 +77,9 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     final parser = ref.read(eventParserProvider);
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
-    final results = await cacheService.getAll(eventReferences.map((e) => e.toString()).toList());
+    final results = await cacheService.getAllFiltered(
+      cacheKeys: eventReferences.map((e) => e.toString()).toList(),
+    );
 
     return results.nonNulls
         .map((result) {
@@ -102,7 +104,7 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     final results = await cacheService.getAllFiltered(
       kinds: kinds,
       keyword: keyword,
-      eventReferences: eventReferences.map((e) => e.toString()).toList(),
+      cacheKeys: eventReferences.map((e) => e.toString()).toList(),
     );
 
     return results.nonNulls
@@ -123,11 +125,7 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     final eventMessage = await eventSerializable.toEntityEventMessage();
 
     await cacheService.save(
-      (
-        masterPubkey: eventReference.masterPubkey,
-        eventReference: eventReference.toString(),
-        eventMessage: eventMessage
-      ),
+      (cacheKey: eventReference.toString(), eventMessage: eventMessage),
     );
   }
 
@@ -138,9 +136,8 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
       final eventMessage = await e.toEntityEventMessage();
 
       return (
-        masterPubkey: e.toEventReference().masterPubkey,
-        eventReference: e.toEventReference().toString(),
         eventMessage: eventMessage,
+        cacheKey: e.toEventReference().toString(),
       );
     }).toList();
 
@@ -166,7 +163,9 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     final parser = ref.read(eventParserProvider);
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
-    final existingResults = await cacheService.getAll(eventRefs.map((e) => e.toString()).toList());
+    final existingResults = await cacheService.getAllFiltered(
+      cacheKeys: eventRefs.map((e) => e.toString()).toList(),
+    );
 
     final nonExistingRefs = eventRefs
         .map((e) => e.toString())
@@ -207,6 +206,6 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
   Future<void> removeAll(List<EventReference> eventReferences) async {
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
-    await cacheService.removeAll(eventReferences.map((e) => e.toString()).toList());
+    await cacheService.removeAll(cacheKeys: eventReferences.map((e) => e.toString()).toList());
   }
 }

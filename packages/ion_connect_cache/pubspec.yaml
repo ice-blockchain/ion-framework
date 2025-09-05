@@ -8,6 +8,7 @@ environment:
   sdk: ^3.8.1
 
 dependencies:
+  collection: ^1.18.0
   drift: ^2.28.1
   nostr_dart:
     git:

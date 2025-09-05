@@ -9,12 +9,12 @@ class $EventMessagesTableTable extends EventMessagesTable
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $EventMessagesTableTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _eventReferenceMeta = const VerificationMeta(
-    'eventReference',
+  static const VerificationMeta _cacheKeyMeta = const VerificationMeta(
+    'cacheKey',
   );
   @override
-  late final GeneratedColumn<String> eventReference = GeneratedColumn<String>(
-    'event_reference',
+  late final GeneratedColumn<String> cacheKey = GeneratedColumn<String>(
+    'cache_key',
     aliasedName,
     false,
     type: DriftSqlType.string,
@@ -113,7 +113,7 @@ class $EventMessagesTableTable extends EventMessagesTable
   );
   @override
   List<GeneratedColumn> get $columns => [
-    eventReference,
+    cacheKey,
     kind,
     createdAt,
     insertedAt,
@@ -136,16 +136,13 @@ class $EventMessagesTableTable extends EventMessagesTable
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('event_reference')) {
+    if (data.containsKey('cache_key')) {
       context.handle(
-        _eventReferenceMeta,
-        eventReference.isAcceptableOrUnknown(
-          data['event_reference']!,
-          _eventReferenceMeta,
-        ),
+        _cacheKeyMeta,
+        cacheKey.isAcceptableOrUnknown(data['cache_key']!, _cacheKeyMeta),
       );
     } else if (isInserting) {
-      context.missing(_eventReferenceMeta);
+      context.missing(_cacheKeyMeta);
     }
     if (data.containsKey('kind')) {
       context.handle(
@@ -213,7 +210,7 @@ class $EventMessagesTableTable extends EventMessagesTable
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {eventReference};
+  Set<GeneratedColumn> get $primaryKey => {cacheKey};
   @override
   EventMessageCacheDbModel map(
     Map<String, dynamic> data, {
@@ -221,9 +218,9 @@ class $EventMessagesTableTable extends EventMessagesTable
   }) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return EventMessageCacheDbModel(
-      eventReference: attachedDatabase.typeMapping.read(
+      cacheKey: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}event_reference'],
+        data['${effectivePrefix}cache_key'],
       )!,
       kind: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -277,7 +274,7 @@ class $EventMessagesTableTable extends EventMessagesTable
 
 class EventMessageCacheDbModel extends DataClass
     implements Insertable<EventMessageCacheDbModel> {
-  final String eventReference;
+  final String cacheKey;
   final int kind;
   final int createdAt;
   final int insertedAt;
@@ -288,7 +285,7 @@ class EventMessageCacheDbModel extends DataClass
   final String id;
   final String pubkey;
   const EventMessageCacheDbModel({
-    required this.eventReference,
+    required this.cacheKey,
     required this.kind,
     required this.createdAt,
     required this.insertedAt,
@@ -302,7 +299,7 @@ class EventMessageCacheDbModel extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['event_reference'] = Variable<String>(eventReference);
+    map['cache_key'] = Variable<String>(cacheKey);
     map['kind'] = Variable<int>(kind);
     map['created_at'] = Variable<int>(createdAt);
     map['inserted_at'] = Variable<int>(insertedAt);
@@ -323,7 +320,7 @@ class EventMessageCacheDbModel extends DataClass
 
   EventMessagesTableCompanion toCompanion(bool nullToAbsent) {
     return EventMessagesTableCompanion(
-      eventReference: Value(eventReference),
+      cacheKey: Value(cacheKey),
       kind: Value(kind),
       createdAt: Value(createdAt),
       insertedAt: Value(insertedAt),
@@ -342,7 +339,7 @@ class EventMessageCacheDbModel extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return EventMessageCacheDbModel(
-      eventReference: serializer.fromJson<String>(json['event_reference']),
+      cacheKey: serializer.fromJson<String>(json['cache_key']),
       kind: serializer.fromJson<int>(json['kind']),
       createdAt: serializer.fromJson<int>(json['created_at']),
       insertedAt: serializer.fromJson<int>(json['inserted_at']),
@@ -360,7 +357,7 @@ class EventMessageCacheDbModel extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'event_reference': serializer.toJson<String>(eventReference),
+      'cache_key': serializer.toJson<String>(cacheKey),
       'kind': serializer.toJson<int>(kind),
       'created_at': serializer.toJson<int>(createdAt),
       'inserted_at': serializer.toJson<int>(insertedAt),
@@ -376,7 +373,7 @@ class EventMessageCacheDbModel extends DataClass
   }
 
   EventMessageCacheDbModel copyWith({
-    String? eventReference,
+    String? cacheKey,
     int? kind,
     int? createdAt,
     int? insertedAt,
@@ -387,7 +384,7 @@ class EventMessageCacheDbModel extends DataClass
     String? id,
     String? pubkey,
   }) => EventMessageCacheDbModel(
-    eventReference: eventReference ?? this.eventReference,
+    cacheKey: cacheKey ?? this.cacheKey,
     kind: kind ?? this.kind,
     createdAt: createdAt ?? this.createdAt,
     insertedAt: insertedAt ?? this.insertedAt,
@@ -400,9 +397,7 @@ class EventMessageCacheDbModel extends DataClass
   );
   EventMessageCacheDbModel copyWithCompanion(EventMessagesTableCompanion data) {
     return EventMessageCacheDbModel(
-      eventReference: data.eventReference.present
-          ? data.eventReference.value
-          : this.eventReference,
+      cacheKey: data.cacheKey.present ? data.cacheKey.value : this.cacheKey,
       kind: data.kind.present ? data.kind.value : this.kind,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       insertedAt: data.insertedAt.present
@@ -422,7 +417,7 @@ class EventMessageCacheDbModel extends DataClass
   @override
   String toString() {
     return (StringBuffer('EventMessageCacheDbModel(')
-          ..write('eventReference: $eventReference, ')
+          ..write('cacheKey: $cacheKey, ')
           ..write('kind: $kind, ')
           ..write('createdAt: $createdAt, ')
           ..write('insertedAt: $insertedAt, ')
@@ -438,7 +433,7 @@ class EventMessageCacheDbModel extends DataClass
 
   @override
   int get hashCode => Object.hash(
-    eventReference,
+    cacheKey,
     kind,
     createdAt,
     insertedAt,
@@ -453,7 +448,7 @@ class EventMessageCacheDbModel extends DataClass
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is EventMessageCacheDbModel &&
-          other.eventReference == this.eventReference &&
+          other.cacheKey == this.cacheKey &&
           other.kind == this.kind &&
           other.createdAt == this.createdAt &&
           other.insertedAt == this.insertedAt &&
@@ -467,7 +462,7 @@ class EventMessageCacheDbModel extends DataClass
 
 class EventMessagesTableCompanion
     extends UpdateCompanion<EventMessageCacheDbModel> {
-  final Value<String> eventReference;
+  final Value<String> cacheKey;
   final Value<int> kind;
   final Value<int> createdAt;
   final Value<int> insertedAt;
@@ -479,7 +474,7 @@ class EventMessagesTableCompanion
   final Value<String> pubkey;
   final Value<int> rowid;
   const EventMessagesTableCompanion({
-    this.eventReference = const Value.absent(),
+    this.cacheKey = const Value.absent(),
     this.kind = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.insertedAt = const Value.absent(),
@@ -492,7 +487,7 @@ class EventMessagesTableCompanion
     this.rowid = const Value.absent(),
   });
   EventMessagesTableCompanion.insert({
-    required String eventReference,
+    required String cacheKey,
     required int kind,
     required int createdAt,
     required int insertedAt,
@@ -503,7 +498,7 @@ class EventMessagesTableCompanion
     required String id,
     required String pubkey,
     this.rowid = const Value.absent(),
-  }) : eventReference = Value(eventReference),
+  }) : cacheKey = Value(cacheKey),
        kind = Value(kind),
        createdAt = Value(createdAt),
        insertedAt = Value(insertedAt),
@@ -513,7 +508,7 @@ class EventMessagesTableCompanion
        id = Value(id),
        pubkey = Value(pubkey);
   static Insertable<EventMessageCacheDbModel> custom({
-    Expression<String>? eventReference,
+    Expression<String>? cacheKey,
     Expression<int>? kind,
     Expression<int>? createdAt,
     Expression<int>? insertedAt,
@@ -526,7 +521,7 @@ class EventMessagesTableCompanion
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (eventReference != null) 'event_reference': eventReference,
+      if (cacheKey != null) 'cache_key': cacheKey,
       if (kind != null) 'kind': kind,
       if (createdAt != null) 'created_at': createdAt,
       if (insertedAt != null) 'inserted_at': insertedAt,
@@ -541,7 +536,7 @@ class EventMessagesTableCompanion
   }
 
   EventMessagesTableCompanion copyWith({
-    Value<String>? eventReference,
+    Value<String>? cacheKey,
     Value<int>? kind,
     Value<int>? createdAt,
     Value<int>? insertedAt,
@@ -554,7 +549,7 @@ class EventMessagesTableCompanion
     Value<int>? rowid,
   }) {
     return EventMessagesTableCompanion(
-      eventReference: eventReference ?? this.eventReference,
+      cacheKey: cacheKey ?? this.cacheKey,
       kind: kind ?? this.kind,
       createdAt: createdAt ?? this.createdAt,
       insertedAt: insertedAt ?? this.insertedAt,
@@ -571,8 +566,8 @@ class EventMessagesTableCompanion
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (eventReference.present) {
-      map['event_reference'] = Variable<String>(eventReference.value);
+    if (cacheKey.present) {
+      map['cache_key'] = Variable<String>(cacheKey.value);
     }
     if (kind.present) {
       map['kind'] = Variable<int>(kind.value);
@@ -612,7 +607,7 @@ class EventMessagesTableCompanion
   @override
   String toString() {
     return (StringBuffer('EventMessagesTableCompanion(')
-          ..write('eventReference: $eventReference, ')
+          ..write('cacheKey: $cacheKey, ')
           ..write('kind: $kind, ')
           ..write('createdAt: $createdAt, ')
           ..write('insertedAt: $insertedAt, ')
@@ -643,7 +638,7 @@ abstract class _$IONConnectCacheDatabase extends GeneratedDatabase {
 
 typedef $$EventMessagesTableTableCreateCompanionBuilder =
     EventMessagesTableCompanion Function({
-      required String eventReference,
+      required String cacheKey,
       required int kind,
       required int createdAt,
       required int insertedAt,
@@ -657,7 +652,7 @@ typedef $$EventMessagesTableTableCreateCompanionBuilder =
     });
 typedef $$EventMessagesTableTableUpdateCompanionBuilder =
     EventMessagesTableCompanion Function({
-      Value<String> eventReference,
+      Value<String> cacheKey,
       Value<int> kind,
       Value<int> createdAt,
       Value<int> insertedAt,
@@ -679,8 +674,8 @@ class $$EventMessagesTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get eventReference => $composableBuilder(
-    column: $table.eventReference,
+  ColumnFilters<String> get cacheKey => $composableBuilder(
+    column: $table.cacheKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -740,8 +735,8 @@ class $$EventMessagesTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get eventReference => $composableBuilder(
-    column: $table.eventReference,
+  ColumnOrderings<String> get cacheKey => $composableBuilder(
+    column: $table.cacheKey,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -800,10 +795,8 @@ class $$EventMessagesTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get eventReference => $composableBuilder(
-    column: $table.eventReference,
-    builder: (column) => column,
-  );
+  GeneratedColumn<String> get cacheKey =>
+      $composableBuilder(column: $table.cacheKey, builder: (column) => column);
 
   GeneratedColumn<int> get kind =>
       $composableBuilder(column: $table.kind, builder: (column) => column);
@@ -877,7 +870,7 @@ class $$EventMessagesTableTableTableManager
               ),
           updateCompanionCallback:
               ({
-                Value<String> eventReference = const Value.absent(),
+                Value<String> cacheKey = const Value.absent(),
                 Value<int> kind = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
                 Value<int> insertedAt = const Value.absent(),
@@ -889,7 +882,7 @@ class $$EventMessagesTableTableTableManager
                 Value<String> pubkey = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => EventMessagesTableCompanion(
-                eventReference: eventReference,
+                cacheKey: cacheKey,
                 kind: kind,
                 createdAt: createdAt,
                 insertedAt: insertedAt,
@@ -903,7 +896,7 @@ class $$EventMessagesTableTableTableManager
               ),
           createCompanionCallback:
               ({
-                required String eventReference,
+                required String cacheKey,
                 required int kind,
                 required int createdAt,
                 required int insertedAt,
@@ -915,7 +908,7 @@ class $$EventMessagesTableTableTableManager
                 required String pubkey,
                 Value<int> rowid = const Value.absent(),
               }) => EventMessagesTableCompanion.insert(
-                eventReference: eventReference,
+                cacheKey: cacheKey,
                 kind: kind,
                 createdAt: createdAt,
                 insertedAt: insertedAt,

@@ -4,25 +4,29 @@ import 'package:ion_connect_cache/src/models/database_cache_entry.dart';
 import 'package:nostr_dart/nostr_dart.dart';
 
 abstract class IonConnectCacheService {
-  Future<EventMessage> save(
-    ({String masterPubkey, String eventReference, EventMessage eventMessage}) value,
-  );
+  Future<EventMessage?> save(({String cacheKey, EventMessage eventMessage}) value);
+  Future<List<EventMessage>> saveAll(List<({String cacheKey, EventMessage eventMessage})> values);
 
-  Future<List<EventMessage>> saveAll(
-    List<({String masterPubkey, String eventReference, EventMessage eventMessage})> values,
-  );
-
-  Future<DatabaseCacheEntry?> get(String eventReference);
-  Future<List<DatabaseCacheEntry?>> getAll(List<String> eventReferences);
+  Future<DatabaseCacheEntry?> get(String cacheKey);
   Future<List<DatabaseCacheEntry?>> getAllFiltered({
-    required String keyword,
+    String? keyword,
     List<int> kinds = const [],
-    List<String> eventReferences = const [],
+    List<String> cacheKeys = const [],
   });
 
-  Stream<List<EventMessage>> watchAll(List<String> eventReferences);
+  Stream<EventMessage?> watch(String cacheKey);
+  Stream<List<EventMessage>> watchAll({
+    String? keyword,
+    List<int> kinds = const [],
+    List<String> cacheKeys = const [],
+  });
 
-  Future<int> remove(String eventReference);
-  Future<int> removeAll(List<String> eventReferences);
+  Future<int> remove(String cacheKey);
+  Future<int> removeAll({
+    String? keyword,
+    List<int> kinds = const [],
+    List<String> cacheKeys = const [],
+  });
+
   Future<int> clearDatabase();
 }
