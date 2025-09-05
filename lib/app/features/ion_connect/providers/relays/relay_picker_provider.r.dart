@@ -145,7 +145,7 @@ class RelayPicker extends _$RelayPicker {
         final chosenRelayUrl =
             _getFirstActiveRelayUrl(relayPool) ?? await _selectRelayUrlForOtherUser(relayPool);
         Logger.log(
-          '$sessionPrefix[RELAY] User ${actionSource.pubkey} read relay selected: $chosenRelayUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
+          '$sessionPrefix[RELAY] User read relay selected: $chosenRelayUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
         );
         final chosenRelay =
             await ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
