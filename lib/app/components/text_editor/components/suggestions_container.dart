@@ -34,11 +34,11 @@ class SuggestionsContainer extends HookConsumerWidget {
     final showSuggestions =
         ref.read(featureFlagsProvider.notifier).get(FeedFeatureFlag.showSuggestions);
 
-    if (!showSuggestions) {
+    if (!showSuggestions || !suggestionsState.isVisible) {
       return const SizedBox.shrink();
     }
 
-    if (suggestionsState.suggestions.isEmpty && !suggestionsState.isVisible) {
+    if (suggestionsState.suggestions.isEmpty && suggestionsState.isLoading) {
       return SuggestionsContainerEmpty(
         text: context.i18n.suggestions_loading_description,
         icon: Assets.svg.iconFieldSearch.icon(

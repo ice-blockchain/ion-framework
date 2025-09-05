@@ -170,6 +170,10 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
   }
 
   _TagInfo? _findActiveTagNearCursor(String text, int cursorIndex) {
+    //if there is only @ in text return it as a Tag
+    if (text == '@\n') {
+      return _TagInfo(start: 1, length: 1, text: '', tagChar: '@');
+    }
     final tags = _extractTags(text);
     for (final tag in tags) {
       if (cursorIndex > tag.start && cursorIndex <= tag.start + tag.length) {

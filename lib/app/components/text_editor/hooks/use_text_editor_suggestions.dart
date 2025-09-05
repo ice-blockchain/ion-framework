@@ -11,11 +11,13 @@ class TextEditorSuggestionsState {
     required this.isVisible,
     required this.suggestions,
     required this.taggingCharacter,
+    required this.isLoading,
   });
 
   final bool isVisible;
   final List<String> suggestions;
   final String taggingCharacter;
+  final bool isLoading;
 }
 
 TextEditorSuggestionsState useTextEditorSuggestions({
@@ -81,5 +83,6 @@ TextEditorSuggestionsState useTextEditorSuggestions({
     isVisible: suggestionsState.isVisible,
     suggestions: suggestionsState.suggestions,
     taggingCharacter: suggestionsState.taggingCharacter,
+    isLoading: suggestionsState.isLoading,
   );
 }
