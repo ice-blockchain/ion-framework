@@ -334,7 +334,7 @@ class _PageBasedCupertinoPageRoute<T> extends PageRoute<T> with CupertinoRouteTr
 
   @override
   DelegatedTransitionBuilder? get delegatedTransition =>
-      this.fullscreenDialog ? null : CupertinoPageTransition.delegatedTransition;
+      fullscreenDialog ? null : CupertinoPageTransition.delegatedTransition;
 
   CupertinoPage<T> get _page => settings as CupertinoPage<T>;
 
