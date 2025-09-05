@@ -19,6 +19,18 @@ class SuggestionsState {
   final List<String> suggestions;
   final String taggingCharacter;
   final bool isVisible;
+
+  SuggestionsState copyWith({
+    List<String>? suggestions,
+    String? taggingCharacter,
+    bool? isVisible,
+  }) {
+    return SuggestionsState(
+      suggestions: suggestions ?? this.suggestions,
+      taggingCharacter: taggingCharacter ?? this.taggingCharacter,
+      isVisible: isVisible ?? this.isVisible,
+    );
+  }
 }
 
 @riverpod
@@ -31,6 +43,11 @@ class SuggestionsNotifier extends _$SuggestionsNotifier {
   }
 
   Future<void> updateSuggestions(String query, String taggingCharacter) async {
+    //if previous suggestion was empty but the query was changed we want to show loading state rather then empty one
+    if (state.isVisible && state.suggestions.isEmpty) {
+      state = state.copyWith(isVisible: false);
+    }
+
     if (query.isEmpty) {
       ref.invalidate(suggestionsNotifierProvider);
       return;

@@ -11,6 +11,7 @@ import 'package:ion/app/components/text_editor/text_editor.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
+import 'package:ion/generated/assets.gen.dart';
 
 class SuggestionsContainer extends HookConsumerWidget {
   const SuggestionsContainer({
@@ -33,12 +34,28 @@ class SuggestionsContainer extends HookConsumerWidget {
     final showSuggestions =
         ref.read(featureFlagsProvider.notifier).get(FeedFeatureFlag.showSuggestions);
 
-    if (!showSuggestions || !suggestionsState.isVisible) {
+    if (!showSuggestions) {
       return const SizedBox.shrink();
     }
 
+    if (suggestionsState.suggestions.isEmpty && !suggestionsState.isVisible) {
+      return SuggestionsContainerEmpty(
+        text: context.i18n.suggestions_loading_description,
+        icon: Assets.svg.iconFieldSearch.icon(
+          color: context.theme.appColors.tertiaryText,
+          size: 18.0.s,
+        ),
+      );
+    }
+
     if (suggestionsState.suggestions.isEmpty) {
-      return const SuggestionsContainerEmpty();
+      return SuggestionsContainerEmpty(
+        text: context.i18n.suggestions_empty_description,
+        icon: Assets.svg.iconFieldNosearch.icon(
+          color: context.theme.appColors.tertiaryText,
+          size: 18.0.s,
+        ),
+      );
     }
 
     return Container(
