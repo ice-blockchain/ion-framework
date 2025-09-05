@@ -12,12 +12,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'transactions_visibility_status_dao.m.g.dart';
 
 enum TransactionVisibilityStatus {
-  unseen(indexInDb: 0),
-  seen(indexInDb: 1);
-
-  const TransactionVisibilityStatus({required this.indexInDb});
-
-  final int indexInDb;
+  unseen,
+  seen,
 }
 
 @Riverpod(keepAlive: true)
@@ -51,7 +47,7 @@ class TransactionsVisibilityStatusDao extends DatabaseAccessor<WalletsDatabase>
 
   Future<List<({String txHash, String walletViewId})>> getSeenPairs({String? walletViewId}) async {
     final query = select(transactionVisibilityStatusTable)
-      ..where((tbl) => tbl.status.equals(TransactionVisibilityStatus.seen.indexInDb));
+      ..where((tbl) => tbl.status.equalsValue(TransactionVisibilityStatus.seen));
 
     if (walletViewId != null) {
       query.where((tbl) => tbl.walletViewId.equals(walletViewId));
