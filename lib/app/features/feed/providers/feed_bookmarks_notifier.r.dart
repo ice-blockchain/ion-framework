@@ -189,7 +189,9 @@ Future<List<EventReference>> filteredBookmarksRefs(
   if (keyword.isEmpty) return allReferences;
 
   final rawEvents = await ref.read(ionConnectDatabaseCacheProvider.notifier).getAllFiltered(
-      cacheKeys: allReferences.map((reference) => reference.toString()).toList(), keyword: keyword);
+        cacheKeys: allReferences.map((reference) => reference.toString()).toList(),
+        keyword: keyword,
+      );
 
   return rawEvents.map((event) => event.toEventReference()).toList();
 }
