@@ -16,6 +16,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/community/providers/community_metadata_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart'
     hide archivedConversationsProvider;
 import 'package:ion/app/features/chat/providers/unread_message_count_provider.r.dart';
@@ -336,7 +337,9 @@ class E2eeRecentChatTile extends HookConsumerWidget {
       avatarUrl: isDeleted ? null : userMetadata?.data.avatarUrl,
       eventReference: eventReference,
       unreadMessagesCount: unreadMessagesCount.valueOrNull ?? 0,
-      lastMessageContent: receiverMasterPubkey,
+      lastMessageContent: entity.messageType == MessageType.document
+          ? entity.primaryMedia?.alt ?? ''
+          : entity.content,
       lastMessageAt: (conversation.latestMessage?.createdAt ?? conversation.joinedAt).toDateTime,
       isVerified: isUserVerified,
       onTap: () {
