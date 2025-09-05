@@ -33,32 +33,35 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
   @override
   void build() {}
 
-  Stream<List<IonConnectEntity>> watchAll(List<EventReference> eventReferences) async* {
+  Future<void> saveEntity(DbCacheableEntity entity) async {
+    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
+
+    final cacheKey = entity.toEventReference().toString();
+    final eventMessage = await entity.toEntityEventMessage();
+
+    await cacheService.save((cacheKey: cacheKey, eventMessage: eventMessage));
+  }
+
+  Future<void> saveAllEntities(List<DbCacheableEntity> entities) async {
+    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
+
+    final valuesFutures = entities.map((e) async {
+      final cacheKey = e.toEventReference().toString();
+      final eventMessage = await e.toEntityEventMessage();
+
+      return (cacheKey: cacheKey, eventMessage: eventMessage);
+    }).toList();
+
+    final values = await Future.wait(valuesFutures);
+
+    await cacheService.saveAll(values);
+  }
+
+  Future<IonConnectEntity?> get(String cacheKey, {Duration? expirationDuration}) async {
     final parser = ref.read(eventParserProvider);
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
-    final eventMessagesStream =
-        cacheService.watchAll(cacheKeys: eventReferences.map((e) => e.toString()).toList());
-
-    yield* eventMessagesStream.map((eventMessages) => eventMessages.map(parser.parse).toList());
-  }
-
-  bool isExpired(DateTime insertedAt, Duration? expirationDuration) {
-    if (expirationDuration == null) {
-      return false;
-    }
-    final now = DateTime.now();
-    return insertedAt.add(expirationDuration).isBefore(now);
-  }
-
-  Future<IonConnectEntity?> get(
-    EventReference eventReference, {
-    Duration? expirationDuration,
-  }) async {
-    final parser = ref.read(eventParserProvider);
-    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
-
-    final result = await cacheService.get(eventReference.toString());
+    final result = await cacheService.get(cacheKey);
     if (result == null) {
       return null;
     }
@@ -70,32 +73,10 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     return parser.parse(result.eventMessage);
   }
 
-  Future<List<IonConnectEntity>> getAll(
-    List<EventReference> eventReferences, {
-    Duration? expirationDuration,
-  }) async {
-    final parser = ref.read(eventParserProvider);
-    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
-
-    final results = await cacheService.getAllFiltered(
-      cacheKeys: eventReferences.map((e) => e.toString()).toList(),
-    );
-
-    return results.nonNulls
-        .map((result) {
-          if (isExpired(result.insertedAt, expirationDuration)) {
-            return null;
-          }
-          return parser.parse(result.eventMessage);
-        })
-        .nonNulls
-        .toList();
-  }
-
   Future<List<IonConnectEntity>> getAllFiltered({
-    required String keyword,
+    String? keyword,
     List<int> kinds = const [],
-    List<EventReference> eventReferences = const [],
+    List<String> cacheKeys = const [],
     Duration? expirationDuration,
   }) async {
     final parser = ref.read(eventParserProvider);
@@ -104,7 +85,7 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     final results = await cacheService.getAllFiltered(
       kinds: kinds,
       keyword: keyword,
-      cacheKeys: eventReferences.map((e) => e.toString()).toList(),
+      cacheKeys: cacheKeys,
     );
 
     return results.nonNulls
@@ -118,56 +99,25 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
         .toList();
   }
 
-  Future<void> save(EntityEventSerializable eventSerializable) async {
-    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
-
-    final eventReference = eventSerializable.toEventReference();
-    final eventMessage = await eventSerializable.toEntityEventMessage();
-
-    await cacheService.save(
-      (cacheKey: eventReference.toString(), eventMessage: eventMessage),
-    );
-  }
-
-  Future<void> saveAll(List<EntityEventSerializable> eventSerializables) async {
-    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
-
-    final valuesFutures = eventSerializables.map((e) async {
-      final eventMessage = await e.toEntityEventMessage();
-
-      return (
-        eventMessage: eventMessage,
-        cacheKey: e.toEventReference().toString(),
-      );
-    }).toList();
-
-    final values = await Future.wait(valuesFutures);
-
-    await cacheService.saveAll(values);
-  }
-
-  Future<void> saveEventReference(
-    EventReference eventReference, {
-    bool network = true,
-  }) async {
+  Future<void> saveEventReference(EventReference eventReference, {bool network = true}) async {
     final entity = await ref.read(
       ionConnectEntityProvider(eventReference: eventReference, network: network).future,
     );
 
-    if (entity != null && entity is EntityEventSerializable) {
-      await save(entity as EntityEventSerializable);
+    if (entity is DbCacheableEntity) {
+      await saveEntity(entity! as DbCacheableEntity);
     }
   }
 
-  Future<void> saveAllNonExistingRefs(List<EventReference> eventRefs) async {
+  Future<void> saveAllNonExistingReferences(List<EventReference> eventReferences) async {
     final parser = ref.read(eventParserProvider);
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
     final existingResults = await cacheService.getAllFiltered(
-      cacheKeys: eventRefs.map((e) => e.toString()).toList(),
+      cacheKeys: eventReferences.map((e) => e.toString()).toList(),
     );
 
-    final nonExistingRefs = eventRefs
+    final nonExistingRefs = eventReferences
         .map((e) => e.toString())
         .toSet()
         .difference(
@@ -186,7 +136,7 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
         .toList();
 
     const pageSize = 100;
-    final entities = <EntityEventSerializable>[];
+    final entities = <DbCacheableEntity>[];
     for (var i = 0; i < nonExistingRefs.length; i += pageSize) {
       final batch = nonExistingRefs.skip(i).take(pageSize);
       final results = await Future.wait(
@@ -197,15 +147,29 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
           },
         ),
       );
-      entities.addAll(results.whereType<EntityEventSerializable>());
+      entities.addAll(results.whereType<DbCacheableEntity>());
     }
 
-    return saveAll(entities);
+    return saveAllEntities(entities);
   }
 
-  Future<void> removeAll(List<EventReference> eventReferences) async {
+  Future<void> remove(String cacheKey) async {
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
-    await cacheService.removeAll(cacheKeys: eventReferences.map((e) => e.toString()).toList());
+    await cacheService.remove(cacheKey);
+  }
+
+  Future<void> removeAll(List<String> cacheKeys) async {
+    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
+
+    await cacheService.removeAll(cacheKeys: cacheKeys);
+  }
+
+  bool isExpired(DateTime insertedAt, Duration? expirationDuration) {
+    if (expirationDuration == null) {
+      return false;
+    }
+    final now = DateTime.now();
+    return insertedAt.add(expirationDuration).isBefore(now);
   }
 }

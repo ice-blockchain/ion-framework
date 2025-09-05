@@ -184,13 +184,12 @@ Future<List<EventReference>> filteredBookmarksRefs(
   final collectionEntity =
       await ref.watch(feedBookmarksNotifierProvider(collectionDTag: collectionDTag).future);
 
-  final allRefs = collectionEntity?.data.eventReferences ?? [];
+  final allReferences = collectionEntity?.data.eventReferences ?? [];
 
-  if (keyword.isEmpty) return allRefs;
+  if (keyword.isEmpty) return allReferences;
 
-  final rawEvents = await ref
-      .read(ionConnectDatabaseCacheProvider.notifier)
-      .getAllFiltered(eventReferences: allRefs, keyword: keyword);
+  final rawEvents = await ref.read(ionConnectDatabaseCacheProvider.notifier).getAllFiltered(
+      cacheKeys: allReferences.map((reference) => reference.toString()).toList(), keyword: keyword);
 
   return rawEvents.map((event) => event.toEventReference()).toList();
 }
@@ -204,7 +203,7 @@ void feedBookmarksSync(Ref ref) {
       if (collection != null) {
         ref
             .read(ionConnectDatabaseCacheProvider.notifier)
-            .saveAllNonExistingRefs(collection.data.eventReferences);
+            .saveAllNonExistingReferences(collection.data.eventReferences);
       }
     },
   );
