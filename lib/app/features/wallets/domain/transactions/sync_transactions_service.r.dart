@@ -15,6 +15,7 @@ import 'package:ion/app/features/wallets/domain/wallet_views/wallet_views_servic
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
+import 'package:ion/app/features/wallets/providers/transactions_visibility_cloud_backup.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -31,6 +32,7 @@ Future<SyncTransactionsService> syncTransactionsService(Ref ref) async {
     await ref.watch(transferStatusUpdaterProvider.future),
     await ref.watch(walletViewsServiceProvider.future),
     await ref.watch(transactionsRepositoryProvider.future),
+    ref.watch(transactionsVisibilityCloudBackupProvider),
   );
 }
 
@@ -46,6 +48,7 @@ class SyncTransactionsService {
     this._transferStatusUpdater,
     this._walletViewsService,
     this._transactionsRepository,
+    this._visibilityCloudBackup,
   );
 
   final List<Wallet> _userWallets;
@@ -53,7 +56,7 @@ class SyncTransactionsService {
   final CryptoWalletsRepository _cryptoWalletsRepository;
   final WalletViewsService _walletViewsService;
   final TransactionsRepository _transactionsRepository;
-
+  final TransactionsVisibilityCloudBackup _visibilityCloudBackup;
   final TransactionLoader _transactionLoader;
   final TransferStatusUpdater _transferStatusUpdater;
   final Map<String, NetworkData> _cachedNetworks = {};
@@ -69,6 +72,12 @@ class SyncTransactionsService {
         updateHistoryLoaded: true,
       );
     }).wait;
+
+    // Restore visibility status after saving transactions
+    // cause we might have some transactions that are not visible for the user anymore
+    // and we need to restore the visibility status for them
+    // If transactions were restored before, we don't need to restore again
+    await _visibilityCloudBackup.restoreAll();
   }
 
   Future<void> syncBroadcastedTransfers() async {

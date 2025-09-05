@@ -14,6 +14,9 @@ class MockWalletViewsService extends Mock implements WalletViewsService {}
 
 class MockTransactionsRepository extends Mock implements TransactionsRepository {}
 
+class MockTransactionsVisibilityCloudBackup extends Mock
+    implements TransactionsVisibilityCloudBackup {}
+
 /// Contains common setup methods for tests
 class MockSetupHelper {
   static void setupNetworkMocks(
@@ -144,5 +147,13 @@ class MockSetupHelper {
         receiverWalletAddress: 'other6',
       ),
     ];
+  }
+
+  static void setupTransactionsVisibilityCloudBackupMocks(
+    MockTransactionsVisibilityCloudBackup mockTransactionsVisibilityCloudBackup,
+  ) {
+    when(() => mockTransactionsVisibilityCloudBackup.restoreAll()).thenAnswer((_) async {
+      return;
+    });
   }
 }
