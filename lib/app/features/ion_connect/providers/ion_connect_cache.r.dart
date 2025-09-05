@@ -54,13 +54,14 @@ class IonConnectCache extends _$IonConnectCache {
 
     if (entity is DbCacheableEntity) {
       unawaited(
-        ref.read(ionConnectDatabaseCacheProvider.notifier).save(entity as DbCacheableEntity),
+        ref.read(ionConnectDatabaseCacheProvider.notifier).saveEntity(entity as DbCacheableEntity),
       );
     }
   }
 
   void remove(String key) {
     state = {...state}..remove(key);
+    ref.read(ionConnectDatabaseCacheProvider.notifier).remove(key);
   }
 }
 

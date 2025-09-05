@@ -123,10 +123,10 @@ class UserRelaysManager extends _$UserRelaysManager {
     }
 
     await Future.wait([
-      ref
-          .read(ionConnectDatabaseCacheProvider.notifier)
-          .removeAll(outdatedEntities.map((entity) => entity.toEventReference()).toList()),
-      ref.read(ionConnectDatabaseCacheProvider.notifier).saveAll(updatedEntities),
+      ref.read(ionConnectDatabaseCacheProvider.notifier).removeAll(
+            outdatedEntities.map((entity) => entity.toEventReference().toString()).toList(),
+          ),
+      ref.read(ionConnectDatabaseCacheProvider.notifier).saveAllEntities(updatedEntities),
     ]);
   }
 
@@ -199,7 +199,9 @@ class UserRelaysManager extends _$UserRelaysManager {
         )
         .toList();
 
-    return (await ref.read(ionConnectDatabaseCacheProvider.notifier).getAll(eventReferences))
+    return (await ref.read(ionConnectDatabaseCacheProvider.notifier).getAllFiltered(
+              cacheKeys: eventReferences.map((e) => e.toString()).toList(),
+            ))
         .cast<UserRelaysEntity?>()
         .nonNulls
         .toList();
