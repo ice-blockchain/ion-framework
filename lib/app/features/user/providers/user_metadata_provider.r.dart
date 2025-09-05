@@ -90,8 +90,8 @@ Future<bool> isUserDeleted(Ref ref, String masterPubkey) async {
 
     if (isDeleted) {
       // If user metadata is deleted, we delete it from the database
-      unawaited(ref.watch(userMetadataDaoProvider).deleteMetadata([pubkey]));
-      unawaited(ref.watch(userDelegationDaoProvider).deleteDelegation([pubkey]));
+      unawaited(ref.watch(userMetadataDaoProvider).deleteMetadata([masterPubkey]));
+      unawaited(ref.watch(userDelegationDaoProvider).deleteDelegation([masterPubkey]));
     }
 
     return isDeleted;
