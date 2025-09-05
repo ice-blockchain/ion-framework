@@ -312,32 +312,47 @@ class SendCoinsConfirmationChatRoute extends BaseRouteData with _$SendCoinsConfi
   SendCoinsConfirmationChatRoute()
       : super(
           child: ConfirmationSheet(
-            successRouteLocationBuilder: () => CoinTransactionResultChatRoute().location,
+            successRouteLocationBuilder: (walletViewId, txHash) => 
+                CoinTransactionResultChatRoute(walletViewId: walletViewId, txHash: txHash).location,
           ),
           type: IceRouteType.bottomSheet,
         );
 }
 
 class CoinTransactionResultChatRoute extends BaseRouteData with _$CoinTransactionResultChatRoute {
-  CoinTransactionResultChatRoute()
-      : super(
+  CoinTransactionResultChatRoute({
+    required this.walletViewId,
+    required this.txHash,
+  }) : super(
           child: TransactionResultSheet(
-            transactionDetailsRouteLocationBuilder: () =>
-                CoinTransactionDetailsChatRoute().location,
+            walletViewId: walletViewId,
+            txHash: txHash,
+            transactionDetailsRouteLocationBuilder: (walletViewId, txHash) =>
+                CoinTransactionDetailsChatRoute(walletViewId: walletViewId, txHash: txHash).location,
           ),
           type: IceRouteType.bottomSheet,
         );
+
+  final String walletViewId;
+  final String txHash;
 }
 
 class CoinTransactionDetailsChatRoute extends BaseRouteData with _$CoinTransactionDetailsChatRoute {
-  CoinTransactionDetailsChatRoute()
-      : super(
+  CoinTransactionDetailsChatRoute({
+    required this.walletViewId,
+    required this.txHash,
+  }) : super(
           child: TransactionDetailsPage(
+            walletViewId: walletViewId,
+            txHash: txHash,
             exploreRouteLocationBuilder: (url) =>
                 ExploreTransactionDetailsChatRoute(url: url).location,
           ),
           type: IceRouteType.bottomSheet,
         );
+
+  final String walletViewId;
+  final String txHash;
 }
 
 class ExploreTransactionDetailsChatRoute extends BaseRouteData

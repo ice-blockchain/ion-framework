@@ -22,15 +22,28 @@ import 'package:ion/generated/assets.gen.dart';
 
 class TransactionResultSheet extends ConsumerWidget {
   const TransactionResultSheet({
+    required this.walletViewId,
+    required this.txHash,
     required this.transactionDetailsRouteLocationBuilder,
     super.key,
   });
 
-  final String Function() transactionDetailsRouteLocationBuilder;
+  final String walletViewId;
+  final String txHash;
+  final String Function(String walletViewId, String txHash) transactionDetailsRouteLocationBuilder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionData = ref.watch(transactionNotifierProvider);
+    final transactionData = ref.watch(
+      transactionNotifierProvider(
+        walletViewId: walletViewId,
+        txHash: txHash,
+      ),
+    );
+
+    if (transactionData == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     final colors = context.theme.appColors;
     final textTheme = context.theme.appTextThemes;
@@ -61,7 +74,7 @@ class TransactionResultSheet extends ConsumerWidget {
                   ),
                 ),
                 SizedBox(height: 24.0.s),
-                transactionData!.assetData.maybeMap(
+                transactionData.assetData.maybeMap(
                       coin: (coin) => TransactionAmountSummary(
                         amount: coin.amount,
                         currency: coin.coinsGroup.abbreviation,
@@ -98,7 +111,10 @@ class TransactionResultSheet extends ConsumerWidget {
                         type: ButtonType.outlined,
                         mainAxisSize: MainAxisSize.max,
                         onPressed: () {
-                          context.push(transactionDetailsRouteLocationBuilder());
+                          context.push(transactionDetailsRouteLocationBuilder(
+                            transactionData.walletViewId,
+                            transactionData.txHash,
+                          ));
                         },
                       ),
                     ),
@@ -106,7 +122,6 @@ class TransactionResultSheet extends ConsumerWidget {
                     Button(
                       type: ButtonType.outlined,
                       onPressed: () {
-                        final transactionData = ref.read(transactionNotifierProvider)!;
                         shareContent(transactionData.transactionExplorerUrl);
                       },
                       backgroundColor: context.theme.appColors.tertiaryBackground,

@@ -16,8 +16,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
 import 'package:ion/app/features/wallets/model/coin_transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/info_type.dart';
-import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
-import 'package:ion/app/features/wallets/providers/transaction_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/info_block_button.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/balance/balance.dart';
@@ -141,14 +139,11 @@ class CoinDetailsPage extends HookConsumerWidget {
                       coinData: coinsGroup.coins.first.coin,
                       onTap: () {
                         final transaction = transactions[index].origin;
-                        final transactionDetails = TransactionDetails.fromTransactionData(
-                          transaction,
-                          coinsGroup: coinsGroup,
-                          walletViewName: walletView.name,
-                        );
 
-                        ref.read(transactionNotifierProvider.notifier).details = transactionDetails;
-                        CoinTransactionDetailsRoute().push<void>(context);
+                        CoinTransactionDetailsRoute(
+                          walletViewId: transaction.walletViewId,
+                          txHash: transaction.txHash,
+                        ).push<void>(context);
                       },
                     ),
                   );
