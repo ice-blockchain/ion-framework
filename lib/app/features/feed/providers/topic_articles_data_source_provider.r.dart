@@ -10,6 +10,7 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
+import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'topic_articles_data_source_provider.r.g.dart';
@@ -17,18 +18,20 @@ part 'topic_articles_data_source_provider.r.g.dart';
 @riverpod
 List<EntitiesDataSource>? topicArticlesDataSource(Ref ref, String topic) {
   final filter = ref.watch(feedCurrentFilterProvider.select((state) => state.filter));
-  final filterRelays = ref.watch(feedFilterRelaysProvider).valueOrNull;
+  final filterMasterPubkeys = ref.watch(feedFilterMasterPubkeysProvider).valueOrNull;
   final currentPubkey = ref.watch(currentPubkeySelectorProvider);
 
-  if (filterRelays != null && currentPubkey != null) {
+  if (filterMasterPubkeys != null && currentPubkey != null) {
     return [
-      for (final entry in filterRelays.entries)
-        _buildArticlesDataSource(
-          actionSource: ActionSourceRelayUrl(entry.key),
-          authors: filter == FeedFilter.following ? entry.value : null,
-          currentPubkey: currentPubkey,
-          topic: topic,
+      _buildArticlesDataSource(
+        actionSource: ActionSourceOptimalRelays(
+          masterPubkeys: filterMasterPubkeys,
+          strategy: OptimalRelaysStrategy.mostUsers,
         ),
+        authors: filter == FeedFilter.following ? filterMasterPubkeys : null,
+        currentPubkey: currentPubkey,
+        topic: topic,
+      ),
     ];
   }
   return null;

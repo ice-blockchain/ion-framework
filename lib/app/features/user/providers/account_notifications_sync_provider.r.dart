@@ -138,18 +138,10 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
         continue;
       }
 
-      final optimalRelayMapping = await ref.read(optimalUserRelaysServiceProvider).fetch(
-            masterPubkeys: users,
-            strategy: OptimalRelaysStrategy.mostUsers,
-          );
-
-      for (final relayEntry in optimalRelayMapping.entries) {
-        await _syncEventsFromRelay(
-          relayUrl: relayEntry.key,
-          users: relayEntry.value,
-          contentType: contentType,
-        );
-      }
+      await _syncContentTypeFromRelay(
+        users: users,
+        contentType: contentType,
+      );
     }
   }
 
@@ -224,20 +216,7 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
     return result;
   }
 
-  Future<void> _syncEventsFromRelay({
-    required String relayUrl,
-    required List<String> users,
-    required UserNotificationsType contentType,
-  }) async {
-    await _syncContentTypeFromRelay(
-      relayUrl: relayUrl,
-      users: users,
-      contentType: contentType,
-    );
-  }
-
   Future<void> _syncContentTypeFromRelay({
-    required String relayUrl,
     required List<String> users,
     required UserNotificationsType contentType,
   }) async {
@@ -285,7 +264,10 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
       onEvent: (event) {
         eventFutures.add(_processNotificationEvent(event, contentType));
       },
-      actionSource: ActionSourceRelayUrl(relayUrl),
+      actionSource: ActionSourceOptimalRelays(
+        masterPubkeys: users,
+        strategy: OptimalRelaysStrategy.mostUsers,
+      ),
     );
 
     await Future.wait(eventFutures);

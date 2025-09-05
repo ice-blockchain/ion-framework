@@ -64,17 +64,18 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     final dislikedRelaysUrls = <String>{};
 
     IonConnectRelay? triedRelay;
-
     try {
       return await withRetry(
         ({error}) async {
           triedRelay = null;
-          final relay = await ref.read(relayPickerProvider.notifier).getActionSourceRelay(
-                actionSource,
-                actionType: ActionType.write,
-                dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
-                sessionId: sessionId,
-              );
+          final relay = (await ref.read(relayPickerProvider.notifier).getActionSourceRelays(
+                    actionSource,
+                    actionType: ActionType.write,
+                    dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
+                  ))
+              .keys
+              .first;
+
           triedRelay = relay;
 
           _handleWriteRelay(actionSource, relay.url);
@@ -215,47 +216,69 @@ class IonConnectNotifier extends _$IonConnectNotifier {
 
     final dislikedRelaysUrls = <String>{};
     IonConnectRelay? triedRelay;
+    final processedMasterPubkeys = <String>{};
 
     try {
       yield* withRetryStream(
         ({error}) async* {
           triedRelay = null;
-          final relay = subscriptionBuilder != null
-              ? await ref.read(
-                  longLivingSubscriptionRelayProvider(
-                    actionSource,
-                    dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
-                  ).future,
-                )
-              : await ref.read(relayPickerProvider.notifier).getActionSourceRelay(
-                    actionSource,
+          final relaysUserMap = subscriptionBuilder != null
+              ? {
+                  await ref.read(
+                    longLivingSubscriptionRelayProvider(
+                      actionSource,
+                      dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
+                    ).future,
+                  ): <String>{},
+                }
+              : await ref.read(relayPickerProvider.notifier).getActionSourceRelays(
+                    actionSource is ActionSourceOptimalRelays
+                        ? actionSource.copyWith(
+                            masterPubkeys: actionSource.masterPubkeys
+                                .where((pubkey) => !processedMasterPubkeys.contains(pubkey))
+                                .toList(),
+                          )
+                        : actionSource,
                     actionType: actionType ?? ActionType.read,
                     dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
                     sessionId: sessionId,
                   );
-          triedRelay = relay;
 
-          await ref
-              .read(relayAuthProvider(relay))
-              .handleRelayAuthOnAction(actionSource: actionSource, error: error);
+          for (final relay in relaysUserMap.entries) {
+            triedRelay = relay.key;
 
-          final events = subscriptionBuilder != null
-              ? subscriptionBuilder(requestMessage, relay)
-              : ion.requestEvents(requestMessage, relay);
+            await ref
+                .read(relayAuthProvider(relay.key))
+                .handleRelayAuthOnAction(actionSource: actionSource, error: error);
 
-          await for (final event in events) {
-            // Note: The ion.requestEvents method automatically handles unsubscription for certain messages.
-            // If the subscription needs to be retried or closed in response to a different message than those handled by ion.requestEvents,
-            // then additional unsubscription logic should be implemented here.
-            if (event is NoticeMessage || event is ClosedMessage) {
-              throw RelayRequestFailedException(
-                relayUrl: relay.url,
-                event: event,
-              );
-            } else if (event is EventMessage) {
-              yield event;
-            } else if (event is EoseMessage && onEose != null) {
-              onEose();
+            requestMessage.filters.map(
+              (filter) => filter.copyWith(
+                authors: filter.authors == null ? null : relay.value.toList,
+              ),
+            );
+
+            final events = subscriptionBuilder != null
+                ? subscriptionBuilder(requestMessage, relay.key)
+                : ion.requestEvents(requestMessage, relay.key);
+
+            await for (final event in events) {
+              // Note: The ion.requestEvents method automatically handles unsubscription for certain messages.
+              // If the subscription needs to be retried or closed in response to a different message than those handled by ion.requestEvents,
+              // then additional unsubscription logic should be implemented here.
+              if (event is NoticeMessage || event is ClosedMessage) {
+                throw RelayRequestFailedException(
+                  relayUrl: relay.key.url,
+                  event: event,
+                );
+              } else if (event is EventMessage) {
+                yield event;
+              } else if (event is EoseMessage && onEose != null) {
+                onEose();
+              }
+            }
+
+            if (actionSource is ActionSourceOptimalRelays) {
+              processedMasterPubkeys.addAll(relay.value);
             }
           }
         },
@@ -490,6 +513,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       BadgeDefinitionEntity.kind,
       EventCountRequestEntity.kind,
     ];
+
     for (final event in events) {
       if (!excludedKinds.contains(event.kind) &&
           !event.tags.any((tag) => tag[0] == MasterPubkeyTag.tagName)) {

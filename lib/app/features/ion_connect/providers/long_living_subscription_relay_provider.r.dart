@@ -22,16 +22,16 @@ Future<IonConnectRelay> longLivingSubscriptionRelay(
     ref.invalidateSelf();
   });
 
-  final relay = await ref.read(relayPickerProvider.notifier).getActionSourceRelay(
+  final relay = await ref.read(relayPickerProvider.notifier).getActionSourceRelays(
         actionSource,
         actionType: ActionType.read,
         dislikedUrls: dislikedUrls,
       );
   unawaited(
-    relay.onClose.first.then((_) {
+    relay.keys.first.onClose.first.then((_) {
       ref.invalidateSelf();
     }),
   );
 
-  return relay;
+  return relay.keys.first;
 }

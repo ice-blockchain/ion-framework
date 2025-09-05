@@ -18,7 +18,6 @@ import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'relay_firebase_app_config_provider.m.freezed.dart';
-
 part 'relay_firebase_app_config_provider.m.g.dart';
 
 @Riverpod(keepAlive: true)
@@ -67,12 +66,12 @@ class RelayFirebaseAppConfig extends _$RelayFirebaseAppConfig {
 
       // Continue until we've checked all relays or found a suitable one
       while (userRelays.length > noFirebaseConfigRelays.length) {
-        final relay = await actionSourceRelay.getActionSourceRelay(
+        final relay = await actionSourceRelay.getActionSourceRelays(
           const ActionSourceCurrentUser(),
           actionType: ActionType.write,
           dislikedUrls: DislikedRelayUrlsCollection(noFirebaseConfigRelays),
         );
-        final relayUrl = relay.url;
+        final relayUrl = relay.keys.first.url;
 
         final relayFirebaseConfig = await _getRelayFirebaseConfig(relayUrl);
         if (relayFirebaseConfig != null) {

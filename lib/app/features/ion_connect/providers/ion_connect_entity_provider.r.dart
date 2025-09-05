@@ -316,37 +316,27 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
           .difference(cachedResults.map((e) => e.toEventReference()).toSet())
           .toList();
 
-      final relaysMap = await ref.read(optimalUserRelaysServiceProvider).fetch(
-            strategy: OptimalRelaysStrategy.mostUsers,
-            masterPubkeys: notCachedEvents.map((e) => e.masterPubkey).toSet().toList(),
-          );
-
-      final eventReferencesMap = relaysMap.map(
-        (url, masterPubkeys) => MapEntry(
-          url,
-          notCachedEvents.where((e) => masterPubkeys.contains(e.masterPubkey)).toList(),
-        ),
-      );
-
       final streams = <Stream<IonConnectEntity>>[];
 
-      for (final url in eventReferencesMap.keys) {
-        final eventReferences = eventReferencesMap[url] ?? [];
-        if (eventReferences.isEmpty) continue;
+      final stream = ref
+          .read(ionConnectNetworkEntitiesManagerProvider.notifier)
+          .fetch(
+            search: search,
+            eventReferences: eventReferences,
+            actionSource: ActionSource.optimalRelays(
+              masterPubkeys: notCachedEvents.map((e) => e.masterPubkey).toSet().toList(),
+              strategy: OptimalRelaysStrategy.mostUsers,
+            ),
+          )
+          .handleError((Object e, StackTrace stack) {
+        Logger.log(
+          'Error fetching network entities for optimal relays',
+          stackTrace: stack,
+          error: e,
+        );
+      });
 
-        final stream = ref
-            .read(ionConnectNetworkEntitiesManagerProvider.notifier)
-            .fetch(
-              search: search,
-              eventReferences: eventReferences,
-              actionSource: ActionSource.relayUrl(url),
-            )
-            .handleError((Object e, StackTrace stack) {
-          Logger.log('Error fetching network entities for $url', stackTrace: stack, error: e);
-        });
-
-        streams.add(stream);
-      }
+      streams.add(stream);
 
       if (streams.isNotEmpty) {
         networkResults.addAll(await StreamGroup.merge(streams).toList());
