@@ -16,47 +16,31 @@ part 'transactions_visibility_cloud_backup.r.g.dart';
 TransactionsVisibilityCloudBackup transactionsVisibilityCloudBackup(
   Ref ref,
 ) {
-  return TransactionsVisibilityCloudBackup(
-    ref: ref,
-    cloud: ref.watch(cloudStorageProvider),
-    visibilityDao: ref.watch(transactionsVisibilityStatusDaoProvider),
-  );
-}
+  if (Platform.isIOS) {
+    return TransactionsVisibilityCloudBackupIos(
+      ref: ref,
+      cloud: ref.watch(cloudStorageProvider),
+      visibilityDao: ref.watch(transactionsVisibilityStatusDaoProvider),
+    );
+  }
 
-@Riverpod(keepAlive: true)
-StreamSubscription<dynamic> transactionsVisibilityCloudAutoBackup(
-  Ref ref,
-) {
-  final dao = ref.watch(transactionsVisibilityStatusDaoProvider);
-  Timer? debounce;
-  var lastSeenCount = 0;
-
-  final sub = dao.select(dao.transactionVisibilityStatusTable).watch().listen((rows) async {
-    // Only backup if the number of seen entries actually changed
-    final seenCount = rows.where((r) => r.status == TransactionVisibilityStatus.seen).length;
-    if (seenCount != lastSeenCount) {
-      lastSeenCount = seenCount;
-
-      // Debounce to avoid multiple rapid uploads
-      debounce?.cancel();
-      debounce = Timer(const Duration(seconds: 2), () async {
-        await ref.read(transactionsVisibilityCloudBackupProvider).backupAll();
-      });
-    }
-  });
-
-  ref.onDispose(() {
-    debounce?.cancel();
-    sub.cancel();
-  });
-  return sub;
+  return TransactionsVisibilityCloudBackup();
 }
 
 /// On Ios we backup the visibility status to the cloud
 /// On Android we don't cause we don't want to show user googleauth screen
-/// So, on Android we just mark all as seen
 class TransactionsVisibilityCloudBackup {
-  TransactionsVisibilityCloudBackup({
+  Future<void> backupAll() {
+    return Future.value();
+  }
+
+  Future<void> restoreAll() {
+    return Future.value();
+  }
+}
+
+class TransactionsVisibilityCloudBackupIos implements TransactionsVisibilityCloudBackup {
+  TransactionsVisibilityCloudBackupIos({
     required this.ref,
     required this.cloud,
     required this.visibilityDao,
@@ -68,6 +52,7 @@ class TransactionsVisibilityCloudBackup {
 
   String _filePath({required String pubkey}) => 'wallets/$pubkey/visibility_seen_v1.sql';
 
+  @override
   Future<void> backupAll() async {
     if (!Platform.isIOS) return;
 
@@ -87,6 +72,7 @@ class TransactionsVisibilityCloudBackup {
     await cloud.uploadFile(_filePath(pubkey: pubkey), buffer.toString());
   }
 
+  @override
   Future<void> restoreAll() async {
     final pubkey = ref.read(currentPubkeySelectorProvider);
     if (pubkey == null) return;
