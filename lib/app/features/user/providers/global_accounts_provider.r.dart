@@ -39,6 +39,6 @@ class GlobalAccounts extends _$GlobalAccounts {
           ),
         )
         .toList();
-    await ref.read(ionConnectDbCacheProvider.notifier).saveAll(relayEntities);
+    await ref.read(ionConnectDatabaseCacheProvider.notifier).saveAll(relayEntities);
   }
 }
