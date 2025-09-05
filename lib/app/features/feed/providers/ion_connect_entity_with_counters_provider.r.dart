@@ -46,10 +46,10 @@ IonConnectEntity? ionConnectSyncEntityWithCounters(
 
   return ref.watch(
     ionConnectSyncEntityProvider(
-      eventReference: eventReference,
+      cache: cache,
       search: search,
       network: network,
-      cache: cache,
+      eventReference: eventReference,
     ),
   );
 }
@@ -87,10 +87,10 @@ Future<IonConnectEntity?> ionConnectEntityWithCounters(
 
   return ref.watch(
     ionConnectEntityProvider(
-      eventReference: eventReference,
+      cache: cache,
       search: search,
       network: network,
-      cache: cache,
+      eventReference: eventReference,
     ).future,
   );
 }

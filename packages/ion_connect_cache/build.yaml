@@ -9,5 +9,5 @@ targets:
         options:
           use_sql_column_name_as_json_key: true
           databases:
-            event_messages_database: lib/src/database/event_messages_database.m.dart
+            ion_connect_cache_database: lib/src/database/ion_connect_cache_database.d.dart
 

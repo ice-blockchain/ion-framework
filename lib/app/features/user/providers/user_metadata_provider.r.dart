@@ -21,7 +21,7 @@ part 'user_metadata_provider.r.g.dart';
 class UserMetadata extends _$UserMetadata {
   @override
   Future<UserMetadataEntity?> build(
-    String pubkey, {
+    String masterPubkey, {
     bool cache = true,
     ActionType? actionType,
     Duration? expirationDuration,
@@ -32,7 +32,7 @@ class UserMetadata extends _$UserMetadata {
         actionType: actionType,
         expirationDuration: expirationDuration,
         eventReference: ReplaceableEventReference(
-          masterPubkey: pubkey,
+          masterPubkey: masterPubkey,
           kind: UserMetadataEntity.kind,
         ),
         // Always include ProfileBadgesSearchExtension to avoid provider rebuilds
@@ -41,44 +41,15 @@ class UserMetadata extends _$UserMetadata {
       ).future,
     ) as UserMetadataEntity?;
   }
-
-  Future<void> preloadCache(Ref ref, List<String> masterPubkeys) async {
-    await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
-          eventReferences: masterPubkeys
-              .map(
-                (pubkey) =>
-                    ReplaceableEventReference(masterPubkey: pubkey, kind: UserMetadataEntity.kind),
-              )
-              .toList(),
-          search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
-        );
-  }
 }
 
 @riverpod
-UserMetadataEntity? userMetadataSync(Ref ref, String pubkey) {
+UserMetadataEntity? userMetadataSync(Ref ref, String masterPubkey, {bool network = true}) {
   return ref.watch(
     ionConnectSyncEntityProvider(
-      eventReference: ReplaceableEventReference(
-        masterPubkey: pubkey,
-        kind: UserMetadataEntity.kind,
-      ),
-      // Always include ProfileBadgesSearchExtension to avoid provider rebuilds
-      // when badge data changes from null to cached
-      search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
-    ),
-  ) as UserMetadataEntity?;
-}
-
-@riverpod
-UserMetadataEntity? cachedUserMetadata(
-  Ref ref,
-  String pubkey,
-) {
-  return ref.watch(
-    ionConnectSyncEntityProvider(
+      network: network,
       eventReference:
-          ReplaceableEventReference(masterPubkey: pubkey, kind: UserMetadataEntity.kind),
+          ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserMetadataEntity.kind),
       search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
     ),
   ) as UserMetadataEntity?;
@@ -99,27 +70,28 @@ Future<UserMetadataEntity?> currentUserMetadata(Ref ref) async {
 }
 
 @riverpod
-Future<bool> isUserDeleted(Ref ref, String pubkey) async {
+Future<bool> isUserDeleted(Ref ref, String masterPubkey) async {
   final env = ref.watch(envProvider.notifier);
   final expirationDuration = Duration(
     minutes: env.get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES),
   );
 
-  final userMetadata =
-      await ref.watch(userMetadataProvider(pubkey, expirationDuration: expirationDuration).future);
+  final userMetadata = await ref
+      .watch(userMetadataProvider(masterPubkey, expirationDuration: expirationDuration).future);
 
   if (userMetadata == null) {
     // If user metadata is null, information can be not available yet on read
     // relays, so we check write relays
-    final userMetadataFromWriteRelay = await ref
-        .watch(userMetadataProvider(pubkey, actionType: ActionType.write, cache: false).future);
+    final userMetadataFromWriteRelay = await ref.watch(
+      userMetadataProvider(masterPubkey, actionType: ActionType.write, cache: false).future,
+    );
 
     final isDeleted = userMetadataFromWriteRelay == null;
 
     if (isDeleted) {
       // If user metadata is deleted, we delete it from the database
-      unawaited(ref.watch(userMetadataDaoProvider).deleteMetadata([pubkey]));
-      unawaited(ref.watch(userDelegationDaoProvider).deleteDelegation([pubkey]));
+      unawaited(ref.watch(userMetadataDaoProvider).deleteMetadata([masterPubkey]));
+      unawaited(ref.watch(userDelegationDaoProvider).deleteDelegation([masterPubkey]));
     }
 
     return isDeleted;
@@ -147,8 +119,8 @@ Future<void> invalidateCurrentUserMetadataProviders(
   WidgetRef ref, {
   ActionType? actionType,
 }) async {
-  final pubkey = ref.read(currentPubkeySelectorProvider);
-  if (pubkey == null) {
+  final masterPubkey = ref.read(currentPubkeySelectorProvider);
+  if (masterPubkey == null) {
     return;
   }
 
@@ -157,7 +129,7 @@ Future<void> invalidateCurrentUserMetadataProviders(
       search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
       actionType: actionType,
       eventReference: ReplaceableEventReference(
-        masterPubkey: pubkey,
+        masterPubkey: masterPubkey,
         kind: UserMetadataEntity.kind,
       ),
     ).future,

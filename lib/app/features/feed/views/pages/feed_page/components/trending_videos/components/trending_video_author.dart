@@ -19,7 +19,7 @@ class TrendingVideoAuthor extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(cachedUserMetadataProvider(pubkey));
+    final userMetadata = ref.watch(userMetadataSyncProvider(pubkey));
 
     if (userMetadata == null) {
       return const SizedBox.shrink();

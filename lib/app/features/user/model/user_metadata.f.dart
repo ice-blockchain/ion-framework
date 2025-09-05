@@ -12,6 +12,7 @@ import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 
 part 'user_metadata.f.freezed.dart';
 part 'user_metadata.f.g.dart';
@@ -19,7 +20,7 @@ part 'user_metadata.f.g.dart';
 @Freezed(equal: false)
 class UserMetadataEntity
     with IonConnectEntity, CacheableEntity, ReplaceableEntity, _$UserMetadataEntity
-    implements EntityEventSerializable {
+    implements EntityEventSerializable, DbCacheableEntity {
   const factory UserMetadataEntity({
     required String id,
     required String pubkey,

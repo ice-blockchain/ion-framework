@@ -475,9 +475,8 @@ class IonConnectNotifier extends _$IonConnectNotifier {
   IonConnectEntity _parseAndCache(EventMessage event) {
     final parser = ref.read(eventParserProvider);
     final entity = parser.parse(event);
-    if (entity is CacheableEntity) {
-      ref.read(ionConnectCacheProvider.notifier).cache(entity);
-    }
+    ref.read(ionConnectCacheProvider.notifier).cache(entity);
+
     return entity;
   }
 

@@ -96,7 +96,6 @@ class UserProfileSync extends _$UserProfileSync {
             ),
             ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
           ]).toString(),
-          cache: false,
         );
 
     final usersMetadata = usersProfileEntities.whereType<UserMetadataEntity>().toList();

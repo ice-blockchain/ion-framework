@@ -45,7 +45,7 @@ ProfileBadgesEntity? cachedProfileBadgesData(
   String pubkey,
 ) {
   return ref.watch(
-    ionConnectCachedEntityProvider(
+    ionConnectInMemoryEntityProvider(
       eventReference: ReplaceableEventReference(
         masterPubkey: pubkey,
         kind: ProfileBadgesEntity.kind,
@@ -174,7 +174,7 @@ bool isUserVerified(
 @riverpod
 bool isNicknameProven(Ref ref, String pubkey) {
   var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(pubkey))?.data;
-  var userMetadata = ref.watch(cachedUserMetadataProvider(pubkey));
+  var userMetadata = ref.watch(userMetadataSyncProvider(pubkey, network: false));
 
   if (profileBadgesData == null) {
     final res = ref.watch(profileBadgesDataProvider(pubkey));
@@ -227,7 +227,7 @@ Future<VerifiedBadgeEntities?> currentUserVerifiedBadgeData(Ref ref) async {
 
   // 1. Load profile badges data from cache only
   final profileEntity = ref.watch(
-    ionConnectCachedEntityProvider(
+    ionConnectInMemoryEntityProvider(
       eventReference: ReplaceableEventReference(
         masterPubkey: currentPubkey,
         kind: ProfileBadgesEntity.kind,
@@ -250,7 +250,7 @@ Future<VerifiedBadgeEntities?> currentUserVerifiedBadgeData(Ref ref) async {
   // 3. Load the corresponding BadgeDefinitionEntity with 'verified' dTag from cache only
   final definitionEntity = verifiedEntry != null
       ? ref.watch(
-          ionConnectCachedEntityProvider(
+          ionConnectInMemoryEntityProvider(
             eventReference: ReplaceableEventReference(
               masterPubkey: verifiedEntry.definitionRef.masterPubkey,
               kind: BadgeDefinitionEntity.kind,

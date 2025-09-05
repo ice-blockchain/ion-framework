@@ -5,7 +5,8 @@ import 'package:ion_connect_cache/src/database/converters/event_tags_converter.d
 
 @DataClassName('EventMessageCacheDbModel')
 class EventMessagesTable extends Table {
-  TextColumn get eventReference => text()();
+  // In most of the cases, the cacheKey is the eventReference, but it can be anything
+  TextColumn get cacheKey => text()();
   IntColumn get kind => integer()();
   IntColumn get createdAt => integer()();
   IntColumn get insertedAt => integer()();
@@ -17,5 +18,5 @@ class EventMessagesTable extends Table {
   TextColumn get pubkey => text()();
 
   @override
-  Set<Column> get primaryKey => {eventReference};
+  Set<Column> get primaryKey => {cacheKey};
 }
