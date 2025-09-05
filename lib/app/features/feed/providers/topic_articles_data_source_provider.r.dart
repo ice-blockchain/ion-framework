@@ -18,7 +18,7 @@ part 'topic_articles_data_source_provider.r.g.dart';
 @riverpod
 List<EntitiesDataSource>? topicArticlesDataSource(Ref ref, String topic) {
   final filter = ref.watch(feedCurrentFilterProvider.select((state) => state.filter));
-  final filterMasterPubkeys = ref.watch(feedFilterRelaysProvider).valueOrNull;
+  final filterMasterPubkeys = ref.watch(feedFilterMasterPubkeysProvider).valueOrNull;
   final currentPubkey = ref.watch(currentPubkeySelectorProvider);
 
   if (filterMasterPubkeys != null && currentPubkey != null) {

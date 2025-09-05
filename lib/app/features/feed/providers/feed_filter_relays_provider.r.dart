@@ -12,7 +12,7 @@ part 'feed_filter_relays_provider.r.g.dart';
 
 /// Provides relay mapping based on the current feed filter.
 @riverpod
-Future<List<String>> feedFilterRelays(Ref ref) async {
+Future<List<String>> feedFilterMasterPubkeys(Ref ref) async {
   final filter = ref.watch(
     feedCurrentFilterProvider.select((state) => state.filter),
   );
