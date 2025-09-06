@@ -68,10 +68,14 @@ class ConfirmationSheet extends ConsumerWidget {
         );
 
         if (context.mounted && transactionDetails != null) {
-          unawaited(context.push(successRouteLocationBuilder(
-            transactionDetails.walletViewId,
-            transactionDetails.txHash,
-          ),),);
+          unawaited(
+            context.push(
+              successRouteLocationBuilder(
+                transactionDetails.walletViewId,
+                transactionDetails.txHash,
+              ),
+            ),
+          );
         }
       });
 

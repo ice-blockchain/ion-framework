@@ -187,8 +187,9 @@ class SendCoinsConfirmationProfileRoute extends BaseRouteData
   SendCoinsConfirmationProfileRoute()
       : super(
           child: ConfirmationSheet(
-            successRouteLocationBuilder: (walletViewId, txHash) => 
-                CoinTransactionResultProfileRoute(walletViewId: walletViewId, txHash: txHash).location,
+            successRouteLocationBuilder: (walletViewId, txHash) =>
+                CoinTransactionResultProfileRoute(walletViewId: walletViewId, txHash: txHash)
+                    .location,
           ),
           type: IceRouteType.bottomSheet,
         );
@@ -204,7 +205,8 @@ class CoinTransactionResultProfileRoute extends BaseRouteData
             walletViewId: walletViewId,
             txHash: txHash,
             transactionDetailsRouteLocationBuilder: (walletViewId, txHash) =>
-                CoinTransactionDetailsProfileRoute(walletViewId: walletViewId, txHash: txHash).location,
+                CoinTransactionDetailsProfileRoute(walletViewId: walletViewId, txHash: txHash)
+                    .location,
           ),
           type: IceRouteType.bottomSheet,
         );
