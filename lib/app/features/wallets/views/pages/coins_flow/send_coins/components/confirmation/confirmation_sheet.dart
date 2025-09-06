@@ -71,7 +71,7 @@ class ConfirmationSheet extends ConsumerWidget {
           unawaited(context.push(successRouteLocationBuilder(
             transactionDetails.walletViewId,
             transactionDetails.txHash,
-          )));
+          ),),);
         }
       });
 

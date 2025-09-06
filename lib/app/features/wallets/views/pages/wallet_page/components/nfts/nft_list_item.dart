@@ -28,7 +28,7 @@ class NftListItem extends StatelessWidget {
       backgroundColor: context.theme.appColors.tertiaryBackground,
       leading: Avatar(
         size: 36.0.s,
-        imageUrl: nftData.tokenUri,
+        imageUrl: nftData.imageUrl,
       ),
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,

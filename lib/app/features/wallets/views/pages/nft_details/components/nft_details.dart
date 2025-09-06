@@ -38,7 +38,9 @@ class NftDetails extends ConsumerWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        NftPicture(imageUrl: nftData.tokenUri),
+        NftPicture(
+          imageUrl: nftData.imageUrl,
+        ),
         SizedBox(height: 15.0.s),
         NftName(
           rank: nftData.tokenId,

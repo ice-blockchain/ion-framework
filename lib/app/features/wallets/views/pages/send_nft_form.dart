@@ -66,7 +66,9 @@ class SendNftForm extends HookConsumerWidget {
               ScreenSideOffset.small(
                 child: Column(
                   children: [
-                    NftPicture(imageUrl: selectedNft.tokenUri),
+                    NftPicture(
+                      imageUrl: selectedNft.imageUrl,
+                    ),
                     SizedBox(height: 16.s),
                     NftName(
                       rank: selectedNft.tokenId,
