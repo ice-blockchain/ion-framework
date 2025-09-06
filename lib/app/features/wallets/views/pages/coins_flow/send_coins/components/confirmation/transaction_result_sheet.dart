@@ -111,10 +111,12 @@ class TransactionResultSheet extends ConsumerWidget {
                         type: ButtonType.outlined,
                         mainAxisSize: MainAxisSize.max,
                         onPressed: () {
-                          context.push(transactionDetailsRouteLocationBuilder(
-                            transactionData.walletViewId,
-                            transactionData.txHash,
-                          ));
+                          context.push(
+                            transactionDetailsRouteLocationBuilder(
+                              transactionData.walletViewId,
+                              transactionData.txHash,
+                            ),
+                          );
                         },
                       ),
                     ),
