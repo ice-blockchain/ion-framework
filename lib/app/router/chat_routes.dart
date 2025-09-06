@@ -312,7 +312,7 @@ class SendCoinsConfirmationChatRoute extends BaseRouteData with _$SendCoinsConfi
   SendCoinsConfirmationChatRoute()
       : super(
           child: ConfirmationSheet(
-            successRouteLocationBuilder: (walletViewId, txHash) => 
+            successRouteLocationBuilder: (walletViewId, txHash) =>
                 CoinTransactionResultChatRoute(walletViewId: walletViewId, txHash: txHash).location,
           ),
           type: IceRouteType.bottomSheet,
@@ -328,7 +328,8 @@ class CoinTransactionResultChatRoute extends BaseRouteData with _$CoinTransactio
             walletViewId: walletViewId,
             txHash: txHash,
             transactionDetailsRouteLocationBuilder: (walletViewId, txHash) =>
-                CoinTransactionDetailsChatRoute(walletViewId: walletViewId, txHash: txHash).location,
+                CoinTransactionDetailsChatRoute(walletViewId: walletViewId, txHash: txHash)
+                    .location,
           ),
           type: IceRouteType.bottomSheet,
         );
