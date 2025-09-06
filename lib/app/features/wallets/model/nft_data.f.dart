@@ -22,4 +22,6 @@ class NftData with _$NftData {
   const NftData._();
 
   NftIdentifier get identifier => NftIdentifier(contract: contract, tokenId: tokenId);
+  
+  String get imageUrl => collectionImageUri.isNotEmpty ? collectionImageUri : tokenUri;
 }

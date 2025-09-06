@@ -258,6 +258,7 @@ class TransactionsRepository {
     List<String> coinIds = const [],
     List<NftIdentifier> nftIdentifiers = const [],
     List<String> txHashes = const [],
+    List<String> externalHashes = const [],
     List<String> walletAddresses = const [],
     List<String> walletViewIds = const [],
     List<TransactionStatus> statuses = const [],
@@ -271,6 +272,7 @@ class TransactionsRepository {
     return _transactionsDao.watchTransactions(
       walletAddresses: walletAddresses,
       txHashes: txHashes,
+      externalHashes: externalHashes,
       limit: limit,
       offset: offset,
       coinIds: coinIds,
