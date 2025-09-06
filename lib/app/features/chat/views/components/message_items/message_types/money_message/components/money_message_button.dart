@@ -11,7 +11,6 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/views/pages/error_modal.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
@@ -238,10 +237,12 @@ class ViewTransactionButton extends ConsumerWidget {
         if (!context.mounted) {
           return;
         }
-        unawaited(CoinTransactionDetailsChatRoute(
-          walletViewId: transactionData.walletViewId,
-          txHash: transactionData.txHash,
-        ).push<void>(context));
+        unawaited(
+          CoinTransactionDetailsChatRoute(
+            walletViewId: transactionData.walletViewId,
+            txHash: transactionData.txHash,
+          ).push<void>(context),
+        );
       },
     );
   }
