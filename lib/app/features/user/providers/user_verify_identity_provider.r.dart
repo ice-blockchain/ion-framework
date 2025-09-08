@@ -13,7 +13,7 @@ part 'user_verify_identity_provider.r.g.dart';
 
 // It is without code generation here cause code generation for providers can't handle generics
 AutoDisposeFutureProvider<T> verifyUserIdentityProvider<T>({
-  required Future<T> Function<E>(OnPasswordFlow<E> onPasswordFlow) onGetPassword,
+  required Future<T> Function(OnPasswordFlow<T> onPasswordFlow) onGetPassword,
   required OnPasswordFlow<T> onPasswordFlow,
   required OnPasskeyFlow<T> onPasskeyFlow,
   required OnBiometricsFlow<T> onBiometricsFlow,

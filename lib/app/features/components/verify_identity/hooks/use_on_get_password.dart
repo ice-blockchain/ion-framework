@@ -8,7 +8,7 @@ import 'package:ion_identity_client/ion_identity.dart';
 
 typedef OnGetPassword<T> = Future<T> Function(OnPasswordFlow<T> onPasswordFlow);
 
-Future<T> Function<T>(OnPasswordFlow<T> onPasswordFlow) useOnGetPassword() {
+Future<T> Function(OnPasswordFlow<T> onPasswordFlow) useOnGetPassword<T>() {
   final context = useContext();
 
   return useCallback(
