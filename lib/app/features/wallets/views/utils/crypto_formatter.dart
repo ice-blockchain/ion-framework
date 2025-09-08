@@ -2,10 +2,23 @@
 
 import 'package:ion/app/utils/num.dart';
 
+// Constants for scale values
+
+const _million = 1000000.0;
+const _billion = 1000000000.0;
+const _trillion = 1000000000000.0;
+
+// Scale information for abbreviation formatting
+const List<({double value, String suffix})> _scaleInfo = [
+  (value: _trillion, suffix: 'T'),
+  (value: _billion, suffix: 'B'),
+  (value: _million, suffix: 'M'),
+];
+
 String formatCrypto(double value, [String? currency]) {
   final formatted = switch (value) {
     0.0 => formatDouble(value),
-    _ when value >= 1000000 => _formatWithAbbreviation(value),
+    _ when value >= _million => _formatWithAbbreviation(value),
     _ when value >= 10 => _formatWithSmartTruncation(value, maxDecimals: 2, minDecimals: 2),
     // For values 1-9.99: max 6 decimals, min 2 decimals
     // Handle truncation for cases like 1.1234567 -> 1.123456 and 2.0000001 -> 2.00
@@ -23,53 +36,39 @@ String formatCrypto(double value, [String? currency]) {
   return formatted;
 }
 
+String _processDecimalPart(String decimalPart) {
+  // Truncate to maximum 3 decimal places
+  final truncated = decimalPart.length > 3 ? decimalPart.substring(0, 3) : decimalPart;
+
+  // Remove trailing zeros
+  final trimmed = truncated.replaceAll(RegExp(r'0+$'), '');
+
+  return trimmed;
+}
+
 String _formatWithAbbreviation(double value) {
-  String suffix;
-  double divisor;
+  // Find the appropriate scale
+  final scale = _scaleInfo.firstWhere((scale) => value >= scale.value);
 
-  if (value >= 1000000000000) {
-    // Trillion
-    suffix = 'T';
-    divisor = 1000000000000;
-  } else if (value >= 1000000000) {
-    // Billion
-    suffix = 'B';
-    divisor = 1000000000;
-  } else {
-    // Million
-    suffix = 'M';
-    divisor = 1000000;
-  }
-
-  final scaledValue = value / divisor;
+  final scaledValue = value / scale.value;
 
   // Convert to string and extract parts
   final stringValue = scaledValue.toString();
   final parts = stringValue.split('.');
   final integerPart = parts[0];
 
+  // Handle cases with no decimal part
   if (parts.length == 1) {
-    // No decimal part
-    return '$integerPart$suffix';
+    return '$integerPart${scale.suffix}';
   }
 
-  var decimalPart = parts[1];
+  // Process decimal part
+  final processedDecimal = _processDecimalPart(parts[1]);
 
-  // Truncate to maximum 3 decimal places
-  if (decimalPart.length > 3) {
-    decimalPart = decimalPart.substring(0, 3);
-  }
-
-  // Remove trailing zeros
-  while (decimalPart.isNotEmpty && decimalPart.endsWith('0')) {
-    decimalPart = decimalPart.substring(0, decimalPart.length - 1);
-  }
-
-  if (decimalPart.isEmpty) {
-    return '$integerPart$suffix';
-  }
-
-  return '$integerPart.$decimalPart$suffix';
+  // Return with or without decimal part
+  return processedDecimal.isEmpty
+      ? '$integerPart${scale.suffix}'
+      : '$integerPart.$processedDecimal${scale.suffix}';
 }
 
 String _formatWithSmartTruncation(
