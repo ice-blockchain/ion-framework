@@ -217,6 +217,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     final dislikedRelaysUrls = <String>{};
     IonConnectRelay? triedRelay;
     final processedMasterPubkeys = <String>{};
+    final authFailedRelays = <String>{};
 
     try {
       yield* withRetryStream(
@@ -247,13 +248,19 @@ class IonConnectNotifier extends _$IonConnectNotifier {
           for (final relay in relaysUserMap.entries) {
             triedRelay = relay.key;
 
-            await ref
-                .read(relayAuthProvider(relay.key))
-                .handleRelayAuthOnAction(actionSource: actionSource, error: error);
+            if (authFailedRelays.contains(relay.key.url)) {
+              await ref
+                  .read(relayAuthProvider(relay.key))
+                  .handleRelayAuthOnAction(actionSource: actionSource, error: error);
+            }
 
             requestMessage.filters.map(
               (filter) => filter.copyWith(
-                authors: filter.authors == null ? null : relay.value.toList,
+                authors: filter.authors == null
+                    ? null
+                    : actionSource is ActionSourceOptimalRelays
+                        ? relay.value.toList
+                        : () => filter.authors,
               ),
             );
 
@@ -280,6 +287,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
             if (actionSource is ActionSourceOptimalRelays) {
               processedMasterPubkeys.addAll(relay.value);
             }
+            authFailedRelays.remove(relay.key.url);
           }
         },
         retryWhen: (error) {
@@ -295,15 +303,19 @@ class IonConnectNotifier extends _$IonConnectNotifier {
         onRetry: (error) {
           final triedRelayUrl =
               error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
-          if (triedRelayUrl != null && !RelayAuthService.isRelayAuthError(error)) {
-            Logger.error(
-              error ?? '',
-              message: '[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error',
-            );
-            Logger.log(
-              '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays',
-            );
-            dislikedRelaysUrls.add(triedRelayUrl);
+          if (triedRelayUrl != null) {
+            if (!RelayAuthService.isRelayAuthError(error)) {
+              Logger.error(
+                error ?? '',
+                message: '[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error',
+              );
+              Logger.log(
+                '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays',
+              );
+              dislikedRelaysUrls.add(triedRelayUrl);
+            } else {
+              authFailedRelays.add(triedRelayUrl);
+            }
           }
           Logger.log(
             '[SESSION-RETRY] Session $sessionId retry attempt at ${stopwatch.elapsedMilliseconds}ms',

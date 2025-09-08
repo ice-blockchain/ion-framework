@@ -119,7 +119,7 @@ class RelayPicker extends _$RelayPicker {
         final chosenRelay =
             await ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
         return {
-          chosenRelay: {chosenRelayUrl},
+          chosenRelay: {},
         };
 
       case ActionSourceUser():
@@ -202,7 +202,7 @@ class RelayPicker extends _$RelayPicker {
         }
 
         Logger.log(
-          '$sessionPrefix[RELAY] Optimal relays selected: $result, disliked: ${dislikedUrls.urls}',
+          '$sessionPrefix[RELAY] Optimal relays selected: {${result.entries.map((e) => "'${e.key.url}': ${e.value}").join(', ')}}, disliked: ${dislikedUrls.urls}',
         );
         return result;
     }
