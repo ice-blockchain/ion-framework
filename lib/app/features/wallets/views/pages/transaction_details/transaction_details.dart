@@ -47,7 +47,7 @@ class TransactionDetailsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionData = ref.watch(
+    final transactionAsync = ref.watch(
       transactionNotifierProvider(walletViewId: walletViewId, txHash: txHash),
     );
 
@@ -61,16 +61,20 @@ class TransactionDetailsPage extends ConsumerWidget {
           ),
           Flexible(
             child: SingleChildScrollView(
-              child: transactionData == null
-                  ? const Center(child: IONLoadingIndicator())
-                  : _TransactionDetailsContent(
-                      transaction: transactionData,
-                      onViewOnExplorer: () {
-                        final url = transactionData.transactionExplorerUrl;
-                        final location = exploreRouteLocationBuilder(url);
-                        context.push<void>(location);
-                      },
-                    ),
+              child: transactionAsync.when(
+                data: (transactionData) => transactionData == null
+                    ? const Center(child: IONLoadingIndicator())
+                    : _TransactionDetailsContent(
+                        transaction: transactionData,
+                        onViewOnExplorer: () {
+                          final url = transactionData.transactionExplorerUrl;
+                          final location = exploreRouteLocationBuilder(url);
+                          context.push<void>(location);
+                        },
+                      ),
+                loading: () => const Center(child: IONLoadingIndicator()),
+                error: (error, stackTrace) => const Center(child: IONLoadingIndicator()),
+              ),
             ),
           ),
         ],

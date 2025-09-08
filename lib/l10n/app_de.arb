@@ -400,6 +400,8 @@
   "wallet_transaction_successful": "Überweisung erfolgreich",
   "wallet_transaction_details": "Details",
   "wallet_transaction_details_arrival_time_format": "dd.MM.yyyy HH:mm:ss",
+  "wallet_transaction_general_error_desc": "Ein unerwarteter Fehler ist aufgetreten. Aktualisiere deine Wallet und versuche es später erneut.",
+"wallet_back_to_wallet": "Zurück zur Wallet",
   "wallet_explore_transaction_details_title": "Im Explorer ansehen",
   "wallet_invite_friends": "Freunde einladen",
   "wallet_friends_does_not_have_account": "Ihr Freund hat kein Ice-Konto.",

@@ -386,6 +386,8 @@
   "wallet_transaction_details": "التفاصيل",
   "wallet_transaction_details_arrival_time_format": "dd.MM.yyyy HH:mm:ss",
   "wallet_explore_transaction_details_title": "عرض على المستكشف",
+  "wallet_transaction_general_error_desc": "حدث خطأ غير متوقع. قم بتحديث محفظتك وحاول مرة أخرى لاحقًا.",
+"wallet_back_to_wallet": "العودة إلى المحفظة",
   "wallet_invite_friends": "دعوة صديق",
   "wallet_friends_does_not_have_account": "صديقك ليس لديه حساب Ice.",
   "wallet_approximate_in_usd": "حوالي ${amount}",

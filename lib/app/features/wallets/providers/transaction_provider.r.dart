@@ -20,13 +20,11 @@ class TransactionNotifier extends _$TransactionNotifier {
   StreamSubscription<List<TransactionData>>? _subscription;
 
   @override
-  TransactionDetails? build({
+  Future<TransactionDetails?> build({
     required String walletViewId,
     required String txHash,
-  }) {
-    final repository = ref.read(transactionsRepositoryProvider).value;
-    if (repository == null) return null;
-
+  }) async {
+    final repository = await ref.watch(transactionsRepositoryProvider.future);
     _subscription = repository
         .watchTransactions(
           externalHashes: [txHash],
@@ -58,7 +56,7 @@ class TransactionNotifier extends _$TransactionNotifier {
   Future<void> _handleTransactions(List<TransactionData> transactions) async {
     try {
       if (transactions.isEmpty) {
-        state = null;
+        state = AsyncValue.error(Exception('No transaction was found'), StackTrace.current);
         return;
       }
 
@@ -73,7 +71,7 @@ class TransactionNotifier extends _$TransactionNotifier {
         coinsGroup: coinsGroup,
       );
 
-      state = transactionDetails;
+      state = AsyncValue.data(transactionDetails);
     } catch (error, _) {
       Logger.error('[TransactionNotifier] Error processing transaction: $error');
     }
