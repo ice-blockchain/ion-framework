@@ -49,7 +49,6 @@ String _processDecimalPart(String decimalPart) {
 String _formatWithAbbreviation(double value) {
   // Find the appropriate scale
   final scale = _scaleInfo.firstWhere((scale) => value >= scale.value);
-
   final scaledValue = value / scale.value;
 
   // Convert to string and extract parts
@@ -57,15 +56,11 @@ String _formatWithAbbreviation(double value) {
   final parts = stringValue.split('.');
   final integerPart = parts[0];
 
-  // Handle cases with no decimal part
   if (parts.length == 1) {
     return '$integerPart${scale.suffix}';
   }
 
-  // Process decimal part
   final processedDecimal = _processDecimalPart(parts[1]);
-
-  // Return with or without decimal part
   return processedDecimal.isEmpty
       ? '$integerPart${scale.suffix}'
       : '$integerPart.$processedDecimal${scale.suffix}';
