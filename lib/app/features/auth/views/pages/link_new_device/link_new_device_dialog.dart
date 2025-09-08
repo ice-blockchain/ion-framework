@@ -138,7 +138,11 @@ class LinkNewDeviceDialog extends HookConsumerWidget {
         child: child,
       ),
     );
-    if (ref.read(restoreDeviceKeypairNotifierProvider).hasError) {
+    // If something went wrong during keypair restoration
+    // or if the restored keypair is no longer delegated,
+    // fallback to adding a new delegation
+    if (ref.read(restoreDeviceKeypairNotifierProvider).hasError ||
+        !(await ref.read(delegationCompleteProvider.future))) {
       return _addDelegation(ref);
     }
   }
