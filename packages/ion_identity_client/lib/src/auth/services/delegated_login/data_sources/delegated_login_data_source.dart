@@ -35,7 +35,7 @@ class DelegatedLoginDataSource {
       delegatedLoginPath,
       headers: RequestHeaders.getTokenHeader(token: token.token),
       data: requestData.toJson(),
-      decoder: (result) => parseJsonObject(result, fromJson: DelegatedLoginResponse.fromJson),
+      decoder: (result, _) => parseJsonObject(result, fromJson: DelegatedLoginResponse.fromJson),
     );
   }
 }

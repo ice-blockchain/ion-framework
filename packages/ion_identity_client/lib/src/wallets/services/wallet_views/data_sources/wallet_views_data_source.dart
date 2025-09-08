@@ -39,7 +39,7 @@ class WalletViewsDataSource {
         token: token.token,
         username: username,
       ),
-      decoder: (json) => parseList(json, fromJson: ShortWalletView.fromJson),
+      decoder: (json, _) => parseList(json, fromJson: ShortWalletView.fromJson),
     );
   }
 
@@ -56,7 +56,7 @@ class WalletViewsDataSource {
         token: token.token,
       ),
       data: request.toJson(),
-      decoder: (json) => parseJsonObject(json, fromJson: WalletView.fromJson),
+      decoder: (json, _) => parseJsonObject(json, fromJson: WalletView.fromJson),
     );
   }
 
@@ -73,7 +73,7 @@ class WalletViewsDataSource {
         token: token.token,
         username: username,
       ),
-      decoder: (json) => parseJsonObject(json, fromJson: WalletView.fromJson),
+      decoder: (json, _) => parseJsonObject(json, fromJson: WalletView.fromJson),
     );
   }
 
@@ -92,7 +92,7 @@ class WalletViewsDataSource {
         username: username,
       ),
       data: request.toJson(),
-      decoder: (json) => parseJsonObject(json, fromJson: WalletView.fromJson),
+      decoder: (json, _) => parseJsonObject(json, fromJson: WalletView.fromJson),
     );
   }
 
@@ -106,7 +106,7 @@ class WalletViewsDataSource {
     await _networkClient.delete(
       sprintf(_specificViewPath, [userId, walletViewId]),
       headers: RequestHeaders.getTokenHeader(token: token.token),
-      decoder: (json) => null,
+      decoder: (json, _) => null,
     );
   }
 }

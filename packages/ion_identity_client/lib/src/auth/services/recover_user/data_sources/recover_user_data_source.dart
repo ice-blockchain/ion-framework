@@ -31,7 +31,8 @@ class RecoverUserDataSource {
             for (final twoFAType in twoFATypes ?? []) twoFAType.option: twoFAType.value,
           },
         },
-        decoder: (result) => parseJsonObject(result, fromJson: UserRegistrationChallenge.fromJson),
+        decoder: (result, _) =>
+            parseJsonObject(result, fromJson: UserRegistrationChallenge.fromJson),
       );
     } on RequestExecutionException catch (e) {
       if (e.error is! DioException) rethrow;
@@ -60,7 +61,7 @@ class RecoverUserDataSource {
       recoverUserPath,
       data: recoveryData,
       headers: RequestHeaders.getTokenHeader(token: temporaryAuthenticationToken),
-      decoder: (json) => parseJsonObject(json, fromJson: (json) => json),
+      decoder: (json, _) => parseJsonObject(json, fromJson: (json) => json),
     );
   }
 }

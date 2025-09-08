@@ -32,7 +32,7 @@ class UserDetailsDataSource {
         token: token.token,
         username: username,
       ),
-      decoder: (result) => parseJsonObject(result, fromJson: UserDetails.fromJson),
+      decoder: (result, _) => parseJsonObject(result, fromJson: UserDetails.fromJson),
     );
 
     return response;

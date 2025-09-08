@@ -19,7 +19,7 @@ class DeleteUserDataSource {
   }) async {
     return networkClient.delete<void>(
       '$deletePath/$userId',
-      decoder: (response) => response,
+      decoder: (response, _) => response,
       headers: {
         ...RequestHeaders.getAuthorizationHeaders(
           token: token,

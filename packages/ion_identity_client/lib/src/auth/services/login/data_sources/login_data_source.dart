@@ -26,7 +26,7 @@ class LoginDataSource {
           for (final twoFAType in twoFATypes ?? []) twoFAType.option: twoFAType.value,
         },
       },
-      decoder: (result) => parseJsonObject(result, fromJson: UserActionChallenge.fromJson),
+      decoder: (result, _) => parseJsonObject(result, fromJson: UserActionChallenge.fromJson),
     );
   }
 
@@ -42,7 +42,7 @@ class LoginDataSource {
     return networkClient.post(
       loginCompletePath,
       data: requestData.toJson(),
-      decoder: (result) => parseJsonObject(result, fromJson: Authentication.fromJson),
+      decoder: (result, _) => parseJsonObject(result, fromJson: Authentication.fromJson),
     );
   }
 }

@@ -36,7 +36,7 @@ class UpdateUserSocialProfileDataSource {
           username: username,
           token: token.token,
         ),
-        decoder: (result) =>
+        decoder: (result, _) =>
             parseJsonObject(result, fromJson: UpdateUserSocialProfileResponse.fromJson),
       );
     } on RequestExecutionException catch (e) {

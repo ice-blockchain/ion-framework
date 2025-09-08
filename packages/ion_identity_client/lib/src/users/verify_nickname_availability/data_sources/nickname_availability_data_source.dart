@@ -33,7 +33,7 @@ class NicknameAvailabilityDataSource {
           username: username,
           token: token.token,
         ),
-        decoder: (json) => json,
+        decoder: (json, _) => json,
       );
     } on RequestExecutionException catch (e) {
       final exception = _mapException(e);

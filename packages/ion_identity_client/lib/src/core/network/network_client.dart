@@ -3,7 +3,7 @@
 import 'package:dio/dio.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
-typedef Decoder<T> = T Function(dynamic response);
+typedef Decoder<T> = T Function(dynamic response, Map<String, List<String>> headers);
 
 /// A generic network client that wraps around Dio and provides methods for
 /// making GET and POST requests with automatic error handling and decoding
@@ -130,13 +130,13 @@ class NetworkClient {
       if (data == null) {
         final statusCode = response.statusCode ?? 500;
         if (statusCode >= 200 && statusCode < 300) {
-          return decoder(null);
+          return decoder(null, const {});
         }
         throw ResponseFormatException(data);
       }
 
       try {
-        return decoder(data);
+        return decoder(data, response.headers.map);
       } catch (e, stackTrace) {
         throw DecodeException(data, e, stackTrace);
       }

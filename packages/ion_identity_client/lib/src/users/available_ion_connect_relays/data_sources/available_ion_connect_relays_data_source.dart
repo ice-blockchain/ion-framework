@@ -34,7 +34,7 @@ class AvailableIONConnectRelaysDataSource {
         token: token.token,
       ),
       queryParams: {'ion-connect-relay': relayUrl},
-      decoder: (result) =>
+      decoder: (result, _) =>
           parseJsonObject(result, fromJson: AvailableIONConnectRelaysResponse.fromJson),
     );
 

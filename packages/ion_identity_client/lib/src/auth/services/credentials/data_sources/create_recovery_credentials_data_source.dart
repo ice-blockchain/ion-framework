@@ -33,7 +33,7 @@ class CreateRecoveryCredentialsDataSource {
     return networkClient.post(
       createCredentialInitPath,
       data: recoveryKeyBody,
-      decoder: (result) => parseJsonObject(result, fromJson: CreateCredentialsResponse.fromJson),
+      decoder: (result, _) => parseJsonObject(result, fromJson: CreateCredentialsResponse.fromJson),
       headers: RequestHeaders.getAuthorizationHeaders(
         token: token.token,
         username: username,

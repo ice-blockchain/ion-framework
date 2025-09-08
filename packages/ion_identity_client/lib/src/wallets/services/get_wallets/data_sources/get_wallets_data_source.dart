@@ -32,7 +32,7 @@ class GetWalletsDataSource {
           token: token.token,
           username: username,
         ),
-        decoder: (result) => parseJsonObject(result, fromJson: GetWalletsResponse.fromJson),
+        decoder: (result, _) => parseJsonObject(result, fromJson: GetWalletsResponse.fromJson),
       );
       return response.items;
     } on NetworkException catch (e) {

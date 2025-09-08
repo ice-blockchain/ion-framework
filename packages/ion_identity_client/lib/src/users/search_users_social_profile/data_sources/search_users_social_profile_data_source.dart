@@ -44,7 +44,7 @@ class SearchUsersSocialProfileDataSource {
         username: username,
         token: token.token,
       ),
-      decoder: (result) => (result as List<dynamic>)
+      decoder: (result, _) => (result as List<dynamic>)
           .map((e) => UserRelaysInfo.fromJson(e as Map<String, dynamic>))
           .toList(),
     );

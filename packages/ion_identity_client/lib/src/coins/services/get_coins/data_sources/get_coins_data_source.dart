@@ -41,7 +41,7 @@ class GetCoinsDataSource {
         token: token,
         username: username,
       ),
-      decoder: (response) {
+      decoder: (response, _) {
         if (response is String && response.isEmpty) {
           return CoinsResponse(coins: [], networks: [], version: currentVersion);
         }
@@ -67,7 +67,7 @@ class GetCoinsDataSource {
         'symbolGroup': symbolGroups.toList(),
       },
       headers: RequestHeaders.getTokenHeader(token: token),
-      decoder: (result) => parseList(result, fromJson: Coin.fromJson),
+      decoder: (result, _) => parseList(result, fromJson: Coin.fromJson),
     );
   }
 
@@ -81,7 +81,7 @@ class GetCoinsDataSource {
     return _networkClient.get(
       '/v1/users/$userId/coins/$symbolGroup',
       headers: RequestHeaders.getTokenHeader(token: token),
-      decoder: (result) => parseList(result, fromJson: Coin.fromJson),
+      decoder: (result, _) => parseList(result, fromJson: Coin.fromJson),
     );
   }
 }

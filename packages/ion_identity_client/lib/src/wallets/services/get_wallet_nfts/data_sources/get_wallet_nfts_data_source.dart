@@ -38,7 +38,7 @@ class GetWalletNftsDataSource {
           token: token.token,
           username: username,
         ),
-        decoder: (response) => parseJsonObject(response, fromJson: WalletNfts.fromJson),
+        decoder: (response, _) => parseJsonObject(response, fromJson: WalletNfts.fromJson),
       );
     } on NetworkException catch (e) {
       if (e is RequestExecutionException && e.error is DioException) {

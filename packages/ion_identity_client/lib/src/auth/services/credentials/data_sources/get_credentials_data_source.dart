@@ -27,7 +27,7 @@ class GetCredentialsDataSource {
 
     return networkClient.get(
       createCredentialPath,
-      decoder: (result) {
+      decoder: (result, _) {
         if (result case {'items': final List<dynamic> items}) {
           return parseList(items, fromJson: Credential.fromJson);
         }

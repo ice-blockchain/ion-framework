@@ -42,7 +42,7 @@ class ListKeysDataSource {
           if (limit != null) 'limit': limit,
           if (paginationToken != null) 'paginationToken': paginationToken,
         },
-        decoder: (result) => parseJsonObject(result, fromJson: ListKeysResponse.fromJson),
+        decoder: (result, _) => parseJsonObject(result, fromJson: ListKeysResponse.fromJson),
       );
     } on NetworkException catch (e) {
       if (e is RequestExecutionException && e.error is DioException) {

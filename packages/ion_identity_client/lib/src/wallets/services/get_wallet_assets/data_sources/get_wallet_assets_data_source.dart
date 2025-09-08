@@ -36,7 +36,7 @@ class GetWalletAssetsDataSource {
           token: token.token,
           username: username,
         ),
-        decoder: (result) => parseJsonObject(result, fromJson: WalletAssets.fromJson),
+        decoder: (result, _) => parseJsonObject(result, fromJson: WalletAssets.fromJson),
       );
     } on NetworkException catch (e) {
       if (e is RequestExecutionException && e.error is DioException) {

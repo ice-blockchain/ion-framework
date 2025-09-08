@@ -35,7 +35,8 @@ class SetIONConnectRelaysDataSource {
         username: username,
         token: token.token,
       ),
-      decoder: (result) => parseJsonObject(result, fromJson: SetIONConnectRelaysResponse.fromJson) ,
+      decoder: (result, _) =>
+          parseJsonObject(result, fromJson: SetIONConnectRelaysResponse.fromJson),
     );
 
     return response;
