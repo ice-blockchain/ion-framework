@@ -50,7 +50,8 @@ class StoryListItem extends HookConsumerWidget {
     );
 
     final isViewed = ref.watch(
-      viewedStoriesProvider.select((viewedStories) => viewedStories?.contains(storyReference) ?? false),
+      viewedStoriesProvider
+          .select((viewedStories) => viewedStories?.contains(storyReference) ?? false),
     );
 
     ref.displayErrors(toggleFollowNotifierProvider);
@@ -85,7 +86,9 @@ class StoryListItem extends HookConsumerWidget {
                   width: 24.0.s,
                   height: 24.0.s,
                   decoration: BoxDecoration(
-                    color: isFollowUser ? context.theme.appColors.success : context.theme.appColors.primaryAccent,
+                    color: isFollowUser
+                        ? context.theme.appColors.success
+                        : context.theme.appColors.primaryAccent,
                     borderRadius: BorderRadius.circular(10.0.s),
                     border: Border.all(
                       width: 1.s,
