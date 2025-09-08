@@ -91,22 +91,24 @@ class StoryViewerHeader extends ConsumerWidget {
                         shadows: shadow,
                       ),
                     ),
-                    SizedBox(width: 4.0.s),
-                    Text(
-                      '•',
-                      style: textThemes.caption.copyWith(
-                        color: onPrimaryAccent,
-                        shadows: shadow,
+                    if (!currentPost.isDeleted) ...[
+                      SizedBox(width: 4.0.s),
+                      Text(
+                        '•',
+                        style: textThemes.caption.copyWith(
+                          color: onPrimaryAccent,
+                          shadows: shadow,
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 4.0.s),
-                    TimeAgo(
-                      time: currentPost.data.publishedAt.value.toDateTime,
-                      style: textThemes.caption.copyWith(
-                        color: onPrimaryAccent,
-                        shadows: shadow,
+                      SizedBox(width: 4.0.s),
+                      TimeAgo(
+                        time: currentPost.data.publishedAt.value.toDateTime,
+                        style: textThemes.caption.copyWith(
+                          color: onPrimaryAccent,
+                          shadows: shadow,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
                 trailing: HeaderActions(post: currentPost),

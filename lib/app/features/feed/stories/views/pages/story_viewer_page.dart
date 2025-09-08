@@ -7,10 +7,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_unavailable.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/components.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/video/views/hooks/use_status_bar_color.dart';
@@ -32,6 +35,18 @@ class StoryViewerPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     useStatusBarColor();
+
+    if (initialStoryReference != null) {
+      final initialStoryEntity = ref
+          .watch(ionConnectEntityWithCountersProvider(eventReference: initialStoryReference!))
+          .valueOrNull;
+      final isInitialStoryDeleted =
+          initialStoryEntity is ModifiablePostEntity && initialStoryEntity.isDeleted;
+
+      if (isInitialStoryDeleted) {
+        return StoryUnavailable(post: initialStoryEntity);
+      }
+    }
 
     final storyViewerState = ref.watch(
       userStoriesViewingNotifierProvider(pubkey, showOnlySelectedUser: showOnlySelectedUser),

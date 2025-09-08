@@ -21,6 +21,15 @@ class HeaderActions extends ConsumerWidget {
     final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
     final isCurrentUser = currentUserPubkey == post.masterPubkey;
 
+    final closeButton = GestureDetector(
+      onTap: context.pop,
+      child: Assets.svg.iconSheetClose.icon(color: iconMoreColor),
+    );
+
+    if (post.isDeleted) {
+      return closeButton;
+    }
+
     return Row(
       children: [
         StoryContextMenu(
@@ -30,10 +39,7 @@ class HeaderActions extends ConsumerWidget {
           child: Assets.svg.iconMoreStories.icon(color: iconMoreColor),
         ),
         SizedBox(width: 16.0.s),
-        GestureDetector(
-          child: Assets.svg.iconSheetClose.icon(color: iconMoreColor),
-          onTap: () => context.pop(),
-        ),
+        closeButton,
       ],
     );
   }
