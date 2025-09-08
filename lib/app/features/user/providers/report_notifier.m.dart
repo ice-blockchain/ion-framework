@@ -3,8 +3,10 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/constants/emails.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/services/deep_link/deep_link_service.r.dart';
+import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:ion/app/services/mail/mail.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -47,9 +49,19 @@ class ReportNotifier extends _$ReportNotifier {
           path:
               ReplaceableEventReference(masterPubkey: reason.pubkey, kind: UserMetadataEntity.kind)
                   .encode(),
+          contentType: SharedContentType.profile,
         ),
-      ReportReasonContent() =>
-        await deepLinkService.createDeeplink(path: reason.eventReference.encode()),
+      ReportReasonContent() => () async {
+          final entity =
+              ref.read(ionConnectEntityProvider(eventReference: reason.eventReference)).valueOrNull;
+          final contentType =
+              entity != null ? mapEntityToSharedContentType(entity) : SharedContentType.post;
+
+          return deepLinkService.createDeeplink(
+            path: reason.eventReference.encode(),
+            contentType: contentType,
+          );
+        }(),
     };
 
     return switch (reason) {

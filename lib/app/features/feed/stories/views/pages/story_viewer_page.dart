@@ -48,7 +48,7 @@ class StoryViewerPage extends HookConsumerWidget {
     useOnInit(
       () {
         if (storyViewerState.userStories.isEmpty && context.mounted && context.canPop()) {
-          context.pop();
+          // context.pop();
         }
       },
       [storyViewerState.userStories.isEmpty],

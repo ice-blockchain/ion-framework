@@ -18,6 +18,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:ion/app/services/share/social_share_service.r.dart';
 import 'package:ion/app/utils/screenshot_utils.dart';
 import 'package:ion/app/utils/username.dart';
@@ -53,6 +54,7 @@ class ShareOptions extends HookConsumerWidget {
     }
 
     final (title, description) = _buildDescription(context, shareOptionsData);
+    final contentType = shareOptionsData.contentType;
 
     final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
 
@@ -80,6 +82,7 @@ class ShareOptions extends HookConsumerWidget {
               title: title,
               imageUrl: shareOptionsData.imageUrl,
               description: description,
+              contentType: contentType,
             ),
             ShareOptionsMenuItem(
               buttonType: ButtonType.dropdown,
@@ -89,6 +92,7 @@ class ShareOptions extends HookConsumerWidget {
                 ref.read(socialShareServiceProvider).shareToWhatsApp(
                       shareUrl,
                       title: title,
+                      contentType: contentType,
                       imageUrl: shareOptionsData.imageUrl,
                       description: description,
                     );
@@ -102,6 +106,7 @@ class ShareOptions extends HookConsumerWidget {
                 ref.read(socialShareServiceProvider).shareToTelegram(
                       shareUrl,
                       title: title,
+                      contentType: contentType,
                       imageUrl: shareOptionsData.imageUrl,
                       description: description,
                     );
@@ -115,6 +120,7 @@ class ShareOptions extends HookConsumerWidget {
                 ref.read(socialShareServiceProvider).shareToTwitter(
                       shareUrl,
                       title: title,
+                      contentType: contentType,
                       imageUrl: shareOptionsData.imageUrl,
                       description: description,
                     );
@@ -128,6 +134,7 @@ class ShareOptions extends HookConsumerWidget {
                 ref.read(socialShareServiceProvider).shareToMore(
                       shareUrl: shareUrl,
                       title: title,
+                      contentType: contentType,
                       imageUrl: shareOptionsData.imageUrl,
                       description: description,
                     );
@@ -190,10 +197,11 @@ class ShareOptions extends HookConsumerWidget {
     );
 
     final description = switch (data.contentType) {
-      ShareContentType.story => context.i18n.share_story_watch_message(effectiveUserDisplayName),
-      ShareContentType.post => data.content.emptyOrValue,
-      ShareContentType.article => data.articleTitle ?? '',
-      ShareContentType.userProfile => data.userDisplayName,
+      SharedContentType.story => context.i18n.share_story_watch_message(effectiveUserDisplayName),
+      SharedContentType.post => data.content.emptyOrValue,
+      SharedContentType.postWithVideo => data.content.emptyOrValue,
+      SharedContentType.article => data.articleTitle ?? '',
+      SharedContentType.profile => data.userDisplayName,
     };
 
     return (effectiveUserDisplayName, description);

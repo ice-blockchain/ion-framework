@@ -3,6 +3,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/services/clipboard/clipboard.dart';
 import 'package:ion/app/services/deep_link/deep_link_service.r.dart';
+import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:social_sharing_plus/social_sharing_plus.dart';
@@ -23,6 +24,7 @@ class SocialShareService {
   Future<void> shareToWhatsApp(
     String shareUrl, {
     required String title,
+    required SharedContentType contentType,
     String? imageUrl,
     String? description,
   }) =>
@@ -30,6 +32,7 @@ class SocialShareService {
         SocialPlatform.whatsapp,
         shareUrl: shareUrl,
         title: title,
+        contentType: contentType,
         imageUrl: imageUrl,
         description: description,
       );
@@ -37,6 +40,7 @@ class SocialShareService {
   Future<void> shareToTwitter(
     String shareUrl, {
     required String title,
+    required SharedContentType contentType,
     String? imageUrl,
     String? description,
   }) =>
@@ -44,6 +48,7 @@ class SocialShareService {
         SocialPlatform.twitter,
         shareUrl: shareUrl,
         title: title,
+        contentType: contentType,
         imageUrl: imageUrl,
         description: description,
       );
@@ -51,6 +56,7 @@ class SocialShareService {
   Future<void> shareToTelegram(
     String shareUrl, {
     required String title,
+    required SharedContentType contentType,
     String? imageUrl,
     String? description,
   }) =>
@@ -58,6 +64,7 @@ class SocialShareService {
         SocialPlatform.telegram,
         shareUrl: shareUrl,
         title: title,
+        contentType: contentType,
         imageUrl: imageUrl,
         description: description,
       );
@@ -66,11 +73,13 @@ class SocialShareService {
     SocialPlatform platform, {
     required String shareUrl,
     required String title,
+    required SharedContentType contentType,
     String? imageUrl,
     String? description,
   }) async {
     final url = await _deepLinkService.createDeeplink(
       path: shareUrl,
+      contentType: contentType,
       ogTitle: title,
       ogImageUrl: imageUrl,
       ogDescription: description,
@@ -81,11 +90,13 @@ class SocialShareService {
   Future<void> shareToMore({
     required String shareUrl,
     required String title,
+    required SharedContentType contentType,
     String? imageUrl,
     String? description,
   }) async {
     final url = await _deepLinkService.createDeeplink(
       path: shareUrl,
+      contentType: contentType,
       ogTitle: title,
       ogImageUrl: imageUrl,
       ogDescription: description,
@@ -96,11 +107,13 @@ class SocialShareService {
   Future<void> shareToClipboard({
     required String shareUrl,
     required String title,
+    required SharedContentType contentType,
     String? imageUrl,
     String? description,
   }) async {
     final url = await _deepLinkService.createDeeplink(
       path: shareUrl,
+      contentType: contentType,
       ogTitle: title,
       ogImageUrl: imageUrl,
       ogDescription: description,

@@ -3,6 +3,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/services/bech32/bech32_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_protocol_identifier_type.dart';
@@ -219,4 +220,8 @@ extension EventReferenceX on EventReference {
   bool get isArticleReference =>
       this is ReplaceableEventReference &&
       (this as ReplaceableEventReference).kind == ArticleEntity.kind;
+
+  bool get isPostReference =>
+      this is ReplaceableEventReference &&
+      (this as ReplaceableEventReference).kind == ModifiablePostEntity.kind;
 }

@@ -17,16 +17,41 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'deep_link_service.r.g.dart';
+
+const _contentTypeKey = 'content_type';
+
+/// Maps an IonConnectEntity to its corresponding SharedContentType
+/// based on entity properties like isStory and hasVideo
+///
+/// Priority order:
+/// 1. Stories (regardless of media type) -> story
+/// 2. Regular posts with video -> postWithVideo
+/// 3. Regular posts -> post
+/// 4. Articles -> article
+/// 5. User profiles -> profile
+SharedContentType mapEntityToSharedContentType(IonConnectEntity entity) {
+  return switch (entity) {
+    ModifiablePostEntity() when entity.isStory => SharedContentType.story,
+    ModifiablePostEntity() when entity.data.hasVideo => SharedContentType.postWithVideo,
+    ModifiablePostEntity() => SharedContentType.post,
+    ArticleEntity() => SharedContentType.article,
+    UserMetadataEntity() => SharedContentType.profile,
+    _ => throw UnsupportedError('Unsupported IonConnectEntity: $entity'),
+  };
+}
 
 @riverpod
 Future<void> deepLinkHandler(Ref ref) async {
@@ -97,12 +122,16 @@ Future<void> deeplinkInitializer(Ref ref) async {
   Future<String?> handlePostDeepLink(
     EventReference eventReference,
     String encodedEventReference,
+    SharedContentType? contentType,
   ) async {
     final entity =
         await ref.read(ionConnectEntityWithCountersProvider(eventReference: eventReference).future);
 
     if (entity is ModifiablePostEntity) {
-      if (entity.isStory) {
+      // Use content type from link if available, otherwise determine from entity
+      final effectiveContentType = contentType ?? mapEntityToSharedContentType(entity);
+
+      if (effectiveContentType == SharedContentType.story || entity.isStory) {
         return StoryViewerRoute(
           pubkey: entity.masterPubkey,
           initialStoryReference: encodedEventReference,
@@ -155,7 +184,7 @@ Future<void> deeplinkInitializer(Ref ref) async {
   }
 
   await service.init(
-    onDeeplink: (encodedEventReference) async {
+    onDeeplink: (encodedEventReference, contentType) async {
       try {
         if (isFallbackUrl(encodedEventReference)) {
           // Just open the app in case of fallback url
@@ -180,7 +209,7 @@ Future<void> deeplinkInitializer(Ref ref) async {
         if (eventReference is ReplaceableEventReference) {
           final location = switch (eventReference.kind) {
             ModifiablePostEntity.kind =>
-              await handlePostDeepLink(eventReference, encodedEventReference),
+              await handlePostDeepLink(eventReference, encodedEventReference, contentType),
             ArticleEntity.kind =>
               ArticleDetailsRoute(eventReference: encodedEventReference).location,
             UserMetadataEntity.kind => ProfileRoute(pubkey: eventReference.masterPubkey).location,
@@ -246,15 +275,19 @@ final class DeepLinkService {
 
   bool _isInitialized = false;
 
-  Future<void> init({required void Function(String path) onDeeplink}) async {
+  Future<void> init({
+    required void Function(String path, SharedContentType? contentType) onDeeplink,
+  }) async {
     _appsflyerSdk
       ..onDeepLinking((link) {
         final path = link.deepLink?.deepLinkValue;
+        final contentType = _extractContentTypeFromLink(link);
+
         if (path != null) {
           if (link.status == Status.FOUND) {
             if (path.isEmpty) return;
 
-            return onDeeplink(path);
+            return onDeeplink(path, contentType);
           }
         } else {
           final clickEvent = link.deepLink?.clickEvent;
@@ -267,7 +300,7 @@ final class DeepLinkService {
             }
           }
         }
-        onDeeplink(_fallbackUrl);
+        onDeeplink(_fallbackUrl, null);
       })
       ..stop(true);
 
@@ -299,9 +332,13 @@ final class DeepLinkService {
   /// The method has a timeout to prevent hanging indefinitely.
   ///
   /// [path] - The path to encode in the deep link
-  /// [description] - The description to use for the deep link
+  /// [contentType] - The type of content being shared (required)
+  /// [ogTitle] - The title to use for the deep link
+  /// [ogImageUrl] - The image URL to use for the deep link
+  /// [ogDescription] - The description to use for the deep link
   Future<String> createDeeplink({
     required String path,
+    required SharedContentType contentType,
     String? ogTitle,
     String? ogImageUrl,
     String? ogDescription,
@@ -319,6 +356,7 @@ final class DeepLinkService {
           brandDomain: _brandDomain,
           customParams: {
             'deep_link_value': path,
+            _contentTypeKey: contentType.value,
             ...?_buildOgParams(
               ogTitle: ogTitle,
               ogImageUrl: ogImageUrl,
@@ -407,4 +445,20 @@ final class DeepLinkService {
   }
 
   void resolveDeeplink(String url) => _appsflyerSdk.resolveOneLinkUrl(url);
+
+  SharedContentType? _extractContentTypeFromLink(DeepLinkResult link) {
+    try {
+      final clickEvent = link.deepLink?.clickEvent;
+      if (clickEvent != null) {
+        final contentTypeValue = clickEvent[_contentTypeKey] as String?;
+        if (contentTypeValue != null) {
+          return SharedContentType.fromValue(contentTypeValue);
+        }
+      }
+    } catch (e) {
+      Logger.error('Error extracting content type from link: $e');
+      rethrow;
+    }
+    return null;
+  }
 }
