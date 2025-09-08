@@ -22,8 +22,6 @@ class LabelNamespaceTag with _$LabelNamespaceTag {
     return LabelNamespaceTag(value: tag[1]);
   }
 
-  factory LabelNamespaceTag.walletAddress() => const LabelNamespaceTag(value: 'wallet.address');
-
   const LabelNamespaceTag._();
 
   static const String tagName = 'L';
