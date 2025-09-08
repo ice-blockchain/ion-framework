@@ -834,5 +834,6 @@
   "report_user_description": "هذا تقرير للمستخدم",
   "report_content_description": "هذا تقرير للمحتوى",
   "share_user_on_app": "{userDisplayName} على {shareAppName}",
-  "share_story_watch_message": "شاهد هذه القصة من {userDisplayName} قبل أن تختفي."
+  "share_story_watch_message": "شاهد هذه القصة من {userDisplayName} قبل أن تختفي.",
+  "follow_user_message": "أنت تتابع @{userDisplayName}"
 }

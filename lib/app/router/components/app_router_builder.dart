@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/global_notification_bar/global_notification_bar_wrapper.dart';
+import 'package:ion/app/components/message_notification/message_notification_wrapper.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/debug/views/debug_rotate_gesture.dart';
@@ -26,8 +27,10 @@ class AppRouterBuilder extends HookConsumerWidget {
             const UiEventQueueListener(),
             Expanded(
               child: DebugRotateGesture(
-                child: TwoFaSignatureWrapper(
-                  child: child ?? const SizedBox.shrink(),
+                child: MessageNotificationWrapper(
+                  child: TwoFaSignatureWrapper(
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                 ),
               ),
             ),
