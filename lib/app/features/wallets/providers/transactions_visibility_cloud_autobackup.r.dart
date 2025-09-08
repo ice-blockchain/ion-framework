@@ -13,22 +13,39 @@ part 'transactions_visibility_cloud_autobackup.r.g.dart';
 StreamSubscription<dynamic> transactionsVisibilityCloudAutoBackup(
   Ref ref,
 ) {
-  return TransactionsVisibilityCloudAutoBackup(ref: ref).startSub();
+  final transactionsVisibilityCloudAutoBackup = TransactionsVisibilityCloudAutoBackup(
+    visibilityDao: ref.watch(transactionsVisibilityStatusDaoProvider),
+    visibilityCloudBackup: ref.watch(transactionsVisibilityCloudBackupProvider),
+  );
+
+  final sub = transactionsVisibilityCloudAutoBackup.startSub();
+
+  ref.onDispose(() {
+    transactionsVisibilityCloudAutoBackup.cancel();
+    sub.cancel();
+  });
+
+  return sub;
 }
 
 class TransactionsVisibilityCloudAutoBackup {
   TransactionsVisibilityCloudAutoBackup({
-    required this.ref,
+    required this.visibilityDao,
+    required this.visibilityCloudBackup,
   });
 
-  final Ref ref;
+  final TransactionsVisibilityStatusDao visibilityDao;
+  final TransactionsVisibilityCloudBackup visibilityCloudBackup;
+
+  Timer? debounce;
 
   StreamSubscription<dynamic> startSub() {
-    final dao = ref.watch(transactionsVisibilityStatusDaoProvider);
-    Timer? debounce;
     var lastSeenCount = 0;
 
-    final sub = dao.select(dao.transactionVisibilityStatusTable).watch().listen((rows) async {
+    final sub = visibilityDao
+        .select(visibilityDao.transactionVisibilityStatusTable)
+        .watch()
+        .listen((rows) async {
       // Only backup if the number of seen entries actually changed
       final seenCount = rows.where((r) => r.status == TransactionVisibilityStatus.seen).length;
       if (seenCount != lastSeenCount) {
@@ -37,16 +54,16 @@ class TransactionsVisibilityCloudAutoBackup {
         // Debounce to avoid multiple rapid uploads
         debounce?.cancel();
         debounce = Timer(const Duration(seconds: 2), () async {
-          await ref.read(transactionsVisibilityCloudBackupProvider).backupAll();
+          await visibilityCloudBackup.backupAll();
         });
       }
     });
 
-    ref.onDispose(() {
-      debounce?.cancel();
-      sub.cancel();
-    });
-
     return sub;
+  }
+
+  void cancel() {
+    debounce?.cancel();
+    debounce = null;
   }
 }

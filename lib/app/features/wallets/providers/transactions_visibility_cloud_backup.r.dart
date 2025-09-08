@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/wallets/data/database/dao/transactions_visibility_status_dao.m.dart';
 import 'package:ion/app/services/cloud_storage/cloud_storage_service.r.dart';
@@ -17,10 +18,17 @@ TransactionsVisibilityCloudBackup transactionsVisibilityCloudBackup(
   Ref ref,
 ) {
   if (Platform.isIOS) {
+    final pubkey = ref.watch(currentPubkeySelectorProvider);
+
+    if (pubkey == null) {
+      throw const CurrentUserNotFoundException();
+    }
+
     return TransactionsVisibilityCloudBackupIos(
-      ref: ref,
       cloud: ref.watch(cloudStorageProvider),
       visibilityDao: ref.watch(transactionsVisibilityStatusDaoProvider),
+      pubkey: pubkey,
+      localStorage: ref.watch(localStorageProvider),
     );
   }
 
@@ -41,12 +49,14 @@ class TransactionsVisibilityCloudBackup {
 
 class TransactionsVisibilityCloudBackupIos implements TransactionsVisibilityCloudBackup {
   TransactionsVisibilityCloudBackupIos({
-    required this.ref,
     required this.cloud,
     required this.visibilityDao,
+    required this.pubkey,
+    required this.localStorage,
   });
 
-  final Ref ref;
+  final String pubkey;
+  final LocalStorage localStorage;
   final CloudStorageService cloud;
   final TransactionsVisibilityStatusDao visibilityDao;
 
@@ -57,8 +67,6 @@ class TransactionsVisibilityCloudBackupIos implements TransactionsVisibilityClou
     if (!Platform.isIOS) return;
 
     if (!await cloud.isAvailable()) return;
-    final pubkey = ref.read(currentPubkeySelectorProvider);
-    if (pubkey == null) return;
 
     final pairs = await visibilityDao.getSeenPairs();
 
@@ -74,11 +82,7 @@ class TransactionsVisibilityCloudBackupIos implements TransactionsVisibilityClou
 
   @override
   Future<void> restoreAll() async {
-    final pubkey = ref.read(currentPubkeySelectorProvider);
-    if (pubkey == null) return;
-
     // Check if already restored for this pubkey
-    final localStorage = ref.read(localStorageProvider);
     final restoredKey = 'transactions_visibility_restored_$pubkey';
     final alreadyRestored = localStorage.getBool(restoredKey) ?? false;
 
