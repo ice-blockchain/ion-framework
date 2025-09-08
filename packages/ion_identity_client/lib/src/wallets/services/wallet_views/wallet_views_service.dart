@@ -25,9 +25,11 @@ class WalletViewsService {
     return _walletViewsDataSource.createWalletView(userId, username, request);
   }
 
-  Future<WalletView> getWalletView({
+  Future<WalletViewResponse> getWalletView({
     required String userId,
     required String walletViewId,
+    int? limit,
+    String? paginationToken,
   }) {
     return _walletViewsDataSource.getWalletView(
       userId: userId,

@@ -6,6 +6,8 @@ import 'package:ion_identity_client/ion_identity.dart';
 part 'wallet_view.f.freezed.dart';
 part 'wallet_view.f.g.dart';
 
+typedef WalletViewResponse = ({WalletView walletView, String? nextPageToken});
+
 @freezed
 class WalletView with _$WalletView {
   const factory WalletView({

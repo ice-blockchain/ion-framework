@@ -173,9 +173,18 @@ class IONIdentityWallets {
     return _walletViewsService.createWalletView(request, userId);
   }
 
-  Future<WalletView> getWalletView(String walletViewId) {
+  Future<WalletViewResponse> getWalletView(
+    String walletViewId, {
+    int? limit,
+    String? paginationToken,
+  }) {
     final userId = _extractUserIdService.extractUserId(username: username);
-    return _walletViewsService.getWalletView(userId: userId, walletViewId: walletViewId);
+    return _walletViewsService.getWalletView(
+      userId: userId,
+      walletViewId: walletViewId,
+      limit: limit,
+      paginationToken: paginationToken,
+    );
   }
 
   Future<WalletView> updateWalletView(
