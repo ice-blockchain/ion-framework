@@ -36,16 +36,6 @@ String formatCrypto(double value, [String? currency]) {
   return formatted;
 }
 
-String _processDecimalPart(String decimalPart) {
-  // Truncate to maximum 3 decimal places
-  final truncated = decimalPart.length > 3 ? decimalPart.substring(0, 3) : decimalPart;
-
-  // Remove trailing zeros
-  final trimmed = truncated.replaceAll(RegExp(r'0+$'), '');
-
-  return trimmed;
-}
-
 String _formatWithAbbreviation(double value) {
   // Find the appropriate scale
   final scale = _scaleInfo.firstWhere((scale) => value >= scale.value);
@@ -60,7 +50,14 @@ String _formatWithAbbreviation(double value) {
     return '$integerPart${scale.suffix}';
   }
 
-  final processedDecimal = _processDecimalPart(parts[1]);
+  String processDecimalPart(String decimalPart) {
+    // Truncate to maximum 3 decimal places
+    final truncated = decimalPart.length > 3 ? decimalPart.substring(0, 3) : decimalPart;
+    // Remove trailing zeros
+    return truncated.replaceAll(RegExp(r'0+$'), '');
+  }
+
+  final processedDecimal = processDecimalPart(parts[1]);
   return processedDecimal.isEmpty
       ? '$integerPart${scale.suffix}'
       : '$integerPart.$processedDecimal${scale.suffix}';
