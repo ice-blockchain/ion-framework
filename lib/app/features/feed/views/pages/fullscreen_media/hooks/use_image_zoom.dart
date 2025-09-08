@@ -87,8 +87,8 @@ ImageZoomController useImageZoom(WidgetRef ref, {bool withReset = false}) {
 
     final endMatrix = newZoomState
         ? (Matrix4.identity()
-          ..translate(-position.dx * 2, -position.dy * 2)
-          ..scale(3.0))
+          ..translateByDouble(-position.dx * 2, -position.dy * 2, 0, 1)
+          ..scaleByDouble(3, 3, 1, 1))
         : Matrix4.identity();
 
     matrixAnimation.value = Matrix4Tween(

@@ -57,7 +57,7 @@ class RiverpodUserActionSignerRequestBuilder<T> extends HookConsumerWidget {
       }
     });
 
-    final onGetPassword = useOnGetPassword();
+    final onGetPassword = useOnGetPassword<String>();
 
     useOnInit(
       () {
@@ -72,7 +72,7 @@ class RiverpodUserActionSignerRequestBuilder<T> extends HookConsumerWidget {
   Future<void> _executeRequest(
     BuildContext context,
     WidgetRef ref,
-    Future<R> Function<R>(OnPasswordFlow<R> onPasswordFlow) onGetPassword,
+    Future<String> Function(OnPasswordFlow<String> onPasswordFlow) onGetPassword,
   ) async {
     final locale = context.i18n;
 
@@ -84,7 +84,7 @@ class RiverpodUserActionSignerRequestBuilder<T> extends HookConsumerWidget {
     final signer = await signerFactory.createSigner(
       localisedReasonForBiometrics: locale.verify_with_biometrics_title,
       localisedCancelForBiometrics: locale.button_cancel,
-      getPassword: () => onGetPassword<String>(({required String password}) async => password),
+      getPassword: () => onGetPassword(({required String password}) async => password),
     );
 
     await request(signer);
@@ -113,7 +113,7 @@ class RiverpodVerifyIdentityRequestBuilder<T, P> extends HookConsumerWidget {
       }
     });
 
-    final onGetPassword = useOnGetPassword();
+    final onGetPassword = useOnGetPassword<P>();
 
     useOnInit(
       () {
@@ -154,7 +154,7 @@ class HookVerifyIdentityRequestBuilder<P> extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final onGetPassword = useOnGetPassword();
+    final onGetPassword = useOnGetPassword<P>();
     useOnInit(
       () {
         requestWithVerifyIdentity(({

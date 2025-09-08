@@ -63,43 +63,43 @@ PODS:
     - Flutter
   - blurhash_ffi (0.0.1):
     - Flutter
-  - BNBAcneEyebagsRemoval (1.17.4):
-    - BNBEffectPlayer (= 1.17.4)
-    - BNBFaceTracker (= 1.17.4)
-    - BNBScripting (= 1.17.4)
-    - BNBSdkCore (= 1.17.4)
-  - BNBBackground (1.17.4):
-    - BNBEffectPlayer (= 1.17.4)
-    - BNBScripting (= 1.17.4)
-    - BNBSdkCore (= 1.17.4)
-  - BNBEffectPlayer (1.17.4)
-  - BNBEyes (1.17.4):
-    - BNBEffectPlayer (= 1.17.4)
-    - BNBFaceTracker (= 1.17.4)
-    - BNBScripting (= 1.17.4)
-    - BNBSdkCore (= 1.17.4)
-  - BNBFaceTracker (1.17.4):
-    - BNBEffectPlayer (= 1.17.4)
-    - BNBScripting (= 1.17.4)
-    - BNBSdkCore (= 1.17.4)
-  - BNBHair (1.17.4):
-    - BNBEffectPlayer (= 1.17.4)
-    - BNBScripting (= 1.17.4)
-    - BNBSdkCore (= 1.17.4)
+  - BNBAcneEyebagsRemoval (1.17.5):
+    - BNBEffectPlayer (= 1.17.5)
+    - BNBFaceTracker (= 1.17.5)
+    - BNBScripting (= 1.17.5)
+    - BNBSdkCore (= 1.17.5)
+  - BNBBackground (1.17.5):
+    - BNBEffectPlayer (= 1.17.5)
+    - BNBScripting (= 1.17.5)
+    - BNBSdkCore (= 1.17.5)
+  - BNBEffectPlayer (1.17.5)
+  - BNBEyes (1.17.5):
+    - BNBEffectPlayer (= 1.17.5)
+    - BNBFaceTracker (= 1.17.5)
+    - BNBScripting (= 1.17.5)
+    - BNBSdkCore (= 1.17.5)
+  - BNBFaceTracker (1.17.5):
+    - BNBEffectPlayer (= 1.17.5)
+    - BNBScripting (= 1.17.5)
+    - BNBSdkCore (= 1.17.5)
+  - BNBHair (1.17.5):
+    - BNBEffectPlayer (= 1.17.5)
+    - BNBScripting (= 1.17.5)
+    - BNBSdkCore (= 1.17.5)
   - BNBLicenseUtils (1.46.1)
-  - BNBLips (1.17.4):
-    - BNBEffectPlayer (= 1.17.4)
-    - BNBFaceTracker (= 1.17.4)
-    - BNBScripting (= 1.17.4)
-    - BNBSdkCore (= 1.17.4)
-  - BNBScripting (1.17.4)
-  - BNBSdkApi (1.17.4):
-    - BNBSdkCore (= 1.17.4)
-  - BNBSdkCore (1.17.4)
-  - BNBSkin (1.17.4):
-    - BNBEffectPlayer (= 1.17.4)
-    - BNBScripting (= 1.17.4)
-    - BNBSdkCore (= 1.17.4)
+  - BNBLips (1.17.5):
+    - BNBEffectPlayer (= 1.17.5)
+    - BNBFaceTracker (= 1.17.5)
+    - BNBScripting (= 1.17.5)
+    - BNBSdkCore (= 1.17.5)
+  - BNBScripting (1.17.5)
+  - BNBSdkApi (1.17.5):
+    - BNBSdkCore (= 1.17.5)
+  - BNBSdkCore (1.17.5)
+  - BNBSkin (1.17.5):
+    - BNBEffectPlayer (= 1.17.5)
+    - BNBScripting (= 1.17.5)
+    - BNBSdkCore (= 1.17.5)
   - camera_avfoundation (0.0.1):
     - Flutter
   - device_info_plus (0.0.1):
@@ -342,9 +342,9 @@ PODS:
     - MTBBarcodeScanner
   - quill_native_bridge_ios (0.0.1):
     - Flutter
-  - SDWebImage (5.21.1):
-    - SDWebImage/Core (= 5.21.1)
-  - SDWebImage/Core (5.21.1)
+  - SDWebImage (5.21.2):
+    - SDWebImage/Core (= 5.21.2)
+  - SDWebImage/Core (5.21.2)
   - SecureBiometricSwift (0.0.2)
   - sensors_plus (0.0.1):
     - Flutter
@@ -616,18 +616,18 @@ SPEC CHECKSUMS:
   BanubaVideoEditorSDK: d5c993350343e1b261fc520b1d9d4181da01c913
   bdk_flutter: cef9180019b4c6b67a3e3dfb74611683fe140107
   blurhash_ffi: 87aab623d744d4d6cd6057d285bd2258df904786
-  BNBAcneEyebagsRemoval: e1b94265e7a17569e9bb519552c911c292ed8e9c
-  BNBBackground: d13b70dc24046dd0e01a63c1f025309e3600c944
-  BNBEffectPlayer: 572831e1acc8741198ed9cad7af97c331dd2e2b9
-  BNBEyes: a00a016a41fba11f02abff9d316a18ffc107627d
-  BNBFaceTracker: 3e62af255e467a0741b70f3d6026d1d8f719292d
-  BNBHair: 2fc589a99b51787ba8f9b9c54567d310af0ed70b
+  BNBAcneEyebagsRemoval: 0f07ebd32c324db2fbaab950a9cf3a366d315361
+  BNBBackground: c17920efde9d44204583b92e584bc8e038a718a7
+  BNBEffectPlayer: 99861777f7e2e22b80c38bc0202e60a3adea59ec
+  BNBEyes: 32f973d6457eb607f12a97eb1133593b540ca54f
+  BNBFaceTracker: 95a690fe81fd568db76d7cc0f963ac82bc1d8c03
+  BNBHair: c7f47de6f958e128d4b6666c116e1f29490bfc76
   BNBLicenseUtils: 623c8a458f784c89333ad2b71073c47f1eac4ef1
-  BNBLips: f510db07f9e436df367433ebc6aa57a7272f7e4d
-  BNBScripting: 60ab9e8d2f88f0ce424f42b5c678a0dc48478a77
-  BNBSdkApi: c35a6a662c0e87b461f1e1b9b681289845f43e1c
-  BNBSdkCore: 888836227c66fd654f56a321e5ee1812f2e10736
-  BNBSkin: 100efe82a99ce1deb5c033ed27a5b90e9c1fbca6
+  BNBLips: c0a5e5bd51fea0c3d131678697bfa9fe11ed2a1c
+  BNBScripting: b007e372a125ac2788941999556fc87b9ce858f9
+  BNBSdkApi: 6d62a9136d97326cf3f7321f523d9e590e8fbe02
+  BNBSdkCore: 525306d0db8e734343528fabb63bd5999fa58fe4
+  BNBSkin: ea11d0dd3a922afa20a4816eef813d17ef7f3118
   camera_avfoundation: be3be85408cd4126f250386828e9b1dfa40ab436
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
@@ -645,7 +645,7 @@ SPEC CHECKSUMS:
   FirebaseCoreInternal: ef4505d2afb1d0ebbc33162cb3795382904b5679
   FirebaseInstallations: 9980995bdd06ec8081dfb6ab364162bdd64245c3
   FirebaseMessaging: 2b9f56aa4ed286e1f0ce2ee1d413aabb8f9f5cb9
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
   flutter_keyboard_visibility: 4625131e43015dbbe759d9b20daaf77e0e3f6619
   flutter_keyboard_visibility_temp_fork: 95b2d534bacf6ac62e7fcbe5c2a9e2c2a17ce06f
@@ -674,7 +674,7 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   qr_code_scanner_plus: 7e087021bc69873140e0754750eb87d867bed755
   quill_native_bridge_ios: f47af4b14e7757968486641656c5d23250cee521
-  SDWebImage: f29024626962457f3470184232766516dee8dfea
+  SDWebImage: 9f177d83116802728e122410fb25ad88f5c7608a
   SecureBiometricSwift: f8a373c07fb46c9ca1b2b53be51a485d2828a3d8
   sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b
   Sentry: da60d980b197a46db0b35ea12cb8f39af48d8854
@@ -692,6 +692,6 @@ SPEC CHECKSUMS:
   video_player_avfoundation: 2cef49524dd1f16c5300b9cd6efd9611ce03639b
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
 
-PODFILE CHECKSUM: 088c8aca1dbb11479b2f6a1f6779635d67ca83d1
+PODFILE CHECKSUM: 5ef9c8cc63a2951ccc8cb79992ebd356e2de6136
 
 COCOAPODS: 1.16.2

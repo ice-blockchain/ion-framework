@@ -24,7 +24,7 @@ class AuthenticatorSetupInstructionsPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final onGetPassword = useOnGetPassword();
+    final onGetPassword = useOnGetPassword<String>();
 
     final twoFaProvider = ref.watch(requestTwoFaCodeNotifierProvider);
     ref.displayErrors(requestTwoFaCodeNotifierProvider);
