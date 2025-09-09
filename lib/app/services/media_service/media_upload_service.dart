@@ -3,6 +3,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
@@ -18,6 +19,7 @@ class MediaUploadService {
     required this.fileAlt,
     this.imageCompressionSettings = const ImageCompressionSettings(shouldCompressGif: true),
   });
+
   final Ref ref;
   final String fileAlt;
   final ImageCompressionSettings imageCompressionSettings;
@@ -50,9 +52,16 @@ class MediaUploadService {
           file,
           settings: imageCompressionSettings,
         );
+    var thumbSourceFile = compressedImage;
+    //handling animated gif files as videos to extract thumb image
+    if (compressedImage.mimeType == MimeType.gif.value) {
+      final videoCompressor = ref.read(videoCompressorProvider);
+      final compressedVideo = await videoCompressor.compress(file);
+      thumbSourceFile = await videoCompressor.getThumbnail(compressedVideo, thumb: file.thumb);
+    }
 
     final thumbImage = await ref.read(imageCompressorProvider).scaleImage(
-          compressedImage,
+          thumbSourceFile,
         );
     final thumbUploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
           thumbImage,
