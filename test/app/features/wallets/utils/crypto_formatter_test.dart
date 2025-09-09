@@ -13,7 +13,61 @@ void main() {
       });
     });
 
-    group('values >= 10 (maximum 2 decimal places, minimum 2)', () {
+    group('values >= 1M (abbreviated format)', () {
+      parameterizedGroup('million values formatting', [
+        (value: 1000000.0, expected: '1M'),
+        (value: 1500000.0, expected: '1.5M'),
+        (value: 1500900.0, expected: '1.5M'), // truncated, not rounded
+        (value: 1999999.0, expected: '1.999M'),
+        (value: 1999900.0, expected: '1.999M'),
+        (value: 12345678.0, expected: '12.345M'),
+        (value: 12345678.999, expected: '12.345M'),
+        (value: 999999999.0, expected: '999.999M'),
+        (value: 1000000.123456, expected: '1M'), // trailing zeros removed
+        (value: 2500000.0, expected: '2.5M'),
+        (value: 2560000.0, expected: '2.56M'),
+        (value: 2567000.0, expected: '2.567M'),
+        (value: 2567890.0, expected: '2.567M'), // truncated to 3 decimals
+      ], (t) {
+        test('formatCrypto(${t.value}) returns ${t.expected}', () {
+          expect(formatCrypto(t.value), t.expected);
+        });
+      });
+
+      parameterizedGroup('billion values formatting', [
+        (value: 1000000000.0, expected: '1B'),
+        (value: 1500000000.0, expected: '1.5B'),
+        (value: 1234567890.0, expected: '1.234B'),
+        (value: 1234567890.999, expected: '1.234B'),
+        (value: 999999999999.0, expected: '999.999B'),
+        (value: 18308397101.0, expected: '18.308B'),
+        (value: 18308397101.537, expected: '18.308B'),
+      ], (t) {
+        test('formatCrypto(${t.value}) returns ${t.expected}', () {
+          expect(formatCrypto(t.value), t.expected);
+        });
+      });
+
+      parameterizedGroup('trillion values formatting', [
+        (value: 1000000000000.0, expected: '1T'),
+        (value: 1500000000000.0, expected: '1.5T'),
+        (value: 18308397101537.0, expected: '18.308T'),
+        (value: 18308397101537.31, expected: '18.308T'),
+        (value: 1234567890123456.0, expected: '1234.567T'),
+        (value: 9999999999999999.0, expected: '10000T'),
+      ], (t) {
+        test('formatCrypto(${t.value}) returns ${t.expected}', () {
+          expect(formatCrypto(t.value), t.expected);
+        });
+      });
+
+      test('boundary values near 1M', () {
+        expect(formatCrypto(999999), '999,999.00'); // stays unabbreviated
+        expect(formatCrypto(1000000), '1M'); // becomes abbreviated
+      });
+    });
+
+    group('values >= 10 and < 1M (maximum 2 decimal places, minimum 2)', () {
       parameterizedGroup('large values formatting', [
         (value: 11.0, expected: '11.00'),
         (value: 100.0, expected: '100.00'),
@@ -22,8 +76,8 @@ void main() {
         (value: 1000.0, expected: '1,000.00'),
         (value: 1000.12, expected: '1,000.12'),
         (value: 1000.123, expected: '1,000.12'),
-        (value: 1234567.89, expected: '1,234,567.89'),
-        (value: 1234567.999, expected: '1,234,567.99'),
+        (value: 999999.89, expected: '999,999.89'),
+        (value: 999999.999, expected: '999,999.99'),
         (value: 50.0, expected: '50.00'),
         (value: 99.99, expected: '99.99'),
         (value: 10.1, expected: '10.10'),
@@ -89,6 +143,12 @@ void main() {
         (value: 11.0, currency: 'DOGE', expected: '11.00 DOGE'),
         (value: 11.099999999, currency: 'DOGE', expected: '11.09 DOGE'),
         (value: 0.123456, currency: 'ADA', expected: '0.123456 ADA'),
+        // Abbreviated format with currency
+        (value: 1000000.0, currency: 'USD', expected: '1M USD'),
+        (value: 1500000.0, currency: 'BTC', expected: '1.5M BTC'),
+        (value: 1000000000.0, currency: 'ETH', expected: '1B ETH'),
+        (value: 18308397101537.31, currency: 'USD', expected: '18.308T USD'),
+        (value: 2567890.0, currency: 'SATS', expected: '2.567M SATS'),
       ], (t) {
         test('formatCrypto(${t.value}, ${t.currency}) returns ${t.expected}', () {
           expect(formatCrypto(t.value, t.currency), t.expected);
