@@ -35,8 +35,10 @@ class RelayPicker extends _$RelayPicker {
     String? sessionId,
   }) async {
     return switch (actionType) {
-      ActionType.read => _getReadActionSourceRelays(actionSource, dislikedUrls: dislikedUrls),
-      ActionType.write => _getWriteActionSourceRelays(actionSource, dislikedUrls: dislikedUrls),
+      ActionType.read =>
+        _getReadActionSourceRelays(actionSource, dislikedUrls: dislikedUrls, sessionId: sessionId),
+      ActionType.write =>
+        _getWriteActionSourceRelays(actionSource, dislikedUrls: dislikedUrls, sessionId: sessionId),
     };
   }
 
@@ -195,10 +197,15 @@ class RelayPicker extends _$RelayPicker {
             );
         final result = <IonConnectRelay, Set<String>>{};
 
-        for (final userRelayEntry in relays.entries) {
+        final relayFutures = relays.entries.map((userRelayEntry) async {
           final ionConnectRelay = await ref
               .read(relayProvider(userRelayEntry.key, anonymous: actionSource.anonymous).future);
-          result[ionConnectRelay] = userRelayEntry.value.toSet();
+          return MapEntry(ionConnectRelay, userRelayEntry.value.toSet());
+        }).toList();
+
+        final relayResults = await Future.wait(relayFutures);
+        for (final entry in relayResults) {
+          result[entry.key] = entry.value;
         }
 
         Logger.log(

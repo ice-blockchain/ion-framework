@@ -62,14 +62,15 @@ class OptimalUserRelaysService {
     required List<String> failedRelayUrls,
   }) async {
     final reachableUserRelays = await _getReachableUserRelays(masterPubkeys);
-    return {
-      for (final userRelay in reachableUserRelays)
-        userRelay.masterPubkey: (() {
-          final filteredUrls =
-              userRelay.urls.where((url) => !failedRelayUrls.contains(url)).toList();
-          return filteredUrls.isEmpty ? [userRelay.urls.first] : filteredUrls;
-        })(),
-    };
+    return Map.fromEntries(
+      reachableUserRelays.map((userRelay) {
+        final filteredUrls = userRelay.urls.where((url) => !failedRelayUrls.contains(url)).toList();
+        return MapEntry(
+          userRelay.masterPubkey,
+          filteredUrls.isEmpty ? [userRelay.urls.first] : filteredUrls,
+        );
+      }),
+    );
   }
 
   Map<String, List<String>> _getSharedRelaysByMostUsers(
@@ -77,11 +78,7 @@ class OptimalUserRelaysService {
   ) {
     Logger.log('[RELAY] userToRelays: $userToRelays');
 
-    final bestOptions = findMostMatchingOptions(userToRelays);
-
-    Logger.log('[RELAY] bestOptions: $bestOptions');
-
-    return bestOptions;
+    return findMostMatchingOptions(userToRelays);
   }
 
   Future<Map<String, List<String>>> _getSharedRelaysByBestLatency(
