@@ -138,6 +138,13 @@ Future<void> deeplinkInitializer(Ref ref) async {
         ).location;
       }
 
+      if (effectiveContentType == SharedContentType.postWithVideo) {
+        return FullscreenMediaRoute(
+          eventReference: encodedEventReference,
+          initialMediaIndex: 0,
+        ).location;
+      }
+
       return PostDetailsRoute(eventReference: encodedEventReference).location;
     }
 
@@ -338,7 +345,7 @@ final class DeepLinkService {
   /// [ogDescription] - The description to use for the deep link
   Future<String> createDeeplink({
     required String path,
-    required SharedContentType contentType,
+    SharedContentType? contentType,
     String? ogTitle,
     String? ogImageUrl,
     String? ogDescription,
@@ -356,7 +363,7 @@ final class DeepLinkService {
           brandDomain: _brandDomain,
           customParams: {
             'deep_link_value': path,
-            _contentTypeKey: contentType.value,
+            if (contentType != null) _contentTypeKey: contentType.value,
             ...?_buildOgParams(
               ogTitle: ogTitle,
               ogImageUrl: ogImageUrl,

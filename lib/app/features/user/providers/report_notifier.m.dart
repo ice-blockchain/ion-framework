@@ -54,8 +54,7 @@ class ReportNotifier extends _$ReportNotifier {
       ReportReasonContent() => () async {
           final entity =
               ref.read(ionConnectEntityProvider(eventReference: reason.eventReference)).valueOrNull;
-          final contentType =
-              entity != null ? mapEntityToSharedContentType(entity) : SharedContentType.post;
+          final contentType = entity != null ? mapEntityToSharedContentType(entity) : null;
 
           return deepLinkService.createDeeplink(
             path: reason.eventReference.encode(),

@@ -17,6 +17,7 @@ class VideoNotFound extends StatelessWidget {
             size: 40.0.s,
             color: context.theme.appColors.sheetLine,
           ),
+          SizedBox(height: 6.0.s),
           Text(
             context.i18n.video_not_found,
             style: context.theme.appTextThemes.caption2.copyWith(

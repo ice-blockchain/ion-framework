@@ -10,6 +10,8 @@ import 'package:ion/app/features/feed/views/components/overlay_menu/own_entity_m
 import 'package:ion/app/features/feed/views/components/overlay_menu/user_info_menu.dart';
 import 'package:ion/app/features/feed/views/pages/fullscreen_media/components/adaptive_media_view.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/video/views/hooks/use_status_bar_color.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
@@ -34,6 +36,10 @@ class FullscreenMediaPage extends HookConsumerWidget {
     final isOwnedByCurrentUser =
         ref.watch(isCurrentUserSelectorProvider(eventReference.masterPubkey));
 
+    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
+
+    final isDeleted = entity is SoftDeletableEntity && entity.isDeleted;
+
     return Material(
       color: Colors.transparent,
       child: StatusBarColorWrapper.light(
@@ -51,23 +57,25 @@ class FullscreenMediaPage extends HookConsumerWidget {
               ),
             ),
             onBackPress: () => context.pop(),
-            actions: [
-              Padding(
-                padding: EdgeInsetsDirectional.only(end: 6.0.s),
-                child: isOwnedByCurrentUser
-                    ? OwnEntityMenu(
-                        eventReference: eventReference,
-                        iconColor: context.theme.appColors.onPrimaryAccent,
-                        onDelete: () {
-                          context.canPop();
-                        },
-                      )
-                    : UserInfoMenu(
-                        eventReference: eventReference,
-                        iconColor: context.theme.appColors.onPrimaryAccent,
-                      ),
-              ),
-            ],
+            actions: isDeleted
+                ? null
+                : [
+                    Padding(
+                      padding: EdgeInsetsDirectional.only(end: 6.0.s),
+                      child: isOwnedByCurrentUser
+                          ? OwnEntityMenu(
+                              eventReference: eventReference,
+                              iconColor: context.theme.appColors.onPrimaryAccent,
+                              onDelete: () {
+                                context.canPop();
+                              },
+                            )
+                          : UserInfoMenu(
+                              eventReference: eventReference,
+                              iconColor: context.theme.appColors.onPrimaryAccent,
+                            ),
+                    ),
+                  ],
           ),
           body: AdaptiveMediaView(
             eventReference: eventReference,
