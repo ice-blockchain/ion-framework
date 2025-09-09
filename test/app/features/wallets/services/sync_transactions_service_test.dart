@@ -14,6 +14,7 @@ import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
+import 'package:ion/app/features/wallets/providers/transactions_visibility_cloud_backup.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -32,6 +33,7 @@ void main() {
   late MockTransferStatusUpdater mockTransferStatusUpdater;
   late MockWalletViewsService mockWalletViewsService;
   late MockTransactionsRepository mockTransactionsRepository;
+  late MockTransactionsVisibilityCloudBackup mockTransactionsVisibilityCloudBackup;
   late SyncTransactionsService service;
 
   setUpAll(() {
@@ -54,6 +56,7 @@ void main() {
     mockTransferStatusUpdater = MockTransferStatusUpdater();
     mockWalletViewsService = MockWalletViewsService();
     mockTransactionsRepository = MockTransactionsRepository();
+    mockTransactionsVisibilityCloudBackup = MockTransactionsVisibilityCloudBackup();
 
     service = SyncTransactionsService(
       mockUserWallets,
@@ -63,6 +66,7 @@ void main() {
       mockTransferStatusUpdater,
       mockWalletViewsService,
       mockTransactionsRepository,
+      mockTransactionsVisibilityCloudBackup,
     );
   });
 
@@ -72,6 +76,9 @@ void main() {
     MockSetupHelper.setupCryptoWalletMocks(mockCryptoWalletsRepository);
     MockSetupHelper.setupTransactionLoaderMocks(mockTransactionLoader);
     MockSetupHelper.setupTransferStatusUpdaterMocks(mockTransferStatusUpdater);
+    MockSetupHelper.setupTransactionsVisibilityCloudBackupMocks(
+      mockTransactionsVisibilityCloudBackup,
+    );
   }
 
   void setupBroadcastedTransfersMocks() {
@@ -86,6 +93,9 @@ void main() {
     );
     MockSetupHelper.setupTransactionLoaderMocks(mockTransactionLoader, returnValue: true);
     MockSetupHelper.setupTransferStatusUpdaterMocks(mockTransferStatusUpdater);
+    MockSetupHelper.setupTransactionsVisibilityCloudBackupMocks(
+      mockTransactionsVisibilityCloudBackup,
+    );
   }
 
   group('SyncTransactionsService', () {
@@ -190,6 +200,8 @@ void main() {
       });
 
       test('skips sync when wallet network is not supported', () async {
+        setupStandardMocks();
+
         when(() => mockNetworksRepository.getAllAsMap()).thenAnswer(
           (_) async => {
             'network1': FakeNetworkData.create(
@@ -287,6 +299,8 @@ void main() {
       });
 
       test('skips sync when wallet is not connected to any wallet view', () async {
+        setupStandardMocks();
+
         when(() => mockNetworksRepository.getAllAsMap()).thenAnswer(
           (_) async => {
             'network1': FakeNetworkData.create(
