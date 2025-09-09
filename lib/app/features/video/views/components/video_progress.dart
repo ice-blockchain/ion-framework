@@ -23,6 +23,7 @@ class VideoProgress extends HookWidget {
     final value = useValueListenable(controller);
     final animationController = useAnimationController(
       duration: value.duration,
+      animationBehavior: AnimationBehavior.preserve,
       keys: [value.duration],
     );
 
