@@ -145,6 +145,7 @@ class SendChatMedia extends _$SendChatMedia {
       final MediaFile thumbMediaFile;
 
       if (mediaFile.mimeType == MimeType.gif.value) {
+        // FFmpeg cannot process animated webp as an input, so we use the original GIF file as the thumbnail
         thumbMediaFile = mediaFile;
       } else {
         thumbMediaFile = await ref.read(imageCompressorProvider).scaleImage(
