@@ -47,6 +47,8 @@ class OptimalUserRelaysService {
     final userToRelays =
         await _getUserRelays(masterPubkeys, failedRelayUrls: failedRelayUrls ?? []);
 
+    Logger.log('[RELAY] userToRelays: $userToRelays');
+
     final optimalRelays = switch (strategy) {
       OptimalRelaysStrategy.mostUsers => _getSharedRelaysByMostUsers(userToRelays),
       OptimalRelaysStrategy.bestLatency => await _getSharedRelaysByBestLatency(userToRelays),
@@ -76,8 +78,6 @@ class OptimalUserRelaysService {
   Map<String, List<String>> _getSharedRelaysByMostUsers(
     Map<String, List<String>> userToRelays,
   ) {
-    Logger.log('[RELAY] userToRelays: $userToRelays');
-
     return findMostMatchingOptions(userToRelays);
   }
 
