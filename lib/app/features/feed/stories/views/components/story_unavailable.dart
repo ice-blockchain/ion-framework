@@ -24,7 +24,7 @@ class StoryUnavailable extends StatelessWidget {
       child: ColoredBox(
         color: context.theme.appColors.primaryText,
         child: Padding(
-          padding: EdgeInsets.only(top: fixedTop, bottom: footerHeight),
+          padding: EdgeInsetsDirectional.only(top: fixedTop, bottom: footerHeight),
           child: SizedBox(
             child: ColoredBox(
               color: context.theme.appColors.postContent,
