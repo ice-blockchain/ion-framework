@@ -22,7 +22,6 @@ import 'package:ion/app/features/wallets/model/network_fee_option.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
-import 'package:ion/app/features/wallets/providers/transaction_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/arrival_time/list_item_arrival_time.dart';
 import 'package:ion/app/features/wallets/views/components/network_fee/list_item_network_fee.dart';
@@ -42,7 +41,7 @@ class ConfirmationSheet extends ConsumerWidget {
     super.key,
   });
 
-  final String Function() successRouteLocationBuilder;
+  final String Function(String walletViewId, String txHash) successRouteLocationBuilder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -69,9 +68,14 @@ class ConfirmationSheet extends ConsumerWidget {
         );
 
         if (context.mounted && transactionDetails != null) {
-          ref.read(transactionNotifierProvider.notifier).details = transactionDetails;
-
-          unawaited(context.push(successRouteLocationBuilder()));
+          unawaited(
+            context.push(
+              successRouteLocationBuilder(
+                transactionDetails.walletViewId,
+                transactionDetails.txHash,
+              ),
+            ),
+          );
         }
       });
 

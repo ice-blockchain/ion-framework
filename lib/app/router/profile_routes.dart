@@ -187,7 +187,9 @@ class SendCoinsConfirmationProfileRoute extends BaseRouteData
   SendCoinsConfirmationProfileRoute()
       : super(
           child: ConfirmationSheet(
-            successRouteLocationBuilder: () => CoinTransactionResultProfileRoute().location,
+            successRouteLocationBuilder: (walletViewId, txHash) =>
+                CoinTransactionResultProfileRoute(walletViewId: walletViewId, txHash: txHash)
+                    .location,
           ),
           type: IceRouteType.bottomSheet,
         );
@@ -195,26 +197,41 @@ class SendCoinsConfirmationProfileRoute extends BaseRouteData
 
 class CoinTransactionResultProfileRoute extends BaseRouteData
     with _$CoinTransactionResultProfileRoute {
-  CoinTransactionResultProfileRoute()
-      : super(
+  CoinTransactionResultProfileRoute({
+    required this.walletViewId,
+    required this.txHash,
+  }) : super(
           child: TransactionResultSheet(
-            transactionDetailsRouteLocationBuilder: () =>
-                CoinTransactionDetailsProfileRoute().location,
+            walletViewId: walletViewId,
+            txHash: txHash,
+            transactionDetailsRouteLocationBuilder: (walletViewId, txHash) =>
+                CoinTransactionDetailsProfileRoute(walletViewId: walletViewId, txHash: txHash)
+                    .location,
           ),
           type: IceRouteType.bottomSheet,
         );
+
+  final String walletViewId;
+  final String txHash;
 }
 
 class CoinTransactionDetailsProfileRoute extends BaseRouteData
     with _$CoinTransactionDetailsProfileRoute {
-  CoinTransactionDetailsProfileRoute()
-      : super(
+  CoinTransactionDetailsProfileRoute({
+    required this.walletViewId,
+    required this.txHash,
+  }) : super(
           child: TransactionDetailsPage(
+            walletViewId: walletViewId,
+            txHash: txHash,
             exploreRouteLocationBuilder: (url) =>
                 ExploreTransactionDetailsProfileRoute(url: url).location,
           ),
           type: IceRouteType.bottomSheet,
         );
+
+  final String walletViewId;
+  final String txHash;
 }
 
 class ExploreTransactionDetailsProfileRoute extends BaseRouteData

@@ -36,7 +36,7 @@ class TransactionDetails with _$TransactionDetails {
 
   factory TransactionDetails.fromTransactionData(
     TransactionData transaction, {
-    required CoinsGroup coinsGroup,
+    CoinsGroup? coinsGroup,
     String? walletViewName,
   }) {
     final fee = transaction.fee;
@@ -51,15 +51,20 @@ class TransactionDetails with _$TransactionDetails {
       walletViewId: transaction.walletViewId,
       type: transaction.type,
       assetData: transaction.cryptoAsset.map(
-        coin: (coin) => CryptoAssetToSendData.coin(
-          coinsGroup: coinsGroup,
-          amount: coin.amount,
-          rawAmount: coin.rawAmount,
-          amountUSD: coin.amountUSD,
-        ),
+        coin: (coin) {
+          if (coinsGroup == null) {
+            throw StateError('CoinsGroup is required for coin transactions');
+          }
+          return CryptoAssetToSendData.coin(
+            coinsGroup: coinsGroup,
+            amount: coin.amount,
+            rawAmount: coin.rawAmount,
+            amountUSD: coin.amountUSD,
+          );
+        },
         nft: (nft) => CryptoAssetToSendData.nft(nft: nft.nft),
-        nftIdentifier: (_) => throw const FormatException(
-          'NFT identifier is not supported for the TransactionDetails',
+        nftIdentifier: (nftIdentifier) => throw const FormatException(
+          'NFT identifier should be resolved to full NFT data before creating TransactionDetails',
         ),
       ),
       walletViewName: walletViewName,

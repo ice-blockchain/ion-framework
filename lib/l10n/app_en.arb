@@ -414,6 +414,8 @@
   "wallet_transaction_successful": "Transfer successful",
   "wallet_transaction_details": "Details",
   "wallet_transaction_details_arrival_time_format": "dd.MM.yyyy HH:mm:ss",
+  "wallet_transaction_general_error_desc": "An unpredictable error has occurred. Update your wallet and try again later.",
+  "wallet_back_to_wallet": "Back to wallet",
   "wallet_explore_transaction_details_title": "View on explorer",
   "wallet_invite_friends": "Invite friend",
   "wallet_friends_does_not_have_account": "Your friend doesn't have an Ice account.",
