@@ -194,8 +194,14 @@ bool isNicknameProven(Ref ref, String pubkey) {
   final pubkeys = ref.watch(servicePubkeysProvider).valueOrNull ?? [];
 
   return profileBadgesData?.entries.any((entry) {
-        final isBadgeAwardValid =
-            pubkeys.isEmpty || ref.watch(cachedBadgeAwardProvider(entry.awardId, pubkeys)) != null;
+        final cachedAward =
+            pubkeys.isEmpty ? null : ref.watch(cachedBadgeAwardProvider(entry.awardId, pubkeys));
+
+        if (cachedAward == null && _isBadgeAwardLoading(ref, entry.awardId, pubkeys)) {
+          return true;
+        }
+
+        final isBadgeAwardValid = pubkeys.isEmpty || cachedAward != null;
         final isBadgeDefinitionValid =
             ref.watch(isValidNicknameProofBadgeDefinitionProvider(entry.definitionRef, pubkeys));
         return isBadgeDefinitionValid &&
@@ -203,6 +209,26 @@ bool isNicknameProven(Ref ref, String pubkey) {
             entry.definitionRef.dTag.endsWith('~${userMetadata!.data.name}');
       }) ??
       false;
+}
+
+bool _isBadgeAwardLoading(
+  Ref ref,
+  String awardId,
+  List<String> servicePubkeys,
+) {
+  if (servicePubkeys.isEmpty) return false;
+
+  return servicePubkeys.any((servicePubkey) {
+    final asyncAward = ref.watch(
+      ionConnectEntityProvider(
+        eventReference: ImmutableEventReference(
+          masterPubkey: servicePubkey,
+          eventId: awardId,
+        ),
+      ),
+    );
+    return asyncAward.isLoading;
+  });
 }
 
 @Riverpod(keepAlive: true)
