@@ -47,7 +47,9 @@ class OptimalUserRelaysService {
     final userToRelays =
         await _getUserRelays(masterPubkeys, failedRelayUrls: failedRelayUrls ?? []);
 
-    Logger.log('[RELAY] userToRelays: $userToRelays');
+    Logger.log(
+      '[RELAY] userToRelays: $userToRelays with failedRelayUrls: ${failedRelayUrls ?? []}',
+    );
 
     final optimalRelays = switch (strategy) {
       OptimalRelaysStrategy.mostUsers => _getSharedRelaysByMostUsers(userToRelays),
