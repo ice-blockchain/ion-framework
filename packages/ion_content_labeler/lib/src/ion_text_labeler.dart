@@ -3,20 +3,22 @@
 import 'dart:convert';
 import 'dart:isolate';
 
-import 'package:ion_content_labeler/src/ffi/fast_text.dart';
 import 'package:ion_content_labeler/ion_content_labeler.dart';
+import 'package:ion_content_labeler/src/ffi/fast_text.dart';
 
 enum TextLabelerModel {
   language(AssetModelFile(name: 'language_identification.176.ftz')),
-  category(NetworkModelFile(
-    name: 'labeling_v3',
-    url:
-        'https://github.com/ice-blockchain/ion-app/raw/063772ec0dd75fac8946b2f33fb4ea33d04308aa/assets/labeling_3.ftz',
-  ));
-
-  final ModelFile file;
+  category(
+    NetworkModelFile(
+      name: 'labeling_v3',
+      url:
+          'https://github.com/ice-blockchain/ion-app/raw/063772ec0dd75fac8946b2f33fb4ea33d04308aa/assets/labeling_3.ftz',
+    ),
+  );
 
   const TextLabelerModel(this.file);
+
+  final ModelFile file;
 }
 
 class IONTextLabeler {
@@ -40,7 +42,7 @@ class IONTextLabeler {
     });
 
     final labels = (jsonDecode(predictionsJson) as List<dynamic>)
-        .map((prediction) => _normalizeLabel(Label.fromMap(prediction)))
+        .map((prediction) => _normalizeLabel(Label.fromMap(prediction as Map<String, dynamic>)))
         .toList();
 
     return TextLabelerResult(

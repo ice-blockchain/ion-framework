@@ -1,5 +1,14 @@
-include: package:flutter_lints/flutter.yaml
+include: package:very_good_analysis/analysis_options.yaml
 
 analyzer:
   plugins:
     - custom_lint
+
+linter:
+  rules:
+    public_member_api_docs: false
+    flutter_style_todos: false
+    comment_references: false
+    avoid_setters_without_getters: false
+    lines_longer_than_80_chars: false
+    one_member_abstracts: false
