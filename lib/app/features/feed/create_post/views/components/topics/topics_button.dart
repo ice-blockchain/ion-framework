@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/button/tag_button.dart';
 import 'package:ion/app/components/showcase/showcase_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/create_post/views/components/topics/topics_button_tooltip.dart';
@@ -88,45 +89,12 @@ class TopicsButton extends HookConsumerWidget {
         ref.read(topicTooltipVisibilityNotifierProvider.notifier).hide();
         _onTap(context);
       },
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => _onTap(context),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14.0.s),
-            color: context.theme.appColors.primaryBackground,
-          ),
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 4.s, horizontal: 6.s),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Assets.svg.walletChannelPrivate.icon(
-                  color: context.theme.appColors.primaryAccent,
-                  size: 16.s,
-                ),
-                SizedBox(width: 2.s),
-                Flexible(
-                  child: Text(
-                    selectedSubcategories.isEmpty
-                        ? context.i18n.create_post_add_topic
-                        : selectedSubcategories.map((topic) => topic.display).join(', '),
-                    style: context.theme.appTextThemes.caption2.copyWith(
-                      color: context.theme.appColors.primaryAccent,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                SizedBox(width: 2.s),
-                Assets.svg.iconArrowRight.icon(
-                  color: context.theme.appColors.primaryAccent,
-                  size: 14.s,
-                ),
-              ],
-            ),
-          ),
-        ),
+      child: TagButton(
+        onPressed: () => _onTap(context),
+        label: selectedSubcategories.isEmpty
+            ? context.i18n.create_post_add_topic
+            : selectedSubcategories.map((topic) => topic.display).join(', '),
+        leadingIcon: Assets.svg.walletChannelPrivate,
       ),
     );
   }
