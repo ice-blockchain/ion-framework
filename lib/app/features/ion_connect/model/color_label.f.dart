@@ -2,6 +2,8 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/ion_connect/model/label_namespace_tag.f.dart';
+import 'package:ion/app/features/ion_connect/model/label_value_tag.f.dart';
 
 part 'color_label.f.freezed.dart';
 
@@ -14,33 +16,26 @@ class ColorLabel with _$ColorLabel {
   const ColorLabel._();
 
   List<String> toNamespaceTag() {
-    return [namespaceTagName, namespace];
+    return const LabelNamespaceTag(value: namespace).toTag();
   }
 
   List<String> toValueTag() {
-    return [tagName, value, namespace];
+    return LabelValueTag(value: value, namespace: namespace).toTag();
   }
 
   static ColorLabel? fromTags(Map<String, List<List<String>>> tags, {required String eventId}) {
-    final hasNamespaceTag =
-        tags[ColorLabel.namespaceTagName]?.any(ColorLabel._isColorNamespace) ?? false;
+    final colorNamespaceTag = LabelNamespaceTag.fromTags(tags, namespace: namespace);
 
-    if (!hasNamespaceTag) return null;
+    if (colorNamespaceTag == null) return null;
 
-    final colorTag = tags[ColorLabel.tagName]?.first;
+    final colorTags = LabelValueTag.fromTags(tags, namespace: namespace);
 
-    if (colorTag == null) {
+    if (colorTags == null) {
       throw IncorrectEventTagsException(eventId: eventId);
     }
 
-    return ColorLabel(value: colorTag[1]);
+    return ColorLabel(value: colorTags.first.value);
   }
 
-  static bool _isColorNamespace(List<String> tag) {
-    return tag.length > 1 && tag[0] == namespaceTagName && tag[1] == namespace;
-  }
-
-  static const String tagName = 'l';
-  static const String namespaceTagName = 'L';
   static const String namespace = 'color';
 }

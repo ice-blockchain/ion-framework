@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 
@@ -10,6 +11,8 @@ class LabelNamespaceTag with _$LabelNamespaceTag {
   const factory LabelNamespaceTag({
     required String value,
   }) = _LabelNamespaceTag;
+
+  const LabelNamespaceTag._();
 
   factory LabelNamespaceTag.fromTag(List<String> tag) {
     if (tag[0] != tagName) {
@@ -22,7 +25,13 @@ class LabelNamespaceTag with _$LabelNamespaceTag {
     return LabelNamespaceTag(value: tag[1]);
   }
 
-  const LabelNamespaceTag._();
+  static LabelNamespaceTag? fromTags(
+    Map<String, List<List<String>>> tags, {
+    required String namespace,
+  }) {
+    final namespaceTag = tags[tagName]?.firstWhereOrNull((tag) => tag.lastOrNull == namespace);
+    return namespaceTag != null ? LabelNamespaceTag.fromTag(namespaceTag) : null;
+  }
 
   static const String tagName = 'L';
 

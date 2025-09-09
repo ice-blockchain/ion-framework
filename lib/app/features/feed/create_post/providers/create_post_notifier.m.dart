@@ -79,6 +79,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     String? communityId,
     PollData? poll,
     Set<String> topics = const {},
+    String? language,
   }) async {
     state = const AsyncValue.loading();
 
