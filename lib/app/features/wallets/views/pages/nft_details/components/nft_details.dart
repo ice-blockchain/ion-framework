@@ -40,6 +40,7 @@ class NftDetails extends ConsumerWidget {
       children: [
         NftPicture(
           imageUrl: nftData.imageUrl,
+          size: Size(180.0.s, 170.0.s),
         ),
         SizedBox(height: 15.0.s),
         NftName(

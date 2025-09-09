@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/features/wallets/model/nft_data.f.dart';
+import 'package:ion/app/features/wallets/views/components/nft_picture.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/nfts/nfts_network.dart';
 
 class NftListItem extends StatelessWidget {
@@ -26,9 +26,10 @@ class NftListItem extends StatelessWidget {
       onTap: onTap,
       subtitle: Text('#${nftData.tokenId}'),
       backgroundColor: context.theme.appColors.tertiaryBackground,
-      leading: Avatar(
-        size: 36.0.s,
+      leading: NftPicture(
         imageUrl: nftData.imageUrl,
+        size: Size(36.0.s, 36.0.s),
+        borderRadius: 10,
       ),
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
