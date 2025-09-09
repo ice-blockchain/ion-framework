@@ -11,7 +11,7 @@ class VideoThumbnailPreview extends ConsumerWidget {
     required this.thumbnailUrl,
     this.blurhash,
     this.authorPubkey,
-    this.fit = BoxFit.cover,
+    this.fit = BoxFit.contain,
     super.key,
   });
 

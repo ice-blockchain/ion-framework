@@ -74,10 +74,15 @@ class VideoPage extends HookConsumerWidget {
     if (playerController == null || !playerController.value.isInitialized) {
       final thumbnailAspectRatio = aspectRatio ?? MediaAspectRatio.landscape;
 
-      Widget thumbnailWidget = VideoThumbnailPreview(
-        thumbnailUrl: thumbnailUrl,
-        blurhash: blurhash,
-        authorPubkey: authorPubkey,
+      Widget thumbnailWidget = Padding(
+        padding: EdgeInsetsDirectional.only(
+          bottom: !hideBottomOverlay ? videoBottomPadding.s : 0,
+        ),
+        child: VideoThumbnailPreview(
+          thumbnailUrl: thumbnailUrl,
+          blurhash: blurhash,
+          authorPubkey: authorPubkey,
+        ),
       );
 
       if (thumbnailAspectRatio < 1) {
