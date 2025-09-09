@@ -35,7 +35,7 @@ class EmptyState extends ConsumerWidget {
 
     final asset = toShowNoResults ? Assets.svg.walletIconWalletEmptysearch : tabType.emptyListAsset;
     final title =
-        toShowNoResults ? context.i18n.core_empty_search : tabType.getEmptyListTitle(context);
+    toShowNoResults ? context.i18n.core_empty_search : tabType.getEmptyListTitle(context);
 
     return SliverFillRemaining(
       hasScrollBody: false,
@@ -43,33 +43,32 @@ class EmptyState extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            if (tabType == WalletTabType.nfts) const NftHeaderSelectAction(),
             Expanded(
               child: tabType == WalletTabType.nfts
                   ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        EmptyList(
-                          asset: asset,
-                          title: title,
-                        ),
-                        SizedBox(height: 8.s),
-                        TextButton(
-                          onPressed: () {
-                            SelectNetworkToReceiveNftRoute().push<void>(ref.context);
-                          },
-                          child: Text(
-                            context.i18n.wallet_receive_nft,
-                            style: context.theme.appTextThemes.caption
-                                .copyWith(color: context.theme.appColors.primaryAccent),
-                          ),
-                        ),
-                      ],
-                    )
-                  : EmptyList(
-                      asset: asset,
-                      title: title,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  EmptyList(
+                    asset: asset,
+                    title: title,
+                  ),
+                  SizedBox(height: 8.s),
+                  TextButton(
+                    onPressed: () {
+                      SelectNetworkToReceiveNftRoute().push<void>(ref.context);
+                    },
+                    child: Text(
+                      context.i18n.wallet_receive_nft,
+                      style: context.theme.appTextThemes.caption
+                          .copyWith(color: context.theme.appColors.primaryAccent),
                     ),
+                  ),
+                ],
+              )
+                  : EmptyList(
+                asset: asset,
+                title: title,
+              ),
             ),
             if (!isSearchVisible && tabType != WalletTabType.nfts)
               BottomAction(
