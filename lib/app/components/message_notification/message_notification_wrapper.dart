@@ -14,7 +14,7 @@ class MessageNotificationWrapper extends HookConsumerWidget {
 
   final Widget child;
 
-  static const animationDuration = Duration(milliseconds: 00);
+  static const animationDuration = Duration(milliseconds: 500);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
