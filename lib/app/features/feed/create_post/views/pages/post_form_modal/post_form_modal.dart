@@ -14,12 +14,12 @@ import 'package:ion/app/features/feed/create_post/model/create_post_option.dart'
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/create_post_app_bar.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/create_post_bottom_panel.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/create_post_content.dart';
+import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_media_links.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_post_quill_controller.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
 import 'package:ion/app/features/feed/views/pages/cancel_creation_modal/cancel_creation_modal.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
@@ -193,7 +193,9 @@ class PostFormModal extends HookConsumerWidget {
             )
           : null,
     );
-    final attachedMediaLinksNotifier = useState<Map<String, MediaAttachment>>({});
+
+    final attachedMediaLinksNotifier =
+        useAttachedMediaLinksNotifier(ref, modifiedEvent: modifiedEvent);
 
     if (modifiedEvent != null) {
       useEffect(
@@ -204,7 +206,6 @@ class PostFormModal extends HookConsumerWidget {
           if (modifiedEntity is! ModifiablePostEntity) {
             throw UnsupportedEventReference(modifiedEvent);
           }
-          attachedMediaLinksNotifier.value = modifiedEntity.data.media;
           final topics = RelatedHashtag.extractTopics(modifiedEntity.data.relatedHashtags);
           WidgetsBinding.instance.addPostFrameCallback(
             (_) => ref.read(selectedInterestsNotifierProvider.notifier).interests = topics,
