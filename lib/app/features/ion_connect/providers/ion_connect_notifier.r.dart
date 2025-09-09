@@ -255,6 +255,8 @@ class IonConnectNotifier extends _$IonConnectNotifier {
                   .handleRelayAuthOnAction(actionSource: actionSource, error: error);
             }
 
+            // Filter authors to prevent duplicate events when using optimal relays,
+            // ensuring that shared relays between different requests do not return the same records multiple times.
             final updatedFilters = requestMessage.filters
                 .map(
                   (filter) => filter.copyWith(
