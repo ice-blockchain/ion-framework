@@ -5,6 +5,7 @@ import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/relays/relay_selectors.dart';
 import 'package:ion/app/features/user/providers/relays/relevant_user_relays_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'optimal_user_relays_provider.r.g.dart';
@@ -39,22 +40,41 @@ class OptimalUserRelaysService {
   Future<Map<String, List<String>>> fetch({
     required List<String> masterPubkeys,
     required OptimalRelaysStrategy strategy,
+    List<String>? failedRelayUrls,
   }) async {
     if (masterPubkeys.isEmpty) return {};
 
-    final userToRelays = await _getUserRelays(masterPubkeys);
+    final userToRelays =
+        await _getUserRelays(masterPubkeys, failedRelayUrls: failedRelayUrls ?? []);
 
-    return switch (strategy) {
+    Logger.log(
+      '[RELAY] userToRelays: $userToRelays with failedRelayUrls: ${failedRelayUrls ?? []}',
+    );
+
+    final optimalRelays = switch (strategy) {
       OptimalRelaysStrategy.mostUsers => _getSharedRelaysByMostUsers(userToRelays),
       OptimalRelaysStrategy.bestLatency => await _getSharedRelaysByBestLatency(userToRelays),
     };
+
+    Logger.log('[RELAY] optimalRelays: $optimalRelays');
+
+    return optimalRelays;
   }
 
-  Future<Map<String, List<String>>> _getUserRelays(List<String> masterPubkeys) async {
+  Future<Map<String, List<String>>> _getUserRelays(
+    List<String> masterPubkeys, {
+    required List<String> failedRelayUrls,
+  }) async {
     final reachableUserRelays = await _getReachableUserRelays(masterPubkeys);
-    return {
-      for (final userRelay in reachableUserRelays) userRelay.masterPubkey: userRelay.urls,
-    };
+    return Map.fromEntries(
+      reachableUserRelays.map((userRelay) {
+        final filteredUrls = userRelay.urls.where((url) => !failedRelayUrls.contains(url)).toList();
+        return MapEntry(
+          userRelay.masterPubkey,
+          filteredUrls.isEmpty ? [userRelay.urls.first] : filteredUrls,
+        );
+      }),
+    );
   }
 
   Map<String, List<String>> _getSharedRelaysByMostUsers(

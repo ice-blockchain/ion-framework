@@ -21,6 +21,7 @@ import 'package:ion/app/features/search/model/feed_search_source.dart';
 import 'package:ion/app/features/search/providers/feed_search_filter_relays_provider.r.dart';
 import 'package:ion/app/features/search/providers/feed_search_filters_provider.m.dart';
 import 'package:ion/app/features/user/model/interest_set.f.dart';
+import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_interests_set_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -37,7 +38,8 @@ List<EntitiesDataSource>? feedSearchPostsDataSource(
   final languageInterestSet =
       ref.watch(currentUserInterestsSetProvider(InterestSetType.languages)).valueOrNull;
   final filters = ref.watch(feedSearchFilterProvider);
-  final filterRelays = ref.watch(feedSearchFilterRelaysProvider(filters.source)).valueOrNull;
+  final filterRelayMasterPubkeys =
+      ref.watch(feedSearchFilterRelayMasterPubkeysProvider(filters.source)).valueOrNull;
   final currentPubkey = ref.watch(currentPubkeySelectorProvider);
 
   final isTagSearch = RelatedHashtag.isTag(query);
@@ -61,22 +63,24 @@ List<EntitiesDataSource>? feedSearchPostsDataSource(
         }
       : <String, List<Object>>{};
 
-  if (filterRelays != null && currentPubkey != null) {
+  if (filterRelayMasterPubkeys != null && currentPubkey != null) {
     return [
-      for (final entry in filterRelays.entries)
-        _buildSearchDataSource(
-          actionSource: ActionSourceRelayUrl(entry.key),
-          authors: filters.source == FeedSearchSource.following ? entry.value : null,
-          filters: _buildFilters(
-            authors: filters.source == FeedSearchSource.following ? entry.value : null,
-            currentPubkey: currentPubkey,
-            tags: tags,
-            searchExtensions: searchExtensions,
-            includePosts: filters.categories[FeedCategory.feed].falseOrValue ||
-                filters.categories[FeedCategory.videos].falseOrValue,
-            includeArticles: filters.categories[FeedCategory.articles].falseOrValue,
-          ),
+      _buildSearchDataSource(
+        actionSource: ActionSourceOptimalRelays(
+          masterPubkeys: filterRelayMasterPubkeys,
+          strategy: OptimalRelaysStrategy.mostUsers,
         ),
+        authors: filters.source == FeedSearchSource.following ? filterRelayMasterPubkeys : null,
+        filters: _buildFilters(
+          authors: filters.source == FeedSearchSource.following ? filterRelayMasterPubkeys : null,
+          currentPubkey: currentPubkey,
+          tags: tags,
+          searchExtensions: searchExtensions,
+          includePosts: filters.categories[FeedCategory.feed].falseOrValue ||
+              filters.categories[FeedCategory.videos].falseOrValue,
+          includeArticles: filters.categories[FeedCategory.articles].falseOrValue,
+        ),
+      ),
     ];
   }
   return null;

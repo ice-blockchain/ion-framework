@@ -12,6 +12,7 @@ import 'package:ion/app/features/ion_connect/providers/relays/active_relays_prov
 import 'package:ion/app/features/ion_connect/providers/relays/relay_provider.r.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
+import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/ranked_user_relays_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/relevant_user_relays_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
@@ -27,7 +28,7 @@ class RelayPicker extends _$RelayPicker {
   @override
   FutureOr<void> build() {}
 
-  Future<IonConnectRelay> getActionSourceRelay(
+  Future<Map<IonConnectRelay, Set<String>>> getActionSourceRelays(
     ActionSource actionSource, {
     required ActionType actionType,
     DislikedRelayUrlsCollection dislikedUrls = const DislikedRelayUrlsCollection({}),
@@ -35,13 +36,13 @@ class RelayPicker extends _$RelayPicker {
   }) async {
     return switch (actionType) {
       ActionType.read =>
-        _getReadActionSourceRelay(actionSource, dislikedUrls: dislikedUrls, sessionId: sessionId),
+        _getReadActionSourceRelays(actionSource, dislikedUrls: dislikedUrls, sessionId: sessionId),
       ActionType.write =>
-        _getWriteActionSourceRelay(actionSource, dislikedUrls: dislikedUrls, sessionId: sessionId),
+        _getWriteActionSourceRelays(actionSource, dislikedUrls: dislikedUrls, sessionId: sessionId),
     };
   }
 
-  Future<IonConnectRelay> _getWriteActionSourceRelay(
+  Future<Map<IonConnectRelay, Set<String>>> _getWriteActionSourceRelays(
     ActionSource actionSource, {
     DislikedRelayUrlsCollection dislikedUrls = const DislikedRelayUrlsCollection({}),
     String? sessionId,
@@ -68,7 +69,8 @@ class RelayPicker extends _$RelayPicker {
       Logger.warning(
         '$sessionPrefix[RELAY] No available write relays found for action source: $actionSource. Fallback to read action source relay.',
       );
-      return _getReadActionSourceRelay(
+
+      return _getReadActionSourceRelays(
         actionSource,
         dislikedUrls: dislikedUrls,
         sessionId: sessionId,
@@ -80,10 +82,12 @@ class RelayPicker extends _$RelayPicker {
     Logger.log(
       '$sessionPrefix[RELAY] Write relay selected: $chosenRelayUrl from pool: $filteredWriteRelayUrls, disliked: ${dislikedUrls.urls}',
     );
-    return ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
+    final chosenRelay =
+        await ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
+    return {chosenRelay: {}};
   }
 
-  Future<IonConnectRelay> _getReadActionSourceRelay(
+  Future<Map<IonConnectRelay, Set<String>>> _getReadActionSourceRelays(
     ActionSource actionSource, {
     DislikedRelayUrlsCollection dislikedUrls = const DislikedRelayUrlsCollection({}),
     String? sessionId,
@@ -114,11 +118,15 @@ class RelayPicker extends _$RelayPicker {
         Logger.log(
           '$sessionPrefix[RELAY] Current user read relay selected: $chosenRelayUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
         );
-        return ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
+        final chosenRelay =
+            await ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
+        return {
+          chosenRelay: {},
+        };
 
       case ActionSourceUser():
         if (ref.read(isCurrentUserSelectorProvider(actionSource.pubkey))) {
-          return _getReadActionSourceRelay(
+          return _getReadActionSourceRelays(
             ActionSource.currentUser(anonymous: actionSource.anonymous),
             dislikedUrls: dislikedUrls,
             sessionId: sessionId,
@@ -145,7 +153,9 @@ class RelayPicker extends _$RelayPicker {
         Logger.log(
           '$sessionPrefix[RELAY] User read relay selected: $chosenRelayUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
         );
-        return ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
+        final chosenRelay =
+            await ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
+        return {chosenRelay: {}};
 
       case ActionSourceIndexers():
         final indexerUrls = await ref.read(currentUserIndexersProvider.future);
@@ -167,13 +177,38 @@ class RelayPicker extends _$RelayPicker {
         Logger.log(
           '$sessionPrefix[RELAY] Indexer relay selected: $chosenIndexerUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
         );
-        return ref.read(relayProvider(chosenIndexerUrl, anonymous: actionSource.anonymous).future);
+        final chosenRelay = await ref
+            .read(relayProvider(chosenIndexerUrl, anonymous: actionSource.anonymous).future);
+        return {chosenRelay: {}};
 
       case ActionSourceRelayUrl():
         Logger.log(
           '$sessionPrefix[RELAY] Direct relay URL selected: ${actionSource.url}',
         );
-        return ref.read(relayProvider(actionSource.url, anonymous: actionSource.anonymous).future);
+        final chosenRelay = await ref
+            .read(relayProvider(actionSource.url, anonymous: actionSource.anonymous).future);
+        return {chosenRelay: {}};
+
+      case ActionSourceOptimalRelays():
+        final relays = await ref.read(optimalUserRelaysServiceProvider).fetch(
+              masterPubkeys: actionSource.masterPubkeys,
+              strategy: actionSource.strategy,
+              failedRelayUrls: dislikedUrls.urls.toList(),
+            );
+
+        final relayFutures = relays.entries.map((userRelayEntry) async {
+          final ionConnectRelay = await ref
+              .read(relayProvider(userRelayEntry.key, anonymous: actionSource.anonymous).future);
+          return MapEntry(ionConnectRelay, userRelayEntry.value.toSet());
+        }).toList();
+
+        final relayResults = await Future.wait(relayFutures);
+        final result = Map.fromEntries(relayResults);
+
+        Logger.log(
+          '$sessionPrefix[RELAY] Optimal relays selected: {${result.entries.map((e) => "'${e.key.url}': ${e.value}").join(', ')}}, disliked: ${dislikedUrls.urls}',
+        );
+        return result;
     }
   }
 
