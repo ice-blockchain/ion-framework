@@ -11,19 +11,19 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 
 ValueNotifier<Map<String, MediaAttachment>> useAttachedMediaLinksNotifier(
   WidgetRef ref, {
-  required EventReference? modifiedEvent,
+  required EventReference? eventReference,
 }) {
   final initialAttachedLinks = useMemoized(
     () {
-      if (modifiedEvent == null) {
+      if (eventReference == null) {
         return <String, MediaAttachment>{};
       }
 
       final modifiedEntity =
-          ref.read(ionConnectEntityProvider(eventReference: modifiedEvent)).valueOrNull;
+          ref.read(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
 
       if (modifiedEntity is! ModifiablePostEntity) {
-        throw UnsupportedEventReference(modifiedEvent);
+        throw UnsupportedEventReference(eventReference);
       }
       return modifiedEntity.data.media;
     },
