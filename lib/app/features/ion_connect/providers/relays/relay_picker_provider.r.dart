@@ -195,7 +195,6 @@ class RelayPicker extends _$RelayPicker {
               strategy: actionSource.strategy,
               failedRelayUrls: dislikedUrls.urls.toList(),
             );
-        final result = <IonConnectRelay, Set<String>>{};
 
         final relayFutures = relays.entries.map((userRelayEntry) async {
           final ionConnectRelay = await ref
@@ -204,9 +203,7 @@ class RelayPicker extends _$RelayPicker {
         }).toList();
 
         final relayResults = await Future.wait(relayFutures);
-        for (final entry in relayResults) {
-          result[entry.key] = entry.value;
-        }
+        final result = Map.fromEntries(relayResults);
 
         Logger.log(
           '$sessionPrefix[RELAY] Optimal relays selected: {${result.entries.map((e) => "'${e.key.url}': ${e.value}").join(', ')}}, disliked: ${dislikedUrls.urls}',
