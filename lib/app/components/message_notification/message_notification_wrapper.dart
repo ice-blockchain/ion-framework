@@ -39,9 +39,9 @@ class MessageNotificationWrapper extends HookConsumerWidget {
     return Stack(
       children: [
         child,
-        Positioned(
-          left: 16.0.s,
-          right: 16.0.s,
+        PositionedDirectional(
+          start: 16.0.s,
+          end: 16.0.s,
           bottom: 94.0.s,
           child: IgnorePointer(
             child: FadeTransition(

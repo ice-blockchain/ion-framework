@@ -75,8 +75,8 @@ class StoryListItem extends HookConsumerWidget {
               isViewed: isViewed,
               onTap: () => StoryViewerRoute(pubkey: pubkey).push<void>(context),
             ),
-            Positioned(
-              right: 0,
+            PositionedDirectional(
+              start: 0,
               bottom: 18.0.s,
               child: GestureDetector(
                 onTap: () {
