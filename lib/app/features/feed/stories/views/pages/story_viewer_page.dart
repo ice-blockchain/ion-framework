@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -40,6 +41,11 @@ class StoryViewerPage extends HookConsumerWidget {
       final initialStoryEntity = ref
           .watch(ionConnectEntityWithCountersProvider(eventReference: initialStoryReference!))
           .valueOrNull;
+
+      if (initialStoryEntity == null) {
+        return const CenteredLoadingIndicator();
+      }
+
       final isInitialStoryDeleted =
           initialStoryEntity is ModifiablePostEntity && initialStoryEntity.isDeleted;
 
@@ -63,7 +69,7 @@ class StoryViewerPage extends HookConsumerWidget {
     useOnInit(
       () {
         if (storyViewerState.userStories.isEmpty && context.mounted && context.canPop()) {
-          // context.pop();
+          context.pop();
         }
       },
       [storyViewerState.userStories.isEmpty],
