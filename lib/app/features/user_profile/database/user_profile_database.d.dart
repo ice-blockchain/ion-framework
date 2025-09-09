@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:io';
-
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
@@ -10,6 +8,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user_profile/database/tables/user_badge_info_table.d.dart';
 import 'package:ion/app/features/user_profile/database/tables/user_delegation_table.d.dart';
 import 'package:ion/app/features/user_profile/database/tables/user_metadata_table.d.dart';
+import 'package:ion/app/utils/directory.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path_provider_foundation/path_provider_foundation.dart';
@@ -58,13 +57,13 @@ class UserProfileDatabase extends _$UserProfileDatabase {
 
             final dbFile = join(basePath, '$databaseName.sqlite');
 
-            _ensureDirectoryExists(dbFile);
+            ensureDirectoryExists(dbFile);
 
             return dbFile;
           } catch (e) {
             final dbFile =
                 join((await getApplicationDocumentsDirectory()).path, '$databaseName.sqlite');
-            _ensureDirectoryExists(dbFile);
+            ensureDirectoryExists(dbFile);
 
             return dbFile;
           }
@@ -72,12 +71,5 @@ class UserProfileDatabase extends _$UserProfileDatabase {
         shareAcrossIsolates: true,
       ),
     );
-  }
-
-  static void _ensureDirectoryExists(String filePath) {
-    final dir = Directory(dirname(filePath));
-    if (!dir.existsSync()) {
-      dir.createSync(recursive: true);
-    }
   }
 }

@@ -83,6 +83,8 @@ class ReplaceablePrivateDirectMessageData
     List<RelatedReplaceableEvent>? relatedEvents,
     List<RelatedPubkey>? relatedPubkeys,
     QuotedImmutableEvent? quotedEvent,
+    String? paymentRequested,
+    String? paymentSent,
   }) = _ReplaceablePrivateDirectMessageData;
 
   factory ReplaceablePrivateDirectMessageData.fromRawContent(String content) {
@@ -122,6 +124,8 @@ class ReplaceablePrivateDirectMessageData
           tags[QuotedImmutableEvent.tagName]?.map(QuotedImmutableEvent.fromTag).singleOrNull,
       conversationId:
           tags[ConversationIdentifier.tagName]!.map(ConversationIdentifier.fromTag).first.value,
+      paymentRequested: tags[paymentRequestedTagName]?.first.elementAtOrNull(1),
+      paymentSent: tags[paymentSentTagName]?.first.elementAtOrNull(1),
     );
   }
 
@@ -149,6 +153,8 @@ class ReplaceablePrivateDirectMessageData
         if (relatedEvents != null) ...relatedEvents!.map((event) => event.toTag()),
         if (relatedPubkeys != null) ...relatedPubkeys!.map((pubkey) => pubkey.toTag()),
         if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),
+        if (paymentRequested != null) [paymentRequestedTagName, paymentRequested!],
+        if (paymentSent != null) [paymentSentTagName, paymentSent!],
         ReplaceableEventIdentifier(value: messageId).toTag(),
         ConversationIdentifier(value: conversationId).toTag(),
       ],
@@ -168,6 +174,9 @@ class ReplaceablePrivateDirectMessageData
   static const videoDurationLimitInSeconds = 300;
   static const audioMessageDurationLimitInSeconds = 300;
   static const fileMessageSizeLimit = 25 * 1024 * 1024;
+
+  static const paymentRequestedTagName = 'payment-requested';
+  static const paymentSentTagName = 'payment-sent';
 }
 
 extension Pubkeys on ReplaceablePrivateDirectMessageEntity {
@@ -187,6 +196,12 @@ extension MessageTypes on ReplaceablePrivateDirectMessageData {
       return MessageType.visualMedia;
     } else if (media.isNotEmpty) {
       return MessageType.document;
+    }
+    if (paymentRequested != null) {
+      return MessageType.requestFunds;
+    }
+    if (paymentSent != null) {
+      return MessageType.moneySent;
     } else if (IonConnectProtocolIdentifierTypeValidator.isEventIdentifier(content)) {
       if (EventReference.fromEncoded(content) case final ImmutableEventReference eventReference) {
         return switch (eventReference.kind) {

@@ -46,7 +46,7 @@ class AppLocale extends _$AppLocale {
     // Saving app locate using sharedPreferencesFoundation
     // to be able to read this value in the iOS Notification Service Extension
     final sharedPreferencesFoundation = await ref.read(sharedPreferencesFoundationProvider.future);
-    await sharedPreferencesFoundation.setString(_localePersistenceKey, state.languageCode);
+    await sharedPreferencesFoundation.setString(localePersistenceKey, state.languageCode);
 
     final identityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
     if (identityKeyName == null) {
@@ -54,7 +54,7 @@ class AppLocale extends _$AppLocale {
     }
     await ref
         .read(userPreferencesServiceProvider(identityKeyName: identityKeyName))
-        .setValue(_localePersistenceKey, json.encode(state.languageCode));
+        .setValue(localePersistenceKey, json.encode(state.languageCode));
   }
 
   Locale _loadSavedState() {
@@ -66,11 +66,11 @@ class AppLocale extends _$AppLocale {
 
     final userPreferencesService =
         ref.watch(userPreferencesServiceProvider(identityKeyName: identityKeyName));
-    final savedAppLocale = userPreferencesService.getValue<String>(_localePersistenceKey);
+    final savedAppLocale = userPreferencesService.getValue<String>(localePersistenceKey);
     return savedAppLocale != null ? Locale(json.decode(savedAppLocale) as String) : systemLocale;
   }
 
-  static const _localePersistenceKey = 'app_locale';
+  static const localePersistenceKey = 'app_locale';
 }
 
 @riverpod

@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message_service.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/model/request_coins_form_data.f.dart';
@@ -66,12 +68,17 @@ class RequestCoinsSubmitNotifier extends _$RequestCoinsSubmitNotifier {
       final content = eventReference.encode();
       final tag = eventReference.toTag();
 
+      final paymentRequestedTag = [
+        ReplaceablePrivateDirectMessageData.paymentRequestedTagName,
+        jsonEncode(event.jsonPayload),
+      ];
+
       final chatService = await ref.read(sendChatMessageServiceProvider.future);
       await chatService.send(
         kind: event.kind,
         receiverPubkey: pubkeys.receiver.masterPubkey,
         content: content,
-        tags: [tag],
+        tags: [tag, paymentRequestedTag],
       );
     });
   }
