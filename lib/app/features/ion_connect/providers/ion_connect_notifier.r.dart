@@ -72,6 +72,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
                     actionSource,
                     actionType: ActionType.write,
                     dislikedUrls: DislikedRelayUrlsCollection(dislikedRelaysUrls),
+                    sessionId: sessionId,
                   ))
               .keys
               .first;
