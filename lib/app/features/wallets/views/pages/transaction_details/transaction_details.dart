@@ -60,21 +60,19 @@ class TransactionDetailsPage extends ConsumerWidget {
             actions: const [NavigationCloseButton()],
           ),
           Flexible(
-            child: SingleChildScrollView(
-              child: transactionAsync.when(
-                data: (transactionData) => transactionData == null
-                    ? const Center(child: IONLoadingIndicator())
-                    : _TransactionDetailsContent(
-                        transaction: transactionData,
-                        onViewOnExplorer: () {
-                          final url = transactionData.transactionExplorerUrl;
-                          final location = exploreRouteLocationBuilder(url);
-                          context.push<void>(location);
-                        },
-                      ),
-                loading: () => const Center(child: IONLoadingIndicator()),
-                error: (error, stackTrace) => const Center(child: IONLoadingIndicator()),
-              ),
+            child: transactionAsync.when(
+              data: (transactionData) => transactionData == null
+                  ? const Center(child: IONLoadingIndicator())
+                  : _TransactionDetailsContent(
+                      transaction: transactionData,
+                      onViewOnExplorer: () {
+                        final url = transactionData.transactionExplorerUrl;
+                        final location = exploreRouteLocationBuilder(url);
+                        context.push<void>(location);
+                      },
+                    ),
+              loading: () => const Center(child: IONLoadingIndicator()),
+              error: (error, stackTrace) => const Center(child: IONLoadingIndicator()),
             ),
           ),
         ],
@@ -107,14 +105,14 @@ class _TransactionDetailsContent extends StatelessWidget {
     final assetAbbreviation =
         transaction.assetData.mapOrNull(coin: (coin) => coin.coinsGroup)?.abbreviation;
 
-    final disableExplorer = _abbreviationsToExclude.contains(assetAbbreviation) &&
+    final disableTransactionDetailsButtons = _abbreviationsToExclude.contains(assetAbbreviation) &&
         transaction.status != TransactionStatus.confirmed;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ScreenSideOffset.small(
-          child: SingleChildScrollView(
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(
+          child: ScreenSideOffset.small(
             child: Column(
               children: [
                 transaction.assetData.maybeMap(
@@ -229,7 +227,7 @@ class _TransactionDetailsContent extends StatelessWidget {
                   SizedBox(height: 15.0.s),
                 ],
                 TransactionDetailsActions(
-                  disableExplorer: disableExplorer,
+                  disableButtons: disableTransactionDetailsButtons,
                   onViewOnExplorer: onViewOnExplorer,
                   onShare: () => shareContent(transaction.transactionExplorerUrl),
                 ),
@@ -238,7 +236,9 @@ class _TransactionDetailsContent extends StatelessWidget {
             ),
           ),
         ),
-        ScreenBottomOffset(),
+        SliverToBoxAdapter(
+          child: ScreenBottomOffset(),
+        ),
       ],
     );
   }

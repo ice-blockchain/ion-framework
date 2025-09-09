@@ -20,17 +20,21 @@ class ExploreTransactionDetailsModal extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SheetContent(
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          NavigationAppBar.modal(
-            title: Text(context.i18n.wallet_explore_transaction_details_title),
-            actions: const [NavigationCloseButton()],
+      body: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          PinnedHeaderSliver(
+            child: NavigationAppBar.modal(
+              title: Text(context.i18n.wallet_explore_transaction_details_title),
+              actions: const [NavigationCloseButton()],
+            ),
           ),
-          Expanded(
+          SliverFillRemaining(
             child: WebView(url: url),
           ),
-          ScreenBottomOffset(),
+          SliverToBoxAdapter(
+            child: ScreenBottomOffset(),
+          ),
         ],
       ),
     );

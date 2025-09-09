@@ -7,7 +7,6 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/providers/filtered_assets_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/bottom_action/bottom_action.dart';
-import 'package:ion/app/features/wallets/views/pages/wallet_page/components/nfts/nfts_header_select_action.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/providers/search_visibility_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/tab_type.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -35,7 +34,7 @@ class EmptyState extends ConsumerWidget {
 
     final asset = toShowNoResults ? Assets.svg.walletIconWalletEmptysearch : tabType.emptyListAsset;
     final title =
-    toShowNoResults ? context.i18n.core_empty_search : tabType.getEmptyListTitle(context);
+        toShowNoResults ? context.i18n.core_empty_search : tabType.getEmptyListTitle(context);
 
     return SliverFillRemaining(
       hasScrollBody: false,
@@ -46,29 +45,29 @@ class EmptyState extends ConsumerWidget {
             Expanded(
               child: tabType == WalletTabType.nfts
                   ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  EmptyList(
-                    asset: asset,
-                    title: title,
-                  ),
-                  SizedBox(height: 8.s),
-                  TextButton(
-                    onPressed: () {
-                      SelectNetworkToReceiveNftRoute().push<void>(ref.context);
-                    },
-                    child: Text(
-                      context.i18n.wallet_receive_nft,
-                      style: context.theme.appTextThemes.caption
-                          .copyWith(color: context.theme.appColors.primaryAccent),
-                    ),
-                  ),
-                ],
-              )
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        EmptyList(
+                          asset: asset,
+                          title: title,
+                        ),
+                        SizedBox(height: 8.s),
+                        TextButton(
+                          onPressed: () {
+                            SelectNetworkToReceiveNftRoute().push<void>(ref.context);
+                          },
+                          child: Text(
+                            context.i18n.wallet_receive_nft,
+                            style: context.theme.appTextThemes.caption
+                                .copyWith(color: context.theme.appColors.primaryAccent),
+                          ),
+                        ),
+                      ],
+                    )
                   : EmptyList(
-                asset: asset,
-                title: title,
-              ),
+                      asset: asset,
+                      title: title,
+                    ),
             ),
             if (!isSearchVisible && tabType != WalletTabType.nfts)
               BottomAction(

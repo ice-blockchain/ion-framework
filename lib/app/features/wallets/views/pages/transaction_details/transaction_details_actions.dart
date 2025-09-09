@@ -9,13 +9,13 @@ class TransactionDetailsActions extends StatelessWidget {
   const TransactionDetailsActions({
     required this.onViewOnExplorer,
     required this.onShare,
-    this.disableExplorer = false,
+    this.disableButtons = false,
     super.key,
   });
 
   final VoidCallback onViewOnExplorer;
   final VoidCallback onShare;
-  final bool disableExplorer;
+  final bool disableButtons;
 
   @override
   Widget build(BuildContext context) {
@@ -23,24 +23,25 @@ class TransactionDetailsActions extends StatelessWidget {
       children: [
         Expanded(
           child: Button(
-            type: disableExplorer ? ButtonType.disabled : ButtonType.outlined,
-            disabled: disableExplorer,
+            type: disableButtons ? ButtonType.disabled : ButtonType.outlined,
+            disabled: disableButtons,
             label: Text(
               context.i18n.transaction_details_view_on_explorer,
             ),
             mainAxisSize: MainAxisSize.max,
             leadingIcon: Assets.svg.iconButtonInternet.icon(
-              color: disableExplorer ? context.theme.appColors.onPrimaryAccent : null,
+              color: disableButtons ? context.theme.appColors.onPrimaryAccent : null,
             ),
             onPressed: onViewOnExplorer,
-            backgroundColor: disableExplorer ? null : context.theme.appColors.tertiaryBackground,
-            borderColor: disableExplorer ? null : context.theme.appColors.onTertiaryFill,
+            backgroundColor: disableButtons ? null : context.theme.appColors.tertiaryBackground,
+            borderColor: disableButtons ? null : context.theme.appColors.onTertiaryFill,
           ),
         ),
         SizedBox(
           width: 12.0.s,
         ),
         Button.icon(
+          disabled: disableButtons,
           icon: Assets.svg.iconButtonShare.icon(),
           type: ButtonType.outlined,
           onPressed: onShare,
