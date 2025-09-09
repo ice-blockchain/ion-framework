@@ -1,19 +1,26 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
+import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
 import 'package:ion/app/features/feed/create_post/views/hooks/use_can_submit_post.dart';
 import 'package:ion/app/features/feed/polls/providers/poll_draft_provider.r.dart';
+import 'package:ion/app/features/feed/polls/utils/poll_utils.dart';
+import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
+import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
+import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifier.r.dart';
 import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_send_button.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
-import 'package:ion_content_labeler/ion_content_labeler.dart';
 
 class PostSubmitButton extends HookConsumerWidget {
   const PostSubmitButton({
@@ -55,9 +62,9 @@ class PostSubmitButton extends HookConsumerWidget {
           ref.read(ionConnectEntityProvider(eventReference: modifiedEvent!)).valueOrNull;
     }
     final draftPoll = ref.watch(pollDraftNotifierProvider);
-    // final whoCanReply = ref.watch(selectedWhoCanReplyOptionProvider);
-    // final selectedTopics = ref.watch(selectedInterestsNotifierProvider);
-    // final shownTooltip = useRef(!shouldShowTooltip);
+    final whoCanReply = ref.watch(selectedWhoCanReplyOptionProvider);
+    final selectedTopics = ref.watch(selectedInterestsNotifierProvider);
+    final shownTooltip = useRef(!shouldShowTooltip);
 
     final isSubmitButtonEnabled = useCanSubmitPost(
       textEditorController: textEditorController,
@@ -71,26 +78,51 @@ class PostSubmitButton extends HookConsumerWidget {
     return ToolbarSendButton(
       enabled: isSubmitButtonEnabled,
       onPressed: () async {
-        /// [START] Content labeler test
-        final input = textEditorController.document.toPlainText();
-        final result = await IONTextLabeler().detect(input, model: TextLabelerModel.language);
-        if (context.mounted) {
-          await showSimpleBottomSheet<void>(
-            context: context,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
-                Text('Languages:\n${result.labels.join(',\n')}'),
-                const SizedBox(height: 20),
-                Text('Normalized Input:\n${result.input}'),
-                const SizedBox(height: 50),
-              ],
+        if (!shownTooltip.value && selectedTopics.isEmpty) {
+          shownTooltip.value = true;
+          ref.read(topicTooltipVisibilityNotifierProvider.notifier).show();
+          return;
+        }
+
+        final filesToUpload = createOption == CreatePostOption.video
+            ? mediaFiles
+            : await ref
+                .read(mediaServiceProvider)
+                .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
+
+        final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
+
+        if (modifiedEvent != null) {
+          unawaited(
+            notifier.modify(
+              content: textEditorController.document.toDelta(),
+              mediaFiles: filesToUpload,
+              mediaAttachments: mediaAttachments,
+              eventReference: modifiedEvent!,
+              whoCanReply: whoCanReply,
+              topics: selectedTopics,
+              poll: PollUtils.pollDraftToPollData(draftPoll),
+            ),
+          );
+        } else {
+          unawaited(
+            notifier.create(
+              content: textEditorController.document.toDelta(),
+              parentEvent: parentEvent,
+              quotedEvent: quotedEvent,
+              mediaFiles: filesToUpload,
+              whoCanReply: whoCanReply,
+              topics: selectedTopics,
+              poll: PollUtils.pollDraftToPollData(draftPoll),
             ),
           );
         }
 
-        /// [END] Content labeler test
+        if (onSubmitted != null) {
+          onSubmitted!();
+        } else if (context.mounted) {
+          ref.context.pop(true);
+        }
       },
     );
   }
