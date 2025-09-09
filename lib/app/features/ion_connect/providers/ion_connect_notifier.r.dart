@@ -255,19 +255,26 @@ class IonConnectNotifier extends _$IonConnectNotifier {
                   .handleRelayAuthOnAction(actionSource: actionSource, error: error);
             }
 
-            requestMessage.filters.map(
-              (filter) => filter.copyWith(
-                authors: filter.authors == null
-                    ? null
-                    : actionSource is ActionSourceOptimalRelays
-                        ? relay.value.toList
-                        : () => filter.authors,
-              ),
+            final updatedFilters = requestMessage.filters
+                .map(
+                  (filter) => filter.copyWith(
+                    authors: filter.authors == null
+                        ? null
+                        : actionSource is ActionSourceOptimalRelays
+                            ? relay.value.toList
+                            : () => filter.authors,
+                  ),
+                )
+                .toList();
+
+            final updatedRequestMessage = RequestMessage(
+              filters: updatedFilters,
+              subscriptionId: requestMessage.subscriptionId,
             );
 
             final events = subscriptionBuilder != null
-                ? subscriptionBuilder(requestMessage, relay.key)
-                : ion.requestEvents(requestMessage, relay.key);
+                ? subscriptionBuilder(updatedRequestMessage, relay.key)
+                : ion.requestEvents(updatedRequestMessage, relay.key);
 
             await for (final event in events) {
               // Note: The ion.requestEvents method automatically handles unsubscription for certain messages.
