@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +11,7 @@ import 'package:ion/app/features/feed/create_post/model/create_post_option.dart'
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/create_post_app_bar.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/create_post_bottom_panel.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/create_post_content.dart';
+import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_media_files.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_media_links.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_post_quill_controller.dart';
 import 'package:ion/app/features/feed/hooks/use_preselect_topics.dart';
@@ -166,20 +165,6 @@ class PostFormModal extends HookConsumerWidget {
     final scrollController = useScrollController();
     final textEditorKey = useMemoized(TextEditorKeys.createPost);
 
-    final mediaFiles = useMemoized(
-      () {
-        if (attachedMedia != null) {
-          final decodedList = jsonDecode(attachedMedia!) as List<dynamic>;
-          return decodedList.map((item) {
-            return MediaFile.fromJson(item as Map<String, dynamic>);
-          }).toList();
-        }
-        return <MediaFile>[];
-      },
-      [attachedMedia],
-    );
-
-    final attachedMediaNotifier = useState<List<MediaFile>>(mediaFiles);
     final attachedVideoNotifier = useState<MediaFile?>(
       videoPath != null && mimeType != null
           ? MediaFile(
@@ -190,6 +175,8 @@ class PostFormModal extends HookConsumerWidget {
           : null,
     );
 
+    final attachedMediaFilesNotifier =
+        useAttachedMediaFilesNotifier(ref, attachedMedia: attachedMedia);
     final attachedMediaLinksNotifier =
         useAttachedMediaLinksNotifier(ref, eventReference: modifiedEvent);
 
@@ -227,7 +214,7 @@ class PostFormModal extends HookConsumerWidget {
                   parentEvent: parentEvent,
                   textEditorController: textEditorController,
                   createOption: createOption,
-                  attachedMediaNotifier: attachedMediaNotifier,
+                  attachedMediaNotifier: attachedMediaFilesNotifier,
                   attachedMediaLinksNotifier: attachedMediaLinksNotifier,
                   quotedEvent: quotedEvent,
                   textEditorKey: textEditorKey,
@@ -238,7 +225,7 @@ class PostFormModal extends HookConsumerWidget {
                 parentEvent: parentEvent,
                 quotedEvent: quotedEvent,
                 modifiedEvent: modifiedEvent,
-                attachedMediaNotifier: attachedMediaNotifier,
+                attachedMediaNotifier: attachedMediaFilesNotifier,
                 attachedVideoNotifier: attachedVideoNotifier,
                 attachedMediaLinksNotifier: attachedMediaLinksNotifier,
                 createOption: createOption,
