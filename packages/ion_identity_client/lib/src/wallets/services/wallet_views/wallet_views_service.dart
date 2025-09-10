@@ -35,6 +35,8 @@ class WalletViewsService {
       userId: userId,
       username: username,
       walletViewId: walletViewId,
+      limit: limit,
+      paginationToken: paginationToken,
     );
   }
 

@@ -24,14 +24,14 @@ class NftsDao extends DatabaseAccessor<WalletsDatabase> with _$NftsDaoMixin {
   Future<void> replaceWalletNfts(List<NftData> nfts, {required String walletId}) async {
     await transaction(() async {
       await (delete(nftsTable)..where((t) => t.walletId.equals(walletId))).go();
-      await upsertBaseNfts(nfts, walletId: walletId);
+      await insertBaseNfts(nfts, walletId: walletId);
     });
   }
 
-  Future<void> upsertBaseNfts(List<NftData> nfts, {required String walletId}) async {
+  Future<void> insertBaseNfts(List<NftData> nfts, {required String walletId}) async {
     final now = DateTime.now();
     await batch((b) {
-      b.insertAllOnConflictUpdate(
+      b.insertAll(
         nftsTable,
         nfts.map((nft) {
           return Nft(
