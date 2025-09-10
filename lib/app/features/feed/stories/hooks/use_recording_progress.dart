@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter/animation.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -17,7 +18,10 @@ RecordingProgressResult useRecordingProgress(
   WidgetRef ref, {
   required bool isRecording,
 }) {
-  final animationController = useAnimationController(duration: maxRecordingDuration);
+  final animationController = useAnimationController(
+    duration: maxRecordingDuration,
+    animationBehavior: AnimationBehavior.preserve,
+  );
   final currentRecordingDuration = useState<Duration>(Duration.zero);
 
   useEffect(

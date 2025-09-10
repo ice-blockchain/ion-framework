@@ -20,6 +20,7 @@ UseImageStoryResult useImageStoryProgress({
 }) {
   final animationController = useAnimationController(
     duration: const Duration(seconds: 5),
+    animationBehavior: AnimationBehavior.preserve,
     keys: [storyId],
   );
 
