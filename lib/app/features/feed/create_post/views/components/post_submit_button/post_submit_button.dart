@@ -12,6 +12,7 @@ import 'package:ion/app/features/feed/create_post/providers/create_post_notifier
 import 'package:ion/app/features/feed/create_post/views/hooks/use_can_submit_post.dart';
 import 'package:ion/app/features/feed/polls/providers/poll_draft_provider.r.dart';
 import 'package:ion/app/features/feed/polls/utils/poll_utils.dart';
+import 'package:ion/app/features/feed/providers/selected_entity_language_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
 import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifier.r.dart';
@@ -20,6 +21,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
 class PostSubmitButton extends HookConsumerWidget {
@@ -82,6 +84,13 @@ class PostSubmitButton extends HookConsumerWidget {
           shownTooltip.value = true;
           ref.read(topicTooltipVisibilityNotifierProvider.notifier).show();
           return;
+        }
+
+        if (ref.read(selectedEntityLanguageNotifierProvider) == null) {
+          await EntityLanguageRoute().push<void>(context);
+          if (ref.read(selectedEntityLanguageNotifierProvider) == null) {
+            return;
+          }
         }
 
         final filesToUpload = createOption == CreatePostOption.video

@@ -38,6 +38,11 @@ class FeedRoutes {
     ),
     TypedShellRoute<ModalShellRouteData>(
       routes: [
+        TypedGoRoute<EntityLanguageRoute>(path: 'entity-language'),
+      ],
+    ),
+    TypedShellRoute<ModalShellRouteData>(
+      routes: [
         TypedGoRoute<RepostOptionsModalRoute>(path: 'post-repost-options/:eventReference'),
         TypedGoRoute<CreatePostRoute>(path: 'post-editor/create'),
         TypedGoRoute<EditPostRoute>(path: 'post-editor/edit/:modifiedEvent'),
@@ -56,7 +61,6 @@ class FeedRoutes {
         TypedGoRoute<SelectTopicsRoute>(path: 'topics'),
         TypedGoRoute<EditArticleRoute>(path: 'create-article/edit/:modifiedEvent'),
         TypedGoRoute<EditArticlePreviewRoute>(path: 'article-preview/edit/:modifiedEvent'),
-        TypedGoRoute<EntityLanguageRoute>(path: 'entity-language'),
       ],
     ),
   ];
