@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:math';
-
 import 'package:flutter/widgets.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
@@ -71,7 +69,6 @@ class InviteFriendsListItem extends StatelessWidget {
   }
 
   void onTap(BuildContext context) {
-    print('___ onTap InviteFriendsListItem, ${Random().nextInt(1000)}');
     InviteFriendsRoute().push<void>(context);
   }
 }
