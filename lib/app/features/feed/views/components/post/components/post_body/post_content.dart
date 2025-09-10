@@ -75,7 +75,7 @@ class PostContent extends HookConsumerWidget {
                   PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
                 },
                 child: Padding(
-                  padding: EdgeInsets.only(top: 4.0.s),
+                  padding: EdgeInsetsDirectional.only(top: 4.0.s),
                   child: Text(
                     context.i18n.common_show_more,
                     style: context.theme.appTextThemes.body2.copyWith(
