@@ -101,13 +101,16 @@ class StoryViewerPage extends HookConsumerWidget {
       onBecameActive: () => ref.read(storyPauseControllerProvider.notifier).paused = false,
     );
 
+    // Prefetch next user's stories when approaching the end of current user's stories
     useOnInit(
       () {
         final currentUserStoriesLeft =
             stories.length - singleUserStoriesViewerState.currentStoryIndex - 1;
         final nextUserPubkey = storyViewerState.nextUserPubkey;
-        if (currentUserStoriesLeft < 10 && nextUserPubkey != null) {
-          ref.read(userStoriesProvider(nextUserPubkey));
+        final shouldPrefetch = currentUserStoriesLeft < 10 && nextUserPubkey != null;
+
+        if (shouldPrefetch) {
+          ref.watch(userStoriesProvider(nextUserPubkey));
         }
       },
       [singleUserStoriesViewerState.currentStoryIndex],
