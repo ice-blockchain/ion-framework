@@ -3,7 +3,7 @@ description: ION App
 
 publish_to: "none"
 
-version: 9.9.9+1
+version: 9.9.9+9999
 
 environment:
   sdk: ">=3.5.4 <4.0.0"
