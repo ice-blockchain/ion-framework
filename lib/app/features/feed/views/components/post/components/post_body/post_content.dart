@@ -41,7 +41,7 @@ class PostContent extends HookConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final originalTruncResult = maxLines != null
+        final truncResult = maxLines != null
             ? _truncateForMaxLines(
                 currentContent,
                 context.theme.appTextThemes.body2,
@@ -50,8 +50,8 @@ class PostContent extends HookConsumerWidget {
               )
             : _TruncationResult(delta: currentContent, hasOverflow: false);
 
-        final hasOverflow = originalTruncResult.hasOverflow;
-        final displayDelta = hasOverflow ? originalTruncResult.delta : currentContent;
+        final hasOverflow = truncResult.hasOverflow;
+        final displayDelta = hasOverflow ? truncResult.delta : currentContent;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
