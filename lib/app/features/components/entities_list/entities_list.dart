@@ -43,6 +43,8 @@ class EntitiesList extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('_____ EntitiesList build with ${items.length} items');
+    print('_____ EntitiesList build items: ${items}');
     return SliverList.builder(
       itemCount: items.length,
       itemBuilder: (BuildContext context, int index) {
