@@ -92,7 +92,7 @@ Future<IonConnectEntity?> ionConnectDatabaseEntity(
   Ref ref, {
   required EventReference eventReference,
 }) async {
-  return (await ref.read(ionConnectDatabaseCacheProvider.future)).get(eventReference.toString());
+  return ref.read(ionConnectDatabaseCacheProvider).valueOrNull?.get(eventReference.toString());
 }
 
 @riverpod
@@ -335,12 +335,11 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
       if (remainingEvents.isNotEmpty) {
         final cacheService = ref.read(ionConnectDatabaseCacheProvider).valueOrNull;
         final databaseEntities = await cacheService?.getAllFiltered(
-          expirationDuration: expirationDuration,
-          cacheKeys: remainingEvents.map((e) => e.toString()).toList(),
-        );
-        if (databaseEntities == null || databaseEntities.isEmpty) {
-          return results;
-        }
+              expirationDuration: expirationDuration,
+              cacheKeys: remainingEvents.map((e) => e.toString()).toList(),
+            ) ??
+            [];
+
         results.addAll(databaseEntities);
         remainingEvents.removeAll(databaseEntities.map((e) => e.toEventReference()));
       }
