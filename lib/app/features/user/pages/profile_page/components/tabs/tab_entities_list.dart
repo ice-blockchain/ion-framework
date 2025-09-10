@@ -8,6 +8,7 @@ import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/entities_list/entities_list.dart';
 import 'package:ion/app/features/components/entities_list/entities_list_skeleton.dart';
+import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
 import 'package:ion/app/features/feed/providers/user_posts_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
@@ -39,7 +40,9 @@ class TabEntitiesList extends HookConsumerWidget {
       pubkey: pubkey,
       onRefresh: onRefresh,
       builder: (entities) => EntitiesList(
-        refs: entities.map((entity) => entity.toEventReference()).toList(),
+        items: entities
+            .map((entity) => IonEntityListItem.event(eventReference: entity.toEventReference()))
+            .toList(),
         displayParent: true,
       ),
     );
@@ -88,7 +91,12 @@ class TabEntitiesList extends HookConsumerWidget {
           builder != null
               ? builder!(entities.toList())
               : EntitiesList(
-                  refs: entities.map((entity) => entity.toEventReference()).toList(),
+                  items: entities
+                      .map(
+                        (entity) =>
+                            IonEntityListItem.event(eventReference: entity.toEventReference()),
+                      )
+                      .toList(),
                   showMuted: true,
                   onVideoTap: ({
                     required String eventReference,

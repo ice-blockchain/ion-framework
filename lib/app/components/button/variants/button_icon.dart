@@ -12,6 +12,7 @@ class _ButtonWithIcon extends Button {
     super.borderColor,
     super.borderRadius,
     super.backgroundColor,
+    super.borderWidth,
     super.disabled,
     ButtonStyle style = const ButtonStyle(),
     double? size,

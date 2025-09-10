@@ -9,6 +9,7 @@ import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/entities_list/entities_list.dart';
 import 'package:ion/app/features/components/entities_list/entities_list_skeleton.dart';
+import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/search/model/advanced_search_category.dart';
 import 'package:ion/app/features/search/providers/feed_search_posts_data_source_provider.r.dart';
@@ -42,7 +43,9 @@ class FeedAdvancedSearchPosts extends HookConsumerWidget {
           NothingIsFound(title: context.i18n.search_nothing_found)
         else
           EntitiesList(
-            refs: entities.map((entity) => entity.toEventReference()).toList(),
+            items: entities
+                .map((entity) => IonEntityListItem.event(eventReference: entity.toEventReference()))
+                .toList(),
             onVideoTap: ({
               required String eventReference,
               required int initialMediaIndex,
