@@ -2,16 +2,20 @@
 
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/chat/community/models/entities/tags/pubkey_tag.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/mentions_repository.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_event_handler.dart';
-import 'package:ion/app/features/ion_connect/model/related_event_marker.dart';
+import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
+import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
+import 'package:ion/app/features/ion_connect/model/source_post_reference.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -25,52 +29,37 @@ class MentionNotificationHandler extends GlobalSubscriptionEventHandler {
 
   @override
   bool canHandle(EventMessage eventMessage) {
-    final isQuote = eventMessage.tags.any((tag) => tag.first == 'Q' && tag.last == currentPubkey);
+    final isQuoteOfUser = eventMessage.tags
+        .any((tag) => tag.first == QuotedReplaceableEvent.tagName && tag.last == currentPubkey);
     // quotes are handled in QuoteNotificationHandler
-    if (isQuote) {
+    if (isQuoteOfUser) {
       return false;
     }
-    return switch (eventMessage.kind) {
-      ModifiablePostEntity.kind => () {
-          final entity = ModifiablePostEntity.fromEventMessage(eventMessage);
+    final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
+    final hasUserInRelatedPubkey =
+        tags[PubkeyTag.tagName]?.any((item) => item.last == currentPubkey) ?? false;
 
-          final mentionAttribute = _userMentionAttribute();
-          final entityHasCurrentUserMention =
-              entity.data.richText?.content.contains(mentionAttribute) ?? false;
-
-          final hasUserPubKeyMention =
-              entity.data.relatedPubkeys?.map((element) => element.value).contains(currentPubkey) ??
-                  false;
-          // replies are handled in ReplyNotificationHandler
-          final isReply = entity.data.relatedEvents?.any(
-                (event) =>
-                    event.marker == RelatedEventMarker.reply &&
-                    event.eventReference is ReplaceableEventReference,
-              ) ??
-              false;
-
-          return hasUserPubKeyMention && entityHasCurrentUserMention && !isReply;
-        }(),
-      ArticleEntity.kind => () {
-          final mentionAttribute = _userMentionAttribute();
-          final entity = ArticleEntity.fromEventMessage(eventMessage);
-          final entityHasCurrentUserMention =
-              entity.data.richText?.content.contains(mentionAttribute) ?? false;
-          final hasUserPubKeyMention =
-              entity.data.relatedPubkeys?.map((element) => element.value).contains(currentPubkey) ??
-                  false;
-          return hasUserPubKeyMention && entityHasCurrentUserMention;
-        }(),
-      _ => false,
-    };
-  }
-
-  String _userMentionAttribute() {
+    if (!hasUserInRelatedPubkey) {
+      return false;
+    }
     final userMetadataRef =
         ReplaceableEventReference(masterPubkey: currentPubkey, kind: UserMetadataEntity.kind);
     final userMentionString = userMetadataRef.encode();
     final mentionAttribute = jsonEncode(MentionAttribute(userMentionString).toJson());
-    return mentionAttribute;
+    final hasUserMention =
+        tags[RichText.tagName]?.any((item) => item.toString().contains(mentionAttribute)) ?? false;
+
+    if (!hasUserMention) {
+      return false;
+    }
+
+    final isReplyToUser =
+        tags[SourcePostReference.tagName]?.any((tag) => tag.contains('reply')) ?? false;
+
+    if (isReplyToUser) {
+      return false;
+    }
+    return true;
   }
 
   @override

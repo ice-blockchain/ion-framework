@@ -71,7 +71,7 @@ final class MentionIonNotification extends IonNotification {
   final EventReference eventReference;
 
   @override
-  String get asset => Assets.svg.iconMention;
+  String get asset => Assets.svg.iconNotificationMention;
 
   @override
   Color getBackgroundColor(BuildContext context) => context.theme.appColors.lightBlue;
