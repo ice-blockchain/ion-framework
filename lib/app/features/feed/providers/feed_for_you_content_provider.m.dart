@@ -109,10 +109,10 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   Stream<IonConnectEntity> _fetchUnseenFollowing({required int limit}) async* {
     try {
-      Logger.info('$_logTag Requesting [$limit] unseen following events');
-
       var fetched = 0;
       final distribution = _getFeedFollowingDistribution(limit: limit);
+
+      Logger.info('$_logTag Requesting [$distribution] unseen following events');
 
       await for (final entity in _fetchFollowing(limit: distribution)) {
         yield entity;
@@ -131,10 +131,10 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   Stream<IonConnectEntity> _fetchUnseenGlobalAccounts({required int limit}) async* {
     try {
-      Logger.info('$_logTag Requesting [$limit] unseen global accounts events');
-
       var fetched = 0;
       final distribution = _getFeedGlobalAccountsDistribution(limit: limit);
+
+      Logger.info('$_logTag Requesting [$distribution] unseen global accounts events');
 
       await for (final entity in _fetchFollowing(limit: distribution, global: true)) {
         yield entity;
