@@ -13,8 +13,6 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/c
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_list_separator.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/hooks/use_preload_story_media.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
-import 'package:ion/app/features/optimistic_ui/features/follow/follow_provider.r.dart';
-import 'package:ion/app/features/optimistic_ui/features/follow/hooks/use_follow_notification.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
@@ -42,19 +40,9 @@ class StoryListItem extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
- 
-
     final isViewed = ref.watch(
       viewedStoriesProvider
           .select((viewedStories) => viewedStories?.contains(storyReference) ?? false),
-    );
-
-    ref.displayErrors(toggleFollowNotifierProvider);
-    useFollowNotifications(
-      context,
-      ref,
-      pubkey,
-      userMetadata.data.name,
     );
 
     return Padding(
@@ -73,7 +61,10 @@ class StoryListItem extends HookConsumerWidget {
             PositionedDirectional(
               start: 0,
               bottom: 18.0.s,
-              child: StoryItemFollowButton(pubkey: pubkey),
+              child: StoryItemFollowButton(
+                pubkey: pubkey,
+                username: userMetadata.data.name,
+              ),
             ),
           ],
         ),

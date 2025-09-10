@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
 import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
 
@@ -18,9 +19,6 @@ class MessageNotificationWrapper extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notification = ref.watch(messageNotificationNotifierProvider);
-    final showNotification = notification != null;
-
     final controller = useAnimationController(
       duration: animationDuration,
     );
@@ -30,10 +28,30 @@ class MessageNotificationWrapper extends HookConsumerWidget {
       curve: Curves.easeInOut,
     );
 
-    _controlAnimation(
-      isShow: showNotification,
-      animation: animation,
-      controller: controller,
+    final notification = useState<MessageNotification?>(null);
+
+    ref.listen(
+      messageNotificationNotifierProvider,
+      (_, next) {
+        notification.value = next.valueOrNull;
+
+        _controlAnimation(
+          isShow: true,
+          animation: animation,
+          controller: controller,
+        );
+
+        Future.delayed(
+          const Duration(seconds: 3),
+          () {
+            _controlAnimation(
+              isShow: false,
+              animation: animation,
+              controller: controller,
+            );
+          },
+        );
+      },
     );
 
     return Stack(
@@ -62,7 +80,7 @@ class MessageNotificationWrapper extends HookConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    if (notification?.icon != null) ...[
+                    if (notification.value?.icon != null) ...[
                       Container(
                         width: 26.0.s,
                         height: 26.0.s,
@@ -71,12 +89,12 @@ class MessageNotificationWrapper extends HookConsumerWidget {
                           color: context.theme.appColors.onPrimaryAccent,
                           borderRadius: BorderRadius.circular(8.0.s),
                         ),
-                        child: notification?.icon,
+                        child: notification.value?.icon,
                       ),
                       SizedBox(width: 10.0.s),
                     ],
                     Text(
-                      notification?.message ?? '',
+                      notification.value?.message ?? '',
                       style: context.theme.appTextThemes.body.copyWith(
                         color: context.theme.appColors.onPrimaryAccent,
                       ),
