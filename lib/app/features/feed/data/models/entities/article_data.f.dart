@@ -90,6 +90,7 @@ class ArticleData
     List<EventSetting>? settings,
     EntityLabel? colorLabel,
     EntityEditingEndedAt? editingEndedAt,
+    EntityLabel? language,
   }) = _ArticleData;
 
   const ArticleData._();
@@ -114,16 +115,13 @@ class ArticleData
       relatedHashtags: tags[RelatedHashtag.tagName]?.map(RelatedHashtag.fromTag).toList(),
       relatedPubkeys: EntityDataWithRelatedPubkeys.fromTags(tags),
       settings: tags[EventSetting.settingTagName]?.map(EventSetting.fromTag).toList(),
-      colorLabel: EntityLabel.fromTags(
-        tags,
-        eventId: eventMessage.id,
-        namespace: EntityLabelNamespace.color,
-      ),
+      colorLabel: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.color),
       richText:
           tags[RichText.tagName] != null ? RichText.fromTag(tags[RichText.tagName]!.first) : null,
       editingEndedAt: tags[EntityEditingEndedAt.tagName] != null
           ? EntityEditingEndedAt.fromTag(tags[EntityEditingEndedAt.tagName]!.first)
           : null,
+      language: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.language),
     );
   }
 
@@ -187,6 +185,7 @@ class ArticleData
         if (relatedPubkeys != null) ...relatedPubkeys!.map((pubkey) => pubkey.toTag()),
         if (richText != null) richText!.toTag(),
         if (editingEndedAt != null) editingEndedAt!.toTag(),
+        if (language != null) ...language!.toTags(),
       ],
     );
   }

@@ -36,7 +36,6 @@ class EntityLabel with _$EntityLabel {
 
   static EntityLabel? fromTags(
     Map<String, List<List<String>>> tags, {
-    required String eventId,
     required EntityLabelNamespace namespace,
   }) {
     final namespaceTag = LabelNamespaceTag.fromTags(tags, namespace: namespace);
@@ -46,7 +45,7 @@ class EntityLabel with _$EntityLabel {
     final valueTags = LabelValueTag.fromTags(tags, namespace: namespace);
 
     if (valueTags == null) {
-      throw IncorrectEventTagsException(eventId: eventId);
+      throw IncorrectEventTagException(tag: tags);
     }
 
     return EntityLabel(
