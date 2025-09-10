@@ -302,6 +302,7 @@
   "notifications_reply_other_user": "[:username] replied to the {type}",
   "notifications_share": "[:username] shared your {type}",
   "notifications_repost": "[:username] reposted your {type}",
+  "notifications_mentioned": "[:username] mentioned you",
   "notifications_empty_state": "You don't have any notifications",
   "notifications_posted_new_post": "[:username] posted new post",
   "notifications_posted_new_story": "[:username] posted new story",

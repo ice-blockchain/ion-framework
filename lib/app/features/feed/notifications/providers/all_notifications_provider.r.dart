@@ -6,6 +6,7 @@ import 'package:ion/app/features/feed/notifications/data/repository/comments_rep
 import 'package:ion/app/features/feed/notifications/data/repository/content_repository.r.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/followers_repository.r.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/likes_repository.r.dart';
+import 'package:ion/app/features/feed/notifications/data/repository/mentions_repository.r.dart';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -17,12 +18,14 @@ Future<List<IonNotification>> allNotifications(Ref ref) async {
   final contentRepository = ref.watch(contentRepositoryProvider);
   final followersRepository = ref.watch(followersRepositoryProvider);
   final likesRepository = ref.watch(likesRepositoryProvider);
-  final (comments, content, likes, followers) = await (
+  final mentionsRepository = ref.watch(mentionsRepositoryProvider);
+  final (comments, content, likes, followers, mentions) = await (
     commentsRepository.getNotifications(),
     contentRepository.getNotifications(),
     likesRepository.getNotifications(),
-    followersRepository.getNotifications()
+    followersRepository.getNotifications(),
+    mentionsRepository.getNotifications()
   ).wait;
-  return [...comments, ...content, ...likes, ...followers]
+  return [...comments, ...content, ...likes, ...followers, ...mentions]
     ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 }

@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/chat/e2ee/providers/encrypted_event_message_handler.r.dart';
 import 'package:ion/app/features/feed/notifications/providers/notifications/follow_notification_handler.r.dart';
 import 'package:ion/app/features/feed/notifications/providers/notifications/like_notification_handler.r.dart';
+import 'package:ion/app/features/feed/notifications/providers/notifications/mention_notification_handler.r.dart';
 import 'package:ion/app/features/feed/notifications/providers/notifications/quote_notification_handler.r.dart';
 import 'package:ion/app/features/feed/notifications/providers/notifications/reply_notification_handler.r.dart';
 import 'package:ion/app/features/feed/notifications/providers/notifications/repost_notification_handler.r.dart';
@@ -39,6 +40,7 @@ Future<GlobalSubscriptionEventDispatcher> globalSubscriptionEventDispatcherNotif
     await ref.watch(encryptedMessageEventHandlerProvider.future),
     ref.watch(followNotificationHandlerProvider),
     ref.watch(likeNotificationHandlerProvider),
+    ref.watch(mentionNotificationHandlerProvider),
     ref.watch(quoteNotificationHandlerProvider),
     ref.watch(replyNotificationHandlerProvider),
     ref.watch(repostNotificationHandlerProvider),

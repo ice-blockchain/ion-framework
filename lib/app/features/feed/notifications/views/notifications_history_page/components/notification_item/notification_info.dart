@@ -48,6 +48,8 @@ class NotificationInfo extends HookConsumerWidget {
       final CommentIonNotification notification =>
         notification.getDescription(context, eventTypeLabel, isAuthor),
       final ContentIonNotification notification => notification.getDescription(context),
+      final MentionIonNotification notification =>
+        notification.getDescription(context, eventTypeLabel),
       _ => notification.getDescription(context)
     };
 
@@ -140,6 +142,7 @@ class NotificationInfo extends HookConsumerWidget {
     final eventReference = switch (notification) {
       CommentIonNotification() => notification.eventReference,
       LikesIonNotification() => notification.eventReference,
+      MentionIonNotification() => notification.eventReference,
       _ => null,
     };
 
@@ -155,6 +158,10 @@ class NotificationInfo extends HookConsumerWidget {
     }
 
     if (notification is LikesIonNotification) {
+      return entity;
+    }
+
+    if (notification is MentionIonNotification) {
       return entity;
     }
 
