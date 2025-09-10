@@ -11,6 +11,7 @@ class TransactionsTable extends Table {
   TextColumn get networkId => text()();
   // Can be the same, as native one. Null if asset is nft.
   TextColumn get coinId => text().nullable()();
+  TextColumn get memo => text().nullable()();
   TextColumn get senderWalletAddress => text().nullable()();
   TextColumn get receiverWalletAddress => text().nullable()();
   TextColumn get walletViewId => text()();

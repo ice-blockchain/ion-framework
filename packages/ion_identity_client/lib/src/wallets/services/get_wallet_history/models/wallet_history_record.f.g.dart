@@ -28,6 +28,7 @@ _$WalletHistoryRecordImpl _$$WalletHistoryRecordImplFromJson(
           (json['froms'] as List<dynamic>?)?.map((e) => e as String).toList(),
       value: json['value'] as String?,
       fee: json['fee'] as String?,
+      memo: json['memo'] as String?,
       metadata: WalletHistoryMetadata.fromJson(
           json['metadata'] as Map<String, dynamic>),
     );
@@ -53,5 +54,6 @@ Map<String, dynamic> _$$WalletHistoryRecordImplToJson(
       if (instance.froms case final value?) 'froms': value,
       if (instance.value case final value?) 'value': value,
       if (instance.fee case final value?) 'fee': value,
+      if (instance.memo case final value?) 'memo': value,
       'metadata': instance.metadata.toJson(),
     };

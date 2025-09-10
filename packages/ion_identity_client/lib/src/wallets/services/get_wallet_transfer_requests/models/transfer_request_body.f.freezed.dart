@@ -53,7 +53,7 @@ mixin _$TransferRequestBody {
   String get to => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String kind, String to, String amount) native,
+    required TResult Function(String kind, String to, String amount, String? memo) native,
     required TResult Function(
             String kind, String contract, String to, String tokenId)
         erc721,
@@ -70,7 +70,7 @@ mixin _$TransferRequestBody {
             String kind, String mint, String to, String amount)
         spl2022,
     required TResult Function(String kind, String issuer, String assetCode,
-            String to, String amount)
+            String to, String amount, String? memo)
         sep41,
     required TResult Function(
             String kind, String master, String to, String amount)
@@ -91,7 +91,7 @@ mixin _$TransferRequestBody {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String kind, String to, String amount)? native,
+    TResult? Function(String kind, String to, String amount, String? memo)? native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult? Function(String kind, String assetId, String to, String amount)?
@@ -102,7 +102,7 @@ mixin _$TransferRequestBody {
     TResult? Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult? Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult? Function(String kind, String master, String to, String amount)?
         tep74,
@@ -118,7 +118,7 @@ mixin _$TransferRequestBody {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String kind, String to, String amount)? native,
+    TResult Function(String kind, String to, String amount, String? memo)? native,
     TResult Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult Function(String kind, String assetId, String to, String amount)?
@@ -129,7 +129,7 @@ mixin _$TransferRequestBody {
     TResult Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult Function(String kind, String master, String to, String amount)?
         tep74,
@@ -253,7 +253,7 @@ abstract class _$$NativeTransferRequestBodyImplCopyWith<$Res>
       __$$NativeTransferRequestBodyImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String kind, String to, String amount});
+  $Res call({String kind, String to, String amount, String? memo});
 }
 
 /// @nodoc
@@ -274,6 +274,7 @@ class __$$NativeTransferRequestBodyImplCopyWithImpl<$Res>
     Object? kind = null,
     Object? to = null,
     Object? amount = null,
+    Object? memo = freezed,
   }) {
     return _then(_$NativeTransferRequestBodyImpl(
       kind: null == kind
@@ -288,6 +289,10 @@ class __$$NativeTransferRequestBodyImplCopyWithImpl<$Res>
           ? _value.amount
           : amount // ignore: cast_nullable_to_non_nullable
               as String,
+      memo: freezed == memo
+          ? _value.memo
+          : memo // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -296,7 +301,7 @@ class __$$NativeTransferRequestBodyImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
   const _$NativeTransferRequestBodyImpl(
-      {required this.kind, required this.to, required this.amount});
+      {required this.kind, required this.to, required this.amount, this.memo});
 
   factory _$NativeTransferRequestBodyImpl.fromJson(Map<String, dynamic> json) =>
       _$$NativeTransferRequestBodyImplFromJson(json);
@@ -307,10 +312,12 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
   final String to;
   @override
   final String amount;
+  @override
+  final String? memo;
 
   @override
   String toString() {
-    return 'TransferRequestBody.native(kind: $kind, to: $to, amount: $amount)';
+    return 'TransferRequestBody.native(kind: $kind, to: $to, amount: $amount, memo: $memo)';
   }
 
   @override
@@ -320,12 +327,13 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
             other is _$NativeTransferRequestBodyImpl &&
             (identical(other.kind, kind) || other.kind == kind) &&
             (identical(other.to, to) || other.to == to) &&
-            (identical(other.amount, amount) || other.amount == amount));
+            (identical(other.amount, amount) || other.amount == amount) &&
+            (identical(other.memo, memo) || other.memo == memo));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, kind, to, amount);
+  int get hashCode => Object.hash(runtimeType, kind, to, amount, memo);
 
   /// Create a copy of TransferRequestBody
   /// with the given fields replaced by the non-null parameter values.
@@ -339,7 +347,7 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String kind, String to, String amount) native,
+    required TResult Function(String kind, String to, String amount, String? memo) native,
     required TResult Function(
             String kind, String contract, String to, String tokenId)
         erc721,
@@ -356,7 +364,7 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
             String kind, String mint, String to, String amount)
         spl2022,
     required TResult Function(String kind, String issuer, String assetCode,
-            String to, String amount)
+            String to, String amount, String? memo)
         sep41,
     required TResult Function(
             String kind, String master, String to, String amount)
@@ -374,13 +382,13 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
             String kind, String to, String amount, String metadata)
         aip21,
   }) {
-    return native(kind, to, amount);
+    return native(kind, to, amount, memo);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String kind, String to, String amount)? native,
+    TResult? Function(String kind, String to, String amount, String? memo)? native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult? Function(String kind, String assetId, String to, String amount)?
@@ -391,7 +399,7 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
     TResult? Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult? Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult? Function(String kind, String master, String to, String amount)?
         tep74,
@@ -404,13 +412,13 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
     TResult? Function(String kind, String to, String amount, String metadata)?
         aip21,
   }) {
-    return native?.call(kind, to, amount);
+    return native?.call(kind, to, amount, memo);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String kind, String to, String amount)? native,
+    TResult Function(String kind, String to, String amount, String? memo)? native,
     TResult Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult Function(String kind, String assetId, String to, String amount)?
@@ -421,7 +429,7 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
     TResult Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult Function(String kind, String master, String to, String amount)?
         tep74,
@@ -436,7 +444,7 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
     required TResult orElse(),
   }) {
     if (native != null) {
-      return native(kind, to, amount);
+      return native(kind, to, amount, memo);
     }
     return orElse();
   }
@@ -515,7 +523,8 @@ abstract class NativeTransferRequestBody
   const factory NativeTransferRequestBody(
       {required final String kind,
       required final String to,
-      required final String amount}) = _$NativeTransferRequestBodyImpl;
+      required final String amount,
+      final String? memo}) = _$NativeTransferRequestBodyImpl;
 
   factory NativeTransferRequestBody.fromJson(Map<String, dynamic> json) =
       _$NativeTransferRequestBodyImpl.fromJson;
@@ -525,6 +534,7 @@ abstract class NativeTransferRequestBody
   @override
   String get to;
   String get amount;
+  String? get memo;
 
   /// Create a copy of TransferRequestBody
   /// with the given fields replaced by the non-null parameter values.
@@ -641,7 +651,7 @@ class _$Erc721TransferRequestBodyImpl implements Erc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String kind, String to, String amount) native,
+    required TResult Function(String kind, String to, String amount, String? memo) native,
     required TResult Function(
             String kind, String contract, String to, String tokenId)
         erc721,
@@ -658,7 +668,7 @@ class _$Erc721TransferRequestBodyImpl implements Erc721TransferRequestBody {
             String kind, String mint, String to, String amount)
         spl2022,
     required TResult Function(String kind, String issuer, String assetCode,
-            String to, String amount)
+            String to, String amount, String? memo)
         sep41,
     required TResult Function(
             String kind, String master, String to, String amount)
@@ -682,7 +692,7 @@ class _$Erc721TransferRequestBodyImpl implements Erc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String kind, String to, String amount)? native,
+    TResult? Function(String kind, String to, String amount, String? memo)? native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult? Function(String kind, String assetId, String to, String amount)?
@@ -693,7 +703,7 @@ class _$Erc721TransferRequestBodyImpl implements Erc721TransferRequestBody {
     TResult? Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult? Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult? Function(String kind, String master, String to, String amount)?
         tep74,
@@ -712,7 +722,7 @@ class _$Erc721TransferRequestBodyImpl implements Erc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String kind, String to, String amount)? native,
+    TResult Function(String kind, String to, String amount, String? memo)? native,
     TResult Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult Function(String kind, String assetId, String to, String amount)?
@@ -723,7 +733,7 @@ class _$Erc721TransferRequestBodyImpl implements Erc721TransferRequestBody {
     TResult Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult Function(String kind, String master, String to, String amount)?
         tep74,
@@ -943,7 +953,7 @@ class _$AsaTransferRequestBodyImpl implements AsaTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String kind, String to, String amount) native,
+    required TResult Function(String kind, String to, String amount, String? memo) native,
     required TResult Function(
             String kind, String contract, String to, String tokenId)
         erc721,
@@ -960,7 +970,7 @@ class _$AsaTransferRequestBodyImpl implements AsaTransferRequestBody {
             String kind, String mint, String to, String amount)
         spl2022,
     required TResult Function(String kind, String issuer, String assetCode,
-            String to, String amount)
+            String to, String amount, String? memo)
         sep41,
     required TResult Function(
             String kind, String master, String to, String amount)
@@ -984,7 +994,7 @@ class _$AsaTransferRequestBodyImpl implements AsaTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String kind, String to, String amount)? native,
+    TResult? Function(String kind, String to, String amount, String? memo)? native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult? Function(String kind, String assetId, String to, String amount)?
@@ -995,7 +1005,7 @@ class _$AsaTransferRequestBodyImpl implements AsaTransferRequestBody {
     TResult? Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult? Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult? Function(String kind, String master, String to, String amount)?
         tep74,
@@ -1014,7 +1024,7 @@ class _$AsaTransferRequestBodyImpl implements AsaTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String kind, String to, String amount)? native,
+    TResult Function(String kind, String to, String amount, String? memo)? native,
     TResult Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult Function(String kind, String assetId, String to, String amount)?
@@ -1025,7 +1035,7 @@ class _$AsaTransferRequestBodyImpl implements AsaTransferRequestBody {
     TResult Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult Function(String kind, String master, String to, String amount)?
         tep74,
@@ -1247,7 +1257,7 @@ class _$Erc20TransferRequestBodyImpl implements Erc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String kind, String to, String amount) native,
+    required TResult Function(String kind, String to, String amount, String? memo) native,
     required TResult Function(
             String kind, String contract, String to, String tokenId)
         erc721,
@@ -1264,7 +1274,7 @@ class _$Erc20TransferRequestBodyImpl implements Erc20TransferRequestBody {
             String kind, String mint, String to, String amount)
         spl2022,
     required TResult Function(String kind, String issuer, String assetCode,
-            String to, String amount)
+            String to, String amount, String? memo)
         sep41,
     required TResult Function(
             String kind, String master, String to, String amount)
@@ -1288,7 +1298,7 @@ class _$Erc20TransferRequestBodyImpl implements Erc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String kind, String to, String amount)? native,
+    TResult? Function(String kind, String to, String amount, String? memo)? native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult? Function(String kind, String assetId, String to, String amount)?
@@ -1299,7 +1309,7 @@ class _$Erc20TransferRequestBodyImpl implements Erc20TransferRequestBody {
     TResult? Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult? Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult? Function(String kind, String master, String to, String amount)?
         tep74,
@@ -1318,7 +1328,7 @@ class _$Erc20TransferRequestBodyImpl implements Erc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String kind, String to, String amount)? native,
+    TResult Function(String kind, String to, String amount, String? memo)? native,
     TResult Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult Function(String kind, String assetId, String to, String amount)?
@@ -1329,7 +1339,7 @@ class _$Erc20TransferRequestBodyImpl implements Erc20TransferRequestBody {
     TResult Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult Function(String kind, String master, String to, String amount)?
         tep74,
@@ -1550,7 +1560,7 @@ class _$SplTransferRequestBodyImpl implements SplTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String kind, String to, String amount) native,
+    required TResult Function(String kind, String to, String amount, String? memo) native,
     required TResult Function(
             String kind, String contract, String to, String tokenId)
         erc721,
@@ -1567,7 +1577,7 @@ class _$SplTransferRequestBodyImpl implements SplTransferRequestBody {
             String kind, String mint, String to, String amount)
         spl2022,
     required TResult Function(String kind, String issuer, String assetCode,
-            String to, String amount)
+            String to, String amount, String? memo)
         sep41,
     required TResult Function(
             String kind, String master, String to, String amount)
@@ -1591,7 +1601,7 @@ class _$SplTransferRequestBodyImpl implements SplTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String kind, String to, String amount)? native,
+    TResult? Function(String kind, String to, String amount, String? memo)? native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult? Function(String kind, String assetId, String to, String amount)?
@@ -1602,7 +1612,7 @@ class _$SplTransferRequestBodyImpl implements SplTransferRequestBody {
     TResult? Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult? Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult? Function(String kind, String master, String to, String amount)?
         tep74,
@@ -1621,7 +1631,7 @@ class _$SplTransferRequestBodyImpl implements SplTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String kind, String to, String amount)? native,
+    TResult Function(String kind, String to, String amount, String? memo)? native,
     TResult Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult Function(String kind, String assetId, String to, String amount)?
@@ -1632,7 +1642,7 @@ class _$SplTransferRequestBodyImpl implements SplTransferRequestBody {
     TResult Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult Function(String kind, String master, String to, String amount)?
         tep74,
@@ -1854,7 +1864,7 @@ class _$Spl2022TransferRequestBodyImpl implements Spl2022TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String kind, String to, String amount) native,
+    required TResult Function(String kind, String to, String amount, String? memo) native,
     required TResult Function(
             String kind, String contract, String to, String tokenId)
         erc721,
@@ -1871,7 +1881,7 @@ class _$Spl2022TransferRequestBodyImpl implements Spl2022TransferRequestBody {
             String kind, String mint, String to, String amount)
         spl2022,
     required TResult Function(String kind, String issuer, String assetCode,
-            String to, String amount)
+            String to, String amount, String? memo)
         sep41,
     required TResult Function(
             String kind, String master, String to, String amount)
@@ -1895,7 +1905,7 @@ class _$Spl2022TransferRequestBodyImpl implements Spl2022TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String kind, String to, String amount)? native,
+    TResult? Function(String kind, String to, String amount, String? memo)? native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult? Function(String kind, String assetId, String to, String amount)?
@@ -1906,7 +1916,7 @@ class _$Spl2022TransferRequestBodyImpl implements Spl2022TransferRequestBody {
     TResult? Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult? Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult? Function(String kind, String master, String to, String amount)?
         tep74,
@@ -1925,7 +1935,7 @@ class _$Spl2022TransferRequestBodyImpl implements Spl2022TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String kind, String to, String amount)? native,
+    TResult Function(String kind, String to, String amount, String? memo)? native,
     TResult Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult Function(String kind, String assetId, String to, String amount)?
@@ -1936,7 +1946,7 @@ class _$Spl2022TransferRequestBodyImpl implements Spl2022TransferRequestBody {
     TResult Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult Function(String kind, String master, String to, String amount)?
         tep74,
@@ -2061,7 +2071,7 @@ abstract class _$$Sep41TransferRequestBodyImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String kind, String issuer, String assetCode, String to, String amount});
+      {String kind, String issuer, String assetCode, String to, String amount, String? memo});
 }
 
 /// @nodoc
@@ -2084,6 +2094,7 @@ class __$$Sep41TransferRequestBodyImplCopyWithImpl<$Res>
     Object? assetCode = null,
     Object? to = null,
     Object? amount = null,
+    Object? memo = freezed,
   }) {
     return _then(_$Sep41TransferRequestBodyImpl(
       kind: null == kind
@@ -2106,6 +2117,10 @@ class __$$Sep41TransferRequestBodyImplCopyWithImpl<$Res>
           ? _value.amount
           : amount // ignore: cast_nullable_to_non_nullable
               as String,
+      memo: freezed == memo
+          ? _value.memo
+          : memo // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -2118,7 +2133,8 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
       required this.issuer,
       required this.assetCode,
       required this.to,
-      required this.amount});
+      required this.amount,
+      this.memo});
 
   factory _$Sep41TransferRequestBodyImpl.fromJson(Map<String, dynamic> json) =>
       _$$Sep41TransferRequestBodyImplFromJson(json);
@@ -2133,10 +2149,12 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
   final String to;
   @override
   final String amount;
+  @override
+  final String? memo;
 
   @override
   String toString() {
-    return 'TransferRequestBody.sep41(kind: $kind, issuer: $issuer, assetCode: $assetCode, to: $to, amount: $amount)';
+    return 'TransferRequestBody.sep41(kind: $kind, issuer: $issuer, assetCode: $assetCode, to: $to, amount: $amount, memo: $memo)';
   }
 
   @override
@@ -2149,13 +2167,14 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
             (identical(other.assetCode, assetCode) ||
                 other.assetCode == assetCode) &&
             (identical(other.to, to) || other.to == to) &&
-            (identical(other.amount, amount) || other.amount == amount));
+            (identical(other.amount, amount) || other.amount == amount) &&
+            (identical(other.memo, memo) || other.memo == memo));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, kind, issuer, assetCode, to, amount);
+      Object.hash(runtimeType, kind, issuer, assetCode, to, amount, memo);
 
   /// Create a copy of TransferRequestBody
   /// with the given fields replaced by the non-null parameter values.
@@ -2169,7 +2188,7 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String kind, String to, String amount) native,
+    required TResult Function(String kind, String to, String amount, String? memo) native,
     required TResult Function(
             String kind, String contract, String to, String tokenId)
         erc721,
@@ -2186,7 +2205,7 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
             String kind, String mint, String to, String amount)
         spl2022,
     required TResult Function(String kind, String issuer, String assetCode,
-            String to, String amount)
+            String to, String amount, String? memo)
         sep41,
     required TResult Function(
             String kind, String master, String to, String amount)
@@ -2204,13 +2223,13 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
             String kind, String to, String amount, String metadata)
         aip21,
   }) {
-    return sep41(kind, issuer, assetCode, to, amount);
+    return sep41(kind, issuer, assetCode, to, amount, memo);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String kind, String to, String amount)? native,
+    TResult? Function(String kind, String to, String amount, String? memo)? native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult? Function(String kind, String assetId, String to, String amount)?
@@ -2221,7 +2240,7 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
     TResult? Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult? Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult? Function(String kind, String master, String to, String amount)?
         tep74,
@@ -2234,13 +2253,13 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
     TResult? Function(String kind, String to, String amount, String metadata)?
         aip21,
   }) {
-    return sep41?.call(kind, issuer, assetCode, to, amount);
+    return sep41?.call(kind, issuer, assetCode, to, amount, memo);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String kind, String to, String amount)? native,
+    TResult Function(String kind, String to, String amount, String? memo)? native,
     TResult Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult Function(String kind, String assetId, String to, String amount)?
@@ -2251,7 +2270,7 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
     TResult Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult Function(String kind, String master, String to, String amount)?
         tep74,
@@ -2266,7 +2285,7 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
     required TResult orElse(),
   }) {
     if (sep41 != null) {
-      return sep41(kind, issuer, assetCode, to, amount);
+      return sep41(kind, issuer, assetCode, to, amount, memo);
     }
     return orElse();
   }
@@ -2347,7 +2366,8 @@ abstract class Sep41TransferRequestBody
       required final String issuer,
       required final String assetCode,
       required final String to,
-      required final String amount}) = _$Sep41TransferRequestBodyImpl;
+      required final String amount,
+      final String? memo}) = _$Sep41TransferRequestBodyImpl;
 
   factory Sep41TransferRequestBody.fromJson(Map<String, dynamic> json) =
       _$Sep41TransferRequestBodyImpl.fromJson;
@@ -2359,6 +2379,7 @@ abstract class Sep41TransferRequestBody
   @override
   String get to;
   String get amount;
+  String? get memo;
 
   /// Create a copy of TransferRequestBody
   /// with the given fields replaced by the non-null parameter values.
@@ -2474,7 +2495,7 @@ class _$Tep74TransferRequestBodyImpl implements Tep74TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String kind, String to, String amount) native,
+    required TResult Function(String kind, String to, String amount, String? memo) native,
     required TResult Function(
             String kind, String contract, String to, String tokenId)
         erc721,
@@ -2491,7 +2512,7 @@ class _$Tep74TransferRequestBodyImpl implements Tep74TransferRequestBody {
             String kind, String mint, String to, String amount)
         spl2022,
     required TResult Function(String kind, String issuer, String assetCode,
-            String to, String amount)
+            String to, String amount, String? memo)
         sep41,
     required TResult Function(
             String kind, String master, String to, String amount)
@@ -2515,7 +2536,7 @@ class _$Tep74TransferRequestBodyImpl implements Tep74TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String kind, String to, String amount)? native,
+    TResult? Function(String kind, String to, String amount, String? memo)? native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult? Function(String kind, String assetId, String to, String amount)?
@@ -2526,7 +2547,7 @@ class _$Tep74TransferRequestBodyImpl implements Tep74TransferRequestBody {
     TResult? Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult? Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult? Function(String kind, String master, String to, String amount)?
         tep74,
@@ -2545,7 +2566,7 @@ class _$Tep74TransferRequestBodyImpl implements Tep74TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String kind, String to, String amount)? native,
+    TResult Function(String kind, String to, String amount, String? memo)? native,
     TResult Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult Function(String kind, String assetId, String to, String amount)?
@@ -2556,7 +2577,7 @@ class _$Tep74TransferRequestBodyImpl implements Tep74TransferRequestBody {
     TResult Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult Function(String kind, String master, String to, String amount)?
         tep74,
@@ -2777,7 +2798,7 @@ class _$Trc10TransferRequestBodyImpl implements Trc10TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String kind, String to, String amount) native,
+    required TResult Function(String kind, String to, String amount, String? memo) native,
     required TResult Function(
             String kind, String contract, String to, String tokenId)
         erc721,
@@ -2794,7 +2815,7 @@ class _$Trc10TransferRequestBodyImpl implements Trc10TransferRequestBody {
             String kind, String mint, String to, String amount)
         spl2022,
     required TResult Function(String kind, String issuer, String assetCode,
-            String to, String amount)
+            String to, String amount, String? memo)
         sep41,
     required TResult Function(
             String kind, String master, String to, String amount)
@@ -2818,7 +2839,7 @@ class _$Trc10TransferRequestBodyImpl implements Trc10TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String kind, String to, String amount)? native,
+    TResult? Function(String kind, String to, String amount, String? memo)? native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult? Function(String kind, String assetId, String to, String amount)?
@@ -2829,7 +2850,7 @@ class _$Trc10TransferRequestBodyImpl implements Trc10TransferRequestBody {
     TResult? Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult? Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult? Function(String kind, String master, String to, String amount)?
         tep74,
@@ -2848,7 +2869,7 @@ class _$Trc10TransferRequestBodyImpl implements Trc10TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String kind, String to, String amount)? native,
+    TResult Function(String kind, String to, String amount, String? memo)? native,
     TResult Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult Function(String kind, String assetId, String to, String amount)?
@@ -2859,7 +2880,7 @@ class _$Trc10TransferRequestBodyImpl implements Trc10TransferRequestBody {
     TResult Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult Function(String kind, String master, String to, String amount)?
         tep74,
@@ -3081,7 +3102,7 @@ class _$Trc20TransferRequestBodyImpl implements Trc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String kind, String to, String amount) native,
+    required TResult Function(String kind, String to, String amount, String? memo) native,
     required TResult Function(
             String kind, String contract, String to, String tokenId)
         erc721,
@@ -3098,7 +3119,7 @@ class _$Trc20TransferRequestBodyImpl implements Trc20TransferRequestBody {
             String kind, String mint, String to, String amount)
         spl2022,
     required TResult Function(String kind, String issuer, String assetCode,
-            String to, String amount)
+            String to, String amount, String? memo)
         sep41,
     required TResult Function(
             String kind, String master, String to, String amount)
@@ -3122,7 +3143,7 @@ class _$Trc20TransferRequestBodyImpl implements Trc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String kind, String to, String amount)? native,
+    TResult? Function(String kind, String to, String amount, String? memo)? native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult? Function(String kind, String assetId, String to, String amount)?
@@ -3133,7 +3154,7 @@ class _$Trc20TransferRequestBodyImpl implements Trc20TransferRequestBody {
     TResult? Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult? Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult? Function(String kind, String master, String to, String amount)?
         tep74,
@@ -3152,7 +3173,7 @@ class _$Trc20TransferRequestBodyImpl implements Trc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String kind, String to, String amount)? native,
+    TResult Function(String kind, String to, String amount, String? memo)? native,
     TResult Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult Function(String kind, String assetId, String to, String amount)?
@@ -3163,7 +3184,7 @@ class _$Trc20TransferRequestBodyImpl implements Trc20TransferRequestBody {
     TResult Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult Function(String kind, String master, String to, String amount)?
         tep74,
@@ -3385,7 +3406,7 @@ class _$Trc721TransferRequestBodyImpl implements Trc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String kind, String to, String amount) native,
+    required TResult Function(String kind, String to, String amount, String? memo) native,
     required TResult Function(
             String kind, String contract, String to, String tokenId)
         erc721,
@@ -3402,7 +3423,7 @@ class _$Trc721TransferRequestBodyImpl implements Trc721TransferRequestBody {
             String kind, String mint, String to, String amount)
         spl2022,
     required TResult Function(String kind, String issuer, String assetCode,
-            String to, String amount)
+            String to, String amount, String? memo)
         sep41,
     required TResult Function(
             String kind, String master, String to, String amount)
@@ -3426,7 +3447,7 @@ class _$Trc721TransferRequestBodyImpl implements Trc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String kind, String to, String amount)? native,
+    TResult? Function(String kind, String to, String amount, String? memo)? native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult? Function(String kind, String assetId, String to, String amount)?
@@ -3437,7 +3458,7 @@ class _$Trc721TransferRequestBodyImpl implements Trc721TransferRequestBody {
     TResult? Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult? Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult? Function(String kind, String master, String to, String amount)?
         tep74,
@@ -3456,7 +3477,7 @@ class _$Trc721TransferRequestBodyImpl implements Trc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String kind, String to, String amount)? native,
+    TResult Function(String kind, String to, String amount, String? memo)? native,
     TResult Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult Function(String kind, String assetId, String to, String amount)?
@@ -3467,7 +3488,7 @@ class _$Trc721TransferRequestBodyImpl implements Trc721TransferRequestBody {
     TResult Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult Function(String kind, String master, String to, String amount)?
         tep74,
@@ -3688,7 +3709,7 @@ class _$Aip21TransferRequestBodyImpl implements Aip21TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String kind, String to, String amount) native,
+    required TResult Function(String kind, String to, String amount, String? memo) native,
     required TResult Function(
             String kind, String contract, String to, String tokenId)
         erc721,
@@ -3705,7 +3726,7 @@ class _$Aip21TransferRequestBodyImpl implements Aip21TransferRequestBody {
             String kind, String mint, String to, String amount)
         spl2022,
     required TResult Function(String kind, String issuer, String assetCode,
-            String to, String amount)
+            String to, String amount, String? memo)
         sep41,
     required TResult Function(
             String kind, String master, String to, String amount)
@@ -3729,7 +3750,7 @@ class _$Aip21TransferRequestBodyImpl implements Aip21TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String kind, String to, String amount)? native,
+    TResult? Function(String kind, String to, String amount, String? memo)? native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult? Function(String kind, String assetId, String to, String amount)?
@@ -3740,7 +3761,7 @@ class _$Aip21TransferRequestBodyImpl implements Aip21TransferRequestBody {
     TResult? Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult? Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult? Function(String kind, String master, String to, String amount)?
         tep74,
@@ -3759,7 +3780,7 @@ class _$Aip21TransferRequestBodyImpl implements Aip21TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String kind, String to, String amount)? native,
+    TResult Function(String kind, String to, String amount, String? memo)? native,
     TResult Function(String kind, String contract, String to, String tokenId)?
         erc721,
     TResult Function(String kind, String assetId, String to, String amount)?
@@ -3770,7 +3791,7 @@ class _$Aip21TransferRequestBodyImpl implements Aip21TransferRequestBody {
     TResult Function(String kind, String mint, String to, String amount)?
         spl2022,
     TResult Function(String kind, String issuer, String assetCode, String to,
-            String amount)?
+            String amount, String? memo)?
         sep41,
     TResult Function(String kind, String master, String to, String amount)?
         tep74,

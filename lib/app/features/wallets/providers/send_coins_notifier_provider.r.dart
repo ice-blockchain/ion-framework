@@ -87,6 +87,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
         receiverAddress: form.receiverAddress,
         participantPubkey: form.contactPubkey,
         networkFeeOption: form.selectedNetworkFeeOption,
+        memo: result.requestBody['memo']?.toString(),
       );
 
       try {

@@ -172,6 +172,13 @@ class _TransactionDetailsContent extends StatelessWidget {
                   transactionType: transaction.type,
                   pubkey: transaction.participantPubkey,
                 ),
+                if (transaction.memo != null) ...[
+                  SizedBox(height: 12.0.s),
+                  ListItem.text(
+                    title: Text(locale.wallet_memo),
+                    value: transaction.memo!,
+                  ),
+                ],
                 SizedBox(height: 12.0.s),
                 if (currentUserAddress case final String userAddress)
                   ListItem.textWithIcon(

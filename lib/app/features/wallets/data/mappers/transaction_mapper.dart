@@ -38,6 +38,7 @@ class CoinTransactionsMapper {
           status: details.status.toJson(),
           dateConfirmed: details.dateConfirmed,
           dateRequested: details.dateRequested,
+          memo: details.memo,
         );
       },
       nft: (nft) {
@@ -55,6 +56,7 @@ class CoinTransactionsMapper {
           status: details.status.toJson(),
           dateConfirmed: details.dateConfirmed,
           dateRequested: details.dateRequested,
+          memo: details.memo,
         );
       },
       notInitialized: () => throw ArgumentError('Cannot save uninitialized asset data'),
@@ -143,6 +145,7 @@ class CoinTransactionsMapper {
             userPubkey: transaction.userPubkey,
             transferredAmount: rawAmount,
             transferredAmountUsd: amountUSD,
+            memo: transaction.memo,
           ),
           nft: (nft) => db.Transaction(
             type: transaction.type.value,
@@ -161,6 +164,7 @@ class CoinTransactionsMapper {
             receiverWalletAddress: transaction.receiverWalletAddress,
             createdAtInRelay: transaction.createdAtInRelay,
             userPubkey: transaction.userPubkey,
+            memo: transaction.memo,
           ),
           nftIdentifier: (identifier, network) => db.Transaction(
             type: transaction.type.value,
@@ -179,6 +183,7 @@ class CoinTransactionsMapper {
             receiverWalletAddress: transaction.receiverWalletAddress,
             createdAtInRelay: transaction.createdAtInRelay,
             userPubkey: transaction.userPubkey,
+            memo: transaction.memo,
           ),
         );
       }).toList();

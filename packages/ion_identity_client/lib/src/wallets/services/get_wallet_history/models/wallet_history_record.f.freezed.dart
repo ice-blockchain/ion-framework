@@ -39,6 +39,7 @@ mixin _$WalletHistoryRecord {
   List<String>? get froms => throw _privateConstructorUsedError;
   String? get value => throw _privateConstructorUsedError;
   String? get fee => throw _privateConstructorUsedError;
+  String? get memo => throw _privateConstructorUsedError;
   WalletHistoryMetadata get metadata => throw _privateConstructorUsedError;
 
   /// Serializes this WalletHistoryRecord to a JSON map.
@@ -76,6 +77,7 @@ abstract class $WalletHistoryRecordCopyWith<$Res> {
       List<String>? froms,
       String? value,
       String? fee,
+      String? memo,
       WalletHistoryMetadata metadata});
 
   $WalletHistoryMetadataCopyWith<$Res> get metadata;
@@ -114,6 +116,7 @@ class _$WalletHistoryRecordCopyWithImpl<$Res, $Val extends WalletHistoryRecord>
     Object? froms = freezed,
     Object? value = freezed,
     Object? fee = freezed,
+    Object? memo = freezed,
     Object? metadata = null,
   }) {
     return _then(_value.copyWith(
@@ -189,6 +192,10 @@ class _$WalletHistoryRecordCopyWithImpl<$Res, $Val extends WalletHistoryRecord>
           ? _value.fee
           : fee // ignore: cast_nullable_to_non_nullable
               as String?,
+      memo: freezed == memo
+          ? _value.memo
+          : memo // ignore: cast_nullable_to_non_nullable
+              as String?,
       metadata: null == metadata
           ? _value.metadata
           : metadata // ignore: cast_nullable_to_non_nullable
@@ -234,6 +241,7 @@ abstract class _$$WalletHistoryRecordImplCopyWith<$Res>
       List<String>? froms,
       String? value,
       String? fee,
+      String? memo,
       WalletHistoryMetadata metadata});
 
   @override
@@ -271,6 +279,7 @@ class __$$WalletHistoryRecordImplCopyWithImpl<$Res>
     Object? froms = freezed,
     Object? value = freezed,
     Object? fee = freezed,
+    Object? memo = freezed,
     Object? metadata = null,
   }) {
     return _then(_$WalletHistoryRecordImpl(
@@ -346,6 +355,10 @@ class __$$WalletHistoryRecordImplCopyWithImpl<$Res>
           ? _value.fee
           : fee // ignore: cast_nullable_to_non_nullable
               as String?,
+      memo: freezed == memo
+          ? _value.memo
+          : memo // ignore: cast_nullable_to_non_nullable
+              as String?,
       metadata: null == metadata
           ? _value.metadata
           : metadata // ignore: cast_nullable_to_non_nullable
@@ -376,6 +389,7 @@ class _$WalletHistoryRecordImpl implements _WalletHistoryRecord {
       required final List<String>? froms,
       required this.value,
       required this.fee,
+      required this.memo,
       required this.metadata})
       : _tos = tos,
         _froms = froms;
@@ -437,11 +451,13 @@ class _$WalletHistoryRecordImpl implements _WalletHistoryRecord {
   @override
   final String? fee;
   @override
+  final String? memo;
+  @override
   final WalletHistoryMetadata metadata;
 
   @override
   String toString() {
-    return 'WalletHistoryRecord(walletId: $walletId, network: $network, kind: $kind, direction: $direction, blockNumber: $blockNumber, timestamp: $timestamp, txHash: $txHash, externalHash: $externalHash, index: $index, contract: $contract, metadataAddress: $metadataAddress, tokenId: $tokenId, from: $from, to: $to, tos: $tos, froms: $froms, value: $value, fee: $fee, metadata: $metadata)';
+    return 'WalletHistoryRecord(walletId: $walletId, network: $network, kind: $kind, direction: $direction, blockNumber: $blockNumber, timestamp: $timestamp, txHash: $txHash, externalHash: $externalHash, index: $index, contract: $contract, metadataAddress: $metadataAddress, tokenId: $tokenId, from: $from, to: $to, tos: $tos, froms: $froms, value: $value, fee: $fee, memo: $memo, metadata: $metadata)';
   }
 
   @override
@@ -474,6 +490,7 @@ class _$WalletHistoryRecordImpl implements _WalletHistoryRecord {
             const DeepCollectionEquality().equals(other._froms, _froms) &&
             (identical(other.value, value) || other.value == value) &&
             (identical(other.fee, fee) || other.fee == fee) &&
+            (identical(other.memo, memo) || other.memo == memo) &&
             (identical(other.metadata, metadata) ||
                 other.metadata == metadata));
   }
@@ -500,6 +517,7 @@ class _$WalletHistoryRecordImpl implements _WalletHistoryRecord {
         const DeepCollectionEquality().hash(_froms),
         value,
         fee,
+        memo,
         metadata
       ]);
 
@@ -540,6 +558,7 @@ abstract class _WalletHistoryRecord implements WalletHistoryRecord {
           required final List<String>? froms,
           required final String? value,
           required final String? fee,
+          required final String? memo,
           required final WalletHistoryMetadata metadata}) =
       _$WalletHistoryRecordImpl;
 
@@ -583,6 +602,8 @@ abstract class _WalletHistoryRecord implements WalletHistoryRecord {
   String? get value;
   @override
   String? get fee;
+  @override
+  String? get memo;
   @override
   WalletHistoryMetadata get metadata;
 
