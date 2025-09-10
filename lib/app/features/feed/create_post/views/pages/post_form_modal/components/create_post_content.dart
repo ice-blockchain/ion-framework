@@ -11,8 +11,9 @@ import 'package:ion/app/components/text_editor/text_editor.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
+import 'package:ion/app/features/feed/create_post/views/components/language_button/language_button.dart';
 import 'package:ion/app/features/feed/create_post/views/components/reply_input_field/attached_media_preview.dart';
-import 'package:ion/app/features/feed/create_post/views/components/topics/topics_button.dart';
+import 'package:ion/app/features/feed/create_post/views/components/topics_button/topics_button.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/current_user_avatar.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/parent_entity.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/quoted_entity.dart';
@@ -61,13 +62,14 @@ class CreatePostContent extends StatelessWidget {
             _VideoPreviewSection(attachedVideoNotifier: attachedVideoNotifier),
             _HeaderControls(
               children: [
-                _TopicsSection(
+                _TopicsButton(
                   attachedMediaNotifier: attachedMediaNotifier,
                   attachedVideoNotifier: attachedVideoNotifier,
                   attachedMediaLinksNotifier: attachedMediaLinksNotifier,
                   parentEvent: parentEvent,
                   quotedEvent: quotedEvent,
                 ),
+                const LanguageButton(),
               ],
             ),
             if (parentEvent != null) _ParentEntitySection(eventReference: parentEvent!),
@@ -294,8 +296,8 @@ class _HeaderControls extends StatelessWidget {
   }
 }
 
-class _TopicsSection extends HookConsumerWidget {
-  const _TopicsSection({
+class _TopicsButton extends HookConsumerWidget {
+  const _TopicsButton({
     required this.attachedMediaNotifier,
     required this.attachedVideoNotifier,
     required this.attachedMediaLinksNotifier,

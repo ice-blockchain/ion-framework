@@ -119,6 +119,7 @@
   "common_error": "Error",
   "common_chat": "Chat",
   "common_deleted_account": "Deleted Account",
+  "common_language": "Language",
   "auth_secured_by": "Secured by",
   "auth_link_new_device_title": "New device login",
   "auth_link_new_device_description": "To continue using the app, please link this device to your account",

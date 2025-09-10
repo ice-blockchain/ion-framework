@@ -45,7 +45,7 @@ class LanguageListItem extends StatelessWidget {
                 SizedBox(width: 16.0.s),
                 Expanded(
                   child: Text(
-                    language.name + (language.localName != null ? ' - ${language.localName}' : ''),
+                    language.displayName,
                     style: context.theme.appTextThemes.subtitle2.copyWith(
                       color: context.theme.appColors.primaryText,
                     ),

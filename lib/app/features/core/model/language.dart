@@ -88,6 +88,8 @@ enum Language {
   final String isoCode;
   final String? localName;
 
+  String get displayName => name + (localName != null ? ' - $localName' : '');
+
   static Language? fromIsoCode(String isoCode) {
     return Language.values.firstWhereOrNull(
       (lang) => isoCode.toLowerCase() == lang.isoCode.toLowerCase(),
