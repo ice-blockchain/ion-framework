@@ -13,6 +13,7 @@ import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 
 class PostContent extends HookConsumerWidget {
   const PostContent({
@@ -40,7 +41,7 @@ class PostContent extends HookConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final truncResult = maxLines != null
+        final originalTruncResult = maxLines != null
             ? _truncateForMaxLines(
                 currentContent,
                 context.theme.appTextThemes.body2,
@@ -48,18 +49,44 @@ class PostContent extends HookConsumerWidget {
                 maxLines!,
               )
             : _TruncationResult(delta: currentContent, hasOverflow: false);
-        final displayDelta = truncResult.delta;
-        return TextEditorPreview(
-          scrollable: false,
-          content: displayDelta,
-          customStyles: accentTheme
-              ? textEditorStyles(
-                  context,
-                  color: context.theme.appColors.onPrimaryAccent,
-                )
-              : null,
-          enableInteractiveSelection: isTextSelectable,
-          tagsColor: accentTheme ? context.theme.appColors.anakiwa : null,
+
+        final hasOverflow = originalTruncResult.hasOverflow;
+        final displayDelta = hasOverflow ? originalTruncResult.delta : currentContent;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextEditorPreview(
+              scrollable: false,
+              content: displayDelta,
+              customStyles: accentTheme
+                  ? textEditorStyles(
+                      context,
+                      color: context.theme.appColors.onPrimaryAccent,
+                    )
+                  : null,
+              enableInteractiveSelection: isTextSelectable,
+              tagsColor: accentTheme ? context.theme.appColors.anakiwa : null,
+            ),
+            if (hasOverflow && maxLines != null)
+              GestureDetector(
+                onTap: () {
+                  final eventReference = entity.toEventReference();
+                  PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
+                },
+                child: Padding(
+                  padding: EdgeInsets.only(top: 4.0.s),
+                  child: Text(
+                    context.i18n.common_show_more,
+                    style: context.theme.appTextThemes.body2.copyWith(
+                      color: accentTheme
+                          ? context.theme.appColors.onPrimaryAccent
+                          : context.theme.appColors.primaryAccent,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         );
       },
     );
