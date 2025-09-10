@@ -24,7 +24,8 @@ class FollowedByText extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final firstUserMetadata = ref.watch(cachedUserMetadataProvider(firstFollowerPubkey));
+    final firstUserMetadata =
+        ref.watch(userMetadataSyncProvider(firstFollowerPubkey, network: false));
 
     final userTapRecognizer = useTapGestureRecognizer(
       onTap: () => ProfileRoute(pubkey: firstFollowerPubkey).push<void>(context),

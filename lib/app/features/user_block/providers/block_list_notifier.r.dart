@@ -132,7 +132,7 @@ bool isEntityBlockedOrBlockedBy(Ref ref, IonConnectEntity entity) {
   }
   if (entity is ModifiablePostEntity && entity.data.quotedEvent != null) {
     final quotedEntity = ref.watch(
-      ionConnectCachedEntityProvider(
+      ionConnectInMemoryEntityProvider(
         eventReference: entity.data.quotedEvent!.eventReference,
       ),
     );

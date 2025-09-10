@@ -31,7 +31,7 @@ class SelectableUserListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadataResult = ref.watch(cachedUserMetadataProvider(masterPubkey));
+    final userMetadataResult = ref.watch(userMetadataSyncProvider(masterPubkey, network: false));
 
     if (userMetadataResult == null) {
       return const SizedBox.shrink();

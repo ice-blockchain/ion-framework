@@ -7,7 +7,7 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
@@ -98,7 +98,7 @@ class UserRelaysManager extends _$UserRelaysManager {
   /// on the next request for the user relays.
   Future<void> handleCachedReadOnlyRelay(String relayUrl) async {
     final cachedRelayEntities = (await ref
-            .read(ionConnectDbCacheProvider.notifier)
+            .read(ionConnectDatabaseCacheProvider.notifier)
             .getAllFiltered(keyword: relayUrl, kinds: [UserRelaysEntity.kind]))
         .cast<UserRelaysEntity>();
 
@@ -123,10 +123,10 @@ class UserRelaysManager extends _$UserRelaysManager {
     }
 
     await Future.wait([
-      ref
-          .read(ionConnectDbCacheProvider.notifier)
-          .removeAll(outdatedEntities.map((entity) => entity.toEventReference()).toList()),
-      ref.read(ionConnectDbCacheProvider.notifier).saveAll(updatedEntities),
+      ref.read(ionConnectDatabaseCacheProvider.notifier).removeAll(
+            outdatedEntities.map((entity) => entity.toEventReference().toString()).toList(),
+          ),
+      ref.read(ionConnectDatabaseCacheProvider.notifier).saveAllEntities(updatedEntities),
     ]);
   }
 
@@ -199,7 +199,9 @@ class UserRelaysManager extends _$UserRelaysManager {
         )
         .toList();
 
-    return (await ref.read(ionConnectDbCacheProvider.notifier).getAll(eventReferences))
+    return (await ref.read(ionConnectDatabaseCacheProvider.notifier).getAllFiltered(
+              cacheKeys: eventReferences.map((e) => e.toString()).toList(),
+            ))
         .cast<UserRelaysEntity?>()
         .nonNulls
         .toList();

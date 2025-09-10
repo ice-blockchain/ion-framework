@@ -17,18 +17,18 @@ extension IonConnectCacheEventMessageDbModelExtensions on EventMessageCacheDbMod
   }
 
   static EventMessageCacheDbModel fromEventMessage({
+    required String cacheKey,
     required String masterPubkey,
-    required String eventReference,
     required EventMessage eventMessage,
   }) {
     return EventMessageCacheDbModel(
+      cacheKey: cacheKey,
       id: eventMessage.id,
       kind: eventMessage.kind,
       tags: eventMessage.tags,
       masterPubkey: masterPubkey,
       pubkey: eventMessage.pubkey,
       content: eventMessage.content,
-      eventReference: eventReference,
       createdAt: eventMessage.createdAt,
       insertedAt: DateTime.now().millisecondsSinceEpoch,
       sig: eventMessage.sig,

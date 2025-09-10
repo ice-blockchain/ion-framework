@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ion_connect_cache.r.g.dart';
@@ -40,23 +40,28 @@ class IonConnectCache extends _$IonConnectCache {
     return {};
   }
 
-  void cache(CacheableEntity entity) {
-    final entry = CacheEntry(
-      entity: entity,
-      createdAt: DateTime.now(),
-    );
+  void cache(IonConnectEntity entity) {
+    if (entity is CacheableEntity) {
+      final entry = CacheEntry(
+        entity: entity,
+        createdAt: DateTime.now(),
+      );
 
-    state = {...state, entity.cacheKey: entry};
+      state = {...state, entity.cacheKey: entry};
 
-    _ionConnectCacheStreamController.sink.add(entity);
+      _ionConnectCacheStreamController.sink.add(entity);
+    }
 
     if (entity is DbCacheableEntity) {
-      unawaited(ref.read(ionConnectDbCacheProvider.notifier).save(entity as DbCacheableEntity));
+      unawaited(
+        ref.read(ionConnectDatabaseCacheProvider.notifier).saveEntity(entity as DbCacheableEntity),
+      );
     }
   }
 
   void remove(String key) {
     state = {...state}..remove(key);
+    ref.read(ionConnectDatabaseCacheProvider.notifier).remove(key);
   }
 }
 

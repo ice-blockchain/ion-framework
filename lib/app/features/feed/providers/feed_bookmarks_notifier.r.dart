@@ -12,7 +12,7 @@ import 'package:ion/app/features/feed/data/models/bookmarks/bookmarks_set.f.dart
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_db_cache_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/optimistic_ui/features/bookmark/bookmark_provider.r.dart';
 import 'package:ion/app/services/uuid/uuid.dart';
@@ -123,7 +123,9 @@ class FeedBookmarksNotifier extends _$FeedBookmarksNotifier {
           ..addAll(bookmarksCollection.data.eventReferences);
         if (bookmarksCollection.data.type == BookmarksSetType.homeFeedCollectionsAll.dTagName) {
           unawaited(
-            ref.read(ionConnectDbCacheProvider.notifier).saveEventReference(eventReference),
+            ref
+                .read(ionConnectDatabaseCacheProvider.notifier)
+                .saveEventReference(eventReference, network: false),
           );
         }
         if (bookmarksCollection.data.type != BookmarksSetType.homeFeedCollectionsAll.dTagName) {
@@ -184,13 +186,14 @@ Future<List<EventReference>> filteredBookmarksRefs(
   final collectionEntity =
       await ref.watch(feedBookmarksNotifierProvider(collectionDTag: collectionDTag).future);
 
-  final allRefs = collectionEntity?.data.eventReferences ?? [];
+  final allReferences = collectionEntity?.data.eventReferences ?? [];
 
-  if (keyword.isEmpty) return allRefs;
+  if (keyword.isEmpty) return allReferences;
 
-  final rawEvents = await ref
-      .read(ionConnectDbCacheProvider.notifier)
-      .getAllFiltered(eventReferences: allRefs, keyword: keyword);
+  final rawEvents = await ref.read(ionConnectDatabaseCacheProvider.notifier).getAllFiltered(
+        cacheKeys: allReferences.map((reference) => reference.toString()).toList(),
+        keyword: keyword,
+      );
 
   return rawEvents.map((event) => event.toEventReference()).toList();
 }
@@ -203,8 +206,8 @@ void feedBookmarksSync(Ref ref) {
       final collection = next.value;
       if (collection != null) {
         ref
-            .read(ionConnectDbCacheProvider.notifier)
-            .saveAllNonExistingRefs(collection.data.eventReferences);
+            .read(ionConnectDatabaseCacheProvider.notifier)
+            .saveAllNonExistingReferences(collection.data.eventReferences);
       }
     },
   );
