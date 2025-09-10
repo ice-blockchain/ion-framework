@@ -14,6 +14,8 @@ part 'notification_response_handler_provider.r.g.dart';
 class NotificationResponseHandler extends _$NotificationResponseHandler {
   // Prevents multiple listeners from being added.
   bool _isInitialized = false;
+  StreamSubscription<void>? _firebaseNotificationHandler;
+  StreamSubscription<void>? _localNotificationHandler;
 
   @override
   void build() {
@@ -21,6 +23,12 @@ class NotificationResponseHandler extends _$NotificationResponseHandler {
     if (firebaseAppConfigured && !_isInitialized) {
       _initialize();
     }
+
+    ref.onDispose(() {
+      _firebaseNotificationHandler?.cancel();
+      _localNotificationHandler?.cancel();
+      _isInitialized = false;
+    });
   }
 
   Future<void> _initialize() async {
@@ -47,18 +55,12 @@ class NotificationResponseHandler extends _$NotificationResponseHandler {
     }
 
     // if the app is opened from a background state (not terminated) by pressing an FCM notification.
-    final firebaseNotificationHandler =
+    _firebaseNotificationHandler =
         firebaseMessagingService.onMessageOpenedApp().listen(_handlePushData);
 
     // if the app is opened from a background state (not terminated) by pressing an local notification.
-    final localNotificationHandler =
+    _localNotificationHandler =
         localNotificationsService.notificationResponseStream.listen(_handlePushData);
-
-    ref.onDispose(() {
-      firebaseNotificationHandler.cancel();
-      localNotificationHandler.cancel();
-      _isInitialized = false;
-    });
   }
 
   void _handlePushData(Map<String, dynamic> data) {
