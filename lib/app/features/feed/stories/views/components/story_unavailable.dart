@@ -25,33 +25,31 @@ class StoryUnavailable extends StatelessWidget {
         color: context.theme.appColors.primaryText,
         child: Padding(
           padding: EdgeInsetsDirectional.only(top: fixedTop, bottom: footerHeight),
-          child: SizedBox(
-            child: ColoredBox(
-              color: context.theme.appColors.postContent,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Assets.svg.iconFeedUnavailable.icon(
-                          size: 32.s,
+          child: ColoredBox(
+            color: context.theme.appColors.postContent,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Assets.svg.iconFeedUnavailable.icon(
+                        size: 32.s,
+                        color: context.theme.appColors.onTertiaryFill,
+                      ),
+                      SizedBox(height: 6.s),
+                      Text(
+                        context.i18n.story_reply_not_available_sender,
+                        style: context.theme.appTextThemes.body2.copyWith(
                           color: context.theme.appColors.onTertiaryFill,
                         ),
-                        SizedBox(height: 6.s),
-                        Text(
-                          context.i18n.story_reply_not_available_sender,
-                          style: context.theme.appTextThemes.body2.copyWith(
-                            color: context.theme.appColors.onTertiaryFill,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  StoryViewerHeader(currentPost: post),
-                ],
-              ),
+                ),
+                StoryViewerHeader(currentPost: post),
+              ],
             ),
           ),
         ),
