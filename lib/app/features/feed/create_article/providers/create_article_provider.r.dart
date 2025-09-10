@@ -20,9 +20,9 @@ import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.d
 import 'package:ion/app/features/feed/providers/media_upload_provider.r.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
-import 'package:ion/app/features/ion_connect/model/color_label.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_settings.dart';
 import 'package:ion/app/features/ion_connect/model/entity_editing_ended_at.f.dart';
+import 'package:ion/app/features/ion_connect/model/entity_label.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
@@ -274,7 +274,9 @@ class CreateArticle extends _$CreateArticle {
         relatedHashtags: relatedHashtags,
         relatedPubkeys: mentions,
         settings: EntityDataWithSettings.build(whoCanReply: whoCanReply),
-        colorLabel: imageColor != null ? ColorLabel(value: imageColor) : null,
+        colorLabel: imageColor != null
+            ? EntityLabel(values: [imageColor], namespace: EntityLabelNamespace.color)
+            : null,
         richText: richText,
       );
 

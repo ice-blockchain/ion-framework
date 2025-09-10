@@ -6,11 +6,11 @@ import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/features/ion_connect/model/color_label.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_related_pubkeys.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_settings.dart';
 import 'package:ion/app/features/ion_connect/model/entity_editing_ended_at.f.dart';
+import 'package:ion/app/features/ion_connect/model/entity_label.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_published_at.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
@@ -88,7 +88,7 @@ class ArticleData
     List<RelatedHashtag>? relatedHashtags,
     List<RelatedPubkey>? relatedPubkeys,
     List<EventSetting>? settings,
-    ColorLabel? colorLabel,
+    EntityLabel? colorLabel,
     EntityEditingEndedAt? editingEndedAt,
   }) = _ArticleData;
 
@@ -114,7 +114,11 @@ class ArticleData
       relatedHashtags: tags[RelatedHashtag.tagName]?.map(RelatedHashtag.fromTag).toList(),
       relatedPubkeys: EntityDataWithRelatedPubkeys.fromTags(tags),
       settings: tags[EventSetting.settingTagName]?.map(EventSetting.fromTag).toList(),
-      colorLabel: ColorLabel.fromTags(tags, eventId: eventMessage.id),
+      colorLabel: EntityLabel.fromTags(
+        tags,
+        eventId: eventMessage.id,
+        namespace: EntityLabelNamespace.color,
+      ),
       richText:
           tags[RichText.tagName] != null ? RichText.fromTag(tags[RichText.tagName]!.first) : null,
       editingEndedAt: tags[EntityEditingEndedAt.tagName] != null
@@ -147,7 +151,9 @@ class ArticleData
       relatedHashtags: relatedHashtags,
       relatedPubkeys: relatedPubkeys,
       settings: settings,
-      colorLabel: imageColor != null ? ColorLabel(value: imageColor) : null,
+      colorLabel: imageColor != null
+          ? EntityLabel(values: [imageColor], namespace: EntityLabelNamespace.color)
+          : null,
       richText: richText,
       editingEndedAt: editingEndedAt,
     );
@@ -175,8 +181,7 @@ class ArticleData
         if (image != null) ['image', image!],
         if (summary != null) ['summary', summary!],
         if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),
-        if (colorLabel != null) colorLabel!.toNamespaceTag(),
-        if (colorLabel != null) colorLabel!.toValueTag(),
+        if (colorLabel != null) ...colorLabel!.toTags(),
         if (settings != null) ...settings!.map((setting) => setting.toTag()),
         if (relatedHashtags != null) ...relatedHashtags!.map((hashtag) => hashtag.toTag()),
         if (relatedPubkeys != null) ...relatedPubkeys!.map((pubkey) => pubkey.toTag()),

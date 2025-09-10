@@ -143,7 +143,7 @@ class Article extends ConsumerWidget {
                         width: 4.0.s,
                         decoration: BoxDecoration(
                           color: entity.data.colorLabel != null
-                              ? fromHexColor(entity.data.colorLabel!.value)
+                              ? fromHexColor(entity.data.colorLabel!.values.first)
                               : context.theme.appColors.primaryAccent,
                           borderRadius: BorderRadiusDirectional.only(
                             topEnd: Radius.circular(4.0.s),
