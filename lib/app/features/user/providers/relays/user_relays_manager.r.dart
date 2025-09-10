@@ -97,10 +97,12 @@ class UserRelaysManager extends _$UserRelaysManager {
   /// That in turn leads to refetching from the remote source
   /// on the next request for the user relays.
   Future<void> handleCachedReadOnlyRelay(String relayUrl) async {
-    final cachedRelayEntities = (await ref
-            .read(ionConnectDatabaseCacheProvider.notifier)
-            .getAllFiltered(keyword: relayUrl, kinds: [UserRelaysEntity.kind]))
-        .cast<UserRelaysEntity>();
+    final ionConnectDatabaseCache = ref.read(ionConnectDatabaseCacheProvider).valueOrNull;
+
+    final cachedRelayEntities = (await ionConnectDatabaseCache
+                ?.getAllFiltered(keyword: relayUrl, kinds: [UserRelaysEntity.kind]))
+            ?.cast<UserRelaysEntity>() ??
+        [];
 
     final updatedEntities = <UserRelaysEntity>[];
     final outdatedEntities = <UserRelaysEntity>[];
@@ -122,12 +124,14 @@ class UserRelaysManager extends _$UserRelaysManager {
       }
     }
 
-    await Future.wait([
-      ref.read(ionConnectDatabaseCacheProvider.notifier).removeAll(
-            outdatedEntities.map((entity) => entity.toEventReference().toString()).toList(),
-          ),
-      ref.read(ionConnectDatabaseCacheProvider.notifier).saveAllEntities(updatedEntities),
-    ]);
+    if (ionConnectDatabaseCache != null) {
+      await Future.wait([
+        ionConnectDatabaseCache.removeAll(
+          outdatedEntities.map((entity) => entity.toEventReference().toString()).toList(),
+        ),
+        ionConnectDatabaseCache.saveAllEntities(updatedEntities),
+      ]);
+    }
   }
 
   Future<List<UserRelaysEntity>> fetchRelaysFromIndexers(List<String> pubkeys) async {
@@ -199,12 +203,13 @@ class UserRelaysManager extends _$UserRelaysManager {
         )
         .toList();
 
-    return (await ref.read(ionConnectDatabaseCacheProvider.notifier).getAllFiltered(
-              cacheKeys: eventReferences.map((e) => e.toString()).toList(),
-            ))
-        .cast<UserRelaysEntity?>()
-        .nonNulls
-        .toList();
+    return (await ref.read(ionConnectDatabaseCacheProvider).valueOrNull?.getAllFiltered(
+                  cacheKeys: eventReferences.map((e) => e.toString()).toList(),
+                ))
+            ?.cast<UserRelaysEntity?>()
+            .nonNulls
+            .toList() ??
+        [];
   }
 
   List<UserRelaysEntity> _filterReachableRelays(List<UserRelaysEntity> relays) {

@@ -48,9 +48,9 @@ Future<IonConnectEntity?> ionConnectEntity(
       return inMemoryEntity;
     }
 
-    final cacheService = ref.read(ionConnectDatabaseCacheProvider.notifier);
+    final cacheService = ref.read(ionConnectDatabaseCacheProvider).valueOrNull;
 
-    final databaseEntity = await cacheService.get(
+    final databaseEntity = await cacheService?.get(
       eventReference.toString(),
       expirationDuration: expirationDuration,
     );
@@ -87,15 +87,12 @@ IonConnectEntity? ionConnectInMemoryEntity(
       ),
     );
 
-// We have to keep this provider in order to not break existing sync entity provider
-// logic
-//TODO: remove in future refactor
 @riverpod
 Future<IonConnectEntity?> ionConnectDatabaseEntity(
   Ref ref, {
   required EventReference eventReference,
 }) async {
-  return ref.read(ionConnectDatabaseCacheProvider.notifier).get(eventReference.toString());
+  return (await ref.read(ionConnectDatabaseCacheProvider.future)).get(eventReference.toString());
 }
 
 @riverpod
@@ -336,11 +333,14 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
 
       // Database cache
       if (remainingEvents.isNotEmpty) {
-        final cacheService = ref.read(ionConnectDatabaseCacheProvider.notifier);
-        final databaseEntities = await cacheService.getAllFiltered(
+        final cacheService = ref.read(ionConnectDatabaseCacheProvider).valueOrNull;
+        final databaseEntities = await cacheService?.getAllFiltered(
           expirationDuration: expirationDuration,
           cacheKeys: remainingEvents.map((e) => e.toString()).toList(),
         );
+        if (databaseEntities == null || databaseEntities.isEmpty) {
+          return results;
+        }
         results.addAll(databaseEntities);
         remainingEvents.removeAll(databaseEntities.map((e) => e.toEventReference()));
       }
