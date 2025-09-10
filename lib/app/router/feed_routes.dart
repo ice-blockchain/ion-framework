@@ -56,6 +56,7 @@ class FeedRoutes {
         TypedGoRoute<SelectTopicsRoute>(path: 'topics'),
         TypedGoRoute<EditArticleRoute>(path: 'create-article/edit/:modifiedEvent'),
         TypedGoRoute<EditArticlePreviewRoute>(path: 'article-preview/edit/:modifiedEvent'),
+        TypedGoRoute<EntityLanguageRoute>(path: 'entity-language'),
       ],
     ),
   ];
@@ -515,4 +516,12 @@ class AddBookmarkRoute extends BaseRouteData with _$AddBookmarkRoute {
         );
 
   final String eventReference;
+}
+
+class EntityLanguageRoute extends BaseRouteData with _$EntityLanguageRoute {
+  EntityLanguageRoute()
+      : super(
+          child: const EntityLanguageModal(),
+          type: IceRouteType.bottomSheet,
+        );
 }

@@ -6,6 +6,7 @@ import 'package:ion/app/components/button/tag_button.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/language.dart';
 import 'package:ion/app/features/feed/providers/selected_entity_language_notifier.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class LanguageButton extends ConsumerWidget {
@@ -19,7 +20,7 @@ class LanguageButton extends ConsumerWidget {
         : null;
 
     return TagButton(
-      onPressed: () => {},
+      onPressed: () => EntityLanguageRoute().push<void>(context),
       label: selectedEntityLanguage != null
           ? selectedEntityLanguage.displayName
           : selectedEntityLanguageCode ?? context.i18n.common_language,
