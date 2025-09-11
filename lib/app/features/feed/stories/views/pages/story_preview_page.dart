@@ -18,6 +18,7 @@ import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_pr
 import 'package:ion/app/features/feed/stories/data/models/story_preview_result.f.dart';
 import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_preview/actions/story_language_button.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_preview/actions/story_share_button.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_preview/actions/story_topics_button.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_preview/media/post_screenshot_preview.dart';
@@ -113,12 +114,13 @@ class StoryPreviewPage extends HookConsumerWidget {
                         MediaType.unknown => const CenteredLoadingIndicator(),
                       },
                     ),
-                    SizedBox(height: 8.0.s),
+                    SizedBox(height: 18.0.s),
+                    const StoryTopicsButton(),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 7.s),
                       child: const HorizontalSeparator(),
                     ),
-                    const StoryTopicsButton(),
+                    const StoryLanguageButton(),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 6.s),
                       child: const HorizontalSeparator(),
