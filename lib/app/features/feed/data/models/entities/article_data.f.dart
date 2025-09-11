@@ -137,6 +137,7 @@ class ArticleData
     String? imageColor,
     RichText? richText,
     EntityEditingEndedAt? editingEndedAt,
+    EntityLabel? language,
   }) {
     return ArticleData(
       textContent: '',
@@ -154,6 +155,7 @@ class ArticleData
           : null,
       richText: richText,
       editingEndedAt: editingEndedAt,
+      language: language,
     );
   }
 

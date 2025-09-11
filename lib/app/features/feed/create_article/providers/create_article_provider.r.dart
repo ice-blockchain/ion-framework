@@ -72,6 +72,7 @@ class CreateArticle extends _$CreateArticle {
     DateTime? publishedAt,
     List<String>? mediaIds,
     String? imageColor,
+    String? language,
   }) async {
     state = const AsyncValue.loading();
 
@@ -122,6 +123,7 @@ class CreateArticle extends _$CreateArticle {
         imageColor: imageColor,
         richText: richText,
         editingEndedAt: editingEndedAt,
+        language: _buildLanguageLabel(language),
       );
 
       final article = await _sendArticleEntities(
@@ -190,6 +192,7 @@ class CreateArticle extends _$CreateArticle {
     String? originalImageUrl,
     Map<String, MediaAttachment> mediaAttachments = const {},
     String? imageColor,
+    String? language,
   }) async {
     state = const AsyncValue.loading();
 
@@ -278,6 +281,7 @@ class CreateArticle extends _$CreateArticle {
             ? EntityLabel(values: [imageColor], namespace: EntityLabelNamespace.color)
             : null,
         richText: richText,
+        language: _buildLanguageLabel(language),
       );
 
       if (unusedMediaFileHashes.isNotEmpty) {
@@ -463,5 +467,15 @@ class CreateArticle extends _$CreateArticle {
           .read(feedUserInterestsNotifierProvider.notifier)
           .updateInterests(FeedInterestInteraction.createArticle, interactionCategories);
     }
+  }
+
+  EntityLabel? _buildLanguageLabel(String? language) {
+    if (language != null) {
+      return EntityLabel(
+        values: [language],
+        namespace: EntityLabelNamespace.language,
+      );
+    }
+    return null;
   }
 }
