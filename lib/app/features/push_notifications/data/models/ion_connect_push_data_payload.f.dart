@@ -254,10 +254,7 @@ class IonConnectPushDataPayload {
           }
 
           if (notificationType == PushNotificationType.chatDocumentMessage) {
-            final splitMimeType = message.data.media.values.first.mimeType.split('/');
-            if (splitMimeType.first == 'application') {
-              data['documentExt'] = splitMimeType.last;
-            }
+            data['documentExt'] = message.data.primaryMedia?.alt ?? '';
           }
         }
       }
