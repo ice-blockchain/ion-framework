@@ -9,6 +9,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/pubkey_tag.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/mentions_repository.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -29,7 +30,8 @@ class MentionNotificationHandler extends GlobalSubscriptionEventHandler {
 
   @override
   bool canHandle(EventMessage eventMessage) {
-    if (![ModifiablePostEntity.kind, ArticleEntity.kind].contains(eventMessage.kind)) {
+    if (![ModifiablePostEntity.kind, ArticleEntity.kind, PostEntity.kind]
+        .contains(eventMessage.kind)) {
       return false;
     }
     final isQuoteOfUser = eventMessage.tags

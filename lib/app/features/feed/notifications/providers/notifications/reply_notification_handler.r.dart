@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/comments_repository.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_event_handler.dart';
@@ -21,7 +22,8 @@ class ReplyNotificationHandler extends GlobalSubscriptionEventHandler {
 
   @override
   bool canHandle(EventMessage eventMessage) {
-    if (![ModifiablePostEntity.kind, ArticleEntity.kind].contains(eventMessage.kind)) {
+    if (![ModifiablePostEntity.kind, ArticleEntity.kind, PostEntity.kind]
+        .contains(eventMessage.kind)) {
       return false;
     }
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
