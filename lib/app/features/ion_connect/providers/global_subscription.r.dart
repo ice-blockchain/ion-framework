@@ -9,6 +9,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
@@ -51,6 +52,7 @@ class GlobalSubscription {
     ReactionEntity.kind,
     ModifiablePostEntity.kind,
     GenericRepostEntity.modifiablePostRepostKind,
+    ArticleEntity.kind,
   ];
 
   static const List<int> _encryptedEventKinds = [IonConnectGiftWrapEntity.kind];
@@ -82,14 +84,24 @@ class GlobalSubscription {
   }) async {
     final tmpLastCreatedAt = await eventBackfillService.startBackfill(
       latestEventTimestamp: regularLatestEventTimestamp,
-      filter: RequestFilter(
-        kinds: _genericEventKinds,
-        tags: {
-          '#p': [
-            [currentUserMasterPubkey],
-          ],
-        },
-      ),
+      filters: [
+        RequestFilter(
+          kinds: _genericEventKinds,
+          tags: {
+            '#p': [
+              [currentUserMasterPubkey],
+            ]
+          },
+        ),
+        RequestFilter(
+          kinds: const [ModifiablePostEntity.kind],
+          tags: {
+            '#Q': [
+              [null, null, currentUserMasterPubkey],
+            ],
+          },
+        ),
+      ],
       onEvent: _handleEvent,
     );
 
@@ -118,6 +130,16 @@ class GlobalSubscription {
             tags: {
               '#p': [
                 [currentUserMasterPubkey],
+              ],
+            },
+            limit: eventLimit,
+            since: regularSince?.toMicroseconds,
+          ),
+          RequestFilter(
+            kinds: const [ModifiablePostEntity.kind],
+            tags: {
+              '#Q': [
+                [null, null, currentUserMasterPubkey],
               ],
             },
             limit: eventLimit,
