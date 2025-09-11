@@ -32,7 +32,8 @@ class InviteFriendsPage extends HookConsumerWidget {
     if (!showBackButton) {
       useScrollTopOnTabPress(context, scrollController: scrollController);
     }
-    final (:opacity) = useAnimatedOpacityOnScroll(scrollController, topOffset: paddingTop);
+    final (:opacity) =
+        useAnimatedOpacityOnScroll(scrollController, topOffset: paddingTop);
 
     final backgroundColor = context.theme.appColors.secondaryBackground;
 
@@ -41,8 +42,9 @@ class InviteFriendsPage extends HookConsumerWidget {
       flipForRtl: true,
     );
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-    final userMetadataValue =
-        currentPubkey != null ? ref.watch(userMetadataProvider(currentPubkey)).valueOrNull : null;
+    final userMetadataValue = currentPubkey != null
+        ? ref.watch(userMetadataProvider(currentPubkey)).valueOrNull
+        : null;
     final referralCode = userMetadataValue?.data.name;
 
     return Scaffold(
@@ -88,7 +90,12 @@ class InviteFriendsPage extends HookConsumerWidget {
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(16.0.s, 0, 16.0.s, 94.0.s),
+                    padding: EdgeInsetsDirectional.fromSTEB(
+                      16.0.s,
+                      0,
+                      16.0.s,
+                      94.0.s,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       spacing: 8.0.s,
@@ -98,13 +105,15 @@ class InviteFriendsPage extends HookConsumerWidget {
                           children: [
                             Expanded(
                               child: _PercentageCard(
-                                title: context.i18n.invite_friends_percentage_first_month_label,
+                                title: context.i18n
+                                    .invite_friends_percentage_first_month_label,
                                 percentage: 50,
                               ),
                             ),
                             Expanded(
                               child: _PercentageCard(
-                                title: context.i18n.invite_friends_percentage_lifetime_label,
+                                title: context.i18n
+                                    .invite_friends_percentage_lifetime_label,
                                 percentage: 10,
                               ),
                             ),
@@ -146,9 +155,9 @@ class InviteFriendsPage extends HookConsumerWidget {
                   icon: backButtonIcon,
                 ),
               ),
-            Positioned(
-              left: 0,
-              right: 0,
+            PositionedDirectional(
+              start: 0,
+              end: 0,
               bottom: 0,
               child: Container(
                 decoration: BoxDecoration(
@@ -161,7 +170,8 @@ class InviteFriendsPage extends HookConsumerWidget {
                   ],
                   color: context.theme.appColors.onPrimaryAccent,
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 16.0.s, vertical: 12.0.s),
+                padding:
+                    EdgeInsets.symmetric(horizontal: 16.0.s, vertical: 12.0.s),
                 child: Button(
                   leadingIcon: Assets.svg.iconButtonInvite.icon(
                     size: 24.0.s,
