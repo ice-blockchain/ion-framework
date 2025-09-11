@@ -6,6 +6,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
@@ -29,10 +30,9 @@ part 'post_like_provider.r.g.dart';
 
 @riverpod
 List<PostLike> loadInitialLikesFromCache(Ref ref) {
-  final currentPubkey = ref.read(currentPubkeySelectorProvider);
-  final reactions = ref
-      .read(ionConnectCacheProvider)
-      .values
+  final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+  final cache = ref.watch(ionConnectCacheProvider);
+  final reactions = cache.values
       .map((e) => e.entity)
       .whereType<ReactionEntity>()
       .where((r) => r.data.content == ReactionEntity.likeSymbol)
@@ -46,7 +46,21 @@ List<PostLike> loadInitialLikesFromCache(Ref ref) {
   return grouped.entries.map((entry) {
     final eventRef = entry.key;
     final list = entry.value;
-    final count = list.length;
+
+    final counterCacheKey = EventCountResultEntity.cacheKeyBuilder(
+      key: eventRef.toString(),
+      type: EventCountResultType.reactions,
+    );
+    final counterEntity = cache[counterCacheKey]?.entity as EventCountResultEntity?;
+
+    int count;
+    if (counterEntity != null) {
+      final reactionsCount = counterEntity.data.content as Map<String, dynamic>;
+      count = (reactionsCount[ReactionEntity.likeSymbol] ?? 0) as int;
+    } else {
+      count = list.length;
+    }
+
     final likedByMe = currentPubkey != null && list.any((r) => r.pubkey == currentPubkey);
     return PostLike(
       eventReference: eventRef,
