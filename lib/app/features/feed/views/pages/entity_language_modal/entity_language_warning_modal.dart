@@ -14,18 +14,19 @@ class EntityLanguageWarningModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SimpleModalSheet.alert(
-      title: context.i18n.restore_from_cloud_identity_not_found_title,
-      description: context.i18n.restore_from_cloud_identity_not_found_description,
-      iconAsset: Assets.svg.actionWalletKeyserror,
+      title: context.i18n.common_select_language,
+      description: context.i18n.select_language_warning,
+      iconAsset: Assets.svg.actionWalletSelectlanguage,
       button: ScreenSideOffset.small(
         child: Button(
           mainAxisSize: MainAxisSize.max,
-          label: Text(context.i18n.button_close),
+          label: Text(context.i18n.common_select_language),
           onPressed: () {
             EntityLanguageRoute().pushReplacement(context);
           },
         ),
       ),
+      topOffset: 40.0.s,
     );
   }
 }

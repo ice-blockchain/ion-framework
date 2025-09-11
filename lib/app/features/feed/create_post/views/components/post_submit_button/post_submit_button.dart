@@ -87,10 +87,8 @@ class PostSubmitButton extends HookConsumerWidget {
         }
 
         if (ref.read(selectedEntityLanguageNotifierProvider) == null) {
-          await EntityLanguageWarningRoute().push<void>(context);
-          if (ref.read(selectedEntityLanguageNotifierProvider) == null) {
-            return;
-          }
+          unawaited(EntityLanguageWarningRoute().push<void>(context));
+          return;
         }
 
         final filesToUpload = createOption == CreatePostOption.video
