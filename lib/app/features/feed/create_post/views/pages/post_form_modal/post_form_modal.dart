@@ -15,6 +15,7 @@ import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/ho
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_media_links.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_video.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_post_quill_controller.dart';
+import 'package:ion/app/features/feed/hooks/use_detect_language.dart';
 import 'package:ion/app/features/feed/hooks/use_preselect_language.dart';
 import 'package:ion/app/features/feed/hooks/use_preselect_topics.dart';
 import 'package:ion/app/features/feed/views/pages/cancel_creation_modal/cancel_creation_modal.dart';
@@ -175,6 +176,7 @@ class PostFormModal extends HookConsumerWidget {
 
     usePreselectTopics(ref, eventReference: modifiedEvent);
     usePreselectLanguage(ref, eventReference: modifiedEvent);
+    useDetectLanguage(ref, textEditorController: textEditorController);
 
     if (textEditorController == null) {
       return const SizedBox.shrink();
