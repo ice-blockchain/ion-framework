@@ -14,8 +14,8 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_event_handler.dart';
 import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
+import 'package:ion/app/features/ion_connect/model/related_event.f.dart';
 import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
-import 'package:ion/app/features/ion_connect/model/source_post_reference.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -29,6 +29,9 @@ class MentionNotificationHandler extends GlobalSubscriptionEventHandler {
 
   @override
   bool canHandle(EventMessage eventMessage) {
+    if (![ModifiablePostEntity.kind, ArticleEntity.kind].contains(eventMessage.kind)) {
+      return false;
+    }
     final isQuoteOfUser = eventMessage.tags
         .any((tag) => tag.first == QuotedReplaceableEvent.tagName && tag.last == currentPubkey);
     // quotes are handled in QuoteNotificationHandler
@@ -53,8 +56,16 @@ class MentionNotificationHandler extends GlobalSubscriptionEventHandler {
       return false;
     }
 
-    final isReplyToUser =
-        tags[SourcePostReference.tagName]?.any((tag) => tag.contains('reply')) ?? false;
+    final isReplyToUser = [
+      RelatedReplaceableEvent.tagName,
+      RelatedImmutableEvent.tagName,
+    ].any((tagName) {
+      final entries = tags[tagName];
+      return entries?.any(
+            (tag) => tag.contains('reply') && tag.last == currentPubkey,
+          ) ??
+          false;
+    });
 
     if (isReplyToUser) {
       return false;
