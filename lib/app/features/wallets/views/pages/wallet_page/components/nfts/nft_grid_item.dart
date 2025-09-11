@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:ion/app/components/image/ion_network_image.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/features/wallets/model/nft_data.f.dart';
+import 'package:ion/app/features/wallets/views/components/nft_picture.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/nfts/constants.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/nfts/nfts_network.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -45,12 +45,10 @@ class NftGridItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            IonNetworkImage(
+            NftPicture(
               imageUrl: nftData.imageUrl,
-              width: imageWidth,
-              height: imageWidth * 1.13,
-              fit: BoxFit.fitHeight,
-              borderRadius: borderRadius,
+              size: Size(imageWidth, imageWidth * 1.13),
+              borderRadius: 6,
             ),
             Text(
               nftData.name,

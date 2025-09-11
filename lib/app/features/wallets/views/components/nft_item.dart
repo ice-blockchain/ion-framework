@@ -3,12 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/components/icons/network_icon_widget.dart';
 import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
-import 'package:ion/app/components/image/ion_network_image.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/features/wallets/model/nft_data.f.dart';
+import 'package:ion/app/features/wallets/views/components/nft_picture.dart';
 
 class NftItem extends StatelessWidget {
   const NftItem({
@@ -56,12 +56,10 @@ class NftItem extends StatelessWidget {
         ],
       ),
       backgroundColor: backgroundColor ?? context.theme.appColors.tertiaryBackground,
-      leading: IonNetworkImage(
+      leading: NftPicture(
         imageUrl: nftData.imageUrl,
-        width: imageWidth,
-        height: imageHeight,
+        size: Size(imageWidth, imageHeight),
         fit: BoxFit.fitWidth,
-        borderRadius: BorderRadius.circular(16.0.s),
       ),
     );
   }
