@@ -30,6 +30,7 @@ import 'package:ion/app/features/ion_connect/model/entity_data_with_parent.dart'
 import 'package:ion/app/features/ion_connect/model/entity_data_with_settings.dart';
 import 'package:ion/app/features/ion_connect/model/entity_editing_ended_at.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_expiration.f.dart';
+import 'package:ion/app/features/ion_connect/model/entity_label.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_published_at.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/events_metadata_builder.dart';
@@ -123,6 +124,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
           media: media.values.toList(),
         ),
         poll: poll,
+        language: _buildLanguageLabel(language),
       );
 
       final post = await _publishPost(
@@ -159,6 +161,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     WhoCanReplySettingsOption? whoCanReply,
     Set<String> topics = const {},
     PollData? poll,
+    String? language,
   }) async {
     state = const AsyncValue.loading();
 
@@ -204,6 +207,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
           whoCanReply: whoCanReply ?? modifiedEntity.data.whoCanReplySetting,
         ),
         poll: poll,
+        language: _buildLanguageLabel(language),
       );
 
       final originalContentDelta = parseAndConvertDelta(
@@ -352,6 +356,16 @@ class CreatePostNotifier extends _$CreatePostNotifier {
               ),
             )
             .microsecondsSinceEpoch,
+      );
+    }
+    return null;
+  }
+
+  EntityLabel? _buildLanguageLabel(String? language) {
+    if (language != null) {
+      return EntityLabel(
+        values: [language],
+        namespace: EntityLabelNamespace.language,
       );
     }
     return null;

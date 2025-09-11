@@ -86,7 +86,8 @@ class PostSubmitButton extends HookConsumerWidget {
           return;
         }
 
-        if (ref.read(selectedEntityLanguageNotifierProvider) == null) {
+        final language = ref.read(selectedEntityLanguageNotifierProvider);
+        if (language == null) {
           unawaited(EntityLanguageWarningRoute().push<void>(context));
           return;
         }
@@ -109,6 +110,7 @@ class PostSubmitButton extends HookConsumerWidget {
               whoCanReply: whoCanReply,
               topics: selectedTopics,
               poll: PollUtils.pollDraftToPollData(draftPoll),
+              language: language,
             ),
           );
         } else {
@@ -121,6 +123,7 @@ class PostSubmitButton extends HookConsumerWidget {
               whoCanReply: whoCanReply,
               topics: selectedTopics,
               poll: PollUtils.pollDraftToPollData(draftPoll),
+              language: language,
             ),
           );
         }
