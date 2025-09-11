@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/tooltip/copied_tooltip.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/user/pages/profile_page/hooks/use_animated_opacity_on_scroll.dart';
@@ -179,7 +180,6 @@ class InviteFriendsPage extends HookConsumerWidget {
                   onPressed: () {
                     Share.share(
                       '${context.i18n.invite_friends_shared_link_text} https://online.io/@$referralCode',
-                      subject: context.i18n.invite_friends_shared_link_subject,
                     );
                   },
                 ),
@@ -433,12 +433,18 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-class _ReferralCodeCard extends StatelessWidget {
+class _ReferralCodeCard extends HookWidget {
   const _ReferralCodeCard({required this.referralCode});
   final String referralCode;
 
   @override
   Widget build(BuildContext context) {
+    final isCopied = useState<bool>(false);
+    final tooltipLeftPosition = useState<double>(0);
+    final tooltipTopPosition = useState<double>(0);
+
+    final copyIconWidth = 16.0.s;
+
     return _IonCard(
       padding: EdgeInsets.symmetric(horizontal: 60.0.s, vertical: 22.0.s),
       child: Column(
@@ -461,9 +467,14 @@ class _ReferralCodeCard extends StatelessWidget {
             ],
           ),
           GestureDetector(
-            onTap: () {
-              Clipboard.setData(ClipboardData(text: referralCode));
-              //TODO: show confirmation?
+            onTap: () async {
+              await Clipboard.setData(ClipboardData(text: referralCode));
+
+              isCopied.value = true;
+
+              await Future<void>.delayed(const Duration(seconds: 3)).then((_) {
+                isCopied.value = false;
+              });
             },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -475,9 +486,27 @@ class _ReferralCodeCard extends StatelessWidget {
                     color: context.theme.appColors.primaryText,
                   ),
                 ),
-                Assets.svg.iconBlockCopyBlue.icon(
-                  size: 16.0.s,
-                  color: context.theme.appColors.primaryAccent,
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Assets.svg.iconBlockCopyBlue.icon(
+                      size: copyIconWidth,
+                      color: context.theme.appColors.primaryAccent,
+                    ),
+                    PositionedDirectional(
+                      top: tooltipTopPosition.value,
+                      start: tooltipLeftPosition.value,
+                      child: Opacity(
+                        opacity: isCopied.value ? 1 : 0,
+                        child: CopiedTooltip(
+                          onLayout: (Size size) {
+                            tooltipTopPosition.value = -size.height - 11.0.s;
+                            tooltipLeftPosition.value = (copyIconWidth - size.width) / 2;
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
