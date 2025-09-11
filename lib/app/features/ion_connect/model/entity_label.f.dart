@@ -34,6 +34,12 @@ class EntityLabel with _$EntityLabel {
     ];
   }
 
+  Map<String, List<List<String>>> toFilterTags() {
+    return {
+      '#${LabelValueTag.tagName}': values.map((value) => [value, namespace.value]).toList(),
+    };
+  }
+
   static EntityLabel? fromTags(
     Map<String, List<List<String>>> tags, {
     required EntityLabelNamespace namespace,

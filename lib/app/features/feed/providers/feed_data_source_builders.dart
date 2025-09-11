@@ -56,7 +56,7 @@ FeedEntitiesDataSource buildArticlesDataSource({
   List<String>? authors,
   int limit = 1,
   List<SearchExtension>? searchExtensions,
-  Map<String, List<String>>? tags,
+  Map<String, List<Object>>? tags,
 }) {
   final search = SearchExtensions([
     ...SearchExtensions.withCounters(currentPubkey: currentPubkey, forKind: ArticleEntity.kind)
@@ -97,7 +97,7 @@ FeedEntitiesDataSource buildVideosDataSource({
   List<String>? authors,
   int limit = 1,
   List<SearchExtension>? searchExtensions,
-  Map<String, List<String>>? tags,
+  Map<String, List<Object>>? tags,
 }) {
   final search = SearchExtensions([
     ...SearchExtensions.withCounters(currentPubkey: currentPubkey).extensions,
@@ -162,7 +162,7 @@ FeedEntitiesDataSource buildPostsDataSource({
   List<String>? authors,
   int limit = 1,
   List<SearchExtension>? searchExtensions,
-  Map<String, List<String>>? tags,
+  Map<String, List<Object>>? tags,
 }) {
   final search = SearchExtensions([
     ...SearchExtensions.withCounters(currentPubkey: currentPubkey).extensions,
@@ -228,7 +228,7 @@ FeedEntitiesDataSource buildStoriesDataSource({
   List<String>? authors,
   int limit = 1,
   List<SearchExtension>? searchExtensions,
-  Map<String, List<String>>? tags,
+  Map<String, List<Object>>? tags,
 }) {
   final search = SearchExtensions(
     [
