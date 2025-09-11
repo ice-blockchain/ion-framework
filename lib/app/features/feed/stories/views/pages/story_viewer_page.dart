@@ -65,6 +65,16 @@ class StoryViewerPage extends HookConsumerWidget {
         [];
     final viewedStories = ref.watch(viewedStoriesProvider) ?? {};
 
+    // Prefetch next user's stories when approaching the end of current user's stories
+    final currentUserStoriesLeft =
+        stories.length - singleUserStoriesViewerState.currentStoryIndex - 1;
+    final nextUserPubkey = storyViewerState.nextUserPubkey;
+    final shouldPrefetch = currentUserStoriesLeft < 10 && nextUserPubkey != null;
+
+    if (shouldPrefetch) {
+      ref.watch(userStoriesProvider(nextUserPubkey));
+    }
+
     useOnInit(
       () {
         if (storyViewerState.userStories.isEmpty && context.mounted && context.canPop()) {
@@ -99,21 +109,6 @@ class StoryViewerPage extends HookConsumerWidget {
     useRoutePresence(
       onBecameInactive: () => ref.read(storyPauseControllerProvider.notifier).paused = true,
       onBecameActive: () => ref.read(storyPauseControllerProvider.notifier).paused = false,
-    );
-
-    // Prefetch next user's stories when approaching the end of current user's stories
-    useOnInit(
-      () {
-        final currentUserStoriesLeft =
-            stories.length - singleUserStoriesViewerState.currentStoryIndex - 1;
-        final nextUserPubkey = storyViewerState.nextUserPubkey;
-        final shouldPrefetch = currentUserStoriesLeft < 10 && nextUserPubkey != null;
-
-        if (shouldPrefetch) {
-          ref.watch(userStoriesProvider(nextUserPubkey));
-        }
-      },
-      [singleUserStoriesViewerState.currentStoryIndex],
     );
 
     final isPaused = ref.watch(storyPauseControllerProvider);
