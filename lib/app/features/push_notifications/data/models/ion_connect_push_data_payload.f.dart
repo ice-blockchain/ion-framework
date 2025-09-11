@@ -254,7 +254,10 @@ class IonConnectPushDataPayload {
           }
 
           if (notificationType == PushNotificationType.chatDocumentMessage) {
-            data['documentExt'] = message.data.primaryMedia?.alt ?? '';
+            final fileType = message.data.primaryMedia?.originalMimeType?.split('/').lastOrNull;
+            if (fileType != null) {
+              data['documentExt'] = fileType;
+            }
           }
         }
       }
