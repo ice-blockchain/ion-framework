@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
@@ -21,7 +24,9 @@ import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifie
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_content_labeler/ion_content_labeler.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 class ArticlePreviewModal extends HookConsumerWidget {
@@ -106,38 +111,50 @@ class ArticlePreviewModal extends HookConsumerWidget {
                     leadingIcon: Assets.svg.iconFeedArticles.icon(
                       color: context.theme.appColors.onPrimaryAccent,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (!shownTooltip.value && selectedTopics.isEmpty) {
                         shownTooltip.value = true;
                         ref.read(topicTooltipVisibilityNotifierProvider.notifier).show();
                         return;
                       }
 
+                      final labeler = ref.read(ionContentLabelerProvider);
+                      final detectionResults = await labeler.detect(
+                        Document.fromDelta(content).toPlainText(),
+                        model: TextLabelerModel.language,
+                      );
+
                       final type = modifiedEvent != null
                           ? CreateArticleOption.modify
                           : CreateArticleOption.plain;
 
                       if (modifiedEvent != null) {
-                        ref.read(createArticleProvider(type).notifier).modify(
-                              title: title,
-                              content: content,
-                              topics: selectedTopics,
-                              coverImagePath: image?.path,
-                              whoCanReply: whoCanReply,
-                              imageColor: imageColor,
-                              originalImageUrl: imageUrl,
-                              eventReference: modifiedEvent!,
-                            );
+                        unawaited(
+                          ref.read(createArticleProvider(type).notifier).modify(
+                                title: title,
+                                content: content,
+                                topics: selectedTopics,
+                                coverImagePath: image?.path,
+                                whoCanReply: whoCanReply,
+                                imageColor: imageColor,
+                                originalImageUrl: imageUrl,
+                                eventReference: modifiedEvent!,
+                                language: detectionResults.labels.firstOrNull?.name,
+                              ),
+                        );
                       } else {
-                        ref.read(createArticleProvider(type).notifier).create(
-                              title: title,
-                              content: content,
-                              topics: selectedTopics,
-                              coverImagePath: image?.path,
-                              mediaIds: imageIds,
-                              whoCanReply: whoCanReply,
-                              imageColor: imageColor,
-                            );
+                        unawaited(
+                          ref.read(createArticleProvider(type).notifier).create(
+                                title: title,
+                                content: content,
+                                topics: selectedTopics,
+                                coverImagePath: image?.path,
+                                mediaIds: imageIds,
+                                whoCanReply: whoCanReply,
+                                imageColor: imageColor,
+                                language: detectionResults.labels.firstOrNull?.name,
+                              ),
+                        );
                       }
 
                       if (!ref.read(createArticleProvider(type)).hasError && ref.context.mounted) {
