@@ -90,7 +90,7 @@ class GlobalSubscription {
           tags: {
             '#p': [
               [currentUserMasterPubkey],
-            ]
+            ],
           },
         ),
         RequestFilter(
