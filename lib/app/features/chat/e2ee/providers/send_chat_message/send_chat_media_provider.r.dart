@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/compress_chat_media_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
@@ -117,15 +118,14 @@ class SendChatMedia extends _$SendChatMedia {
     final oneTimeEventSigner = await Ed25519KeyStore.generate();
     final env = ref.read(envProvider.notifier);
 
-    final isVideo = mediaFile.mimeType == MimeType.video.value;
-    final isImage = mediaFile.mimeType == MimeType.image.value;
+    final mediaType = MediaType.fromMimeType(mediaFile.mimeType ?? '');
 
     String? blurHash;
     String? thumbUrl;
 
     final imageProcessor = ref.read(imageCompressorProvider);
 
-    if (isVideo) {
+    if (mediaType == MediaType.video) {
       final firstFrame = await ref.read(videoCompressorProvider).getThumbnail(mediaFile);
       final thumbMediaFile = await imageProcessor.scaleImage(
         firstFrame,
@@ -141,10 +141,17 @@ class SendChatMedia extends _$SendChatMedia {
       mediaAttachments.add(thumbMediaAttachment);
       thumbUrl = thumbMediaAttachment.url;
       blurHash = await ref.read(generateBlurhashProvider(thumbMediaFile));
-    } else if (isImage && !isThumbnail) {
-      final thumbMediaFile = await ref.read(imageCompressorProvider).scaleImage(
-            mediaFile,
-          );
+    } else if (mediaType == MediaType.image && !isThumbnail) {
+      final MediaFile thumbMediaFile;
+
+      if (mediaFile.mimeType == MimeType.gif.value) {
+        // FFmpeg cannot process animated webp as an input, so we use the original GIF file as the thumbnail
+        thumbMediaFile = mediaFile;
+      } else {
+        thumbMediaFile = await ref.read(imageCompressorProvider).scaleImage(
+              mediaFile,
+            );
+      }
 
       final imageMediaAttachment = (await _processMedia(
         thumbMediaFile,
