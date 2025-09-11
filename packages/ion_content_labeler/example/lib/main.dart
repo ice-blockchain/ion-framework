@@ -7,11 +7,8 @@ void main() {
   runApp(const MyApp());
 }
 
-final _initialInput =
-    '''Trump is trying to deport a Columbia Univ. student who has been a permanent resident in the U.S. since she was 7.
-Her "crime"?
-Attending a protest against the war in Gaza.
-No, Mr. President. This is a democracy. You can't exile political dissidents. Not in the United States.''';
+const _initialInput =
+    'A mysterious new cryptocurrency called NebulaCoin (NBC) has surged over 400% in just 24 hours after rumors linked it to a partnership with a major gaming company. Analysts claim the coin’s blockchain could revolutionize in-game economies, sparking massive interest on social media. Meanwhile, skeptics warn it might just be another short-lived hype cycle.';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -54,23 +51,23 @@ class _MyAppState extends State<MyApp> {
                   minLines: 5,
                   maxLines: 20,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: _onButtonPressed,
-                  child: Text('run'),
+                  child: const Text('run'),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 if (_normalizedInput != null) ...[
                   Text('Normalized input is:\n$_normalizedInput'),
-                  SizedBox(height: 10)
+                  const SizedBox(height: 10),
                 ],
                 if (_languages != null) ...[
                   Text('Languages are:\n$_languages'),
-                  SizedBox(height: 10)
+                  const SizedBox(height: 10),
                 ],
                 if (_categories != null) ...[
                   Text('Categories are:\n$_categories'),
-                  SizedBox(height: 10)
+                  const SizedBox(height: 10),
                 ],
               ],
             ),
