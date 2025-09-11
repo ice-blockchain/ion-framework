@@ -83,6 +83,8 @@ class WalletViewParser {
       rawAmount: amounts.rawCoinAmount,
       balanceUSD: amounts.coinBalanceUSD,
       walletId: coinInWalletDTO.walletId,
+      originContractAddress:
+          coinDTO.contractAddress != coin.contractAddress ? coinDTO.contractAddress : null,
     );
   }
 
