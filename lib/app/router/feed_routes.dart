@@ -38,6 +38,7 @@ class FeedRoutes {
     ),
     TypedShellRoute<ModalShellRouteData>(
       routes: [
+        TypedGoRoute<EntityLanguageWarningRoute>(path: 'entity-language-warning'),
         TypedGoRoute<EntityLanguageRoute>(path: 'entity-language'),
       ],
     ),
@@ -526,6 +527,14 @@ class EntityLanguageRoute extends BaseRouteData with _$EntityLanguageRoute {
   EntityLanguageRoute()
       : super(
           child: const EntityLanguageModal(),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class EntityLanguageWarningRoute extends BaseRouteData with _$EntityLanguageWarningRoute {
+  EntityLanguageWarningRoute()
+      : super(
+          child: const EntityLanguageWarningModal(),
           type: IceRouteType.bottomSheet,
         );
 }

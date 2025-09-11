@@ -87,7 +87,7 @@ class PostSubmitButton extends HookConsumerWidget {
         }
 
         if (ref.read(selectedEntityLanguageNotifierProvider) == null) {
-          await EntityLanguageRoute().push<void>(context);
+          await EntityLanguageWarningRoute().push<void>(context);
           if (ref.read(selectedEntityLanguageNotifierProvider) == null) {
             return;
           }
