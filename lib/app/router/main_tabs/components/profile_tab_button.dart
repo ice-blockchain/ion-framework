@@ -43,7 +43,7 @@ class ProfileTabButton extends ConsumerWidget {
           borderRadius: BorderRadius.circular(6.0.s),
         ),
         child: IonConnectAvatar(
-          pubkey: currentPubkey,
+          masterPubkey: currentPubkey,
           size: avatarSize,
           fit: BoxFit.cover,
           borderRadius: BorderRadius.circular(4.0.s),

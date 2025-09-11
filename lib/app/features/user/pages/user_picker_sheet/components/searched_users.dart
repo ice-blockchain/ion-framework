@@ -43,19 +43,18 @@ class SearchedUsers extends ConsumerWidget {
     return SliverList.builder(
       itemCount: searchedUsers.length,
       itemBuilder: (BuildContext context, int index) {
-        final user = searchedUsers.elementAt(index);
+        final userMetadata = searchedUsers.elementAt(index);
         final bool canSendMessage;
         if (controlChatPrivacy) {
           canSendMessage =
-              ref.watch(canSendMessageProvider(user.masterPubkey)).valueOrNull ?? false;
+              ref.watch(canSendMessageProvider(userMetadata.masterPubkey)).valueOrNull ?? false;
         } else {
           canSendMessage = true;
         }
         return SelectableUserListItem(
-          pubkey: user.pubkey,
           selectable: selectable,
+          userMetadata: userMetadata,
           canSendMessage: canSendMessage,
-          masterPubkey: user.masterPubkey,
           onUserSelected: onUserSelected,
           selectedPubkeys: selectedPubkeys,
         );

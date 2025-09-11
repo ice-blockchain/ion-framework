@@ -79,12 +79,12 @@ class UserInfo extends HookConsumerWidget {
                 ],
               ),
             ),
-            pubkey: pubkey,
+            masterPubkey: pubkey,
             leading: GestureDetector(
               onTap: openProfile,
               child: IonConnectAvatar(
                 size: ListItem.defaultAvatarSize,
-                pubkey: pubkey,
+                masterPubkey: pubkey,
                 shadow: shadow,
               ),
             ),

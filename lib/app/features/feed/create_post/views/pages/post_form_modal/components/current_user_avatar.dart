@@ -13,7 +13,7 @@ class CurrentUserAvatar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
     return currentPubkey != null
-        ? IonConnectAvatar(size: 30.0.s, pubkey: currentPubkey)
+        ? IonConnectAvatar(size: 30.0.s, masterPubkey: currentPubkey)
         : const SizedBox.shrink();
   }
 }

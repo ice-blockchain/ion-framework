@@ -8,7 +8,7 @@ import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 
 class BadgesUserListItem extends ConsumerWidget {
   const BadgesUserListItem({
-    required this.pubkey,
+    required this.masterPubkey,
     required this.title,
     required this.subtitle,
     this.leading,
@@ -27,7 +27,7 @@ class BadgesUserListItem extends ConsumerWidget {
     super.key,
   });
 
-  final String pubkey;
+  final String masterPubkey;
   final Widget title;
   final Widget subtitle;
   final Widget? leading;
@@ -46,11 +46,11 @@ class BadgesUserListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isUserVerified = ref.watch(isUserVerifiedProvider(pubkey));
-    final isNicknameProven = ref.watch(isNicknameProvenProvider(pubkey));
+    final isUserVerified = ref.watch(isUserVerifiedProvider(masterPubkey));
+    final isNicknameProven = ref.watch(isNicknameProvenProvider(masterPubkey));
 
     return ListItem.user(
-      pubkey: pubkey,
+      pubkey: masterPubkey,
       title: title,
       subtitle: isNicknameProven
           ? subtitle

@@ -64,7 +64,7 @@ class FriendsListItem extends ConsumerWidget {
                 children: [
                   IonConnectAvatar(
                     size: imageWidth,
-                    pubkey: pubkey,
+                    masterPubkey: pubkey,
                     borderRadius: BorderRadius.circular(14.0.s),
                   ),
                   Text(

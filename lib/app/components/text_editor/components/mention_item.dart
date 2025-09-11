@@ -33,7 +33,7 @@ class MentionItem extends ConsumerWidget {
             onTap: () => onPress((pubkey: pubkey, username: username)),
             title: Text(userMetadata.data.displayName),
             subtitle: Text(username),
-            pubkey: pubkey,
+            masterPubkey: pubkey,
           ),
         );
       },

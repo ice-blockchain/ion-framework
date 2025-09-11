@@ -53,14 +53,14 @@ class StoryItemContent extends HookConsumerWidget {
                       color: context.theme.appColors.secondaryBackground,
                       child: IonConnectAvatar(
                         size: width - borderSize * 4,
-                        pubkey: pubkey,
+                        masterPubkey: pubkey,
                       ),
                     ),
                   )
                 else
                   IonConnectAvatar(
                     size: width - borderSize * 2,
-                    pubkey: pubkey,
+                    masterPubkey: pubkey,
                   ),
                 if (child != null) child!,
               ],

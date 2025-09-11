@@ -103,7 +103,7 @@ class ReplyInputField extends HookConsumerWidget {
                 Padding(
                   padding: EdgeInsetsDirectional.only(end: 6.0.s),
                   child: IonConnectAvatar(
-                    pubkey: currentPubkey,
+                    masterPubkey: currentPubkey,
                     size: 36.0.s,
                     borderRadius: BorderRadius.all(Radius.circular(12.0.s)),
                   ),

@@ -3,9 +3,11 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/optimistic_ui/features/follow/follow_provider.r.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'follow_list_provider.r.g.dart';
@@ -47,6 +49,30 @@ Future<FollowListEntity?> currentUserFollowList(Ref ref) async {
     return null;
   }
   return ref.watch(followListProvider(currentPubkey).future);
+}
+
+@riverpod
+Future<List<UserMetadataEntity>> currentUserFollowListWithMetadata(Ref ref) async {
+  final followedPeople = await ref.watch(currentUserFollowListProvider.future);
+
+  final masterPubkeys = followedPeople?.data.list.map((follow) => follow.pubkey).toList() ?? [];
+
+  final followedPeopleWithMetadata =
+      (await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
+                eventReferences: masterPubkeys
+                    .map(
+                      (masterPubkey) => ReplaceableEventReference(
+                        masterPubkey: masterPubkey,
+                        kind: UserMetadataEntity.kind,
+                      ),
+                    )
+                    .toList(),
+                search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
+              ))
+          .whereType<UserMetadataEntity>()
+          .toList();
+
+  return followedPeopleWithMetadata;
 }
 
 @riverpod

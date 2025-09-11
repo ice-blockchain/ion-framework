@@ -34,7 +34,7 @@ class TransactionParticipant extends ConsumerWidget {
             BadgesUserListItem(
               title: Text(userMetadata.data.displayName),
               subtitle: Text(userMetadata.data.name),
-              pubkey: userMetadata.masterPubkey,
+              masterPubkey: userMetadata.masterPubkey,
             ),
             if (address != null) ...[
               SizedBox(height: 12.0.s),

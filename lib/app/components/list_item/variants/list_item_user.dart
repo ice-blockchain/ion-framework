@@ -29,7 +29,7 @@ class _ListItemUser extends ListItem {
           leading: leading ??
               IonConnectAvatar(
                 size: avatarSize ?? ListItem.defaultAvatarSize,
-                pubkey: pubkey,
+                masterPubkey: pubkey,
               ),
           borderRadius: borderRadius ?? BorderRadius.zero,
           contentPadding: contentPadding ?? EdgeInsets.zero,
