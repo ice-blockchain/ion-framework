@@ -7,7 +7,6 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/providers/filtered_assets_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/bottom_action/bottom_action.dart';
-import 'package:ion/app/features/wallets/views/pages/wallet_page/components/nfts/nfts_header_select_action.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/providers/search_visibility_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/tab_type.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -43,7 +42,6 @@ class EmptyState extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            if (tabType == WalletTabType.nfts) const NftHeaderSelectAction(),
             Expanded(
               child: tabType == WalletTabType.nfts
                   ? Column(
