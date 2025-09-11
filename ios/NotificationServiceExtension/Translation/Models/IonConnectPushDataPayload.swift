@@ -7,7 +7,7 @@ class IonConnectPushDataPayload: Decodable {
     let event: EventMessage
     let decryptedEvent: EventMessage?
     let relevantEvents: [EventMessage]
-    let decryptedUserMetadataPlaceholders: [String: String]?
+    let decryptedPlaceholders: [String: String]?
 
     enum CodingKeys: String, CodingKey {
         case compression
@@ -26,17 +26,48 @@ class IonConnectPushDataPayload: Decodable {
         if payload.event.kind == IonConnectGiftWrapEntity.kind {
             let result = try await decryptEvent(payload.event)
 
-            // Create placeholders dictionary from metadata if available
-            var placeholders: [String: String]? = nil
-            if let metadata = result?.metadata {
-                placeholders = [
-                    "username": metadata.name,
-                    "displayName": metadata.displayName,
-                ]
-
-                if let picture = metadata.picture {
-                    placeholders?["picture"] = picture
+            // Try to extract a full FundsRequestEntity from the decrypted event in an immutable way
+            let fundsRequest: FundsRequestEntity? = {
+                guard let dec = result?.event else { return nil }
+                do {
+                    let fr = try FundsRequestEntity.fromEventMessage(dec)
+                    return fr
+                } catch {
+                    NSLog("[FR] no funds request in decrypted event (kind=%@): %@", String(result?.event?.kind ?? -1), String(describing: error))
+                    return nil
                 }
+            }()
+
+            // Try to resolve coin abbreviation (symbol) from wallets DB using assetId
+            let coinSymbolFromFundsRequest: String? = {
+                guard let fr = fundsRequest, let assetId = fr.data.assetId else { return nil }
+                if let storage = try? SharedStorageService() {
+                    let walletsDB = WalletsDatabaseManager(storage: storage)
+                    if walletsDB.openDatabase() {
+                        defer { walletsDB.closeDatabase() }
+                        if let abbr = walletsDB.getCoinAbbreviation(assetId: assetId) {
+                            return abbr
+                        }
+                    }
+                }
+                return nil
+            }()
+
+            // Create placeholders dictionary from metadata if available
+            var placeholders: [String: String] = [:]
+            if let metadata = result?.metadata {
+                placeholders["username"] = metadata.name
+                placeholders["displayName"] = metadata.displayName
+                if let picture = metadata.picture {
+                    placeholders["picture"] = picture
+                }
+            }
+            // Inject coin amount from embedded 1755, if present
+            if let fr = fundsRequest {
+                placeholders["coinAmount"] = fr.data.amount
+            }
+            if let sym = coinSymbolFromFundsRequest {
+                placeholders["coinSymbol"] = sym
             }
 
             return IonConnectPushDataPayload(
@@ -44,7 +75,7 @@ class IonConnectPushDataPayload: Decodable {
                 event: payload.event,
                 decryptedEvent: result?.event,
                 relevantEvents: payload.relevantEvents,
-                decryptedPlaceholders: placeholders
+                decryptedPlaceholders: placeholders.isEmpty ? nil : placeholders
             )
         }
 
@@ -95,7 +126,7 @@ class IonConnectPushDataPayload: Decodable {
         }
 
         self.decryptedEvent = nil
-        self.decryptedUserMetadataPlaceholders = nil
+        self.decryptedPlaceholders = nil
     }
 
     /// Internal initializer for creating a payload with a decrypted event
@@ -110,7 +141,7 @@ class IonConnectPushDataPayload: Decodable {
         self.event = event
         self.decryptedEvent = decryptedEvent
         self.relevantEvents = relevantEvents
-        self.decryptedUserMetadataPlaceholders = decryptedPlaceholders
+        self.decryptedPlaceholders = decryptedPlaceholders
     }
 
     var mainEntity: IonConnectEntity? {
@@ -205,16 +236,12 @@ class IonConnectPushDataPayload: Decodable {
             return [:]
         }
 
-        var data = [String: String]()
+        var data = decryptedPlaceholders ?? [:]
 
         let mainEntityUserMetadata = getUserMetadata(pubkey: masterPubkey)
         if let mainEntityUserMetadata = mainEntityUserMetadata {
             data["username"] = mainEntityUserMetadata.data.name
             data["displayName"] = mainEntityUserMetadata.data.displayName
-        } else {
-            if let decryptedPlaceholders = decryptedUserMetadataPlaceholders {
-                for (k, v) in decryptedPlaceholders { data[k] = v }
-            }
         }
 
         if let decryptedEvent = decryptedEvent {
@@ -257,7 +284,7 @@ class IonConnectPushDataPayload: Decodable {
         if let mainEntityUserMetadata = mainEntityUserMetadata {
             avatarUrl = mainEntityUserMetadata.data.picture
         } else {
-            if let decryptedPlaceholders = decryptedUserMetadataPlaceholders {
+            if let decryptedPlaceholders = decryptedPlaceholders {
                 avatarUrl = decryptedPlaceholders["picture"]
             }
         }

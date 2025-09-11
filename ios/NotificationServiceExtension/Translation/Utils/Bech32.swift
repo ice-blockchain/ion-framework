@@ -85,9 +85,9 @@ public class Bech32 {
         guard let strBytes = str.data(using: .utf8) else {
             throw DecodingError.nonUTF8String
         }
-        guard strBytes.count <= 90 else {
-            throw DecodingError.stringLengthExceeded
-        }
+        // NOTE: BIP-0173 recommends a max length of 90, but NIP-19 (nostr identifiers)
+        // can legitimately exceed that. We do not enforce a hard cap here; checksum
+        // verification below will ensure integrity regardless of length.
         var lower: Bool = false
         var upper: Bool = false
         for c in strBytes {

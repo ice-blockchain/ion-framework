@@ -21,9 +21,6 @@ import 'package:ion/app/features/wallets/data/database/tables/transaction_visibi
 import 'package:ion/app/features/wallets/data/database/tables/transactions_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.steps.dart';
 import 'package:ion/app/utils/directory.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path_provider_foundation/path_provider_foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'wallets_database.m.g.dart';
@@ -85,28 +82,8 @@ class WalletsDatabase extends _$WalletsDatabase {
     return driftDatabase(
       name: databaseName,
       native: DriftNativeOptions(
-        databasePath: () async {
-          try {
-            final sharedPath =
-                await PathProviderFoundation().getContainerPath(appGroupIdentifier: appGroupId);
-
-            final basePath = (sharedPath?.isNotEmpty ?? false)
-                ? sharedPath!
-                : (await getApplicationDocumentsDirectory()).path;
-
-            final dbFile = join(basePath, '$databaseName.sqlite');
-
-            ensureDirectoryExists(dbFile);
-
-            return dbFile;
-          } catch (e) {
-            final dbFile =
-                join((await getApplicationDocumentsDirectory()).path, '$databaseName.sqlite');
-            ensureDirectoryExists(dbFile);
-
-            return dbFile;
-          }
-        },
+        databasePath: () async =>
+            getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroupId),
         shareAcrossIsolates: true,
       ),
     );
