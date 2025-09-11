@@ -12,6 +12,8 @@ import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_item_content.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_list.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_list_skeleton.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 
 class Stories extends HookConsumerWidget {
   const Stories({super.key});
@@ -22,18 +24,27 @@ class Stories extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final (items: stories, :hasMore, :ready) = ref.watch(feedStoriesProvider);
 
-    final viewedStoriesReferences = ref.watch(viewedStoriesProvider);
+    final viewedStories = ref.watch(viewedStoriesProvider);
+    final viewedStoriesReferences = useRef<Set<EventReference>>({});
+
+    useOnInit(
+      () {
+        if (viewedStoriesReferences.value.isNotEmpty && stories.isNotEmpty) return;
+        viewedStoriesReferences.value = viewedStories?.toSet() ?? {};
+      },
+      [viewedStories, stories],
+    );
 
     final pubkeys = useMemoized(
       () {
         final storyReferences = stories.map((story) => story.toEventReference()).toSet();
 
-        final unseenStories = storyReferences.difference(viewedStoriesReferences ?? {});
+        final unseenStories = storyReferences.difference(viewedStoriesReferences.value);
         return [...unseenStories, ...storyReferences.difference(unseenStories)]
             .map((storyReference) => storyReference.masterPubkey)
             .toSet();
       },
-      [stories, viewedStoriesReferences],
+      [stories],
     );
 
     return Column(
