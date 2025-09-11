@@ -263,7 +263,7 @@ class IonConnectPushDataPayload: Decodable {
                     }
 
                     if type == PushNotificationType.chatDocumentMessage, let media = message.data.media.first {
-                        data["documentExt"] = media.mediaExt
+                        data["documentExt"] = FileTypeMapper.getFileType(mimeType: media.originalMimeType)
                     }
                 }
             }
