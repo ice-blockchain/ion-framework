@@ -28,6 +28,7 @@ class TransactionData with _$TransactionData {
     String? receiverWalletAddress,
     @Default(TransactionStatus.broadcasted) TransactionStatus status,
     String? userPubkey,
+    String? memo,
     String? eventId,
   }) = _TransactionData;
 }

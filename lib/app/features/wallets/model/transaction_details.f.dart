@@ -32,6 +32,7 @@ class TransactionDetails with _$TransactionDetails {
     required DateTime? dateBroadcasted,
     required CoinData? nativeCoin,
     required NetworkFeeOption? networkFeeOption,
+    required String? memo,
   }) = _TransactionDetails;
 
   factory TransactionDetails.fromTransactionData(
@@ -75,6 +76,7 @@ class TransactionDetails with _$TransactionDetails {
       dateRequested: transaction.dateRequested,
       dateConfirmed: transaction.dateConfirmed,
       nativeCoin: transaction.nativeCoin,
+      memo: transaction.memo,
       networkFeeOption: feeAmount != null && nativeCoin != null
           ? NetworkFeeOption(
               amount: feeAmount,

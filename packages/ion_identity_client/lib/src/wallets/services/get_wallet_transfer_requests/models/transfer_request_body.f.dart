@@ -17,6 +17,7 @@ class TransferRequestBody with _$TransferRequestBody {
     required String kind,
     required String to,
     required String amount,
+    String? memo,
   }) = NativeTransferRequestBody;
 
   @FreezedUnionValue('Erc721')
@@ -71,6 +72,7 @@ class TransferRequestBody with _$TransferRequestBody {
     required String assetCode,
     required String to,
     required String amount,
+    String? memo,
   }) = Sep41TransferRequestBody;
 
   @FreezedUnionValue('Tep74')

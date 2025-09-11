@@ -3296,6 +3296,247 @@ i1.GeneratedColumn<String> _column_70(String aliasedName) =>
     i1.GeneratedColumn<String>('metadata_json', aliasedName, false, type: i1.DriftSqlType.string);
 i1.GeneratedColumn<DateTime> _column_71(String aliasedName) =>
     i1.GeneratedColumn<DateTime>('updated_at', aliasedName, false, type: i1.DriftSqlType.dateTime);
+
+final class Schema19 extends i0.VersionedSchema {
+  Schema19({required super.database}) : super(version: 19);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    coinsTable,
+    syncCoinsTable,
+    networksTable,
+    transactionsTableV2,
+    transactionVisibilityStatusTable,
+    cryptoWalletsTable,
+    fundsRequestsTable,
+    nftsTable,
+  ];
+  late final Shape12 coinsTable = Shape12(
+      source: i0.VersionedTable(
+        entityName: 'coins_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(id)',
+        ],
+        columns: [
+          _column_0,
+          _column_1,
+          _column_2,
+          _column_3,
+          _column_4,
+          _column_5,
+          _column_6,
+          _column_7,
+          _column_8,
+          _column_9,
+          _column_54,
+          _column_57,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape1 syncCoinsTable = Shape1(
+      source: i0.VersionedTable(
+        entityName: 'sync_coins_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(coin_id)',
+        ],
+        columns: [
+          _column_10,
+          _column_11,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape6 networksTable = Shape6(
+      source: i0.VersionedTable(
+        entityName: 'networks_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(id)',
+        ],
+        columns: [
+          _column_0,
+          _column_12,
+          _column_13,
+          _column_14,
+          _column_15,
+          _column_47,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape19 transactionsTableV2 = Shape19(
+      source: i0.VersionedTable(
+        entityName: 'transactions_table_v2',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(tx_hash, wallet_view_id)',
+        ],
+        columns: [
+          _column_16,
+          _column_17,
+          _column_5,
+          _column_18,
+          _column_72,
+          _column_49,
+          _column_50,
+          _column_51,
+          _column_58,
+          _column_21,
+          _column_22,
+          _column_23,
+          _column_24,
+          _column_25,
+          _column_26,
+          _column_27,
+          _column_28,
+          _column_29,
+          _column_62,
+          _column_30,
+          _column_31,
+          _column_52,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape16 transactionVisibilityStatusTable = Shape16(
+      source: i0.VersionedTable(
+        entityName: 'transaction_visibility_status_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(tx_hash, wallet_view_id)',
+        ],
+        columns: [
+          _column_17,
+          _column_51,
+          _column_61,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape4 cryptoWalletsTable = Shape4(
+      source: i0.VersionedTable(
+        entityName: 'crypto_wallets_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(id)',
+        ],
+        columns: [
+          _column_0,
+          _column_33,
+          _column_5,
+          _column_34,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape15 fundsRequestsTable = Shape15(
+      source: i0.VersionedTable(
+        entityName: 'funds_requests_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(event_id)',
+        ],
+        columns: [
+          _column_35,
+          _column_36,
+          _column_59,
+          _column_5,
+          _column_38,
+          _column_39,
+          _column_40,
+          _column_41,
+          _column_42,
+          _column_28,
+          _column_29,
+          _column_43,
+          _column_44,
+          _column_53,
+          _column_46,
+          _column_60,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape18 nftsTable = Shape18(
+      source: i0.VersionedTable(
+        entityName: 'nfts_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(contract, token_id, wallet_id)',
+        ],
+        columns: [
+          _column_63,
+          _column_64,
+          _column_65,
+          _column_66,
+          _column_4,
+          _column_5,
+          _column_7,
+          _column_67,
+          _column_68,
+          _column_69,
+          _column_70,
+          _column_37,
+          _column_71,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+}
+
+class Shape19 extends i0.VersionedTable {
+  Shape19({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get type => columnsByName['type']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get txHash => columnsByName['tx_hash']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get networkId =>
+      columnsByName['network_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get coinId => columnsByName['coin_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get memo => columnsByName['memo']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get senderWalletAddress =>
+      columnsByName['sender_wallet_address']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get receiverWalletAddress =>
+      columnsByName['receiver_wallet_address']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get walletViewId =>
+      columnsByName['wallet_view_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get externalHash =>
+      columnsByName['external_hash']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get id => columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get fee => columnsByName['fee']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get status => columnsByName['status']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get nativeCoinId =>
+      columnsByName['native_coin_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<DateTime> get dateConfirmed =>
+      columnsByName['date_confirmed']! as i1.GeneratedColumn<DateTime>;
+  i1.GeneratedColumn<DateTime> get dateRequested =>
+      columnsByName['date_requested']! as i1.GeneratedColumn<DateTime>;
+  i1.GeneratedColumn<DateTime> get createdAtInRelay =>
+      columnsByName['created_at_in_relay']! as i1.GeneratedColumn<DateTime>;
+  i1.GeneratedColumn<String> get userPubkey =>
+      columnsByName['user_pubkey']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get assetId =>
+      columnsByName['asset_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get nftIdentifier =>
+      columnsByName['nft_identifier']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get transferredAmount =>
+      columnsByName['transferred_amount']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<double> get transferredAmountUsd =>
+      columnsByName['transferred_amount_usd']! as i1.GeneratedColumn<double>;
+  i1.GeneratedColumn<String> get eventId =>
+      columnsByName['event_id']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<String> _column_72(String aliasedName) =>
+    i1.GeneratedColumn<String>('memo', aliasedName, true, type: i1.DriftSqlType.string);
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
@@ -3314,6 +3555,7 @@ i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema16 schema) from15To16,
   required Future<void> Function(i1.Migrator m, Schema17 schema) from16To17,
   required Future<void> Function(i1.Migrator m, Schema18 schema) from17To18,
+  required Future<void> Function(i1.Migrator m, Schema19 schema) from18To19,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -3402,6 +3644,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from17To18(migrator, schema);
         return 18;
+      case 18:
+        final schema = Schema19(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from18To19(migrator, schema);
+        return 19;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -3426,6 +3673,7 @@ i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema16 schema) from15To16,
   required Future<void> Function(i1.Migrator m, Schema17 schema) from16To17,
   required Future<void> Function(i1.Migrator m, Schema18 schema) from17To18,
+  required Future<void> Function(i1.Migrator m, Schema19 schema) from18To19,
 }) =>
     i0.VersionedSchema.stepByStepHelper(
         step: migrationSteps(
@@ -3446,4 +3694,5 @@ i1.OnUpgrade stepByStep({
       from15To16: from15To16,
       from16To17: from16To17,
       from17To18: from17To18,
+      from18To19: from18To19,
     ));

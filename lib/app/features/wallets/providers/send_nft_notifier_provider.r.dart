@@ -81,6 +81,7 @@ class SendNftNotifier extends _$SendNftNotifier {
         participantPubkey: form.contactPubkey,
         type: TransactionType.send,
         networkFeeOption: form.selectedNetworkFeeOption,
+        memo: result.requestBody['memo']?.toString(),
       );
 
       await ref

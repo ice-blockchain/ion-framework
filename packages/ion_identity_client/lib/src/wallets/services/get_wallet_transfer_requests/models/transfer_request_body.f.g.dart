@@ -12,6 +12,7 @@ _$NativeTransferRequestBodyImpl _$$NativeTransferRequestBodyImplFromJson(
       kind: json['kind'] as String,
       to: json['to'] as String,
       amount: json['amount'] as String,
+      memo: json['memo'] as String?,
     );
 
 Map<String, dynamic> _$$NativeTransferRequestBodyImplToJson(
@@ -20,6 +21,7 @@ Map<String, dynamic> _$$NativeTransferRequestBodyImplToJson(
       'kind': instance.kind,
       'to': instance.to,
       'amount': instance.amount,
+      'memo': instance.memo,
     };
 
 _$Erc721TransferRequestBodyImpl _$$Erc721TransferRequestBodyImplFromJson(
@@ -120,6 +122,7 @@ _$Sep41TransferRequestBodyImpl _$$Sep41TransferRequestBodyImplFromJson(
       assetCode: json['assetCode'] as String,
       to: json['to'] as String,
       amount: json['amount'] as String,
+      memo: json['memo'] as String?,
     );
 
 Map<String, dynamic> _$$Sep41TransferRequestBodyImplToJson(
@@ -130,6 +133,7 @@ Map<String, dynamic> _$$Sep41TransferRequestBodyImplToJson(
       'assetCode': instance.assetCode,
       'to': instance.to,
       'amount': instance.amount,
+      'memo': instance.memo,
     };
 
 _$Tep74TransferRequestBodyImpl _$$Tep74TransferRequestBodyImplFromJson(

@@ -27,6 +27,7 @@ class WalletHistoryRecord with _$WalletHistoryRecord {
     required List<String>? froms,
     required String? value,
     required String? fee,
+    required String? memo,
     required WalletHistoryMetadata metadata,
   }) = _WalletHistoryRecord;
 
