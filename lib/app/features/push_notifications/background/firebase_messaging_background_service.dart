@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -9,14 +10,23 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
+import 'package:ion/app/features/config/providers/config_repository.r.dart';
+import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/push_notifications/data/models/ion_connect_push_data_payload.f.dart';
+import 'package:ion/app/features/push_notifications/providers/app_translations_provider.m.dart';
+import 'package:ion/app/features/push_notifications/providers/fund_request_tag_handler.r.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_data_parser_provider.r.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_delegation_dao.m.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_metadata_dao.m.dart';
 import 'package:ion/app/features/user_profile/providers/user_profile_database_provider.r.dart';
+import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
+import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
+import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
 import 'package:ion/app/services/ion_connect/encrypted_message_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_gift_wrap_service.r.dart';
@@ -37,6 +47,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   IonConnect.initialize(null);
 
+  // Resolve current user's master pubkey once for this handler
+  final sharedPreferencesFoundation =
+      await backgroundContainer.read(sharedPreferencesFoundationProvider.future);
+  final currentUserPubkeyFromStorage =
+      await sharedPreferencesFoundation.getString(CurrentPubkeySelector.persistenceKey);
+
+  // Resolve saved identity key name for background containers that need it
+  final savedIdentityKeyName =
+      await backgroundContainer.read(currentIdentityKeyNameStoreProvider.future);
+
   if (message.notification != null) {
     backgroundContainer.dispose();
     return;
@@ -45,23 +65,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final data = await IonConnectPushDataPayload.fromEncoded(
     message.data,
     unwrapGift: (eventMassage) async {
-      final sharedPreferencesFoundation =
-          await backgroundContainer.read(sharedPreferencesFoundationProvider.future);
-      final currentUserPubkeyFromStorage =
-          await sharedPreferencesFoundation.getString(CurrentPubkeySelector.persistenceKey);
-
       final messageContainer = ProviderContainer(
         observers: [Logger.talkerRiverpodObserver],
         overrides: [
-          currentPubkeySelectorProvider.overrideWith(
-            () {
-              if (currentUserPubkeyFromStorage == null) {
-                throw UserMasterPubkeyNotFoundException();
-              }
-
-              return _BackgroundCurrentPubkeySelector(currentUserPubkeyFromStorage);
-            },
-          ),
+          _backgroundCurrentPubkeyOverride(currentUserPubkeyFromStorage),
           currentUserIonConnectEventSignerProvider.overrideWith((ref) async {
             final savedIdentityKeyName =
                 await ref.watch(currentIdentityKeyNameStoreProvider.future);
@@ -115,7 +122,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
         return (event, userMetadata);
       } catch (e) {
-        Logger.error('Background push notification unwrapGift: $e');
+        Logger.error('☁️ Background push notification unwrapGift: $e');
         return (null, null);
       } finally {
         // Close database connection which we use inside providers to prevent isolate leaks
@@ -125,14 +132,78 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     },
   );
 
-  final parser = await backgroundContainer.read(notificationDataParserProvider.future);
-  final parsedData = await parser.parse(
-    data,
-    getFundsRequestData: (eventMessage) =>
-        backgroundContainer.read(fundsRequestDisplayDataProvider(eventMessage).future),
-    getTransactionData: (eventMessage) =>
-        backgroundContainer.read(transactionDisplayDataProvider(eventMessage).future),
+  // Persist tagged 1755 funds-request (if present) before parsing
+  try {
+    if (currentUserPubkeyFromStorage != null) {
+      final fundsContainer = ProviderContainer(
+        observers: [Logger.talkerRiverpodObserver],
+        overrides: [
+          _backgroundCurrentPubkeyOverride(currentUserPubkeyFromStorage),
+        ],
+      );
+      try {
+        final handler = await fundsContainer.read(fundsRequestTagHandlerProvider.future);
+        await handler.handle(data.decryptedEvent);
+      } catch (e) {
+        Logger.error('☁️ Background fundsRequestTagHandler failed: $e');
+      } finally {
+        // ✅ Explicitly close wallets DB before disposing this container
+        try {
+          await fundsContainer.read(walletsDatabaseProvider).close();
+        } catch (_) {}
+        fundsContainer.dispose();
+      }
+    }
+  } catch (e) {
+    Logger.error('Background fundsRequestTagHandler setup failed: $e');
+  }
+
+  // Build a dedicated container for parsing that has the current pubkey override,
+  // so providers that need it (e.g., wallets DB) can resolve in a background isolate.
+  final pushTranslatorBgOverride = pushTranslatorProvider.overrideWith((ref) async {
+    // read saved language code safely in background
+    final prefs = await ref.watch(sharedPreferencesFoundationProvider.future);
+    final langCode = await prefs.getString(AppLocale.localePersistenceKey) ?? 'en';
+
+    final repo = await ref.watch(configRepositoryProvider.future);
+    return Translator(
+      translationsRepository: repo,
+      locale: Locale(langCode),
+    );
+  });
+  final coinIdForOverride = _extractCoinIdFromPaymentRequestedTag(data.decryptedEvent);
+  final parseContainer = ProviderContainer(
+    observers: [Logger.talkerRiverpodObserver],
+    overrides: [
+      _backgroundCurrentPubkeyOverride(currentUserPubkeyFromStorage),
+      _backgroundIdentityKeyNameOverride(savedIdentityKeyName),
+      pushTranslatorBgOverride,
+      if (coinIdForOverride != null)
+        coinByIdProvider(coinIdForOverride).overrideWith(
+          (ref) async => ref.read(coinsRepositoryProvider).getCoinById(coinIdForOverride),
+        ),
+    ],
   );
+
+  NotificationParsedData? parsedData;
+  try {
+    final parser = await parseContainer.read(notificationDataParserProvider.future);
+    parsedData = await parser.parse(
+      data,
+      getFundsRequestData: (eventMessage) =>
+          parseContainer.read(fundsRequestDisplayDataProvider(eventMessage).future),
+      getTransactionData: (eventMessage) =>
+          parseContainer.read(transactionDisplayDataProvider(eventMessage).future),
+    );
+  } catch (e, st) {
+    Logger.error('☁️ Background parser.parse failed: $e\n$st');
+  } finally {
+    // Close DBs opened through providers in this container to avoid isolate leaks.
+    try {
+      await parseContainer.read(walletsDatabaseProvider).close();
+    } catch (_) {}
+    parseContainer.dispose();
+  }
 
   final title = parsedData?.title ?? message.notification?.title;
   final body = parsedData?.body ?? message.notification?.body;
@@ -154,6 +225,46 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   );
 
   backgroundContainer.dispose();
+}
+
+// Reusable override for background containers that need the current master pubkey.
+Override _backgroundCurrentPubkeyOverride(String? storedPubkey) {
+  if (storedPubkey == null) {
+    throw UserMasterPubkeyNotFoundException();
+  }
+  return currentPubkeySelectorProvider.overrideWith(
+    () => _BackgroundCurrentPubkeySelector(storedPubkey),
+  );
+}
+
+// Reusable override for background containers that need the current identity key name (username)
+Override _backgroundIdentityKeyNameOverride(String? savedIdentityKeyName) {
+  if (savedIdentityKeyName == null) {
+    throw const CurrentUserNotFoundException();
+  }
+  return currentIdentityKeyNameSelectorProvider.overrideWith(
+    (_) => savedIdentityKeyName,
+  );
+}
+
+String? _extractCoinIdFromPaymentRequestedTag(EventMessage? decrypted) {
+  if (decrypted == null) return null;
+  try {
+    final tag = decrypted.tags.firstWhere(
+      (t) => t.isNotEmpty && t.first == ReplaceablePrivateDirectMessageData.paymentRequestedTagName,
+      orElse: () => const [],
+    );
+    if (tag.length < 2) return null;
+
+    final prEventJson = jsonDecode(tag[1]) as Map<String, dynamic>;
+    final contentStr = prEventJson['content'] as String?;
+    if (contentStr == null) return null;
+
+    final content = jsonDecode(contentStr) as Map<String, dynamic>;
+    return content['assetId'] as String?;
+  } catch (_) {
+    return null;
+  }
 }
 
 void initFirebaseMessagingBackgroundHandler() {

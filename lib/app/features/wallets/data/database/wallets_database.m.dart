@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:io';
+
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/wallets/data/database/dao/transactions_visibility_status_dao.m.dart';
 import 'package:ion/app/features/wallets/data/database/tables/coins_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/crypto_wallets_table.d.dart';
@@ -17,6 +20,10 @@ import 'package:ion/app/features/wallets/data/database/tables/sync_coins_table.d
 import 'package:ion/app/features/wallets/data/database/tables/transaction_visibility_status_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transactions_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.steps.dart';
+import 'package:ion/app/utils/directory.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path_provider_foundation/path_provider_foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'wallets_database.m.g.dart';
@@ -31,7 +38,10 @@ WalletsDatabase walletsDatabase(Ref ref) {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  final database = WalletsDatabase(pubkey);
+  final appGroup = Platform.isIOS
+      ? ref.watch(envProvider.notifier).get<String>(EnvVariable.FOUNDATION_APP_GROUP)
+      : null;
+  final database = WalletsDatabase(pubkey, appGroupId: appGroup);
 
   onLogout(ref, database.close);
 
@@ -53,15 +63,53 @@ WalletsDatabase walletsDatabase(Ref ref) {
   ],
 )
 class WalletsDatabase extends _$WalletsDatabase {
-  WalletsDatabase(this.pubkey) : super(_openConnection(pubkey));
+  WalletsDatabase(
+    this.pubkey, {
+    this.appGroupId,
+  }) : super(_openConnection(pubkey, appGroupId));
 
   final String pubkey;
+  final String? appGroupId;
 
   @override
   int get schemaVersion => 19;
 
-  static QueryExecutor _openConnection(String pubkey) {
-    return driftDatabase(name: 'wallets_database_$pubkey');
+  /// Opens a connection to the database with the given pubkey
+  /// Uses app group container for iOS extensions if appGroupId is provided
+  static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
+    final databaseName = 'wallets_database_$pubkey';
+    if (appGroupId == null) {
+      return driftDatabase(name: databaseName);
+    }
+
+    return driftDatabase(
+      name: databaseName,
+      native: DriftNativeOptions(
+        databasePath: () async {
+          try {
+            final sharedPath =
+                await PathProviderFoundation().getContainerPath(appGroupIdentifier: appGroupId);
+
+            final basePath = (sharedPath?.isNotEmpty ?? false)
+                ? sharedPath!
+                : (await getApplicationDocumentsDirectory()).path;
+
+            final dbFile = join(basePath, '$databaseName.sqlite');
+
+            ensureDirectoryExists(dbFile);
+
+            return dbFile;
+          } catch (e) {
+            final dbFile =
+                join((await getApplicationDocumentsDirectory()).path, '$databaseName.sqlite');
+            ensureDirectoryExists(dbFile);
+
+            return dbFile;
+          }
+        },
+        shareAcrossIsolates: true,
+      ),
+    );
   }
 
   @override

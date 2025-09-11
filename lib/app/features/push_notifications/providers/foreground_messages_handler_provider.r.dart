@@ -11,6 +11,7 @@ import 'package:ion/app/features/chat/recent_chats/providers/money_message_provi
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/push_notifications/data/models/ion_connect_push_data_payload.f.dart';
 import 'package:ion/app/features/push_notifications/providers/configure_firebase_app_provider.r.dart';
+import 'package:ion/app/features/push_notifications/providers/fund_request_tag_handler.r.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_data_parser_provider.r.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_metadata_dao.m.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -47,6 +48,9 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
         return (event, userMetadata);
       },
     );
+
+    final fundsRequestTagHandler = await ref.read(fundsRequestTagHandlerProvider.future);
+    await fundsRequestTagHandler.handle(data.decryptedEvent);
 
     if (await _shouldSkipOwnGiftWrap(data: data)) {
       return;

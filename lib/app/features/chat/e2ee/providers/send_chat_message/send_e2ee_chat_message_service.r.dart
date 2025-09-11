@@ -106,8 +106,18 @@ class SendE2eeChatMessageService {
         throw UserMasterPubkeyNotFoundException();
       }
 
+      // Extract optional paymentRequested payload from tags:
+      // Expecting a tag formed as: [ReplaceablePrivateDirectMessageData.paymentRequestedTagName, jsonEncode(event.jsonPayload)]
+      final paymentRequestedTag = tags?.firstWhereOrNull(
+        (t) =>
+            t.isNotEmpty && t.first == ReplaceablePrivateDirectMessageData.paymentRequestedTagName,
+      );
+      final paymentRequested = (paymentRequestedTag != null && paymentRequestedTag.length > 1)
+          ? paymentRequestedTag[1]
+          : null;
       final localEventMessageData = ReplaceablePrivateDirectMessageData(
         content: content,
+        paymentRequested: paymentRequested,
         messageId: sharedId,
         publishedAt: publishedAt,
         editingEndedAt: editingEndedAt,
@@ -175,6 +185,7 @@ class SendE2eeChatMessageService {
             try {
               final remoteEventMessage = await ReplaceablePrivateDirectMessageData(
                 content: content,
+                paymentRequested: paymentRequested,
                 messageId: sharedId,
                 publishedAt: publishedAt,
                 editingEndedAt: editingEndedAt,
