@@ -327,10 +327,10 @@ enum _SummaryItemType {
 
 extension on _SummaryItemType {
   String toText(BuildContext context) => switch (this) {
-        _SummaryItemType.totalReferrals => context.i18n.all_networks_item,
-        _SummaryItemType.upgrades => context.i18n.all_networks_item,
-        _SummaryItemType.deFi => context.i18n.all_networks_item,
-        _SummaryItemType.ads => context.i18n.all_networks_item
+        _SummaryItemType.totalReferrals => context.i18n.invite_friends_summary_referrals_text,
+        _SummaryItemType.upgrades => context.i18n.invite_friends_summary_upgrades_text,
+        _SummaryItemType.deFi => context.i18n.invite_friends_summary_defi_text,
+        _SummaryItemType.ads => context.i18n.invite_friends_summary_ads_text,
       };
 }
 
