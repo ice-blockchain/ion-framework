@@ -11,5 +11,5 @@ part 'comments_notifications_provider.r.g.dart';
 @riverpod
 Future<List<CommentIonNotification>> commentsNotifications(Ref ref) async {
   final commentsRepository = ref.watch(commentsRepositoryProvider);
-  return commentsRepository.getNotifications();
+  return commentsRepository.getCommentNotifications();
 }
