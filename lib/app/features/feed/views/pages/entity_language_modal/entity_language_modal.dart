@@ -20,7 +20,7 @@ class EntityLanguageModal extends HookConsumerWidget {
 
     return LanguageSelectorPage(
       title: context.i18n.common_select_language,
-      description: context.i18n.select_language_warning,
+      description: context.i18n.select_post_language_description,
       toggleLanguageSelection: (langCode) {
         selectedLanguage.value = langCode;
       },

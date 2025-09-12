@@ -216,6 +216,7 @@
   "identity_key_name_usage": "Use it to log in on any app secured by",
   "select_languages_description": "You'll be shown content in the selected language",
   "select_language_warning": "To publish content, you must select a language",
+  "select_post_language_description": "Choose the language for your post",
   "dapps_section_title_highest_ranked": "Highest ranked",
   "dapps_section_title_recently_added": "Recently added",
   "dapps_section_title_favourites": "Favorites",
