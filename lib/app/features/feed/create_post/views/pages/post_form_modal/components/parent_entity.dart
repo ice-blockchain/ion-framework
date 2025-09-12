@@ -43,7 +43,7 @@ class ParentEntity extends ConsumerWidget {
         BadgesUserListItem(
           title: Text(userMetadata.data.displayName),
           subtitle: Text(prefixUsername(username: userMetadata.data.name, context: context)),
-          pubkey: userMetadata.masterPubkey,
+          masterPubkey: userMetadata.masterPubkey,
           trailing: UserInfoMenu(
             eventReference: eventReference,
           ),

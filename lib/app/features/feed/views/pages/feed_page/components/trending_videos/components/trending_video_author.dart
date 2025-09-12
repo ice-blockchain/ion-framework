@@ -35,7 +35,7 @@ class TrendingVideoAuthor extends ConsumerWidget {
           children: [
             IonConnectAvatar(
               size: 20.0.s,
-              pubkey: pubkey,
+              masterPubkey: pubkey,
             ),
             Flexible(
               child: Padding(

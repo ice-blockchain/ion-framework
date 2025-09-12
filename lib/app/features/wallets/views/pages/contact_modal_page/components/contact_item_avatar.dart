@@ -18,7 +18,7 @@ class ContactItemAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return IonConnectAvatar(
       size: imageWidth,
-      pubkey: pubkey,
+      masterPubkey: pubkey,
       borderRadius: BorderRadius.circular(14.0.s),
     );
   }

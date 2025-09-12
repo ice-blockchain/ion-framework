@@ -54,7 +54,7 @@ class StoryViewerHeader extends ConsumerWidget {
             child: GestureDetector(
               onTap: () => ProfileRoute(pubkey: currentPost.masterPubkey).push<void>(context),
               child: BadgesUserListItem(
-                pubkey: userMetadata.masterPubkey,
+                masterPubkey: userMetadata.masterPubkey,
                 leading: DecoratedBox(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10.s),
@@ -68,7 +68,7 @@ class StoryViewerHeader extends ConsumerWidget {
                   ),
                   child: IonConnectAvatar(
                     size: ListItem.defaultAvatarSize,
-                    pubkey: currentPost.masterPubkey,
+                    masterPubkey: currentPost.masterPubkey,
                   ),
                 ),
                 title: Text(

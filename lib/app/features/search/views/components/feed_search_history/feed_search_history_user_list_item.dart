@@ -43,7 +43,7 @@ class _UserListItem extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IonConnectAvatar(size: 65.0.s, pubkey: userMetadata.masterPubkey),
+          IonConnectAvatar(size: 65.0.s, masterPubkey: userMetadata.masterPubkey),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [

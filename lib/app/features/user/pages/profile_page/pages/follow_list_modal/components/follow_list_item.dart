@@ -38,7 +38,7 @@ class FollowListItem extends ConsumerWidget {
                   context: context,
                 ),
               ),
-              pubkey: pubkey,
+              masterPubkey: pubkey,
               onTap: () => context.pop(pubkey),
             )
           : ItemLoadingState(itemHeight: itemHeight),

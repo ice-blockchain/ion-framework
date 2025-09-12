@@ -38,7 +38,7 @@ class FeedAdvancedSearchUserListItem extends HookConsumerWidget {
               subtitle: Text(
                 prefixUsername(username: name, context: context),
               ),
-              pubkey: user.masterPubkey,
+              masterPubkey: user.masterPubkey,
               trailing: FollowUserButton(pubkey: user.masterPubkey),
             ),
             if (about != null) ...[

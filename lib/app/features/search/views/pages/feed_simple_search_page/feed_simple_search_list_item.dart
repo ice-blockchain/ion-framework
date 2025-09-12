@@ -31,7 +31,7 @@ class FeedSimpleSearchListItem extends ConsumerWidget {
             subtitle: Text(
               prefixUsername(username: user.data.name, context: context),
             ),
-            pubkey: user.masterPubkey,
+            masterPubkey: user.masterPubkey,
           ),
         ),
       ),

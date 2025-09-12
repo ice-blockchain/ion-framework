@@ -51,7 +51,7 @@ class ContactWalletErrorModal extends StatelessWidget {
                       WidgetSpan(
                         child: IonConnectAvatar(
                           size: 20.0.s,
-                          pubkey: user.masterPubkey,
+                          masterPubkey: user.masterPubkey,
                         ),
                         alignment: PlaceholderAlignment.middle,
                       ),

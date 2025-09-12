@@ -9,30 +9,30 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 
 class IonConnectAvatar extends ConsumerWidget {
   const IonConnectAvatar({
-    required this.pubkey,
     required this.size,
+    required this.masterPubkey,
     this.borderRadius,
     this.fit,
     this.shadow,
     super.key,
   });
 
-  final String pubkey;
   final double size;
+  final String masterPubkey;
   final BorderRadiusGeometry? borderRadius;
   final BoxFit? fit;
   final BoxShadow? shadow;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataSyncProvider(pubkey));
+    final userMetadata = ref.watch(userMetadataProvider(masterPubkey)).valueOrNull;
 
     final avatar = Avatar(
       imageWidget: userMetadata != null
           ? userMetadata.data.avatarUrl != null
               ? IonConnectNetworkImage(
                   imageUrl: userMetadata.data.avatarUrl!,
-                  authorPubkey: pubkey,
+                  authorPubkey: masterPubkey,
                   height: size,
                   width: size,
                 )

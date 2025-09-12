@@ -49,7 +49,7 @@ class ChatSearchResultListItem extends ConsumerWidget {
             vertical: 8.0.s,
             horizontal: ScreenSideOffset.defaultSmallMargin,
           ),
-          pubkey: userMetadata.masterPubkey,
+          masterPubkey: userMetadata.masterPubkey,
           title: Padding(
             padding: EdgeInsetsDirectional.only(bottom: 2.38.s),
             child: Text(

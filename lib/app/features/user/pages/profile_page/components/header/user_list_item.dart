@@ -34,7 +34,7 @@ class UseListItem extends ConsumerWidget {
               context: context,
             ),
           ),
-          pubkey: pubkey,
+          masterPubkey: pubkey,
           constraints: BoxConstraints(maxHeight: minHeight, minHeight: minHeight),
         );
       },

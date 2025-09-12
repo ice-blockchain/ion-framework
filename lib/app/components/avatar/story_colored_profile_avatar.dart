@@ -86,7 +86,7 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
         avatarWidget = IonConnectAvatar(
           size: size,
           fit: fit,
-          pubkey: pubkey,
+          masterPubkey: pubkey,
           borderRadius: borderRadius,
         );
       }
@@ -111,7 +111,7 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
               : IonConnectAvatar(
                   size: size - 8.0.s,
                   fit: fit,
-                  pubkey: pubkey,
+                  masterPubkey: pubkey,
                   borderRadius: borderRadius,
                 ),
         ),

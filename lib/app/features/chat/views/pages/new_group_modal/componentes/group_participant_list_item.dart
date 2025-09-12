@@ -36,7 +36,7 @@ class GroupPariticipantsListItem extends ConsumerWidget {
               color: context.theme.appColors.sheetLine,
             ),
           ),
-          pubkey: userMetadata.masterPubkey,
+          masterPubkey: userMetadata.masterPubkey,
           contentPadding: EdgeInsets.zero,
           constraints: BoxConstraints(maxHeight: 39.0.s),
           trailing: isCurrentUser

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/list_items_loading_state/list_items_loading_state.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dart';
@@ -19,44 +20,49 @@ class FollowingUsers extends ConsumerWidget {
     super.key,
   });
 
-  final void Function(UserMetadataEntity user) onUserSelected;
-  final List<String> selectedPubkeys;
   final bool selectable;
   final bool controlChatPrivacy;
+  final List<String> selectedPubkeys;
+  final void Function(UserMetadataEntity user) onUserSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final followList = ref.watch(currentUserFollowListProvider);
+    final followedPeople = ref.watch(currentUserFollowListWithMetadataProvider());
 
-    return followList.maybeWhen(
-      data: (data) {
-        if (data == null || data.data.list.isEmpty) return const _NoUserView();
-        final pubkeys = data.data.list.map((e) => e.pubkey).toList();
+    return followedPeople.maybeWhen(
+      data: (people) {
+        if (people.isEmpty) return const _NoUserView();
+        final masterPubkeys = people.map((e) => e.pubkey).toList();
 
         return SliverList.builder(
           itemBuilder: (context, index) {
-            final masterPubkey = pubkeys.elementAt(index);
+            final userMetadata = people[index];
+
             final bool canSendMessage;
             if (controlChatPrivacy) {
-              canSendMessage = ref.watch(canSendMessageProvider(masterPubkey)).valueOrNull ?? false;
+              canSendMessage =
+                  ref.watch(canSendMessageProvider(userMetadata.masterPubkey)).valueOrNull ?? false;
             } else {
               canSendMessage = true;
             }
 
             return canSendMessage
                 ? SelectableUserListItem(
+                    userMetadata: userMetadata,
                     selectable: selectable,
-                    pubkey: pubkeys[index],
-                    masterPubkey: pubkeys[index],
                     onUserSelected: onUserSelected,
                     selectedPubkeys: selectedPubkeys,
                     canSendMessage: canSendMessage,
                   )
                 : const SizedBox.shrink();
           },
-          itemCount: pubkeys.length,
+          itemCount: masterPubkeys.length,
         );
       },
+      loading: () => ListItemsLoadingState(
+        padding: EdgeInsets.symmetric(vertical: 8.0.s),
+        listItemsLoadingStateType: ListItemsLoadingStateType.scrollView,
+      ),
       orElse: () => const _NoUserView(),
     );
   }

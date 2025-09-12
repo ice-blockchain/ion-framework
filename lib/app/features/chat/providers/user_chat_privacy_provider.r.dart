@@ -19,9 +19,7 @@ Future<bool> canSendMessage(Ref ref, String masterPubkey, {bool cache = true}) a
   if (isFollowed) return true;
 
   // 2. Fetch user privacy settings
-  final userMetadata = await ref.watch(
-    userMetadataProvider(masterPubkey, cache: cache).future,
-  );
+  final userMetadata = await ref.watch(userMetadataProvider(masterPubkey, cache: cache).future);
   final whoCanMessage = userMetadata?.data.whoCanMessageYou;
 
   // If privacy setting allows everyone or is unset, allow messaging

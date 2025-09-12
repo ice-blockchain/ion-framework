@@ -50,7 +50,7 @@ class _FollowedAvatar extends StatelessWidget {
       child: IonConnectAvatar(
         size: avatarSize - borderWidth * 2,
         fit: BoxFit.cover,
-        pubkey: pubkey,
+        masterPubkey: pubkey,
         borderRadius: BorderRadius.circular(6.0.s),
       ),
     );

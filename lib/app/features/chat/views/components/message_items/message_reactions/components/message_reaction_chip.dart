@@ -74,7 +74,7 @@ class _AvatarStack extends StatelessWidget {
                     child: IonConnectAvatar(
                       size: 16.0.s,
                       borderRadius: BorderRadius.circular(5),
-                      pubkey: pubkeys[i],
+                      masterPubkey: pubkeys[i],
                     ),
                   ),
                 ),

@@ -39,7 +39,7 @@ class ContactButton extends ConsumerWidget {
         ),
         title: Text(userMetadata.data.displayName),
         subtitle: Text(userMetadata.data.name),
-        pubkey: userMetadata.masterPubkey,
+        masterPubkey: userMetadata.masterPubkey,
         trailing: IconButton(
           onPressed: onClearTap,
           icon: Assets.svg.iconSheetClose.icon(

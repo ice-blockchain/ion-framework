@@ -45,7 +45,7 @@ class NotificationIcons extends StatelessWidget {
               child: IonConnectAvatar(
                 size: iconSize,
                 fit: BoxFit.cover,
-                pubkey: pubkey,
+                masterPubkey: pubkey,
                 borderRadius: BorderRadius.circular(10.0.s),
               ),
             ),
