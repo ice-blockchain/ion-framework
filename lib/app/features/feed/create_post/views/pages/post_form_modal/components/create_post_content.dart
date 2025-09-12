@@ -137,7 +137,6 @@ class _TextInputSection extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mediaFiles = attachedMediaNotifier.value;
     final mediaLinks = attachedMediaLinksNotifier.value.values.toList();
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     final draftPoll = ref.watch(pollDraftNotifierProvider);
 
     final links = useUrlLinks(
@@ -147,20 +146,23 @@ class _TextInputSection extends HookConsumerWidget {
 
     useEffect(
       () {
-        if (bottomInset > 0 && textEditorKey.currentContext != null) {
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (textEditorKey.currentContext != null) {
-              Scrollable.ensureVisible(
-                textEditorKey.currentContext!,
-                duration: const Duration(milliseconds: 100),
-                curve: Curves.easeInOut,
-              );
-            }
-          });
-        }
-        return null;
+        final keyboardVisibilityController = KeyboardVisibilityController();
+        final subscription = keyboardVisibilityController.onChange.listen((isVisible) {
+          if (isVisible) {
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (textEditorKey.currentContext != null) {
+                Scrollable.ensureVisible(
+                  textEditorKey.currentContext!,
+                  duration: const Duration(milliseconds: 100),
+                  curve: Curves.easeInOut,
+                );
+              }
+            });
+          }
+        });
+        return subscription.cancel;
       },
-      [bottomInset],
+      [],
     );
 
     return Padding(
