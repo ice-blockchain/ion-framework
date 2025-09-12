@@ -30,8 +30,8 @@ part 'post_like_provider.r.g.dart';
 
 @riverpod
 List<PostLike> loadInitialLikesFromCache(Ref ref) {
-  final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-  final cache = ref.watch(ionConnectCacheProvider);
+  final currentPubkey = ref.read(currentPubkeySelectorProvider);
+  final cache = ref.read(ionConnectCacheProvider);
   final reactions = cache.values
       .map((e) => e.entity)
       .whereType<ReactionEntity>()
