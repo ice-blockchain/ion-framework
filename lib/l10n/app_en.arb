@@ -830,7 +830,7 @@
   "notification_post_published": "Your post has been published",
   "notification_article_published": "Your article has been published",
   "notification_reply_published": "Your reply has been sent",
-  "notification_modify_published": "Your changes have been sent",
+  "notification_modify_published": "Your changes have been saved",
   "notification_delete_published": "The deletion has been completed",
   "notification_repost_successful": "Successfully reposted",
   "chat_groups_joined": "Joined",
