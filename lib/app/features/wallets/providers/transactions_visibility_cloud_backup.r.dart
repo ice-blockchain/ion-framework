@@ -136,7 +136,8 @@ class TransactionsVisibilityCloudBackupIos implements TransactionsVisibilityClou
     required String restoredKey,
   }) async {
     await visibilityDao.transaction(() async {
-      await visibilityDao.customStatement('UPDATE transaction_visibility_status_table SET status = 1;');
+      await visibilityDao
+          .customStatement('UPDATE transaction_visibility_status_table SET status = 1;');
     });
 
     await localStorage.setBool(key: restoredKey, value: true);
