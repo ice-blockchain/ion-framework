@@ -52,10 +52,15 @@ Future<FollowListEntity?> currentUserFollowList(Ref ref) async {
 }
 
 @riverpod
-Future<List<UserMetadataEntity>> currentUserFollowListWithMetadata(Ref ref) async {
-  final followedPeople = await ref.watch(currentUserFollowListProvider.future);
+Future<List<UserMetadataEntity>> currentUserFollowListWithMetadata(
+  Ref ref, {
+  int limit = 50,
+}) async {
+  final allFollowedPeople = await ref.watch(currentUserFollowListProvider.future);
 
-  final masterPubkeys = followedPeople?.data.list.map((follow) => follow.pubkey).toList() ?? [];
+  final followedPeople = allFollowedPeople?.data.list.take(limit).toList() ?? [];
+
+  final masterPubkeys = followedPeople.map((follow) => follow.pubkey).toList();
 
   final followedPeopleWithMetadata =
       (await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(

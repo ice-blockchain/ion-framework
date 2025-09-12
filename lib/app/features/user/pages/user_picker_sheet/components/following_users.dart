@@ -37,11 +37,11 @@ class FollowingUsers extends ConsumerWidget {
         return SliverList.builder(
           itemBuilder: (context, index) {
             final userMetadata = people[index];
-            final masterPubkey = masterPubkeys.elementAt(index);
 
             final bool canSendMessage;
             if (controlChatPrivacy) {
-              canSendMessage = ref.watch(canSendMessageProvider(masterPubkey)).valueOrNull ?? false;
+              canSendMessage =
+                  ref.watch(canSendMessageProvider(userMetadata.masterPubkey)).valueOrNull ?? false;
             } else {
               canSendMessage = true;
             }
