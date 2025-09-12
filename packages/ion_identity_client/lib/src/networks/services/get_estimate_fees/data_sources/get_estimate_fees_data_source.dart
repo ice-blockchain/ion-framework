@@ -26,7 +26,7 @@ class GetEstimateFeesDataSource {
         queryParams: {
           'network': network,
         },
-        decoder: (json) => parseJsonObject(json, fromJson: EstimateFee.fromJson),
+        decoder: (json, _) => parseJsonObject(json, fromJson: EstimateFee.fromJson),
       );
     } on NetworkException catch (e) {
       if (e is RequestExecutionException && e.error is DioException) {

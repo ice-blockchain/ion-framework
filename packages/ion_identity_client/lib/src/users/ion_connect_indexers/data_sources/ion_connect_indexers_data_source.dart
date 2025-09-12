@@ -32,7 +32,8 @@ class IONConnectIndexersDataSource {
         username: username,
         token: token.token,
       ),
-        decoder: (result) => parseJsonObject(result, fromJson: IONConnectIndexersResponse.fromJson),
+      decoder: (result, _) =>
+          parseJsonObject(result, fromJson: IONConnectIndexersResponse.fromJson),
     );
 
     return response.ionConnectIndexers;

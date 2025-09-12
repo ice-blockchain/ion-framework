@@ -40,7 +40,7 @@ class HashtagsDataSource {
         token: token,
         username: username,
       ),
-      decoder: (response) {
+      decoder: (response, _) {
         if (response is! List || response.isEmpty) {
           return <String>[];
         }

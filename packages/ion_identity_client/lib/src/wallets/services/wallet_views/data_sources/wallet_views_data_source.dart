@@ -19,6 +19,9 @@ class WalletViewsDataSource {
   static const _basePath = '/v1/users/%s/wallet-views';
   static const _specificViewPath = '/v1/users/%s/wallet-views/%s';
 
+  /// Header used by backend to return pagination token for next page
+  static const String _nextPageHeader = 'x-next-page';
+
   UserToken _token(String username) {
     final token = _tokenStorage.getToken(username: username);
     if (token == null) {
@@ -39,7 +42,7 @@ class WalletViewsDataSource {
         token: token.token,
         username: username,
       ),
-      decoder: (json) => parseList(json, fromJson: ShortWalletView.fromJson),
+      decoder: (json, _) => parseList(json, fromJson: ShortWalletView.fromJson),
     );
   }
 
@@ -56,14 +59,19 @@ class WalletViewsDataSource {
         token: token.token,
       ),
       data: request.toJson(),
-      decoder: (json) => parseJsonObject(json, fromJson: WalletView.fromJson),
+      decoder: (json, _) => parseJsonObject(json, fromJson: WalletView.fromJson),
     );
   }
 
-  Future<WalletView> getWalletView({
+  /// Returns wallet view data with optional NFTs pagination support.
+  /// When [limit] is provided, the server will limit the number of NFTs and
+  /// may return the next page token in the [_nextPageHeader] header.
+  Future<WalletViewResponse> getWalletView({
     required String userId,
     required String username,
     required String walletViewId,
+    int? limit,
+    String? paginationToken,
   }) async {
     final token = _token(username);
 
@@ -73,7 +81,14 @@ class WalletViewsDataSource {
         token: token.token,
         username: username,
       ),
-      decoder: (json) => parseJsonObject(json, fromJson: WalletView.fromJson),
+      queryParams: {
+        if (limit != null) 'limit': limit,
+        if (paginationToken != null) 'paginationToken': paginationToken,
+      },
+      decoder: (json, headers) => (
+        walletView: parseJsonObject(json, fromJson: WalletView.fromJson),
+        nextPageToken: headers[_nextPageHeader]?.firstOrNull,
+      ),
     );
   }
 
@@ -92,7 +107,7 @@ class WalletViewsDataSource {
         username: username,
       ),
       data: request.toJson(),
-      decoder: (json) => parseJsonObject(json, fromJson: WalletView.fromJson),
+      decoder: (json, _) => parseJsonObject(json, fromJson: WalletView.fromJson),
     );
   }
 
@@ -106,7 +121,7 @@ class WalletViewsDataSource {
     await _networkClient.delete(
       sprintf(_specificViewPath, [userId, walletViewId]),
       headers: RequestHeaders.getTokenHeader(token: token.token),
-      decoder: (json) => null,
+      decoder: (json, _) => null,
     );
   }
 }

@@ -59,7 +59,7 @@ class TwoFADataSource {
                 ...RequestHeaders.getAuthorizationHeaders(token: token, username: username),
                 RequestHeaders.ionIdentityUserAction: signature,
               },
-        decoder: (json) => parseJsonObject(json, fromJson: (json) => json),
+        decoder: (json, _) => parseJsonObject(json, fromJson: (json) => json),
       );
     } on RequestExecutionException catch (e) {
       final exception = _mapException(e);
@@ -83,7 +83,7 @@ class TwoFADataSource {
         sprintf(twoFaPath, [userId, twoFAOption]),
         queryParams: {'code': code},
         headers: RequestHeaders.getAuthorizationHeaders(token: token, username: username),
-        decoder: (json) => parseJsonObject(json, fromJson: (json) => json),
+        decoder: (json, _) => parseJsonObject(json, fromJson: (json) => json),
       );
     } on RequestExecutionException catch (e) {
       final exception = _mapException(e);
@@ -127,7 +127,7 @@ class TwoFADataSource {
                 ...RequestHeaders.getAuthorizationHeaders(token: token, username: username),
                 RequestHeaders.ionIdentityUserAction: signature,
               },
-        decoder: (response) => response,
+        decoder: (response, _) => response,
       );
     } on RequestExecutionException catch (e) {
       final exception = _mapException(e);

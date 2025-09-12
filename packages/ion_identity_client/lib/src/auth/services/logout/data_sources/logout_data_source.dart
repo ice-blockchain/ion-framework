@@ -19,7 +19,7 @@ class LogoutDataSource {
   }) async {
     return networkClient.put(
       logoutPath,
-      decoder: (result) => parseJsonObject(result, fromJson: SimpleMessageResponse.fromJson),
+      decoder: (result, _) => parseJsonObject(result, fromJson: SimpleMessageResponse.fromJson),
       headers: RequestHeaders.getAuthorizationHeaders(
         token: token,
         username: username,

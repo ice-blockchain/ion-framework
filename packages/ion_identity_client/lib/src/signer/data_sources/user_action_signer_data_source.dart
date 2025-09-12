@@ -37,7 +37,7 @@ class UserActionSignerDataSource {
         token: token.token,
         username: username,
       ),
-      decoder: (result) => parseJsonObject(result, fromJson: UserActionChallenge.fromJson),
+      decoder: (result, _) => parseJsonObject(result, fromJson: UserActionChallenge.fromJson),
     );
   }
 
@@ -63,7 +63,7 @@ class UserActionSignerDataSource {
         token: token.token,
         username: username,
       ),
-      decoder: (response) => response['userAction'] as String,
+      decoder: (response, _) => response['userAction'] as String,
     );
   }
 
@@ -91,13 +91,13 @@ class UserActionSignerDataSource {
           request.path,
           data: request.body,
           headers: headers,
-          decoder: (result) => parseJsonObject(result, fromJson: responseDecoder),
+          decoder: (result, _) => parseJsonObject(result, fromJson: responseDecoder),
         ),
       HttpMethod.put => networkClient.put(
           request.path,
           data: request.body,
           headers: headers,
-          decoder: (result) => parseJsonObject(result, fromJson: responseDecoder),
+          decoder: (result, _) => parseJsonObject(result, fromJson: responseDecoder),
         ),
       _ => throw UnimplementedError('Method ${request.method} is not supported'),
     };

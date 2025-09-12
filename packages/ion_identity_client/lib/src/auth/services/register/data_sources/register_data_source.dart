@@ -24,7 +24,7 @@ class RegisterDataSource {
       await networkClient.get(
         emailAvailabilityForEarlyAccessPath,
         queryParams: {'email': email},
-        decoder: (json) => json,
+        decoder: (json, _) => json,
       );
     } on RequestExecutionException catch (e) {
       final exception = _mapException(e);
@@ -39,7 +39,7 @@ class RegisterDataSource {
     return networkClient.post(
       registerInitPath,
       data: RegisterInitRequest(email: username, earlyAccessEmail: earlyAccessEmail).toJson(),
-      decoder: (result) => parseJsonObject(result, fromJson: UserRegistrationChallenge.fromJson),
+      decoder: (result, _) => parseJsonObject(result, fromJson: UserRegistrationChallenge.fromJson),
     );
   }
 
@@ -53,7 +53,8 @@ class RegisterDataSource {
       data:
           SignedChallenge(firstFactorCredential: credentialData, earlyAccessEmail: earlyAccessEmail)
               .toJson(),
-      decoder: (result) => parseJsonObject(result, fromJson: RegistrationCompleteResponse.fromJson),
+      decoder: (result, _) =>
+          parseJsonObject(result, fromJson: RegistrationCompleteResponse.fromJson),
       headers: RequestHeaders.getTokenHeader(token: temporaryAuthenticationToken),
     );
   }

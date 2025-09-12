@@ -37,7 +37,7 @@ class GetCoinDataDataSource {
         'contractAddress': contractAddress,
         'network': network,
       },
-      decoder: (response) => parseJsonObject(
+      decoder: (response, _) => parseJsonObject(
         response,
         fromJson: Coin.fromJson,
       ),

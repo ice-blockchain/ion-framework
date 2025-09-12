@@ -29,6 +29,8 @@ import 'package:ion/app/features/wallets/model/wallet_view_update.f.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_parser.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/concurrency.dart';
+import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -105,9 +107,11 @@ class WalletViewsService {
   Future<List<WalletViewData>> fetch() async {
     final shortViews = await _identity.wallets.getWalletViews();
 
-    final viewsDetailsDTO = await Future.wait(
-      shortViews.map((e) => _identity.wallets.getWalletView(e.id)),
+    final viewsDetailsDTO = await mapWithConcurrency<ShortWalletView, WalletView>(
+      shortViews,
+      mapper: (e) => _fetchEntireWalletView(e.id),
     );
+
     final networks = await _networksRepository.getAllAsMap();
     final mainWalletViewId = viewsDetailsDTO.isEmpty
         ? '' // if there no wallet views, we haven't the main one
@@ -130,7 +134,8 @@ class WalletViewsService {
   }
 
   Future<void> refresh(String walletViewId) async {
-    final viewDTO = await _identity.wallets.getWalletView(walletViewId);
+    Logger.info('[WalletViewsService] Refreshing wallet view $walletViewId with pagination');
+    final viewDTO = await _fetchEntireWalletView(walletViewId);
     final networks = await _networksRepository.getAllAsMap();
 
     final index = _originWalletViews.indexWhere((w) => w.id == walletViewId);
@@ -252,5 +257,59 @@ class WalletViewsService {
   void dispose() {
     _walletViewsController.close();
     _updatesSubscription?.cancel();
+  }
+
+  // Fetches all pages for a wallet view and returns a WalletView with merged NFTs.
+  Future<WalletView> _fetchEntireWalletView(String walletViewId) async {
+    final mergedNftsByKey = <String, WalletNft>{};
+    WalletView? lastView;
+
+    String? paginationToken;
+    do {
+      final page = await _getWalletViewPageWithRetry(
+        walletViewId,
+        paginationToken: paginationToken,
+      );
+      lastView = page.walletView;
+
+      final nfts = page.walletView.nfts ?? const <WalletNft>[];
+      for (final nft in nfts) {
+        final key = '${nft.network}|${nft.contract}|${nft.tokenId}';
+        mergedNftsByKey[key] = nft;
+      }
+
+      final rawToken = page.nextPageToken;
+      paginationToken = (rawToken == null || rawToken.trim().isEmpty) ? null : rawToken;
+    } while (paginationToken != null);
+
+    return lastView.copyWith(nfts: mergedNftsByKey.values.toList());
+  }
+
+  // Performs a single page fetch with retry policy; returns partial NFTs collected so far on final failure.
+  Future<WalletViewResponse> _getWalletViewPageWithRetry(
+    String walletViewId, {
+    String? paginationToken,
+  }) async {
+    return withRetry<WalletViewResponse>(
+      ({error}) async {
+        return _identity.wallets
+            .getWalletView(
+              walletViewId,
+              paginationToken: paginationToken,
+            )
+            .timeout(const Duration(seconds: 15));
+      },
+      maxRetries: 3,
+      initialDelay: const Duration(milliseconds: 200),
+      maxDelay: const Duration(milliseconds: 1500),
+      multiplier: 2,
+      onRetry: (error) async {
+        Logger.error(
+          error ?? 'Unknown error',
+          message:
+              '[WalletViewsService] getWalletView page failed; retrying walletViewId=$walletViewId paginationToken=${paginationToken ?? 'null'}',
+        );
+      },
+    );
   }
 }

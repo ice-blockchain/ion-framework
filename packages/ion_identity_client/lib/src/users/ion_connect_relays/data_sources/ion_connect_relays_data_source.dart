@@ -8,9 +8,9 @@ import 'package:ion_identity_client/src/core/types/request_headers.dart';
 
 class IONConnectRelaysDataSource {
   IONConnectRelaysDataSource(
-      this._networkClient,
-      this._tokenStorage,
-      );
+    this._networkClient,
+    this._tokenStorage,
+  );
 
   final NetworkClient _networkClient;
   final TokenStorage _tokenStorage;
@@ -35,7 +35,7 @@ class IONConnectRelaysDataSource {
         username: username,
         token: token.token,
       ),
-      decoder: (result) => parseList(result, fromJson: UserRelaysInfo.fromJson),
+      decoder: (result, _) => parseList(result, fromJson: UserRelaysInfo.fromJson),
     );
 
     return response;

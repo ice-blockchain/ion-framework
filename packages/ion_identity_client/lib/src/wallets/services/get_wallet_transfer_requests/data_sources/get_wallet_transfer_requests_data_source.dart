@@ -60,7 +60,7 @@ class GetWalletTransferRequestsDataSource {
           if (pageToken != null) 'paginationToken': pageToken,
           if (pageSize != null) 'limit': pageSize,
         },
-        decoder: (result) => parseJsonObject(result, fromJson: WalletTransferRequests.fromJson),
+        decoder: (result, _) => parseJsonObject(result, fromJson: WalletTransferRequests.fromJson),
       );
     } on NetworkException catch (e) {
       throw _handleNetworkException(e);
@@ -81,7 +81,7 @@ class GetWalletTransferRequestsDataSource {
           token: token.token,
           username: username,
         ),
-        decoder: (result) => parseJsonObject(result, fromJson: WalletTransferRequest.fromJson),
+        decoder: (result, _) => parseJsonObject(result, fromJson: WalletTransferRequest.fromJson),
       );
     } on NetworkException catch (e) {
       throw _handleNetworkException(e);
