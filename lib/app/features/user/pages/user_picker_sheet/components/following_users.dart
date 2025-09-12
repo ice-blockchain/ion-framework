@@ -27,7 +27,7 @@ class FollowingUsers extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final followedPeople = ref.watch(currentUserFollowListWithMetadataProvider);
+    final followedPeople = ref.watch(currentUserFollowListWithMetadataProvider());
 
     return followedPeople.maybeWhen(
       data: (people) {
