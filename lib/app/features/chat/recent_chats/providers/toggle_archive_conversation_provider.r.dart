@@ -161,22 +161,23 @@ class ToggleArchivedConversations extends _$ToggleArchivedConversations {
       await ref.read(conversationDaoProvider).setArchived(conversationIds);
       updatedTags = allConversationTags;
     } else {
+      updatedTags = List<List<String>>.from(decryptedTags);
       for (final conversation in conversations) {
         final conversationTag = ConversationIdentifier(value: conversation.conversationId).toTag();
 
-        final archivedConversationTag = decryptedTags.firstWhereOrNull(
+        final archivedConversationTag = updatedTags.firstWhereOrNull(
           (tag) => tag.equals(conversationTag),
         );
 
         if (archivedConversationTag == null) {
           await ref.read(conversationDaoProvider).setArchived([conversation.conversationId]);
-          updatedTags = [...decryptedTags, conversationTag];
+          updatedTags.add(conversationTag);
         } else {
           await ref
               .read(conversationDaoProvider)
               .setArchived([conversation.conversationId], isArchived: false);
 
-          updatedTags = decryptedTags..remove(archivedConversationTag);
+          updatedTags.removeWhere((tag) => tag.equals(conversationTag));
         }
       }
     }
