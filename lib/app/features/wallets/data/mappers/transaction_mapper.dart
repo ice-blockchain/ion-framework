@@ -117,6 +117,7 @@ class CoinTransactionsMapper {
             transferredAmount: content.amount,
             transferredAmountUsd: double.tryParse(content.amountUsd ?? '0'),
             eventId: entity.id,
+            assetContractAddress: entity.data.assetAddress,
           );
         })
         .nonNulls
@@ -184,6 +185,25 @@ class CoinTransactionsMapper {
             createdAtInRelay: transaction.createdAtInRelay,
             userPubkey: transaction.userPubkey,
             memo: transaction.memo,
+          ),
+          undefinedToken: (String contractAddress, String symbol) => db.Transaction(
+            type: transaction.type.value,
+            txHash: transaction.txHash,
+            id: transaction.id,
+            fee: transaction.fee,
+            externalHash: transaction.externalHash,
+            walletViewId: transaction.walletViewId,
+            dateConfirmed: transaction.dateConfirmed,
+            dateRequested: transaction.dateRequested,
+            networkId: transaction.network.id,
+            status: transaction.status.toJson(),
+            nativeCoinId: transaction.nativeCoin?.id,
+            senderWalletAddress: transaction.senderWalletAddress,
+            receiverWalletAddress: transaction.receiverWalletAddress,
+            createdAtInRelay: transaction.createdAtInRelay,
+            userPubkey: transaction.userPubkey,
+            memo: transaction.memo,
+            assetContractAddress: contractAddress,
           ),
         );
       }).toList();

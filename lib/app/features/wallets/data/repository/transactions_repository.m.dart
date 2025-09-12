@@ -355,107 +355,153 @@ class TransactionsRepository {
     }
 
     final transactions = await result.items
-        .map((transaction) async {
-          final contract = transaction.contract ?? transaction.metadataAddress;
-          final type = TransactionType.fromDirection(transaction.direction);
-          final from = _resolveTransactionAddress(
-            direct: transaction.from,
-            alternatives: transaction.froms,
-            fallbackAddress: type.isSend ? wallet.address : null,
-          );
-          final to = _resolveTransactionAddress(
-            direct: transaction.to,
-            alternatives: transaction.tos,
-            fallbackAddress: !type.isSend ? wallet.address : null,
-          );
+        .map(
+          (transaction) => _processTransaction(
+            transaction,
+            walletViewId: walletViewId,
+            wallet: wallet,
+            network: network,
+            nativeCoin: nativeCoin,
+          ),
+        )
+        .wait;
 
-          CoinData? coin;
+    return (
+      transactions: transactions.nonNulls.toList(),
+      nextPageToken: result.nextPageToken,
+    );
+  }
 
-          if (transaction.isNativeTransfer) {
-            coin = nativeCoin;
-          } else if (contract != null) {
-            // Get coin by contract and network
-            coin = await _coinsDao.getByFilters(
-              contractAddresses: [contract],
-              networks: [network.id],
-            ).then((result) => result.firstOrNull);
-          }
+  Future<TransactionData?> _processTransaction(
+    WalletHistoryRecord transaction, {
+    required String walletViewId,
+    required Wallet wallet,
+    required NetworkData network,
+    required CoinData? nativeCoin,
+  }) async {
+    final contract = transaction.contract ?? transaction.metadataAddress;
+    final type = TransactionType.fromDirection(transaction.direction);
+    final from = _resolveTransactionAddress(
+      direct: transaction.from,
+      alternatives: transaction.froms,
+      fallbackAddress: type.isSend ? wallet.address : null,
+    );
+    final to = _resolveTransactionAddress(
+      direct: transaction.to,
+      alternatives: transaction.tos,
+      fallbackAddress: !type.isSend ? wallet.address : null,
+    );
 
-          // Contracts in the db and from ion can be different, so use this type of search as the last try
-          coin ??= await _coinsDao.getByFilters(
-            symbols: [transaction.metadata.asset.symbol],
-            networks: [network.id],
-          ).then((result) => result.firstOrNull);
+    // Try to resolve the crypto asset for this transaction
+    final cryptoAsset = await _resolveCryptoAsset(
+      transaction,
+      network: network,
+      nativeCoin: nativeCoin,
+      contract: contract,
+    );
 
-          // If coin was found, process as coin transaction
-          if (coin != null) {
-            final rawAmount = transaction.value;
-            final amount = parseCryptoAmount(rawAmount.emptyOrValue, coin.decimals);
-            final amountUSD = amount * coin.priceUSD;
+    // If we can't resolve the crypto asset, we can't build the transaction
+    if (cryptoAsset == null) return null;
 
-            return TransactionData(
-              txHash: transaction.txHash,
-              walletViewId: walletViewId,
-              externalHash: transaction.externalHash,
-              network: network,
-              type: type,
-              senderWalletAddress: from,
-              receiverWalletAddress: to,
-              nativeCoin: nativeCoin,
-              fee: transaction.fee,
-              dateConfirmed: transaction.timestamp,
-              status: TransactionStatus.confirmed,
-              cryptoAsset: TransactionCryptoAsset.coin(
-                coin: coin,
-                amount: amount,
-                amountUSD: amountUSD,
-                rawAmount: rawAmount.emptyOrValue,
-              ),
-            );
-          }
+    return TransactionData(
+      txHash: transaction.txHash,
+      walletViewId: walletViewId,
+      externalHash: transaction.externalHash,
+      network: network,
+      type: type,
+      senderWalletAddress: from,
+      receiverWalletAddress: to,
+      nativeCoin: nativeCoin,
+      fee: transaction.fee,
+      dateConfirmed: transaction.timestamp,
+      status: TransactionStatus.confirmed,
+      cryptoAsset: cryptoAsset,
+    );
+  }
 
-          // If coin lookup failed, try to parse as NFT transaction
-          if (transaction.tokenId != null && contract != null) {
-            final nftIdentifier = NftIdentifier(
-              contract: contract,
-              tokenId: transaction.tokenId!,
-            );
+  Future<TransactionCryptoAsset?> _resolveCryptoAsset(
+    WalletHistoryRecord transaction, {
+    required NetworkData network,
+    required CoinData? nativeCoin,
+    required String? contract,
+  }) async {
+    // Handle native transfers
+    if (transaction.isNativeTransfer && nativeCoin != null) {
+      return _createCoinTransactionAsset(transaction, nativeCoin);
+    }
 
-            return TransactionData(
-              txHash: transaction.txHash,
-              walletViewId: walletViewId,
-              externalHash: transaction.externalHash,
-              network: network,
-              type: type,
-              senderWalletAddress: from,
-              receiverWalletAddress: to,
-              nativeCoin: nativeCoin,
-              fee: transaction.fee,
-              dateConfirmed: transaction.timestamp,
-              status: TransactionStatus.confirmed,
-              cryptoAsset: TransactionCryptoAsset.nftIdentifier(
-                nftIdentifier: nftIdentifier,
-                network: network,
-              ),
-            );
-          }
+    // Handle contract-based transfers
+    if (contract != null) {
+      // First try: exact contract address match
+      final coinByContract = await _coinsDao.getByFilters(
+        contractAddresses: [contract],
+        networks: [network.id],
+      ).then((result) => result.firstOrNull);
 
-          // If neither coin nor NFT parsing worked, log error and return null to skip this later
-          Logger.error(
-            "Ignore transaction ${transaction.txHash}, because transferred coin wasn't found and NFT parsing failed. "
-            'Tried symbol: ${transaction.metadata.asset.symbol}, '
-            'contract: $contract, tokenId: ${transaction.tokenId}, network: ${network.id}',
-          );
-          return null;
-        })
-        .wait
-        .then((result) => result.toList());
+      if (coinByContract != null) {
+        return _createCoinTransactionAsset(transaction, coinByContract);
+      }
 
-    return (transactions: transactions.nonNulls.toList(), nextPageToken: result.nextPageToken);
+      // Check if this is an NFT transaction
+      if (transaction.tokenId != null) {
+        return TransactionCryptoAsset.nftIdentifier(
+          nftIdentifier: NftIdentifier(
+            contract: contract,
+            tokenId: transaction.tokenId!,
+          ),
+          network: network,
+        );
+      }
+
+      return TransactionCryptoAsset.undefinedToken(
+        symbol: transaction.metadata.asset.symbol,
+        contractAddress: contract,
+      );
+    }
+
+    // Second try: search by symbol and network
+    final coinsBySymbol = await _coinsDao.getByFilters(
+      symbols: [transaction.metadata.asset.symbol],
+      networks: [network.id],
+    );
+
+    // If exactly one coin matches, use it
+    if (coinsBySymbol.length == 1) {
+      return _createCoinTransactionAsset(transaction, coinsBySymbol.first);
+    }
+
+    // If multiple coins with same symbol exist, we can't determine which one
+    // Return undefined token to let the user know about the ambiguity
+    Logger.warning(
+      'Found ${coinsBySymbol.length} coins with symbol ${transaction.metadata.asset.symbol} '
+      'on network ${network.id} for transaction ${transaction.txHash}. '
+      'Using undefinedToken to avoid ambiguity.',
+    );
+    return null;
+  }
+
+  TransactionCryptoAsset _createCoinTransactionAsset(
+    WalletHistoryRecord transaction,
+    CoinData coin,
+  ) {
+    final rawAmount = transaction.value;
+    final amount = parseCryptoAmount(rawAmount.emptyOrValue, coin.decimals);
+    final amountUSD = amount * coin.priceUSD;
+
+    return TransactionCryptoAsset.coin(
+      coin: coin,
+      amount: amount,
+      amountUSD: amountUSD,
+      rawAmount: rawAmount.emptyOrValue,
+    );
   }
 
   Stream<TransactionData?> watchTransactionByEventId(String eventId) {
     return _transactionsDao.watchTransactionByEventId(eventId);
+  }
+
+  Stream<List<TransactionData>> watchUndefinedTokenTransactions() {
+    return _transactionsDao.watchUndefinedTokenTransactions();
   }
 
   String? _resolveTransactionAddress({
@@ -477,6 +523,7 @@ class TransactionsRepository {
     DateTime? dateConfirmed,
     DateTime? dateRequested,
     String? fee,
+    String? coinId,
   }) async {
     final existing = await _transactionsDao.getTransactions(
       txHashes: [txHash],
@@ -501,6 +548,7 @@ class TransactionsRepository {
       dateConfirmed: Value(dateConfirmed ?? mapped.dateConfirmed),
       dateRequested: Value(dateRequested ?? mapped.dateRequested),
       fee: Value(fee ?? mapped.fee),
+      coinId: Value(coinId ?? mapped.coinId),
     );
 
     final updated = await _transactionsDao.save([updatedTransaction]);

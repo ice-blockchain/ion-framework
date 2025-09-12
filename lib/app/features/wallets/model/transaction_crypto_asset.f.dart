@@ -27,5 +27,10 @@ sealed class TransactionCryptoAsset with _$TransactionCryptoAsset {
     required NetworkData network,
   }) = NftIdentifierTransactionAsset;
 
+  const factory TransactionCryptoAsset.undefinedToken({
+    required String contractAddress,
+    required String symbol,
+  }) = UndefinedTransactionAsset;
+
   const TransactionCryptoAsset._();
 }

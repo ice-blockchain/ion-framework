@@ -81,6 +81,9 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
           transferredAmountUsd: Value(
             existing.transferredAmountUsd ?? toInsertRaw.transferredAmountUsd,
           ),
+          assetContractAddress: Value(
+            existing.assetContractAddress ?? toInsertRaw.assetContractAddress,
+          ),
         );
       });
       final updatedTransactions = toInsert.where((t) {
@@ -349,6 +352,45 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         .watchSingleOrNull();
   }
 
+  /// Watches transactions that have undefined tokens (no coinId but have assetContractAddress)
+  Stream<List<TransactionData>> watchUndefinedTokenTransactions() {
+    final transactionCoinAlias = alias(coinsTable, 'transactionCoin');
+    final nativeCoinAlias = alias(coinsTable, 'nativeCoin');
+
+    final query = (select(transactionsTable)
+          ..where(
+            (tbl) =>
+                tbl.coinId.isNull() &
+                tbl.nftIdentifier.isNull() &
+                tbl.assetContractAddress.isNotNull(),
+          ))
+        .join([
+      leftOuterJoin(
+        networksTable,
+        networksTable.id.equalsExp(transactionsTable.networkId),
+      ),
+      leftOuterJoin(
+        transactionCoinAlias,
+        transactionCoinAlias.id.equalsExp(transactionsTable.coinId),
+      ),
+      leftOuterJoin(
+        nativeCoinAlias,
+        nativeCoinAlias.id.equalsExp(transactionsTable.nativeCoinId),
+      ),
+    ]);
+
+    return query
+        .map(
+          (row) => _mapRowToDomainModel(
+            row,
+            transactionCoinAlias: transactionCoinAlias,
+            nativeCoinAlias: nativeCoinAlias,
+          ),
+        )
+        .watch()
+        .map((transactions) => transactions.whereType<TransactionData>().toList());
+  }
+
   TransactionData? _mapRowToDomainModel(
     TypedResult row, {
     required $CoinsTableTable nativeCoinAlias,
@@ -379,26 +421,35 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
     } else {
       // Handle coin transaction
       if (transactionCoin == null) {
-        Logger.warning(
-          '[TRANSACTIONS_DAO] Transaction ${transaction.txHash} has no associated coin. '
-          'Coin ID: ${transaction.coinId} | Network: ${network.id} | WalletView: ${transaction.walletViewId}. '
-          'This can happen when coins are removed from supported list over time. Skipping transaction.',
+        // Check if this is an undefined token transaction
+        if (transaction.assetContractAddress != null) {
+          // Create undefined token asset
+          cryptoAsset = TransactionCryptoAsset.undefinedToken(
+            contractAddress: transaction.assetContractAddress!,
+            symbol: 'UNKNOWN', // We don't have symbol stored for undefined tokens
+          );
+        } else {
+          Logger.warning(
+            '[TRANSACTIONS_DAO] Transaction ${transaction.txHash} has no associated coin. '
+            'Coin ID: ${transaction.coinId} | Network: ${network.id} | WalletView: ${transaction.walletViewId}. '
+            'This can happen when coins are removed from supported list over time. Skipping transaction.',
+          );
+          return null;
+        }
+      } else {
+        final transferredAmount = transaction.transferredAmount ?? '0';
+        final transferredCoin = CoinData.fromDB(transactionCoin, domainNetwork);
+
+        cryptoAsset = TransactionCryptoAsset.coin(
+          coin: transferredCoin,
+          amount: parseCryptoAmount(
+            transferredAmount,
+            transferredCoin.decimals,
+          ),
+          amountUSD: transaction.transferredAmountUsd ?? 0.0,
+          rawAmount: transferredAmount,
         );
-        return null;
       }
-
-      final transferredAmount = transaction.transferredAmount ?? '0';
-      final transferredCoin = CoinData.fromDB(transactionCoin, domainNetwork);
-
-      cryptoAsset = TransactionCryptoAsset.coin(
-        coin: transferredCoin,
-        amount: parseCryptoAmount(
-          transferredAmount,
-          transferredCoin.decimals,
-        ),
-        amountUSD: transaction.transferredAmountUsd ?? 0.0,
-        rawAmount: transferredAmount,
-      );
     }
 
     return TransactionData(
