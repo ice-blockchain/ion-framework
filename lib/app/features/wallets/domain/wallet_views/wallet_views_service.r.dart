@@ -12,7 +12,6 @@ import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart
 import 'package:ion/app/features/wallets/data/repository/networks_repository.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/coins/coins_comparator.dart';
-import 'package:ion/app/features/wallets/domain/transactions/undefined_transactions_binder.r.dart';
 import 'package:ion/app/features/wallets/domain/wallet_views/sync_wallet_views_coins_service.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
@@ -49,14 +48,12 @@ Future<WalletViewsService> walletViewsService(Ref ref) async {
     mainWallet,
     transactionsRepo,
     syncService,
-    undefinedTransactionsBinder,
   ) = await (
     ref.watch(ionIdentityClientProvider.future),
     ref.watch(walletsNotifierProvider.future),
     ref.watch(mainWalletProvider.future),
     ref.watch(transactionsRepositoryProvider.future),
     ref.watch(syncWalletViewCoinsServiceProvider.future),
-    ref.watch(undefinedTransactionsBinderProvider.future),
   ).wait;
 
   final service = WalletViewsService(
@@ -69,9 +66,6 @@ Future<WalletViewsService> walletViewsService(Ref ref) async {
     syncService,
     await ref.watch(walletViewsLiveUpdaterProvider.future),
   );
-
-  // TODO: remove this line
-  undefinedTransactionsBinder.toString();
 
   ref.onDispose(service.dispose);
 
