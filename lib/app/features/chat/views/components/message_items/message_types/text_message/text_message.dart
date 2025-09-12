@@ -204,7 +204,7 @@ class _TextMessageContent extends HookWidget {
 
       final lineMetrics = multiLineTextPainter.computeLineMetrics();
 
-      final wouldOverlap = lineMetrics.last.width.s > (maxAvailableWidth - metadataWidth.value.s);
+      final wouldOverlap = lineMetrics.last.width > (maxAvailableWidth - metadataWidth.value.s);
 
       return Stack(
         alignment: AlignmentDirectional.bottomEnd,
