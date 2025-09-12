@@ -363,10 +363,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
 
   EntityLabel? _buildLanguageLabel(String? language) {
     if (language != null) {
-      return EntityLabel(
-        values: [language],
-        namespace: EntityLabelNamespace.language,
-      );
+      return EntityLabel(values: [language], namespace: EntityLabelNamespace.language);
     }
     return null;
   }

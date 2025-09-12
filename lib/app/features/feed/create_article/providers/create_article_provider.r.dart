@@ -471,10 +471,7 @@ class CreateArticle extends _$CreateArticle {
 
   EntityLabel? _buildLanguageLabel(String? language) {
     if (language != null) {
-      return EntityLabel(
-        values: [language],
-        namespace: EntityLabelNamespace.language,
-      );
+      return EntityLabel(values: [language], namespace: EntityLabelNamespace.language);
     }
     return null;
   }

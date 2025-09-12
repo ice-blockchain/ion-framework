@@ -17,20 +17,13 @@ class TagButton extends StatelessWidget {
 
   final String label;
 
-  final Object? leadingIcon;
+  final Widget? leadingIcon;
 
   @override
   Widget build(BuildContext context) {
     return Button(
       onPressed: onPressed,
-      leadingIcon: switch (leadingIcon) {
-        final Widget iconWidget => iconWidget,
-        final String iconPath => iconPath.icon(
-            color: context.theme.appColors.primaryAccent,
-            size: 16.s,
-          ),
-        _ => null,
-      },
+      leadingIcon: leadingIcon,
       leadingIconOffset: 2.0.s,
       trailingIcon: Assets.svg.iconArrowRight.icon(
         color: context.theme.appColors.primaryAccent,

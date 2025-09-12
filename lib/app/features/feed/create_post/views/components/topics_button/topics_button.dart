@@ -94,7 +94,10 @@ class TopicsButton extends HookConsumerWidget {
         label: selectedSubcategories.isEmpty
             ? context.i18n.create_post_add_topic
             : selectedSubcategories.map((topic) => topic.display).join(', '),
-        leadingIcon: Assets.svg.walletChannelPrivate,
+        leadingIcon: Assets.svg.walletChannelPrivate.icon(
+          color: context.theme.appColors.primaryAccent,
+          size: 16.s,
+        ),
       ),
     );
   }
