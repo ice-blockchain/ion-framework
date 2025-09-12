@@ -12,7 +12,8 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
-
+import 'package:ion/app/services/deep_link/deep_link_service.r.dart';
+import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'share_options_provider.r.g.dart';
@@ -22,8 +23,8 @@ class ShareOptionsData {
     required this.imageUrl,
     required this.userDisplayName,
     required this.shareAppName,
-    required this.content,
     required this.contentType,
+    this.content,
     this.articleTitle,
   });
 
@@ -31,15 +32,8 @@ class ShareOptionsData {
   final String userDisplayName;
   final String shareAppName;
   final String? content;
-  final ShareContentType contentType;
+  final SharedContentType contentType;
   final String? articleTitle;
-}
-
-enum ShareContentType {
-  post,
-  story,
-  article,
-  userProfile,
 }
 
 @riverpod
@@ -79,7 +73,7 @@ ShareOptionsData? _getShareOptionsData(
       }
 
       final plainTextContent = _convertDeltaToPlainText(content);
-      final contentType = entity.isStory ? ShareContentType.story : ShareContentType.post;
+      final contentType = mapEntityToSharedContentType(entity);
 
       return ShareOptionsData(
         imageUrl: imageUrl,
@@ -94,7 +88,7 @@ ShareOptionsData? _getShareOptionsData(
         userDisplayName: userDisplayName,
         shareAppName: shareAppName,
         content: entity.data.title,
-        contentType: ShareContentType.article,
+        contentType: SharedContentType.article,
         articleTitle: entity.data.title,
       );
     case UserMetadataEntity():
@@ -102,8 +96,7 @@ ShareOptionsData? _getShareOptionsData(
         imageUrl: userMetadata.picture,
         userDisplayName: userDisplayName,
         shareAppName: shareAppName,
-        content: null,
-        contentType: ShareContentType.userProfile,
+        contentType: SharedContentType.profile,
       );
     case _:
       return null;

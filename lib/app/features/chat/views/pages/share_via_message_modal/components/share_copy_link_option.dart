@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_options_menu_item.dart';
+import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:ion/app/services/share/social_share_service.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -15,6 +16,7 @@ class ShareCopyLinkOption extends HookConsumerWidget {
     required this.shareUrl,
     required this.iconSize,
     required this.title,
+    required this.contentType,
     this.imageUrl,
     this.description,
     super.key,
@@ -23,6 +25,7 @@ class ShareCopyLinkOption extends HookConsumerWidget {
   final String shareUrl;
   final double iconSize;
   final String title;
+  final SharedContentType contentType;
   final String? imageUrl;
   final String? description;
 
@@ -72,6 +75,7 @@ class ShareCopyLinkOption extends HookConsumerWidget {
         ref.read(socialShareServiceProvider).shareToClipboard(
               shareUrl: shareUrl,
               title: title,
+              contentType: contentType,
               imageUrl: imageUrl,
               description: description,
             );

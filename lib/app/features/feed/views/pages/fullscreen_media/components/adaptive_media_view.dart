@@ -7,6 +7,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/views/pages/fullscreen_media/components/media_content_handler.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/video/views/components/video_not_found.dart';
 
 class AdaptiveMediaView extends HookConsumerWidget {
   const AdaptiveMediaView({
@@ -27,6 +28,9 @@ class AdaptiveMediaView extends HookConsumerWidget {
     return entityAsync.maybeWhen(
       data: (entity) {
         if (entity is ModifiablePostEntity) {
+          if (entity.isDeleted) {
+            return const VideoNotFound();
+          }
           return MediaContentHandler(
             post: entity,
             eventReference: eventReference,

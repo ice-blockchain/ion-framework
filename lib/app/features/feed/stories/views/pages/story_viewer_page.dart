@@ -4,15 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_unavailable.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/components.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/video/views/hooks/use_status_bar_color.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_route_presence.dart';
@@ -32,6 +36,22 @@ class StoryViewerPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     useStatusBarColor();
+
+    if (initialStoryReference != null) {
+      final initialStoryEntity =
+          ref.watch(ionConnectEntityProvider(eventReference: initialStoryReference!)).valueOrNull;
+
+      if (initialStoryEntity == null) {
+        return const CenteredLoadingIndicator();
+      }
+
+      final isInitialStoryDeleted =
+          initialStoryEntity is ModifiablePostEntity && initialStoryEntity.isDeleted;
+
+      if (isInitialStoryDeleted) {
+        return StoryUnavailable(post: initialStoryEntity);
+      }
+    }
 
     final storyViewerState = ref.watch(
       userStoriesViewingNotifierProvider(pubkey, showOnlySelectedUser: showOnlySelectedUser),
