@@ -40,7 +40,7 @@ class AssetModelFile extends ModelFile {
         byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
       );
     } catch (error) {
-      AssetModelCopyException(name, error);
+      throw AssetModelCopyException(name, error);
     }
   }
 }

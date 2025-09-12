@@ -7,8 +7,6 @@ import 'package:ion/app/components/text_editor/utils/debounced_quill_controller_
 import 'package:ion/app/features/feed/providers/selected_entity_language_notifier.r.dart';
 import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
 
-const languageDetectionThreshold = 0.3;
-
 void useDetectLanguage(
   WidgetRef ref, {
   required QuillController? textEditorController,
