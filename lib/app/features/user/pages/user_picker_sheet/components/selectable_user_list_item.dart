@@ -3,11 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
-import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/views/components/chat_privacy_tooltip.dart';
-import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -30,17 +28,12 @@ class SelectableUserListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final masterPubkey = userMetadata.pubkey;
+    final masterPubkey = userMetadata.masterPubkey;
     final isSelected = selectedPubkeys.contains(masterPubkey);
 
     return ChatPrivacyTooltip(
       canSendMessage: canSendMessage,
       child: BadgesUserListItem(
-        leading: IonConnectAvatar(
-          masterPubkey: masterPubkey,
-          metadata: userMetadata,
-          size: ListItem.defaultAvatarSize,
-        ),
         masterPubkey: masterPubkey,
         title: Text(userMetadata.data.displayName),
         subtitle: Text(prefixUsername(username: userMetadata.data.name, context: context)),
