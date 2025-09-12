@@ -9,9 +9,6 @@ import 'package:ion/app/features/user_profile/database/tables/user_badge_info_ta
 import 'package:ion/app/features/user_profile/database/tables/user_delegation_table.d.dart';
 import 'package:ion/app/features/user_profile/database/tables/user_metadata_table.d.dart';
 import 'package:ion/app/utils/directory.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path_provider_foundation/path_provider_foundation.dart';
 
 part 'user_profile_database.d.g.dart';
 
@@ -38,7 +35,6 @@ class UserProfileDatabase extends _$UserProfileDatabase {
   /// Uses app group container for iOS extensions if appGroupId is provided
   static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
     final databaseName = 'user_profile_database_$pubkey';
-
     if (appGroupId == null) {
       return driftDatabase(name: databaseName);
     }
@@ -46,28 +42,8 @@ class UserProfileDatabase extends _$UserProfileDatabase {
     return driftDatabase(
       name: databaseName,
       native: DriftNativeOptions(
-        databasePath: () async {
-          try {
-            final sharedPath =
-                await PathProviderFoundation().getContainerPath(appGroupIdentifier: appGroupId);
-
-            final basePath = (sharedPath?.isNotEmpty ?? false)
-                ? sharedPath!
-                : (await getApplicationDocumentsDirectory()).path;
-
-            final dbFile = join(basePath, '$databaseName.sqlite');
-
-            ensureDirectoryExists(dbFile);
-
-            return dbFile;
-          } catch (e) {
-            final dbFile =
-                join((await getApplicationDocumentsDirectory()).path, '$databaseName.sqlite');
-            ensureDirectoryExists(dbFile);
-
-            return dbFile;
-          }
-        },
+        databasePath: () async =>
+            getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroupId),
         shareAcrossIsolates: true,
       ),
     );

@@ -8,13 +8,10 @@ struct IonConnectGiftWrapData {
     let relatedPubkeys: [RelatedPubkey]
 
     static func fromEventMessage(_ eventMessage: EventMessage) -> IonConnectGiftWrapData {
-        // Parse kinds from k tags
-        let kinds = eventMessage.tags.compactMap { tag -> String? in
-            if tag.count >= 2 && tag[0] == "k" {
-                return tag[1]
-            }
-            return nil
-        }
+        // Collect *all* values from "k" tags (outer and inner kinds), not just the first value.
+        let kinds: [String] = eventMessage.tags
+            .filter { $0.count >= 2 && $0[0] == "k" }
+            .flatMap { Array($0.dropFirst()) }
 
         // Parse related pubkeys from p tags
         let relatedPubkeys = eventMessage.tags.compactMap { tag -> RelatedPubkey? in

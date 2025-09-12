@@ -25,28 +25,36 @@ struct SimpleEventReference: EventReference {
 class EventReferenceFactory {
     /// Creates an EventReference from an encoded string
     static func fromEncoded(_ encoded: String) -> EventReference? {
-        // First check if it's an ImmutableEventReference (nevent)
-        if let immutableRef = ImmutableEventReference.fromEncoded(encoded) {
-            return immutableRef
+        let proto = IonConnectUriProtocolService()
+        guard let payload = proto.decode(encoded) else {
+            return nil
         }
 
-        // Then check if it's a ReplaceableEventReference (naddr or nprofile)
-        if let replaceableRef = ReplaceableEventReference.fromEncoded(encoded) {
-            return replaceableRef
+        do {
+            let identifier = try IonConnectUriIdentifierService().decodeShareableIdentifiers(payload: payload)
+            switch identifier.prefix {
+            case .nevent:
+                let ref = ImmutableEventReference.fromShareableIdentifier(identifier)
+                return ref
+            case .naddr, .nprofile:
+                let ref = ReplaceableEventReference.fromShareableIdentifier(identifier)
+                return ref
+            }
+        } catch {
+            return nil
         }
-
-        // If we can't decode it, return nil
-        return nil
     }
 }
 
 struct ReplaceableEventReference: EventReference {
     let masterPubkey: String
     let kind: Int
+    let dTag: String
 
-    init(masterPubkey: String, kind: Int) {
+    init(masterPubkey: String, kind: Int, dTag: String = "") {
         self.masterPubkey = masterPubkey
         self.kind = kind
+        self.dTag = dTag
     }
 
     static func fromEncoded(_ encoded: String) -> EventReference? {
@@ -68,24 +76,38 @@ struct ReplaceableEventReference: EventReference {
     }
 
     static func fromString(_ string: String) -> ReplaceableEventReference {
-        let components = string.split(separator: ":")
-        guard components.count >= 2,
-            let kind = Int(components[0])
-        else {
-            // Default fallback if parsing fails
-            return ReplaceableEventReference(masterPubkey: "", kind: 0)
+        let components = string.split(separator: ":", omittingEmptySubsequences: false).map(String.init)
+        guard components.count >= 2, let kind = Int(components[0]) else {
+            return ReplaceableEventReference(masterPubkey: "", kind: 0, dTag: "")
         }
-
-        return ReplaceableEventReference(
-            masterPubkey: String(components[1]),
-            kind: kind
-        )
+        let master = components[1]
+        let d = components.count >= 3 ? components[2] : ""
+        return ReplaceableEventReference(masterPubkey: master, kind: kind, dTag: d)
     }
 
     static func fromShareableIdentifier(_ identifier: ShareableIdentifier) -> ReplaceableEventReference {
-        // In a real implementation, you would extract pubkey and kind from the identifier
-        // For now, we'll just return a placeholder
-        return ReplaceableEventReference(masterPubkey: "", kind: 0)
+        switch identifier.prefix {
+        case .nprofile:
+            // nprofile -> replaceable ref for user metadata (kind of user metadata)
+            return ReplaceableEventReference(
+                masterPubkey: identifier.special,
+                kind: UserMetadataEntity.kind,
+                dTag: ""
+            )
+        case .naddr:
+            guard let author = identifier.author, let kind = identifier.kind else {
+                NSLog("ReplaceableEventReference.fromShareableIdentifier: missing author/kind for naddr")
+                return ReplaceableEventReference(masterPubkey: "", kind: 0, dTag: "")
+            }
+            return ReplaceableEventReference(
+                masterPubkey: author,
+                kind: kind,
+                dTag: identifier.special
+            )
+        default:
+            NSLog("ReplaceableEventReference.fromShareableIdentifier: unsupported prefix \(identifier.prefix)")
+            return ReplaceableEventReference(masterPubkey: "", kind: 0, dTag: "")
+        }
     }
 
     func toString() -> String {
@@ -135,9 +157,21 @@ struct ImmutableEventReference: EventReference {
     }
 
     static func fromShareableIdentifier(_ identifier: ShareableIdentifier) -> ImmutableEventReference {
-        // In a real implementation, you would extract id, pubkey, and kind from the identifier
-        // For now, we'll just return a placeholder
-        return ImmutableEventReference(id: "", pubkey: "")
+        // Expect nevent: special = eventId (hex), author = pubkey (hex), kind = optional
+        guard case .nevent = identifier.prefix else {
+            NSLog("ImmutableEventReference.fromShareableIdentifier: unsupported prefix \(identifier.prefix)")
+            return ImmutableEventReference(id: "", pubkey: "")
+        }
+        guard let author = identifier.author else {
+            NSLog("ImmutableEventReference.fromShareableIdentifier: missing author for nevent")
+            return ImmutableEventReference(id: identifier.special, pubkey: "", kind: identifier.kind ?? 0, masterPubkey: "")
+        }
+        return ImmutableEventReference(
+            id: identifier.special,
+            pubkey: author,
+            kind: identifier.kind ?? 0,
+            masterPubkey: author
+        )
     }
 
     static func fromString(_ string: String) -> ImmutableEventReference {

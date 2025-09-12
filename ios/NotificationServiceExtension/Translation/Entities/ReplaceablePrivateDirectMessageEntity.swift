@@ -12,13 +12,19 @@ struct ReplaceablePrivateDirectMessageData {
     let primaryAudio: MediaItem?
     let quotedEvent: SimpleEventReference?
 
+    // fields carrying stringified JSON of 1755/1756, coming from tags on kind 30014
+    let paymentRequested: String?
+    let paymentSent: String?
+
     init(
         content: String,
         recipient: String,
         media: [MediaItem] = [],
         relatedPubkeys: [RelatedPubkey]? = nil,
         primaryAudio: MediaItem? = nil,
-        quotedEvent: SimpleEventReference? = nil
+        quotedEvent: SimpleEventReference? = nil,
+        paymentRequested: String? = nil,
+        paymentSent: String? = nil
     ) {
         self.content = content
         self.recipient = recipient
@@ -26,6 +32,8 @@ struct ReplaceablePrivateDirectMessageData {
         self.relatedPubkeys = relatedPubkeys
         self.primaryAudio = primaryAudio
         self.quotedEvent = quotedEvent
+        self.paymentRequested = paymentRequested
+        self.paymentSent = paymentSent
     }
 
     static func fromEventMessage(_ eventMessage: EventMessage) -> ReplaceablePrivateDirectMessageData {
@@ -67,17 +75,29 @@ struct ReplaceablePrivateDirectMessageData {
             }
         }
 
+        // New: read the first value of payment-requested / payment-sent tags (stringified JSON)
+        var paymentRequestedJson: String? = nil
+        if let pr = tagsByType["payment-requested"]?.first, pr.count >= 2 {
+            paymentRequestedJson = pr[1]
+        }
+        var paymentSentJson: String? = nil
+        if let ps = tagsByType["payment-sent"]?.first, ps.count >= 2 {
+            paymentSentJson = ps[1]
+        }
+
         return ReplaceablePrivateDirectMessageData(
             content: content,
             recipient: recipient,
             media: mediaItems,
             relatedPubkeys: relatedPubkeys,
             primaryAudio: primaryAudio,
-            quotedEvent: quotedEvent
+            quotedEvent: quotedEvent,
+            paymentRequested: paymentRequestedJson,
+            paymentSent: paymentSentJson
         )
     }
 
-    /// Computed property to determine the message type based on content and media
+    /// Computed property to determine the message type based on content, media, and new payment tags
     var messageType: MessageType {
         if primaryAudio != nil {
             return .audio
@@ -85,13 +105,18 @@ struct ReplaceablePrivateDirectMessageData {
             return .profile
         } else if content.isEmoji {
             return .emoji
+        }
+        // Prefer explicit payment tags over content-based inference
+        else if paymentRequested != nil {
+            return .requestFunds
+        } else if paymentSent != nil {
+            return .moneySent
         } else if visualMedias.count > 0 {
             return .visualMedia
         } else if media.count > 0 {
             return .document
         } else if IonConnectProtocolIdentifierTypeValidator.isEventIdentifier(content),
-            let eventReference = EventReferenceFactory.fromEncoded(content) as? ImmutableEventReference
-        {
+                  let eventReference = EventReferenceFactory.fromEncoded(content) as? ImmutableEventReference {
             switch eventReference.kind {
             case FundsRequestEntity.kind:
                 return .requestFunds

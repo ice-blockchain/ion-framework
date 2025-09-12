@@ -2,12 +2,18 @@
 
 import Foundation
 
+enum IonConnectProtocolIdentifierType: String, CaseIterable {
+    case nprofile
+    case nevent
+    case naddr
+
+    var name: String { rawValue }
+}
+
 struct ShareableIdentifier {
-    let prefix: String
-    let data: [String: String]
-    
-    init(prefix: String, data: [String: String]) {
-        self.prefix = prefix
-        self.data = data
-    }
+    let prefix: IonConnectProtocolIdentifierType
+    let special: String
+    let relays: [String]
+    let author: String?
+    let kind: Int?
 }
