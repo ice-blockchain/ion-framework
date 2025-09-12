@@ -91,20 +91,16 @@ class TransactionsVisibilityCloudBackupIos implements TransactionsVisibilityClou
 
   @override
   Future<void> restoreAll() async {
+    final restoredKey = 'transactions_visibility_restored_$pubkey';
+
     try {
       // Check if already restored for this pubkey
-      final restoredKey = 'transactions_visibility_restored_$pubkey';
       final alreadyRestored = localStorage.getBool(restoredKey) ?? false;
 
       if (alreadyRestored) return;
 
       if (!Platform.isIOS) {
-        await visibilityDao.transaction(() async {
-          await visibilityDao.customStatement('UPDATE transaction_visibility_status_table SET status = 1;');
-        });
-
-        await localStorage.setBool(key: restoredKey, value: true);
-
+        await _markAllAsSeen(restoredKey: restoredKey);
         return;
       }
 
@@ -130,7 +126,20 @@ class TransactionsVisibilityCloudBackupIos implements TransactionsVisibilityClou
         error: error,
         stackTrace: stackTrace,
       );
+
+      // If something went wrong in iCloud, mark all as seen
+      await _markAllAsSeen(restoredKey: restoredKey);
     }
+  }
+
+  Future<void> _markAllAsSeen({
+    required String restoredKey,
+  }) async {
+    await visibilityDao.transaction(() async {
+      await visibilityDao.customStatement('UPDATE transaction_visibility_status_table SET status = 1;');
+    });
+
+    await localStorage.setBool(key: restoredKey, value: true);
   }
 
   String _esc(String s) => s.replaceAll("'", "''");
