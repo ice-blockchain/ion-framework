@@ -26,7 +26,6 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion_content_labeler/ion_content_labeler.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 class ArticlePreviewModal extends HookConsumerWidget {
@@ -119,9 +118,8 @@ class ArticlePreviewModal extends HookConsumerWidget {
                       }
 
                       final labeler = ref.read(ionContentLabelerProvider);
-                      final detectionResults = await labeler.detect(
+                      final detectedLanguage = await labeler.detectLanguageLabels(
                         Document.fromDelta(content).toPlainText(),
-                        model: TextLabelerModel.language,
                       );
 
                       final type = modifiedEvent != null
@@ -139,7 +137,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
                                 imageColor: imageColor,
                                 originalImageUrl: imageUrl,
                                 eventReference: modifiedEvent!,
-                                language: detectionResults.labels.firstOrNull?.name,
+                                language: detectedLanguage,
                               ),
                         );
                       } else {
@@ -152,7 +150,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
                                 mediaIds: imageIds,
                                 whoCanReply: whoCanReply,
                                 imageColor: imageColor,
-                                language: detectionResults.labels.firstOrNull?.name,
+                                language: detectedLanguage,
                               ),
                         );
                       }
