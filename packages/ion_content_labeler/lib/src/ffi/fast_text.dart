@@ -7,15 +7,6 @@ import 'package:ffi/ffi.dart';
 import 'package:ion_content_labeler/src/exceptions.dart';
 
 class FastText {
-  final int _handle;
-
-  final void Function(int handle, Pointer<Utf8> filename) _loadModel;
-  final void Function(int handle, Pointer<Utf8> input, int k, Pointer<Utf8> out, int outSize)
-      _predict;
-  final void Function(int handle) _destroyInstance;
-
-  FastText._(this._handle, this._loadModel, this._predict, this._destroyInstance);
-
   factory FastText() {
     final lib = _loadLibrary();
 
@@ -26,17 +17,28 @@ class FastText {
 
     final predict = lib.lookupFunction<
         Void Function(
-            Uint64 handle, Pointer<Utf8> input, Int32 k, Pointer<Utf8> out, Uint64 outSize),
+          Uint64 handle,
+          Pointer<Utf8> input,
+          Int32 k,
+          Pointer<Utf8> out,
+          Uint64 outSize,
+        ),
         void Function(
-            int handle, Pointer<Utf8> input, int k, Pointer<Utf8> out, int outSize)>('predict');
+          int handle,
+          Pointer<Utf8> input,
+          int k,
+          Pointer<Utf8> out,
+          int outSize,
+        )>('predict');
 
     final destroyInstance =
         lib.lookupFunction<Void Function(Uint64 handle), void Function(int handle)>(
-            'destroy_instance');
+      'destroy_instance',
+    );
 
     final handle = createInstance();
     if (handle == 0) {
-      throw CreateFastTextInstanceException();
+      throw const CreateFastTextInstanceException();
     }
 
     return FastText._(
@@ -46,6 +48,15 @@ class FastText {
       destroyInstance,
     );
   }
+
+  FastText._(this._handle, this._loadModel, this._predict, this._destroyInstance);
+
+  final int _handle;
+
+  final void Function(int handle, Pointer<Utf8> filename) _loadModel;
+  final void Function(int handle, Pointer<Utf8> input, int k, Pointer<Utf8> out, int outSize)
+      _predict;
+  final void Function(int handle) _destroyInstance;
 
   void loadModel(String modelPath) {
     final modelPathPtr = modelPath.toNativeUtf8();
@@ -68,8 +79,9 @@ class FastText {
     } catch (error) {
       throw FastTextPredictionException(error);
     } finally {
-      calloc.free(textPtr);
-      calloc.free(outPtr);
+      calloc
+        ..free(textPtr)
+        ..free(outPtr);
     }
   }
 

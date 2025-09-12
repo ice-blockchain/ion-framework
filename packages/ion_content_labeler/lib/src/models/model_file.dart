@@ -3,9 +3,9 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:ion_content_labeler/ion_content_labeler.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
 
 abstract class ModelFile {
   const ModelFile({required this.name});
@@ -36,8 +36,9 @@ class AssetModelFile extends ModelFile {
   Future<void> preload() async {
     try {
       final byteData = await rootBundle.load('packages/ion_content_labeler/assets/$name');
-      (await _file).writeAsBytes(
-          byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+      await (await _file).writeAsBytes(
+        byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
+      );
     } catch (error) {
       AssetModelCopyException(name, error);
     }
@@ -56,6 +57,6 @@ class NetworkModelFile extends ModelFile {
       throw NetworkModelDownloadException(url, response.statusCode);
     }
 
-    (await _file).writeAsBytes(response.bodyBytes);
+    await (await _file).writeAsBytes(response.bodyBytes);
   }
 }

@@ -2,14 +2,27 @@
 
 import 'dart:convert';
 
-class Label {
-  final String name;
-  final double score;
+import 'package:flutter/foundation.dart';
 
-  Label({
+@immutable
+class Label {
+  const Label({
     required this.name,
     required this.score,
   });
+
+  factory Label.fromMap(Map<String, dynamic> map) {
+    return Label(
+      name: map['name'] as String,
+      score: map['score'] as double,
+    );
+  }
+
+  factory Label.fromJson(String source) =>
+      Label.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  final String name;
+  final double score;
 
   Label copyWith({
     String? name,
@@ -28,17 +41,7 @@ class Label {
     };
   }
 
-  factory Label.fromMap(Map<String, dynamic> map) {
-    return Label(
-      name: map['name'] as String,
-      score: map['score'] as double,
-    );
-  }
-
   String toJson() => json.encode(toMap());
-
-  factory Label.fromJson(String source) =>
-      Label.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
   String toString() => 'Label(name: $name, score: $score)';

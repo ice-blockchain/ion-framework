@@ -7,16 +7,17 @@ abstract class LabelerResult {
   List<Label> get labels;
 }
 
+@immutable
 class TextLabelerResult implements LabelerResult {
+  const TextLabelerResult({
+    required this.labels,
+    required this.input,
+  });
+
   @override
   final List<Label> labels;
 
   final String input;
-
-  TextLabelerResult({
-    required this.labels,
-    required this.input,
-  });
 
   @override
   bool operator ==(covariant TextLabelerResult other) {

@@ -16,10 +16,10 @@ dependencies:
   path_provider: ^2.1.5
 
 dev_dependencies:
-  custom_lint: ^0.6.10
-  very_good_analysis: ^6.0.0
+  custom_lint: ^0.7.2
   flutter_test:
     sdk: flutter
+  very_good_analysis: ^6.0.0
 
 flutter:
   assets:
