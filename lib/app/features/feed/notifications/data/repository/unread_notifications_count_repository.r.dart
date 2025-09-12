@@ -6,6 +6,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/dao/comments_dao.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/dao/followers_dao.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/dao/likes_dao.m.dart';
+import 'package:ion/app/features/feed/notifications/data/database/dao/mentions_dao.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/dao/subscribed_users_content_dao.m.dart';
 import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -26,6 +27,7 @@ UnreadNotificationsCountRepository? unreadNotificationsCountRepository(Ref ref) 
     subscribedUsersContentDao: ref.watch(subscribedUsersContentDaoProvider),
     likesDao: ref.watch(likesDaoProvider),
     followersDao: ref.watch(followersDaoProvider),
+    mentionsDao: ref.watch(mentionsDaoProvider),
   );
 }
 
@@ -36,17 +38,20 @@ class UnreadNotificationsCountRepository {
     required SubscribedUsersContentDao subscribedUsersContentDao,
     required LikesDao likesDao,
     required FollowersDao followersDao,
+    required MentionsDao mentionsDao,
   })  : _userPreferencesService = userPreferencesService,
         _commentsDao = commentsDao,
         _subscribedUsersContentDao = subscribedUsersContentDao,
         _likesDao = likesDao,
-        _followersDao = followersDao;
+        _followersDao = followersDao,
+        _mentionsDao = mentionsDao;
 
   final UserPreferencesService _userPreferencesService;
   final CommentsDao _commentsDao;
   final SubscribedUsersContentDao _subscribedUsersContentDao;
   final LikesDao _likesDao;
   final FollowersDao _followersDao;
+  final MentionsDao _mentionsDao;
 
   Stream<int> watch() {
     final lastReadTime = _getOrInitLastReadTime();
@@ -54,8 +59,10 @@ class UnreadNotificationsCountRepository {
     final commentsStream = _commentsDao.watchUnreadCount(after: lastReadTime);
     final contentStream = _subscribedUsersContentDao.watchUnreadCount(after: lastReadTime);
     final followersStream = _followersDao.watchUnreadCount(after: lastReadTime);
-    return commentsStream
-        .combineLatestAll([likesStream, contentStream, followersStream]).map((data) => data.sum);
+    final mentionsStream = _mentionsDao.watchUnreadCount(after: lastReadTime);
+    return commentsStream.combineLatestAll(
+      [likesStream, contentStream, followersStream, mentionsStream],
+    ).map((data) => data.sum);
   }
 
   void saveLastReadTime(DateTime time) {

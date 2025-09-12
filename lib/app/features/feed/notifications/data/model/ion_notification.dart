@@ -21,6 +21,8 @@ sealed class IonNotification {
 
 enum CommentIonNotificationType { reply, quote, repost }
 
+enum MentionIonNotificationType { mention }
+
 final class CommentIonNotification extends IonNotification {
   CommentIonNotification({
     required this.type,
@@ -57,6 +59,26 @@ final class CommentIonNotification extends IonNotification {
       CommentIonNotificationType.quote => context.i18n.notifications_share(eventTypeLabel),
       CommentIonNotificationType.repost => context.i18n.notifications_repost(eventTypeLabel),
     };
+  }
+}
+
+final class MentionIonNotification extends IonNotification {
+  MentionIonNotification({
+    required this.eventReference,
+    required super.timestamp,
+  }) : super(pubkeys: [eventReference.masterPubkey]);
+
+  final EventReference eventReference;
+
+  @override
+  String get asset => Assets.svg.iconNotificationMention;
+
+  @override
+  Color getBackgroundColor(BuildContext context) => context.theme.appColors.lightBlue;
+
+  @override
+  String getDescription(BuildContext context, [String eventTypeLabel = '']) {
+    return context.i18n.notifications_mentioned;
   }
 }
 

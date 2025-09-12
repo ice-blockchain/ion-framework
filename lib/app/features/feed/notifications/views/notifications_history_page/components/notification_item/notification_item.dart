@@ -31,6 +31,7 @@ class NotificationItem extends ConsumerWidget {
       final CommentIonNotification comment => comment.eventReference,
       final LikesIonNotification likes => likes.eventReference,
       final ContentIonNotification content => content.eventReference,
+      final MentionIonNotification mention => mention.eventReference,
       _ => null,
     };
 

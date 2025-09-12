@@ -11,6 +11,7 @@ import 'package:ion/app/features/feed/notifications/data/database/tables/account
 import 'package:ion/app/features/feed/notifications/data/database/tables/comments_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/followers_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/likes_table.d.dart';
+import 'package:ion/app/features/feed/notifications/data/database/tables/mentions_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/subscribed_users_content_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
@@ -40,6 +41,7 @@ NotificationsDatabase notificationsDatabase(Ref ref) {
     SubscribedUsersContentTable,
     LikesTable,
     FollowersTable,
+    MentionsTable,
     AccountNotificationSyncStateTable,
   ],
   queries: {
@@ -115,7 +117,7 @@ class NotificationsDatabase extends _$NotificationsDatabase {
   final String pubkey;
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -179,6 +181,9 @@ class NotificationsDatabase extends _$NotificationsDatabase {
             m.createTable(schema.accountNotificationSyncStateTable),
             m.createTable(schema.subscribedUsersContentTable),
           ]);
+        },
+        from5To6: (m, schema) async {
+          await m.createTable(schema.mentionsTable);
         },
       ),
     );
