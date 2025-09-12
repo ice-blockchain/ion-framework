@@ -32,6 +32,7 @@ dependencies:
   convert: ^3.1.2
   cross_file: ^0.3.4+2
   cryptography: ^2.7.0
+  cryptography_flutter: ^2.3.2
   cupertino_icons: ^1.0.6
   custom_refresh_indicator: ^4.0.1
   device_info_plus: ^11.1.0

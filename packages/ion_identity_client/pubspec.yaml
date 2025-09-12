@@ -19,6 +19,7 @@ dependencies:
   crypto: ^3.0.5
   crypto_keys: ^0.3.0+1
   cryptography: ^2.7.0
+  cryptography_flutter: ^2.3.2
   dio: ^5.7.0
   dio_smart_retry: ^7.0.1
   flutter:
