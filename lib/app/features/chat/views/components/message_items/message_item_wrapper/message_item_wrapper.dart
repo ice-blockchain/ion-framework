@@ -269,7 +269,7 @@ ChatMessageInfoItem? getRepliedMessageListItem({
       ),
     MessageType.document => DocumentItem(
         eventMessage: repliedEventMessage,
-        contentDescription: repliedEntity.data.content,
+        contentDescription: repliedEntity.data.primaryMedia?.alt ?? '',
       ),
   };
 }

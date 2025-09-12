@@ -28,6 +28,7 @@ import 'package:ion/app/services/compressors/brotli_compressor.r.dart';
 import 'package:ion/app/services/file_cache/ion_cache_manager.dart';
 import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
 import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
+import 'package:ion/app/utils/file_type_mapper.dart';
 
 part 'ion_connect_push_data_payload.f.freezed.dart';
 part 'ion_connect_push_data_payload.f.g.dart';
@@ -254,10 +255,9 @@ class IonConnectPushDataPayload {
           }
 
           if (notificationType == PushNotificationType.chatDocumentMessage) {
-            final splitMimeType = message.data.media.values.first.mimeType.split('/');
-            if (splitMimeType.first == 'application') {
-              data['documentExt'] = splitMimeType.last;
-            }
+            final mimeType = message.data.primaryMedia?.originalMimeType;
+            final fileType = FileTypeMapper.getFileType(mimeType);
+            data['documentExt'] = fileType;
           }
         }
       }
