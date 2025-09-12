@@ -8,6 +8,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/wallets/data/database/dao/transactions_visibility_status_dao.m.dart';
 import 'package:ion/app/services/cloud_storage/cloud_storage_service.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -68,52 +69,77 @@ class TransactionsVisibilityCloudBackupIos implements TransactionsVisibilityClou
 
     if (!await cloud.isAvailable()) return;
 
-    final pairs = await visibilityDao.getSeenPairs();
+    try {
+      final pairs = await visibilityDao.getSeenPairs();
 
-    final buffer = StringBuffer();
-    for (final p in pairs) {
-      buffer.writeln(
-        "INSERT OR REPLACE INTO transaction_visibility_status_table (tx_hash, wallet_view_id, status) VALUES ('${_esc(p.txHash)}', '${_esc(p.walletViewId)}', 1);",
+      final buffer = StringBuffer();
+      for (final p in pairs) {
+        buffer.writeln(
+          "INSERT OR REPLACE INTO transaction_visibility_status_table (tx_hash, wallet_view_id, status) VALUES ('${_esc(p.txHash)}', '${_esc(p.walletViewId)}', 1);",
+        );
+      }
+
+      await cloud.uploadFile(_filePath(pubkey: pubkey), buffer.toString());
+    } catch (error, stackTrace) {
+      Logger.log(
+        'Error during backup transactions visibility',
+        error: error,
+        stackTrace: stackTrace,
       );
     }
-
-    await cloud.uploadFile(_filePath(pubkey: pubkey), buffer.toString());
   }
 
   @override
   Future<void> restoreAll() async {
-    // Check if already restored for this pubkey
     final restoredKey = 'transactions_visibility_restored_$pubkey';
-    final alreadyRestored = localStorage.getBool(restoredKey) ?? false;
 
-    if (alreadyRestored) return;
+    try {
+      // Check if already restored for this pubkey
+      final alreadyRestored = localStorage.getBool(restoredKey) ?? false;
 
-    if (!Platform.isIOS) {
+      if (alreadyRestored) return;
+
+      if (!Platform.isIOS) {
+        await _markAllAsSeen(restoredKey: restoredKey);
+        return;
+      }
+
+      if (!await cloud.isAvailable()) return;
+
+      final content = await cloud.downloadFile(_filePath(pubkey: pubkey));
+      if (content == null || content.isEmpty) return;
+
       await visibilityDao.transaction(() async {
-        await visibilityDao
-            .customStatement('UPDATE transaction_visibility_status_table SET status = 1;');
+        final statements = content.split(';');
+        for (final raw in statements) {
+          final stmt = raw.trim();
+          if (stmt.isEmpty) continue;
+          await visibilityDao.customStatement('$stmt;');
+        }
       });
 
+      // Mark as restored for this pubkey
       await localStorage.setBool(key: restoredKey, value: true);
+    } catch (error, stackTrace) {
+      Logger.log(
+        'Error during restore transactions visibility',
+        error: error,
+        stackTrace: stackTrace,
+      );
 
-      return;
+      // If something went wrong in iCloud, mark all as seen
+      await _markAllAsSeen(restoredKey: restoredKey);
     }
+  }
 
-    if (!await cloud.isAvailable()) return;
-
-    final content = await cloud.downloadFile(_filePath(pubkey: pubkey));
-    if (content == null || content.isEmpty) return;
-
+  Future<void> _markAllAsSeen({
+    required String restoredKey,
+  }) async {
     await visibilityDao.transaction(() async {
-      final statements = content.split(';');
-      for (final raw in statements) {
-        final stmt = raw.trim();
-        if (stmt.isEmpty) continue;
-        await visibilityDao.customStatement('$stmt;');
-      }
+      await visibilityDao
+          .customStatement('UPDATE transaction_visibility_status_table SET status = 1;');
     });
 
-    // Mark as restored for this pubkey
     await localStorage.setBool(key: restoredKey, value: true);
   }
 
