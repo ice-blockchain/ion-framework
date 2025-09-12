@@ -64,6 +64,7 @@ class FeedRoutes {
         TypedGoRoute<EditArticlePreviewRoute>(path: 'article-preview/edit/:modifiedEvent'),
       ],
     ),
+    TypedGoRoute<InviteFriendsRoute>(path: 'invite-friends-fullstack'),
   ];
 }
 
@@ -536,5 +537,12 @@ class EntityLanguageWarningRoute extends BaseRouteData with _$EntityLanguageWarn
       : super(
           child: const EntityLanguageWarningModal(),
           type: IceRouteType.bottomSheet,
+        );
+}
+
+class InviteFriendsRoute extends BaseRouteData with _$InviteFriendsRoute {
+  InviteFriendsRoute()
+      : super(
+          child: const InviteFriendsPage(),
         );
 }

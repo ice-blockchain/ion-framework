@@ -7,6 +7,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/entities_list/components/article_list_item.dart';
 import 'package:ion/app/features/components/entities_list/components/post_list_item.dart';
 import 'package:ion/app/features/components/entities_list/components/repost_list_item.dart';
+import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -24,7 +25,7 @@ import 'package:ion/app/typedefs/typedefs.dart';
 
 class EntitiesList extends HookWidget {
   const EntitiesList({
-    required this.refs,
+    required this.items,
     this.displayParent = false,
     this.separatorHeight,
     this.onVideoTap,
@@ -33,7 +34,7 @@ class EntitiesList extends HookWidget {
     super.key,
   });
 
-  final List<EventReference> refs;
+  final List<IonEntityListItem> items;
   final double? separatorHeight;
   final bool displayParent;
   final OnVideoTapCallback? onVideoTap;
@@ -43,18 +44,23 @@ class EntitiesList extends HookWidget {
   @override
   Widget build(BuildContext context) {
     return SliverList.builder(
-      itemCount: refs.length,
+      itemCount: items.length,
       itemBuilder: (BuildContext context, int index) {
-        final eventReference = refs[index];
-        return _EntityListItem(
-          key: ValueKey(eventReference),
-          eventReference: eventReference,
-          displayParent: displayParent,
-          separatorHeight: separatorHeight,
-          onVideoTap: onVideoTap,
-          readFromDB: readFromDB,
-          showMuted: showMuted,
-        );
+        final feedListItem = items[index];
+        return switch (feedListItem) {
+          CustomIonEntityListItem(child: final child) =>
+            _CustomListItem(separatorHeight: separatorHeight, child: child),
+          EventIonEntityListItem(eventReference: final eventReference) => _EntityListItem(
+              key: ValueKey(eventReference),
+              eventReference: eventReference,
+              displayParent: displayParent,
+              separatorHeight: separatorHeight,
+              onVideoTap: onVideoTap,
+              readFromDB: readFromDB,
+              showMuted: showMuted,
+            ),
+          IonEntityListItem() => const SizedBox.shrink()
+        };
       },
     );
   }
@@ -166,5 +172,20 @@ class _BottomSeparator extends StatelessWidget {
         child: child,
       ),
     );
+  }
+}
+
+class _CustomListItem extends ConsumerWidget {
+  _CustomListItem({
+    required this.child,
+    double? separatorHeight,
+  }) : separatorHeight = separatorHeight ?? 4.0.s;
+
+  final double separatorHeight;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _BottomSeparator(height: separatorHeight, child: child);
   }
 }

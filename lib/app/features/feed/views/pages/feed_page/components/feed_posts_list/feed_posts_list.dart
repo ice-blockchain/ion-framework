@@ -6,8 +6,11 @@ import 'package:ion/app/components/empty_list/empty_list.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/entities_list/entities_list.dart';
 import 'package:ion/app/features/components/entities_list/entities_list_skeleton.dart';
+import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
 import 'package:ion/app/features/feed/providers/feed_current_filter_provider.m.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
+import 'package:ion/app/features/feed/views/pages/feed_page/components/invite_friends_list_item.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -32,7 +35,7 @@ class FeedPostsList extends HookConsumerWidget {
     }
 
     return EntitiesList(
-      refs: entities.map((entity) => entity.toEventReference()).toList(),
+      items: _getFeedListItems(entities),
       onVideoTap: ({
         required String eventReference,
         required int initialMediaIndex,
@@ -45,6 +48,21 @@ class FeedPostsList extends HookConsumerWidget {
         ).push<void>(context);
       },
     );
+  }
+
+  List<IonEntityListItem> _getFeedListItems(Iterable<IonConnectEntity> entities) {
+    final initialListItems = entities
+        .map((entity) => IonEntityListItem.event(eventReference: entity.toEventReference()))
+        .toList();
+
+    if (initialListItems.length >= 2) {
+      initialListItems.insert(
+        2,
+        const IonEntityListItem.custom(child: InviteFriendsListItem()),
+      );
+    }
+
+    return initialListItems;
   }
 }
 
