@@ -69,7 +69,7 @@ class WalletsDatabase extends _$WalletsDatabase {
   final String? appGroupId;
 
   @override
-  int get schemaVersion => 19;
+  int get schemaVersion => 20;
 
   /// Opens a connection to the database with the given pubkey
   /// Uses app group container for iOS extensions if appGroupId is provided
@@ -235,6 +235,18 @@ class WalletsDatabase extends _$WalletsDatabase {
           );
           if (!columnExists) {
             await m.addColumn(schema.transactionsTableV2, schema.transactionsTableV2.memo);
+          }
+        },
+        from19To20: (Migrator m, Schema20 schema) async {
+          final columnExists = await isColumnExists(
+            tableName: schema.transactionsTableV2.actualTableName,
+            columnName: 'asset_contract_address',
+          );
+          if (!columnExists) {
+            await m.addColumn(
+              schema.transactionsTableV2,
+              schema.transactionsTableV2.assetContractAddress,
+            );
           }
         },
       ),
