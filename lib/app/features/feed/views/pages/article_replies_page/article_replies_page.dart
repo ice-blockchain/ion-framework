@@ -26,9 +26,6 @@ class ArticleRepliesPage extends HookConsumerWidget {
     return Scaffold(
       appBar: NavigationAppBar.screen(
         title: Text(context.i18n.common_comments),
-        actions: [
-          BookmarkButton(eventReference: eventReference),
-        ],
       ),
       body: Column(
         children: [
