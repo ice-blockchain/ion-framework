@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -30,9 +32,11 @@ class ConversationArchiveButton extends ConsumerWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
-        await ref
-            .read(toggleArchivedConversationsProvider.notifier)
-            .toggleConversations(conversationsToManage);
+        unawaited(
+          ref
+              .read(toggleArchivedConversationsProvider.notifier)
+              .toggleConversations(conversationsToManage),
+        );
 
         ref.read(selectedConversationsProvider.notifier).clear();
         ref.read(conversationsEditModeProvider.notifier).editMode = false;
