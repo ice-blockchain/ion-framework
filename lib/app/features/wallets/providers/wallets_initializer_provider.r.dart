@@ -7,6 +7,7 @@ import 'package:ion/app/features/wallets/domain/coins/coin_initializer.r.dart';
 import 'package:ion/app/features/wallets/domain/networks/networks_initializer.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/periodic_transactions_sync_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
+import 'package:ion/app/features/wallets/domain/transactions/undefined_transactions_binder.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'wallets_initializer_provider.r.g.dart';
@@ -34,12 +35,15 @@ class WalletsInitializerNotifier extends _$WalletsInitializerNotifier {
       final networksInitializer = ref.watch(networksInitializerProvider);
       final syncServiceFuture = ref.watch(syncTransactionsServiceProvider.future);
       final periodicSyncServiceFuture = ref.watch(periodicTransactionsSyncServiceProvider.future);
+      final undefinedTransactionsBinderFuture =
+          ref.watch(undefinedTransactionsBinderProvider.future);
 
-      final (_, _, syncService, periodicSyncService) = await (
+      final (_, _, syncService, periodicSyncService, undefinedTransactionsBinder) = await (
         coinInitializer.initialize(),
         networksInitializer.initialize(),
         syncServiceFuture,
         periodicSyncServiceFuture,
+        undefinedTransactionsBinderFuture,
       ).wait;
 
       unawaited(
@@ -49,6 +53,8 @@ class WalletsInitializerNotifier extends _$WalletsInitializerNotifier {
       // Start periodic syncing for broadcasted transactions
       periodicSyncService.startWatching();
       ref.onDispose(periodicSyncService.stopWatching);
+
+      undefinedTransactionsBinder.initialize();
 
       // Only complete if not already completed
       if (!_completer!.isCompleted) {

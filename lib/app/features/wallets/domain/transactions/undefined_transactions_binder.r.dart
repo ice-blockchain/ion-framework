@@ -26,8 +26,6 @@ Future<UndefinedTransactionsBinder> undefinedTransactionsBinder(Ref ref) async {
     await ref.watch(transactionsRepositoryProvider.future),
   );
 
-  await binder.initialize();
-
   ref.onDispose(binder.dispose);
 
   return binder;
@@ -46,12 +44,10 @@ class UndefinedTransactionsBinder {
 
   StreamSubscription<_WalletViewsWithUndefinedTransactions>? _subscription;
 
-  // Session cache for contract address mapping
   Map<String, String>? _cachedContractMapping;
   List<WalletViewData>? _cachedWalletViews;
 
-  Future<void> initialize() async {
-    // Create combined stream of wallet views and undefined transactions
+  void initialize() {
     final walletViewsStream = _walletViewsService.walletViews;
     final undefinedTransactionsStream = _transactionsRepository.watchUndefinedTokenTransactions();
 
@@ -75,45 +71,33 @@ class UndefinedTransactionsBinder {
       return;
     }
 
-    try {
-      Logger.log(
-        'UndefinedTransactionsBinder: Processing ${data.undefinedTransactions.length} '
-        'undefined transactions with ${data.walletViews.length} wallet views',
-      );
+    // Build contract address to coin ID mapping
+    final contractToCoinMapping = _buildContractToCoinMapping(data.walletViews);
 
-      // Build contract address to coin ID mapping
-      final contractToCoinMapping = _buildContractToCoinMapping(data.walletViews);
-
-      if (contractToCoinMapping.isEmpty) {
-        Logger.log('UndefinedTransactionsBinder: No coins with contract addresses found');
-        return;
-      }
-
-      // Find transactions that can be bound to coins
-      final bindableTransactions = _findBindableTransactions(
-        data.undefinedTransactions,
-        contractToCoinMapping,
-      );
-
-      if (bindableTransactions.isEmpty) {
-        Logger.log('UndefinedTransactionsBinder: No bindable transactions found');
-        return;
-      }
-
-      // Update transactions with coin IDs
-      await _updateTransactionsWithCoinIds(bindableTransactions);
-
-      Logger.log(
-        'UndefinedTransactionsBinder: Successfully bound ${bindableTransactions.length} transactions',
-      );
-    } catch (error) {
-      Logger.error(
-        'UndefinedTransactionsBinder: Failed to process binding: $error',
-      );
+    if (contractToCoinMapping.isEmpty) {
+      Logger.info('UndefinedTransactionsBinder: No coins with contract addresses found');
+      return;
     }
+
+    // Find transactions that can be bound to coins
+    final bindableTransactions = _findBindableTransactions(
+      data.undefinedTransactions,
+      contractToCoinMapping,
+    );
+
+    if (bindableTransactions.isEmpty) {
+      Logger.info('UndefinedTransactionsBinder: No bindable transactions found');
+      return;
+    }
+
+    // Update transactions with coin IDs
+    await _updateTransactionsWithCoinIds(bindableTransactions);
+
+    Logger.info(
+      'UndefinedTransactionsBinder: Successfully bound ${bindableTransactions.length} transactions',
+    );
   }
 
-  /// Builds a mapping from contract address + network ID to coin ID
   Map<String, String> _buildContractToCoinMapping(List<WalletViewData> walletViews) {
     // Check if we have a cached mapping for the same wallet views
     if (_cachedContractMapping != null &&
@@ -122,7 +106,6 @@ class UndefinedTransactionsBinder {
       return _cachedContractMapping!;
     }
 
-    // Build new mapping
     final mapping = <String, String>{};
 
     for (final walletView in walletViews) {
@@ -134,19 +117,17 @@ class UndefinedTransactionsBinder {
       }
     }
 
-    // Cache the result
     _cachedContractMapping = mapping;
     _cachedWalletViews = walletViews;
 
     return mapping;
   }
 
-  /// Finds undefined transactions that can be bound to coins based on contract addresses
-  List<TransactionBinding> _findBindableTransactions(
+  List<_TransactionBinding> _findBindableTransactions(
     List<TransactionData> undefinedTransactions,
     Map<String, String> contractToCoinMapping,
   ) {
-    final bindableTransactions = <TransactionBinding>[];
+    final bindableTransactions = <_TransactionBinding>[];
 
     for (final transaction in undefinedTransactions) {
       final contractAddress = transaction.cryptoAsset.maybeWhen(
@@ -160,7 +141,7 @@ class UndefinedTransactionsBinder {
 
         if (coinId != null) {
           bindableTransactions.add(
-            TransactionBinding(
+            _TransactionBinding(
               txHash: transaction.txHash,
               walletViewId: transaction.walletViewId,
               coinId: coinId,
@@ -174,24 +155,18 @@ class UndefinedTransactionsBinder {
   }
 
   /// Updates transactions in the database with their corresponding coin IDs
-  Future<void> _updateTransactionsWithCoinIds(List<TransactionBinding> bindings) async {
+  Future<void> _updateTransactionsWithCoinIds(List<_TransactionBinding> bindings) async {
     for (final binding in bindings) {
-      try {
-        await _transactionsRepository.updateTransaction(
-          txHash: binding.txHash,
-          walletViewId: binding.walletViewId,
-          coinId: binding.coinId,
-        );
+      await _transactionsRepository.updateTransaction(
+        txHash: binding.txHash,
+        walletViewId: binding.walletViewId,
+        coinId: binding.coinId,
+      );
 
-        Logger.log(
-          'UndefinedTransactionsBinder: Successfully bound transaction ${binding.txHash} '
-          'to coin ${binding.coinId}',
-        );
-      } catch (error) {
-        Logger.error(
-          'UndefinedTransactionsBinder: Failed to update transaction ${binding.txHash}: $error',
-        );
-      }
+      Logger.log(
+        'UndefinedTransactionsBinder: Successfully bound transaction ${binding.txHash} '
+        'to coin ${binding.coinId}',
+      );
     }
   }
 
@@ -204,13 +179,11 @@ class UndefinedTransactionsBinder {
     _subscription?.cancel();
     _cachedContractMapping = null;
     _cachedWalletViews = null;
-    Logger.log('UndefinedTransactionsBinder: Disposed');
   }
 }
 
-/// Represents a transaction that can be bound to a specific coin
-class TransactionBinding {
-  const TransactionBinding({
+class _TransactionBinding {
+  const _TransactionBinding({
     required this.txHash,
     required this.walletViewId,
     required this.coinId,
