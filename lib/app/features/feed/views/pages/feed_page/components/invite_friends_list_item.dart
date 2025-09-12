@@ -16,7 +16,7 @@ class InviteFriendsListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onTap(context),
+      onTap: () => _onTap(context),
       child: CustomFeedListItem(
         header: ListItem.dapp(
           leading: Button.icon(
@@ -25,9 +25,8 @@ class InviteFriendsListItem extends StatelessWidget {
             borderRadius: BorderRadius.all(
               Radius.circular(10.0.s),
             ),
-            borderWidth: 0.83.s,
             size: 36.0.s,
-            onPressed: () => onTap(context),
+            onPressed: () => _onTap(context),
             icon: Assets.svg.iconButtonInvite.icon(
               size: 20.0.s,
               color: context.theme.appColors.primaryText,
@@ -54,7 +53,7 @@ class InviteFriendsListItem extends StatelessWidget {
                 color: context.theme.appColors.onPrimaryAccent,
               ),
             ),
-            onPressed: () => onTap(context),
+            onPressed: () => _onTap(context),
           ),
         ),
         content: ClipRRect(
@@ -68,7 +67,7 @@ class InviteFriendsListItem extends StatelessWidget {
     );
   }
 
-  void onTap(BuildContext context) {
+  void _onTap(BuildContext context) {
     InviteFriendsRoute().push<void>(context);
   }
 }

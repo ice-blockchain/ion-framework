@@ -38,7 +38,6 @@ class Button extends StatelessWidget {
     this.tintColor,
     this.borderColor,
     this.borderRadius,
-    this.borderWidth,
     this.backgroundColor,
     this.minimumSize,
     this.labelFlex = 1,
@@ -56,7 +55,6 @@ class Button extends StatelessWidget {
     Color? tintColor,
     Color? borderColor,
     BorderRadius? borderRadius,
-    double? borderWidth,
     Color? backgroundColor,
     double size,
     bool disabled,
@@ -119,7 +117,6 @@ class Button extends StatelessWidget {
   final int labelFlex;
   final Color? borderColor;
   final BorderRadius? borderRadius;
-  final double? borderWidth;
   final Color? backgroundColor;
   final Size? minimumSize;
   final Color? tintColor;
@@ -145,7 +142,6 @@ class Button extends StatelessWidget {
           backgroundColor: _getBackgroundColor(context, type),
           side: BorderSide(
             color: _getBorderColor(context, type),
-            width: borderWidth ?? 1.0.s,
           ),
         ),
       ),

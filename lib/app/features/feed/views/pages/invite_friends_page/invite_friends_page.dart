@@ -6,12 +6,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/card/info_card.dart';
 import 'package:ion/app/components/tooltip/copied_tooltip.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/user/pages/profile_page/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
+import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -19,35 +18,23 @@ import 'package:share_plus/share_plus.dart';
 
 class InviteFriendsPage extends HookConsumerWidget {
   const InviteFriendsPage({
-    this.showBackButton = true,
     super.key,
   });
-
-  final bool showBackButton;
-
-  double get paddingTop => 60.0.s;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
-    if (!showBackButton) {
-      useScrollTopOnTabPress(context, scrollController: scrollController);
-    }
-    final (:opacity) = useAnimatedOpacityOnScroll(scrollController, topOffset: paddingTop);
-
-    final backgroundColor = context.theme.appColors.secondaryBackground;
+    final (:opacity) = useAnimatedOpacityOnScroll(scrollController, topOffset: 60.0.s);
 
     final backButtonIcon = Assets.svg.iconProfileBack.icon(
       size: NavigationBackButton.iconSize,
       flipForRtl: true,
     );
-    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-    final userMetadataValue =
-        currentPubkey != null ? ref.watch(userMetadataProvider(currentPubkey)).valueOrNull : null;
+    final userMetadataValue = ref.watch(currentUserMetadataProvider).valueOrNull;
     final referralCode = userMetadataValue?.data.name;
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: context.theme.appColors.secondaryBackground,
       body: SafeArea(
         child: Stack(
           alignment: Alignment.topCenter,
@@ -62,27 +49,13 @@ class InviteFriendsPage extends HookConsumerWidget {
                       constraints: BoxConstraints(
                         maxWidth: 270.0.s,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SizedBox(height: 26.0.s),
-                          Assets.svg.iconFeedProfileInvite.icon(size: 80.0.s),
-                          SizedBox(height: 16.0.s),
-                          Text(
-                            context.i18n.invite_friends_page_title,
-                            style: context.theme.appTextThemes.title,
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: 10.0.s),
-                          Text(
-                            context.i18n.invite_friends_page_subtitle,
-                            style: context.theme.appTextThemes.body2.copyWith(
-                              color: context.theme.appColors.secondaryText,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: 20.0.s),
-                        ],
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.only(top: 26.0.s, bottom: 20.0.s),
+                        child: InfoCard(
+                          iconAsset: Assets.svg.iconFeedProfileInvite,
+                          title: context.i18n.invite_friends_page_title,
+                          description: context.i18n.invite_friends_page_subtitle,
+                        ),
                       ),
                     ),
                   ),
@@ -131,7 +104,6 @@ class InviteFriendsPage extends HookConsumerWidget {
             Opacity(
               opacity: opacity,
               child: NavigationAppBar(
-                showBackButton: showBackButton,
                 useScreenTopOffset: true,
                 backButtonIcon: backButtonIcon,
                 scrollController: scrollController,
@@ -144,14 +116,13 @@ class InviteFriendsPage extends HookConsumerWidget {
                 ),
               ),
             ),
-            if (showBackButton)
-              Align(
-                alignment: AlignmentDirectional.topStart,
-                child: NavigationBackButton(
-                  context.pop,
-                  icon: backButtonIcon,
-                ),
+            Align(
+              alignment: AlignmentDirectional.topStart,
+              child: NavigationBackButton(
+                context.pop,
+                icon: backButtonIcon,
               ),
+            ),
             PositionedDirectional(
               start: 0,
               end: 0,
@@ -264,7 +235,7 @@ class _EarningsCard extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  '0.00 ICE',
+                  '0.00 ION',
                   style: context.theme.appTextThemes.headline2.copyWith(
                     color: context.theme.appColors.primaryText,
                   ),

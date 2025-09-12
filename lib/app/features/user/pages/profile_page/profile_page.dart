@@ -20,10 +20,10 @@ import 'package:ion/app/features/user/pages/profile_page/components/header/profi
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_details.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/tab_entities_list.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/tabs_header/tabs_header.dart';
-import 'package:ion/app/features/user/pages/profile_page/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/features/user/pages/profile_page/profile_skeleton.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
+import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
