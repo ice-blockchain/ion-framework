@@ -1,30 +1,27 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/back_hardware_button_interceptor/back_hardware_button_interceptor.dart';
 import 'package:ion/app/components/text_editor/text_editor.dart';
-import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/create_post_app_bar.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/create_post_bottom_panel.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/create_post_content.dart';
+import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_media_files.dart';
+import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_media_links.dart';
+import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_video.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_post_quill_controller.dart';
-import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
+import 'package:ion/app/features/feed/hooks/use_detect_language.dart';
+import 'package:ion/app/features/feed/hooks/use_preselect_language.dart';
+import 'package:ion/app/features/feed/hooks/use_preselect_topics.dart';
 import 'package:ion/app/features/feed/views/pages/cancel_creation_modal/cancel_creation_modal.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
-import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
-import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 class PostFormModal extends HookConsumerWidget {
@@ -170,50 +167,16 @@ class PostFormModal extends HookConsumerWidget {
     final scrollController = useScrollController();
     final textEditorKey = useMemoized(TextEditorKeys.createPost);
 
-    final mediaFiles = useMemoized(
-      () {
-        if (attachedMedia != null) {
-          final decodedList = jsonDecode(attachedMedia!) as List<dynamic>;
-          return decodedList.map((item) {
-            return MediaFile.fromJson(item as Map<String, dynamic>);
-          }).toList();
-        }
-        return <MediaFile>[];
-      },
-      [attachedMedia],
-    );
+    final attachedVideoNotifier =
+        useAttachedVideo(videoPath: videoPath, mimeType: mimeType, videoThumbPath: videoThumbPath);
+    final attachedMediaFilesNotifier =
+        useAttachedMediaFilesNotifier(ref, attachedMedia: attachedMedia);
+    final attachedMediaLinksNotifier =
+        useAttachedMediaLinksNotifier(ref, eventReference: modifiedEvent);
 
-    final attachedMediaNotifier = useState<List<MediaFile>>(mediaFiles);
-    final attachedVideoNotifier = useState<MediaFile?>(
-      videoPath != null && mimeType != null
-          ? MediaFile(
-              path: videoPath!,
-              mimeType: mimeType,
-              thumb: videoThumbPath,
-            )
-          : null,
-    );
-    final attachedMediaLinksNotifier = useState<Map<String, MediaAttachment>>({});
-
-    if (modifiedEvent != null) {
-      useEffect(
-        () {
-          final modifiedEntity =
-              ref.read(ionConnectEntityProvider(eventReference: modifiedEvent!)).valueOrNull;
-
-          if (modifiedEntity is! ModifiablePostEntity) {
-            throw UnsupportedEventReference(modifiedEvent);
-          }
-          attachedMediaLinksNotifier.value = modifiedEntity.data.media;
-          final topics = RelatedHashtag.extractTopics(modifiedEntity.data.relatedHashtags);
-          WidgetsBinding.instance.addPostFrameCallback(
-            (_) => ref.read(selectedInterestsNotifierProvider.notifier).interests = topics,
-          );
-          return null;
-        },
-        [],
-      );
-    }
+    usePreselectTopics(ref, eventReference: modifiedEvent);
+    usePreselectLanguage(ref, eventReference: modifiedEvent);
+    useDetectLanguage(ref, textEditorController: textEditorController);
 
     if (textEditorController == null) {
       return const SizedBox.shrink();
@@ -247,7 +210,7 @@ class PostFormModal extends HookConsumerWidget {
                   parentEvent: parentEvent,
                   textEditorController: textEditorController,
                   createOption: createOption,
-                  attachedMediaNotifier: attachedMediaNotifier,
+                  attachedMediaNotifier: attachedMediaFilesNotifier,
                   attachedMediaLinksNotifier: attachedMediaLinksNotifier,
                   quotedEvent: quotedEvent,
                   textEditorKey: textEditorKey,
@@ -258,7 +221,7 @@ class PostFormModal extends HookConsumerWidget {
                 parentEvent: parentEvent,
                 quotedEvent: quotedEvent,
                 modifiedEvent: modifiedEvent,
-                attachedMediaNotifier: attachedMediaNotifier,
+                attachedMediaNotifier: attachedMediaFilesNotifier,
                 attachedVideoNotifier: attachedVideoNotifier,
                 attachedMediaLinksNotifier: attachedMediaLinksNotifier,
                 createOption: createOption,

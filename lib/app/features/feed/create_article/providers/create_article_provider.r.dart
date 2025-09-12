@@ -20,9 +20,9 @@ import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.d
 import 'package:ion/app/features/feed/providers/media_upload_provider.r.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
-import 'package:ion/app/features/ion_connect/model/color_label.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_settings.dart';
 import 'package:ion/app/features/ion_connect/model/entity_editing_ended_at.f.dart';
+import 'package:ion/app/features/ion_connect/model/entity_label.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
@@ -72,6 +72,7 @@ class CreateArticle extends _$CreateArticle {
     DateTime? publishedAt,
     List<String>? mediaIds,
     String? imageColor,
+    String? language,
   }) async {
     state = const AsyncValue.loading();
 
@@ -122,6 +123,7 @@ class CreateArticle extends _$CreateArticle {
         imageColor: imageColor,
         richText: richText,
         editingEndedAt: editingEndedAt,
+        language: _buildLanguageLabel(language),
       );
 
       final article = await _sendArticleEntities(
@@ -190,6 +192,7 @@ class CreateArticle extends _$CreateArticle {
     String? originalImageUrl,
     Map<String, MediaAttachment> mediaAttachments = const {},
     String? imageColor,
+    String? language,
   }) async {
     state = const AsyncValue.loading();
 
@@ -274,8 +277,11 @@ class CreateArticle extends _$CreateArticle {
         relatedHashtags: relatedHashtags,
         relatedPubkeys: mentions,
         settings: EntityDataWithSettings.build(whoCanReply: whoCanReply),
-        colorLabel: imageColor != null ? ColorLabel(value: imageColor) : null,
+        colorLabel: imageColor != null
+            ? EntityLabel(values: [imageColor], namespace: EntityLabelNamespace.color)
+            : null,
         richText: richText,
+        language: _buildLanguageLabel(language),
       );
 
       if (unusedMediaFileHashes.isNotEmpty) {
@@ -461,5 +467,12 @@ class CreateArticle extends _$CreateArticle {
           .read(feedUserInterestsNotifierProvider.notifier)
           .updateInterests(FeedInterestInteraction.createArticle, interactionCategories);
     }
+  }
+
+  EntityLabel? _buildLanguageLabel(String? language) {
+    if (language != null) {
+      return EntityLabel(values: [language], namespace: EntityLabelNamespace.language);
+    }
+    return null;
   }
 }

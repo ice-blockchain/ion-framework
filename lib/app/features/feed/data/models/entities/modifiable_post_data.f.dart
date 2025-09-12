@@ -15,6 +15,7 @@ import 'package:ion/app/features/ion_connect/model/entity_data_with_related_pubk
 import 'package:ion/app/features/ion_connect/model/entity_data_with_settings.dart';
 import 'package:ion/app/features/ion_connect/model/entity_editing_ended_at.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_expiration.f.dart';
+import 'package:ion/app/features/ion_connect/model/entity_label.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_published_at.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
@@ -106,6 +107,7 @@ class ModifiablePostData
     RichText? richText,
     PollData? poll,
     SourcePostReference? sourcePostReference,
+    EntityLabel? language,
   }) = _ModifiablePostData;
 
   factory ModifiablePostData.fromEventMessage(EventMessage eventMessage) {
@@ -136,6 +138,7 @@ class ModifiablePostData
           tags[RichText.tagName] != null ? RichText.fromTag(tags[RichText.tagName]!.first) : null,
       poll: tags['poll']?.firstOrNull != null ? PollData.fromTag(tags['poll']!.first) : null,
       sourcePostReference: SourcePostReference.fromTags(eventMessage.tags),
+      language: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.language),
     );
   }
 
@@ -166,6 +169,7 @@ class ModifiablePostData
       if (richText != null) richText!.toTag(),
       if (poll != null) poll!.toTag(),
       if (sourcePostReference != null) sourcePostReference!.toTag(),
+      if (language != null) ...language!.toTags(),
     ];
 
     return EventMessage.fromData(

@@ -117,6 +117,7 @@
   "common_error": "Fehler",
   "common_chat": "Chat",
   "common_deleted_account": "Gelöschtes Konto",
+  "common_language": "Sprache",
   "auth_secured_by": "Geschützt durch",
   "auth_link_new_device_title": "Neues Gerät verknüpfen",
   "auth_link_new_device_description": "Sie greifen von einem neuen Gerät auf Ihr Konto zu. Bitte verknüpfen Sie es, um fortzufahren.",

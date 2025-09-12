@@ -20,12 +20,14 @@ import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.d
 import 'package:ion/app/features/feed/reposts/providers/optimistic/post_repost_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
+import 'package:ion/app/features/ion_connect/model/entity_label.f.dart';
 import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/optimistic_ui/features/language/language_sync_strategy_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/relevant_user_relays_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/functions.dart';
@@ -109,10 +111,10 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   Stream<IonConnectEntity> _fetchUnseenFollowing({required int limit}) async* {
     try {
-      Logger.info('$_logTag Requesting [$limit] unseen following events');
-
       var fetched = 0;
       final distribution = _getFeedFollowingDistribution(limit: limit);
+
+      Logger.info('$_logTag Requesting [$distribution] unseen following events');
 
       await for (final entity in _fetchFollowing(limit: distribution)) {
         yield entity;
@@ -131,10 +133,10 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   Stream<IonConnectEntity> _fetchUnseenGlobalAccounts({required int limit}) async* {
     try {
-      Logger.info('$_logTag Requesting [$limit] unseen global accounts events');
-
       var fetched = 0;
       final distribution = _getFeedGlobalAccountsDistribution(limit: limit);
+
+      Logger.info('$_logTag Requesting [$distribution] unseen global accounts events');
 
       await for (final entity in _fetchFollowing(limit: distribution, global: true)) {
         yield entity;
@@ -558,7 +560,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     final ionConnectNotifier = ref.read(ionConnectNotifierProvider.notifier);
     final feedConfig = await ref.read(feedConfigProvider.future);
 
-    final FeedEntitiesDataSource(:dataSource, :responseFilter) = _getDataSource(
+    final FeedEntitiesDataSource(:dataSource, :responseFilter) = await _getDataSource(
       relayUrl: relayUrl,
       modifier: modifier,
       interest: interest,
@@ -593,18 +595,19 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     return (responseFilter(entities).firstOrNull, missingEntities);
   }
 
-  FeedEntitiesDataSource _getDataSource({
+  Future<FeedEntitiesDataSource> _getDataSource({
     required String relayUrl,
     required FeedModifier modifier,
     required String interest,
     required FeedConfig feedConfig,
-  }) {
+  }) async {
     final currentPubkey = ref.read(currentPubkeySelectorProvider);
 
     if (currentPubkey == null) {
       throw const CurrentUserNotFoundException();
     }
 
+    final langTags = await _buildLangFilterTags();
     final distributionFilter = modifier.filter(interest: interest);
     final globalFilter = feedModifier?.filter(interest: interest);
 
@@ -612,34 +615,44 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     // This is for the "Trending Videos" case, where we have to apply the global
     // "trending" modifier even to the distribution "explore" modifier.
     final modifierSearch = (globalFilter ?? distributionFilter).search;
-    final modifierTags = distributionFilter.tags;
+    final extraTags = {...distributionFilter.tags, ...langTags};
 
     return switch (feedType) {
       FeedType.post => buildPostsDataSource(
           actionSource: ActionSource.relayUrl(relayUrl),
           currentPubkey: currentPubkey,
           searchExtensions: modifierSearch,
-          tags: modifierTags,
+          tags: extraTags,
         ),
       FeedType.article => buildArticlesDataSource(
           actionSource: ActionSource.relayUrl(relayUrl),
           currentPubkey: currentPubkey,
           searchExtensions: modifierSearch,
-          tags: modifierTags,
+          tags: extraTags,
         ),
       FeedType.video => buildVideosDataSource(
           actionSource: ActionSource.relayUrl(relayUrl),
           currentPubkey: currentPubkey,
           searchExtensions: modifierSearch,
-          tags: modifierTags,
+          tags: extraTags,
         ),
       FeedType.story => buildStoriesDataSource(
           actionSource: ActionSource.relayUrl(relayUrl),
           currentPubkey: currentPubkey,
           searchExtensions: [StoriesCountSearchExtension(), ...modifierSearch],
-          tags: modifierTags,
+          tags: extraTags,
         ),
     };
+  }
+
+  Future<Map<String, List<List<String>>>> _buildLangFilterTags() async {
+    final contentLanguages = await ref.read(contentLanguageWatchProvider.future);
+    if (contentLanguages == null || contentLanguages.hashtags.isEmpty) {
+      return {};
+    }
+    final label =
+        EntityLabel(values: contentLanguages.hashtags, namespace: EntityLabelNamespace.language);
+    return label.toFilterTags();
   }
 
   void _ensureEmptyState() {

@@ -12,7 +12,6 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/wallets/model/entities/tags/asset_address_tag.f.dart';
 import 'package:ion/app/features/wallets/model/entities/tags/asset_class_tag.f.dart';
-import 'package:ion/app/features/wallets/model/entities/tags/label_tag.f.dart';
 import 'package:ion/app/features/wallets/model/entities/tags/network_tag.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 
@@ -80,7 +79,6 @@ class FundsRequestData with _$FundsRequestData {
       networkId: tags[NetworkTag.tagName]!.map(NetworkTag.fromTag).first.value,
       assetClass: tags[AssetClassTag.tagName]!.map(AssetClassTag.fromTag).first.value,
       assetAddress: tags[AssetAddressTag.tagName]!.map(AssetAddressTag.fromTag).first.value,
-      walletAddress: tags[LabelTag.tagName]?.map(LabelTag.fromTag).first.value,
       request: jsonEncode(eventMessage.toJson()),
     );
   }

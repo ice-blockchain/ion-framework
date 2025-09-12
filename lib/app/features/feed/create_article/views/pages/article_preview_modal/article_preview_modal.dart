@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
@@ -14,15 +17,14 @@ import 'package:ion/app/features/feed/create_article/providers/draft_article_pro
 import 'package:ion/app/features/feed/create_article/views/pages/article_preview_modal/components/article_preview.dart';
 import 'package:ion/app/features/feed/create_article/views/pages/article_preview_modal/components/select_article_topics_item.dart';
 import 'package:ion/app/features/feed/create_article/views/pages/article_preview_modal/components/select_article_who_can_reply_item.dart';
-import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/hooks/use_preselect_topics.dart';
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
 import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -67,20 +69,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
     final selectedTopics = ref.watch(selectedInterestsNotifierProvider);
     final shownTooltip = useRef(false);
 
-    useOnInit(
-      () {
-        if (modifiedEvent == null) return;
-        final modifiableEntity =
-            ref.read(ionConnectEntityProvider(eventReference: modifiedEvent!)).valueOrNull;
-        if (modifiableEntity is! ArticleEntity) return;
-
-        WidgetsBinding.instance.addPostFrameCallback(
-          (_) => ref.read(selectedInterestsNotifierProvider.notifier).interests =
-              modifiableEntity.data.topics.toSet(),
-        );
-      },
-      [modifiedEvent],
-    );
+    usePreselectTopics(ref, eventReference: modifiedEvent);
 
     return SheetContent(
       body: ShowCaseWidget(
@@ -121,38 +110,49 @@ class ArticlePreviewModal extends HookConsumerWidget {
                     leadingIcon: Assets.svg.iconFeedArticles.icon(
                       color: context.theme.appColors.onPrimaryAccent,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (!shownTooltip.value && selectedTopics.isEmpty) {
                         shownTooltip.value = true;
                         ref.read(topicTooltipVisibilityNotifierProvider.notifier).show();
                         return;
                       }
 
+                      final labeler = ref.read(ionContentLabelerProvider);
+                      final detectedLanguage = await labeler.detectLanguageLabels(
+                        Document.fromDelta(content).toPlainText(),
+                      );
+
                       final type = modifiedEvent != null
                           ? CreateArticleOption.modify
                           : CreateArticleOption.plain;
 
                       if (modifiedEvent != null) {
-                        ref.read(createArticleProvider(type).notifier).modify(
-                              title: title,
-                              content: content,
-                              topics: selectedTopics,
-                              coverImagePath: image?.path,
-                              whoCanReply: whoCanReply,
-                              imageColor: imageColor,
-                              originalImageUrl: imageUrl,
-                              eventReference: modifiedEvent!,
-                            );
+                        unawaited(
+                          ref.read(createArticleProvider(type).notifier).modify(
+                                title: title,
+                                content: content,
+                                topics: selectedTopics,
+                                coverImagePath: image?.path,
+                                whoCanReply: whoCanReply,
+                                imageColor: imageColor,
+                                originalImageUrl: imageUrl,
+                                eventReference: modifiedEvent!,
+                                language: detectedLanguage,
+                              ),
+                        );
                       } else {
-                        ref.read(createArticleProvider(type).notifier).create(
-                              title: title,
-                              content: content,
-                              topics: selectedTopics,
-                              coverImagePath: image?.path,
-                              mediaIds: imageIds,
-                              whoCanReply: whoCanReply,
-                              imageColor: imageColor,
-                            );
+                        unawaited(
+                          ref.read(createArticleProvider(type).notifier).create(
+                                title: title,
+                                content: content,
+                                topics: selectedTopics,
+                                coverImagePath: image?.path,
+                                mediaIds: imageIds,
+                                whoCanReply: whoCanReply,
+                                imageColor: imageColor,
+                                language: detectedLanguage,
+                              ),
+                        );
                       }
 
                       if (!ref.read(createArticleProvider(type)).hasError && ref.context.mounted) {

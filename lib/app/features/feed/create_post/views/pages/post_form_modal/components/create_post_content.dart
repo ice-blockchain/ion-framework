@@ -6,12 +6,14 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
+import 'package:ion/app/components/separated/separated_row.dart';
 import 'package:ion/app/components/text_editor/text_editor.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
+import 'package:ion/app/features/feed/create_post/views/components/language_button/language_button.dart';
 import 'package:ion/app/features/feed/create_post/views/components/reply_input_field/attached_media_preview.dart';
-import 'package:ion/app/features/feed/create_post/views/components/topics/topics_button.dart';
+import 'package:ion/app/features/feed/create_post/views/components/topics_button/topics_button.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/current_user_avatar.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/parent_entity.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/quoted_entity.dart';
@@ -58,12 +60,17 @@ class CreatePostContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _VideoPreviewSection(attachedVideoNotifier: attachedVideoNotifier),
-            _TopicsSection(
-              attachedMediaNotifier: attachedMediaNotifier,
-              attachedVideoNotifier: attachedVideoNotifier,
-              attachedMediaLinksNotifier: attachedMediaLinksNotifier,
-              parentEvent: parentEvent,
-              quotedEvent: quotedEvent,
+            _HeaderControls(
+              children: [
+                _TopicsButton(
+                  attachedMediaNotifier: attachedMediaNotifier,
+                  attachedVideoNotifier: attachedVideoNotifier,
+                  attachedMediaLinksNotifier: attachedMediaLinksNotifier,
+                  parentEvent: parentEvent,
+                  quotedEvent: quotedEvent,
+                ),
+                const LanguageButton(),
+              ],
             ),
             if (parentEvent != null) _ParentEntitySection(eventReference: parentEvent!),
             _TextInputSection(
@@ -267,8 +274,30 @@ class _QuotedEntitySection extends StatelessWidget {
   }
 }
 
-class _TopicsSection extends HookConsumerWidget {
-  const _TopicsSection({
+class _HeaderControls extends StatelessWidget {
+  const _HeaderControls({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: ScreenSideOffset.small(
+        child: Padding(
+          padding: EdgeInsetsDirectional.only(bottom: 8.s),
+          child: SeparatedRow(
+            separator: SizedBox(width: 8.s),
+            children: children,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TopicsButton extends HookConsumerWidget {
+  const _TopicsButton({
     required this.attachedMediaNotifier,
     required this.attachedVideoNotifier,
     required this.attachedMediaLinksNotifier,
@@ -302,13 +331,6 @@ class _TopicsSection extends HookConsumerWidget {
     );
     final isVideo = attachedVideoNotifier.value != null || isAnyMediaVideo || isAnyMediaLinkVideo;
 
-    return ScreenSideOffset.small(
-      child: Padding(
-        padding: EdgeInsetsDirectional.only(bottom: 8.s),
-        child: TopicsButton(
-          type: isVideo ? FeedType.video : FeedType.post,
-        ),
-      ),
-    );
+    return TopicsButton(type: isVideo ? FeedType.video : FeedType.post);
   }
 }

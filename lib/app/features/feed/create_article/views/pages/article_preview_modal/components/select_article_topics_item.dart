@@ -7,7 +7,7 @@ import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/showcase/showcase_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/feed/create_post/views/components/topics/topics_button_tooltip.dart';
+import 'package:ion/app/features/feed/create_post/views/components/topics_button/topics_button_tooltip.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';

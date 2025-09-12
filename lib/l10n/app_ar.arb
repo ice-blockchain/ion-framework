@@ -111,6 +111,7 @@
   "common_post": "منشور",
   "common_article": "مقالة",
   "common_comment": "رد",
+  "common_language": "لغة",
   "auth_secured_by": "مؤمَّن بواسطة",
   "auth_link_new_device_title": "تسجيل الدخول من جهاز جديد",
   "auth_link_new_device_description": "لمتابعة استخدام التطبيق، يرجى ربط هذا الجهاز بحسابك",

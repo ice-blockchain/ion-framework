@@ -38,6 +38,12 @@ class FeedRoutes {
     ),
     TypedShellRoute<ModalShellRouteData>(
       routes: [
+        TypedGoRoute<EntityLanguageWarningRoute>(path: 'entity-language-warning'),
+        TypedGoRoute<EntityLanguageRoute>(path: 'entity-language'),
+      ],
+    ),
+    TypedShellRoute<ModalShellRouteData>(
+      routes: [
         TypedGoRoute<RepostOptionsModalRoute>(path: 'post-repost-options/:eventReference'),
         TypedGoRoute<CreatePostRoute>(path: 'post-editor/create'),
         TypedGoRoute<EditPostRoute>(path: 'post-editor/edit/:modifiedEvent'),
@@ -515,4 +521,20 @@ class AddBookmarkRoute extends BaseRouteData with _$AddBookmarkRoute {
         );
 
   final String eventReference;
+}
+
+class EntityLanguageRoute extends BaseRouteData with _$EntityLanguageRoute {
+  EntityLanguageRoute()
+      : super(
+          child: const EntityLanguageModal(),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class EntityLanguageWarningRoute extends BaseRouteData with _$EntityLanguageWarningRoute {
+  EntityLanguageWarningRoute()
+      : super(
+          child: const EntityLanguageWarningModal(),
+          type: IceRouteType.bottomSheet,
+        );
 }

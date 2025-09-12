@@ -102,6 +102,8 @@ PODS:
     - BNBSdkCore (= 1.17.5)
   - camera_avfoundation (0.0.1):
     - Flutter
+  - cryptography_flutter (0.2.0):
+    - Flutter
   - device_info_plus (0.0.1):
     - Flutter
   - DKImagePickerController/Core (4.3.9):
@@ -309,6 +311,8 @@ PODS:
   - image_cropper (0.0.4):
     - Flutter
     - TOCropViewController (~> 2.7.4)
+  - ion_content_labeler (0.0.1):
+    - Flutter
   - ion_screenshot_detector (0.0.1):
     - Flutter
   - local_auth_crypto (1.0.0):
@@ -414,6 +418,7 @@ DEPENDENCIES:
   - bdk_flutter (from `.symlinks/plugins/bdk_flutter/ios`)
   - blurhash_ffi (from `.symlinks/plugins/blurhash_ffi/ios`)
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
+  - cryptography_flutter (from `.symlinks/plugins/cryptography_flutter/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - external_app_launcher (from `.symlinks/plugins/external_app_launcher/ios`)
   - ffmpeg_kit_flutter (from `.symlinks/plugins/ffmpeg_kit_flutter/ios`)
@@ -433,6 +438,7 @@ DEPENDENCIES:
   - GoogleUtilities
   - icloud_storage (from `.symlinks/plugins/icloud_storage/ios`)
   - image_cropper (from `.symlinks/plugins/image_cropper/ios`)
+  - ion_content_labeler (from `.symlinks/plugins/ion_content_labeler/ios`)
   - ion_screenshot_detector (from `.symlinks/plugins/ion_screenshot_detector/ios`)
   - local_auth_crypto (from `.symlinks/plugins/local_auth_crypto/ios`)
   - local_auth_darwin (from `.symlinks/plugins/local_auth_darwin/darwin`)
@@ -521,6 +527,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/blurhash_ffi/ios"
   camera_avfoundation:
     :path: ".symlinks/plugins/camera_avfoundation/ios"
+  cryptography_flutter:
+    :path: ".symlinks/plugins/cryptography_flutter/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   external_app_launcher:
@@ -555,6 +563,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/icloud_storage/ios"
   image_cropper:
     :path: ".symlinks/plugins/image_cropper/ios"
+  ion_content_labeler:
+    :path: ".symlinks/plugins/ion_content_labeler/ios"
   ion_screenshot_detector:
     :path: ".symlinks/plugins/ion_screenshot_detector/ios"
   local_auth_crypto:
@@ -629,6 +639,7 @@ SPEC CHECKSUMS:
   BNBSdkCore: 525306d0db8e734343528fabb63bd5999fa58fe4
   BNBSkin: ea11d0dd3a922afa20a4816eef813d17ef7f3118
   camera_avfoundation: be3be85408cd4126f250386828e9b1dfa40ab436
+  cryptography_flutter: 70166b3780db39960caf51fd90fe308bec22d3f1
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
@@ -660,6 +671,7 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   icloud_storage: e55639f0c0d7cb2b0ba9c0b3d5968ccca9cd9aa2
   image_cropper: 5f162dcf988100dc1513f9c6b7eb42cd6fbf9156
+  ion_content_labeler: f7b0a605150742a6e41c82730110b008c582d788
   ion_screenshot_detector: 12965038c2274b1876c39ee328507e8bb9c7b794
   local_auth_crypto: 0f489ce05f51504fc091a53ce357e98313696085
   local_auth_darwin: d2e8c53ef0c4f43c646462e3415432c4dab3ae19

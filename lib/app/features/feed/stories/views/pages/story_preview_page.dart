@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -13,11 +15,13 @@ import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
+import 'package:ion/app/features/feed/providers/selected_entity_language_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
 import 'package:ion/app/features/feed/stories/data/models/story_preview_result.f.dart';
 import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_preview/actions/story_language_button.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_preview/actions/story_share_button.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_preview/actions/story_topics_button.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_preview/media/post_screenshot_preview.dart';
@@ -25,6 +29,7 @@ import 'package:ion/app/features/feed/stories/views/components/story_preview/med
 import 'package:ion/app/features/feed/stories/views/components/story_preview/media/story_video_preview.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -113,12 +118,13 @@ class StoryPreviewPage extends HookConsumerWidget {
                         MediaType.unknown => const CenteredLoadingIndicator(),
                       },
                     ),
-                    SizedBox(height: 8.0.s),
+                    SizedBox(height: 18.0.s),
+                    const StoryTopicsButton(),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 7.s),
                       child: const HorizontalSeparator(),
                     ),
-                    const StoryTopicsButton(),
+                    const StoryLanguageButton(),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 6.s),
                       child: const HorizontalSeparator(),
@@ -135,6 +141,12 @@ class StoryPreviewPage extends HookConsumerWidget {
                   onPressed: isPublishing.value
                       ? null
                       : () async {
+                          final language = ref.read(selectedEntityLanguageNotifierProvider);
+                          if (language == null) {
+                            unawaited(EntityLanguageWarningRoute().push<void>(context));
+                            return;
+                          }
+
                           isPublishing.value = true;
 
                           final createPostNotifier = ref.read(
@@ -159,12 +171,14 @@ class StoryPreviewPage extends HookConsumerWidget {
                               quotedEvent: isPostScreenshot ? null : eventReference,
                               sourcePostReference: isPostScreenshot ? eventReference : null,
                               topics: ref.read(selectedInterestsNotifierProvider),
+                              language: language,
                             );
                           } else if (mediaType == MediaType.video) {
                             await createPostNotifier.create(
                               mediaFiles: [MediaFile(path: path, mimeType: mimeType)],
                               whoCanReply: whoCanReply,
                               topics: ref.read(selectedInterestsNotifierProvider),
+                              language: language,
                             );
                           }
 

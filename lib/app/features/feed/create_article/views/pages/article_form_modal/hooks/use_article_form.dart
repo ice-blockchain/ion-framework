@@ -131,7 +131,7 @@ ArticleFormState useArticleForm(WidgetRef ref, {EventReference? modifiedEvent}) 
 
           if (modifiableEntity.data.image != null) {
             selectedImageUrl.value = modifiableEntity.data.image;
-            selectedImageUrlColor.value = modifiableEntity.data.colorLabel?.value;
+            selectedImageUrlColor.value = modifiableEntity.data.colorLabel?.values.firstOrNull;
           }
 
           media.value = modifiableEntity.data.media;
