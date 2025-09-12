@@ -809,7 +809,7 @@
   "notification_post_published": "Ihr Beitrag wurde veröffentlicht",
   "notification_article_published": "Ihr Artikel wurde veröffentlicht",
   "notification_reply_published": "Ihre Antwort wurde gesendet",
-  "notification_modify_published": "Ihre Änderungen wurden gesendet",
+  "notification_modify_published": "Ihre Änderungen wurden gespeichert",
   "notification_delete_published": "Löschung abgeschlossen",
   "notification_repost_successful": "Erfolgreich repostet",
   "chat_groups_joined": "Beigetreten",

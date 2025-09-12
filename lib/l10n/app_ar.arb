@@ -765,7 +765,7 @@
   "notification_post_published": "تم نشر منشورك",
   "notification_article_published": "تم نشر مقالتك",
   "notification_reply_published": "تم إرسال ردك",
-  "notification_modify_published": "تم إرسال تغييراتك",
+  "notification_modify_published": "تم حفظ التغييرات التي أجريتها",
   "notification_delete_published": "تم الانتهاء من عملية الحذف",
   "notification_repost_successful": "تم إعادة النشر بنجاح",
   "chat_groups_joined": "انضم",
