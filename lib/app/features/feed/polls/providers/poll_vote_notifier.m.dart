@@ -67,17 +67,12 @@ extension PollVoteDataX on PollVoteData {
 
 /// Provider for voting on polls
 @Riverpod(keepAlive: true)
-// TODO(ice-erebus): Return to the void
 class PollVoteNotifier extends _$PollVoteNotifier {
   @override
   FutureOr<void> build() {}
 
   Future<void> vote(EventReference postReference, String optionId) async {
     try {
-      // TODO(ice-erebus): Remove this once we have a proper optimistic UI
-      await Future<void>.delayed(const Duration(milliseconds: 10000));
-      return;
-
       final masterPubkey = ref.read(currentPubkeySelectorProvider);
       if (masterPubkey == null) {
         throw Exception('User must be logged in to vote');

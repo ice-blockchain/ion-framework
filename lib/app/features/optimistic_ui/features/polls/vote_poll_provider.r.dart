@@ -2,7 +2,6 @@
 
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
