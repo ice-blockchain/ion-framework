@@ -29,13 +29,27 @@ Future<IonConnectCacheService> ionConnectPersistentCacheService(Ref ref) async {
 }
 
 @riverpod
-class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
-  @override
-  void build() {}
+Future<IonConnectDatabaseCache> ionConnectDatabaseCache(Ref ref) async {
+  keepAliveWhenAuthenticated(ref);
+
+  final parser = ref.read(eventParserProvider);
+  final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
+
+  return IonConnectDatabaseCache(ref: ref, parser: parser, cacheService: cacheService);
+}
+
+class IonConnectDatabaseCache {
+  IonConnectDatabaseCache({
+    required this.ref,
+    required this.parser,
+    required this.cacheService,
+  });
+
+  final Ref ref;
+  final EventParser parser;
+  final IonConnectCacheService cacheService;
 
   Future<void> saveEntity(DbCacheableEntity entity) async {
-    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
-
     final cacheKey = entity.toEventReference().toString();
     final eventMessage = await entity.toEntityEventMessage();
 
@@ -43,8 +57,6 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
   }
 
   Future<void> saveAllEntities(List<DbCacheableEntity> entities) async {
-    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
-
     final valuesFutures = entities.map((e) async {
       final cacheKey = e.toEventReference().toString();
       final eventMessage = await e.toEntityEventMessage();
@@ -62,9 +74,6 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     Duration? expirationDuration,
     DatabaseCacheStrategy cacheStrategy = DatabaseCacheStrategy.alwaysReturn,
   }) async {
-    final parser = ref.read(eventParserProvider);
-    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
-
     final result = await cacheService.get(cacheKey);
     if (result == null) {
       return null;
@@ -85,9 +94,6 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     Duration? expirationDuration,
     DatabaseCacheStrategy cacheStrategy = DatabaseCacheStrategy.alwaysReturn,
   }) async {
-    final parser = ref.read(eventParserProvider);
-    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
-
     final results = await cacheService.getAllFiltered(
       kinds: kinds,
       keyword: keyword,
@@ -106,7 +112,10 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
         .toList();
   }
 
-  Future<void> saveEventReference(EventReference eventReference, {bool network = true}) async {
+  Future<void> saveEventReference(
+    EventReference eventReference, {
+    bool network = true,
+  }) async {
     final entity = await ref.read(
       ionConnectEntityProvider(eventReference: eventReference, network: network).future,
     );
@@ -117,9 +126,6 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
   }
 
   Future<void> saveAllNonExistingReferences(List<EventReference> eventReferences) async {
-    final parser = ref.read(eventParserProvider);
-    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
-
     final existingResults = await cacheService.getAllFiltered(
       cacheKeys: eventReferences.map((e) => e.toString()).toList(),
     );
@@ -157,14 +163,10 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
   }
 
   Future<void> remove(String cacheKey) async {
-    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
-
     await cacheService.remove(cacheKey);
   }
 
   Future<void> removeAll(List<String> cacheKeys) async {
-    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
-
     await cacheService.removeAll(cacheKeys: cacheKeys);
   }
 
