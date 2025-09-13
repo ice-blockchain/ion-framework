@@ -70,20 +70,13 @@ extension PollVoteDataX on PollVoteData {
 // TODO(ice-erebus): Return to the void
 class PollVoteNotifier extends _$PollVoteNotifier {
   @override
-  FutureOr<bool> build() => false;
+  FutureOr<void> build() {}
 
-  Future<bool> vote(EventReference postReference, String optionId) async {
-    if (state.isLoading) {
-      return false;
-    }
-
+  Future<void> vote(EventReference postReference, String optionId) async {
     try {
       // TODO(ice-erebus): Remove this once we have a proper optimistic UI
-      // await Future<void>.delayed(const Duration(milliseconds: 1000));
-      state = const AsyncValue.data(true);
-      return true;
-
-      state = const AsyncValue.loading();
+      await Future<void>.delayed(const Duration(milliseconds: 10000));
+      return;
 
       final masterPubkey = ref.read(currentPubkeySelectorProvider);
       if (masterPubkey == null) {
@@ -136,16 +129,14 @@ class PollVoteNotifier extends _$PollVoteNotifier {
               );
         }
 
-        // state = const AsyncValue.data(null);
-        return true;
+        return;
       }
 
-      // state = const AsyncValue.data(null);
-      return false;
+      return;
     } catch (e, stackTrace) {
       Logger.error(e, stackTrace: stackTrace, message: 'Failed to vote on poll');
       state = AsyncValue.error(e, stackTrace);
-      return false;
+      return;
     }
   }
 }
