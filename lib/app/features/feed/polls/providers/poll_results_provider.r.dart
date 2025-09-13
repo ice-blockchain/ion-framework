@@ -6,6 +6,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_data.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_vote.f.dart';
+import 'package:ion/app/features/feed/polls/providers/poll_vote_notifier.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -158,5 +159,6 @@ int? userVotedOptionIndex(Ref ref, EventReference eventReference) {
 
 @riverpod
 bool hasUserVoted(Ref ref, EventReference eventReference) {
-  return ref.watch(userPollVoteProvider(eventReference)) != null;
+  // TODO(ice-erebus): Remove this once we have a proper optimistic UI
+  return ref.watch(pollVoteNotifierProvider).valueOrNull ?? false;
 }

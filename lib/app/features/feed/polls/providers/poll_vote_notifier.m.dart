@@ -67,9 +67,10 @@ extension PollVoteDataX on PollVoteData {
 
 /// Provider for voting on polls
 @Riverpod(keepAlive: true)
+// TODO(ice-erebus): Return to the void
 class PollVoteNotifier extends _$PollVoteNotifier {
   @override
-  FutureOr<void> build() {}
+  FutureOr<bool> build() => false;
 
   Future<bool> vote(EventReference postReference, String optionId) async {
     if (state.isLoading) {
@@ -77,6 +78,11 @@ class PollVoteNotifier extends _$PollVoteNotifier {
     }
 
     try {
+      // TODO(ice-erebus): Remove this once we have a proper optimistic UI
+      // await Future<void>.delayed(const Duration(milliseconds: 1000));
+      state = const AsyncValue.data(true);
+      return true;
+
       state = const AsyncValue.loading();
 
       final masterPubkey = ref.read(currentPubkeySelectorProvider);
@@ -130,11 +136,11 @@ class PollVoteNotifier extends _$PollVoteNotifier {
               );
         }
 
-        state = const AsyncValue.data(null);
+        // state = const AsyncValue.data(null);
         return true;
       }
 
-      state = const AsyncValue.data(null);
+      // state = const AsyncValue.data(null);
       return false;
     } catch (e, stackTrace) {
       Logger.error(e, stackTrace: stackTrace, message: 'Failed to vote on poll');
