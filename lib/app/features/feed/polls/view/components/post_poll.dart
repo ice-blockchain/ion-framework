@@ -24,11 +24,14 @@ class PostPoll extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final voteCounts = ref.watch(pollVoteCountsProvider(postReference, pollData));
-    final userVotedOptionIndex = ref.watch(
-      pollVoteWatchProvider(pollData.ttl.toString()),
-    ).valueOrNull?.userVotedOptionIndex;
+    final userVotedOptionIndex = ref
+        .watch(
+          pollVoteWatchProvider(pollData.ttl.toString()),
+        )
+        .valueOrNull
+        ?.userVotedOptionIndex;
     final userHasVoted = userVotedOptionIndex != null;
-    
+
     final shouldShowResults = pollData.isClosed || userHasVoted;
 
     if (shouldShowResults) {
