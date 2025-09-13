@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_data.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_vote.f.dart';
@@ -127,43 +125,4 @@ class PollVoteCounts extends _$PollVoteCounts {
           cacheEntry.copyWith(data: updatedData),
         );
   }
-}
-
-@riverpod
-PollVoteEntity? userPollVote(Ref ref, EventReference eventReference) {
-  final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
-  if (currentUserPubkey == null) return null;
-
-  final pollVote = ref.watch(
-    ionConnectCacheProvider.select((allCacheEntries) {
-      final allPollVotes = allCacheEntries.values
-          .map((entry) => entry.entity)
-          .whereType<PollVoteEntity>()
-          .where(
-            (vote) =>
-                vote.masterPubkey == currentUserPubkey &&
-                vote.data.pollEventId == eventReference.toString(),
-          )
-          .toList();
-
-      return allPollVotes.firstOrNull;
-    }),
-  );
-  return pollVote;
-}
-
-@riverpod
-int? userVotedOptionIndex(Ref ref, EventReference eventReference) {
-  final userVote = ref.watch(userPollVoteProvider(eventReference));
-
-  if (userVote != null && userVote.data.selectedOptionIndexes.isNotEmpty) {
-    return userVote.data.selectedOptionIndexes.first;
-  }
-
-  return null;
-}
-
-@riverpod
-bool hasUserVoted(Ref ref, EventReference eventReference) {
-  return ref.watch(userPollVoteProvider(eventReference)) != null;
 }

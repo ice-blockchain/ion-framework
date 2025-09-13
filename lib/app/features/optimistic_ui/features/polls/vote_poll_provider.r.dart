@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/polls/models/poll_data.f.dart';
+import 'package:ion/app/features/feed/polls/providers/poll_results_provider.r.dart';
 import 'package:ion/app/features/feed/polls/providers/poll_vote_notifier.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/optimistic_ui/core/operation_manager.dart';
@@ -28,6 +29,10 @@ OptimisticOperationManager<PollVoteState> pollVoteManager(Ref ref) {
               optionIdx.toString(),
             ),
       );
+
+      ref.read(pollVoteCountsProvider(eventRef, pollData).notifier).addOne(
+            optionIdx,
+          );
 
       return PollVoteState(
         pollData: pollData,
