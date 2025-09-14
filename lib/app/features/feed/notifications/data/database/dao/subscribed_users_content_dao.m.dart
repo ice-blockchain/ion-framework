@@ -28,6 +28,21 @@ class SubscribedUsersContentDao extends DatabaseAccessor<NotificationsDatabase>
         .get();
   }
 
+  Future<List<ContentNotification>> getContentAfter({
+    required int limit,
+    DateTime? after,
+  }) async {
+    final query = select(subscribedUsersContentTable)
+      ..orderBy([(c) => OrderingTerm.desc(c.createdAt)])
+      ..limit(limit);
+
+    if (after != null) {
+      query.where((c) => c.createdAt.isSmallerThanValue(after.microsecondsSinceEpoch));
+    }
+
+    return query.get();
+  }
+
   Future<List<ContentNotification>> getAllByType(ContentType type) {
     return (select(subscribedUsersContentTable)
           ..where((c) => c.type.equalsValue(type))
