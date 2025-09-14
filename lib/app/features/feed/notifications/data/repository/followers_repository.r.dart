@@ -44,6 +44,22 @@ class FollowersRepository implements IonNotificationRepository {
         .toList();
   }
 
+  Future<List<FollowersIonNotification>> getNotificationsAfter({
+    required int limit,
+    DateTime? after,
+  }) async {
+    final aggregated = await _followersDao.getAggregatedAfter(after: after, limit: limit);
+    return aggregated
+        .map(
+          (result) => FollowersIonNotification(
+            total: result.uniquePubkeyCount,
+            timestamp: result.lastCreatedAt?.toDateTime ?? DateTime.fromMillisecondsSinceEpoch(0),
+            pubkeys: result.latestPubkeys?.split(',') ?? [],
+          ),
+        )
+        .toList();
+  }
+
   Future<DateTime?> lastCreatedAt() async {
     return _followersDao.getLastCreatedAt();
   }

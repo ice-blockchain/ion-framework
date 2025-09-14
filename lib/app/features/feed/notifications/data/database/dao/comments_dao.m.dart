@@ -25,6 +25,31 @@ class CommentsDao extends DatabaseAccessor<NotificationsDatabase> with _$Comment
         .get();
   }
 
+  Future<List<Comment>> getCommentsAfterByType({
+    required int limit,
+    CommentType? type,
+    DateTime? after,
+  }) async {
+    final query = select(commentsTable)
+      ..orderBy([(t) => OrderingTerm.desc(commentsTable.createdAt)])
+      ..limit(limit);
+    if (type != null) {
+      query.where((t) => t.type.equalsValue(type));
+    }
+    if (after != null) {
+      query.where((t) => t.createdAt.isSmallerThanValue(after.microsecondsSinceEpoch));
+    }
+
+    return query.get();
+  }
+
+  Future<List<Comment>> getAllByType(CommentType type) async {
+    return (select(commentsTable)
+          ..where((t) => t.type.equalsValue(type))
+          ..orderBy([(t) => OrderingTerm.desc(commentsTable.createdAt)]))
+        .get();
+  }
+
   Future<DateTime?> getLastCreatedAt(CommentType type) async {
     final maxCreatedAt = commentsTable.createdAt.max();
     final max = await (selectOnly(commentsTable)

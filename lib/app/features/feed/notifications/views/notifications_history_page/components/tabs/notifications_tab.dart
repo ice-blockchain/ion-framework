@@ -3,10 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
+import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/features/components/entities_list/entities_list_skeleton.dart';
 import 'package:ion/app/features/feed/notifications/data/model/notifications_tab_type.dart';
-import 'package:ion/app/features/feed/notifications/providers/tab_notifications_provider.r.dart';
+import 'package:ion/app/features/feed/notifications/providers/paginated_notifications_provider.r.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_item.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/tabs/empty_list.dart';
 
@@ -22,24 +22,32 @@ class NotificationsTab extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     useAutomaticKeepAlive();
 
-    final notifications = ref.watch(tabNotificationsProvider(type: type)).valueOrNull;
+    final paginatedState = ref.watch(paginatedNotificationsProvider(type));
+    final paginatedNotifier = ref.watch(paginatedNotificationsProvider(type).notifier);
 
-    return PullToRefreshBuilder(
+    return LoadMoreBuilder(
       slivers: [
-        if (notifications == null)
+        if (paginatedState.isInitialLoading)
           const EntitiesListSkeleton()
-        else if (notifications.isEmpty)
+        else if (paginatedState.notifications.isEmpty && !paginatedState.isLoading)
           const EmptyState()
         else
           SliverList.builder(
-            itemCount: notifications.length,
+            itemCount: paginatedState.notifications.length,
             itemBuilder: (context, index) {
-              return NotificationItem(notification: notifications[index]);
+              return NotificationItem(
+                notification: paginatedState.notifications[index],
+                onNotificationHidden: paginatedNotifier.registerHiddenNotification,
+              );
             },
           ),
       ],
-      onRefresh: () async => ref.invalidate(tabNotificationsProvider(type: type)),
-      builder: (context, slivers) => CustomScrollView(slivers: slivers),
+      onLoadMore: paginatedNotifier.loadMore,
+      hasMore: paginatedState.hasMore,
+      builder: (context, slivers) => RefreshIndicator(
+        onRefresh: paginatedNotifier.refresh,
+        child: CustomScrollView(slivers: slivers),
+      ),
     );
   }
 }
