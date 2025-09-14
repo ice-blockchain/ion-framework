@@ -184,7 +184,8 @@ class UndefinedTransactionsBinder {
           calculatedTransferredAmountUsd = amount * coin.priceUSD;
         } else {
           Logger.warning(
-              'UndefinedTransactionsBinder: Coin ${binding.coinId} not found for USD calculation');
+            'UndefinedTransactionsBinder: Coin ${binding.coinId} not found for USD calculation',
+          );
         }
       }
 
