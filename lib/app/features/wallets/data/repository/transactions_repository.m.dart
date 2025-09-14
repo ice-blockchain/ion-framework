@@ -553,7 +553,12 @@ class TransactionsRepository {
       transferredAmountUsd: Value(transferredAmountUsd ?? mapped.transferredAmountUsd),
     );
 
-    await _transactionsDao.save([updatedTransaction]);
+    final updated = await _transactionsDao.save([updatedTransaction]);
+    Logger.log(
+      updated
+          ? 'TransactionsRepository: Successfully updated transaction $txHash'
+          : 'TransactionsRepository: No changes made to transaction $txHash',
+    );
   }
 }
 
