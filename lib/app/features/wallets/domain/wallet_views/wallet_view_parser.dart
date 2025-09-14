@@ -71,11 +71,26 @@ class WalletViewParser {
       return null;
     }
 
-    final amounts = _calculateCoinAmounts(
-      coinInWalletDTO,
-      aggregation,
-      coinDTO,
+    final aggregationItem =
+        _searchAggregationItem(coinInWalletDTO: coinInWalletDTO, aggregation: aggregation);
+    final walletAsset = aggregationItem?.wallets.firstWhereOrNull(
+      (wallet) {
+        final coinIdMatch = wallet.coinId == null || wallet.coinId == coinInWalletDTO.coin.id;
+        final walletIdMatch = wallet.walletId == coinInWalletDTO.walletId;
+        return walletIdMatch && coinIdMatch;
+      },
+    )?.asset;
+
+    final amounts = _calculateCoinAmounts(coinInWalletDTO, walletAsset, coinDTO);
+    final walletAssetContractAddress = walletAsset?.maybeMap(
+      erc20: (value) => value.contract,
+      trc20: (value) => value.contract,
+      unknown: (value) => value.contract,
+      orElse: () => null,
     );
+
+    final walletAssetAddressToSave =
+        walletAssetContractAddress != coin.contractAddress ? walletAssetContractAddress : null;
 
     return CoinInWalletData(
       coin: coin,
@@ -83,8 +98,7 @@ class WalletViewParser {
       rawAmount: amounts.rawCoinAmount,
       balanceUSD: amounts.coinBalanceUSD,
       walletId: coinInWalletDTO.walletId,
-      originContractAddress:
-          coinDTO.contractAddress != coin.contractAddress ? coinDTO.contractAddress : null,
+      walletAssetContractAddress: walletAssetAddressToSave,
     );
   }
 
@@ -111,30 +125,17 @@ class WalletViewParser {
 
   ({double coinAmount, String rawCoinAmount, double coinBalanceUSD}) _calculateCoinAmounts(
     CoinInWallet coinInWalletDTO,
-    Map<String, WalletViewAggregationItem> aggregation,
+    WalletAsset? asset,
     Coin coinDTO,
   ) {
     var coinAmount = 0.0;
     var rawCoinAmount = '0';
     var coinBalanceUSD = 0.0;
 
-    final aggregationItem = _searchAggregationItem(
-      coinInWalletDTO: coinInWalletDTO,
-      aggregation: aggregation,
-    );
-
-    if (aggregationItem != null) {
-      final asset = aggregationItem.wallets
-          .firstWhereOrNull(
-            (wallet) => wallet.walletId == coinInWalletDTO.walletId,
-          )
-          ?.asset;
-
-      if (asset != null) {
-        rawCoinAmount = asset.balance;
-        coinAmount = parseCryptoAmount(asset.balance, asset.decimals);
-        coinBalanceUSD = coinAmount * coinDTO.priceUSD;
-      }
+    if (asset != null) {
+      rawCoinAmount = asset.balance;
+      coinAmount = parseCryptoAmount(asset.balance, asset.decimals);
+      coinBalanceUSD = coinAmount * coinDTO.priceUSD;
     }
 
     return (
@@ -164,13 +165,13 @@ class WalletViewParser {
     required CoinInWallet coinInWalletDTO,
     required Map<String, WalletViewAggregationItem> aggregation,
   }) {
-    WalletViewAggregationItem? search(Iterable<WalletViewAggregationItem> searchSample) {
-      for (final aggregation in aggregation.values) {
-        final associatedWallet = aggregation.wallets.firstWhereOrNull(
+    WalletViewAggregationItem? search(Iterable<WalletViewAggregationItem> aggregationItems) {
+      for (final aggregationItem in aggregationItems) {
+        final associatedWallet = aggregationItem.wallets.firstWhereOrNull(
           (e) => e.walletId == coinInWalletDTO.walletId && e.coinId == coinInWalletDTO.coin.id,
         );
         if (associatedWallet != null && associatedWallet.network == coinInWalletDTO.coin.network) {
-          return aggregation;
+          return aggregationItem;
         }
       }
       return null;
@@ -179,8 +180,9 @@ class WalletViewParser {
     // Return aggregation item if aggregation map contains coin symbol as a key
     // with the same wallet and coin ids as in CoinInWallet
     final symbol = coinInWalletDTO.coin.symbol;
-    if (aggregation[symbol] case final WalletViewAggregationItem aggregation) {
-      final result = search([aggregation]);
+
+    if (aggregation[symbol] case final WalletViewAggregationItem aggregationItem) {
+      final result = search([aggregationItem]);
       if (result != null) return result;
     }
 

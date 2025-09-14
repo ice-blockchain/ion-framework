@@ -4,10 +4,12 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/wallet_views/wallet_views_service.r.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
+import 'package:ion/app/features/wallets/utils/crypto_amount_parser.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -24,6 +26,7 @@ Future<UndefinedTransactionsBinder> undefinedTransactionsBinder(Ref ref) async {
   final binder = UndefinedTransactionsBinder(
     await ref.watch(walletViewsServiceProvider.future),
     await ref.watch(transactionsRepositoryProvider.future),
+    ref.watch(coinsRepositoryProvider),
   );
 
   ref.onDispose(binder.dispose);
@@ -37,10 +40,12 @@ class UndefinedTransactionsBinder {
   UndefinedTransactionsBinder(
     this._walletViewsService,
     this._transactionsRepository,
+    this._coinsRepository,
   );
 
   final WalletViewsService _walletViewsService;
   final TransactionsRepository _transactionsRepository;
+  final CoinsRepository _coinsRepository;
 
   StreamSubscription<_WalletViewsWithUndefinedTransactions>? _subscription;
 
@@ -49,7 +54,7 @@ class UndefinedTransactionsBinder {
 
   void initialize() {
     final walletViewsStream = _walletViewsService.walletViews;
-    final undefinedTransactionsStream = _transactionsRepository.watchUndefinedTokenTransactions();
+    final undefinedTransactionsStream = _transactionsRepository.watchUndefinedCoinTransactions();
 
     _subscription = walletViewsStream
         .distinct((list1, list2) => const ListEquality<WalletViewData>().equals(list1, list2))
@@ -110,8 +115,8 @@ class UndefinedTransactionsBinder {
 
     for (final walletView in walletViews) {
       for (final coin in walletView.coins) {
-        if (coin.coin.contractAddress.isNotEmpty) {
-          final key = _buildContractKey(coin.coin.contractAddress, coin.coin.network.id);
+        if (coin.walletAssetContractAddress case final String contractAddress) {
+          final key = _buildContractKey(contractAddress, coin.coin.network.id);
           mapping[key] = coin.coin.id;
         }
       }
@@ -131,7 +136,7 @@ class UndefinedTransactionsBinder {
 
     for (final transaction in undefinedTransactions) {
       final contractAddress = transaction.cryptoAsset.maybeWhen(
-        undefinedToken: (contractAddress, symbol) => contractAddress,
+        undefinedCoin: (contractAddress, _) => contractAddress,
         orElse: () => null,
       );
 
@@ -157,15 +162,42 @@ class UndefinedTransactionsBinder {
   /// Updates transactions in the database with their corresponding coin IDs
   Future<void> _updateTransactionsWithCoinIds(List<_TransactionBinding> bindings) async {
     for (final binding in bindings) {
+      double? calculatedTransferredAmountUsd;
+      final transactions = await _transactionsRepository.getTransactions(
+        txHashes: [binding.txHash],
+        walletViewIds: [binding.walletViewId],
+        limit: 1,
+      );
+      final rawTransferredAmount = transactions.isNotEmpty
+          ? transactions.first.cryptoAsset.when(
+              coin: (_, __, ___, rawAmount) => rawAmount,
+              undefinedCoin: (_, rawAmount) => rawAmount,
+              nft: (_) => null,
+              nftIdentifier: (_, __) => null,
+            )
+          : null;
+
+      if (rawTransferredAmount != null && rawTransferredAmount != '0') {
+        final coin = await _coinsRepository.getCoinById(binding.coinId);
+        if (coin != null) {
+          final amount = parseCryptoAmount(rawTransferredAmount, coin.decimals);
+          calculatedTransferredAmountUsd = amount * coin.priceUSD;
+        } else {
+          Logger.warning(
+              'UndefinedTransactionsBinder: Coin ${binding.coinId} not found for USD calculation');
+        }
+      }
+
       await _transactionsRepository.updateTransaction(
         txHash: binding.txHash,
         walletViewId: binding.walletViewId,
         coinId: binding.coinId,
+        transferredAmountUsd: calculatedTransferredAmountUsd,
       );
 
       Logger.log(
-        'UndefinedTransactionsBinder: Successfully bound transaction ${binding.txHash} '
-        'to coin ${binding.coinId}',
+        'UndefinedTransactionsBinder: Completed binding operation for transaction ${binding.txHash} '
+        'to coin ${binding.coinId} with wallet view ${binding.walletViewId}',
       );
     }
   }

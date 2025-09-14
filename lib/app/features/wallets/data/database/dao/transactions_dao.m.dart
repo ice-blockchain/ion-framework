@@ -71,6 +71,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
 
         return toInsertRaw.copyWith(
           id: Value(existing.id ?? toInsertRaw.id),
+          coinId: Value(existing.coinId ?? toInsertRaw.coinId),
           fee: Value(existing.fee ?? toInsertRaw.fee),
           eventId: Value(existing.eventId ?? toInsertRaw.eventId),
           userPubkey: Value(existing.userPubkey ?? toInsertRaw.userPubkey),
@@ -353,7 +354,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
   }
 
   /// Watches transactions that have undefined tokens (no coinId but have assetContractAddress)
-  Stream<List<TransactionData>> watchUndefinedTokenTransactions() {
+  Stream<List<TransactionData>> watchUndefinedCoinTransactions() {
     final transactionCoinAlias = alias(coinsTable, 'transactionCoin');
     final nativeCoinAlias = alias(coinsTable, 'nativeCoin');
 
@@ -418,38 +419,33 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         nftIdentifier: NftIdentifier.parseIdentifier(identifierSource),
         network: domainNetwork,
       );
-    } else {
-      // Handle coin transaction
-      if (transactionCoin == null) {
-        // Check if this is an undefined token transaction
-        if (transaction.assetContractAddress != null) {
-          // Create undefined token asset
-          cryptoAsset = TransactionCryptoAsset.undefinedToken(
-            contractAddress: transaction.assetContractAddress!,
-            symbol: 'UNKNOWN', // We don't have symbol stored for undefined tokens
-          );
-        } else {
-          Logger.warning(
-            '[TRANSACTIONS_DAO] Transaction ${transaction.txHash} has no associated coin. '
-            'Coin ID: ${transaction.coinId} | Network: ${network.id} | WalletView: ${transaction.walletViewId}. '
-            'This can happen when coins are removed from supported list over time. Skipping transaction.',
-          );
-          return null;
-        }
-      } else {
-        final transferredAmount = transaction.transferredAmount ?? '0';
-        final transferredCoin = CoinData.fromDB(transactionCoin, domainNetwork);
-
-        cryptoAsset = TransactionCryptoAsset.coin(
-          coin: transferredCoin,
-          amount: parseCryptoAmount(
-            transferredAmount,
-            transferredCoin.decimals,
-          ),
-          amountUSD: transaction.transferredAmountUsd ?? 0.0,
-          rawAmount: transferredAmount,
+    } else if (transactionCoin == null) {
+      if (transaction.assetContractAddress != null) {
+        cryptoAsset = TransactionCryptoAsset.undefinedCoin(
+          contractAddress: transaction.assetContractAddress!,
+          rawAmount: transaction.transferredAmount ?? '0',
         );
+      } else {
+        Logger.warning(
+          '[TRANSACTIONS_DAO] Transaction ${transaction.txHash} has no associated coin. '
+          'Coin ID: ${transaction.coinId} | Network: ${network.id} | WalletView: ${transaction.walletViewId}. '
+          'This can happen when coins are removed from supported list over time. Skipping transaction.',
+        );
+        return null;
       }
+    } else {
+      final transferredAmount = transaction.transferredAmount ?? '0';
+      final transferredCoin = CoinData.fromDB(transactionCoin, domainNetwork);
+
+      cryptoAsset = TransactionCryptoAsset.coin(
+        coin: transferredCoin,
+        amount: parseCryptoAmount(
+          transferredAmount,
+          transferredCoin.decimals,
+        ),
+        amountUSD: transaction.transferredAmountUsd ?? 0.0,
+        rawAmount: transferredAmount,
+      );
     }
 
     return TransactionData(

@@ -16,7 +16,7 @@ class CoinInWalletData with _$CoinInWalletData {
     String? walletAddress,
     // contract address, that was specified directly in the wallet view
     // and it is not equal to the coin contract address
-    String? originContractAddress,
+    String? walletAssetContractAddress,
   }) = _CoinInWalletData;
 
   const CoinInWalletData._();

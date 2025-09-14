@@ -15,7 +15,6 @@ sealed class TransactionCryptoAsset with _$TransactionCryptoAsset {
     @Default(0.0) double amount,
     @Default(0.0) double amountUSD,
     @Default('0') String rawAmount,
-    String? balanceBeforeTransaction,
   }) = CoinTransactionAsset;
 
   const factory TransactionCryptoAsset.nft({
@@ -27,9 +26,9 @@ sealed class TransactionCryptoAsset with _$TransactionCryptoAsset {
     required NetworkData network,
   }) = NftIdentifierTransactionAsset;
 
-  const factory TransactionCryptoAsset.undefinedToken({
+  const factory TransactionCryptoAsset.undefinedCoin({
     required String contractAddress,
-    required String symbol,
+    @Default('0') String rawAmount,
   }) = UndefinedTransactionAsset;
 
   const TransactionCryptoAsset._();

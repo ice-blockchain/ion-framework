@@ -453,9 +453,9 @@ class TransactionsRepository {
         );
       }
 
-      return TransactionCryptoAsset.undefinedToken(
-        symbol: transaction.metadata.asset.symbol,
+      return TransactionCryptoAsset.undefinedCoin(
         contractAddress: contract,
+        rawAmount: transaction.value.emptyOrValue,
       );
     }
 
@@ -500,8 +500,8 @@ class TransactionsRepository {
     return _transactionsDao.watchTransactionByEventId(eventId);
   }
 
-  Stream<List<TransactionData>> watchUndefinedTokenTransactions() {
-    return _transactionsDao.watchUndefinedTokenTransactions();
+  Stream<List<TransactionData>> watchUndefinedCoinTransactions() {
+    return _transactionsDao.watchUndefinedCoinTransactions();
   }
 
   String? _resolveTransactionAddress({
@@ -524,6 +524,7 @@ class TransactionsRepository {
     DateTime? dateRequested,
     String? fee,
     String? coinId,
+    double? transferredAmountUsd,
   }) async {
     final existing = await _transactionsDao.getTransactions(
       txHashes: [txHash],
@@ -549,14 +550,10 @@ class TransactionsRepository {
       dateRequested: Value(dateRequested ?? mapped.dateRequested),
       fee: Value(fee ?? mapped.fee),
       coinId: Value(coinId ?? mapped.coinId),
+      transferredAmountUsd: Value(transferredAmountUsd ?? mapped.transferredAmountUsd),
     );
 
-    final updated = await _transactionsDao.save([updatedTransaction]);
-    Logger.log(
-      updated
-          ? 'TransactionsRepository: Successfully updated transaction $txHash'
-          : 'TransactionsRepository: No changes made to transaction $txHash',
-    );
+    await _transactionsDao.save([updatedTransaction]);
   }
 }
 

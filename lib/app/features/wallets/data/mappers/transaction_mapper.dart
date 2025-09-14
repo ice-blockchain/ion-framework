@@ -127,7 +127,7 @@ class CoinTransactionsMapper {
   List<db.Transaction> fromDomainToDB(Iterable<TransactionData> transactions) =>
       transactions.map((transaction) {
         return transaction.cryptoAsset.when(
-          coin: (coin, amount, amountUSD, rawAmount, unusedParam) => db.Transaction(
+          coin: (coin, amount, amountUSD, rawAmount) => db.Transaction(
             type: transaction.type.value,
             txHash: transaction.txHash,
             id: transaction.id,
@@ -186,7 +186,7 @@ class CoinTransactionsMapper {
             userPubkey: transaction.userPubkey,
             memo: transaction.memo,
           ),
-          undefinedToken: (String contractAddress, String symbol) => db.Transaction(
+          undefinedCoin: (String contractAddress, String rawAmount) => db.Transaction(
             type: transaction.type.value,
             txHash: transaction.txHash,
             id: transaction.id,
@@ -195,6 +195,7 @@ class CoinTransactionsMapper {
             walletViewId: transaction.walletViewId,
             dateConfirmed: transaction.dateConfirmed,
             dateRequested: transaction.dateRequested,
+            transferredAmount: rawAmount,
             networkId: transaction.network.id,
             status: transaction.status.toJson(),
             nativeCoinId: transaction.nativeCoin?.id,
