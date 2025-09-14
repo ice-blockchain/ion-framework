@@ -425,14 +425,10 @@ class TransactionsRepository {
     required CoinData? nativeCoin,
     required String? contract,
   }) async {
-    // Handle native transfers
     if (transaction.isNativeTransfer && nativeCoin != null) {
       return _createCoinTransactionAsset(transaction, nativeCoin);
     }
-
-    // Handle contract-based transfers
     if (contract != null) {
-      // First try: exact contract address match
       final coinByContract = await _coinsDao.getByFilters(
         contractAddresses: [contract],
         networks: [network.id],
@@ -459,19 +455,16 @@ class TransactionsRepository {
       );
     }
 
-    // Second try: search by symbol and network
     final coinsBySymbol = await _coinsDao.getByFilters(
       symbols: [transaction.metadata.asset.symbol],
       networks: [network.id],
     );
 
-    // If exactly one coin matches, use it
     if (coinsBySymbol.length == 1) {
       return _createCoinTransactionAsset(transaction, coinsBySymbol.first);
     }
 
     // If multiple coins with same symbol exist, we can't determine which one
-    // Return undefined token to let the user know about the ambiguity
     Logger.warning(
       'Found ${coinsBySymbol.length} coins with symbol ${transaction.metadata.asset.symbol} '
       'on network ${network.id} for transaction ${transaction.txHash}. '
