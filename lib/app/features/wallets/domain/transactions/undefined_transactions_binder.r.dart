@@ -95,7 +95,6 @@ class UndefinedTransactionsBinder {
       return;
     }
 
-    // Update transactions with coin IDs
     await _updateTransactionsWithCoinIds(bindableTransactions);
 
     Logger.info(
@@ -104,7 +103,6 @@ class UndefinedTransactionsBinder {
   }
 
   Map<String, String> _buildContractToCoinMapping(List<WalletViewData> walletViews) {
-    // Check if we have a cached mapping for the same wallet views
     if (_cachedContractMapping != null &&
         _cachedWalletViews != null &&
         const ListEquality<WalletViewData>().equals(_cachedWalletViews, walletViews)) {
@@ -159,7 +157,6 @@ class UndefinedTransactionsBinder {
     return bindableTransactions;
   }
 
-  /// Updates transactions in the database with their corresponding coin IDs
   Future<void> _updateTransactionsWithCoinIds(List<_TransactionBinding> bindings) async {
     for (final binding in bindings) {
       double? calculatedTransferredAmountUsd;
