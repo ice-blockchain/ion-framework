@@ -28,8 +28,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'post_like_provider.r.g.dart';
 
-@riverpod
-List<PostLike> loadInitialLikesFromCache(Ref ref) {
+List<PostLike> _loadInitialLikesFromCache(Ref ref) {
   final currentPubkey = ref.read(currentPubkeySelectorProvider);
   final cache = ref.read(ionConnectCacheProvider);
   final reactions = cache.values
@@ -71,19 +70,30 @@ List<PostLike> loadInitialLikesFromCache(Ref ref) {
 }
 
 @riverpod
-OptimisticService<PostLike> postLikeService(Ref ref) {
-  keepAliveWhenAuthenticated(ref);
-  final manager = ref.watch(postLikeManagerProvider);
-  final loadInitialLikes = ref.watch(loadInitialLikesFromCacheProvider);
-  final service = OptimisticService<PostLike>(manager: manager)..initialize(loadInitialLikes);
+class PostLikeServiceNotifier extends _$PostLikeServiceNotifier {
+  bool _initialized = false;
+  late OptimisticService<PostLike> _service;
 
-  return service;
+  @override
+  OptimisticService<PostLike> build() {
+    keepAliveWhenAuthenticated(ref);
+    final manager = ref.watch(postLikeManagerProvider);
+    _service = OptimisticService<PostLike>(manager: manager);
+
+    if (!_initialized) {
+      final initialLikes = _loadInitialLikesFromCache(ref);
+      _service.initialize(initialLikes);
+      _initialized = true;
+    }
+
+    return _service;
+  }
 }
 
 @riverpod
 Stream<PostLike?> postLikeWatch(Ref ref, String id) {
   keepAliveWhenAuthenticated(ref);
-  final service = ref.watch(postLikeServiceProvider);
+  final service = ref.watch(postLikeServiceNotifierProvider);
   final manager = ref.watch(postLikeManagerProvider);
 
   var last = manager.snapshot.firstWhereOrNull((e) => e.optimisticId == id);
@@ -125,7 +135,7 @@ class ToggleLikeNotifier extends _$ToggleLikeNotifier {
 
   Future<void> toggle(EventReference eventReference) async {
     final userSentLikesDao = ref.read(userSentLikesDaoProvider);
-    final service = ref.read(postLikeServiceProvider);
+    final service = ref.read(postLikeServiceNotifierProvider);
     final id = eventReference.toString();
 
     if (await userSentLikesDao.hasUserLiked(eventReference)) {
