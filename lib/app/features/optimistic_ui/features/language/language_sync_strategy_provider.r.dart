@@ -45,19 +45,18 @@ OptimisticService<ContentLangSet> contentLanguageService(Ref ref) {
   final manager = ref.watch(contentLanguageManagerProvider);
   final service = OptimisticService<ContentLangSet>(manager: manager);
 
-  if (manager.snapshot.isEmpty) {
-    service.initialize([_initialLangSet(ref)]);
-  }
-
-  ref.watch(currentUserInterestsSetProvider(InterestSetType.languages)).whenData((entity) {
+  ref.watch(currentUserInterestsSetProvider(InterestSetType.languages).future).then((entity) {
     final pubkey = ref.read(currentPubkeySelectorProvider);
-    if (entity == null || pubkey == null) return;
+    if (pubkey == null) return;
 
     service.initialize([
-      ContentLangSet(
-        pubkey: pubkey,
-        hashtags: entity.data.hashtags,
-      ).sorted,
+      if (entity != null)
+        ContentLangSet(
+          pubkey: pubkey,
+          hashtags: entity.data.hashtags,
+        ).sorted
+      else
+        _initialLangSet(ref),
     ]);
   });
 
