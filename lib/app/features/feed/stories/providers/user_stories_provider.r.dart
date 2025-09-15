@@ -31,13 +31,6 @@ class UserStories extends _$UserStories {
     return data;
   }
 
-  void refresh() {
-    final dataSources = ref.read(userStoriesDataSourceProvider(pubkey: pubkey));
-    if (dataSources != null) {
-      ref.invalidate(entitiesPagedDataProvider(dataSources));
-    }
-  }
-
   void removeStory(String id) {
     state = state?.where((story) => story.data.replaceableEventId.value != id);
   }
