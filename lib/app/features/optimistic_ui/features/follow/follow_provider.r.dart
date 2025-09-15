@@ -65,5 +65,27 @@ class ToggleFollowNotifier extends _$ToggleFollowNotifier {
     );
 
     await service.dispatch(ToggleFollowIntent(), current);
+
+    await ref.read(toogleWatchNotifierProvider.notifier).toggle(
+          following: !current.following,
+          pubkey: pubkey,
+        );
+  }
+}
+
+@riverpod
+class ToogleWatchNotifier extends _$ToogleWatchNotifier {
+  @override
+  String? build() => null;
+
+  Future<void> toggle({
+    required bool following,
+    required String pubkey,
+  }) async {
+    if (following) {
+      state = pubkey;
+    } else {
+      state = null;
+    }
   }
 }
