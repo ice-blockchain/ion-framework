@@ -31,7 +31,8 @@ import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/share/share.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-const _abbreviationsToExclude = {'TON', 'ION', 'ICE'};
+// for those assets we can't build the explorer url right away and need to wait till confirmed
+const abbreviationsToExclude = {'TON', 'ION', 'ICE'};
 
 class TransactionDetailsPage extends ConsumerWidget {
   const TransactionDetailsPage({
@@ -105,7 +106,7 @@ class _TransactionDetailsContent extends StatelessWidget {
     final assetAbbreviation =
         transaction.assetData.mapOrNull(coin: (coin) => coin.coinsGroup)?.abbreviation;
 
-    final disableTransactionDetailsButtons = _abbreviationsToExclude.contains(assetAbbreviation) &&
+    final disableTransactionDetailsButtons = abbreviationsToExclude.contains(assetAbbreviation) &&
         transaction.status != TransactionStatus.confirmed;
 
     return CustomScrollView(
