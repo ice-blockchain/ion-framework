@@ -211,10 +211,6 @@ jobs:
             ~/.pub-cache
             ./*
           key: ${{ github.sha }}_${{ github.run_number }}
-      - name: Setup Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
       - name: Mask APP environment and keys in logs
         id: mask-secrets
         run: |
