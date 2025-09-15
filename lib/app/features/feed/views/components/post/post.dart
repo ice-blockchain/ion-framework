@@ -343,7 +343,6 @@ final class _QuotedPost extends ConsumerWidget {
         },
         child: AbsorbPointer(
           child: Post(
-            videoAutoplay: false,
             accentTheme: accentTheme,
             eventReference: eventReference,
             displayQuote: false,
