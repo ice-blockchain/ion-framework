@@ -215,8 +215,9 @@ class _StoryOwnerUserInfo extends ConsumerWidget {
       start: 12.0.s,
       end: 14.0.s,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IonConnectAvatar(size: 20, masterPubkey: masterPubkey),
+          IonConnectAvatar(size: 20.s, masterPubkey: masterPubkey),
           SizedBox(width: 4.0.s),
           Expanded(
             child: Text(
