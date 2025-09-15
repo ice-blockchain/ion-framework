@@ -10,7 +10,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class ContentCreationBlockedModal extends HookConsumerWidget {
+class ContentCreationBlockedModal extends ConsumerWidget {
   const ContentCreationBlockedModal({super.key});
 
   @override
@@ -29,7 +29,6 @@ class ContentCreationBlockedModal extends HookConsumerWidget {
               Assets.svg.walleticonwalletemptypost.icon(size: 80.s),
               SizedBox(height: 10.s),
               Text(
-                //
                 locale.feed_content_creation_blocked_title,
                 style: textStyles.title,
                 textAlign: TextAlign.center,
