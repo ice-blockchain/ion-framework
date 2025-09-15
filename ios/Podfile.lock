@@ -102,6 +102,8 @@ PODS:
     - BNBSdkCore (= 1.17.5)
   - camera_avfoundation (0.0.1):
     - Flutter
+  - cryptography_flutter (0.2.0):
+    - Flutter
   - device_info_plus (0.0.1):
     - Flutter
   - DKImagePickerController/Core (4.3.9):
@@ -416,6 +418,7 @@ DEPENDENCIES:
   - bdk_flutter (from `.symlinks/plugins/bdk_flutter/ios`)
   - blurhash_ffi (from `.symlinks/plugins/blurhash_ffi/ios`)
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
+  - cryptography_flutter (from `.symlinks/plugins/cryptography_flutter/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - external_app_launcher (from `.symlinks/plugins/external_app_launcher/ios`)
   - ffmpeg_kit_flutter (from `.symlinks/plugins/ffmpeg_kit_flutter/ios`)
@@ -524,6 +527,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/blurhash_ffi/ios"
   camera_avfoundation:
     :path: ".symlinks/plugins/camera_avfoundation/ios"
+  cryptography_flutter:
+    :path: ".symlinks/plugins/cryptography_flutter/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   external_app_launcher:
@@ -634,6 +639,7 @@ SPEC CHECKSUMS:
   BNBSdkCore: 525306d0db8e734343528fabb63bd5999fa58fe4
   BNBSkin: ea11d0dd3a922afa20a4816eef813d17ef7f3118
   camera_avfoundation: be3be85408cd4126f250386828e9b1dfa40ab436
+  cryptography_flutter: 70166b3780db39960caf51fd90fe308bec22d3f1
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
