@@ -90,7 +90,6 @@ class _TransactionDetailsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final locale = context.i18n;
     // Calculate derived values
     final arrivalTime =
         transaction.status == TransactionStatus.confirmed && transaction.dateConfirmed != null
@@ -110,123 +109,53 @@ class _TransactionDetailsContent extends StatelessWidget {
         transaction.status != TransactionStatus.confirmed;
 
     return CustomScrollView(
+      shrinkWrap: true,
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverToBoxAdapter(
           child: ScreenSideOffset.small(
             child: Column(
               children: [
-                transaction.assetData.maybeMap(
-                      coin: (coin) => TransactionAmountSummary(
-                        amount: coin.amount,
-                        currency: coin.coinsGroup.abbreviation,
-                        usdAmount: coin.amountUSD,
-                        icon: CoinIconWidget(
-                          imageUrl: coin.coinsGroup.iconUrl,
-                          type: WalletItemIconType.medium(),
-                        ),
-                        isFailed: transaction.status == TransactionStatus.failed,
-                        transactionType: transaction.type,
-                      ),
-                      nft: (nft) => Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 52.0.s,
-                        ),
-                        child: NftItem(
-                          nftData: nft.nft,
-                          backgroundColor: Colors.transparent,
-                        ),
-                      ),
-                      orElse: () => const SizedBox(),
-                    ) ??
-                    const SizedBox(),
+                _AssetHeader(transaction: transaction),
                 SizedBox(height: 12.0.s),
-                Timeline(
-                  items: [
-                    if (transaction.status == TransactionStatus.failed)
-                      TimelineItemData(
-                        title: locale.transaction_details_timeline_failed,
-                        isFailed: true,
-                      )
-                    else
-                      TimelineItemData(
-                        title: locale.transaction_details_timeline_pending,
-                        isDone: true,
-                        date: transaction.dateRequested,
-                      ),
-                    TimelineItemData(
-                      title: locale.transaction_details_timeline_executing,
-                      isDone: transaction.dateBroadcasted != null ||
-                          transaction.status == TransactionStatus.confirmed ||
-                          transaction.status == TransactionStatus.broadcasted,
-                    ),
-                    TimelineItemData(
-                      title: locale.transaction_details_timeline_successful,
-                      isDone: transaction.dateConfirmed != null &&
-                          transaction.status == TransactionStatus.confirmed,
-                    ),
-                  ],
-                ),
+                _TimelineSection(transaction: transaction),
                 SizedBox(height: 12.0.s),
-                TransactionParticipant(
+                _ParticipantSection(
                   address: participantAddress,
                   transactionType: transaction.type,
                   pubkey: transaction.participantPubkey,
                 ),
                 if (transaction.memo != null) ...[
                   SizedBox(height: 12.0.s),
-                  ListItem.text(
-                    title: Text(locale.wallet_memo),
-                    value: transaction.memo!,
-                  ),
+                  _MemoSection(memo: transaction.memo!),
                 ],
                 SizedBox(height: 12.0.s),
                 if (currentUserAddress case final String userAddress)
-                  ListItem.textWithIcon(
-                    title: Text(locale.wallet_title),
-                    value: transaction.walletViewName,
-                    icon: Assets.svg.walletWalletblue.icon(size: 16.s),
-                    secondary: Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: Text(
-                        userAddress,
-                        textAlign: TextAlign.right,
-                        style: context.theme.appTextThemes.caption3,
-                      ),
-                    ),
+                  _WalletRow(
+                    walletViewName: transaction.walletViewName,
+                    userAddress: userAddress,
                   ),
-                ...transaction.assetData.maybeMap(
-                      coin: (coin) => [
-                        SizedBox(height: 12.0.s),
-                        ListItem.textWithIcon(
-                          title: Text(locale.wallet_asset),
-                          value: coin.coinsGroup.abbreviation,
-                          icon: CoinIconWidget(
-                            imageUrl: coin.coinsGroup.iconUrl,
-                            type: WalletItemIconType.small(),
-                          ),
-                        ),
-                      ],
-                      orElse: () => const [SizedBox.shrink()],
-                    ) ??
-                    const [SizedBox.shrink()],
+                if (transaction.assetData.mapOrNull(coin: (c) => c) != null) ...[
+                  SizedBox(height: 12.0.s),
+                  _AssetRow(
+                    abbreviation:
+                        transaction.assetData.mapOrNull(coin: (c) => c.coinsGroup.abbreviation)!,
+                    iconUrl: transaction.assetData.mapOrNull(coin: (c) => c.coinsGroup.iconUrl)!,
+                  ),
+                ],
                 SizedBox(height: 12.0.s),
-                ListItem.textWithIcon(
-                  title: Text(locale.send_nft_confirm_network),
-                  value: transaction.network.displayName,
-                  icon: NetworkIconWidget(
-                    type: WalletItemIconType.small(),
-                    imageUrl: transaction.network.image,
-                  ),
+                _NetworkRow(
+                  displayName: transaction.network.displayName,
+                  imageUrl: transaction.network.image,
                 ),
                 SizedBox(height: 12.0.s),
                 if (arrivalTime != null) ...[
-                  ListItemArrivalTime(formattedTime: arrivalTime),
+                  _ArrivalRow(formattedTime: arrivalTime),
                   SizedBox(height: 12.0.s),
                 ],
                 if (transaction.networkFeeOption != null &&
                     transaction.type == TransactionType.send) ...[
-                  ListItemNetworkFee(
+                  _NetworkFeeRow(
                     value: formatCrypto(
                       transaction.networkFeeOption!.amount,
                       transaction.networkFeeOption!.symbol,
@@ -234,7 +163,7 @@ class _TransactionDetailsContent extends StatelessWidget {
                   ),
                   SizedBox(height: 15.0.s),
                 ],
-                TransactionDetailsActions(
+                _ActionsSection(
                   disableButtons: disableTransactionDetailsButtons,
                   onViewOnExplorer: onViewOnExplorer,
                   onShare: () => shareContent(transaction.transactionExplorerUrl),
@@ -248,6 +177,221 @@ class _TransactionDetailsContent extends StatelessWidget {
           child: ScreenBottomOffset(),
         ),
       ],
+    );
+  }
+}
+
+class _AssetHeader extends StatelessWidget {
+  const _AssetHeader({required this.transaction});
+
+  final TransactionDetails transaction;
+
+  @override
+  Widget build(BuildContext context) {
+    return transaction.assetData.mapOrNull(
+          coin: (coin) => TransactionAmountSummary(
+            amount: coin.amount,
+            currency: coin.coinsGroup.abbreviation,
+            usdAmount: coin.amountUSD,
+            icon: CoinIconWidget(
+              imageUrl: coin.coinsGroup.iconUrl,
+              type: WalletItemIconType.medium(),
+            ),
+            isFailed: transaction.status == TransactionStatus.failed,
+            transactionType: transaction.type,
+          ),
+          nft: (nft) => Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 52.0.s,
+            ),
+            child: NftItem(
+              nftData: nft.nft,
+              backgroundColor: Colors.transparent,
+            ),
+          ),
+        ) ??
+        const SizedBox();
+  }
+}
+
+class _TimelineSection extends StatelessWidget {
+  const _TimelineSection({required this.transaction});
+
+  final TransactionDetails transaction;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = context.i18n;
+
+    return Timeline(
+      items: [
+        if (transaction.status == TransactionStatus.failed)
+          TimelineItemData(
+            title: locale.transaction_details_timeline_failed,
+            isFailed: true,
+          )
+        else
+          TimelineItemData(
+            title: locale.transaction_details_timeline_pending,
+            isDone: true,
+            date: transaction.dateRequested,
+          ),
+        TimelineItemData(
+          title: locale.transaction_details_timeline_executing,
+          isDone: transaction.dateBroadcasted != null ||
+              transaction.status == TransactionStatus.confirmed ||
+              transaction.status == TransactionStatus.broadcasted,
+        ),
+        TimelineItemData(
+          title: locale.transaction_details_timeline_successful,
+          isDone: transaction.dateConfirmed != null &&
+              transaction.status == TransactionStatus.confirmed,
+        ),
+      ],
+    );
+  }
+}
+
+class _ParticipantSection extends StatelessWidget {
+  const _ParticipantSection({
+    required this.address,
+    required this.transactionType,
+    required this.pubkey,
+  });
+
+  final String? address;
+  final TransactionType transactionType;
+  final String? pubkey;
+
+  @override
+  Widget build(BuildContext context) {
+    return TransactionParticipant(
+      address: address,
+      transactionType: transactionType,
+      pubkey: pubkey,
+    );
+  }
+}
+
+class _MemoSection extends StatelessWidget {
+  const _MemoSection({required this.memo});
+
+  final String memo;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = context.i18n;
+    return ListItem.text(
+      title: Text(locale.wallet_memo),
+      value: memo,
+    );
+  }
+}
+
+class _WalletRow extends StatelessWidget {
+  const _WalletRow({required this.walletViewName, required this.userAddress});
+
+  final String? walletViewName;
+  final String userAddress;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = context.i18n;
+    return ListItem.textWithIcon(
+      title: Text(locale.wallet_title),
+      value: walletViewName,
+      icon: Assets.svg.walletWalletblue.icon(size: 16.s),
+      secondary: Align(
+        alignment: AlignmentDirectional.centerEnd,
+        child: Text(
+          userAddress,
+          textAlign: TextAlign.right,
+          style: context.theme.appTextThemes.caption3,
+        ),
+      ),
+    );
+  }
+}
+
+class _AssetRow extends StatelessWidget {
+  const _AssetRow({required this.abbreviation, required this.iconUrl});
+
+  final String abbreviation;
+  final String iconUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = context.i18n;
+    return ListItem.textWithIcon(
+      title: Text(locale.wallet_asset),
+      value: abbreviation,
+      icon: CoinIconWidget(
+        imageUrl: iconUrl,
+        type: WalletItemIconType.small(),
+      ),
+    );
+  }
+}
+
+class _NetworkRow extends StatelessWidget {
+  const _NetworkRow({required this.displayName, required this.imageUrl});
+
+  final String displayName;
+  final String imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = context.i18n;
+    return ListItem.textWithIcon(
+      title: Text(locale.send_nft_confirm_network),
+      value: displayName,
+      icon: NetworkIconWidget(
+        type: WalletItemIconType.small(),
+        imageUrl: imageUrl,
+      ),
+    );
+  }
+}
+
+class _ArrivalRow extends StatelessWidget {
+  const _ArrivalRow({required this.formattedTime});
+
+  final String formattedTime;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListItemArrivalTime(formattedTime: formattedTime);
+  }
+}
+
+class _NetworkFeeRow extends StatelessWidget {
+  const _NetworkFeeRow({required this.value});
+
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListItemNetworkFee(value: value);
+  }
+}
+
+class _ActionsSection extends StatelessWidget {
+  const _ActionsSection({
+    required this.disableButtons,
+    required this.onViewOnExplorer,
+    required this.onShare,
+  });
+
+  final bool disableButtons;
+  final VoidCallback onViewOnExplorer;
+  final VoidCallback onShare;
+
+  @override
+  Widget build(BuildContext context) {
+    return TransactionDetailsActions(
+      disableButtons: disableButtons,
+      onViewOnExplorer: onViewOnExplorer,
+      onShare: onShare,
     );
   }
 }
