@@ -17,6 +17,26 @@ int likesCount(Ref ref, EventReference eventReference) {
 
   if (optimistic != null) return optimistic;
 
+  // Get all reaction entities from cache to count unique likes
+  final cache = ref.watch(ionConnectCacheProvider);
+  final uniqueLikes = cache.values
+      .map((e) => e.entity)
+      .whereType<ReactionEntity>()
+      .where(
+          (reaction) =>
+              reaction.data.eventReference == eventReference &&
+              reaction.data.content == ReactionEntity.likeSymbol,
+        )
+      .map((reaction) => reaction.masterPubkey)
+      .toSet()
+      .length;
+
+  // If we have reactions in cache, use that count (more accurate)
+  if (uniqueLikes > 0) {
+    return uniqueLikes;
+  }
+
+  // Fall back to the count from EventCountResultEntity if no reactions in cache
   final counterEntity = ref.watch(
     ionConnectCacheProvider.select(
       cacheSelector<EventCountResultEntity>(
