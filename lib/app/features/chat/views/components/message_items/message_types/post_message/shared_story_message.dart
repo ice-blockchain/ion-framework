@@ -12,6 +12,7 @@ import 'package:ion/app/features/chat/hooks/use_has_reaction.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_item_wrapper/message_item_wrapper.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/text_message/text_message.dart';
+import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/components/ion_connect_network_image/ion_connect_network_image.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -22,6 +23,7 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -157,11 +159,16 @@ class SharedStoryMessage extends HookConsumerWidget {
                   SizedBox(height: 3.0.s),
                   if (storyBelongsToCurrentUser ||
                       (storyUrl.isNotEmpty && !storyDeleted && !storyExpired))
-                    _StoryPreviewImage(
-                      isMe: isMe,
-                      storyUrl: storyUrl,
-                      replyEventMessage: replyEventMessage,
-                      isThumb: storyMedia.mediaType == MediaType.video,
+                    Stack(
+                      children: [
+                        _StoryPreviewImage(
+                          isMe: isMe,
+                          storyUrl: storyUrl,
+                          replyEventMessage: replyEventMessage,
+                          isThumb: storyMedia.mediaType == MediaType.video,
+                        ),
+                        _StoryOwnerUserInfo(masterPubkey: storyEntity.masterPubkey),
+                      ],
                     )
                   else
                     _UnavailableStoryContainer(isMe: isMe, replyEventMessage: replyEventMessage),
@@ -183,6 +190,54 @@ class SharedStoryMessage extends HookConsumerWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _StoryOwnerUserInfo extends ConsumerWidget {
+  const _StoryOwnerUserInfo({required this.masterPubkey});
+
+  final String masterPubkey;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userMetadata = ref.watch(userMetadataFromDbProvider(masterPubkey));
+
+    final isDeleted = ref.watch(isUserDeletedProvider(masterPubkey)).valueOrNull ?? false;
+
+    if (userMetadata == null && !isDeleted) {
+      return const SizedBox.shrink();
+    }
+
+    return PositionedDirectional(
+      top: 12.0.s,
+      start: 12.0.s,
+      end: 14.0.s,
+      child: Row(
+        children: [
+          IonConnectAvatar(size: 20, masterPubkey: masterPubkey),
+          SizedBox(width: 4.0.s),
+          Expanded(
+            child: Text(
+              isDeleted
+                  ? context.i18n.common_deleted_account
+                  : userMetadata?.data.displayName ?? '',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.theme.appTextThemes.caption3.copyWith(
+                color: context.theme.appColors.secondaryBackground,
+                shadows: [
+                  const Shadow(
+                    offset: Offset(0, 1),
+                    blurRadius: 1,
+                    color: Color.fromRGBO(0, 0, 0, 0.4),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
