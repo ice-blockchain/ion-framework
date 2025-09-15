@@ -14,7 +14,6 @@ part 'user_stories_provider.r.g.dart';
 class UserStories extends _$UserStories {
   @override
   Iterable<ModifiablePostEntity>? build(String pubkey) {
-    keepAliveWhenAuthenticated(ref);
     final dataSources = ref.watch(userStoriesDataSourceProvider(pubkey: pubkey));
     if (dataSources == null) {
       return null;
@@ -30,13 +29,6 @@ class UserStories extends _$UserStories {
         .toList();
 
     return data;
-  }
-
-  void refresh() {
-    final dataSources = ref.read(userStoriesDataSourceProvider(pubkey: pubkey));
-    if (dataSources != null) {
-      ref.invalidate(entitiesPagedDataProvider(dataSources));
-    }
   }
 
   void removeStory(String id) {
