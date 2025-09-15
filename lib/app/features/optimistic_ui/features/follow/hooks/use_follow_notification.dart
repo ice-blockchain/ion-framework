@@ -15,9 +15,9 @@ void useFollowNotifications(
   String username,
 ) {
   ref.listen(
-    followSuccessNotifierProvider,
+    followSuccessNotifierProvider(pubkey),
     (previous, next) {
-      if (next == pubkey) {
+      if (next) {
         ref.read(messageNotificationNotifierProvider.notifier).show(
               MessageNotification(
                 message: context.i18n.follow_user_message(username),
