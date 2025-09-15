@@ -59,7 +59,7 @@ class StoryListItem extends HookConsumerWidget {
               onTap: () => StoryViewerRoute(pubkey: pubkey).push<void>(context),
             ),
             PositionedDirectional(
-              start: 0,
+              end: 0,
               bottom: 18.0.s,
               child: StoryItemFollowButton(
                 pubkey: pubkey,

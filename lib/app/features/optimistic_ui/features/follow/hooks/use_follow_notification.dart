@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
 import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
+import 'package:ion/app/features/optimistic_ui/features/follow/follow_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 void useFollowNotifications(
@@ -15,7 +15,7 @@ void useFollowNotifications(
   String username,
 ) {
   ref.listen(
-    isCurrentUserFollowingSelectorProvider(pubkey),
+    followSuccessNotifierProvider(pubkey),
     (previous, next) {
       if (next) {
         ref.read(messageNotificationNotifierProvider.notifier).show(
