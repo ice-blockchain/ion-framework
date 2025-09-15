@@ -5,10 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
-import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/permissions/data/models/permissions_types.dart';
@@ -18,9 +15,9 @@ import 'package:ion/app/features/core/views/pages/error_modal.dart';
 import 'package:ion/app/features/feed/constants/video_constants.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/nft/sync/nft_collection_sync_controller.r.dart';
+import 'package:ion/app/features/feed/views/components/content_creation_blocked_modal/content_creation_blocked_modal.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_page.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/main_modal_item.dart';
@@ -29,7 +26,6 @@ import 'package:ion/app/router/model/main_modal_list_item.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/services/media_service/banuba_service.r.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
-import 'package:ion/generated/assets.gen.dart';
 
 class FeedMainModalPage extends ConsumerWidget {
   const FeedMainModalPage({super.key});
@@ -48,7 +44,7 @@ class FeedMainModalPage extends ConsumerWidget {
         child: hasNftCollectionState.when(
           data: (hasContentNftCollection) => hasContentNftCollection
               ? const _CreateContentModal()
-              : const _ContentCreationBlockedModal(),
+              : const ContentCreationBlockedModal(),
           loading: () => const _CreateContentLoadingModal(),
           error: (error, __) => ErrorModal(error: error),
         ),
@@ -90,53 +86,6 @@ class _CreateContentModal extends StatelessWidget {
             }
           },
         ),
-      ],
-    );
-  }
-}
-
-class _ContentCreationBlockedModal extends HookConsumerWidget {
-  const _ContentCreationBlockedModal();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final textStyles = context.theme.appTextThemes;
-    final colors = context.theme.appColors;
-    final locale = context.i18n;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ScreenSideOffset.medium(
-          child: Column(
-            children: [
-              SizedBox(height: 24.s),
-              Assets.svg.walleticonwalletemptypost.icon(size: 80.s),
-              SizedBox(height: 10.s),
-              Text(
-                locale.feed_content_creation_blocked_title,
-                style: textStyles.title,
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 8.s),
-              Text(
-                locale.feed_content_creation_blocked_description,
-                style: textStyles.body2.copyWith(color: colors.secondaryText),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 24.s),
-              Button(
-                minimumSize: Size(double.infinity, 56.s),
-                label: Text(locale.button_try_again),
-                leadingIcon: Assets.svg.iconbuttonTryagain.icon(size: 24.s),
-                onPressed: () {
-                  invalidateCurrentUserMetadataProviders(ref);
-                },
-              ),
-            ],
-          ),
-        ),
-        ScreenBottomOffset(),
       ],
     );
   }

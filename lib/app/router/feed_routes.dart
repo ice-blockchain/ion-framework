@@ -62,6 +62,7 @@ class FeedRoutes {
         TypedGoRoute<SelectTopicsRoute>(path: 'topics'),
         TypedGoRoute<EditArticleRoute>(path: 'create-article/edit/:modifiedEvent'),
         TypedGoRoute<EditArticlePreviewRoute>(path: 'article-preview/edit/:modifiedEvent'),
+        TypedGoRoute<FeedContentCreationBlockedModalRoute>(path: 'content-creation-blocked'),
       ],
     ),
     TypedGoRoute<InviteFriendsRoute>(path: 'invite-friends-fullstack'),
@@ -544,5 +545,14 @@ class InviteFriendsRoute extends BaseRouteData with _$InviteFriendsRoute {
   InviteFriendsRoute()
       : super(
           child: const InviteFriendsPage(),
+        );
+}
+
+class FeedContentCreationBlockedModalRoute extends BaseRouteData
+    with _$FeedContentCreationBlockedModalRoute {
+  FeedContentCreationBlockedModalRoute()
+      : super(
+          child: const FeedContentCreationBlockedModalPage(),
+          type: IceRouteType.bottomSheet,
         );
 }
