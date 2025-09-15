@@ -109,7 +109,12 @@ class DocumentMessage extends HookConsumerWidget {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              shareFile(localFile.value?.path ?? '', name: entity.data.content);
+              final filePath = localFile.value?.path;
+              final fileName = mediaAttachment?.alt ?? '';
+
+              if (filePath != null) {
+                shareFile(filePath, name: fileName);
+              }
             },
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
