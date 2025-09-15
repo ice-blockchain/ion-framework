@@ -33,6 +33,8 @@ class TransactionsTable extends Table {
   TextColumn get assetId => text().nullable()();
   // NFT identifier (contract_tokenId format)
   TextColumn get nftIdentifier => text().nullable()();
+  // Asset contract address for tokens/NFTs
+  TextColumn get assetContractAddress => text().nullable()();
   // If asset is coin
   TextColumn get transferredAmount => text().nullable()();
   RealColumn get transferredAmountUsd => real().nullable()();

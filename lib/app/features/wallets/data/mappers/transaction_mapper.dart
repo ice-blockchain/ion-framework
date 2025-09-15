@@ -117,6 +117,7 @@ class CoinTransactionsMapper {
             transferredAmount: content.amount,
             transferredAmountUsd: double.tryParse(content.amountUsd ?? '0'),
             eventId: entity.id,
+            assetContractAddress: entity.data.assetAddress,
           );
         })
         .nonNulls
@@ -126,7 +127,7 @@ class CoinTransactionsMapper {
   List<db.Transaction> fromDomainToDB(Iterable<TransactionData> transactions) =>
       transactions.map((transaction) {
         return transaction.cryptoAsset.when(
-          coin: (coin, amount, amountUSD, rawAmount, unusedParam) => db.Transaction(
+          coin: (coin, amount, amountUSD, rawAmount) => db.Transaction(
             type: transaction.type.value,
             txHash: transaction.txHash,
             id: transaction.id,
@@ -184,6 +185,26 @@ class CoinTransactionsMapper {
             createdAtInRelay: transaction.createdAtInRelay,
             userPubkey: transaction.userPubkey,
             memo: transaction.memo,
+          ),
+          undefinedCoin: (String contractAddress, String rawAmount) => db.Transaction(
+            type: transaction.type.value,
+            txHash: transaction.txHash,
+            id: transaction.id,
+            fee: transaction.fee,
+            externalHash: transaction.externalHash,
+            walletViewId: transaction.walletViewId,
+            dateConfirmed: transaction.dateConfirmed,
+            dateRequested: transaction.dateRequested,
+            transferredAmount: rawAmount,
+            networkId: transaction.network.id,
+            status: transaction.status.toJson(),
+            nativeCoinId: transaction.nativeCoin?.id,
+            senderWalletAddress: transaction.senderWalletAddress,
+            receiverWalletAddress: transaction.receiverWalletAddress,
+            createdAtInRelay: transaction.createdAtInRelay,
+            userPubkey: transaction.userPubkey,
+            memo: transaction.memo,
+            assetContractAddress: contractAddress,
           ),
         );
       }).toList();

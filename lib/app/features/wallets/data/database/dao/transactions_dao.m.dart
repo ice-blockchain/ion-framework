@@ -71,6 +71,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
 
         return toInsertRaw.copyWith(
           id: Value(existing.id ?? toInsertRaw.id),
+          coinId: Value(existing.coinId ?? toInsertRaw.coinId),
           fee: Value(existing.fee ?? toInsertRaw.fee),
           eventId: Value(existing.eventId ?? toInsertRaw.eventId),
           userPubkey: Value(existing.userPubkey ?? toInsertRaw.userPubkey),
@@ -80,6 +81,9 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
           transferredAmount: Value(existing.transferredAmount ?? toInsertRaw.transferredAmount),
           transferredAmountUsd: Value(
             existing.transferredAmountUsd ?? toInsertRaw.transferredAmountUsd,
+          ),
+          assetContractAddress: Value(
+            existing.assetContractAddress ?? toInsertRaw.assetContractAddress,
           ),
         );
       });
@@ -349,6 +353,45 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         .watchSingleOrNull();
   }
 
+  /// Watches transactions that have undefined tokens (no coinId but have assetContractAddress)
+  Stream<List<TransactionData>> watchUndefinedCoinTransactions() {
+    final transactionCoinAlias = alias(coinsTable, 'transactionCoin');
+    final nativeCoinAlias = alias(coinsTable, 'nativeCoin');
+
+    final query = (select(transactionsTable)
+          ..where(
+            (tbl) =>
+                tbl.coinId.isNull() &
+                tbl.nftIdentifier.isNull() &
+                tbl.assetContractAddress.isNotNull(),
+          ))
+        .join([
+      leftOuterJoin(
+        networksTable,
+        networksTable.id.equalsExp(transactionsTable.networkId),
+      ),
+      leftOuterJoin(
+        transactionCoinAlias,
+        transactionCoinAlias.id.equalsExp(transactionsTable.coinId),
+      ),
+      leftOuterJoin(
+        nativeCoinAlias,
+        nativeCoinAlias.id.equalsExp(transactionsTable.nativeCoinId),
+      ),
+    ]);
+
+    return query
+        .map(
+          (row) => _mapRowToDomainModel(
+            row,
+            transactionCoinAlias: transactionCoinAlias,
+            nativeCoinAlias: nativeCoinAlias,
+          ),
+        )
+        .watch()
+        .map((transactions) => transactions.whereType<TransactionData>().toList());
+  }
+
   TransactionData? _mapRowToDomainModel(
     TypedResult row, {
     required $CoinsTableTable nativeCoinAlias,
@@ -376,9 +419,13 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         nftIdentifier: NftIdentifier.parseIdentifier(identifierSource),
         network: domainNetwork,
       );
-    } else {
-      // Handle coin transaction
-      if (transactionCoin == null) {
+    } else if (transactionCoin == null) {
+      if (transaction.assetContractAddress != null) {
+        cryptoAsset = TransactionCryptoAsset.undefinedCoin(
+          contractAddress: transaction.assetContractAddress!,
+          rawAmount: transaction.transferredAmount ?? '0',
+        );
+      } else {
         Logger.warning(
           '[TRANSACTIONS_DAO] Transaction ${transaction.txHash} has no associated coin. '
           'Coin ID: ${transaction.coinId} | Network: ${network.id} | WalletView: ${transaction.walletViewId}. '
@@ -386,7 +433,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         );
         return null;
       }
-
+    } else {
       final transferredAmount = transaction.transferredAmount ?? '0';
       final transferredCoin = CoinData.fromDB(transactionCoin, domainNetwork);
 

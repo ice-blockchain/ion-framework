@@ -14,6 +14,9 @@ class CoinInWalletData with _$CoinInWalletData {
     @Default(0) double balanceUSD,
     String? walletId, // real wallet, not wallet view. Can be null if wallet wasn't created.
     String? walletAddress,
+    // contract address, that was specified directly in the wallet view
+    // and it is not equal to the coin contract address
+    String? walletAssetContractAddress,
   }) = _CoinInWalletData;
 
   const CoinInWalletData._();

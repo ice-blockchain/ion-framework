@@ -67,6 +67,9 @@ class TransactionDetails with _$TransactionDetails {
         nftIdentifier: (nftIdentifier) => throw const FormatException(
           'NFT identifier should be resolved to full NFT data before creating TransactionDetails',
         ),
+        undefinedCoin: (_) => throw const FormatException(
+          'Undefined token should be resolved to coin data before creating TransactionDetails',
+        ),
       ),
       walletViewName: walletViewName,
       senderAddress: transaction.senderWalletAddress,
