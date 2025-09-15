@@ -78,7 +78,7 @@ class Article extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entity =
-        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
+        ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference)).valueOrNull;
 
     if (entity is! ArticleEntity) {
       return Padding(

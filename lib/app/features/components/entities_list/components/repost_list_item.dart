@@ -30,7 +30,7 @@ class RepostListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final repostEntity =
-        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
+        ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference)).valueOrNull;
 
     if (repostEntity == null) {
       return const Skeleton(child: PostSkeleton());

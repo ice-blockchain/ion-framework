@@ -66,7 +66,7 @@ class EntitiesList extends HookWidget {
   }
 }
 
-class _EntityListItem extends ConsumerWidget {
+class _EntityListItem extends ConsumerStatefulWidget {
   _EntityListItem({
     required this.eventReference,
     required this.displayParent,
@@ -85,15 +85,22 @@ class _EntityListItem extends ConsumerWidget {
   final bool showMuted;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Subscribing to the entity here instead of passing it as param to get the updates
-    // e.g. when the entity is deleted
-    final entity = ref.watch(
-      ionConnectSyncEntityProvider(eventReference: eventReference, database: readFromDB),
-    );
+  ConsumerState<_EntityListItem> createState() => _EntityListItemState();
+}
+
+class _EntityListItemState extends ConsumerState<_EntityListItem>
+    with AutomaticKeepAliveClientMixin<_EntityListItem> {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    final entity =
+        ref.watch(ionConnectEntityProvider(eventReference: widget.eventReference)).valueOrNull;
 
     if (entity == null ||
-        _isBlockedOrMutedOrBlocking(ref, entity, showMuted) ||
+        _isBlockedOrMutedOrBlocking(ref, entity, widget.showMuted) ||
         _isDeleted(ref, entity) ||
         _isRepostedEntityDeleted(ref, entity) ||
         !_hasMetadata(ref, entity)) {
@@ -101,17 +108,17 @@ class _EntityListItem extends ConsumerWidget {
     }
 
     return _BottomSeparator(
-      height: separatorHeight,
+      height: widget.separatorHeight,
       child: switch (entity) {
         ModifiablePostEntity() || PostEntity() => PostListItem(
-            eventReference: entity.toEventReference(),
-            displayParent: displayParent,
-            onVideoTap: onVideoTap,
+            eventReference: widget.eventReference,
+            displayParent: widget.displayParent,
+            onVideoTap: widget.onVideoTap,
           ),
         final ArticleEntity article => ArticleListItem(article: article),
         GenericRepostEntity() ||
         RepostEntity() =>
-          RepostListItem(eventReference: entity.toEventReference(), onVideoTap: onVideoTap),
+          RepostListItem(eventReference: widget.eventReference, onVideoTap: widget.onVideoTap),
         _ => const SizedBox.shrink()
       },
     );
@@ -123,9 +130,9 @@ class _EntityListItem extends ConsumerWidget {
 
   bool _isRepostedEntityDeleted(WidgetRef ref, IonConnectEntity entity) {
     if (entity is GenericRepostEntity) {
-      final repostedEntity = ref.watch(
-        ionConnectSyncEntityWithCountersProvider(eventReference: entity.data.eventReference),
-      );
+      final repostedEntity = ref
+          .watch(ionConnectEntityWithCountersProvider(eventReference: entity.data.eventReference))
+          .valueOrNull;
       return repostedEntity == null ||
           (repostedEntity is SoftDeletableEntity && repostedEntity.isDeleted);
     }
@@ -138,13 +145,8 @@ class _EntityListItem extends ConsumerWidget {
     return isMuted || isBlockedOrBlockedBy;
   }
 
-  /// When we fetch lists (e.g. feed, search or data for tabs in profiles),
-  /// we don't need to fetch the user metadata or block list explicitly - it is returned as a side effect to the
-  /// main request.
-  /// In such cases, we just have to wait until the metadata and block list appears
-  /// in cache and then show the post (or not, if author is blocked/blocking).
   bool _hasMetadata(WidgetRef ref, IonConnectEntity entity) {
-    final userMetadata = ref.watch(userMetadataSyncProvider(entity.masterPubkey, network: false));
+    final userMetadata = ref.watch(userMetadataProvider(entity.masterPubkey)).valueOrNull;
     return userMetadata != null;
   }
 }
