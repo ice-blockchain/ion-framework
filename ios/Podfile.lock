@@ -102,6 +102,8 @@ PODS:
     - BNBSdkCore (= 1.17.5)
   - camera_avfoundation (0.0.1):
     - Flutter
+  - cryptography_flutter (0.2.0):
+    - Flutter
   - device_info_plus (0.0.1):
     - Flutter
   - DKImagePickerController/Core (4.3.9):

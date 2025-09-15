@@ -500,6 +500,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.7.0"
+  cryptography_flutter:
+    dependency: "direct main"
+    description:
+      path: cryptography_flutter
+      ref: "9893cd9"
+      resolved-ref: "9893cd9f0f6542c382004d339a0b64a3f115f8a0"
+      url: "https://github.com/zkrige/cryptography.git"
+    source: git
+    version: "2.3.2"
   cryptography_plus:
     dependency: transitive
     description:
