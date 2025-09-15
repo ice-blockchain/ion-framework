@@ -41,7 +41,8 @@ class StoryListItem extends HookConsumerWidget {
     }
 
     final isViewed = ref.watch(
-      viewedStoriesProvider.select((viewedStories) => viewedStories?.contains(storyReference) ?? false),
+      viewedStoriesProvider
+          .select((viewedStories) => viewedStories?.contains(storyReference) ?? false),
     );
 
     return Padding(
