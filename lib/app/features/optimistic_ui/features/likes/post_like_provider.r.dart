@@ -6,6 +6,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
@@ -27,12 +28,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'post_like_provider.r.g.dart';
 
-@riverpod
-List<PostLike> loadInitialLikesFromCache(Ref ref) {
+List<PostLike> _loadInitialLikesFromCache(Ref ref) {
   final currentPubkey = ref.read(currentPubkeySelectorProvider);
-  final reactions = ref
-      .read(ionConnectCacheProvider)
-      .values
+  final cache = ref.read(ionConnectCacheProvider);
+  final reactions = cache.values
       .map((e) => e.entity)
       .whereType<ReactionEntity>()
       .where((r) => r.data.content == ReactionEntity.likeSymbol)
@@ -46,7 +45,21 @@ List<PostLike> loadInitialLikesFromCache(Ref ref) {
   return grouped.entries.map((entry) {
     final eventRef = entry.key;
     final list = entry.value;
-    final count = list.length;
+
+    final counterCacheKey = EventCountResultEntity.cacheKeyBuilder(
+      key: eventRef.toString(),
+      type: EventCountResultType.reactions,
+    );
+    final counterEntity = cache[counterCacheKey]?.entity as EventCountResultEntity?;
+
+    int count;
+    if (counterEntity != null) {
+      final reactionsCount = counterEntity.data.content as Map<String, dynamic>;
+      count = (reactionsCount[ReactionEntity.likeSymbol] ?? 0) as int;
+    } else {
+      count = list.length;
+    }
+
     final likedByMe = currentPubkey != null && list.any((r) => r.pubkey == currentPubkey);
     return PostLike(
       eventReference: eventRef,
@@ -57,19 +70,30 @@ List<PostLike> loadInitialLikesFromCache(Ref ref) {
 }
 
 @riverpod
-OptimisticService<PostLike> postLikeService(Ref ref) {
-  keepAliveWhenAuthenticated(ref);
-  final manager = ref.watch(postLikeManagerProvider);
-  final loadInitialLikes = ref.watch(loadInitialLikesFromCacheProvider);
-  final service = OptimisticService<PostLike>(manager: manager)..initialize(loadInitialLikes);
+class PostLikeServiceNotifier extends _$PostLikeServiceNotifier {
+  bool _initialized = false;
+  late OptimisticService<PostLike> _service;
 
-  return service;
+  @override
+  OptimisticService<PostLike> build() {
+    keepAliveWhenAuthenticated(ref);
+    final manager = ref.watch(postLikeManagerProvider);
+    _service = OptimisticService<PostLike>(manager: manager);
+
+    if (!_initialized) {
+      final initialLikes = _loadInitialLikesFromCache(ref);
+      _service.initialize(initialLikes);
+      _initialized = true;
+    }
+
+    return _service;
+  }
 }
 
 @riverpod
 Stream<PostLike?> postLikeWatch(Ref ref, String id) {
   keepAliveWhenAuthenticated(ref);
-  final service = ref.watch(postLikeServiceProvider);
+  final service = ref.watch(postLikeServiceNotifierProvider);
   final manager = ref.watch(postLikeManagerProvider);
 
   var last = manager.snapshot.firstWhereOrNull((e) => e.optimisticId == id);
@@ -111,7 +135,7 @@ class ToggleLikeNotifier extends _$ToggleLikeNotifier {
 
   Future<void> toggle(EventReference eventReference) async {
     final userSentLikesDao = ref.read(userSentLikesDaoProvider);
-    final service = ref.read(postLikeServiceProvider);
+    final service = ref.read(postLikeServiceNotifierProvider);
     final id = eventReference.toString();
 
     if (await userSentLikesDao.hasUserLiked(eventReference)) {
