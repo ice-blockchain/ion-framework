@@ -7,6 +7,7 @@ import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avata
 import 'package:ion/generated/assets.gen.dart';
 
 part './variants/list_item_dapp.dart';
+part './variants/list_item_popup.dart';
 part './variants/list_item_text_with_icon.dart';
 part './variants/list_item_user.dart';
 
@@ -77,6 +78,14 @@ class ListItem extends StatelessWidget {
     bool verifiedBadge,
     bool isSelected,
   }) = _ListItemDApp;
+
+  factory ListItem.popup({
+    required Widget title,
+    required Widget subtitle,
+    Key? key,
+    Widget? leading,
+    Widget? trailing,
+  }) = _ListItemPopup;
 
   factory ListItem.text({
     required Widget title,
