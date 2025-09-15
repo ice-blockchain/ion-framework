@@ -60,13 +60,16 @@ void _handleNotification(
   if (!isAuthenticated) {
     return;
   }
-
+  final loadingNotification = type.loading();
   if (state.isLoading) {
-    ref.read(globalNotificationNotifierProvider.notifier).show(type.loading(), isPermanent: true);
+    ref
+        .read(globalNotificationNotifierProvider.notifier)
+        .show(loadingNotification, isPermanent: true);
   } else if (state.hasError && state.error != null) {
+    ref.read(globalNotificationNotifierProvider.notifier).hide(loadingNotification);
     showErrorModal(rootNavigatorKey.currentContext!, state.error!);
-    ref.read(globalNotificationNotifierProvider.notifier).hide();
   } else if (state.hasValue) {
+    ref.read(globalNotificationNotifierProvider.notifier).hide(loadingNotification);
     ref.read(globalNotificationNotifierProvider.notifier).show(type.ready());
   }
 }
