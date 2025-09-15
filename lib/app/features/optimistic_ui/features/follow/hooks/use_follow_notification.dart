@@ -15,7 +15,7 @@ void useFollowNotifications(
   String username,
 ) {
   ref.listen(
-    toogleWatchNotifierProvider,
+    followSuccessNotifierProvider,
     (previous, next) {
       if (next == pubkey) {
         ref.read(messageNotificationNotifierProvider.notifier).show(

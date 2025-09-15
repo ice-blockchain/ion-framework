@@ -66,7 +66,7 @@ class ToggleFollowNotifier extends _$ToggleFollowNotifier {
 
     await service.dispatch(ToggleFollowIntent(), current);
 
-    await ref.read(toogleWatchNotifierProvider.notifier).toggle(
+    await ref.read(followSuccessNotifierProvider.notifier).toggle(
           following: !current.following,
           pubkey: pubkey,
         );
@@ -74,7 +74,7 @@ class ToggleFollowNotifier extends _$ToggleFollowNotifier {
 }
 
 @riverpod
-class ToogleWatchNotifier extends _$ToogleWatchNotifier {
+class FollowSuccessNotifier extends _$FollowSuccessNotifier {
   @override
   String? build() => null;
 
