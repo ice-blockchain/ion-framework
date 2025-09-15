@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -53,6 +54,20 @@ class ContentCreationBlockedModal extends HookConsumerWidget {
         ),
         ScreenBottomOffset(),
       ],
+    );
+  }
+}
+
+class CreateContentLoadingModal extends StatelessWidget {
+  const CreateContentLoadingModal({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: 291.s),
+      child: const Center(
+        child: IONLoadingIndicatorThemed(),
+      ),
     );
   }
 }

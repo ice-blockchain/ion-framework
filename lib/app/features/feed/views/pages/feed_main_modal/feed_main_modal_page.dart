@@ -5,7 +5,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/permissions/data/models/permissions_types.dart';
@@ -45,7 +44,7 @@ class FeedMainModalPage extends ConsumerWidget {
           data: (hasContentNftCollection) => hasContentNftCollection
               ? const _CreateContentModal()
               : const ContentCreationBlockedModal(),
-          loading: () => const _CreateContentLoadingModal(),
+          loading: () => const CreateContentLoadingModal(),
           error: (error, __) => ErrorModal(error: error),
         ),
       ),
@@ -87,20 +86,6 @@ class _CreateContentModal extends StatelessWidget {
           },
         ),
       ],
-    );
-  }
-}
-
-class _CreateContentLoadingModal extends StatelessWidget {
-  const _CreateContentLoadingModal();
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: 291.s),
-      child: const Center(
-        child: IONLoadingIndicatorThemed(),
-      ),
     );
   }
 }
