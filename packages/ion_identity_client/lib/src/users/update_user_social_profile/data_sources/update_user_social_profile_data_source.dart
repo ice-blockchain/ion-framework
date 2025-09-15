@@ -51,9 +51,10 @@ class UpdateUserSocialProfileDataSource {
     final exception = e.error as DioException;
     if (InvalidNicknameException.isMatch(exception)) {
       return InvalidNicknameException();
-    }
-    if (NicknameAlreadyExistsException.isMatch(exception)) {
+    } else if (NicknameAlreadyExistsException.isMatch(exception)) {
       return NicknameAlreadyExistsException();
+    } else if (NicknameIsReservedException.isMatch(exception)) {
+      return NicknameIsReservedException();
     }
 
     return e;

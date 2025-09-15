@@ -185,6 +185,23 @@ class NicknameAlreadyExistsException extends IONIdentityException {
   }
 }
 
+class NicknameIsReservedException extends IONIdentityException {
+  NicknameIsReservedException() : super('Nickname is reserved');
+
+  static bool isMatch(DioException dioException) {
+    final responseData = dioException.response?.data;
+
+    try {
+      if (responseData is Map<String, dynamic>) {
+        return responseData['code'] == 'RESERVED';
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+}
+
 class InvalidRecoveryCredentialsException extends IONIdentityException {
   InvalidRecoveryCredentialsException() : super('Invalid recovery credentials');
 
