@@ -44,27 +44,25 @@ class EntitiesList extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListCachedEntities(
-      child: SliverList.builder(
-        itemCount: items.length,
-        itemBuilder: (BuildContext context, int index) {
-          final feedListItem = items[index];
-          return switch (feedListItem) {
-            CustomIonEntityListItem(child: final child) =>
-              _CustomListItem(separatorHeight: separatorHeight, child: child),
-            EventIonEntityListItem(eventReference: final eventReference) => _EntityListItem(
-                key: ValueKey(eventReference),
-                eventReference: eventReference,
-                displayParent: displayParent,
-                separatorHeight: separatorHeight,
-                onVideoTap: onVideoTap,
-                readFromDB: readFromDB,
-                showMuted: showMuted,
-              ),
-            IonEntityListItem() => const SizedBox.shrink()
-          };
-        },
-      ),
+    return SliverList.builder(
+      itemCount: items.length,
+      itemBuilder: (BuildContext context, int index) {
+        final feedListItem = items[index];
+        return switch (feedListItem) {
+          CustomIonEntityListItem(child: final child) =>
+            _CustomListItem(separatorHeight: separatorHeight, child: child),
+          EventIonEntityListItem(eventReference: final eventReference) => _EntityListItem(
+              key: ValueKey(eventReference),
+              eventReference: eventReference,
+              displayParent: displayParent,
+              separatorHeight: separatorHeight,
+              onVideoTap: onVideoTap,
+              readFromDB: readFromDB,
+              showMuted: showMuted,
+            ),
+          IonEntityListItem() => const SizedBox.shrink()
+        };
+      },
     );
   }
 }

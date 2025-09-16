@@ -11,10 +11,12 @@ class ListCachedEntities extends InheritedWidget {
   final List<IonConnectEntity> entities = [];
 
   static IonConnectEntity? maybeEntityOf(BuildContext context, EventReference eventReference) {
-    return context
+    final entity = context
         .dependOnInheritedWidgetOfExactType<ListCachedEntities>()
         ?.entities
         .firstWhereOrNull((entity) => entity.toEventReference() == eventReference);
+
+    return entity;
   }
 
   static void updateEntity(BuildContext context, IonConnectEntity entity) {
@@ -22,7 +24,7 @@ class ListCachedEntities extends InheritedWidget {
 
     if (entities == null) return;
 
-    final index = entities.indexWhere((e) => e.id == entity.id);
+    final index = entities.indexWhere((e) => e.toEventReference() == entity.toEventReference());
     if (index != -1) {
       if (entities[index] != entity) {
         final updatedEntities = List<IonConnectEntity>.from(entities);
