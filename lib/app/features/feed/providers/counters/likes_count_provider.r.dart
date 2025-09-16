@@ -17,6 +17,23 @@ int likesCount(Ref ref, EventReference eventReference) {
 
   if (optimistic != null) return optimistic;
 
+  final cache = ref.watch(ionConnectCacheProvider);
+  final uniqueLikes = cache.values
+      .map((e) => e.entity)
+      .whereType<ReactionEntity>()
+      .where(
+          (reaction) =>
+              reaction.data.eventReference == eventReference &&
+              reaction.data.content == ReactionEntity.likeSymbol,
+        )
+      .map((reaction) => reaction.masterPubkey)
+      .toSet()
+      .length;
+
+  if (uniqueLikes > 0) {
+    return uniqueLikes;
+  }
+
   final counterEntity = ref.watch(
     ionConnectCacheProvider.select(
       cacheSelector<EventCountResultEntity>(
