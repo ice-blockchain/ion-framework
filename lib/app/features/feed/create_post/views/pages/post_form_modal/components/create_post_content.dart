@@ -60,18 +60,22 @@ class CreatePostContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _VideoPreviewSection(attachedVideoNotifier: attachedVideoNotifier),
-            _HeaderControls(
-              children: [
-                _TopicsButton(
-                  attachedMediaNotifier: attachedMediaNotifier,
-                  attachedVideoNotifier: attachedVideoNotifier,
-                  attachedMediaLinksNotifier: attachedMediaLinksNotifier,
-                  parentEvent: parentEvent,
-                  quotedEvent: quotedEvent,
-                ),
-                const LanguageButton(),
-              ],
-            ),
+            // Taking topics from the parent event, do not set language for replies.
+            if (parentEvent == null)
+              _HeaderControls(
+                children: [
+                  // Taking topics from the quoted event.
+                  if (quotedEvent == null)
+                    _TopicsButton(
+                      attachedMediaNotifier: attachedMediaNotifier,
+                      attachedVideoNotifier: attachedVideoNotifier,
+                      attachedMediaLinksNotifier: attachedMediaLinksNotifier,
+                      parentEvent: parentEvent,
+                      quotedEvent: quotedEvent,
+                    ),
+                  const LanguageButton(),
+                ],
+              ),
             if (parentEvent != null) _ParentEntitySection(eventReference: parentEvent!),
             _TextInputSection(
               textEditorController: textEditorController,
@@ -313,11 +317,6 @@ class _TopicsButton extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // inherit topics from parent or quoted event
-    if (parentEvent != null || quotedEvent != null) {
-      return const SizedBox.shrink();
-    }
-
     final isAnyMediaVideo = attachedMediaNotifier.value.any(
       (media) {
         final mediaType = MediaType.fromMimeType(media.mimeType.emptyOrValue);

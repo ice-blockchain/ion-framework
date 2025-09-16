@@ -9,14 +9,15 @@ import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provide
 
 void useDetectLanguage(
   WidgetRef ref, {
-  required QuillController? textEditorController,
+  required QuillController? quillController,
+  bool enabled = true,
 }) {
   final labeler = ref.read(ionContentLabelerProvider);
   useEffect(
     () {
-      if (textEditorController != null) {
+      if (enabled && quillController != null) {
         final subscription = debouncedQuillControllerListener(
-          textEditorController,
+          quillController,
           duration: const Duration(seconds: 1),
         ).listen((text) async {
           final detectedLanguage = await labeler.detectLanguageLabels(text);
@@ -28,6 +29,6 @@ void useDetectLanguage(
       }
       return null;
     },
-    [textEditorController],
+    [enabled, quillController],
   );
 }
