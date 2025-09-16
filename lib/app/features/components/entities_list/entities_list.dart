@@ -66,7 +66,7 @@ class EntitiesList extends HookWidget {
   }
 }
 
-class _EntityListItem extends ConsumerStatefulWidget {
+class _EntityListItem extends HookConsumerWidget {
   _EntityListItem({
     required this.eventReference,
     required this.displayParent,
@@ -85,22 +85,13 @@ class _EntityListItem extends ConsumerStatefulWidget {
   final bool showMuted;
 
   @override
-  ConsumerState<_EntityListItem> createState() => _EntityListItemState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    useAutomaticKeepAlive();
 
-class _EntityListItemState extends ConsumerState<_EntityListItem>
-    with AutomaticKeepAliveClientMixin<_EntityListItem> {
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    final entity =
-        ref.watch(ionConnectEntityProvider(eventReference: widget.eventReference)).valueOrNull;
+    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
 
     if (entity == null ||
-        _isBlockedOrMutedOrBlocking(ref, entity, widget.showMuted) ||
+        _isBlockedOrMutedOrBlocking(ref, entity, showMuted) ||
         _isDeleted(ref, entity) ||
         _isRepostedEntityDeleted(ref, entity) ||
         !_hasMetadata(ref, entity)) {
@@ -108,17 +99,17 @@ class _EntityListItemState extends ConsumerState<_EntityListItem>
     }
 
     return _BottomSeparator(
-      height: widget.separatorHeight,
+      height: separatorHeight,
       child: switch (entity) {
         ModifiablePostEntity() || PostEntity() => PostListItem(
-            eventReference: widget.eventReference,
-            displayParent: widget.displayParent,
-            onVideoTap: widget.onVideoTap,
+            eventReference: entity.toEventReference(),
+            displayParent: displayParent,
+            onVideoTap: onVideoTap,
           ),
         final ArticleEntity article => ArticleListItem(article: article),
         GenericRepostEntity() ||
         RepostEntity() =>
-          RepostListItem(eventReference: widget.eventReference, onVideoTap: widget.onVideoTap),
+          RepostListItem(eventReference: entity.toEventReference(), onVideoTap: onVideoTap),
         _ => const SizedBox.shrink()
       },
     );
