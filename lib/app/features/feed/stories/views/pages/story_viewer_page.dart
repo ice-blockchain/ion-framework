@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,6 +10,7 @@ import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/stories/providers/story_index_keeper_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
@@ -91,11 +93,15 @@ class StoryViewerPage extends HookConsumerWidget {
         final initialStoryIndex = initialStoryReference != null
             ? stories.indexWhere((story) => story.toEventReference() == initialStoryReference)
             : null;
-        final moveToIndex = initialStoryIndex ?? firstNotViewedStoryIndex;
-        if (moveToIndex != -1 && moveToIndex != storyViewerState.currentUserIndex) {
+        final currentUserPubkey = storyViewerState.currentUserPubkey;
+        final currentStoryIndex =
+            ref.read(storyIndexKeeperProvider.notifier).getStoryIndex(currentUserPubkey);
+        final moveToIndex = initialStoryIndex ??
+            (firstNotViewedStoryIndex != -1 ? firstNotViewedStoryIndex : currentStoryIndex);
+        if (moveToIndex != -1 && moveToIndex < stories.length) {
           ref
               .watch(
-                singleUserStoryViewingControllerProvider(pubkey).notifier,
+                singleUserStoryViewingControllerProvider(currentUserPubkey).notifier,
               )
               .moveToStoryIndex(moveToIndex);
         }
@@ -103,7 +109,7 @@ class StoryViewerPage extends HookConsumerWidget {
       // Do not include [viewedStories] to dependencies intentionally.
       // Opening a story leads to marking it as viewed,
       // that triggers [viewedStories] update which would re-trigger [moveToStoryIndex].
-      [stories],
+      [stories.length, storyViewerState.currentUserPubkey],
     );
 
     useRoutePresence(
