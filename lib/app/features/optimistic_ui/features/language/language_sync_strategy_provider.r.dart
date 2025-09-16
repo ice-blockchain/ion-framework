@@ -43,13 +43,14 @@ OptimisticOperationManager<ContentLangSet> contentLanguageManager(Ref ref) {
 @riverpod
 OptimisticService<ContentLangSet> contentLanguageService(Ref ref) {
   final manager = ref.watch(contentLanguageManagerProvider);
-  final service = OptimisticService<ContentLangSet>(manager: manager);
 
-  ref.watch(currentUserInterestsSetProvider(InterestSetType.languages).future).then((entity) {
+  final initialLanguages = () async {
+    final entity =
+        await ref.read(currentUserInterestsSetProvider(InterestSetType.languages).future);
     final pubkey = ref.read(currentPubkeySelectorProvider);
-    if (pubkey == null) return;
+    if (pubkey == null) return <ContentLangSet>[];
 
-    service.initialize([
+    return [
       if (entity != null)
         ContentLangSet(
           pubkey: pubkey,
@@ -57,9 +58,10 @@ OptimisticService<ContentLangSet> contentLanguageService(Ref ref) {
         ).sorted
       else
         _initialLangSet(ref),
-    ]);
-  });
+    ];
+  }();
 
+  final service = OptimisticService<ContentLangSet>(manager: manager)..initialize(initialLanguages);
   return service;
 }
 
@@ -71,10 +73,10 @@ Stream<ContentLangSet?> contentLanguageWatch(Ref ref) async* {
     return;
   }
 
-  final service = ref.read(contentLanguageServiceProvider);
+  final service = ref.watch(contentLanguageServiceProvider);
 
   final first = ref
-      .read(contentLanguageManagerProvider)
+      .watch(contentLanguageManagerProvider)
       .snapshot
       .firstWhereOrNull((e) => e.optimisticId == pubkey);
 
