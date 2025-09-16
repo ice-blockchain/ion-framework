@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
