@@ -73,6 +73,8 @@
   "common_select_languages": "Select languages",
   "common_select_language": "Select a language",
   "common_no_access_permission": "To grant access, go to settings and enable the appropriate settings",
+  "common_no_camera_permission": "No camera access",
+  "common_no_camera_permission_hint": "Enable camera in your device settings.",
   "common_crop_image": "Crop Image",
   "common_photo": "Photo",
   "common_video": "Video",
