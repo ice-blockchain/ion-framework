@@ -77,7 +77,8 @@ class QRScannerBottomSheet extends HookConsumerWidget {
                   children: [
                     Padding(
                       padding: EdgeInsetsDirectional.only(
-                          bottom: !hasCameraPermission ? 60.0.s : 80.0.s),
+                        bottom: !hasCameraPermission ? 60.0.s : 80.0.s,
+                      ),
                       child: SizedBox(
                         width: 200.0.s,
                         child: Text(
