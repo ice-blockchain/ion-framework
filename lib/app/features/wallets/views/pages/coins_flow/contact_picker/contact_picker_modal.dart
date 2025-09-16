@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/user_picker_sheet.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/contact_wallet_error_modals.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -40,9 +41,19 @@ class ContactPickerModal extends HookConsumerWidget {
         final network = await ref.read(networkByIdProvider(networkId!).future);
         if (network == null) return false;
 
-        final wallets = user.data.wallets;
-        final address = wallets?[network.id];
-        if (address != null) return true;
+        String? getWalletAddress(UserMetadataEntity? metadata) {
+          final wallets = metadata?.data.wallets;
+          final address = wallets?[network.id];
+          return address;
+        }
+
+        final isPrivateWallets = user.data.wallets == null;
+        final walletAddress = getWalletAddress(user) ??
+            getWalletAddress(
+              await ref.read(userMetadataProvider(user.masterPubkey, cache: false).future),
+            );
+
+        if (walletAddress != null) return true;
 
         if (context.mounted) {
           unawaited(
@@ -50,7 +61,7 @@ class ContactPickerModal extends HookConsumerWidget {
               ref.context,
               user: user,
               network: network,
-              isPrivate: wallets == null,
+              isPrivate: isPrivateWallets,
             ),
           );
         }
