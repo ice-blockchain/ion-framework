@@ -11,8 +11,8 @@ import 'package:ion/app/constants/links.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/app_info_provider.r.dart';
+import 'package:ion/app/features/core/providers/contact_support_notifier.r.dart';
 import 'package:ion/app/features/settings/model/settings_action.dart';
-import 'package:ion/app/features/settings/providers/leave_feedback_notifier.r.dart';
 import 'package:ion/app/hooks/use_pop_if_returned_null.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -39,8 +39,9 @@ class SettingsModal extends HookConsumerWidget {
             popIfNull(() => PushNotificationsSettingsRoute().push<bool>(context)),
         SettingsAction.privacyPolicy => () => openUrlInAppBrowser(Links.privacy),
         SettingsAction.termsConditions => () => openUrlInAppBrowser(Links.terms),
-        SettingsAction.leaveFeedback => () =>
-            ref.read(leaveFeedbackNotifierProvider.notifier).leaveFeedback(),
+        SettingsAction.leaveFeedback => () => ref
+            .read(contactSupportNotifierProvider.notifier)
+            .email(subject: ContactSupportSubject.feedback),
         SettingsAction.logout => () => ConfirmLogoutRoute(pubkey: pubkey).push<void>(context),
       };
     }

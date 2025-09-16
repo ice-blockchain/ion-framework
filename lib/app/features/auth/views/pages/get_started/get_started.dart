@@ -13,6 +13,8 @@ import 'package:ion/app/features/auth/views/pages/two_fa/twofa_options_step.dart
 import 'package:ion/app/features/components/biometrics/hooks/use_on_suggest_biometrics.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/selected_two_fa_types_provider.m.dart';
+import 'package:ion/app/features/user/pages/nickname_reserved_modal/nickname_reserved_modal.dart';
+import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
 enum GetStartedPageStep {
@@ -34,14 +36,21 @@ class GetStartedPage extends HookConsumerWidget {
     final authState = ref.watch(authProvider);
     final loginActionState = ref.watch(loginActionNotifierProvider);
 
-    ref.displayErrors(
-      loginActionNotifierProvider,
-      excludedExceptions: {
-        TwoFARequiredException,
-        NoLocalPasskeyCredsFoundIONIdentityException,
-        ...excludedPasskeyExceptions,
-      },
-    );
+    ref
+      ..displayErrors(
+        loginActionNotifierProvider,
+        excludedExceptions: {
+          TwoFARequiredException,
+          NoLocalPasskeyCredsFoundIONIdentityException,
+          ...excludedPasskeyExceptions,
+        },
+      )
+      ..listenError(loginActionNotifierProvider, (_) {
+        showSimpleBottomSheet<void>(
+          context: context,
+          child: const NicknameReservedModal(),
+        );
+      });
 
     final onSuggestToAddBiometrics = useOnSuggestToAddBiometrics(ref);
 

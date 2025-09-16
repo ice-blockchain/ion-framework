@@ -635,6 +635,8 @@
   "error_payment_no_destination_description": "To receive this coin, the receiver must have an existing {abbreviation} balance",
   "error_network_sync_failed_title": "Network sync failed",
   "error_network_sync_failed_description": "Please retry or reopen the app.",
+  "error_nickname_reserved_title": "Nickname is reserved",
+  "error_nickname_reserved_description": "If you would like to use this nickname, please send an email to [:email] from your company's official email address. We will review your application and contact you as soon as possible.",
   "warning_avoid_storing_keys": "Avoid storing keys on any device to prevent losing access to funds in case of a hack",
   "warning_authenticator_setup": "Keep this key safe to restore access if you lose your device.",
   "authenticator_setup_title": "Authenticator setup",
