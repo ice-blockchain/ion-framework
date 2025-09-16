@@ -27,6 +27,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'global_subscription.r.g.dart';
 
+enum EventSource {
+  pFilter,
+  qFilter,
+  subscription,
+}
+
 class GlobalSubscription {
   GlobalSubscription({
     required this.currentUserMasterPubkey,
@@ -59,14 +65,16 @@ class GlobalSubscription {
 
   void init() {
     final now = DateTime.now().microsecondsSinceEpoch;
-    final regularLatestEventTimestamp = latestEventTimestampService.get(EventType.regular);
+    final regularFilterTimestamps = latestEventTimestampService.getAllRegularFilterTimestamps();
 
-    if (regularLatestEventTimestamp == null) {
-      latestEventTimestampService.update(now, EventType.regular);
+    if (latestEventTimestampService.hasNoRegularTimestamps()) {
+      // All filter timestamps are null, update them with now and start subscription
+      latestEventTimestampService.updateAllRegularTimestamps(now);
       _startSubscription();
     } else {
+      // All timestamps exist, proceed with reconnection
       _reConnectToGlobalSubscription(
-        regularLatestEventTimestamp: regularLatestEventTimestamp,
+        regularFilterTimestamps: regularFilterTimestamps,
         now: now,
       );
     }
@@ -79,38 +87,67 @@ class GlobalSubscription {
   }
 
   Future<void> _reConnectToGlobalSubscription({
-    required int regularLatestEventTimestamp,
+    required Map<RegularFilterType, int?> regularFilterTimestamps,
     required int now,
   }) async {
-    final tmpLastCreatedAt = await eventBackfillService.startBackfill(
-      latestEventTimestamp: regularLatestEventTimestamp,
-      filters: [
-        RequestFilter(
-          kinds: _genericEventKinds,
-          tags: {
-            '#p': [
-              [currentUserMasterPubkey],
+    // Run backfill for each filter in parallel with separate event handlers
+    final backfillServices = <Future<(RegularFilterType, int)>>[];
+
+    // P filter backfill
+    final pFilterTimestamp = regularFilterTimestamps[RegularFilterType.pFilter] ?? now;
+    backfillServices.add(
+      eventBackfillService
+          .startBackfill(
+            latestEventTimestamp: pFilterTimestamp,
+            filters: [
+              RequestFilter(
+                kinds: _genericEventKinds,
+                tags: {
+                  '#p': [
+                    [currentUserMasterPubkey],
+                  ],
+                },
+              ),
             ],
-          },
-        ),
-        RequestFilter(
-          kinds: const [ModifiablePostEntity.kind],
-          tags: {
-            '#Q': [
-              [null, null, currentUserMasterPubkey],
-            ],
-          },
-        ),
-      ],
-      onEvent: _handleEvent,
+            onEvent: (event) => _handleEvent(event, eventSource: EventSource.pFilter),
+          )
+          .then((result) => (RegularFilterType.pFilter, result)),
     );
 
-    final encryptedLatestEventTimestamp = latestEventTimestampService.get(EventType.encrypted);
+    // Q filter backfill
+    final qFilterTimestamp = regularFilterTimestamps[RegularFilterType.qFilter] ?? now;
+    backfillServices.add(
+      eventBackfillService
+          .startBackfill(
+            latestEventTimestamp: qFilterTimestamp,
+            filters: [
+              RequestFilter(
+                kinds: const [ModifiablePostEntity.kind],
+                tags: {
+                  '#Q': [
+                    [null, null, currentUserMasterPubkey],
+                  ],
+                },
+              ),
+            ],
+            onEvent: (event) => _handleEvent(event, eventSource: EventSource.qFilter),
+          )
+          .then((result) => (RegularFilterType.qFilter, result)),
+    );
+
+    // Wait for all backfill operations to complete
+    final backfillResults = await Future.wait(backfillServices);
+
+    // Update each filter's timestamp based on its backfill result
+    for (final (filterType, timestamp) in backfillResults) {
+      await latestEventTimestampService.updateRegularFilter(timestamp, filterType);
+    }
+
+    final encryptedLatestEventTimestamp = latestEventTimestampService.getEncryptedTimestamp();
 
     unawaited(
       _subscribe(
         eventLimit: 100,
-        regularSince: tmpLastCreatedAt,
         encryptedSince:
             encryptedLatestEventTimestamp ?? now - const Duration(days: 2).inMicroseconds,
       ),
@@ -119,10 +156,15 @@ class GlobalSubscription {
 
   Future<void> _subscribe({
     required int eventLimit,
-    int? regularSince,
     int? encryptedSince,
   }) async {
     try {
+      // Get per-filter timestamps for precise filtering
+      final pFilterTimestamp =
+          latestEventTimestampService.getRegularFilter(RegularFilterType.pFilter);
+      final qFilterTimestamp =
+          latestEventTimestampService.getRegularFilter(RegularFilterType.qFilter);
+
       final requestMessage = RequestMessage(
         filters: [
           RequestFilter(
@@ -133,7 +175,7 @@ class GlobalSubscription {
               ],
             },
             limit: eventLimit,
-            since: regularSince?.toMicroseconds,
+            since: pFilterTimestamp,
           ),
           RequestFilter(
             kinds: const [ModifiablePostEntity.kind],
@@ -143,7 +185,7 @@ class GlobalSubscription {
               ],
             },
             limit: eventLimit,
-            since: regularSince?.toMicroseconds,
+            since: qFilterTimestamp,
           ),
           RequestFilter(
             kinds: _encryptedEventKinds,
@@ -157,21 +199,46 @@ class GlobalSubscription {
         ],
       );
 
-      globalSubscriptionNotifier.subscribe(requestMessage, onEvent: _handleEvent);
+      globalSubscriptionNotifier.subscribe(
+        requestMessage,
+        onEvent: (event) => _handleEvent(event, eventSource: EventSource.subscription),
+      );
     } catch (e) {
       throw GlobalSubscriptionSubscribeException(e);
     }
   }
 
   Future<void> _handleEvent(
-    EventMessage eventMessage,
-  ) async {
+    EventMessage eventMessage, {
+    required EventSource eventSource,
+  }) async {
     try {
       final eventType = eventMessage.kind == IonConnectGiftWrapEntity.kind
           ? EventType.encrypted
           : EventType.regular;
 
-      await latestEventTimestampService.update(eventMessage.createdAt.toMicroseconds, eventType);
+      final eventTimestamp = eventMessage.createdAt.toMicroseconds;
+
+      if (eventType == EventType.regular) {
+        switch (eventSource) {
+          case EventSource.pFilter:
+            await latestEventTimestampService.updateRegularFilter(
+              eventTimestamp,
+              RegularFilterType.pFilter,
+            );
+          case EventSource.qFilter:
+            await latestEventTimestampService.updateRegularFilter(
+              eventTimestamp,
+              RegularFilterType.qFilter,
+            );
+          case EventSource.subscription:
+            await latestEventTimestampService.updateAllRegularTimestamps(eventTimestamp);
+        }
+      } else {
+        // For encrypted events, only update the encrypted timestamp
+        await latestEventTimestampService.updateEncrypted(eventTimestamp);
+      }
+
       globalSubscriptionEventDispatcher.dispatch(eventMessage);
     } catch (e) {
       throw GlobalSubscriptionEventMessageHandlingException(e);
