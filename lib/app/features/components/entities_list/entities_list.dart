@@ -131,11 +131,16 @@ class _EntityListItem extends HookConsumerWidget {
 
   bool _isRepostedEntityDeleted(BuildContext context, WidgetRef ref, IonConnectEntity entity) {
     if (entity is GenericRepostEntity) {
-      final repostedEntity = ref
-              .watch(
-                ionConnectEntityWithCountersProvider(eventReference: entity.data.eventReference),
-              )
-              .valueOrNull ??
+      final repostedEntity = ref.watch(
+            ionConnectEntityWithCountersProvider(eventReference: entity.data.eventReference)
+                .select((value) {
+              final entity = value.valueOrNull;
+              if (entity != null) {
+                ListCachedEntities.updateEntity(context, entity);
+              }
+              return entity;
+            }),
+          ) ??
           ListCachedEntities.maybeEntityOf(context, eventReference);
       return repostedEntity == null ||
           (repostedEntity is SoftDeletableEntity && repostedEntity.isDeleted);
@@ -150,7 +155,15 @@ class _EntityListItem extends HookConsumerWidget {
   }
 
   bool _hasMetadata(BuildContext context, WidgetRef ref, IonConnectEntity entity) {
-    final userMetadata = ref.watch(userMetadataSyncProvider(entity.masterPubkey)) ??
+    final userMetadata = ref.watch(
+          userMetadataProvider(entity.masterPubkey).select((value) {
+            final entity = value.valueOrNull;
+            if (entity != null) {
+              ListCachedEntities.updateEntity(context, entity);
+            }
+            return entity;
+          }),
+        ) ??
         ListCachedEntities.maybeEntityOf(context, eventReference);
 
     return userMetadata != null;
