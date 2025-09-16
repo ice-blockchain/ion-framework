@@ -26,14 +26,14 @@ class PostPoll extends ConsumerWidget {
     final voteCounts = ref.watch(pollVoteCountsProvider(postReference, pollData));
     final userVotedOptionIndex = ref.watch(userVotedOptionIndexProvider(postReference));
     final hasVoted = ref.watch(hasUserVotedProvider(postReference));
-    final optimisticHashoted = ref
+    final optimisticHasVoted = ref
         .watch(
           pollVoteWatchProvider(pollData.ttl.toString()),
         )
         .valueOrNull
         ?.userVotedOptionIndex;
 
-    final userHasVoted = userVotedOptionIndex != null || hasVoted || optimisticHashoted != null;
+    final userHasVoted = userVotedOptionIndex != null || hasVoted || optimisticHasVoted != null;
     final shouldShowResults = pollData.isClosed || userHasVoted;
 
     if (shouldShowResults) {
