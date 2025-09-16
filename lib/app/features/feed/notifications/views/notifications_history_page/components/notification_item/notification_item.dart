@@ -71,7 +71,12 @@ class NotificationItem extends ConsumerWidget {
                       Padding(
                         padding: EdgeInsetsGeometry.only(top: 6.s),
                         child: ScreenSideOffset.small(
-                          child: NotificationContent(entity: entity),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: 18.s,
+                            ),
+                            child: NotificationContent(entity: entity),
+                          ),
                         ),
                       ),
                   ],
