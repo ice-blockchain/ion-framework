@@ -176,7 +176,7 @@ class PostFormModal extends HookConsumerWidget {
 
     usePreselectTopics(ref, eventReference: modifiedEvent);
     usePreselectLanguage(ref, eventReference: modifiedEvent);
-    useDetectLanguage(ref, textEditorController: textEditorController);
+    useDetectLanguage(ref, enabled: parentEvent == null, quillController: textEditorController);
 
     if (textEditorController == null) {
       return const SizedBox.shrink();

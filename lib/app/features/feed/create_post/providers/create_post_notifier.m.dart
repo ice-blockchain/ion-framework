@@ -258,6 +258,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         expiration: null,
         richText: null,
         poll: null,
+        language: null,
       );
 
       final contentDelta = parseAndConvertDelta(
