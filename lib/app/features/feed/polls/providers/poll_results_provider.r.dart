@@ -28,7 +28,8 @@ class PollVoteCounts extends _$PollVoteCounts {
   @override
   List<int> build(EventReference eventReference, PollData pollData) {
     // Prefer optimistic counts when available
-    final optimistic = ref.watch(pollVoteWatchProvider(eventReference.toString())).valueOrNull?.voteCounts;
+    final optimistic =
+        ref.watch(pollVoteWatchProvider(eventReference.toString())).valueOrNull?.voteCounts;
     if (optimistic != null && optimistic.isNotEmpty) {
       return optimistic;
     }
@@ -45,14 +46,18 @@ class PollVoteCounts extends _$PollVoteCounts {
     );
 
     final allCacheEntries = ref.watch(ionConnectCacheProvider);
-    final allCountEntries =
-        allCacheEntries.values.map((entry) => entry.entity).whereType<EventCountResultEntity>().toList();
+    final allCountEntries = allCacheEntries.values
+        .map((entry) => entry.entity)
+        .whereType<EventCountResultEntity>()
+        .toList();
 
     var pollVoteCountEntity = counterEntity;
     if (pollVoteCountEntity == null) {
       final pollVoteCountEntities = allCountEntries
           .where(
-            (entry) => entry.data.type == EventCountResultType.pollVotes && entry.data.key == eventReference.toString(),
+            (entry) =>
+                entry.data.type == EventCountResultType.pollVotes &&
+                entry.data.key == eventReference.toString(),
           )
           .toList();
 
@@ -78,7 +83,8 @@ class PollVoteCounts extends _$PollVoteCounts {
     final votesByUser = <String, PollVoteEntity>{};
     for (final vote in allPollVotes) {
       final existingVote = votesByUser[vote.masterPubkey];
-      if (existingVote == null || vote.createdAt.toDateTime.isAfter(existingVote.createdAt.toDateTime)) {
+      if (existingVote == null ||
+          vote.createdAt.toDateTime.isAfter(existingVote.createdAt.toDateTime)) {
         votesByUser[vote.masterPubkey] = vote;
       }
     }
@@ -142,7 +148,9 @@ PollVoteEntity? userPollVote(Ref ref, EventReference eventReference) {
           .map((entry) => entry.entity)
           .whereType<PollVoteEntity>()
           .where(
-            (vote) => vote.masterPubkey == currentUserPubkey && vote.data.pollEventId == eventReference.toString(),
+            (vote) =>
+                vote.masterPubkey == currentUserPubkey &&
+                vote.data.pollEventId == eventReference.toString(),
           )
           .toList();
 
