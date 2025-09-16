@@ -15,6 +15,7 @@ import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
 import 'package:ion/app/features/user/model/badges/verified_badge_data.dart';
+import 'package:ion/app/features/user/providers/badge_award_loading_provider.r.dart';
 import 'package:ion/app/features/user/providers/service_pubkeys_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -162,8 +163,9 @@ bool isUserVerified(
   final pubkeys = ref.watch(servicePubkeysProvider).valueOrNull ?? [];
 
   return profileBadgesData?.entries.any((entry) {
-        final isBadgeAwardValid =
-            pubkeys.isEmpty || ref.watch(cachedBadgeAwardProvider(entry.awardId, pubkeys)) != null;
+        final isBadgeAwardValid = ref.watch(
+          isBadgeAwardValidOrLoadingProvider(entry.awardId, pubkeys),
+        );
         final isBadgeDefinitionValid =
             ref.watch(isValidVerifiedBadgeDefinitionProvider(entry.definitionRef, pubkeys));
         return isBadgeDefinitionValid && isBadgeAwardValid;
@@ -194,8 +196,9 @@ bool isNicknameProven(Ref ref, String pubkey) {
   final pubkeys = ref.watch(servicePubkeysProvider).valueOrNull ?? [];
 
   return profileBadgesData?.entries.any((entry) {
-        final isBadgeAwardValid =
-            pubkeys.isEmpty || ref.watch(cachedBadgeAwardProvider(entry.awardId, pubkeys)) != null;
+        final isBadgeAwardValid = ref.watch(
+          isBadgeAwardValidOrLoadingProvider(entry.awardId, pubkeys),
+        );
         final isBadgeDefinitionValid =
             ref.watch(isValidNicknameProofBadgeDefinitionProvider(entry.definitionRef, pubkeys));
         return isBadgeDefinitionValid &&
