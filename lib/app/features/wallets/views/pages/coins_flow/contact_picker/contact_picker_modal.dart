@@ -28,6 +28,12 @@ class ContactPickerModal extends HookConsumerWidget {
   final String? networkId;
   final ContactPickerValidatorType validatorType;
 
+  String? _getWalletAddress(UserMetadataEntity? metadata, String networkId) {
+    final wallets = metadata?.data.wallets;
+    final address = wallets?[networkId];
+    return address;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final validator = useCallback(
@@ -41,16 +47,11 @@ class ContactPickerModal extends HookConsumerWidget {
         final network = await ref.read(networkByIdProvider(networkId!).future);
         if (network == null) return false;
 
-        String? getWalletAddress(UserMetadataEntity? metadata) {
-          final wallets = metadata?.data.wallets;
-          final address = wallets?[network.id];
-          return address;
-        }
-
         final isPrivateWallets = user.data.wallets == null;
-        final walletAddress = getWalletAddress(user) ??
-            getWalletAddress(
+        final walletAddress = _getWalletAddress(user, network.id) ??
+            _getWalletAddress(
               await ref.read(userMetadataProvider(user.masterPubkey, cache: false).future),
+              network.id,
             );
 
         if (walletAddress != null) return true;
