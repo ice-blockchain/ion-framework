@@ -65,7 +65,7 @@ class QRScannerBottomSheet extends HookConsumerWidget {
                   borderLength: 30.0.s,
                   borderWidth: 6.0.s,
                   cutOutSize: 238.0.s,
-                  cutOutBottomOffset: !hasCameraPermission ? 48.0.s : 0,
+                  cutOutBottomOffset: !hasCameraPermission ? 96.0.s : 0,
                   overlayColor: context.theme.appColors.backgroundSheet,
                 ),
                 key: qrKey,
@@ -76,9 +76,7 @@ class QRScannerBottomSheet extends HookConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Padding(
-                      padding: EdgeInsetsDirectional.only(
-                        bottom: !hasCameraPermission ? 48.0.s : 80.0.s,
-                      ),
+                      padding: EdgeInsetsDirectional.only(bottom: !hasCameraPermission ? 60.0.s : 80.0.s),
                       child: SizedBox(
                         width: 200.0.s,
                         child: Text(
@@ -93,10 +91,60 @@ class QRScannerBottomSheet extends HookConsumerWidget {
                     if (!hasCameraPermission)
                       Padding(
                         padding: EdgeInsets.all(16.0.s),
-                        child: _InfoMessageCard(
-                          onPressed: () async {
-                            await permissionStrategy.openSettings();
-                          },
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: context.theme.appColors.onPrimaryAccent,
+                            border: Border.all(
+                              color: context.theme.appColors.onSecondaryBackground,
+                            ),
+                            borderRadius: BorderRadius.circular(16.0.s),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 12.0.s),
+                            child: Column(
+                              spacing: 4.0.s,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Row(
+                                  spacing: 6.0.s,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Assets.svg.iconProfileNocamera.icon(
+                                      size: 20.0.s,
+                                      color: context.theme.appColors.sharkText,
+                                    ),
+                                    Text(
+                                      context.i18n.common_no_camera_permission,
+                                      style: context.theme.appTextThemes.body.copyWith(
+                                        color: context.theme.appColors.sharkText,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Column(
+                                  children: [
+                                    Text(
+                                      context.i18n.common_no_camera_permission_hint,
+                                      style: context.theme.appTextThemes.caption2.copyWith(
+                                        color: context.theme.appColors.secondaryText,
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        await permissionStrategy.openSettings();
+                                      },
+                                      child: Text(
+                                        context.i18n.button_go_to_settings,
+                                        style: context.theme.appTextThemes.caption2.copyWith(
+                                          color: context.theme.appColors.primaryAccent,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                   ],
