@@ -164,6 +164,7 @@ class CreateArticle extends _$CreateArticle {
         settings: null,
         richText: null,
         editingEndedAt: null,
+        language: null,
       );
 
       final media = entity.data.media.values;
