@@ -53,8 +53,8 @@ class UpdateUserSocialProfileDataSource {
       return InvalidNicknameException();
     } else if (NicknameAlreadyExistsException.isMatch(exception)) {
       return NicknameAlreadyExistsException();
-    } else if (NicknameIsReservedException.isMatch(exception)) {
-      return NicknameIsReservedException();
+    } else if (NicknameReservedException.isMatch(exception)) {
+      return NicknameReservedException();
     }
 
     return e;

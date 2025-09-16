@@ -185,8 +185,8 @@ class NicknameAlreadyExistsException extends IONIdentityException {
   }
 }
 
-class NicknameIsReservedException extends IONIdentityException {
-  NicknameIsReservedException() : super('Nickname is reserved');
+class NicknameReservedException extends IONIdentityException {
+  NicknameReservedException() : super('Nickname is reserved');
 
   static bool isMatch(DioException dioException) {
     final responseData = dioException.response?.data;
