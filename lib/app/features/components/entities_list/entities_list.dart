@@ -8,6 +8,7 @@ import 'package:ion/app/features/components/entities_list/components/article_lis
 import 'package:ion/app/features/components/entities_list/components/post_list_item.dart';
 import 'package:ion/app/features/components/entities_list/components/repost_list_item.dart';
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -43,25 +44,27 @@ class EntitiesList extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverList.builder(
-      itemCount: items.length,
-      itemBuilder: (BuildContext context, int index) {
-        final feedListItem = items[index];
-        return switch (feedListItem) {
-          CustomIonEntityListItem(child: final child) =>
-            _CustomListItem(separatorHeight: separatorHeight, child: child),
-          EventIonEntityListItem(eventReference: final eventReference) => _EntityListItem(
-              key: ValueKey(eventReference),
-              eventReference: eventReference,
-              displayParent: displayParent,
-              separatorHeight: separatorHeight,
-              onVideoTap: onVideoTap,
-              readFromDB: readFromDB,
-              showMuted: showMuted,
-            ),
-          IonEntityListItem() => const SizedBox.shrink()
-        };
-      },
+    return ListCachedEntities(
+      child: SliverList.builder(
+        itemCount: items.length,
+        itemBuilder: (BuildContext context, int index) {
+          final feedListItem = items[index];
+          return switch (feedListItem) {
+            CustomIonEntityListItem(child: final child) =>
+              _CustomListItem(separatorHeight: separatorHeight, child: child),
+            EventIonEntityListItem(eventReference: final eventReference) => _EntityListItem(
+                key: ValueKey(eventReference),
+                eventReference: eventReference,
+                displayParent: displayParent,
+                separatorHeight: separatorHeight,
+                onVideoTap: onVideoTap,
+                readFromDB: readFromDB,
+                showMuted: showMuted,
+              ),
+            IonEntityListItem() => const SizedBox.shrink()
+          };
+        },
+      ),
     );
   }
 }
@@ -86,15 +89,22 @@ class _EntityListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useAutomaticKeepAlive();
-
-    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
+    final entity = ref.watch(
+          ionConnectEntityProvider(eventReference: eventReference).select((value) {
+            final entity = value.valueOrNull;
+            if (entity != null) {
+              ListCachedEntities.updateEntity(context, entity);
+            }
+            return entity;
+          }),
+        ) ??
+        ListCachedEntities.maybeEntityOf(context, eventReference);
 
     if (entity == null ||
         _isBlockedOrMutedOrBlocking(ref, entity, showMuted) ||
         _isDeleted(ref, entity) ||
-        _isRepostedEntityDeleted(ref, entity) ||
-        !_hasMetadata(ref, entity)) {
+        _isRepostedEntityDeleted(context, ref, entity) ||
+        !_hasMetadata(context, ref, entity)) {
       return const SizedBox.shrink();
     }
 
@@ -119,11 +129,14 @@ class _EntityListItem extends HookConsumerWidget {
     return entity is SoftDeletableEntity && entity.isDeleted;
   }
 
-  bool _isRepostedEntityDeleted(WidgetRef ref, IonConnectEntity entity) {
+  bool _isRepostedEntityDeleted(BuildContext context, WidgetRef ref, IonConnectEntity entity) {
     if (entity is GenericRepostEntity) {
       final repostedEntity = ref
-          .watch(ionConnectEntityWithCountersProvider(eventReference: entity.data.eventReference))
-          .valueOrNull;
+              .watch(
+                ionConnectEntityWithCountersProvider(eventReference: entity.data.eventReference),
+              )
+              .valueOrNull ??
+          ListCachedEntities.maybeEntityOf(context, eventReference);
       return repostedEntity == null ||
           (repostedEntity is SoftDeletableEntity && repostedEntity.isDeleted);
     }
@@ -136,8 +149,10 @@ class _EntityListItem extends HookConsumerWidget {
     return isMuted || isBlockedOrBlockedBy;
   }
 
-  bool _hasMetadata(WidgetRef ref, IonConnectEntity entity) {
-    final userMetadata = ref.watch(userMetadataProvider(entity.masterPubkey)).valueOrNull;
+  bool _hasMetadata(BuildContext context, WidgetRef ref, IonConnectEntity entity) {
+    final userMetadata = ref.watch(userMetadataSyncProvider(entity.masterPubkey)) ??
+        ListCachedEntities.maybeEntityOf(context, eventReference);
+
     return userMetadata != null;
   }
 }

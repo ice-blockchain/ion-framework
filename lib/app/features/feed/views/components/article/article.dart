@@ -8,6 +8,7 @@ import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/entities_list/components/bookmark_button/bookmark_button.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/parent_entity.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
@@ -77,8 +78,16 @@ class Article extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entity =
-        ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference)).valueOrNull;
+    final entity = ref.watch(
+          ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
+            final entity = value.valueOrNull;
+            if (entity != null) {
+              ListCachedEntities.updateEntity(context, entity);
+            }
+            return entity;
+          }),
+        ) ??
+        ListCachedEntities.maybeEntityOf(context, eventReference);
 
     if (entity is! ArticleEntity) {
       return Padding(
