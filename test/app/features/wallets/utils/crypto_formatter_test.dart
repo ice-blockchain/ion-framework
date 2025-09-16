@@ -123,7 +123,7 @@ void main() {
         (value: 0.0001, expected: '0.0001'),
         (value: 0.00001, expected: '0.00001'),
         (value: 0.000001, expected: '0.000001'),
-        (value: 0.0000001, expected: '0.0(6)1'),
+        (value: 0.0000001, expected: '0.000001'),
         (value: 0.999999, expected: '0.999999'),
         (value: 0.5, expected: '0.50'),
       ], (t) {
@@ -170,19 +170,35 @@ void main() {
       });
     });
 
+    group('negative values and zero', () {
+      parameterizedGroup('negative values and zero formatting', [
+        (value: 0.0, expected: '0.00'),
+        (value: -1.0, expected: '0.00'),
+        (value: -0.5, expected: '0.00'),
+        (value: -1000.0, expected: '0.00'),
+        (value: -0.0001, expected: '0.00'),
+        (value: -1000000.0, expected: '0.00'),
+        (value: -0.000001, expected: '0.00'),
+      ], (t) {
+        test('formatCrypto(${t.value}) returns ${t.expected}', () {
+          expect(formatCrypto(t.value), t.expected);
+        });
+      });
+    });
+
     group('edge cases', () {
       test('handles very small numbers correctly', () {
-        expect(formatCrypto(1e-7), '0.0(6)1');
+        expect(formatCrypto(1e-7), '0.000001');
         expect(formatCrypto(1e-6), '0.000001');
         expect(formatCrypto(1.23e-6), '0.000001');
       });
 
-      test('handles very small numbers with scientific notation format', () {
-        expect(formatCrypto(0.00000001), '0.0(7)1');
-        expect(formatCrypto(0.00000012), '0.0(6)1');
+      test('handles very small numbers normalized to minimum threshold', () {
+        expect(formatCrypto(0.00000001), '0.000001');
+        expect(formatCrypto(0.00000012), '0.000001');
         expect(formatCrypto(0.00000123), '0.000001');
-        expect(formatCrypto(0.000000456), '0.0(6)4');
-        expect(formatCrypto(0.0000000789), '0.0(7)7');
+        expect(formatCrypto(0.000000456), '0.000001');
+        expect(formatCrypto(0.0000000789), '0.000001');
       });
     });
   });

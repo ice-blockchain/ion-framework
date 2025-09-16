@@ -3,10 +3,10 @@
 import 'package:ion/app/utils/num.dart';
 
 // Constants for scale values
-
 const _million = 1000000.0;
 const _billion = 1000000000.0;
 const _trillion = 1000000000000.0;
+const _minimalThreshold = 0.000001;
 
 // Scale information for abbreviation formatting
 const List<({double value, String suffix})> _scaleInfo = [
@@ -16,19 +16,24 @@ const List<({double value, String suffix})> _scaleInfo = [
 ];
 
 String formatCrypto(double value, [String? currency]) {
-  final formatted = switch (value) {
-    0.0 => formatDouble(value),
-    _ when value >= _million => _formatWithAbbreviation(value),
-    _ when value >= 10 => _formatWithSmartTruncation(value, maxDecimals: 2, minDecimals: 2),
+  // Normalize input values
+  final normalized = switch (value) {
+    _ when value <= 0 => 0.0,
+    _ when value < _minimalThreshold => _minimalThreshold,
+    _ => value,
+  };
+
+  final formatted = switch (normalized) {
+    0.0 => formatDouble(normalized),
+    _ when normalized >= _million => _formatWithAbbreviation(normalized),
+    _ when normalized >= 10 =>
+      _formatWithSmartTruncation(normalized, maxDecimals: 2, minDecimals: 2),
     // For values 1-9.99: max 6 decimals, min 2 decimals
     // Handle truncation for cases like 1.1234567 -> 1.123456 and 2.0000001 -> 2.00
-    _ when value >= 1 => _formatWithSmartTruncation(value, maxDecimals: 6, minDecimals: 2),
-    // For values < 1e-6: specific format as 0.0(n)d
-    // - n is number of zeros after decimal point
-    // - d is first non-zero digit
-    _ when value < 1e-6 => _formatVerySmallNumber(value),
+    _ when normalized >= 1 =>
+      _formatWithSmartTruncation(normalized, maxDecimals: 6, minDecimals: 2),
     // For values < 1: max 6 decimals, min 2 decimals
-    _ => _formatWithSmartTruncation(value, maxDecimals: 6, minDecimals: 2),
+    _ => _formatWithSmartTruncation(normalized, maxDecimals: 6, minDecimals: 2),
   };
 
   if (currency != null) return '$formatted $currency';
@@ -108,31 +113,4 @@ String _formatWithSmartTruncation(
     maximumFractionDigits: maxDecimals,
     minimumFractionDigits: minDecimals,
   );
-}
-
-String _formatVerySmallNumber(double value) {
-  // Convert to string with high precision and remove trailing zeros
-  final stringValue = value.toStringAsFixed(20).replaceAll(RegExp(r'0+$'), '');
-
-  if (!stringValue.contains('.')) {
-    return formatDouble(value);
-  }
-
-  final parts = stringValue.split('.');
-  final decimalPart = parts[1];
-
-  // Count consecutive zeros after decimal point
-  var zeroCount = 0;
-  for (var i = 0; i < decimalPart.length; i++) {
-    if (decimalPart[i] == '0') {
-      zeroCount++;
-    } else {
-      // Found the first non-zero digit
-      final firstSignificantDigit = decimalPart[i];
-      return '0.0($zeroCount)$firstSignificantDigit';
-    }
-  }
-
-  // Fallback to regular formatting if no non-zero digits found
-  return formatDouble(0);
 }
