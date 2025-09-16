@@ -39,7 +39,7 @@ class GiftUnwrapService {
   final IonConnectGiftWrapService _giftWrapService;
   final VerifyDelegationCallback _verifyDelegationCallback;
 
-  Future<EventMessage> unwrap(EventMessage giftWrap) async {
+  Future<EventMessage> unwrap(EventMessage giftWrap, {bool validate = true}) async {
     try {
       final compressionTag = giftWrap.tags.firstWhereOrNull(
         (tag) => tag[0] == CompressionTag.tagName,
@@ -58,10 +58,12 @@ class GiftUnwrapService {
         compression,
       ]);
 
-      final sealDelegation = await _verifyDelegationCallback(seal.masterPubkey);
+      if (validate) {
+        final sealDelegation = await _verifyDelegationCallback(seal.masterPubkey);
 
-      if (sealDelegation == null || !sealDelegation.data.validate(seal)) {
-        throw DecodeE2EMessageException(giftWrap.id);
+        if (sealDelegation == null || !sealDelegation.data.validate(seal)) {
+          throw DecodeE2EMessageException(giftWrap.id);
+        }
       }
 
       return rumor;

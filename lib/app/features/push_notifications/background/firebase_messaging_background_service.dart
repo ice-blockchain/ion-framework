@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
@@ -15,11 +16,11 @@ import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provide
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/push_notifications/data/models/ion_connect_push_data_payload.f.dart';
 import 'package:ion/app/features/push_notifications/providers/app_translations_provider.m.dart';
-import 'package:ion/app/features/push_notifications/providers/fund_request_tag_handler.r.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_data_parser_provider.r.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_delegation_dao.m.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_metadata_dao.m.dart';
@@ -31,9 +32,49 @@ import 'package:ion/app/services/ion_connect/encrypted_message_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_gift_wrap_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_seal_service.r.dart';
+import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
+import 'package:ion_identity_client/ion_identity.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+// At file top (module-level)
+Raw<IONIdentity>? _bgIonIdentity;
+Completer<Raw<IONIdentity>>? _bgIonInit;
+
+Override _backgroundIonIdentityOverrideSingleton() {
+  return ionIdentityProvider.overrideWith((ref) async {
+    // Reuse if already created
+    if (_bgIonIdentity != null) return _bgIonIdentity!;
+    // Coalesce concurrent inits
+    if (_bgIonInit != null) return _bgIonInit!.future;
+
+    final c = Completer<Raw<IONIdentity>>();
+    _bgIonInit = c;
+    try {
+      final env = ref.watch(envProvider.notifier);
+      final appId = env.get<String>(
+        Platform.isAndroid ? EnvVariable.ION_ANDROID_APP_ID : EnvVariable.ION_IOS_APP_ID,
+      );
+      final origin = env.get<String>(EnvVariable.ION_ORIGIN);
+
+      final cfg = IONIdentityConfig(appId: appId, origin: origin);
+      final client = IONIdentity.createDefault(config: cfg);
+      await client.init();
+
+      _bgIonIdentity = client;
+      c.complete(client);
+      return client;
+    } catch (e, st) {
+      Logger.error('☁️ [BG] ionIdentity singleton: init FAILED: $e\n$st');
+      c.completeError(e, st);
+      rethrow;
+    } finally {
+      _bgIonInit = null;
+    }
+  });
+}
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -69,6 +110,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         observers: [Logger.talkerRiverpodObserver],
         overrides: [
           _backgroundCurrentPubkeyOverride(currentUserPubkeyFromStorage),
+          _backgroundIonIdentityOverrideSingleton(),
           currentUserIonConnectEventSignerProvider.overrideWith((ref) async {
             final savedIdentityKeyName =
                 await ref.watch(currentIdentityKeyNameStoreProvider.future);
@@ -115,7 +157,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           },
         );
 
-        final event = await giftUnwrapService.unwrap(eventMassage);
+        final event = await giftUnwrapService.unwrap(eventMassage, validate: false);
 
         final userMetadata =
             await messageContainer.read(userMetadataDaoProvider).get(event.masterPubkey);
@@ -131,32 +173,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       }
     },
   );
-
-  // Persist tagged 1755 funds-request (if present) before parsing
-  try {
-    if (currentUserPubkeyFromStorage != null) {
-      final fundsContainer = ProviderContainer(
-        observers: [Logger.talkerRiverpodObserver],
-        overrides: [
-          _backgroundCurrentPubkeyOverride(currentUserPubkeyFromStorage),
-        ],
-      );
-      try {
-        final handler = await fundsContainer.read(fundsRequestTagHandlerProvider.future);
-        await handler.handle(data.decryptedEvent);
-      } catch (e) {
-        Logger.error('☁️ Background fundsRequestTagHandler failed: $e');
-      } finally {
-        // ✅ Explicitly close wallets DB before disposing this container
-        try {
-          await fundsContainer.read(walletsDatabaseProvider).close();
-        } catch (_) {}
-        fundsContainer.dispose();
-      }
-    }
-  } catch (e) {
-    Logger.error('Background fundsRequestTagHandler setup failed: $e');
-  }
 
   // Build a dedicated container for parsing that has the current pubkey override,
   // so providers that need it (e.g., wallets DB) can resolve in a background isolate.
@@ -177,6 +193,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     overrides: [
       _backgroundCurrentPubkeyOverride(currentUserPubkeyFromStorage),
       _backgroundIdentityKeyNameOverride(savedIdentityKeyName),
+      _backgroundIonIdentityOverrideSingleton(),
       pushTranslatorBgOverride,
       if (coinIdForOverride != null)
         coinByIdProvider(coinIdForOverride).overrideWith(

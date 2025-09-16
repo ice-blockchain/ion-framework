@@ -106,18 +106,15 @@ class SendE2eeChatMessageService {
         throw UserMasterPubkeyNotFoundException();
       }
 
-      // Extract optional paymentRequested payload from tags:
-      // Expecting a tag formed as: [ReplaceablePrivateDirectMessageData.paymentRequestedTagName, jsonEncode(event.jsonPayload)]
-      final paymentRequestedTag = tags?.firstWhereOrNull(
-        (t) =>
-            t.isNotEmpty && t.first == ReplaceablePrivateDirectMessageData.paymentRequestedTagName,
-      );
-      final paymentRequested = (paymentRequestedTag != null && paymentRequestedTag.length > 1)
-          ? paymentRequestedTag[1]
-          : null;
+      final paymentRequested =
+          _getTagValue(ReplaceablePrivateDirectMessageData.paymentRequestedTagName, tags);
+      final paymentSent =
+          _getTagValue(ReplaceablePrivateDirectMessageData.paymentSentTagName, tags);
+
       final localEventMessageData = ReplaceablePrivateDirectMessageData(
         content: content,
         paymentRequested: paymentRequested,
+        paymentSent: paymentSent,
         messageId: sharedId,
         publishedAt: publishedAt,
         editingEndedAt: editingEndedAt,
@@ -186,6 +183,7 @@ class SendE2eeChatMessageService {
               final remoteEventMessage = await ReplaceablePrivateDirectMessageData(
                 content: content,
                 paymentRequested: paymentRequested,
+                paymentSent: paymentSent,
                 messageId: sharedId,
                 publishedAt: publishedAt,
                 editingEndedAt: editingEndedAt,
@@ -257,6 +255,13 @@ class SendE2eeChatMessageService {
     }
 
     return Future.value(sentMessage);
+  }
+
+  String? _getTagValue(String tagName, List<List<String>>? tags) {
+    final tag = tags?.firstWhereOrNull(
+      (t) => t.isNotEmpty && t.first == tagName,
+    );
+    return (tag != null && tag.length > 1) ? tag[1] : null;
   }
 
   List<RelatedReplaceableEvent> _generateRelatedEvents(EventMessage? repliedMessage) {
