@@ -63,7 +63,6 @@ OptimisticService<PollVoteState> pollVoteService(Ref ref) {
 
 @riverpod
 Stream<PollVoteState?> pollVoteWatch(Ref ref, String ttlOfVote) {
-  keepAliveWhenAuthenticated(ref);
   final service = ref.watch(pollVoteServiceProvider);
   return service.watch(ttlOfVote);
 }
