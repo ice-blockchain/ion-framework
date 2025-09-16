@@ -5,23 +5,25 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/nickname_reserved_modal/nickname_reserved_modal.dart';
-import 'package:ion/app/features/user/providers/user_nickname_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
-ValueNotifier<String?> useVerifyNicknameAvailabilityErrorMessage(WidgetRef ref) {
-  final state = ref.watch(userNicknameNotifierProvider);
+ValueNotifier<String?> useNicknameAvailabilityErrorMessage(
+  WidgetRef ref,
+  ProviderListenable<AsyncValue<Object?>> provider,
+) {
+  final state = ref.watch(provider);
   ref
     ..displayErrors(
-      userNicknameNotifierProvider,
+      provider,
       excludedExceptions: {
         InvalidNicknameException,
         NicknameAlreadyExistsException,
         NicknameReservedException,
       },
     )
-    ..listenError(userNicknameNotifierProvider, (error) {
+    ..listenError(provider, (error) {
       if (error is NicknameReservedException) {
         showSimpleBottomSheet<void>(context: ref.context, child: const NicknameReservedModal());
       }
