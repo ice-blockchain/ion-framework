@@ -65,7 +65,7 @@ class QRScannerBottomSheet extends HookConsumerWidget {
                   borderLength: 30.0.s,
                   borderWidth: 6.0.s,
                   cutOutSize: 238.0.s,
-                  cutOutBottomOffset: !hasCameraPermission ? 96.0.s : 0,
+                  cutOutBottomOffset: !hasCameraPermission ? 48.0.s : 0,
                   overlayColor: context.theme.appColors.backgroundSheet,
                 ),
                 key: qrKey,
@@ -77,7 +77,7 @@ class QRScannerBottomSheet extends HookConsumerWidget {
                   children: [
                     Padding(
                       padding: EdgeInsetsDirectional.only(
-                        bottom: !hasCameraPermission ? 60.0.s : 80.0.s,
+                        bottom: !hasCameraPermission ? 48.0.s : 80.0.s,
                       ),
                       child: SizedBox(
                         width: 200.0.s,
