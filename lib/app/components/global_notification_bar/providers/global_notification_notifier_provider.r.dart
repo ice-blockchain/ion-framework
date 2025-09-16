@@ -6,28 +6,29 @@ import 'package:async/async.dart';
 import 'package:collection/collection.dart';
 import 'package:ion/app/components/global_notification_bar/global_notification_bar.dart';
 import 'package:ion/app/components/global_notification_bar/models/global_notification.dart';
+import 'package:ion/app/features/feed/global_notifications/models/feed_global_notification.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'global_notification_notifier_provider.r.g.dart';
 
-/// A private record to hold a notification and its properties within the stack.
-typedef _NotificationItem = ({GlobalNotification notification, bool isPermanent});
+typedef _NotificationItem = ({
+  /// A unique identifier for the notification. Can be null for temporary notifications.
+  FeedNotificationContentType? key,
+  GlobalNotification notification,
+  bool isPermanent,
+});
 
-/// This notifier manages a stack of global notifications.
-/// It ensures that temporary notifications can be shown over
-/// permanent ones (like uploads) without causing the permanent
-/// notification to be lost.
 @riverpod
 class GlobalNotificationNotifier extends _$GlobalNotificationNotifier {
   /// The stack of notifications. The UI will always display the last item.
-  final List<_NotificationItem> _notificationStack = [];
-  CancelableOperation<void>? _operation;
+  final List<_NotificationItem> _stack = [];
+
+  CancelableOperation<void>? _animationOperation;
 
   @override
   GlobalNotification? build() {
-    // Ensure any pending operations are cancelled when the provider is disposed.
     ref.onDispose(() {
-      _operation?.cancel();
+      _animationOperation?.cancel();
     });
     return null;
   }
@@ -35,84 +36,86 @@ class GlobalNotificationNotifier extends _$GlobalNotificationNotifier {
   static const _notificationDuration = Duration(seconds: 3);
   static const _animationDuration = GlobalNotificationBar.animationDuration;
 
-  /// Shows a notification. If another notification is currently visible,
-  /// the old one will be animated out and the new one will be animated in.
-  /// The [notification] object itself is used as a unique key.
-  void show(GlobalNotification notification, {bool isPermanent = false}) {
-    _operation?.cancel();
+  /// Shows a notification.
+  ///
+  /// Use a non-null [key] for permanent or updatable notifications.
+  /// If a notification with the same [key] already exists, it will be replaced
+  /// and brought to the top of the stack.
+  /// Use a null [key] for temporary "fire-and-forget" notifications.
+  void show(
+    GlobalNotification notification, {
+    FeedNotificationContentType? key,
+    bool isPermanent = false,
+  }) {
+    final newItem = (key: key, notification: notification, isPermanent: isPermanent);
 
-    final newItem = (notification: notification, isPermanent: isPermanent);
+    // If the key is not null, it's a permanent/updatable notification.
+    // Remove any existing one with the same key before adding the new one.
+    if (key != null) {
+      _stack.removeWhere((item) => item.key == key);
+    }
+    _stack.add(newItem);
 
-    // If this exact notification is already in the stack, remove the old one.
-    // This brings it to the top and prevents duplicates.
-    _notificationStack
-      ..removeWhere((item) => item.notification == notification)
-      ..add(newItem);
+    // Update the UI to show the new top-most notification.
+    _updateUiState();
 
-    final needsTransition = state != null && state != notification;
+    // If the notification is not permanent, schedule it to be hidden.
+    // This now removes the specific instance, which safely handles null keys.
+    if (!isPermanent) {
+      Future.delayed(_notificationDuration, () {
+        // Check if the item to be removed is the one currently showing.
+        final wasHidingCurrent = _stack.isNotEmpty && identical(_stack.last, newItem);
 
-    _updateState(
-      isTransition: needsTransition,
-      onComplete: () {
-        if (!isPermanent) {
-          // When the duration is up, we hide the notification.
-          // The check to see if it's still the top item was removed, as it
-          // was preventing underlying notifications from being cleared from the stack.
-          // The hide() method is smart enough to only trigger a UI update if the
-          // top-most notification is the one being hidden.
-          Future.delayed(_notificationDuration, () {
-            hide(notification);
-          });
+        final removed = _stack.remove(newItem);
+        // If the visible notification was removed, update the UI.
+        if (removed && wasHidingCurrent) {
+          _updateUiState();
         }
-      },
-    );
-  }
-
-  /// Hides a specific notification. If it's the one currently being displayed,
-  /// it will be animated out, and the next notification in the stack (if any)
-  /// will be animated in. If it's a notification that's not currently visible
-  /// (i.e., it's under the top-most one), it will be removed silently.
-  void hide(GlobalNotification notification) {
-    // Check if the item we're hiding is the one currently on screen BEFORE removing it.
-    final isHidingCurrent =
-        _notificationStack.isNotEmpty && _notificationStack.last.notification == notification;
-
-    // Use removeWhere for a cleaner and more robust way to remove the item.
-    final originalLength = _notificationStack.length;
-    _notificationStack.removeWhere((item) => item.notification == notification);
-    final removed = _notificationStack.length < originalLength;
-
-    // If we removed an item AND it was the one on screen, we need to update the UI.
-    if (removed && isHidingCurrent) {
-      _operation?.cancel();
-      _updateState(isTransition: true);
+      });
     }
   }
 
-  /// A private helper to manage the state and animation transitions.
-  /// It ensures a smooth `current -> animate out -> animate in -> next` flow.
-  void _updateState({bool isTransition = false, void Function()? onComplete}) {
+  /// Hides a notification identified by its non-null [key].
+  ///
+  /// This method is intended for explicitly removing permanent notifications.
+  /// Temporary notifications (with null keys) hide themselves automatically.
+  void hide({FeedNotificationContentType? key}) {
+    // This method should only be used to hide notifications with a key.
+    // Basically, it's used only for loading notifications.
+    if (key == null) return;
+
+    final isHidingCurrent = _stack.isNotEmpty && _stack.last.key == key;
+
+    _stack.removeWhere((item) => item.key == key);
+
+    if (isHidingCurrent) {
+      _updateUiState();
+    }
+  }
+
+  /// A private helper to manage the UI state and its animations.
+  ///
+  /// This function is responsible for gracefully animating out the old notification
+  /// before showing the new one. This prevents jarring UI changes.
+  void _updateUiState() {
+    _animationOperation?.cancel();
+
     final future = Future(() async {
-      // 1. If transitioning from an existing notification, animate it out by setting state to null.
-      if (isTransition && state != null) {
+      final nextNotification = _stack.lastOrNull?.notification;
+
+      // If the UI is already showing the correct notification, do nothing.
+      if (state == nextNotification) {
+        return;
+      }
+
+      if (state != null) {
         state = null;
         await Future<void>.delayed(_animationDuration);
       }
 
-      // 2. Get the next notification that should be at the top of the stack.
-      final nextItem = _notificationStack.lastOrNull;
-
-      // 3. If there is a next notification, animate it in by updating the state.
-      if (nextItem != null) {
-        state = nextItem.notification;
-        // This delay is optional but can prevent jank if animations overlap.
-        // For simplicity, we assume the widget handles its own "appear" animation.
-      }
-
-      // 4. Call the completion callback, which is used to set the hide timer.
-      onComplete?.call();
+      state = _stack.lastOrNull?.notification;
     });
 
-    _operation = CancelableOperation.fromFuture(future);
+    _animationOperation = CancelableOperation.fromFuture(future);
   }
 }
