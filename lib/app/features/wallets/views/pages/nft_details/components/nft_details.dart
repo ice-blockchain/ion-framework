@@ -52,11 +52,16 @@ class NftDetails extends HookConsumerWidget {
     final overlayEntry = useRef<OverlayEntry?>(null);
     final buttonKey = useRef(GlobalKey());
     final animationController = useAnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 150),
     );
     final opacityAnimation = useRef(
       Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(parent: animationController, curve: Curves.easeInOut),
+        CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn),
+      ),
+    );
+    final scaleAnimation = useRef(
+      Tween<double>(begin: 0.8, end: 1).animate(
+        CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn),
       ),
     );
 
@@ -68,7 +73,7 @@ class NftDetails extends HookConsumerWidget {
       final renderBox = buttonKey.value.currentContext!.findRenderObject()! as RenderBox;
       final offset = renderBox.localToGlobal(Offset.zero);
       final size = renderBox.size;
-      final overlayHeight = 40.s;
+      final overlayHeight = 51.s;
       final topPosition = offset.dy - size.height - overlayHeight;
 
       overlayEntry.value = OverlayEntry(
@@ -78,33 +83,46 @@ class NftDetails extends HookConsumerWidget {
             top: topPosition,
             height: overlayHeight,
             child: AnimatedBuilder(
-              animation: opacityAnimation.value,
+              animation: animationController,
               builder: (context, child) {
                 return Opacity(
                   opacity: opacityAnimation.value.value,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: Center(
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 32.s, vertical: 12.s),
-                        decoration: BoxDecoration(
-                          color: context.theme.appColors.onPrimaryAccent,
-                          borderRadius: BorderRadius.circular(16.s),
-                          border: Border.all(
-                            color: context.theme.appColors.onPrimaryAccent,
-                            width: 1.s,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.10),
-                              blurRadius: 8.s,
-                              offset: Offset(0, 4.s),
+                  child: Transform.scale(
+                    scale: scaleAnimation.value.value,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 32.0.s, vertical: 11.0.s),
+                              decoration: BoxDecoration(
+                                color: context.theme.appColors.onPrimaryAccent,
+                                borderRadius: BorderRadius.circular(16.0.s),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color:
+                                        context.theme.appColors.primaryText.withValues(alpha: 0.08),
+                                    blurRadius: 16.0.s,
+                                  ),
+                                ],
+                              ),
+                              constraints: BoxConstraints(
+                                maxWidth: 300.0.s,
+                                maxHeight: 76.0.s,
+                              ),
+                              child: Text(
+                                context.i18n.send_nft_sending_nft_will_be_available_later,
+                                style: context.theme.appTextThemes.body2.copyWith(
+                                  color: context.theme.appColors.secondaryText,
+                                ),
+                              ),
+                            ),
+                            _TrianglePointer(
+                              color: context.theme.appColors.onPrimaryAccent,
                             ),
                           ],
-                        ),
-                        child: Text(
-                          context.i18n.send_nft_sending_nft_will_be_available_later,
-                          style: context.theme.appTextThemes.body2,
                         ),
                       ),
                     ),
@@ -119,8 +137,8 @@ class NftDetails extends HookConsumerWidget {
       Overlay.of(context).insert(overlayEntry.value!);
       animationController.forward();
 
-      // Auto remove after 3s
-      Future.delayed(const Duration(seconds: 3), () async {
+      // Auto remove after 1.5s
+      Future.delayed(const Duration(milliseconds: 1500), () async {
         await animationController.reverse();
         overlayEntry.value?.remove();
         overlayEntry.value = null;
@@ -209,4 +227,42 @@ class NftDetails extends HookConsumerWidget {
       ],
     );
   }
+}
+
+class _TrianglePointer extends StatelessWidget {
+  const _TrianglePointer({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(12.s, 10.s),
+      painter: _TrianglePainter(color: color),
+    );
+  }
+}
+
+class _TrianglePainter extends CustomPainter {
+  const _TrianglePainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
