@@ -21,7 +21,7 @@ class EventBackfillService {
 
   Future<int> startBackfill({
     required int latestEventTimestamp,
-    required List<RequestFilter> filters,
+    required RequestFilter filter,
     required void Function(EventMessage event) onEvent,
     ActionSource? actionSource,
   }) async {
@@ -29,7 +29,7 @@ class EventBackfillService {
     while (true) {
       final (maxCreatedAt, stopFetching) = await _fetchPagedEvents(
         regularSince: tmpLastCreatedAt ?? latestEventTimestamp,
-        filters: filters,
+        filter: filter,
         onEvent: onEvent,
         actionSource: actionSource,
       );
@@ -42,7 +42,7 @@ class EventBackfillService {
   }
 
   Future<(int maxCreatedAt, bool stopFetching)> _fetchPagedEvents({
-    required List<RequestFilter> filters,
+    required RequestFilter filter,
     required void Function(EventMessage event) onEvent,
     int? regularSince,
     int? regularUntil,
@@ -53,15 +53,13 @@ class EventBackfillService {
   }) async {
     try {
       final requestMessage = RequestMessage(
-        filters: filters
-            .map(
-              (filter) => filter.copyWith(
-                since: () => regularSince?.toMicroseconds,
-                until: () => regularUntil?.toMicroseconds,
-                limit: () => 100,
-              ),
-            )
-            .toList(),
+        filters: [
+          filter.copyWith(
+            since: () => regularSince?.toMicroseconds,
+            until: () => regularUntil?.toMicroseconds,
+            limit: () => 100,
+          ),
+        ],
       );
 
       var maxCreatedAt = previousMaxCreatedAt ?? 0;
@@ -101,7 +99,7 @@ class EventBackfillService {
           ...nonDuplicateEventIds,
         },
         page: page + 1,
-        filters: filters,
+        filter: filter,
         onEvent: onEvent,
         actionSource: actionSource,
       );

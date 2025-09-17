@@ -99,16 +99,14 @@ class GlobalSubscription {
       eventBackfillService
           .startBackfill(
             latestEventTimestamp: pFilterTimestamp,
-            filters: [
-              RequestFilter(
-                kinds: _genericEventKinds,
-                tags: {
-                  '#p': [
-                    [currentUserMasterPubkey],
-                  ],
-                },
-              ),
-            ],
+            filter: RequestFilter(
+              kinds: _genericEventKinds,
+              tags: {
+                '#p': [
+                  [currentUserMasterPubkey],
+                ],
+              },
+            ),
             onEvent: (event) => _handleEvent(event, eventSource: EventSource.pFilter),
           )
           .then((result) => (RegularFilterType.pFilter, result)),
@@ -120,16 +118,14 @@ class GlobalSubscription {
       eventBackfillService
           .startBackfill(
             latestEventTimestamp: qFilterTimestamp,
-            filters: [
-              RequestFilter(
-                kinds: const [ModifiablePostEntity.kind],
-                tags: {
-                  '#Q': [
-                    [null, null, currentUserMasterPubkey],
-                  ],
-                },
-              ),
-            ],
+            filter: RequestFilter(
+              kinds: const [ModifiablePostEntity.kind],
+              tags: {
+                '#Q': [
+                  [null, null, currentUserMasterPubkey],
+                ],
+              },
+            ),
             onEvent: (event) => _handleEvent(event, eventSource: EventSource.qFilter),
           )
           .then((result) => (RegularFilterType.qFilter, result)),

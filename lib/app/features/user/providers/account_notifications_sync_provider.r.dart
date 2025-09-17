@@ -260,7 +260,7 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
 
     final newLastCreatedAt = await eventBackfillService.startBackfill(
       latestEventTimestamp: latestEventTimestamp.microsecondsSinceEpoch,
-      filters: [requestFilter],
+      filter: requestFilter,
       onEvent: (event) {
         eventFutures.add(_processNotificationEvent(event, contentType));
       },
