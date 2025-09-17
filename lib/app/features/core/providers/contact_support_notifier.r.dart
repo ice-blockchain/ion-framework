@@ -17,8 +17,6 @@ enum ContactSupportSubject {
 
 @riverpod
 class ContactSupportNotifier extends _$ContactSupportNotifier {
-  static const String feedbackSubject = 'Feedback';
-
   @override
   FutureOr<void> build() async {}
 
