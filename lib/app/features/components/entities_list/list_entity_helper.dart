@@ -52,7 +52,10 @@ class ListEntityHelper {
   }
 
   static bool isUserBlockedOrBlocking(
-      BuildContext context, WidgetRef ref, IonConnectEntity entity) {
+    BuildContext context,
+    WidgetRef ref,
+    IonConnectEntity entity,
+  ) {
     final blockedUser = ref.watch(
           blockedUserWatchProvider(entity.masterPubkey).select((value) {
             final blockedObject = value.valueOrNull;
