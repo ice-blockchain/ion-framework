@@ -10,6 +10,11 @@ struct FundsRequestDisplayData {
     let assetId: String?
 }
 
+struct CoinDBInfo {
+    let abbreviation: String  // uppercased symbol
+    let decimals: Int
+}
+
 final class WalletsDatabaseManager {
     private let storage: SharedStorageService
     private var database: OpaquePointer?
@@ -135,12 +140,12 @@ final class WalletsDatabaseManager {
         return FundsRequestDisplayData(amount: amount, assetId: assetId)
     }
 
-    /// Fetch the coin abbreviation (uppercase symbol) by `assetId` from `coins_table`
-    func getCoinAbbreviation(assetId: String) -> String? {
+    /// Fetch the coin abbreviation (uppercase symbol) and decimals by `assetId` from `coins_table`
+    func getCoinData(assetId: String) -> CoinDBInfo? {
         guard tableExists("coins_table") else { return nil }
         let safeId = assetId.replacingOccurrences(of: "'", with: "''")
         let query = """
-        SELECT symbol
+        SELECT symbol, decimals
         FROM coins_table
         WHERE id = '\(safeId)' COLLATE NOCASE
         LIMIT 1
@@ -153,7 +158,13 @@ final class WalletsDatabaseManager {
             NSLog("[WALLETDB] coin symbol missing for assetId=%@", assetId)
             return nil
         }
-        let abbr = symbol.uppercased()
-        return abbr
+        var decimalsValue: Int?
+        if let d = row["decimals"] as? Int { decimalsValue = d }
+        if let d = row["decimals"] as? Int64 { decimalsValue = Int(d) }
+        guard let decimals = decimalsValue else {
+            NSLog("[WALLETDB] coin decimals missing for assetId=%@", assetId)
+            return nil
+        }
+        return CoinDBInfo(abbreviation: symbol.uppercased(), decimals: decimals)
     }
 }

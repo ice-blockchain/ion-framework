@@ -2,6 +2,11 @@
 
 import Foundation
 
+struct TransactionData {
+    let coinAmount: String
+    let coinSymbol: String
+}
+
 class IonConnectPushDataPayload: Decodable {
     let compression: String?
     let event: EventMessage
@@ -15,6 +20,45 @@ class IonConnectPushDataPayload: Decodable {
         case relevantEvents = "relevant_events"
     }
 
+    private static func getCoinData(assetId: String) -> CoinDBInfo? {
+        if let storage = try? SharedStorageService() {
+            let walletsDB = WalletsDatabaseManager(storage: storage)
+            if walletsDB.openDatabase() {
+                defer { walletsDB.closeDatabase() }
+                return walletsDB.getCoinData(assetId: assetId)
+            }
+        }
+        return nil
+    }
+
+    private static func buildTransactionData(from decryptedEvent: EventMessage?) -> TransactionData? {
+        guard let dec = decryptedEvent else { return nil }
+
+        if let wa = try? WalletAssetEntity.fromEventMessage(dec),
+           let assetId = wa.data.assetId,
+           let coin = getCoinData(assetId: assetId)
+        {
+            let raw = wa.data.amount
+            if !raw.isEmpty {
+                let normalized = CryptoAmountFormatter.parse(raw, decimals: coin.decimals)
+                let formatted  = CryptoAmountFormatter.format(normalized)
+                return TransactionData(coinAmount: formatted, coinSymbol: coin.abbreviation)
+            }
+        }
+
+        if let fr = try? FundsRequestEntity.fromEventMessage(dec),
+           let assetId = fr.data.assetId,
+           let coin = getCoinData(assetId: assetId)
+        {
+            let raw = fr.data.amount
+            if !raw.isEmpty {
+                return TransactionData(coinAmount: raw, coinSymbol: coin.abbreviation)
+            }
+        }
+
+        return nil
+    }
+
     static func fromJson(
         data: [AnyHashable: Any],
         decryptEvent: @escaping (EventMessage) async throws -> (event: EventMessage?, metadata: UserMetadata?)?
@@ -26,33 +70,6 @@ class IonConnectPushDataPayload: Decodable {
         if payload.event.kind == IonConnectGiftWrapEntity.kind {
             let result = try await decryptEvent(payload.event)
 
-            // Try to extract a full FundsRequestEntity from the decrypted event in an immutable way
-            let fundsRequest: FundsRequestEntity? = {
-                guard let dec = result?.event else { return nil }
-                do {
-                    let fr = try FundsRequestEntity.fromEventMessage(dec)
-                    return fr
-                } catch {
-                    NSLog("[FR] no funds request in decrypted event (kind=%@): %@", String(result?.event?.kind ?? -1), String(describing: error))
-                    return nil
-                }
-            }()
-
-            // Try to resolve coin abbreviation (symbol) from wallets DB using assetId
-            let coinSymbolFromFundsRequest: String? = {
-                guard let fr = fundsRequest, let assetId = fr.data.assetId else { return nil }
-                if let storage = try? SharedStorageService() {
-                    let walletsDB = WalletsDatabaseManager(storage: storage)
-                    if walletsDB.openDatabase() {
-                        defer { walletsDB.closeDatabase() }
-                        if let abbr = walletsDB.getCoinAbbreviation(assetId: assetId) {
-                            return abbr
-                        }
-                    }
-                }
-                return nil
-            }()
-
             // Create placeholders dictionary from metadata if available
             var placeholders: [String: String] = [:]
             if let metadata = result?.metadata {
@@ -62,12 +79,11 @@ class IonConnectPushDataPayload: Decodable {
                     placeholders["picture"] = picture
                 }
             }
-            // Inject coin amount from embedded 1755, if present
-            if let fr = fundsRequest {
-                placeholders["coinAmount"] = fr.data.amount
-            }
-            if let sym = coinSymbolFromFundsRequest {
-                placeholders["coinSymbol"] = sym
+
+            let txData = IonConnectPushDataPayload.buildTransactionData(from: result?.event)
+            if let tx = txData {
+                placeholders["coinAmount"] = tx.coinAmount
+                placeholders["coinSymbol"] = tx.coinSymbol
             }
 
             return IonConnectPushDataPayload(
