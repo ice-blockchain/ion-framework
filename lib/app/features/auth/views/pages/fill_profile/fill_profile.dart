@@ -17,7 +17,7 @@ import 'package:ion/app/features/auth/views/components/user_data_inputs/nickname
 import 'package:ion/app/features/auth/views/components/user_data_inputs/referral_input.dart';
 import 'package:ion/app/features/auth/views/pages/fill_profile/components/fill_prifile_submit_button.dart';
 import 'package:ion/app/features/components/avatar_picker/avatar_picker.dart';
-import 'package:ion/app/features/user/hooks/use_verify_nickname_availability_error_message.dart';
+import 'package:ion/app/features/user/hooks/use_nickname_availability_error_message.dart';
 import 'package:ion/app/features/user/hooks/use_verify_referral_exists_error_message.dart';
 import 'package:ion/app/features/user/providers/image_proccessor_notifier.m.dart';
 import 'package:ion/app/features/user/providers/user_nickname_provider.r.dart';
@@ -137,7 +137,8 @@ class FillProfile extends HookConsumerWidget {
       [debouncedReferral, context],
     );
 
-    final verifyNicknameErrorMessage = useVerifyNicknameAvailabilityErrorMessage(ref);
+    final verifyNicknameErrorMessage =
+        useNicknameAvailabilityErrorMessage(ref, userNicknameNotifierProvider);
     final verifyReferralErrorMessage = useVerifyReferralExistsErrorMessage(ref);
 
     return SheetContent(

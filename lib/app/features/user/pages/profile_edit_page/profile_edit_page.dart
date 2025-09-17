@@ -17,13 +17,13 @@ import 'package:ion/app/features/auth/views/components/user_data_inputs/name_inp
 import 'package:ion/app/features/auth/views/components/user_data_inputs/nickname_input.dart';
 import 'package:ion/app/features/auth/views/components/user_data_inputs/website_input.dart';
 import 'package:ion/app/features/feed/providers/suggestions/suggestions_notifier_provider.r.dart';
-import 'package:ion/app/features/user/hooks/update_user_metadata_error_message.dart';
-import 'package:ion/app/features/user/hooks/use_verify_nickname_availability_error_message.dart';
+import 'package:ion/app/features/user/hooks/use_nickname_availability_error_message.dart';
 import 'package:ion/app/features/user/pages/components/profile_avatar/profile_avatar.dart';
 import 'package:ion/app/features/user/pages/profile_edit_page/components/category_selector/category_selector.dart';
 import 'package:ion/app/features/user/pages/profile_edit_page/components/edit_submit_button/edit_submit_button.dart';
 import 'package:ion/app/features/user/pages/profile_edit_page/components/header/header.dart';
 import 'package:ion/app/features/user/pages/profile_edit_page/hooks/use_draft_metadata.dart';
+import 'package:ion/app/features/user/providers/update_user_metadata_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_nickname_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
@@ -63,8 +63,10 @@ class ProfileEditPage extends HookConsumerWidget {
       [debouncedNickname, context, userMetadata.data.name],
     );
 
-    final verifyNicknameErrorMessage = useVerifyNicknameAvailabilityErrorMessage(ref);
-    final updateUserMetadataError = useUpdateUserMetadataErrorMessage(ref);
+    final verifyNicknameErrorMessage =
+        useNicknameAvailabilityErrorMessage(ref, userNicknameNotifierProvider);
+    final updateUserMetadataError =
+        useNicknameAvailabilityErrorMessage(ref, updateUserMetadataNotifierProvider);
 
     final textEditorKey = useMemoized(TextEditorKeys.bioInput);
     final scrollController = useScrollController();
