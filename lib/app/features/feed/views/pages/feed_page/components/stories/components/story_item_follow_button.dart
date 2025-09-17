@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/optimistic_ui/features/follow/follow_provider.r.dart';
@@ -20,6 +21,8 @@ class StoryItemFollowButton extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isAlwaysShowButton = useState<bool>(false);
+    final followListState = ref.watch(currentUserFollowListProvider);
     final isFollowUser = ref.watch(
       isCurrentUserFollowingSelectorProvider(
         pubkey,
@@ -35,8 +38,13 @@ class StoryItemFollowButton extends HookConsumerWidget {
       username,
     );
 
+    if (isFollowUser && !isAlwaysShowButton.value || followListState.isLoading) {
+      return const SizedBox.shrink();
+    }
+
     return GestureDetector(
       onTap: () {
+        isAlwaysShowButton.value = true;
         ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
       },
       child: Container(
