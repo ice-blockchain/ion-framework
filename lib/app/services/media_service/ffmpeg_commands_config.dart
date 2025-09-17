@@ -24,7 +24,7 @@ class FFmpegCommands {
       videoCodec,
       '-preset',
       preset,
-      '-b:v',
+      '-maxrate',
       maxRate,
       '-bufsize',
       bufSize,
