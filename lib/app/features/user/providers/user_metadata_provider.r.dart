@@ -118,8 +118,7 @@ Future<bool> isUserDeleted(Ref ref, String masterPubkey) async {
         .watch(userMetadataProvider(masterPubkey, expirationDuration: expirationDuration).future);
 
     return userMetadata == null;
-  } on UserRelaysNotFoundException catch (e, st) {
-    Logger.error(e, stackTrace: st, message: 'Error checking if user is deleted $masterPubkey');
+  } on UserRelaysNotFoundException catch (_) {
     return true;
   } catch (e, st) {
     Logger.error(e, stackTrace: st, message: 'Error checking if user is deleted $masterPubkey');
