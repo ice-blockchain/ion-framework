@@ -15,6 +15,7 @@ import 'package:ion/app/features/feed/views/components/article/article.dart';
 import 'package:ion/app/features/feed/views/components/post/post.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 
@@ -34,12 +35,12 @@ class RepostListItem extends ConsumerWidget {
           ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
-              ListCachedEntities.updateEntity(context, entity);
+              ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
             }
             return entity;
           }),
         ) ??
-        ListCachedEntities.maybeEntityOf(context, eventReference);
+        ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(context, eventReference);
 
     if (repostEntity == null) {
       return const Skeleton(child: PostSkeleton());

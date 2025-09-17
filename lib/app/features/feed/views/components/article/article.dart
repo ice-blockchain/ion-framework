@@ -21,6 +21,7 @@ import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/utils/algorithm.dart';
 import 'package:ion/app/utils/color.dart';
 
@@ -82,12 +83,12 @@ class Article extends ConsumerWidget {
           ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
-              ListCachedEntities.updateEntity(context, entity);
+              ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
             }
             return entity;
           }),
         ) ??
-        ListCachedEntities.maybeEntityOf(context, eventReference);
+        ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(context, eventReference);
 
     if (entity is! ArticleEntity) {
       return Padding(

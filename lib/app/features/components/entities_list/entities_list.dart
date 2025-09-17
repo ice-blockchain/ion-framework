@@ -9,19 +9,15 @@ import 'package:ion/app/features/components/entities_list/components/post_list_i
 import 'package:ion/app/features/components/entities_list/components/repost_list_item.dart';
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
+import 'package:ion/app/features/components/entities_list/list_entity_helper.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
-import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 
 class EntitiesList extends HookWidget {
@@ -91,18 +87,18 @@ class _EntityListItem extends HookConsumerWidget {
           ionConnectEntityProvider(eventReference: eventReference).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
-              ListCachedEntities.updateEntity(context, entity);
+              ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
             }
             return entity;
           }),
         ) ??
-        ListCachedEntities.maybeEntityOf(context, eventReference);
+        ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(context, eventReference);
 
     if (entity == null ||
-        _isBlockedOrMutedOrBlocking(ref, entity, showMuted) ||
-        _isDeleted(ref, entity) ||
-        _isRepostedEntityDeleted(context, ref, entity) ||
-        !_hasMetadata(context, ref, entity)) {
+        ListEntityHelper.isUserMuted(ref, entity.masterPubkey, showMuted: showMuted) ||
+        ListEntityHelper.isUserBlockedOrBlocking(context, ref, entity) ||
+        ListEntityHelper.isEntityOrRepostedEntityDeleted(context, ref, entity) ||
+        !ListEntityHelper.hasMetadata(context, ref, entity)) {
       return const SizedBox.shrink();
     }
 
@@ -121,50 +117,6 @@ class _EntityListItem extends HookConsumerWidget {
         _ => const SizedBox.shrink()
       },
     );
-  }
-
-  bool _isDeleted(WidgetRef ref, IonConnectEntity entity) {
-    return entity is SoftDeletableEntity && entity.isDeleted;
-  }
-
-  bool _isRepostedEntityDeleted(BuildContext context, WidgetRef ref, IonConnectEntity entity) {
-    if (entity is GenericRepostEntity) {
-      final repostedEntity = ref.watch(
-            ionConnectEntityWithCountersProvider(eventReference: entity.data.eventReference)
-                .select((value) {
-              final entity = value.valueOrNull;
-              if (entity != null) {
-                ListCachedEntities.updateEntity(context, entity);
-              }
-              return entity;
-            }),
-          ) ??
-          ListCachedEntities.maybeEntityOf(context, eventReference);
-      return repostedEntity == null ||
-          (repostedEntity is SoftDeletableEntity && repostedEntity.isDeleted);
-    }
-    return false;
-  }
-
-  bool _isBlockedOrMutedOrBlocking(WidgetRef ref, IonConnectEntity entity, bool showMuted) {
-    final isMuted = !showMuted && ref.watch(isUserMutedProvider(entity.masterPubkey));
-    final isBlockedOrBlockedBy = ref.watch(isEntityBlockedOrBlockedByProvider(entity));
-    return isMuted || isBlockedOrBlockedBy;
-  }
-
-  bool _hasMetadata(BuildContext context, WidgetRef ref, IonConnectEntity entity) {
-    final userMetadata = ref.watch(
-          userMetadataProvider(entity.masterPubkey).select((value) {
-            final entity = value.valueOrNull;
-            if (entity != null) {
-              ListCachedEntities.updateEntity(context, entity);
-            }
-            return entity;
-          }),
-        ) ??
-        ListCachedEntities.maybeEntityOf(context, eventReference);
-
-    return userMetadata != null;
   }
 }
 

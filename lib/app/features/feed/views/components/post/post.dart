@@ -74,12 +74,12 @@ class Post extends ConsumerWidget {
           ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
-              ListCachedEntities.updateEntity(context, entity);
+              ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
             }
             return entity;
           }),
         ) ??
-        ListCachedEntities.maybeEntityOf(context, eventReference);
+        ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(context, eventReference);
 
     if (entity == null) {
       return ScreenSideOffset.small(
@@ -275,12 +275,12 @@ final class _FramedEvent extends HookConsumerWidget {
           ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
-              ListCachedEntities.updateEntity(context, entity);
+              ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
             }
             return entity;
           }),
         ) ??
-        ListCachedEntities.maybeEntityOf(context, eventReference);
+        ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(context, eventReference);
 
     Widget? deletedEntity;
 
@@ -355,12 +355,12 @@ final class _QuotedPost extends ConsumerWidget {
           ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
-              ListCachedEntities.updateEntity(context, entity);
+              ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
             }
             return entity;
           }),
         ) ??
-        ListCachedEntities.maybeEntityOf(context, eventReference);
+        ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(context, eventReference);
 
     return QuotedEntityFrame.post(
       child: GestureDetector(

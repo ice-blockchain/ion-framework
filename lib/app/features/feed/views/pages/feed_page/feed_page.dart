@@ -68,7 +68,7 @@ class FeedPage extends HookConsumerWidget {
         scrollController: scrollController,
         horizontalPadding: ScreenSideOffset.defaultSmallMargin,
       ),
-      body: ListCachedEntities(
+      body: ListCachedObjects(
         child: LoadMoreBuilder(
           slivers: slivers,
           hasMore: hasMorePosts,
