@@ -26,12 +26,10 @@ class UserMetadata extends _$UserMetadata {
   Future<UserMetadataEntity?> build(
     String masterPubkey, {
     bool cache = true,
-    ActionType? actionType,
     Duration? expirationDuration,
   }) async {
     final userMetadata = await ref.watch(
       ionConnectEntityProvider(
-        actionType: actionType,
         cache: cache,
         expirationDuration: expirationDuration,
         eventReference: ReplaceableEventReference(
@@ -49,7 +47,34 @@ class UserMetadata extends _$UserMetadata {
       return userMetadata;
     }
 
-    unawaited(ref.read(toggleFollowNotifierProvider.notifier).unfollow(masterPubkey));
+    // If user metadata is null, information can be not available yet on read
+    // relays, so we check write relays
+    final userMetadataFromWriteRelay = await ref.watch(
+      ionConnectEntityProvider(
+        actionType: ActionType.write,
+        cache: cache,
+        expirationDuration: expirationDuration,
+        eventReference: ReplaceableEventReference(
+          masterPubkey: masterPubkey,
+          kind: UserMetadataEntity.kind,
+        ),
+        cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
+        // Always include ProfileBadgesSearchExtension to avoid provider rebuilds
+        // when badge data changes from null to cached
+        search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
+      ).future,
+    ) as UserMetadataEntity?;
+
+    if (userMetadataFromWriteRelay != null) {
+      return userMetadataFromWriteRelay;
+    }
+
+    if (userMetadata == null) {
+      // If user metadata is null, we unfollow the user and delete it from the database
+      unawaited(ref.read(toggleFollowNotifierProvider.notifier).unfollow(masterPubkey));
+      unawaited(ref.watch(userMetadataDaoProvider).deleteMetadata([masterPubkey]));
+      unawaited(ref.watch(userDelegationDaoProvider).deleteDelegation([masterPubkey]));
+    }
 
     return null;
   }
@@ -92,25 +117,7 @@ Future<bool> isUserDeleted(Ref ref, String masterPubkey) async {
     final userMetadata = await ref
         .watch(userMetadataProvider(masterPubkey, expirationDuration: expirationDuration).future);
 
-    if (userMetadata == null) {
-      // If user metadata is null, information can be not available yet on read
-      // relays, so we check write relays
-      final userMetadataFromWriteRelay = await ref.watch(
-        userMetadataProvider(masterPubkey, actionType: ActionType.write, cache: false).future,
-      );
-
-      final isDeleted = userMetadataFromWriteRelay == null;
-
-      if (isDeleted) {
-        // If user metadata is deleted, we delete it from the database
-        unawaited(ref.watch(userMetadataDaoProvider).deleteMetadata([masterPubkey]));
-        unawaited(ref.watch(userDelegationDaoProvider).deleteDelegation([masterPubkey]));
-      }
-
-      return isDeleted;
-    } else {
-      return false;
-    }
+    return userMetadata == null;
   } on UserRelaysNotFoundException catch (e, st) {
     Logger.error(e, stackTrace: st, message: 'Error checking if user is deleted $masterPubkey');
     return true;
