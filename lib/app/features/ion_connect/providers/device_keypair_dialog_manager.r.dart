@@ -23,6 +23,12 @@ class DeviceKeypairDialogManager extends _$DeviceKeypairDialogManager {
   /// Determines the current state of device keypair synchronization
   Future<DeviceKeypairState> getCurrentState() async {
     try {
+      // Respect suppression flag: if user opted out, never show again
+      final isSuppressed = await ref.read(deviceKeypairDialogSuppressedProvider.future);
+      if (isSuppressed) {
+        return DeviceKeypairState.rejectedThisSession;
+      }
+
       // Check if user completed upload/restore on this device
       final hasCompleted = await _hasCompletedOnThisDevice();
       if (hasCompleted) {
@@ -87,6 +93,8 @@ class DeviceKeypairDialogManager extends _$DeviceKeypairDialogManager {
     final localStorage = ref.read(localStorageProvider);
     await localStorage.remove(_getCompletedKey());
     await localStorage.remove(_getUploadedFromDeviceKey());
+    await ref.read(deviceKeypairDialogShownOnceProvider.notifier).reset();
+    await ref.read(deviceKeypairDialogSuppressedProvider.notifier).reset();
     state = const DeviceKeypairSessionState();
   }
 
@@ -128,5 +136,61 @@ class DeviceKeypairDialogManager extends _$DeviceKeypairDialogManager {
       throw const CurrentUserNotFoundException();
     }
     return '${_uploadedFromDeviceKeyPrefix}_$identityKeyName';
+  }
+}
+
+@riverpod
+class DeviceKeypairDialogSuppressed extends _$DeviceKeypairDialogSuppressed {
+  static const _storageKeyPrefix = 'device_keypair_dialog_suppressed';
+
+  String _makeKey(String identityKeyName) => '${_storageKeyPrefix}_$identityKeyName';
+
+  @override
+  Future<bool> build() async {
+    final identityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
+    if (identityKeyName == null) return false;
+    final localStorage = ref.watch(localStorageProvider);
+    return localStorage.getBool(_makeKey(identityKeyName)) ?? false;
+  }
+
+  Future<void> setSuppressed({required bool value}) async {
+    final identityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
+    if (identityKeyName == null) return;
+    await ref.read(localStorageProvider).setBool(
+          key: _makeKey(identityKeyName),
+          value: value,
+        );
+    state = AsyncData(value);
+  }
+
+  Future<void> reset() async => setSuppressed(value: false);
+}
+
+@riverpod
+class DeviceKeypairDialogShownOnce extends _$DeviceKeypairDialogShownOnce {
+  static const _storageKeyPrefix = 'device_keypair_dialog_shown_once';
+
+  String _makeKey(String identityKeyName) => '${_storageKeyPrefix}_$identityKeyName';
+
+  @override
+  Future<bool> build() async {
+    final identityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
+    if (identityKeyName == null) return false;
+    final localStorage = ref.watch(localStorageProvider);
+    return localStorage.getBool(_makeKey(identityKeyName)) ?? false;
+  }
+
+  Future<void> markShownOnce() async => _setShownOnce(value: true);
+
+  Future<void> reset() async => _setShownOnce(value: false);
+
+  Future<void> _setShownOnce({required bool value}) async {
+    final identityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
+    if (identityKeyName == null) return;
+    await ref.read(localStorageProvider).setBool(
+          key: _makeKey(identityKeyName),
+          value: value,
+        );
+    state = AsyncData(value);
   }
 }

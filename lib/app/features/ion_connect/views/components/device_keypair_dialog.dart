@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/checkbox/labeled_checkbox.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
+import 'package:ion/app/features/ion_connect/providers/device_keypair_dialog_manager.r.dart';
 import 'package:ion/app/features/ion_connect/providers/device_keypair_dialog_state.f.dart';
 import 'package:ion/app/features/ion_connect/providers/restore_device_keypair_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/upload_device_keypair_notifier.r.dart';
@@ -28,6 +31,11 @@ class DeviceKeypairDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    useEffect(
+      () => ref.read(deviceKeypairDialogShownOnceProvider.notifier).markShownOnce,
+      [],
+    );
+
     return switch (state) {
       DeviceKeypairState.needsUpload || DeviceKeypairState.uploadInProgress => _UploadDialog(
           isInProgress: state == DeviceKeypairState.uploadInProgress,
@@ -47,6 +55,11 @@ class _UploadDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final dontShowAgain = useState(false);
+
+    final shownOnce = ref.watch(deviceKeypairDialogShownOnceProvider).valueOrNull ?? false;
+    final showCheckbox = shownOnce;
+
     ref
       ..listenError(uploadDeviceKeypairNotifierProvider, (_) => context.pop())
       ..listenSuccess(uploadDeviceKeypairNotifierProvider, (_) => context.pop());
@@ -59,10 +72,21 @@ class _UploadDialog extends HookConsumerWidget {
       description: isInProgress
           ? context.i18n.device_keypair_upload_incomplete_description
           : context.i18n.device_keypair_upload_description,
-      actionButtonLabel: isInProgress
-          ? context.i18n.device_keypair_button_complete_upload
-          : context.i18n.device_keypair_button_upload_now,
+      actionButtonLabel: showCheckbox && dontShowAgain.value
+          ? context.i18n.button_close
+          : isInProgress
+              ? context.i18n.device_keypair_button_complete_upload
+              : context.i18n.device_keypair_button_upload_now,
+      showCheckbox: showCheckbox,
+      checkboxLabel: context.i18n.device_keypair_button_dont_show_again,
+      isDontShowAgain: dontShowAgain.value,
+      onToggleDontShowAgain: (v) => dontShowAgain.value = v,
       onActionButtonPressed: () async {
+        if (showCheckbox && dontShowAgain.value) {
+          await ref.read(deviceKeypairDialogSuppressedProvider.notifier).setSuppressed(value: true);
+          if (context.mounted) context.pop();
+          return;
+        }
         await guardPasskeyDialog(
           context,
           (child) {
@@ -87,6 +111,11 @@ class _RestoreDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final dontShowAgain = useState(false);
+
+    final shownOnce = ref.watch(deviceKeypairDialogShownOnceProvider).valueOrNull ?? false;
+    final showCheckbox = shownOnce;
+
     ref
       ..listenError(restoreDeviceKeypairNotifierProvider, (_) => context.pop())
       ..listenSuccess(restoreDeviceKeypairNotifierProvider, (_) => context.pop());
@@ -95,8 +124,19 @@ class _RestoreDialog extends HookConsumerWidget {
       icon: Assets.svg.actionchatrestorekey.icon(size: _iconSize.s),
       title: context.i18n.device_keypair_restore_title,
       description: context.i18n.device_keypair_restore_description,
-      actionButtonLabel: context.i18n.device_keypair_button_restore_now,
+      actionButtonLabel: showCheckbox && dontShowAgain.value
+          ? context.i18n.button_close
+          : context.i18n.device_keypair_button_restore_now,
+      showCheckbox: showCheckbox,
+      checkboxLabel: context.i18n.device_keypair_button_dont_show_again,
+      isDontShowAgain: dontShowAgain.value,
+      onToggleDontShowAgain: (v) => dontShowAgain.value = v,
       onActionButtonPressed: () async {
+        if (showCheckbox && dontShowAgain.value) {
+          await ref.read(deviceKeypairDialogSuppressedProvider.notifier).setSuppressed(value: true);
+          if (context.mounted) context.pop();
+          return;
+        }
         await guardPasskeyDialog(
           context,
           (child) {
@@ -123,6 +163,10 @@ class _DeviceKeypairDialogContent extends StatelessWidget {
     required this.description,
     required this.actionButtonLabel,
     required this.onActionButtonPressed,
+    this.showCheckbox = false,
+    this.checkboxLabel,
+    this.isDontShowAgain = false,
+    this.onToggleDontShowAgain,
   });
 
   final Widget icon;
@@ -130,6 +174,10 @@ class _DeviceKeypairDialogContent extends StatelessWidget {
   final String description;
   final String actionButtonLabel;
   final VoidCallback onActionButtonPressed;
+  final bool showCheckbox;
+  final String? checkboxLabel;
+  final bool isDontShowAgain;
+  final ValueChanged<bool>? onToggleDontShowAgain;
 
   @override
   Widget build(BuildContext context) {
@@ -162,6 +210,15 @@ class _DeviceKeypairDialogContent extends StatelessWidget {
                   style: textStyles.body2.copyWith(color: colors.secondaryText),
                   textAlign: TextAlign.center,
                 ),
+                if (showCheckbox) ...[
+                  SizedBox(height: 16.0.s),
+                  LabeledCheckbox(
+                    isChecked: isDontShowAgain,
+                    onChanged: (v) => onToggleDontShowAgain?.call(v),
+                    label: checkboxLabel ?? '',
+                    textStyle: textStyles.body.copyWith(color: colors.primaryText),
+                  ),
+                ],
                 SizedBox(height: 28.0.s),
                 Button(
                   minimumSize: Size(double.infinity, 56.0.s),
