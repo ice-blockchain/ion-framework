@@ -49,7 +49,7 @@ class UserMetadata extends _$UserMetadata {
       return userMetadata;
     }
 
-    unawaited(ref.read(toggleFollowNotifierProvider.notifier).toggle(masterPubkey));
+    unawaited(ref.read(toggleFollowNotifierProvider.notifier).unfollow(masterPubkey));
 
     return null;
   }

@@ -70,6 +70,17 @@ class ToggleFollowNotifier extends _$ToggleFollowNotifier {
           following: !current.following,
         );
   }
+
+  Future<void> unfollow(String masterPubkey) async {
+    final currentUserFollowList = await ref.read(currentUserFollowListProvider.future);
+    if (currentUserFollowList == null) {
+      return;
+    }
+    if (currentUserFollowList.data.list.any((followee) => followee.pubkey == masterPubkey)) {
+      return toggle(masterPubkey);
+    }
+    return;
+  }
 }
 
 @riverpod
