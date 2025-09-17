@@ -8,7 +8,6 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion_connect_cache/ion_connect_cache.dart';
-
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -125,13 +124,12 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     );
 
     final nonExistingRefs = eventReferences
-        .map((e) => e.toString())
         .toSet()
         .difference(
           existingResults
               .map((result) {
                 final parsed = parser.parse(result.eventMessage);
-                return parsed.toEventReference().toString();
+                return parsed.toEventReference();
               })
               .nonNulls
               .toSet(),
@@ -145,8 +143,7 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
       final results = await Future.wait(
         batch.map(
           (eventReference) {
-            final eventRef = EventReference.fromEncoded(eventReference);
-            return ref.read(ionConnectEntityProvider(eventReference: eventRef).future);
+            return ref.read(ionConnectEntityProvider(eventReference: eventReference).future);
           },
         ),
       );
