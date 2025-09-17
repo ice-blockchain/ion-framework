@@ -6,8 +6,6 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/polls/providers/poll_results_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -71,14 +69,8 @@ class PollVoteNotifier extends _$PollVoteNotifier {
   @override
   FutureOr<void> build() {}
 
-  Future<bool> vote(EventReference postReference, String optionId) async {
-    if (state.isLoading) {
-      return false;
-    }
-
+  Future<void> vote(EventReference postReference, String optionId) async {
     try {
-      state = const AsyncValue.loading();
-
       final masterPubkey = ref.read(currentPubkeySelectorProvider);
       if (masterPubkey == null) {
         throw Exception('User must be logged in to vote');
@@ -115,31 +107,17 @@ class PollVoteNotifier extends _$PollVoteNotifier {
         final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
         metadataBuilders.add(userEventsMetadataBuilder);
       }
-
-      final result = await ref.read(ionConnectNotifierProvider.notifier).sendEvent(
+      await ref.read(ionConnectNotifierProvider.notifier).sendEvent(
             voteEvent,
             actionSource: ActionSource.user(pollEvent.masterPubkey),
             metadataBuilders: metadataBuilders,
           );
 
-      final pollData = pollEvent is ModifiablePostEntity ? pollEvent.data.poll : null;
-      if (result != null) {
-        if (pollData != null) {
-          ref.read(pollVoteCountsProvider(postReference, pollData).notifier).addOne(
-                selectedOptionIndex,
-              );
-        }
-
-        state = const AsyncValue.data(null);
-        return true;
-      }
-
-      state = const AsyncValue.data(null);
-      return false;
+      return;
     } catch (e, stackTrace) {
       Logger.error(e, stackTrace: stackTrace, message: 'Failed to vote on poll');
       state = AsyncValue.error(e, stackTrace);
-      return false;
+      return;
     }
   }
 }

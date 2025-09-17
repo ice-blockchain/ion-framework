@@ -7,7 +7,7 @@ import 'package:ion/app/features/feed/polls/providers/poll_results_provider.r.da
 import 'package:ion/app/features/feed/polls/view/components/poll_vote.dart';
 import 'package:ion/app/features/feed/polls/view/components/poll_vote_result.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/optimistic_ui/features/polls/poll_vote_provider.r.dart';
+import 'package:ion/app/features/optimistic_ui/features/polls/vote_poll_provider.r.dart';
 
 class PostPoll extends ConsumerWidget {
   const PostPoll({
@@ -26,8 +26,14 @@ class PostPoll extends ConsumerWidget {
     final voteCounts = ref.watch(pollVoteCountsProvider(postReference, pollData));
     final userVotedOptionIndex = ref.watch(userVotedOptionIndexProvider(postReference));
     final hasVoted = ref.watch(hasUserVotedProvider(postReference));
+    final optimisticHasVoted = ref
+        .watch(
+          pollVoteWatchProvider(pollData.ttl.toString()),
+        )
+        .valueOrNull
+        ?.userVotedOptionIndex;
 
-    final userHasVoted = userVotedOptionIndex != null || hasVoted;
+    final userHasVoted = userVotedOptionIndex != null || hasVoted || optimisticHasVoted != null;
     final shouldShowResults = pollData.isClosed || userHasVoted;
 
     if (shouldShowResults) {
@@ -43,9 +49,12 @@ class PostPoll extends ConsumerWidget {
         accentTheme: accentTheme,
         selectedOptionIndex: userVotedOptionIndex,
         onVote: (optionIndex) async {
-          await ref
-              .read(togglePollVoteNotifierProvider.notifier)
-              .vote(postReference, pollData, optionIndex);
+          await ref.read(togglePollVoteNotifierProvider.notifier).vote(
+                postReference,
+                pollData,
+                optionIndex,
+                voteCounts,
+              );
         },
       );
     }
