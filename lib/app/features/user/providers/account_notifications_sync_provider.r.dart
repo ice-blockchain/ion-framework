@@ -339,6 +339,7 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
           search: SearchExtensions([
             ExpirationSearchExtension(expiration: false),
             VideosSearchExtension(contain: false),
+            TagMarkerSearchExtension(tagName: 'a', marker: 'reply', negative: true),
           ]).toString(),
           authors: users,
           limit: 100,
