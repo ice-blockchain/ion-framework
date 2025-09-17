@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
 import 'package:ffmpeg_kit_flutter/ffprobe_kit.dart';
@@ -41,7 +42,7 @@ class VideoCompressionSettings {
   });
 
   static const balanced = VideoCompressionSettings(
-    videoCodec: FFmpegVideoCodecArg.libx264,
+    videoCodec: FFmpegVideoCodecArg.h264,
     preset: FfmpegPresetArg.slow,
     maxRate: FfmpegBitrateArg.medium,
     bufSize: FfmpegBitrateArg.medium,
@@ -53,7 +54,7 @@ class VideoCompressionSettings {
   );
 
   static const highQuality = VideoCompressionSettings(
-    videoCodec: FFmpegVideoCodecArg.libx264,
+    videoCodec: FFmpegVideoCodecArg.h264,
     preset: FfmpegPresetArg.slow,
     maxRate: FfmpegBitrateArg.high,
     bufSize: FfmpegBitrateArg.highest,
