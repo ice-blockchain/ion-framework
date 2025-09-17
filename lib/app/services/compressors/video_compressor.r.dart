@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
 import 'package:ffmpeg_kit_flutter/ffprobe_kit.dart';
@@ -113,6 +114,8 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
         movFlags: settings.movFlags.value,
       );
 
+      print('args: $args');
+
       final session = await compressExecutor.execute(
         args,
         sessionResultCompleter,
@@ -130,6 +133,10 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       }
 
       final (width: outWidth, height: outHeight) = await getVideoDimensions(output);
+
+      // final compressionDuration = DateTime.now().di fference(compressionStartTime);
+      final outputFileSize = await File(output).length();
+      Logger.info('[d3g] Video compression completed -  Output Size: ${(outputFileSize / 1024 / 1024).toStringAsFixed(2)}MB,');
 
       // Return the final compressed video file info
       return MediaFile(
@@ -157,6 +164,9 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     String? thumb,
   }) async {
     try {
+      final thumbnailStartTime = DateTime.now();
+      Logger.info('[d3g] Thumbnail extraction starting - Video: ${videoFile.name}');
+      
       var thumbPath = thumb;
       final sessionResultCompleter = Completer<FFmpegSession>();
 
@@ -183,6 +193,9 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       final compressedImage = await imageCompressor.compress(
         MediaFile(path: thumbPath),
       );
+
+      final thumbnailDuration = DateTime.now().difference(thumbnailStartTime);
+      Logger.info('[d3g] Thumbnail extraction completed - Duration: ${thumbnailDuration.inMilliseconds}ms');
 
       return compressedImage;
     } catch (error, stackTrace) {
