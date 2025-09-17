@@ -516,6 +516,7 @@
   "send_nft_token_standard": "معيار الرمز",
   "send_nft_token_contract_address": "عنوان العقد",
   "send_nft_title": "إرسال NFT",
+  "send_nft_sending_nft_will_be_available_later": "إرسال الـ NFT سيكون متاحًا لاحقًا",
   "post_page_title": "منشور",
   "post_show_replies": "عرض الردود",
   "post_hide_replies": "إخفاء الردود",

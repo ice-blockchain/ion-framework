@@ -538,6 +538,7 @@
   "send_nft_token_standard": "Token-Standard",
   "send_nft_token_contract_address": "Vertragsadresse",
   "send_nft_title": "NFT senden",
+  "send_nft_sending_nft_will_be_available_later": "Das Senden von NFTs wird später verfügbar sein",
   "post_page_title": "Beitrag",
   "post_show_replies": "Antworten anzeigen",
   "post_hide_replies": "Antworten ausblenden",

@@ -556,6 +556,7 @@
   "send_nft_token_standard": "Token standard",
   "send_nft_token_contract_address": "Contract address",
   "send_nft_title": "Send NFT",
+  "send_nft_sending_nft_will_be_available_later": "Sending the NFT will be available later",
   "post_page_title": "Post",
   "post_show_replies": "Show replies",
   "post_hide_replies": "Hide replies",

@@ -27,6 +27,18 @@ class SendNftUseCase {
 
   final IONIdentityClient _ionIdentityClient;
 
+  bool isSendable(NftData sendableAsset) {
+    try {
+      _TransferFactory().create(
+        receiverAddress: '',
+        sendableAsset: sendableAsset,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<TransferResult> send({
     required Wallet senderWallet,
     required String receiverAddress,

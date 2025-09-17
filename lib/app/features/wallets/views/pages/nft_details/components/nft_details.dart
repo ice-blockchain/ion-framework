@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/button/button.dart';
@@ -12,6 +13,7 @@ import 'package:ion/app/components/read_more_text/read_more_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/nft_identifier.f.dart';
 import 'package:ion/app/features/wallets/providers/send_nft_form_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/send_nft_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/nft_name.dart';
 import 'package:ion/app/features/wallets/views/components/nft_picture.dart';
 import 'package:ion/app/features/wallets/views/pages/nft_details/components/nft_details_loading.dart';
@@ -19,7 +21,7 @@ import 'package:ion/app/features/wallets/views/pages/nft_details/providers/nft_d
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class NftDetails extends ConsumerWidget {
+class NftDetails extends HookConsumerWidget {
   const NftDetails({
     required this.nftIdentifier,
     super.key,
@@ -33,6 +35,96 @@ class NftDetails extends ConsumerWidget {
 
     if (nftData == null) {
       return const NftDetailsLoading();
+    }
+
+    final isConfirmEnabled = useState(false);
+
+    useEffect(
+      () {
+        ref.watch(sendNftNotifierProvider.notifier).isSendable(nftData).then((result) {
+          isConfirmEnabled.value = result;
+        });
+        return null;
+      },
+      [],
+    );
+
+    final overlayEntry = useRef<OverlayEntry?>(null);
+    final buttonKey = useRef(GlobalKey());
+    final animationController = useAnimationController(
+      duration: const Duration(milliseconds: 300),
+    );
+    final opacityAnimation = useRef(
+      Tween<double>(begin: 0, end: 1).animate(
+        CurvedAnimation(parent: animationController, curve: Curves.easeInOut),
+      ),
+    );
+
+    void showOverlay() {
+      if (overlayEntry.value != null) {
+        return;
+      }
+
+      final renderBox = buttonKey.value.currentContext!.findRenderObject()! as RenderBox;
+      final offset = renderBox.localToGlobal(Offset.zero);
+      final size = renderBox.size;
+      final overlayHeight = 40.s;
+      final topPosition = offset.dy - size.height - overlayHeight;
+
+      overlayEntry.value = OverlayEntry(
+        builder: (context) {
+          return Positioned(
+            width: MediaQuery.sizeOf(context).width,
+            top: topPosition,
+            height: overlayHeight,
+            child: AnimatedBuilder(
+              animation: opacityAnimation.value,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: opacityAnimation.value.value,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Center(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 32.s, vertical: 12.s),
+                        decoration: BoxDecoration(
+                          color: context.theme.appColors.onPrimaryAccent,
+                          borderRadius: BorderRadius.circular(16.s),
+                          border: Border.all(
+                            color: context.theme.appColors.onPrimaryAccent,
+                            width: 1.s,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.10),
+                              blurRadius: 8.s,
+                              offset: Offset(0, 4.s),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          context.i18n.send_nft_sending_nft_will_be_available_later,
+                          style: context.theme.appTextThemes.body2,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      );
+
+      Overlay.of(context).insert(overlayEntry.value!);
+      animationController.forward();
+
+      // Auto remove after 3s
+      Future.delayed(const Duration(seconds: 3), () async {
+        await animationController.reverse();
+        overlayEntry.value?.remove();
+        overlayEntry.value = null;
+      });
     }
 
     return Column(
@@ -91,18 +183,28 @@ class NftDetails extends ConsumerWidget {
           value: nftData.contract,
         ),
         SizedBox(height: 12.0.s),
-        Button(
-          mainAxisSize: MainAxisSize.max,
-          minimumSize: Size(56.0.s, 56.0.s),
-          leadingIcon: Assets.svg.iconButtonSend.icon(
-            color: context.theme.appColors.onPrimaryAccent,
-          ),
-          label: Text(context.i18n.feed_send),
-          onPressed: () {
-            ref.invalidate(sendNftFormControllerProvider);
-            ref.read(sendNftFormControllerProvider.notifier).setNft(nftData);
-            NftSendFormRoute().push<void>(context);
+        GestureDetector(
+          key: buttonKey.value,
+          onTap: () {
+            if (!isConfirmEnabled.value) {
+              showOverlay();
+            }
           },
+          behavior: HitTestBehavior.translucent,
+          child: Button(
+            type: isConfirmEnabled.value ? ButtonType.primary : ButtonType.disabled,
+            mainAxisSize: MainAxisSize.max,
+            minimumSize: Size(56.0.s, 56.0.s),
+            leadingIcon: Assets.svg.iconButtonSend.icon(
+              color: context.theme.appColors.onPrimaryAccent,
+            ),
+            label: Text(context.i18n.feed_send),
+            onPressed: () {
+              ref.invalidate(sendNftFormControllerProvider);
+              ref.read(sendNftFormControllerProvider.notifier).setNft(nftData);
+              NftSendFormRoute().push<void>(context);
+            },
+          ),
         ),
       ],
     );
