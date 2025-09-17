@@ -42,20 +42,25 @@ class NotificationItem extends HookConsumerWidget {
 
     if (eventReference != null) {
       entity = ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
-      if (entity == null || _isDeleted(ref, entity) || _isRepostedEntityDeleted(ref, entity)) {
-        // Use useEffect to call the callback when notification becomes hidden
-        useEffect(
-          () {
-            Future.microtask(() {
-              onNotificationHidden?.call();
-            });
-            return null;
-          },
-          [eventReference, entity],
-        );
+    }
 
-        return const SizedBox.shrink();
-      }
+    final isHidden = eventReference != null &&
+        (entity == null || _isDeleted(ref, entity) || _isRepostedEntityDeleted(ref, entity));
+
+    useEffect(
+      () {
+        if (isHidden) {
+          Future.microtask(() {
+            onNotificationHidden?.call();
+          });
+        }
+        return null;
+      },
+      [eventReference, entity],
+    );
+
+    if (isHidden) {
+      return const SizedBox.shrink();
     }
 
     return GestureDetector(

@@ -61,11 +61,13 @@ class PaginatedNotifications extends _$PaginatedNotifications {
     }
   }
 
+  //counting hidden(notification for which the content was already removed) to avoid case when we have to few or any notifications on initial screen
   void registerHiddenNotification() {
     _hiddenCount++;
     _tryFetchMore();
   }
 
+  //load more for case if there are a lot of hidden notifications for removed content on initial page
   void _tryFetchMore() {
     if (!state.hasMore || state.isLoading) {
       return;
