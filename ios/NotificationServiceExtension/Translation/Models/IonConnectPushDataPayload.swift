@@ -171,12 +171,9 @@ class IonConnectPushDataPayload: Decodable {
 
         if entity is GenericRepostEntity || entity is RepostEntity {
             return .repost
-        } else if let modifiablePost = entity as? ModifiablePostEntity,
-            modifiablePost.data.quotedEvent != nil
-        {
-            return .repost
-        } else if let post = entity as? PostEntity, post.data.quotedEvent != nil {
-            return .repost
+        } else if (entity as? ModifiablePostEntity)?.data.quotedEvent != nil ||
+                  (entity as? PostEntity)?.data.quotedEvent != nil {
+            return .quote
         } else if entity is ModifiablePostEntity || entity is PostEntity {
             let currentUserMention = ReplaceableEventReference(
                 masterPubkey: currentPubkey,
@@ -359,13 +356,25 @@ class IonConnectPushDataPayload: Decodable {
         }
 
         if let modifiablePost = entity as? ModifiablePostEntity {
-            return modifiablePost.data.relatedPubkeys.contains { pubkey in
+            let event = modifiablePost.data.quotedEvent
+            
+            let isInRelatedPubkeys = modifiablePost.data.relatedPubkeys.contains { pubkey in
                 return pubkey.value == currentPubkey
             }
+            
+            let isPostAuthor = event != nil && event!.eventReference.masterPubkey == currentPubkey
+            
+            return isInRelatedPubkeys || isPostAuthor
         } else if let post = entity as? PostEntity {
-            return post.data.relatedPubkeys.contains { pubkey in
+            let event = post.data.quotedEvent
+            
+            let isInRelatedPubkeys = post.data.relatedPubkeys.contains { pubkey in
                 return pubkey.value == currentPubkey
             }
+            
+            let isPostAuthor = event != nil && event!.eventReference.masterPubkey == currentPubkey
+            
+            return isInRelatedPubkeys || isPostAuthor
         } else if let genericRepost = entity as? GenericRepostEntity {
             return genericRepost.data.eventReference.masterPubkey == currentPubkey
         } else if let repost = entity as? RepostEntity {
@@ -470,6 +479,7 @@ enum PushNotificationType: String, Decodable {
     case reply
     case mention
     case repost
+    case quote
     case like
     case follower
     case paymentRequest
