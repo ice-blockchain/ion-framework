@@ -41,7 +41,7 @@ class VideoCompressionSettings {
   });
 
   static const balanced = VideoCompressionSettings(
-    videoCodec: FFmpegVideoCodecArg.libx264,
+    videoCodec: FFmpegVideoCodecArg.h264,
     preset: FfmpegPresetArg.slow,
     maxRate: FfmpegBitrateArg.medium,
     bufSize: FfmpegBitrateArg.medium,
@@ -53,7 +53,7 @@ class VideoCompressionSettings {
   );
 
   static const highQuality = VideoCompressionSettings(
-    videoCodec: FFmpegVideoCodecArg.libx264,
+    videoCodec: FFmpegVideoCodecArg.h264,
     preset: FfmpegPresetArg.slow,
     maxRate: FfmpegBitrateArg.high,
     bufSize: FfmpegBitrateArg.highest,
