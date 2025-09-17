@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/stories/data/models/models.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/story_index_keeper_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -94,10 +95,15 @@ class SingleUserStoryViewingController extends _$SingleUserStoryViewingControlle
         currentStoryIndex: 0,
       );
 
-  void _moveToNextStory() => state = state.copyWith(currentStoryIndex: state.currentStoryIndex + 1);
+  void _moveToNextStory() {
+    state = state.copyWith(currentStoryIndex: state.currentStoryIndex + 1);
+    saveCurrentIndex();
+  }
 
-  void _moveToPreviousStory() =>
-      state = state.copyWith(currentStoryIndex: state.currentStoryIndex - 1);
+  void _moveToPreviousStory() {
+    state = state.copyWith(currentStoryIndex: state.currentStoryIndex - 1);
+    saveCurrentIndex();
+  }
 
   /// story → nextStory → close
   bool advance({required int storiesLength, VoidCallback? onSeenAll}) {
@@ -125,5 +131,13 @@ class SingleUserStoryViewingController extends _$SingleUserStoryViewingControlle
     state = state.copyWith(
       currentStoryIndex: index,
     );
+  }
+
+  /// Save the current story index to the keeper when user switches away
+  void saveCurrentIndex() {
+    ref.read(storyIndexKeeperProvider.notifier).setStoryIndex(
+          state.pubkey,
+          state.currentStoryIndex,
+        );
   }
 }
