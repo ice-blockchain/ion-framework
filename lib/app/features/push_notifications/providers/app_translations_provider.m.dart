@@ -97,6 +97,7 @@ class PushNotificationTranslations
     NotificationTranslation? reply,
     NotificationTranslation? mention,
     NotificationTranslation? repost,
+    NotificationTranslation? quote,
     NotificationTranslation? like,
     NotificationTranslation? follower,
     NotificationTranslation? paymentRequest,
