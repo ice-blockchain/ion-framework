@@ -93,60 +93,10 @@ class QRScannerBottomSheet extends HookConsumerWidget {
                     if (!hasCameraPermission)
                       Padding(
                         padding: EdgeInsets.all(16.0.s),
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: context.theme.appColors.onPrimaryAccent,
-                            border: Border.all(
-                              color: context.theme.appColors.onSecondaryBackground,
-                            ),
-                            borderRadius: BorderRadius.circular(16.0.s),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 12.0.s),
-                            child: Column(
-                              spacing: 4.0.s,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Row(
-                                  spacing: 6.0.s,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Assets.svg.iconProfileNocamera.icon(
-                                      size: 20.0.s,
-                                      color: context.theme.appColors.sharkText,
-                                    ),
-                                    Text(
-                                      context.i18n.common_no_camera_permission,
-                                      style: context.theme.appTextThemes.body.copyWith(
-                                        color: context.theme.appColors.sharkText,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Column(
-                                  children: [
-                                    Text(
-                                      context.i18n.common_no_camera_permission_hint,
-                                      style: context.theme.appTextThemes.caption2.copyWith(
-                                        color: context.theme.appColors.secondaryText,
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () async {
-                                        await permissionStrategy.openSettings();
-                                      },
-                                      child: Text(
-                                        context.i18n.button_go_to_settings,
-                                        style: context.theme.appTextThemes.caption2.copyWith(
-                                          color: context.theme.appColors.primaryAccent,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+                        child: _InfoMessageCard(
+                          onPressed: () async {
+                            await permissionStrategy.openSettings();
+                          },
                         ),
                       ),
                   ],
@@ -156,6 +106,71 @@ class QRScannerBottomSheet extends HookConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _InfoMessageCard extends StatelessWidget {
+  const _InfoMessageCard({
+    required this.onPressed,
+  });
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: context.theme.appColors.onPrimaryAccent,
+        border: Border.all(
+          color: context.theme.appColors.onSecondaryBackground,
+        ),
+        borderRadius: BorderRadius.circular(16.0.s),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 12.0.s),
+        child: Column(
+          spacing: 4.0.s,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              spacing: 6.0.s,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Assets.svg.iconProfileNocamera.icon(
+                  size: 20.0.s,
+                  color: context.theme.appColors.sharkText,
+                ),
+                Text(
+                  context.i18n.common_no_camera_permission,
+                  style: context.theme.appTextThemes.body.copyWith(
+                    color: context.theme.appColors.sharkText,
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              children: [
+                Text(
+                  context.i18n.common_no_camera_permission_hint,
+                  style: context.theme.appTextThemes.caption2.copyWith(
+                    color: context.theme.appColors.secondaryText,
+                  ),
+                ),
+                TextButton(
+                  onPressed: onPressed,
+                  child: Text(
+                    context.i18n.button_go_to_settings,
+                    style: context.theme.appTextThemes.caption2.copyWith(
+                      color: context.theme.appColors.primaryAccent,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
