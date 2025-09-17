@@ -21,36 +21,75 @@ enum EventType {
   }
 }
 
+enum RegularFilterType {
+  pFilter,
+  qFilter;
+
+  String get localKey {
+    return switch (this) {
+      RegularFilterType.pFilter => EventType.regular.localKey,
+      RegularFilterType.qFilter => 'global_subscription_latest_q_filter_event_timestamp',
+    };
+  }
+}
+
 class GlobalSubscriptionLatestEventTimestampService {
   GlobalSubscriptionLatestEventTimestampService({
     required this.userPreferenceService,
   });
 
   final UserPreferencesService userPreferenceService;
-  int? get(EventType eventType) {
-    final value = userPreferenceService.getValue<int>(eventType.localKey);
 
-    return value;
+  int? _get(EventType eventType) {
+    return _getTimestamp(eventType.localKey);
   }
 
-  Future<void> update(int createdAt, EventType eventType) async {
-    int? latestEventTimestamp;
+  int? getRegularFilter(RegularFilterType filterType) {
+    return _getTimestamp(filterType.localKey);
+  }
 
-    switch (eventType) {
-      case EventType.encrypted:
-        latestEventTimestamp =
-            DateTime.now().microsecondsSinceEpoch - const Duration(days: 2).inMicroseconds;
-      case EventType.regular:
-        final existingValue = get(eventType);
-        if (existingValue != null && existingValue >= createdAt) {
-          return;
-        }
-        latestEventTimestamp = createdAt;
+  int? _getTimestamp(String key) {
+    return userPreferenceService.getValue<int>(key);
+  }
+
+  Future<void> updateRegularFilter(int createdAt, RegularFilterType filterType) async {
+    final existingValue = getRegularFilter(filterType);
+    if (existingValue != null && existingValue >= createdAt) {
+      return;
     }
 
-    await userPreferenceService.setValue(eventType.localKey, latestEventTimestamp);
+    await _updateTimestamp(filterType.localKey, createdAt);
+  }
 
-    return;
+  Future<void> _updateTimestamp(String key, int timestamp) async {
+    await userPreferenceService.setValue(key, timestamp);
+  }
+
+  Future<void> updateAllRegularTimestamps(int createdAt) async {
+    await Future.wait([
+      updateRegularFilter(createdAt, RegularFilterType.pFilter),
+      updateRegularFilter(createdAt, RegularFilterType.qFilter),
+    ]);
+  }
+
+  Map<RegularFilterType, int?> getAllRegularFilterTimestamps() {
+    return {
+      RegularFilterType.pFilter: _get(EventType.regular), // Use regular events timestamp directly
+      RegularFilterType.qFilter: getRegularFilter(RegularFilterType.qFilter),
+    };
+  }
+
+  bool hasNoRegularTimestamps() {
+    final timestamps = getAllRegularFilterTimestamps();
+    return timestamps.values.every((timestamp) => timestamp == null);
+  }
+
+  int? getEncryptedTimestamp() {
+    return _get(EventType.encrypted);
+  }
+
+  Future<void> updateEncrypted(int eventTimestamp) async {
+    return _updateTimestamp(EventType.encrypted.localKey, eventTimestamp);
   }
 }
 

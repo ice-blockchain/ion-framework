@@ -16,6 +16,7 @@ class EventBackfillService {
   EventBackfillService({
     required this.ionConnectNotifier,
   });
+
   final IonConnectNotifier ionConnectNotifier;
 
   Future<int> startBackfill({
