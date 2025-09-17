@@ -28,7 +28,6 @@ class QRScannerBottomSheet extends HookConsumerWidget {
     final qrKey = useMemoized(GlobalKey.new);
     final subscriptionRef = useRef<StreamSubscription<Barcode>?>(null);
     final hasCameraPermission = ref.watch(hasPermissionProvider(Permission.camera));
-    final permissionStrategy = ref.read(permissionStrategyProvider(Permission.camera));
 
     useEffect(
       () => subscriptionRef.value?.cancel,
@@ -94,8 +93,8 @@ class QRScannerBottomSheet extends HookConsumerWidget {
                       Padding(
                         padding: EdgeInsets.all(16.0.s),
                         child: _InfoMessageCard(
-                          onPressed: () async {
-                            await permissionStrategy.openSettings();
+                          onPressed: () {
+                            ref.read(permissionStrategyProvider(Permission.cloud)).openSettings();
                           },
                         ),
                       ),
