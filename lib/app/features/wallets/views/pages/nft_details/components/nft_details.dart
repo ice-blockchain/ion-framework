@@ -73,7 +73,7 @@ class NftDetails extends HookConsumerWidget {
 
       overlayEntry.value = OverlayEntry(
         builder: (context) {
-          return Positioned(
+          return PositionedDirectional(
             width: MediaQuery.sizeOf(context).width,
             top: topPosition,
             height: overlayHeight,
