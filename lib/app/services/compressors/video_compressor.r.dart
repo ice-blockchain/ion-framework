@@ -102,7 +102,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       final output = await generateOutputPath(extension: 'mp4');
       final sessionResultCompleter = Completer<FFmpegSession>();
 
-      final startAt = DateTime.now();
+      final stopwatch = Stopwatch()..start();
       final originalBytes = await File(file.path).length();
       Logger.log('Original video size: ${_formatBytes(originalBytes)}');
 
@@ -138,9 +138,9 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       }
 
       final compressedBytes = await File(output).length();
-      final elapsed = DateTime.now().difference(startAt);
+      stopwatch.stop();
       Logger.log('Compressed video size: ${_formatBytes(compressedBytes)}');
-      Logger.log('Compression time: ${_formatDuration(elapsed)}');
+      Logger.log('Compression time: ${_formatDuration(stopwatch.elapsed)}');
 
       final (width: outWidth, height: outHeight) = await getVideoDimensions(output);
 
