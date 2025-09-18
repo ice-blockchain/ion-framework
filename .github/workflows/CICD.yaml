@@ -211,6 +211,16 @@ jobs:
             ~/.pub-cache
             ./*
           key: ${{ github.sha }}_${{ github.run_number }}
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: pods-${{ runner.os }}-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            pods-${{ runner.os }}-
       - name: Mask APP environment and keys in logs
         id: mask-secrets
         run: |
@@ -296,6 +306,15 @@ jobs:
             ~/.pub-cache
             ./*
           key: ${{ github.sha }}_${{ github.run_number }}
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
       - name: Mask APP environment and keys in logs
         id: mask-secrets
         run: |
