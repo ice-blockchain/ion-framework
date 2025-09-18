@@ -96,7 +96,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
   Future<MediaFile> compress(
     MediaFile file, {
     Completer<FFmpegSession>? sessionIdCompleter,
-    VideoCompressionSettings settings = VideoCompressionSettings.highQuality,
+    VideoCompressionSettings settings = VideoCompressionSettings.balanced,
   }) async {
     try {
       final output = await generateOutputPath(extension: 'mp4');
