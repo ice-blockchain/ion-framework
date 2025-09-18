@@ -16,15 +16,19 @@ class AppBadgeCounter {
 
   Future<void> setBadgeCount(int count) async {
     if (await AppBadgePlus.isSupported()) {
-      await _cacheBadgeCount(count);
-      await AppBadgePlus.updateBadge(count);
+      await Future.wait([
+        _cacheBadgeCount(count),
+        AppBadgePlus.updateBadge(count),
+      ]);
     }
   }
 
   Future<void> clearBadge() async {
     if (await AppBadgePlus.isSupported()) {
-      await _cacheBadgeCount(0);
-      await AppBadgePlus.updateBadge(0);
+      await Future.wait([
+        _cacheBadgeCount(0),
+        AppBadgePlus.updateBadge(0),
+      ]);
     }
   }
 

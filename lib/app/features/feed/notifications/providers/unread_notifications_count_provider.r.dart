@@ -12,11 +12,12 @@ class UnreadNotificationsCount extends _$UnreadNotificationsCount {
   Stream<int> build() async* {
     final unreadCountRepository = ref.watch(unreadNotificationsCountRepositoryProvider);
     if (unreadCountRepository != null) {
+      final appBadgeCounter = await ref.read(appBadgeCounterProvider.future);
       final unreadCountStream = unreadCountRepository.watch()
-        ..listen((count) async {
-          final appBadgeCounter = await ref.read(appBadgeCounterProvider.future);
-          await appBadgeCounter?.setBadgeCount(count);
-        });
+        ..listen(
+          (count) => appBadgeCounter?.setBadgeCount(count),
+        );
+
       yield* unreadCountStream;
     }
   }
