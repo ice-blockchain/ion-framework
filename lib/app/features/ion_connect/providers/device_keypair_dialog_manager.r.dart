@@ -6,6 +6,7 @@ import 'package:ion/app/features/ion_connect/providers/device_keypair_dialog_sta
 import 'package:ion/app/features/ion_connect/providers/device_keypair_utils.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
+import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'device_keypair_dialog_manager.r.g.dart';
@@ -143,23 +144,19 @@ class DeviceKeypairDialogManager extends _$DeviceKeypairDialogManager {
 class DeviceKeypairDialogSuppressed extends _$DeviceKeypairDialogSuppressed {
   static const _storageKeyPrefix = 'device_keypair_dialog_suppressed';
 
-  String _makeKey(String identityKeyName) => '${_storageKeyPrefix}_$identityKeyName';
+  String _makeKey() => _storageKeyPrefix;
 
   @override
   Future<bool> build() async {
-    final identityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
-    if (identityKeyName == null) return false;
-    final localStorage = ref.watch(localStorageProvider);
-    return localStorage.getBool(_makeKey(identityKeyName)) ?? false;
+    final prefs = ref.watch(currentUserPreferencesServiceProvider);
+    if (prefs == null) return false;
+    return prefs.getValue<bool>(_makeKey()) ?? false;
   }
 
   Future<void> setSuppressed({required bool value}) async {
-    final identityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
-    if (identityKeyName == null) return;
-    await ref.read(localStorageProvider).setBool(
-          key: _makeKey(identityKeyName),
-          value: value,
-        );
+    final prefs = ref.read(currentUserPreferencesServiceProvider);
+    if (prefs == null) return;
+    await prefs.setValue(_makeKey(), value);
     state = AsyncData(value);
   }
 
@@ -170,14 +167,13 @@ class DeviceKeypairDialogSuppressed extends _$DeviceKeypairDialogSuppressed {
 class DeviceKeypairDialogShownOnce extends _$DeviceKeypairDialogShownOnce {
   static const _storageKeyPrefix = 'device_keypair_dialog_shown_once';
 
-  String _makeKey(String identityKeyName) => '${_storageKeyPrefix}_$identityKeyName';
+  String _makeKey() => _storageKeyPrefix;
 
   @override
   Future<bool> build() async {
-    final identityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
-    if (identityKeyName == null) return false;
-    final localStorage = ref.watch(localStorageProvider);
-    return localStorage.getBool(_makeKey(identityKeyName)) ?? false;
+    final prefs = ref.watch(currentUserPreferencesServiceProvider);
+    if (prefs == null) return false;
+    return prefs.getValue<bool>(_makeKey()) ?? false;
   }
 
   Future<void> markShownOnce() async => _setShownOnce(value: true);
@@ -185,12 +181,9 @@ class DeviceKeypairDialogShownOnce extends _$DeviceKeypairDialogShownOnce {
   Future<void> reset() async => _setShownOnce(value: false);
 
   Future<void> _setShownOnce({required bool value}) async {
-    final identityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
-    if (identityKeyName == null) return;
-    await ref.read(localStorageProvider).setBool(
-          key: _makeKey(identityKeyName),
-          value: value,
-        );
+    final prefs = ref.read(currentUserPreferencesServiceProvider);
+    if (prefs == null) return;
+    await prefs.setValue(_makeKey(), value);
     state = AsyncData(value);
   }
 }
