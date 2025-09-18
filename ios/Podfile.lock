@@ -1,4 +1,6 @@
 PODS:
+  - app_badge_plus (1.2.3):
+    - Flutter
   - app_links (6.4.1):
     - Flutter
   - AppAuth (1.7.6):
@@ -405,6 +407,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - app_badge_plus (from `.symlinks/plugins/app_badge_plus/ios`)
   - app_links (from `.symlinks/plugins/app_links/ios`)
   - appsflyer_sdk (from `.symlinks/plugins/appsflyer_sdk/ios`)
   - AppsFlyerFramework
@@ -515,6 +518,8 @@ SPEC REPOS:
     - BNBSkin
 
 EXTERNAL SOURCES:
+  app_badge_plus:
+    :path: ".symlinks/plugins/app_badge_plus/ios"
   app_links:
     :path: ".symlinks/plugins/app_links/ios"
   appsflyer_sdk:
@@ -609,6 +614,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/wakelock_plus/ios"
 
 SPEC CHECKSUMS:
+  app_badge_plus: 0e3470f993dd08094e16463f57a7e0db04c6b587
   app_links: 3dbc685f76b1693c66a6d9dd1e9ab6f73d97dc0a
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f

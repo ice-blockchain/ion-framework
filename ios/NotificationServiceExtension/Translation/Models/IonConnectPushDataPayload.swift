@@ -477,4 +477,31 @@ enum PushNotificationType: String, Decodable {
     case chatMultiVideoMessage
     case chatPaymentRequestMessage
     case chatPaymentReceivedMessage
+    
+    var isChat: Bool {
+        switch self {
+        case .chatDocumentMessage,
+             .chatEmojiMessage,
+             .chatPhotoMessage,
+             .chatProfileMessage,
+             .chatReaction,
+             .chatSharePostMessage,
+             .chatShareStoryMessage,
+             .chatSharedStoryReplyMessage,
+             .chatTextMessage,
+             .chatVideoMessage,
+             .chatVoiceMessage,
+             .chatFirstContactMessage,
+             .chatGifMessage,
+             .chatMultiGifMessage,
+             .chatMultiMediaMessage,
+             .chatMultiPhotoMessage,
+             .chatMultiVideoMessage,
+             .chatPaymentRequestMessage,
+             .chatPaymentReceivedMessage:
+            return true
+        default:
+            return false
+        }
+    }
 }
