@@ -9,11 +9,19 @@ class UnavailableNftTooltipOverlay extends StatelessWidget {
   const UnavailableNftTooltipOverlay({
     required this.opacityAnimation,
     required this.scaleAnimation,
+    required this.message,
+    required this.maxWidth,
+    required this.contentPadding,
+    required this.triangleHeight,
     super.key,
   });
 
   final Animation<double> opacityAnimation;
   final Animation<double> scaleAnimation;
+  final String? message;
+  final double maxWidth;
+  final EdgeInsets contentPadding;
+  final double triangleHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +39,7 @@ class UnavailableNftTooltipOverlay extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 32.0.s, vertical: 11.0.s),
+                      padding: contentPadding,
                       decoration: BoxDecoration(
                         color: context.theme.appColors.onPrimaryAccent,
                         borderRadius: BorderRadius.circular(16.0.s),
@@ -42,12 +50,9 @@ class UnavailableNftTooltipOverlay extends StatelessWidget {
                           ),
                         ],
                       ),
-                      constraints: BoxConstraints(
-                        maxWidth: 300.0.s,
-                        maxHeight: 76.0.s,
-                      ),
+                      constraints: BoxConstraints(maxWidth: maxWidth),
                       child: Text(
-                        context.i18n.send_nft_sending_nft_will_be_available_later,
+                        message ?? context.i18n.send_nft_sending_nft_will_be_available_later,
                         style: context.theme.appTextThemes.body2.copyWith(
                           color: context.theme.appColors.secondaryText,
                         ),
@@ -55,6 +60,7 @@ class UnavailableNftTooltipOverlay extends StatelessWidget {
                     ),
                     _TrianglePointer(
                       color: context.theme.appColors.onPrimaryAccent,
+                      height: triangleHeight,
                     ),
                   ],
                 ),
@@ -68,14 +74,15 @@ class UnavailableNftTooltipOverlay extends StatelessWidget {
 }
 
 class _TrianglePointer extends StatelessWidget {
-  const _TrianglePointer({required this.color});
+  const _TrianglePointer({required this.color, required this.height});
 
   final Color color;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      size: Size(12.s, 10.s),
+      size: Size(12.s, height),
       painter: ShapePainter(
         const TriangleShapeBuilder(),
         color: color,
