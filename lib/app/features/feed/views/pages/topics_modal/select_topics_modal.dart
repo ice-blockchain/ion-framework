@@ -10,6 +10,7 @@ import 'package:ion/app/features/feed/data/models/feed_interests.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
+import 'package:ion/app/features/feed/views/pages/topics_modal/hooks/use_sorted_categories.dart';
 import 'package:ion/app/features/feed/views/pages/topics_modal/selected_topics.dart';
 import 'package:ion/app/features/feed/views/pages/topics_modal/topics_category_section.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
@@ -27,7 +28,10 @@ class SelectTopicsModal extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final availableInterests = ref.watch(feedUserInterestsProvider(feedType)).valueOrNull;
-    final availableCategories = availableInterests?.categories ?? {};
+
+    final sortedCategories =
+        useSortedCategories(availableInterests?.categories ?? <String, FeedInterestsCategory>{});
+
     final availableSubcategories = availableInterests?.subcategories ?? {};
     final selectedSubcategories = ref.watch(
       selectedInterestsNotifierProvider.select(
@@ -48,7 +52,7 @@ class SelectTopicsModal extends HookConsumerWidget {
               .where((entry) => selectedSubcategories.contains(entry.key)),
         );
       },
-      [availableCategories],
+      [availableInterests],
     );
 
     return SheetContent(
@@ -95,11 +99,11 @@ class SelectTopicsModal extends HookConsumerWidget {
               padding: EdgeInsetsDirectional.only(
                 bottom: MediaQuery.paddingOf(context).bottom,
               ),
-              itemCount: availableCategories.length,
+              itemCount: sortedCategories.length,
               itemBuilder: (context, index) {
                 return TopicsCategorySection(
                   feedType: feedType,
-                  category: availableCategories.keys.elementAt(index),
+                  category: sortedCategories.entries.elementAt(index),
                   searchQuery: searchValue.value,
                   addTopPadding: index != 0,
                 );
