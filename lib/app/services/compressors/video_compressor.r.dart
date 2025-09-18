@@ -96,7 +96,11 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       final shouldCompress = originalBitrate == null || originalBitrate > targetBitrateValue * 1000;
       if (!shouldCompress) {
         Logger.log('📊 d3g not compressing video, bitrate is already below target');
-        return file;
+        final dimensions = await getVideoDimensions(file.path);
+        return file.copyWith(
+          width: dimensions.width,
+          height: dimensions.height,
+        );
       }
       
       Logger.log('📊 d3g Original bitrate: ${originalBitrate != null ? '${(originalBitrate / 1000).round()}k' : 'unknown'}');
