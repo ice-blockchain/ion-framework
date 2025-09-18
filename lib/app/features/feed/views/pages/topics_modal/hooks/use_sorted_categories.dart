@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/features/feed/data/models/feed_interests.f.dart';
 
