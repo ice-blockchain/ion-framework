@@ -9,19 +9,11 @@ class UnavailableNftTooltipOverlay extends StatelessWidget {
   const UnavailableNftTooltipOverlay({
     required this.opacityAnimation,
     required this.scaleAnimation,
-    required this.message,
-    required this.maxWidth,
-    required this.contentPadding,
-    required this.triangleHeight,
     super.key,
   });
 
   final Animation<double> opacityAnimation;
   final Animation<double> scaleAnimation;
-  final String? message;
-  final double maxWidth;
-  final EdgeInsets contentPadding;
-  final double triangleHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +31,7 @@ class UnavailableNftTooltipOverlay extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: contentPadding,
+                      padding: EdgeInsets.symmetric(horizontal: 32.s, vertical: 11.s),
                       decoration: BoxDecoration(
                         color: context.theme.appColors.onPrimaryAccent,
                         borderRadius: BorderRadius.circular(16.0.s),
@@ -50,9 +42,9 @@ class UnavailableNftTooltipOverlay extends StatelessWidget {
                           ),
                         ],
                       ),
-                      constraints: BoxConstraints(maxWidth: maxWidth),
+                      constraints: BoxConstraints(maxWidth: 300.s),
                       child: Text(
-                        message ?? context.i18n.send_nft_sending_nft_will_be_available_later,
+                        context.i18n.send_nft_sending_nft_will_be_available_later,
                         style: context.theme.appTextThemes.body2.copyWith(
                           color: context.theme.appColors.secondaryText,
                         ),
@@ -60,7 +52,7 @@ class UnavailableNftTooltipOverlay extends StatelessWidget {
                     ),
                     _TrianglePointer(
                       color: context.theme.appColors.onPrimaryAccent,
-                      height: triangleHeight,
+                      height: 10.s,
                     ),
                   ],
                 ),
