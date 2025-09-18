@@ -224,7 +224,7 @@ class PasswordSigner {
     final localAuth = LocalAuthentication();
 
     final results = await Future.wait<bool>([
-      Future.value(true),
+      localAuth.canCheckBiometrics,
       localAuth.isDeviceSupported(),
     ]);
 
