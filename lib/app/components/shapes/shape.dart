@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 
 abstract class ShapeBuilder {
+  const ShapeBuilder();
+
   Path build(Size size);
 }
 

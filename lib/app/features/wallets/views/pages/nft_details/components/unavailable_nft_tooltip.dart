@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/components/shapes/shape.dart';
+import 'package:ion/app/components/shapes/triangle_path.dart';
 import 'package:ion/app/extensions/extensions.dart';
 
 class UnavailableNftTooltipOverlay extends StatelessWidget {
@@ -74,31 +76,10 @@ class _TrianglePointer extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size(12.s, 10.s),
-      painter: _TrianglePainter(color: color),
+      painter: ShapePainter(
+        const TriangleShapeBuilder(),
+        color: color,
+      ),
     );
   }
-}
-
-class _TrianglePainter extends CustomPainter {
-  const _TrianglePainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width / 2, size.height)
-      ..close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

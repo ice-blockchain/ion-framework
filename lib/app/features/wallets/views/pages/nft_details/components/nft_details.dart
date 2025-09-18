@@ -17,7 +17,7 @@ import 'package:ion/app/features/wallets/providers/send_nft_notifier_provider.r.
 import 'package:ion/app/features/wallets/views/components/nft_name.dart';
 import 'package:ion/app/features/wallets/views/components/nft_picture.dart';
 import 'package:ion/app/features/wallets/views/pages/nft_details/components/nft_details_loading.dart';
-import 'package:ion/app/features/wallets/views/pages/nft_details/components/unavailable_nft_tooltip.dart';
+import 'package:ion/app/features/wallets/views/pages/nft_details/hooks/use_show_tooltip_overlay.dart';
 import 'package:ion/app/features/wallets/views/pages/nft_details/providers/nft_details_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -42,7 +42,7 @@ class NftDetails extends HookConsumerWidget {
 
     useEffect(
       () {
-        ref.watch(sendNftNotifierProvider.notifier).isSendable(nftData).then((result) {
+        ref.read(sendNftNotifierProvider.notifier).isSendable(nftData).then((result) {
           isConfirmEnabled.value = result;
         });
         return null;
@@ -51,65 +51,7 @@ class NftDetails extends HookConsumerWidget {
     );
 
     final buttonKey = useRef(GlobalKey());
-
-    // Tooltip overlay setup
-    final overlayEntry = useRef<OverlayEntry?>(null);
-    final animationController = useAnimationController(
-      duration: const Duration(milliseconds: 150),
-    );
-    final opacityAnimation = useMemoized(
-      () => Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn),
-      ),
-      [animationController],
-    );
-    final scaleAnimation = useMemoized(
-      () => Tween<double>(begin: 0.8, end: 1).animate(
-        CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn),
-      ),
-      [animationController],
-    );
-
-    final showTooltipOverlay = useCallback(
-      () {
-        if (overlayEntry.value != null) return;
-
-        final context = buttonKey.value.currentContext;
-        if (context == null) return;
-
-        final renderBox = context.findRenderObject() as RenderBox?;
-        if (renderBox == null) return;
-
-        final offset = renderBox.localToGlobal(Offset.zero);
-        final size = renderBox.size;
-        final overlayHeight = 51.s;
-        final topPosition = offset.dy - size.height - overlayHeight;
-
-        overlayEntry.value = OverlayEntry(
-          builder: (context) {
-            return PositionedDirectional(
-              width: MediaQuery.sizeOf(context).width,
-              top: topPosition,
-              height: overlayHeight,
-              child: UnavailableNftTooltipOverlay(
-                opacityAnimation: opacityAnimation,
-                scaleAnimation: scaleAnimation,
-              ),
-            );
-          },
-        );
-
-        Overlay.of(context).insert(overlayEntry.value!);
-        animationController.forward();
-
-        Future.delayed(const Duration(milliseconds: 1500), () async {
-          await animationController.reverse();
-          overlayEntry.value?.remove();
-          overlayEntry.value = null;
-        });
-      },
-      [buttonKey.value],
-    );
+    final showTooltipOverlay = useShowTooltipOverlay(targetKey: buttonKey.value);
 
     return Column(
       mainAxisSize: MainAxisSize.min,

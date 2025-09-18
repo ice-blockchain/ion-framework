@@ -52,7 +52,7 @@ class CopiedTooltip extends HookConsumerWidget {
         CustomPaint(
           size: Size(7.0.s, 5.0.s),
           painter: ShapePainter(
-            TriangleShapeBuilder(),
+            const TriangleShapeBuilder(),
             color: context.theme.appColors.primaryText,
           ),
         ),
