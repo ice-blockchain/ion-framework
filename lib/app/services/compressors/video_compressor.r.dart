@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
 import 'package:ffmpeg_kit_flutter/ffprobe_kit.dart';
@@ -18,7 +19,6 @@ import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_audio_codec_ar
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_bitrate_arg.dart';
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_movflag_arg.dart';
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_pixel_format_arg.dart';
-import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_preset_arg.dart';
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_scale_arg.dart';
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_video_codec_arg.dart';
 import 'package:ion/app/services/media_service/ffmpeg_commands_config.dart';
@@ -30,7 +30,6 @@ part 'video_compressor.r.g.dart';
 class VideoCompressionSettings {
   const VideoCompressionSettings({
     required this.videoCodec,
-    required this.preset,
     required this.maxRate,
     required this.bufSize,
     required this.scale,
@@ -40,24 +39,11 @@ class VideoCompressionSettings {
     required this.movFlags,
   });
 
-  static const balanced = VideoCompressionSettings(
-    videoCodec: FFmpegVideoCodecArg.h264,
-    preset: FfmpegPresetArg.slow,
-    maxRate: FfmpegBitrateArg.medium,
-    bufSize: FfmpegBitrateArg.medium,
-    scale: FfmpegScaleArg.p1080,
-    audioCodec: FfmpegAudioCodecArg.aac,
-    audioBitrate: FfmpegAudioBitrateArg.medium,
-    pixelFormat: FfmpegPixelFormatArg.yuv420p,
-    movFlags: FfmpegMovFlagArg.faststart,
-  );
-
   static const highQuality = VideoCompressionSettings(
     videoCodec: FFmpegVideoCodecArg.h264,
-    preset: FfmpegPresetArg.slow,
     maxRate: FfmpegBitrateArg.high,
     bufSize: FfmpegBitrateArg.highest,
-    scale: FfmpegScaleArg.p1080,
+    scale: FfmpegScaleArg.truncateOnly,
     audioCodec: FfmpegAudioCodecArg.aac,
     audioBitrate: FfmpegAudioBitrateArg.medium,
     pixelFormat: FfmpegPixelFormatArg.yuv420p,
@@ -65,7 +51,6 @@ class VideoCompressionSettings {
   );
 
   final FFmpegVideoCodecArg videoCodec;
-  final FfmpegPresetArg preset;
   final FfmpegBitrateArg maxRate;
   final FfmpegBitrateArg bufSize;
   final FfmpegScaleArg scale;
@@ -96,14 +81,31 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     VideoCompressionSettings settings = VideoCompressionSettings.highQuality,
   }) async {
     try {
+      final compressionStartTime = DateTime.now();
+      final originalFile = File(file.path);
+      final originalSize = await originalFile.length();
+      Logger.log('📹 d3g Starting video compression...');
+      Logger.log('📊 d3g Original video size: ${(originalSize / 1024 / 1024).toStringAsFixed(2)} MB');
+      
       final output = await generateOutputPath(extension: 'mp4');
       final sessionResultCompleter = Completer<FFmpegSession>();
+
+      // Get original bitrate to avoid upscaling
+      final originalBitrate = await getVideoBitrate(file.path);
+      final targetBitrateValue = int.tryParse(settings.maxRate.bitrate.replaceAll('k', '')) ?? 2000;
+      final shouldCompress = originalBitrate == null || originalBitrate > targetBitrateValue * 1000;
+      if (!shouldCompress) {
+        Logger.log('📊 d3g not compressing video, bitrate is already below target');
+        return file;
+      }
+      
+      Logger.log('📊 d3g Original bitrate: ${originalBitrate != null ? '${(originalBitrate / 1000).round()}k' : 'unknown'}');
+      Logger.log('📊 d3g Target bitrate: ${settings.maxRate.bitrate}');
 
       final args = FFmpegCommands.compressVideo(
         inputPath: file.path,
         outputPath: output,
         videoCodec: settings.videoCodec.codec,
-        preset: settings.preset.value,
         maxRate: settings.maxRate.bitrate,
         bufSize: settings.bufSize.bitrate,
         audioCodec: settings.audioCodec.codec,
@@ -130,6 +132,17 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       }
 
       final (width: outWidth, height: outHeight) = await getVideoDimensions(output);
+      
+      final compressionEndTime = DateTime.now();
+      final compressionDuration = compressionEndTime.difference(compressionStartTime);
+      final compressedFile = File(output);
+      final compressedSize = await compressedFile.length();
+      final compressionRatio = originalSize > 0 ? (compressedSize / originalSize) : 0.0;
+      
+      Logger.log('✅ d3g Video compression completed!');
+      Logger.log('📊 d3g Compressed video size: ${(compressedSize / 1024 / 1024).toStringAsFixed(2)} MB');
+      Logger.log('📈 d3g Compression ratio: ${(compressionRatio * 100).toStringAsFixed(1)}% of original');
+      Logger.log('⏱️ d3g Compression time: ${compressionDuration.inSeconds}.${compressionDuration.inMilliseconds % 1000}s');
 
       // Return the final compressed video file info
       return MediaFile(
@@ -240,6 +253,24 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       }
     } catch (e, stackTrace) {
       Logger.log('Error during video duration extraction!', error: e, stackTrace: stackTrace);
+      return null;
+    }
+    return null;
+  }
+
+  Future<int?> getVideoBitrate(String filePath) async {
+    try {
+      final session = await FFprobeKit.getMediaInformation(filePath);
+      final mediaInformation = session.getMediaInformation();
+      
+      if (mediaInformation != null) {
+        final bitrateString = mediaInformation.getBitrate();
+        if (bitrateString != null) {
+          return int.tryParse(bitrateString);
+        }
+      }
+    } catch (e, stackTrace) {
+      Logger.log('Error during video bitrate extraction!', error: e, stackTrace: stackTrace);
       return null;
     }
     return null;

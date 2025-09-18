@@ -50,6 +50,10 @@ enum FfmpegScaleArg {
     name: '2160p',
     resolution:
         r'scale=w=if(gt(ih\,iw)\,-16\,2160):h=if(gt(ih\,iw)\,2160\,-16),crop=trunc(iw/16)*16:trunc(ih/16)*16',
+  ),
+  truncateOnly(
+    name: 'truncateOnly',
+    resolution: r'crop=trunc(iw/16)*16:trunc(ih/16)*16',
   );
 
   const FfmpegScaleArg({
