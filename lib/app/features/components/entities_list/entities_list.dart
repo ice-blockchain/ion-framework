@@ -63,7 +63,7 @@ class EntitiesList extends HookWidget {
   }
 }
 
-class _EntityListItem extends HookConsumerWidget {
+class _EntityListItem extends ConsumerWidget {
   _EntityListItem({
     required this.eventReference,
     required this.displayParent,

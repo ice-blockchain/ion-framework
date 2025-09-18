@@ -9,7 +9,10 @@ import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.d
 class ListCachedObjects extends InheritedWidget {
   ListCachedObjects({required super.child, super.key}) : super();
 
-  final objects = <Object>[];
+  final List<Object> _objects = <Object>[];
+  List<Object> get objects => _objects;
+
+  static const equality = DeepCollectionEquality();
 
   static dynamic identifierSelector<T extends Object>(T object) {
     return switch (object) {
@@ -40,7 +43,6 @@ class ListCachedObjects extends InheritedWidget {
     final objects = context.dependOnInheritedWidgetOfExactType<ListCachedObjects>()?.objects;
     if (objects == null) return;
 
-    const equality = DeepCollectionEquality();
     final identifier = identifierSelector<T>(object);
 
     for (var i = 0; i < objects.length; i++) {
@@ -90,6 +92,11 @@ class ListCachedObjects extends InheritedWidget {
 
   @override
   bool updateShouldNotify(covariant InheritedWidget oldWidget) {
+    if (oldWidget is ListCachedObjects) {
+      const equality = DeepCollectionEquality();
+      return !equality.equals(objects, oldWidget.objects);
+    }
+
     return false;
   }
 }
