@@ -53,7 +53,7 @@ enum FfmpegScaleArg {
   ),
   truncateOnly(
     name: 'truncateOnly',
-    resolution: r'crop=trunc(iw/16)*16:trunc(ih/16)*16',
+    resolution: 'crop=trunc(iw/16)*16:trunc(ih/16)*16',
   );
 
   const FfmpegScaleArg({
