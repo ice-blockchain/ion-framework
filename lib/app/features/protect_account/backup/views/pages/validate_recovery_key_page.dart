@@ -6,6 +6,7 @@ import 'package:ion/app/features/auth/views/components/recovery_keys_input_conta
 import 'package:ion/app/features/protect_account/backup/data/models/recovery_key_property.dart';
 import 'package:ion/app/features/protect_account/backup/providers/create_recovery_key_action_notifier.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/recovery_credentials_enabled_notifier.r.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/recovery_keys_completed_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
@@ -20,6 +21,7 @@ class ValidateRecoveryKeyPage extends ConsumerWidget {
       validator: (value, property) => _validateProperty(value, property, recoveryResult!),
       onContinuePressed: (_, __, ___) {
         ref.read(recoveryCredentialsEnabledProvider.notifier).setEnabled();
+        ref.read(recoveryKeysCompletedProvider.notifier).markCompleted();
         RecoveryKeysSuccessRoute().push<void>(context);
       },
     );

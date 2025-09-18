@@ -67,7 +67,7 @@ class BackupOptionsPage extends ConsumerWidget {
                   icon: Assets.svg.walletLoginRecovery.icon(
                     size: 48.0.s,
                   ),
-                  isOptionEnabled: securityMethods?.isBackupEnabled ?? false,
+                  isOptionEnabled: securityMethods?.hasRecoveryKeysEnabled ?? false,
                   onTap: () => BackupRecoveryKeysRoute().push<void>(context),
                 ),
                 ScreenBottomOffset(margin: 32.0.s),
