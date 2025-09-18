@@ -17,6 +17,7 @@ import 'package:ion/app/features/wallets/providers/send_nft_notifier_provider.r.
 import 'package:ion/app/features/wallets/views/components/nft_name.dart';
 import 'package:ion/app/features/wallets/views/components/nft_picture.dart';
 import 'package:ion/app/features/wallets/views/pages/nft_details/components/nft_details_loading.dart';
+import 'package:ion/app/features/wallets/views/pages/nft_details/components/unavailable_nft_tooltip.dart';
 import 'package:ion/app/features/wallets/views/pages/nft_details/providers/nft_details_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -49,101 +50,66 @@ class NftDetails extends HookConsumerWidget {
       [],
     );
 
-    final overlayEntry = useRef<OverlayEntry?>(null);
     final buttonKey = useRef(GlobalKey());
+
+    // Tooltip overlay setup
+    final overlayEntry = useRef<OverlayEntry?>(null);
     final animationController = useAnimationController(
       duration: const Duration(milliseconds: 150),
     );
-    final opacityAnimation = useRef(
-      Tween<double>(begin: 0, end: 1).animate(
+    final opacityAnimation = useMemoized(
+      () => Tween<double>(begin: 0, end: 1).animate(
         CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn),
       ),
+      [animationController],
     );
-    final scaleAnimation = useRef(
-      Tween<double>(begin: 0.8, end: 1).animate(
+    final scaleAnimation = useMemoized(
+      () => Tween<double>(begin: 0.8, end: 1).animate(
         CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn),
       ),
+      [animationController],
     );
 
-    void showOverlay() {
-      if (overlayEntry.value != null) {
-        return;
-      }
+    final showTooltipOverlay = useCallback(
+      () {
+        if (overlayEntry.value != null) return;
 
-      final renderBox = buttonKey.value.currentContext!.findRenderObject()! as RenderBox;
-      final offset = renderBox.localToGlobal(Offset.zero);
-      final size = renderBox.size;
-      final overlayHeight = 51.s;
-      final topPosition = offset.dy - size.height - overlayHeight;
+        final context = buttonKey.value.currentContext;
+        if (context == null) return;
 
-      overlayEntry.value = OverlayEntry(
-        builder: (context) {
-          return PositionedDirectional(
-            width: MediaQuery.sizeOf(context).width,
-            top: topPosition,
-            height: overlayHeight,
-            child: AnimatedBuilder(
-              animation: animationController,
-              builder: (context, child) {
-                return Opacity(
-                  opacity: opacityAnimation.value.value,
-                  child: Transform.scale(
-                    scale: scaleAnimation.value.value,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 32.0.s, vertical: 11.0.s),
-                              decoration: BoxDecoration(
-                                color: context.theme.appColors.onPrimaryAccent,
-                                borderRadius: BorderRadius.circular(16.0.s),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color:
-                                        context.theme.appColors.primaryText.withValues(alpha: 0.08),
-                                    blurRadius: 16.0.s,
-                                  ),
-                                ],
-                              ),
-                              constraints: BoxConstraints(
-                                maxWidth: 300.0.s,
-                                maxHeight: 76.0.s,
-                              ),
-                              child: Text(
-                                context.i18n.send_nft_sending_nft_will_be_available_later,
-                                style: context.theme.appTextThemes.body2.copyWith(
-                                  color: context.theme.appColors.secondaryText,
-                                ),
-                              ),
-                            ),
-                            _TrianglePointer(
-                              color: context.theme.appColors.onPrimaryAccent,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          );
-        },
-      );
+        final renderBox = context.findRenderObject() as RenderBox?;
+        if (renderBox == null) return;
 
-      Overlay.of(context).insert(overlayEntry.value!);
-      animationController.forward();
+        final offset = renderBox.localToGlobal(Offset.zero);
+        final size = renderBox.size;
+        final overlayHeight = 51.s;
+        final topPosition = offset.dy - size.height - overlayHeight;
 
-      // Auto remove after 1.5s
-      Future.delayed(const Duration(milliseconds: 1500), () async {
-        await animationController.reverse();
-        overlayEntry.value?.remove();
-        overlayEntry.value = null;
-      });
-    }
+        overlayEntry.value = OverlayEntry(
+          builder: (context) {
+            return PositionedDirectional(
+              width: MediaQuery.sizeOf(context).width,
+              top: topPosition,
+              height: overlayHeight,
+              child: UnavailableNftTooltipOverlay(
+                opacityAnimation: opacityAnimation,
+                scaleAnimation: scaleAnimation,
+              ),
+            );
+          },
+        );
+
+        Overlay.of(context).insert(overlayEntry.value!);
+        animationController.forward();
+
+        Future.delayed(const Duration(milliseconds: 1500), () async {
+          await animationController.reverse();
+          overlayEntry.value?.remove();
+          overlayEntry.value = null;
+        });
+      },
+      [buttonKey.value],
+    );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -205,7 +171,7 @@ class NftDetails extends HookConsumerWidget {
           key: buttonKey.value,
           onTap: () {
             if (!isConfirmEnabled.value) {
-              showOverlay();
+              showTooltipOverlay();
             }
           },
           behavior: HitTestBehavior.translucent,
@@ -227,42 +193,4 @@ class NftDetails extends HookConsumerWidget {
       ],
     );
   }
-}
-
-class _TrianglePointer extends StatelessWidget {
-  const _TrianglePointer({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(12.s, 10.s),
-      painter: _TrianglePainter(color: color),
-    );
-  }
-}
-
-class _TrianglePainter extends CustomPainter {
-  const _TrianglePainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width / 2, size.height)
-      ..close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
