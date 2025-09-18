@@ -150,7 +150,7 @@ class StoryRecordPage extends HookConsumerWidget {
     CameraCaptureController captureController,
     AnimationController shutterAnimationController,
   ) async {
-    unawaited(shutterAnimationController.forward(from: 0.0));
+    unawaited(shutterAnimationController.forward(from: 0));
     await captureController.takePhoto();
   }
 
