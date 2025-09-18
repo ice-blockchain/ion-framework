@@ -4,10 +4,12 @@ import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
@@ -88,26 +90,47 @@ class ListEntityHelper {
       return true;
     }
 
+    if (entity is ModifiablePostEntity && entity.data.quotedEvent != null) {
+      final quotedEntity = ref.watch(
+            ionConnectEntityProvider(
+              eventReference: entity.data.quotedEvent!.eventReference,
+            ).select((value) {
+              final entity = value.valueOrNull;
+              if (entity != null) {
+                ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
+              }
+              return entity;
+            }),
+          ) ??
+          ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(
+            context,
+            entity.data.quotedEvent!.eventReference,
+          );
+
+      if (quotedEntity != null) {
+        return isUserBlockedOrBlocking(context, ref, quotedEntity);
+      }
+    } else if (entity is GenericRepostEntity) {
+      final childEntity = ref.watch(
+            ionConnectEntityProvider(eventReference: entity.data.eventReference).select((value) {
+              final entity = value.valueOrNull;
+              if (entity != null) {
+                ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
+              }
+              return entity;
+            }),
+          ) ??
+          ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(
+            context,
+            entity.data.eventReference,
+          );
+
+      if (childEntity != null) {
+        return isUserBlockedOrBlocking(context, ref, childEntity);
+      }
+    }
+
     return false;
-    // if (entity is ModifiablePostEntity && entity.data.quotedEvent != null) {
-    //   final quotedEntity = ref.watch(
-    //     ionConnectInMemoryEntityProvider(
-    //       eventReference: entity.data.quotedEvent!.eventReference,
-    //     ),
-    //   );
-    //   if (quotedEntity != null) {
-    //     return ref.watch(isEntityBlockedOrBlockedByProvider(quotedEntity));
-    //   }
-    // } else if (entity is GenericRepostEntity) {
-    //   final childEntity = ref.watch(
-    //     ionConnectSyncEntityProvider(eventReference: entity.data.eventReference),
-    //   );
-    //   if (childEntity != null) {
-    //     return ref.watch(isEntityBlockedOrBlockedByProvider(childEntity));
-    //   }
-    // }
-//
-    // return false;
   }
 
   static bool hasMetadata(BuildContext context, WidgetRef ref, IonConnectEntity entity) {
