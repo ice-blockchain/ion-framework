@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: ice License 1.0
 
 enum FfmpegBitrateArg {
-  lowest(name: 'Lowest', bitrate: '500k'),
-  low(name: 'Low', bitrate: '1000k'),
-  medium(name: 'Medium', bitrate: '2000k'),
-  high(name: 'High', bitrate: '4000k'),
-  highest(name: 'Highest', bitrate: '8000k');
+  lowest(name: 'Lowest', bitrate: 500),
+  low(name: 'Low', bitrate: 1000),
+  medium(name: 'Medium', bitrate: 2000),
+  high(name: 'High', bitrate: 4000),
+  highest(name: 'Highest', bitrate: 8000);
 
   const FfmpegBitrateArg({
     required this.name,
@@ -13,5 +13,7 @@ enum FfmpegBitrateArg {
   });
 
   final String name;
-  final String bitrate;
+  final int bitrate;
+
+  String get bitrateString => '${bitrate}k';
 }

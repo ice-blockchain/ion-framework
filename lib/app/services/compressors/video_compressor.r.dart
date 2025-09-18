@@ -41,7 +41,7 @@ class VideoCompressionSettings {
 
   static const highQuality = VideoCompressionSettings(
     videoCodec: FFmpegVideoCodecArg.h264,
-    maxRate: FfmpegBitrateArg.high,
+    maxRate: FfmpegBitrateArg.medium,
     bufSize: FfmpegBitrateArg.highest,
     scale: FfmpegScaleArg.truncateOnly,
     audioCodec: FfmpegAudioCodecArg.aac,
@@ -84,18 +84,14 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       final compressionStartTime = DateTime.now();
       final originalFile = File(file.path);
       final originalSize = await originalFile.length();
-      Logger.log('📹 d3g Starting video compression...');
-      Logger.log('📊 d3g Original video size: ${(originalSize / 1024 / 1024).toStringAsFixed(2)} MB');
       
       final output = await generateOutputPath(extension: 'mp4');
       final sessionResultCompleter = Completer<FFmpegSession>();
 
-      // Get original bitrate to avoid upscaling
       final originalBitrate = await getVideoBitrate(file.path);
-      final targetBitrateValue = int.tryParse(settings.maxRate.bitrate.replaceAll('k', '')) ?? 2000;
+      final targetBitrateValue = settings.maxRate.bitrate;
       final shouldCompress = originalBitrate == null || originalBitrate > targetBitrateValue * 1000;
       if (!shouldCompress) {
-        Logger.log('📊 d3g not compressing video, bitrate is already below target');
         final dimensions = await getVideoDimensions(file.path);
         return file.copyWith(
           width: dimensions.width,
@@ -103,15 +99,12 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
         );
       }
       
-      Logger.log('📊 d3g Original bitrate: ${originalBitrate != null ? '${(originalBitrate / 1000).round()}k' : 'unknown'}');
-      Logger.log('📊 d3g Target bitrate: ${settings.maxRate.bitrate}');
-
       final args = FFmpegCommands.compressVideo(
         inputPath: file.path,
         outputPath: output,
         videoCodec: settings.videoCodec.codec,
-        maxRate: settings.maxRate.bitrate,
-        bufSize: settings.bufSize.bitrate,
+        maxRate: settings.maxRate.bitrateString,
+        bufSize: settings.bufSize.bitrateString,
         audioCodec: settings.audioCodec.codec,
         audioBitrate: settings.audioBitrate.bitrate,
         pixelFormat: settings.pixelFormat.name,
@@ -143,10 +136,9 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       final compressedSize = await compressedFile.length();
       final compressionRatio = originalSize > 0 ? (compressedSize / originalSize) : 0.0;
       
-      Logger.log('✅ d3g Video compression completed!');
-      Logger.log('📊 d3g Compressed video size: ${(compressedSize / 1024 / 1024).toStringAsFixed(2)} MB');
-      Logger.log('📈 d3g Compression ratio: ${(compressionRatio * 100).toStringAsFixed(1)}% of original');
-      Logger.log('⏱️ d3g Compression time: ${compressionDuration.inSeconds}.${compressionDuration.inMilliseconds % 1000}s');
+      Logger.log('Compressed video size: ${(compressedSize / 1024 / 1024).toStringAsFixed(2)} MB');
+      Logger.log('Compression ratio: ${(compressionRatio * 100).toStringAsFixed(1)}% of original');
+      Logger.log('Compression time: ${compressionDuration.inSeconds}.${compressionDuration.inMilliseconds % 1000}s');
 
       // Return the final compressed video file info
       return MediaFile(
