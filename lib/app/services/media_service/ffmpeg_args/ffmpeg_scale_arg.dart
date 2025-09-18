@@ -13,43 +13,35 @@
 enum FfmpegScaleArg {
   p80(
     name: '80p',
-    resolution:
-        r'scale=w=if(gt(ih\,iw)\,-16\,80):h=if(gt(ih\,iw)\,80\,-16),crop=trunc(iw/16)*16:trunc(ih/16)*16',
+    resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(80\,iw)):h=if(gt(ih\,iw)\,min(80\,ih)\,-2)',
   ),
   p120(
     name: '120p',
-    resolution:
-        r'scale=w=if(gt(ih\,iw)\,-16\,120):h=if(gt(ih\,iw)\,120\,-16),crop=trunc(iw/16)*16:trunc(ih/16)*16',
+    resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(120\,iw)):h=if(gt(ih\,iw)\,min(120\,ih)\,-2)',
   ),
   p180(
     name: '180p',
-    resolution:
-        r'scale=w=if(gt(ih\,iw)\,-16\,180):h=if(gt(ih\,iw)\,180\,-16),crop=trunc(iw/16)*16:trunc(ih/16)*16',
+    resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(180\,iw)):h=if(gt(ih\,iw)\,min(180\,ih)\,-2)',
   ),
   p240(
     name: '240p',
-    resolution:
-        r'scale=w=if(gt(ih\,iw)\,-16\,240):h=if(gt(ih\,iw)\,240\,-16),crop=trunc(iw/16)*16:trunc(ih/16)*16',
+    resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(240\,iw)):h=if(gt(ih\,iw)\,min(240\,ih)\,-2)',
   ),
   p480(
     name: '480p',
-    resolution:
-        r'scale=w=if(gt(ih\,iw)\,-16\,480):h=if(gt(ih\,iw)\,480\,-16),crop=trunc(iw/16)*16:trunc(ih/16)*16',
+    resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(480\,iw)):h=if(gt(ih\,iw)\,min(480\,ih)\,-2)',
   ),
   p720(
     name: '720p',
-    resolution:
-        r'scale=w=if(gt(ih\,iw)\,-16\,720):h=if(gt(ih\,iw)\,720\,-16),crop=trunc(iw/16)*16:trunc(ih/16)*16',
+    resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(720\,iw)):h=if(gt(ih\,iw)\,min(720\,ih)\,-2)',
   ),
   p1080(
     name: '1080p',
-    resolution:
-        r'scale=w=if(gt(ih\,iw)\,-16\,1080):h=if(gt(ih\,iw)\,1080\,-16),crop=trunc(iw/16)*16:trunc(ih/16)*16',
+    resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(1080\,iw)):h=if(gt(ih\,iw)\,min(1080\,ih)\,-2)',
   ),
   p2160(
     name: '2160p',
-    resolution:
-        r'scale=w=if(gt(ih\,iw)\,-16\,2160):h=if(gt(ih\,iw)\,2160\,-16),crop=trunc(iw/16)*16:trunc(ih/16)*16',
+    resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(2160\,iw)):h=if(gt(ih\,iw)\,min(2160\,ih)\,-2)',
   ),
   truncateOnly(
     name: 'truncateOnly',
