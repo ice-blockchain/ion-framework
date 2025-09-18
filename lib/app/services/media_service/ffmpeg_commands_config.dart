@@ -16,6 +16,7 @@ class FFmpegCommands {
     required String pixelFormat,
     required String scaleResolution,
     required String movFlags,
+    required String crf,
   }) {
     return [
       '-i',
@@ -24,6 +25,8 @@ class FFmpegCommands {
       videoCodec,
       '-preset',
       preset,
+      '-crf',
+      crf,
       '-maxrate',
       maxRate,
       '-bufsize',
