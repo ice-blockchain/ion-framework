@@ -232,7 +232,7 @@ class GlobalSubscription {
         }
       } else {
         // For encrypted events, only update the encrypted timestamp
-        await latestEventTimestampService.updateEncrypted(eventTimestamp);
+        await latestEventTimestampService.updateEncrypted();
       }
 
       globalSubscriptionEventDispatcher.dispatch(eventMessage);
