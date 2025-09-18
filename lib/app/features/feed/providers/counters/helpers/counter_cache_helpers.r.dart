@@ -126,11 +126,11 @@ class QuoteCounterUpdater {
 @riverpod
 QuoteCounterUpdater quoteCounterUpdater(Ref ref) {
   return QuoteCounterUpdater(
-    postRepostService: ref.watch(postRepostServiceProvider),
-    removeCacheItem: ref.watch(ionConnectCacheProvider.notifier).remove,
-    getCurrentPostRepost: (id) => ref.watch(postRepostWatchProvider(id)).valueOrNull,
-    findRepostInCache: (eventRef) => ref.watch(findRepostInCacheProvider(eventRef)),
-    getRepostCounts: (eventRef) => ref.watch(repostCountsFromCacheProvider(eventRef)),
-    cacheKeys: ref.watch(ionConnectCacheProvider).keys.toList(),
+    postRepostService: ref.read(postRepostServiceProvider),
+    removeCacheItem: ref.read(ionConnectCacheProvider.notifier).remove,
+    getCurrentPostRepost: (id) => ref.read(postRepostWatchProvider(id)).valueOrNull,
+    findRepostInCache: (eventRef) => ref.read(findRepostInCacheProvider(eventRef)),
+    getRepostCounts: (eventRef) => ref.read(repostCountsFromCacheProvider(eventRef)),
+    cacheKeys: ref.read(ionConnectCacheProvider).keys.toList(),
   );
 }
