@@ -6,10 +6,10 @@ import 'package:ion/app/features/components/entities_list/list_cached_entities.d
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
@@ -32,12 +32,12 @@ class ListEntityHelper {
                 .select((value) {
               final entity = value.valueOrNull;
               if (entity != null) {
-                ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
+                ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
               }
               return entity;
             }),
           ) ??
-          ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(
+          ListCachedObjects.maybeObjectOf<IonConnectEntity>(
             context,
             entity.data.eventReference,
           );
@@ -62,12 +62,12 @@ class ListEntityHelper {
           blockedUserWatchProvider(entity.masterPubkey).select((value) {
             final blockedObject = value.valueOrNull;
             if (blockedObject != null) {
-              ListCachedObjects.updateObject<BlockedUser, String>(context, blockedObject);
+              ListCachedObjects.updateObject<BlockedUser>(context, blockedObject);
             }
             return blockedObject;
           }),
         ) ??
-        ListCachedObjects.maybeObjectOf<BlockedUser, String>(context, entity.masterPubkey);
+        ListCachedObjects.maybeObjectOf<BlockedUser>(context, entity.masterPubkey);
 
     final isUserBlocked = blockedUser != null && blockedUser.isBlocked;
 
@@ -75,7 +75,7 @@ class ListEntityHelper {
           currentUserBlockedByListNotifierProvider.select((blockedUsersEntities) {
             final blockedUsers = blockedUsersEntities.valueOrNull;
             if (blockedUsers != null) {
-              ListCachedObjects.updateObjects<IonConnectEntity, EventReference>(
+              ListCachedObjects.updateObjects<BlockedUserEntity>(
                 context,
                 blockedUsers,
               );
@@ -97,12 +97,12 @@ class ListEntityHelper {
             ).select((value) {
               final entity = value.valueOrNull;
               if (entity != null) {
-                ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
+                ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
               }
               return entity;
             }),
           ) ??
-          ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(
+          ListCachedObjects.maybeObjectOf<IonConnectEntity>(
             context,
             entity.data.quotedEvent!.eventReference,
           );
@@ -115,12 +115,12 @@ class ListEntityHelper {
             ionConnectEntityProvider(eventReference: entity.data.eventReference).select((value) {
               final entity = value.valueOrNull;
               if (entity != null) {
-                ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
+                ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
               }
               return entity;
             }),
           ) ??
-          ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(
+          ListCachedObjects.maybeObjectOf<IonConnectEntity>(
             context,
             entity.data.eventReference,
           );
@@ -138,14 +138,14 @@ class ListEntityHelper {
           userMetadataProvider(entity.masterPubkey).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
-              ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
+              ListCachedObjects.updateObject<UserMetadataEntity>(context, entity);
             }
             return entity;
           }),
         ) ??
-        ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(
+        ListCachedObjects.maybeObjectOf<UserMetadataEntity>(
           context,
-          entity.toEventReference(),
+          entity.masterPubkey,
         );
 
     return userMetadata != null;

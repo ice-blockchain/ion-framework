@@ -3,6 +3,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';
 
 class ListCachedObjects extends InheritedWidget {
@@ -10,64 +11,81 @@ class ListCachedObjects extends InheritedWidget {
 
   final objects = <Object>[];
 
-  static I identifierSelector<T extends Object, I>(T object) {
-    if (object is IonConnectEntity) {
-      return object.toEventReference() as I;
-    } else if (object is BlockedUser) {
-      return object.masterPubkey as I;
-    } else {
-      throw ArgumentError('Unknown type for identifierSelector');
-    }
+  static dynamic identifierSelector<T extends Object>(T object) {
+    return switch (object) {
+      final UserMetadataEntity user => user.masterPubkey,
+      final IonConnectEntity entity => entity.toEventReference(),
+      final BlockedUser blocked => blocked.masterPubkey,
+      _ => throw ArgumentError('Unknown type for identifierSelector: ${object.runtimeType}'),
+    };
   }
 
-  static T? maybeObjectOf<T extends Object, I>(BuildContext context, I identifier) {
-    final entity = context
-        .dependOnInheritedWidgetOfExactType<ListCachedObjects>()
-        ?.objects
-        .whereType<T>()
-        .firstWhereOrNull((object) => identifierSelector<T, I>(object) == identifier);
-
-    return entity;
-  }
-
-  static List<T> maybeObjectsOf<T>(BuildContext context) {
+  static T? maybeObjectOf<T extends Object>(BuildContext context, dynamic identifier) {
     final objects = context.dependOnInheritedWidgetOfExactType<ListCachedObjects>()?.objects;
-    if (objects == null) return [];
+
+    if (objects == null || identifier == null) return null;
+
+    return objects.whereType<T>().firstWhereOrNull(
+          (object) => identifierSelector<T>(object) == identifier,
+        );
+  }
+
+  static List<T> maybeObjectsOf<T extends Object>(BuildContext context) {
+    final objects = context.dependOnInheritedWidgetOfExactType<ListCachedObjects>()?.objects;
+    if (objects == null) return <T>[];
     return objects.whereType<T>().toList();
   }
 
-  static void updateObject<T extends Object, I>(BuildContext context, T object) {
+  static void updateObject<T extends Object>(BuildContext context, T object) {
     final objects = context.dependOnInheritedWidgetOfExactType<ListCachedObjects>()?.objects;
-
     if (objects == null) return;
 
-    final index = objects
-        .whereType<T>()
-        .toList()
-        .indexWhere((o) => identifierSelector<T, I>(o) == identifierSelector<T, I>(object));
+    const equality = DeepCollectionEquality();
+    final identifier = identifierSelector<T>(object);
 
-    if (index != -1) {
-      final typedObjects = objects.whereType<T>().toList();
-      if (typedObjects[index] != object) {
-        final updatedObjects = List<T>.from(typedObjects);
-        updatedObjects[index] = object;
-        objects
-          ..removeWhere((o) => o is T)
-          ..addAll(updatedObjects);
+    for (var i = 0; i < objects.length; i++) {
+      final existingObject = objects[i];
+      if (existingObject is T && identifierSelector<T>(existingObject) == identifier) {
+        if (!equality.equals(existingObject, object)) {
+          objects[i] = object;
+        }
+        return;
       }
-    } else {
-      objects.add(object);
     }
+
+    objects.add(object);
   }
 
-  static void updateObjects<T extends Object, I>(BuildContext context, List<T> newObjects) {
+  static void updateObjects<T extends Object>(BuildContext context, List<T> newObjects) {
     final objects = context.dependOnInheritedWidgetOfExactType<ListCachedObjects>()?.objects;
-    if (objects == null) return;
+    if (objects == null || newObjects.isEmpty) return;
 
-    final newIdentifiers = newObjects.map(identifierSelector<T, I>).toSet();
-    objects
-      ..removeWhere((o) => o is T && newIdentifiers.contains(identifierSelector(o)))
-      ..addAll(newObjects);
+    const equality = DeepCollectionEquality();
+
+    final newObjectsMap = <dynamic, T>{
+      for (final newObject in newObjects) identifierSelector<T>(newObject): newObject,
+    };
+
+    final updatedIdentifiers = <dynamic>{};
+    for (var i = 0; i < objects.length; i++) {
+      final object = objects[i];
+      if (object is! T) continue;
+
+      final identifier = identifierSelector<T>(object);
+      final newObject = newObjectsMap[identifier];
+      if (newObject != null) {
+        if (!equality.equals(object, newObject)) {
+          objects[i] = newObject;
+        }
+        updatedIdentifiers.add(identifier);
+      }
+    }
+
+    objects.addAll(
+      newObjectsMap.values.where(
+        (newObject) => !updatedIdentifiers.contains(identifierSelector<T>(newObject)),
+      ),
+    );
   }
 
   @override

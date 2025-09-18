@@ -87,12 +87,12 @@ class _EntityListItem extends HookConsumerWidget {
           ionConnectEntityProvider(eventReference: eventReference).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
-              ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
+              ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
             }
             return entity;
           }),
         ) ??
-        ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(context, eventReference);
+        ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, eventReference);
 
     if (entity == null ||
         ListEntityHelper.isUserMuted(ref, entity.masterPubkey, showMuted: showMuted) ||

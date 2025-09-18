@@ -83,12 +83,12 @@ class Article extends ConsumerWidget {
           ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
-              ListCachedObjects.updateObject<IonConnectEntity, EventReference>(context, entity);
+              ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
             }
             return entity;
           }),
         ) ??
-        ListCachedObjects.maybeObjectOf<IonConnectEntity, EventReference>(context, eventReference);
+        ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, eventReference);
 
     if (entity is! ArticleEntity) {
       return Padding(
