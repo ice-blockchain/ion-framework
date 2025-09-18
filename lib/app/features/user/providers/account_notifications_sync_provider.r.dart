@@ -14,6 +14,8 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/model/related_event.f.dart';
+import 'package:ion/app/features/ion_connect/model/related_event_marker.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/event_backfill_service.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
@@ -339,7 +341,11 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
           search: SearchExtensions([
             ExpirationSearchExtension(expiration: false),
             VideosSearchExtension(contain: false),
-            TagMarkerSearchExtension(tagName: 'a', marker: 'reply', negative: true),
+            TagMarkerSearchExtension(
+              tagName: RelatedReplaceableEvent.tagName,
+              marker: RelatedEventMarker.reply.name,
+              negative: true,
+            ),
           ]).toString(),
           authors: users,
           limit: 100,
