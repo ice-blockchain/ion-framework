@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/button/button.dart';
@@ -12,14 +13,16 @@ import 'package:ion/app/components/read_more_text/read_more_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/nft_identifier.f.dart';
 import 'package:ion/app/features/wallets/providers/send_nft_form_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/send_nft_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/nft_name.dart';
 import 'package:ion/app/features/wallets/views/components/nft_picture.dart';
 import 'package:ion/app/features/wallets/views/pages/nft_details/components/nft_details_loading.dart';
+import 'package:ion/app/features/wallets/views/pages/nft_details/hooks/use_show_tooltip_overlay.dart';
 import 'package:ion/app/features/wallets/views/pages/nft_details/providers/nft_details_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class NftDetails extends ConsumerWidget {
+class NftDetails extends HookConsumerWidget {
   const NftDetails({
     required this.nftIdentifier,
     super.key,
@@ -34,6 +37,21 @@ class NftDetails extends ConsumerWidget {
     if (nftData == null) {
       return const NftDetailsLoading();
     }
+
+    final isConfirmEnabled = useState(false);
+
+    useEffect(
+      () {
+        ref.read(sendNftNotifierProvider.notifier).isSendable(nftData).then((result) {
+          isConfirmEnabled.value = result;
+        });
+        return null;
+      },
+      [],
+    );
+
+    final buttonKey = useRef(GlobalKey());
+    final showTooltipOverlay = useShowTooltipOverlay(targetKey: buttonKey.value);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -91,18 +109,28 @@ class NftDetails extends ConsumerWidget {
           value: nftData.contract,
         ),
         SizedBox(height: 12.0.s),
-        Button(
-          mainAxisSize: MainAxisSize.max,
-          minimumSize: Size(56.0.s, 56.0.s),
-          leadingIcon: Assets.svg.iconButtonSend.icon(
-            color: context.theme.appColors.onPrimaryAccent,
-          ),
-          label: Text(context.i18n.feed_send),
-          onPressed: () {
-            ref.invalidate(sendNftFormControllerProvider);
-            ref.read(sendNftFormControllerProvider.notifier).setNft(nftData);
-            NftSendFormRoute().push<void>(context);
+        GestureDetector(
+          key: buttonKey.value,
+          onTap: () {
+            if (!isConfirmEnabled.value) {
+              showTooltipOverlay();
+            }
           },
+          behavior: HitTestBehavior.translucent,
+          child: Button(
+            type: isConfirmEnabled.value ? ButtonType.primary : ButtonType.disabled,
+            mainAxisSize: MainAxisSize.max,
+            minimumSize: Size(56.0.s, 56.0.s),
+            leadingIcon: Assets.svg.iconButtonSend.icon(
+              color: context.theme.appColors.onPrimaryAccent,
+            ),
+            label: Text(context.i18n.feed_send),
+            onPressed: () {
+              ref.invalidate(sendNftFormControllerProvider);
+              ref.read(sendNftFormControllerProvider.notifier).setNft(nftData);
+              NftSendFormRoute().push<void>(context);
+            },
+          ),
         ),
       ],
     );

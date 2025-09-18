@@ -5,6 +5,7 @@ import 'package:ion/app/features/wallets/data/repository/transactions_repository
 import 'package:ion/app/features/wallets/domain/coins/coins_service.r.dart';
 import 'package:ion/app/features/wallets/domain/nfts/send_nft_use_case.r.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
+import 'package:ion/app/features/wallets/model/nft_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
@@ -21,6 +22,10 @@ class SendNftNotifier extends _$SendNftNotifier {
   @override
   Future<TransactionDetails?> build() async {
     return null;
+  }
+
+  Future<bool> isSendable(NftData nft) async {
+    return ref.read(sendNftUseCaseProvider.future).then((useCase) => useCase.isSendable(nft));
   }
 
   Future<void> send(OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity) async {

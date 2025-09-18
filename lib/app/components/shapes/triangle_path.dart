@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:ion/app/components/shapes/shape.dart';
 
 class TriangleShapeBuilder extends ShapeBuilder {
+  const TriangleShapeBuilder();
+
   @override
   Path build(Size size) {
     return Path()
