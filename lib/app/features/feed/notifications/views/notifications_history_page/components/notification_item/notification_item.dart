@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
@@ -17,13 +18,15 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
-class NotificationItem extends ConsumerWidget {
+class NotificationItem extends HookConsumerWidget {
   const NotificationItem({
     required this.notification,
+    this.onNotificationHidden,
     super.key,
   });
 
   final IonNotification notification;
+  final VoidCallback? onNotificationHidden;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,9 +42,25 @@ class NotificationItem extends ConsumerWidget {
 
     if (eventReference != null) {
       entity = ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
-      if (entity == null || _isDeleted(ref, entity) || _isRepostedEntityDeleted(ref, entity)) {
-        return const SizedBox.shrink();
-      }
+    }
+
+    final isHidden = eventReference != null &&
+        (entity == null || _isDeleted(ref, entity) || _isRepostedEntityDeleted(ref, entity));
+
+    useEffect(
+      () {
+        if (isHidden) {
+          Future.microtask(() {
+            onNotificationHidden?.call();
+          });
+        }
+        return null;
+      },
+      [eventReference, entity],
+    );
+
+    if (isHidden) {
+      return const SizedBox.shrink();
     }
 
     return GestureDetector(

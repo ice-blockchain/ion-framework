@@ -24,6 +24,19 @@ class FollowersDao extends DatabaseAccessor<NotificationsDatabase> with _$Follow
     return db.aggregatedFollowers().get();
   }
 
+  Future<List<AggregatedFollowersAfterResult>> getAggregatedAfter({
+    required int limit,
+    DateTime? after,
+  }) {
+    return db
+        .aggregatedFollowersAfter(
+          after?.microsecondsSinceEpoch ?? 0x7FFFFFFFFFFFFFFF,
+          //max int for the last_created_at < ?1 condition as it doesn't work with null
+          limit,
+        )
+        .get();
+  }
+
   Future<DateTime?> getLastCreatedAt() async {
     final maxCreatedAt = followersTable.createdAt.max();
     final max = await (selectOnly(followersTable)..addColumns([maxCreatedAt]))

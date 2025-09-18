@@ -24,6 +24,19 @@ class LikesDao extends DatabaseAccessor<NotificationsDatabase> with _$LikesDaoMi
     return db.aggregatedLikes().get();
   }
 
+  Future<List<AggregatedLikesAfterResult>> getAggregatedAfter({
+    required int limit,
+    DateTime? after,
+  }) {
+    return db
+        .aggregatedLikesAfter(
+          after?.microsecondsSinceEpoch ?? 0x7FFFFFFFFFFFFFFF,
+          //max int for the last_created_at < ?1 condition as it doesn't work with null
+          limit,
+        )
+        .get();
+  }
+
   Future<DateTime?> getLastCreatedAt() async {
     final maxCreatedAt = likesTable.createdAt.max();
     final max = await (selectOnly(likesTable)..addColumns([maxCreatedAt]))

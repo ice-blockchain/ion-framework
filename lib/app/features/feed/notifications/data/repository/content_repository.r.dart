@@ -60,6 +60,29 @@ class ContentRepository implements IonNotificationRepository {
     }).toList();
   }
 
+  Future<List<ContentIonNotification>> getNotificationsAfter({
+    required int limit,
+    DateTime? after,
+  }) async {
+    final contentNotifications = await _subscribedUsersContentDao.getContentAfter(
+      after: after,
+      limit: limit,
+    );
+    return contentNotifications.map((content) {
+      final notificationType = switch (content.type) {
+        ContentType.posts => ContentIonNotificationType.posts,
+        ContentType.stories => ContentIonNotificationType.stories,
+        ContentType.articles => ContentIonNotificationType.articles,
+        ContentType.videos => ContentIonNotificationType.videos,
+      };
+      return ContentIonNotification(
+        type: notificationType,
+        eventReference: content.eventReference,
+        timestamp: content.createdAt.toDateTime,
+      );
+    }).toList();
+  }
+
   ContentType? _getContentType(IonConnectEntity entity) {
     return switch (entity) {
       PostEntity() when entity.data.expiration != null => ContentType.stories,
