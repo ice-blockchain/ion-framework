@@ -260,7 +260,7 @@ Override _backgroundIdentityKeyNameOverride(String? savedIdentityKeyName) {
     throw const CurrentUserNotFoundException();
   }
   return currentIdentityKeyNameSelectorProvider.overrideWith(
-    (_) => savedIdentityKeyName,
+    () => _BackgroundIdentityKeyNameSelector(savedIdentityKeyName),
   );
 }
 
@@ -299,5 +299,16 @@ class _BackgroundCurrentPubkeySelector extends CurrentPubkeySelector {
   @override
   String build() {
     return _pubkey;
+  }
+}
+
+class _BackgroundIdentityKeyNameSelector extends CurrentIdentityKeyNameSelector {
+  _BackgroundIdentityKeyNameSelector(this._identityKeyName);
+
+  final String _identityKeyName;
+
+  @override
+  String build() {
+    return _identityKeyName;
   }
 }
