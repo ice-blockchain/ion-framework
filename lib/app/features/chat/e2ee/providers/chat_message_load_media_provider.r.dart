@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -32,12 +33,16 @@ Raw<Future<File?>> chatMessageLoadMedia(
     return null;
   }
 
-  final MediaAttachment mediaAttachmentToLoad;
+  final MediaAttachment? mediaAttachmentToLoad;
   if (loadThumbnail) {
     // Get thumbnail from media attachments
-    mediaAttachmentToLoad = entity.data.media.values.firstWhere(
+    mediaAttachmentToLoad = entity.data.media.values.firstWhereOrNull(
       (e) => e.url == mediaAttachment.thumb,
     );
+
+    if (mediaAttachmentToLoad == null) {
+      return null;
+    }
   } else {
     mediaAttachmentToLoad = mediaAttachment;
   }
