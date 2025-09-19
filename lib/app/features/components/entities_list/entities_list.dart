@@ -8,19 +8,16 @@ import 'package:ion/app/features/components/entities_list/components/article_lis
 import 'package:ion/app/features/components/entities_list/components/post_list_item.dart';
 import 'package:ion/app/features/components/entities_list/components/repost_list_item.dart';
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
+import 'package:ion/app/features/components/entities_list/list_entity_helper.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
-import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 
 class EntitiesList extends HookWidget {
@@ -86,17 +83,22 @@ class _EntityListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Subscribing to the entity here instead of passing it as param to get the updates
-    // e.g. when the entity is deleted
     final entity = ref.watch(
-      ionConnectSyncEntityProvider(eventReference: eventReference, database: readFromDB),
-    );
+          ionConnectEntityProvider(eventReference: eventReference).select((value) {
+            final entity = value.valueOrNull;
+            if (entity != null) {
+              ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
+            }
+            return entity;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, eventReference);
 
     if (entity == null ||
-        _isBlockedOrMutedOrBlocking(ref, entity, showMuted) ||
-        _isDeleted(ref, entity) ||
-        _isRepostedEntityDeleted(ref, entity) ||
-        !_hasMetadata(ref, entity)) {
+        ListEntityHelper.isUserMuted(ref, entity.masterPubkey, showMuted: showMuted) ||
+        ListEntityHelper.isUserBlockedOrBlocking(context, ref, entity) ||
+        ListEntityHelper.isEntityOrRepostedEntityDeleted(context, ref, entity) ||
+        !ListEntityHelper.hasMetadata(context, ref, entity)) {
       return const SizedBox.shrink();
     }
 
@@ -115,37 +117,6 @@ class _EntityListItem extends ConsumerWidget {
         _ => const SizedBox.shrink()
       },
     );
-  }
-
-  bool _isDeleted(WidgetRef ref, IonConnectEntity entity) {
-    return entity is SoftDeletableEntity && entity.isDeleted;
-  }
-
-  bool _isRepostedEntityDeleted(WidgetRef ref, IonConnectEntity entity) {
-    if (entity is GenericRepostEntity) {
-      final repostedEntity = ref.watch(
-        ionConnectSyncEntityWithCountersProvider(eventReference: entity.data.eventReference),
-      );
-      return repostedEntity == null ||
-          (repostedEntity is SoftDeletableEntity && repostedEntity.isDeleted);
-    }
-    return false;
-  }
-
-  bool _isBlockedOrMutedOrBlocking(WidgetRef ref, IonConnectEntity entity, bool showMuted) {
-    final isMuted = !showMuted && ref.watch(isUserMutedProvider(entity.masterPubkey));
-    final isBlockedOrBlockedBy = ref.watch(isEntityBlockedOrBlockedByProvider(entity));
-    return isMuted || isBlockedOrBlockedBy;
-  }
-
-  /// When we fetch lists (e.g. feed, search or data for tabs in profiles),
-  /// we don't need to fetch the user metadata or block list explicitly - it is returned as a side effect to the
-  /// main request.
-  /// In such cases, we just have to wait until the metadata and block list appears
-  /// in cache and then show the post (or not, if author is blocked/blocking).
-  bool _hasMetadata(WidgetRef ref, IonConnectEntity entity) {
-    final userMetadata = ref.watch(userMetadataSyncProvider(entity.masterPubkey, network: false));
-    return userMetadata != null;
   }
 }
 
