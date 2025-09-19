@@ -70,6 +70,8 @@
   "common_successfully": "Erfolgreich",
   "common_select_languages": "Sprachen auswählen",
   "common_no_access_permission": "Öffnen Sie die Einstellungen und aktivieren Sie die entsprechenden Berechtigungen",
+  "common_no_camera_permission": "Kein Kamerazugriff",
+  "common_no_camera_permission_hint": "Aktiviere die Kamera in den Geräteeinstellungen.",
   "common_crop_image": "Bild zuschneiden",
   "common_photo": "Foto",
   "common_video": "Video",

@@ -70,6 +70,8 @@
   "common_successfully": "بنجاح",
   "common_select_languages": "اختر اللغات",
   "common_no_access_permission": "لمنح الوصول، اذهب إلى الإعدادات وقم بتمكين الإعدادات المناسبة",
+  "common_no_camera_permission": "لا يوجد وصول إلى الكاميرا",
+  "common_no_camera_permission_hint": "قم بتمكين الكاميرا من إعدادات جهازك.",
   "common_crop_image": "اقتصاص الصورة",
   "common_photo": "صورة",
   "common_video": "فيديو",
