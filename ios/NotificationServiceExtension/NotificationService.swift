@@ -21,9 +21,17 @@ class NotificationService: UNNotificationServiceExtension {
 
         Task {
             do {
-                let result = await NotificationTranslationService(storage: try SharedStorageService()).translate(
+                let storage = try SharedStorageService()
+                let result = await NotificationTranslationService(storage: storage).translate(
                     request.content.userInfo
                 )
+                
+                // TODO: Temp disable badge count for e2e chats
+                if let notificationType = result?.notificationType, !notificationType.isChat {
+                    let badgeCount = storage.getBadgeCount() + 1
+                    mutableNotificationContent.badge = badgeCount as NSNumber
+                    storage.setBadgeCount(badgeCount)
+                }
 
                 if let result = result {
                     mutableNotificationContent.title = result.title
@@ -60,7 +68,16 @@ class NotificationService: UNNotificationServiceExtension {
     }
 
     override func serviceExtensionTimeWillExpire() {
+
+        
         if let contentHandler = contentHandler, let mutableNotificationContent = mutableNotificationContent {
+            do {
+                let storage = try SharedStorageService()
+                let badgeCount = storage.getBadgeCount() + 1
+                mutableNotificationContent.badge = badgeCount as NSNumber
+                storage.setBadgeCount(badgeCount)
+            } catch {}
+            
             contentHandler(mutableNotificationContent)
         }
     }

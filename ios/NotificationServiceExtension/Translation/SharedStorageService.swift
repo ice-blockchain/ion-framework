@@ -7,6 +7,7 @@ class SharedStorageService {
     static let appLocaleKey = "app_locale"
     static let currentPubkeyKey = "current_master_pubkey"
     static let currentIdentityKeyNameKey = "Auth:currentIdentityKeyName"
+    static let appBadgeCountKey = "app_badge_count"
 
     let appGroupIdentifier: String
 
@@ -56,6 +57,16 @@ class SharedStorageService {
 
     func getCurrentIdentityKeyName() -> String? {
         return userDefaults.string(forKey: SharedStorageService.currentIdentityKeyNameKey)
+    }
+
+    // MARK: - Badge Count
+
+    func getBadgeCount() -> Int {
+        return userDefaults.integer(forKey: SharedStorageService.appBadgeCountKey)
+    }
+
+    func setBadgeCount(_ count: Int) {
+        userDefaults.set(count, forKey: SharedStorageService.appBadgeCountKey)
     }
 
     // MARK: - Private Helper Methods

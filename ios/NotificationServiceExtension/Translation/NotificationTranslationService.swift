@@ -7,6 +7,7 @@ struct NotificationTranslationResult {
     let body: String
     let avatarFilePath: String?
     let attachmentFilePaths: String?
+    let notificationType: PushNotificationType?
 }
 
 class NotificationTranslationService {
@@ -82,7 +83,8 @@ class NotificationTranslationService {
             title: result.title,
             body: result.body,
             avatarFilePath: media.avatar,
-            attachmentFilePaths: media.attachment
+            attachmentFilePaths: media.attachment,
+            notificationType: notificationType
         )
     }
 
