@@ -39,6 +39,7 @@ class SendChatMedia extends _$SendChatMedia {
 
   Future<List<(String, List<MediaAttachment>)>> sendChatMedia(
     List<String> participantsMasterPubkeys,
+    DateTime randomCreatedAt,
     MediaFile mediaFile, {
     CancelToken? cancelToken,
   }) async {
@@ -69,6 +70,7 @@ class SendChatMedia extends _$SendChatMedia {
           final processedAttachments = await _processMedia(
             compressedMediaFile,
             participantKey,
+            randomCreatedAt,
             cancelToken: _cancelToken,
           );
           Logger.log(
@@ -110,7 +112,8 @@ class SendChatMedia extends _$SendChatMedia {
 
   Future<List<MediaAttachment>> _processMedia(
     MediaFile mediaFile,
-    String masterPubkey, {
+    String masterPubkey,
+    DateTime randomCreatedAt, {
     CancelToken? cancelToken,
     bool isThumbnail = false,
   }) async {
@@ -134,6 +137,7 @@ class SendChatMedia extends _$SendChatMedia {
       final thumbMediaAttachment = (await _processMedia(
         thumbMediaFile,
         masterPubkey,
+        randomCreatedAt,
         isThumbnail: true,
       ))
           .first;
@@ -156,6 +160,7 @@ class SendChatMedia extends _$SendChatMedia {
       final imageMediaAttachment = (await _processMedia(
         thumbMediaFile,
         masterPubkey,
+        randomCreatedAt,
         isThumbnail: true,
       ))
           .first;
@@ -181,7 +186,7 @@ class SendChatMedia extends _$SendChatMedia {
       oneTimeEventSigner,
       tags: [
         EntityExpiration(
-          value: DateTime.now()
+          value: randomCreatedAt
               .add(
                 Duration(hours: env.get<int>(EnvVariable.GIFT_WRAP_EXPIRATION_HOURS)),
               )
