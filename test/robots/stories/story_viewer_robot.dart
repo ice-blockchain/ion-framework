@@ -62,7 +62,8 @@ class StoryViewerRobot extends BaseRobot with ProviderScopeMixin, StoryStateMixi
       router: router,
       overrides: [
         feedStoriesProvider.overrideWith(() => FakeFeedStories(stories)),
-        currentIdentityKeyNameSelectorProvider.overrideWith((_) => identity),
+        currentIdentityKeyNameSelectorProvider
+            .overrideWith(() => _BackgroundIdentityKeyNameSelector(identity)),
         localStorageProvider.overrideWithValue(mockStorage),
         userPreferencesServiceProvider(identityKeyName: identity)
             .overrideWith((_) => UserPreferencesService(identity, mockStorage)),
@@ -158,5 +159,16 @@ class StoryViewerRobot extends BaseRobot with ProviderScopeMixin, StoryStateMixi
       feedStoriesByPubkeyProvider(pubkey).overrideWith((_) => posts),
       userStoriesProvider(pubkey).overrideWith(() => FakeUserStories(posts)),
     ];
+  }
+}
+
+class _BackgroundIdentityKeyNameSelector extends CurrentIdentityKeyNameSelector {
+  _BackgroundIdentityKeyNameSelector(this._identityKeyName);
+
+  final String _identityKeyName;
+
+  @override
+  String build() {
+    return _identityKeyName;
   }
 }

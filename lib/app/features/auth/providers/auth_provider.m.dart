@@ -21,7 +21,6 @@ part 'auth_provider.m.g.dart';
 class AuthState with _$AuthState {
   const factory AuthState({
     required List<String> authenticatedIdentityKeyNames,
-    required String? currentIdentityKeyName,
     required bool suggestToAddBiometrics,
     required bool suggestToCreateLocalPasskeyCreds,
     required bool hasEventSigner,
@@ -66,11 +65,25 @@ class Auth extends _$Auth {
             .watch(currentIdentityKeyNameStoreProvider.notifier)
             .setCurrentIdentityKeyNameForNotificationServiceExtension(currentIdentityKeyName),
       );
+
+      unawaited(
+        ref
+            .read(currentIdentityKeyNameSelectorProvider.notifier)
+            .setCurrentIdentityKeyName(currentIdentityKeyName),
+      );
     }
 
+    listenSelf((_, next) async {
+      if (next.valueOrNull?.authenticatedIdentityKeyNames == null ||
+          next.valueOrNull!.authenticatedIdentityKeyNames.isEmpty) {
+        await Future<void>.delayed(const Duration(seconds: 1));
+        unawaited(
+          ref.read(currentIdentityKeyNameSelectorProvider.notifier).setCurrentIdentityKeyName(null),
+        );
+      }
+    });
     return AuthState(
       authenticatedIdentityKeyNames: authenticatedIdentityKeyNames.toList(),
-      currentIdentityKeyName: currentIdentityKeyName,
       suggestToAddBiometrics: userBiometricsState == BiometricsState.canSuggest,
       suggestToCreateLocalPasskeyCreds:
           userLocalPasskeyCredsState == LocalPasskeyCredsState.canSuggest,
@@ -81,7 +94,7 @@ class Auth extends _$Auth {
   Future<void> signOut() async {
     state = const AsyncValue.loading();
 
-    final currentUser = state.valueOrNull?.currentIdentityKeyName;
+    final currentUser = ref.read(currentIdentityKeyNameSelectorProvider);
     if (currentUser == null) return;
 
     final ionIdentity = await ref.read(ionIdentityProvider.future);
@@ -96,10 +109,15 @@ class Auth extends _$Auth {
 }
 
 @Riverpod(keepAlive: true)
-String? currentIdentityKeyNameSelector(Ref ref) {
-  return ref.watch(
-    authProvider.select((state) => state.valueOrNull?.currentIdentityKeyName),
-  );
+class CurrentIdentityKeyNameSelector extends _$CurrentIdentityKeyNameSelector {
+  @override
+  String? build() {
+    return null;
+  }
+
+  Future<void> setCurrentIdentityKeyName(String? identityKeyName) async {
+    state = identityKeyName;
+  }
 }
 
 @Riverpod(keepAlive: true)
