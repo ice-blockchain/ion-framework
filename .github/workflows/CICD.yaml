@@ -173,10 +173,7 @@ jobs:
         if: inputs.run_checks
         run: |
           cd main-repo
-          melos exec -- "flutter test --shard-index 0 --total-shards 3" &
-          melos exec -- "flutter test --shard-index 1 --total-shards 3" &
-          melos exec -- "flutter test --shard-index 2 --total-shards 3" &
-          wait  # Wait for all background processes to complete
+          melos exec -- "flutter test --concurrency=4"
       - name: Check license
         id: check-license
         if: inputs.run_checks
@@ -388,6 +385,6 @@ jobs:
     if: always()
     steps:
       - name: Cleanup cache
-        uses: actions/cache/delete@v3
+        uses: actions/cache/delete@v4
         with:
           key: ${{ github.sha }}_${{ github.run_number }}
