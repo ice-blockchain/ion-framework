@@ -117,6 +117,10 @@ class NotificationDataParser {
             await translator.translate((t) => t.repost?.title),
             await translator.translate((t) => t.repost?.body)
           ),
+        PushNotificationType.quote => (
+            await translator.translate((t) => t.quote?.title),
+            await translator.translate((t) => t.quote?.body)
+          ),
         PushNotificationType.like => (
             await translator.translate((t) => t.like?.title),
             await translator.translate((t) => t.like?.body)

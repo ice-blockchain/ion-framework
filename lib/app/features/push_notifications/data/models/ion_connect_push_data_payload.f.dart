@@ -93,11 +93,11 @@ class IonConnectPushDataPayload {
     required String currentPubkey,
   }) {
     final entity = mainEntity;
-    if (entity is GenericRepostEntity ||
-        entity is RepostEntity ||
-        (entity is ModifiablePostEntity && entity.data.quotedEvent != null) ||
-        (entity is PostEntity && entity.data.quotedEvent != null)) {
+    if (entity is GenericRepostEntity || entity is RepostEntity) {
       return PushNotificationType.repost;
+    } else if ((entity is ModifiablePostEntity && entity.data.quotedEvent != null) ||
+        (entity is PostEntity && entity.data.quotedEvent != null)) {
+      return PushNotificationType.quote;
     } else if (entity is ModifiablePostEntity || entity is PostEntity) {
       final currentUserMention =
           ReplaceableEventReference(masterPubkey: currentPubkey, kind: UserMetadataEntity.kind)
@@ -344,8 +344,19 @@ class IonConnectPushDataPayload {
         PostEntity() => entity.data.relatedPubkeys,
         _ => null
       };
-      return relatedPubkeys != null &&
+
+      final event = switch (entity) {
+        ModifiablePostEntity() => entity.data.quotedEvent,
+        PostEntity() => entity.data.quotedEvent,
+        _ => null
+      };
+
+      final isInRelatedPubkeys = relatedPubkeys != null &&
           relatedPubkeys.any((relatedPubkey) => relatedPubkey.value == currentPubkey);
+
+      final isPostAuthor = event != null && event.eventReference.masterPubkey == currentPubkey;
+
+      return isInRelatedPubkeys || isPostAuthor;
     } else if (entity is GenericRepostEntity) {
       return entity.data.eventReference.masterPubkey == currentPubkey;
     } else if (entity is RepostEntity) {
@@ -420,6 +431,7 @@ enum PushNotificationType {
   reply,
   mention,
   repost,
+  quote,
   like,
   follower,
   paymentRequest,

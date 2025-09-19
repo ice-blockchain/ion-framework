@@ -130,6 +130,8 @@ class NotificationTranslationService {
                 return translations.mention
             case .repost:
                 return translations.repost
+            case .quote:
+                return translations.quote
             case .like:
                 return translations.like
             case .follower:
