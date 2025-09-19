@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -16,7 +17,7 @@ extension IONIdentityExceptionTranslation on IONIdentityException {
       case TwoFARequiredException():
         return context.i18n.error_identity_2fa_required_title;
       default:
-        return toString();
+        return context.i18n.error_general_title;
     }
   }
 
@@ -30,8 +31,14 @@ extension IONIdentityExceptionTranslation on IONIdentityException {
         return context.i18n.error_identity_no_local_passkey_creds_found_description;
       case TwoFARequiredException():
         return context.i18n.error_identity_2fa_required_description;
+      case final RequestExecutionException exception when exception.error is DioException:
+        return context.i18n.error_general_description(
+          context.i18n.error_general_error_code(
+            (exception.error as DioException).response?.statusCode?.toString() ?? '-1',
+          ),
+        );
       default:
-        return toString();
+        return context.i18n.error_general_description('');
     }
   }
 }
