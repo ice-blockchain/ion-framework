@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -13,6 +14,17 @@ UserPreferencesService userPreferencesService(
 }) {
   final localStorage = ref.watch(localStorageProvider);
   return UserPreferencesService(identityKeyName, localStorage);
+}
+
+@Riverpod(keepAlive: true)
+UserPreferencesService? currentUserPreferencesService(Ref ref) {
+  final identityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
+  if (identityKeyName == null) {
+    return null;
+  }
+  return ref.watch(
+    userPreferencesServiceProvider(identityKeyName: identityKeyName),
+  );
 }
 
 class UserPreferencesService {
