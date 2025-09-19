@@ -37,6 +37,7 @@ import 'package:ion/app/services/ion_connect/ion_connect_seal_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/uuid/uuid.dart';
+import 'package:ion/app/utils/date.dart';
 import 'package:isolate_manager/isolate_manager.dart';
 import 'package:nip44/nip44.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -85,6 +86,7 @@ class SendE2eeChatMessageService {
             .fetchUsersKeys(participantsMasterPubkeys);
 
     final createdAt = DateTime.now().microsecondsSinceEpoch;
+    final randomCreatedAt = randomDateBefore(const Duration(days: 2));
 
     try {
       final publishedAt = editedMessageEntity?.publishedAt ?? EntityPublishedAt(value: createdAt);
@@ -145,6 +147,7 @@ class SendE2eeChatMessageService {
       );
 
       final mediaAttachmentsUsersBased = await _sendMediaFiles(
+        randomCreatedAt: randomCreatedAt,
         mediaFiles: preparedMediaFiles,
         messageMediaIds: messageMediaIds,
         eventReference: eventReference,
@@ -208,6 +211,7 @@ class SendE2eeChatMessageService {
                   pubkey: pubkey,
                   eventSigner: eventSigner,
                   masterPubkey: masterPubkey,
+                  randomCreatedAt: randomCreatedAt,
                   wrappedKinds: kind != null ? [messageKind, kind.toString()] : [messageKind],
                   eventMessage: remoteEventMessage,
                 );
@@ -284,6 +288,7 @@ class SendE2eeChatMessageService {
   }
 
   Future<Map<String, List<MediaAttachment>>> _sendMediaFiles({
+    required DateTime randomCreatedAt,
     required EventReference eventReference,
     required List<int> messageMediaIds,
     required List<MediaFile> mediaFiles,
@@ -299,7 +304,7 @@ class SendE2eeChatMessageService {
 
         final sendResult = await ref
             .read(sendChatMediaProvider(id).notifier)
-            .sendChatMedia(participantsMasterPubkeys, mediaFile);
+            .sendChatMedia(participantsMasterPubkeys, randomCreatedAt, mediaFile);
 
         final currentUserSendResult =
             sendResult.firstWhereOrNull((a) => a.$1 == currentUserMasterPubkey);
@@ -339,6 +344,7 @@ class SendE2eeChatMessageService {
     required EventSigner eventSigner,
     required EventMessage eventMessage,
     required List<String> wrappedKinds,
+    DateTime? randomCreatedAt,
   }) async {
     final env = ref.read(envProvider.notifier);
     final expirationDuration = Duration(
@@ -347,9 +353,11 @@ class SendE2eeChatMessageService {
     final giftWrapService = await ref.read(ionConnectGiftWrapServiceProvider.future);
     final sealService = await ref.read(ionConnectSealServiceProvider.future);
 
-    final expirationTag = EntityExpiration(
-      value: DateTime.now().add(expirationDuration).microsecondsSinceEpoch,
-    ).toTag();
+    final randomCreatedAtTime = randomCreatedAt ?? randomDateBefore(const Duration(days: 2));
+
+    final expirationTag =
+        EntityExpiration(value: randomCreatedAtTime.add(expirationDuration).microsecondsSinceEpoch)
+            .toTag();
 
     final giftWrap = await giftWrapSharedIsolate.compute(
       createGiftWrapFn,
@@ -362,6 +370,7 @@ class SendE2eeChatMessageService {
         masterPubkey,
         expirationTag,
         wrappedKinds,
+        randomCreatedAt,
       ],
     );
 
@@ -472,6 +481,7 @@ Future<EventMessage> createGiftWrapFn(List<dynamic> args) async {
   final receiverMasterPubkey = args[5] as String;
   final expirationTag = args[6] as List<String>;
   final kinds = args[7] as List<String>;
+  final randomCreatedAt = args[8] as DateTime;
 
   final seal = await sealService.createSeal(
     eventMessage,
@@ -484,6 +494,7 @@ Future<EventMessage> createGiftWrapFn(List<dynamic> args) async {
     event: seal,
     contentKinds: kinds,
     receiverPubkey: receiverPubkey,
+    randomCreatedAt: randomCreatedAt,
     receiverMasterPubkey: receiverMasterPubkey,
     expirationTag: expirationTag,
     compressionAlgorithm: CompressionAlgorithm.brotli,
