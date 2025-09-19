@@ -71,16 +71,6 @@ jobs:
           token: ${{ secrets.ICE_CI_CD_BOT_GH_PAT }}
           path: flutter-app-secrets
           fetch-depth: 0
-      - name: Compute secrets commit
-        id: secrets-commit
-        run: |
-          cd flutter-app-secrets
-          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-      - name: Cache secrets repo by commit
-        uses: actions/cache@v4
-        with:
-          path: flutter-app-secrets
-          key: secrets-${{ steps.secrets-commit.outputs.sha }}
       - name: Configure APP environment (${{ env.APP_ENV }})
         id: setup-env
         run: |
@@ -188,7 +178,7 @@ jobs:
         run: |
           cd main-repo
           ./scripts/license_check.sh
-      - uses: actions/cache@v4
+      - uses: actions/cache/save@v3
         id: cache_all
         with:
           path: |
@@ -214,28 +204,13 @@ jobs:
       FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 10
       APP_VERSION: ${{ needs.flutter.outputs.app_version }}
     steps:
-      - name: Get Xcode version
-        id: get-xcode
-        run: |
-          XCODE_VER=$(xcodebuild -version | head -n1 | awk '{print $2}')
-          echo "xcode_version=$XCODE_VER" >> $GITHUB_OUTPUT
-      - name: Cache CocoaPods
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/Library/Caches/CocoaPods
-            ~/.cocoapods
-            ~/Library/Developer/Xcode/SourcePackages
-          key: pods-${{ runner.os }}-${{ runner.arch }}-xcode-${{ steps.get-xcode.outputs.xcode_version }}-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            pods-${{ runner.os }}-${{ runner.arch }}-xcode-${{ steps.get-xcode.outputs.xcode_version }}-
-            pods-${{ runner.os }}-${{ runner.arch }}-
-      - uses: actions/cache@v4
+      - uses: actions/cache@v3
+        id: cache_all
         with:
           path: |
             ~/.pub-cache
-            main-repo
-          key: main-repo-${{ github.sha }}_${{ github.run_number }}
+            ./*
+          key: ${{ github.sha }}_${{ github.run_number }}
       - name: Mask APP environment and keys in logs
         id: mask-secrets
         run: |
@@ -263,13 +238,6 @@ jobs:
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
       - run: flutter --version
-      - name: Install CocoaPods (cached)
-        run: |
-          set -Eeuo pipefail
-          export COCOAPODS_DISABLE_STATS=1
-          export CP_REPO_UPDATE=false
-          cd main-repo/ios
-          bundle exec pod install --deployment
       - name: Detect context and set APP environment variables
         id: setup-env
         env:
@@ -298,7 +266,7 @@ jobs:
           source .env
           set +a
           ./scripts/generate_ios_export_options.sh --signType $IOS_SIGN_TYPE --bundleId $APP_ID --outputPath ios/ExportOptions.plist
-          flutter -v build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=.merged.app.env
+          flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=.merged.app.env
       - name: Deploy iOS App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         run: |
@@ -321,22 +289,13 @@ jobs:
     env:
       APP_VERSION: ${{ needs.flutter.outputs.app_version }}
     steps:
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
-      - uses: actions/cache@v4
+      - uses: actions/cache@v3
         id: cache_all
         with:
           path: |
             ~/.pub-cache
-            main-repo
-          key: main-repo-${{ github.sha }}_${{ github.run_number }}
+            ./*
+          key: ${{ github.sha }}_${{ github.run_number }}
       - name: Mask APP environment and keys in logs
         id: mask-secrets
         run: |
@@ -397,7 +356,7 @@ jobs:
         id: build-app
         run: |
           cd main-repo
-          flutter -v build $ANDROID_ARCHIVE_TYPE --release --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --dart-define-from-file=.merged.app.env
+          flutter build $ANDROID_ARCHIVE_TYPE --release --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --dart-define-from-file=.merged.app.env
       - name: Deploy Android App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         run: |
@@ -413,17 +372,3 @@ jobs:
           config: main-repo/.github/slack.yml
           status: ${{ job.status }}
           steps: ${{ '{}' }}
-  cleanup:
-    name: Cleanup Cache
-    needs: [flutter, ios-cicd, android-cicd]
-    runs-on: macos-15
-    if: always()  # Run even if other jobs fail
-    steps:
-      - name: Delete main-repo and pub cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            main-repo
-          key: main-repo-${{ github.sha }}_${{ github.run_number }}
-          action: delete
