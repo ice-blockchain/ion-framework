@@ -12,6 +12,7 @@ const _placeholder = SizedBox.shrink();
 class VideoThumbnailPreview extends ConsumerWidget {
   const VideoThumbnailPreview({
     required this.thumbnailUrl,
+    required this.aspectRatio,
     this.blurhash,
     this.authorPubkey,
     this.fit = BoxFit.contain,
@@ -22,6 +23,7 @@ class VideoThumbnailPreview extends ConsumerWidget {
   final String? blurhash;
   final String? authorPubkey;
   final BoxFit fit;
+  final double aspectRatio;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,9 +31,11 @@ class VideoThumbnailPreview extends ConsumerWidget {
       return Stack(
         fit: StackFit.expand,
         children: [
-          BlurhashFfi(
-            hash: blurhash!,
-            imageFit: fit,
+          Center(
+            child: AspectRatio(
+              aspectRatio: aspectRatio,
+              child: BlurhashFfi(hash: blurhash!),
+            ),
           ),
           if (thumbnailUrl != null && thumbnailUrl!.isNotEmpty)
             IonConnectNetworkImage(

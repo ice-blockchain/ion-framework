@@ -151,6 +151,7 @@ class _VideoThumbWidget extends StatelessWidget {
         thumbnailUrl: thumbnailUrl,
         blurhash: blurhash,
         authorPubkey: authorPubkey,
+        aspectRatio: thumbnailAspectRatio,
       ),
     );
 
@@ -165,11 +166,9 @@ class _VideoThumbWidget extends StatelessWidget {
         ),
       );
     } else {
-      thumbnailWidget = Center(
-        child: AspectRatio(
-          aspectRatio: thumbnailAspectRatio,
-          child: thumbnailWidget,
-        ),
+      thumbnailWidget = AspectRatio(
+        aspectRatio: thumbnailAspectRatio,
+        child: thumbnailWidget,
       );
     }
 
