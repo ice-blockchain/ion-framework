@@ -159,18 +159,21 @@ class ProfilePage extends HookConsumerWidget {
                 ),
               ),
             ),
-            Opacity(
-              opacity: opacity,
-              child: NavigationAppBar(
-                showBackButton: showBackButton,
-                useScreenTopOffset: true,
-                backButtonIcon: backButtonIcon,
-                scrollController: scrollController,
-                horizontalPadding: 0,
-                title: Header(
-                  opacity: opacity,
-                  pubkey: pubkey,
-                  showBackButton: !isCurrentUserProfile,
+            _IgnorePointerWrapper(
+              shouldWrap: opacity <= 0.5,
+              child: Opacity(
+                opacity: opacity,
+                child: NavigationAppBar(
+                  showBackButton: showBackButton,
+                  useScreenTopOffset: true,
+                  backButtonIcon: backButtonIcon,
+                  scrollController: scrollController,
+                  horizontalPadding: 0,
+                  title: Header(
+                    opacity: opacity,
+                    pubkey: pubkey,
+                    showBackButton: !isCurrentUserProfile,
+                  ),
                 ),
               ),
             ),
@@ -196,5 +199,17 @@ class ProfilePage extends HookConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+class _IgnorePointerWrapper extends StatelessWidget {
+  const _IgnorePointerWrapper({required this.child, required this.shouldWrap});
+
+  final Widget child;
+  final bool shouldWrap;
+
+  @override
+  Widget build(BuildContext context) {
+    return shouldWrap ? IgnorePointer(child: child) : child;
   }
 }
