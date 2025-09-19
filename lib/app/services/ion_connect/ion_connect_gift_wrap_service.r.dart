@@ -10,7 +10,6 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart'
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/services/ion_connect/ed25519_key_store.dart';
 import 'package:ion/app/services/ion_connect/encrypted_message_service.r.dart';
-import 'package:ion/app/utils/date.dart';
 import 'package:nip44/nip44.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -25,6 +24,7 @@ Future<IonConnectGiftWrapService> ionConnectGiftWrapService(Ref ref) async =>
 abstract class IonConnectGiftWrapService {
   Future<EventMessage> createWrap({
     required EventMessage event,
+    required DateTime randomCreatedAt,
     required String receiverPubkey,
     required String receiverMasterPubkey,
     required List<String> contentKinds,
@@ -50,6 +50,7 @@ class IonConnectGiftWrapServiceImpl implements IonConnectGiftWrapService {
   @override
   Future<EventMessage> createWrap({
     required EventMessage event,
+    required DateTime randomCreatedAt,
     required String receiverPubkey,
     required String receiverMasterPubkey,
     required List<String> contentKinds,
@@ -67,13 +68,9 @@ class IonConnectGiftWrapServiceImpl implements IonConnectGiftWrapService {
       compressionAlgorithm: compressionAlgorithm,
     );
 
-    final createdAt = randomDateBefore(
-      const Duration(days: 2),
-    ).microsecondsSinceEpoch;
-
     return EventMessage.fromData(
       kind: IonConnectGiftWrapEntity.kind,
-      createdAt: createdAt,
+      createdAt: randomCreatedAt.microsecondsSinceEpoch,
       signer: oneTimeSigner,
       content: encryptedEvent,
       tags: [
