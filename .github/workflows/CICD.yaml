@@ -188,6 +188,13 @@ jobs:
         run: |
           cd main-repo
           ./scripts/license_check.sh
+      - uses: actions/cache@v4
+        id: cache_all
+        with:
+          path: |
+            ~/.pub-cache
+            ./*
+          key: ${{ github.sha }}_${{ github.run_number }}
       - name: Slack Notification
         if: ${{ success() == false}}
         uses: act10ns/slack@v2
@@ -223,6 +230,12 @@ jobs:
           restore-keys: |
             pods-${{ runner.os }}-${{ runner.arch }}-xcode-${{ steps.get-xcode.outputs.xcode_version }}-
             pods-${{ runner.os }}-${{ runner.arch }}-
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            main-repo
+          key: main-repo-${{ github.sha }}_${{ github.run_number }}
       - name: Mask APP environment and keys in logs
         id: mask-secrets
         run: |
@@ -250,13 +263,6 @@ jobs:
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
       - run: flutter --version
-      - name: Cache pub dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            pub-${{ runner.os }}-
       - name: Install CocoaPods (cached)
         run: |
           set -Eeuo pipefail
@@ -324,13 +330,13 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             gradle-${{ runner.os }}-
-      - name: Cache pub dependencies
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
+        id: cache_all
         with:
-          path: ~/.pub-cache
-          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            pub-${{ runner.os }}-
+          path: |
+            ~/.pub-cache
+            main-repo
+          key: main-repo-${{ github.sha }}_${{ github.run_number }}
       - name: Mask APP environment and keys in logs
         id: mask-secrets
         run: |
@@ -407,3 +413,17 @@ jobs:
           config: main-repo/.github/slack.yml
           status: ${{ job.status }}
           steps: ${{ '{}' }}
+  cleanup:
+    name: Cleanup Cache
+    needs: [flutter, ios-cicd, android-cicd]
+    runs-on: macos-15
+    if: always()  # Run even if other jobs fail
+    steps:
+      - name: Delete main-repo and pub cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            main-repo
+          key: main-repo-${{ github.sha }}_${{ github.run_number }}
+          action: delete
