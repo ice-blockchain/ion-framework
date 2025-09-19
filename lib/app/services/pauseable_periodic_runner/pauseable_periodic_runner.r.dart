@@ -13,8 +13,8 @@ part 'pauseable_periodic_runner.r.g.dart';
 /// A reusable periodic runner that:
 /// - Fires a callback on a fixed [interval]
 /// - Pauses when app goes to background/inactive and remembers remaining time
-/// - On resume, schedules a one-shot for max(remaining, [minResumeDelay]), then returns to periodic cadence
-/// - Cancels and rotates a [CancelToken] for in-flight async work on each pause/resume and tick
+/// - On resume, schedules a one‑shot after the remaining time and then restores periodic cadence (no cancel on resume)
+/// - Rotates a [CancelToken] only when starting a new tick (not on resume)
 class PauseablePeriodicRunner {
   PauseablePeriodicRunner({
     required this.ref,
@@ -22,7 +22,6 @@ class PauseablePeriodicRunner {
 
   final Ref ref;
   Duration? _interval;
-  Duration _minResumeDelay = const Duration(seconds: 30);
   void Function(CancelToken)? _onTick;
 
   Timer? _periodicTimer;
@@ -43,11 +42,9 @@ class PauseablePeriodicRunner {
   void start({
     required Duration interval,
     required void Function(CancelToken) onTick,
-    Duration minResumeDelay = const Duration(seconds: 30),
     bool runImmediately = false,
   }) {
     _interval = interval;
-    _minResumeDelay = minResumeDelay;
     _onTick = onTick;
 
     _schedulePeriodic();
@@ -61,34 +58,54 @@ class PauseablePeriodicRunner {
         // No-op until start() is called.
         if (_onTick == null || _interval == null) return;
 
-        // On resume: rotate cancel token and schedule a one-shot for max(remaining, minResumeDelay)
-        replaceCancelToken();
-        var delay = _remainingUntilNext ?? _interval!;
-        if (delay < _minResumeDelay) {
-          delay = _minResumeDelay;
-        }
-        _remainingUntilNext = null;
-        _scheduleOneShot(delay);
+        resume();
       } else {
-        // Background/inactive: capture remaining time, stop timers, cancel in-flight work.
-        final now = DateTime.now();
-        if (_nextFireAt != null) {
-          var remaining = _nextFireAt!.difference(now);
-          if (remaining.isNegative) remaining = Duration.zero;
-          _remainingUntilNext = remaining;
-        } else {
-          _remainingUntilNext = _interval;
-        }
-        _periodicTimer?.cancel();
-        _periodicTimer = null;
-        _oneShotTimer?.cancel();
-        _oneShotTimer = null;
-
-        if (!_cancelToken.isCancelled) {
-          _cancelToken.cancel();
-        }
+        pause();
       }
     });
+  }
+
+  /// Explicitly pause the runner (used by lifecycle or sensitive flows like passkeys).
+  /// Captures remaining time, stops timers
+  void pause() {
+    final now = DateTime.now();
+    if (_nextFireAt != null) {
+      var remaining = _nextFireAt!.difference(now);
+      if (remaining.isNegative) remaining = Duration.zero;
+      _remainingUntilNext = remaining;
+    } else {
+      _remainingUntilNext = _interval;
+    }
+
+    _periodicTimer?.cancel();
+    _periodicTimer = null;
+    _oneShotTimer?.cancel();
+    _oneShotTimer = null;
+  }
+
+  void resume() {
+    if (_onTick == null || _interval == null) return;
+
+    // Determine how long to wait until next tick; default to a full interval if unknown.
+    final delay = _remainingUntilNext ?? _interval!;
+    _remainingUntilNext = null;
+
+    // Ensure no leftover timers.
+    _oneShotTimer?.cancel();
+    _periodicTimer?.cancel();
+
+    if (delay <= Duration.zero) {
+      // If we're at/over the boundary, fire now and restart periodic cadence.
+      _fire();
+      _schedulePeriodic();
+    } else {
+      // Resume by waiting the remaining delay, then fire once and restore periodic cadence.
+      _oneShotTimer = Timer(delay, () {
+        _fire();
+        _schedulePeriodic();
+      });
+      _nextFireAt = DateTime.now().add(delay);
+    }
   }
 
   void _fire() {
@@ -108,17 +125,6 @@ class PauseablePeriodicRunner {
       _fire();
     });
     _nextFireAt = DateTime.now().add(interval);
-  }
-
-  void _scheduleOneShot(Duration delay) {
-    _periodicTimer?.cancel();
-    _periodicTimer = null;
-    _oneShotTimer?.cancel();
-    _oneShotTimer = Timer(delay, () {
-      _fire();
-      _schedulePeriodic();
-    });
-    _nextFireAt = DateTime.now().add(delay);
   }
 
   Future<void> dispose() async {
