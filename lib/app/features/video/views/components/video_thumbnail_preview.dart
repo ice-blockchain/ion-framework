@@ -6,6 +6,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
 import 'package:ion/app/features/components/ion_connect_network_image/ion_connect_network_image.dart';
 
+// Setting SizedBox.shrink placeholder to avoid default while screen placeholder that brings flickering
+const _placeholder = SizedBox.shrink();
+
 class VideoThumbnailPreview extends ConsumerWidget {
   const VideoThumbnailPreview({
     required this.thumbnailUrl,
@@ -35,7 +38,7 @@ class VideoThumbnailPreview extends ConsumerWidget {
               imageUrl: thumbnailUrl!,
               authorPubkey: authorPubkey ?? '',
               fit: fit,
-              placeholder: (_, __) => const CenteredLoadingIndicator(),
+              placeholder: (_, __) => _placeholder,
             ),
         ],
       );
@@ -47,7 +50,7 @@ class VideoThumbnailPreview extends ConsumerWidget {
         imageUrl: thumbnailUrl!,
         authorPubkey: authorPubkey ?? '',
         fit: fit,
-        placeholder: (_, __) => const CenteredLoadingIndicator(),
+        placeholder: (_, __) => _placeholder,
       );
     }
 
