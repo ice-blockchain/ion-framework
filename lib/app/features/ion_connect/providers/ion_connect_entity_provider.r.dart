@@ -13,6 +13,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.da
 import 'package:ion/app/features/ion_connect/providers/relays/relay_picker_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ion_connect_entity_provider.r.g.dart';
@@ -26,6 +27,7 @@ Future<IonConnectEntity?> ionConnectEntity(
   String? search,
   ActionType? actionType,
   Duration? expirationDuration,
+  DatabaseCacheStrategy? cacheStrategy,
 }) async {
   final currentUser = ref.watch(currentIdentityKeyNameSelectorProvider);
   if (currentUser == null) {
@@ -53,6 +55,7 @@ Future<IonConnectEntity?> ionConnectEntity(
     final databaseEntity = await cacheService.get(
       eventReference.toString(),
       expirationDuration: expirationDuration,
+      cacheStrategy: cacheStrategy ?? DatabaseCacheStrategy.alwaysReturn,
     );
 
     if (databaseEntity != null) {

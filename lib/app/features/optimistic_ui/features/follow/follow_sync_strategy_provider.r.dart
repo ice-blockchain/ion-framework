@@ -65,7 +65,11 @@ SyncStrategy<UserFollow> followSyncStrategy(Ref ref) {
         return;
       }
 
-      followees.remove(followee);
+      if (followees.contains(followee)) {
+        followees.remove(followee);
+      } else {
+        return;
+      }
 
       final updatedFollowList = followList.data.copyWith(list: followees.toList());
       final updatedFollowListEvent = await ionNotifier.sign(updatedFollowList);
