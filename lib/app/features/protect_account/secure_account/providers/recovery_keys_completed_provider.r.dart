@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/services/storage/local_storage.r.dart';
+import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'recovery_keys_completed_provider.r.g.dart';
 
 @riverpod
 class RecoveryKeysCompleted extends _$RecoveryKeysCompleted {
-  static const String _completedKeyPrefix = 'recovery_keys_completed';
+  static const String _completedKey = 'recovery_keys_completed';
 
   @override
   Future<bool> build() async {
@@ -17,9 +17,10 @@ class RecoveryKeysCompleted extends _$RecoveryKeysCompleted {
       return false;
     }
 
-    final localStorage = ref.watch(localStorageProvider);
-    final key = _getRecoveryKeysCompletedKey(currentIdentityKeyName);
-    return localStorage.getBool(key) ?? false;
+    final userPreferencesService = ref.watch(
+      userPreferencesServiceProvider(identityKeyName: currentIdentityKeyName),
+    );
+    return userPreferencesService.getValue<bool>(_completedKey) ?? false;
   }
 
   Future<void> markCompleted() async {
@@ -28,15 +29,12 @@ class RecoveryKeysCompleted extends _$RecoveryKeysCompleted {
       return;
     }
 
-    final localStorage = ref.watch(localStorageProvider);
-    final key = _getRecoveryKeysCompletedKey(currentIdentityKeyName);
-    await localStorage.setBool(key: key, value: true);
+    final userPreferencesService = ref.read(
+      userPreferencesServiceProvider(identityKeyName: currentIdentityKeyName),
+    );
+    await userPreferencesService.setValue(_completedKey, true);
 
     // Invalidate the provider to update the state
     ref.invalidateSelf();
-  }
-
-  String _getRecoveryKeysCompletedKey(String identityKeyName) {
-    return '${_completedKeyPrefix}_$identityKeyName';
   }
 }
