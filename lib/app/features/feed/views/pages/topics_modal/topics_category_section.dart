@@ -3,11 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/feed/data/models/feed_interests.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
-import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
 import 'package:ion/app/features/feed/views/pages/topics_modal/components/category_header.dart';
 import 'package:ion/app/features/feed/views/pages/topics_modal/components/subcategories.dart';
+import 'package:ion/app/features/feed/views/pages/topics_modal/hooks/use_sorted_categories.dart';
 
 class TopicsCategorySection extends HookConsumerWidget {
   const TopicsCategorySection({
@@ -19,31 +20,26 @@ class TopicsCategorySection extends HookConsumerWidget {
   });
 
   final FeedType feedType;
-  final String category;
+  final MapEntry<String, FeedInterestsCategory> category;
   final String? searchQuery;
   final bool addTopPadding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final availableInterests = ref.watch(feedUserInterestsProvider(feedType)).valueOrNull;
-    final availableCategories = availableInterests?.categories ?? {};
-    final interestsCategory = availableCategories[category];
-    if (interestsCategory == null) {
-      return const SizedBox.shrink();
-    }
-
-    final subcategories = interestsCategory.children;
+    final subcategories = category.value.children;
     final selected = ref.watch(
       selectedInterestsNotifierProvider.select(
         (interests) => interests.where(subcategories.containsKey).toSet(),
       ),
     );
 
+    final sortedSubcategories = useSortedCategories(subcategories);
+
     final filteredSubcategories = useMemoized(
       () {
         final query = searchQuery?.toLowerCase() ?? '';
         return Map.fromEntries(
-          subcategories.entries.where((categoryEntry) {
+          sortedSubcategories.entries.where((categoryEntry) {
             final title = categoryEntry.value.display.toLowerCase();
             return title.contains(query);
           }).toList(),
@@ -60,7 +56,7 @@ class TopicsCategorySection extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CategoryHeader(
-          categoryName: interestsCategory.display,
+          categoryName: category.value.display,
           addTopPadding: addTopPadding,
         ),
         Subcategories(

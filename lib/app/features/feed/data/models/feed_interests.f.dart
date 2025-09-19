@@ -83,8 +83,14 @@ abstract class CategoryWithWeight {
   int get weight;
 }
 
+abstract class CategoryWithDisplayName {
+  String get display;
+}
+
 @freezed
-class FeedInterestsCategory with _$FeedInterestsCategory implements CategoryWithWeight {
+class FeedInterestsCategory
+    with _$FeedInterestsCategory
+    implements CategoryWithWeight, CategoryWithDisplayName {
   const factory FeedInterestsCategory({
     required int weight,
     required String display,
@@ -97,7 +103,9 @@ class FeedInterestsCategory with _$FeedInterestsCategory implements CategoryWith
 }
 
 @freezed
-class FeedInterestsSubcategory with _$FeedInterestsSubcategory implements CategoryWithWeight {
+class FeedInterestsSubcategory
+    with _$FeedInterestsSubcategory
+    implements CategoryWithWeight, CategoryWithDisplayName {
   const factory FeedInterestsSubcategory({
     required String display,
     required int weight,
