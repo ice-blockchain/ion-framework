@@ -39,7 +39,7 @@ env:
 jobs:
   flutter:
     name: Flutter -- verify, build, test
-    runs-on: macos-15
+    runs-on: macos-15-large
     outputs:
       app_version: ${{ steps.set_version.outputs.version }}
     steps:
@@ -143,6 +143,8 @@ jobs:
           channel: "stable"
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
+          cache-key: "flutter-:os:-:channel:-:version:"
+          pub-cache-key: "flutter-pub-:os:-:channel:-:version:"
       - run: flutter --version
       - name: Bootstrap
         id: bootstrap
@@ -171,7 +173,7 @@ jobs:
         if: inputs.run_checks
         run: |
           cd main-repo
-          melos run test
+          melos exec -- "flutter test --concurrency=4"
       - name: Check license
         id: check-license
         if: inputs.run_checks
@@ -185,6 +187,7 @@ jobs:
             ~/.pub-cache
             ./*
           key: ${{ github.sha }}_${{ github.run_number }}
+          retention-days: 1
       - name: Slack Notification
         if: ${{ success() == false}}
         uses: act10ns/slack@v2
@@ -198,7 +201,7 @@ jobs:
   ios-cicd:
     name: iOS -- build, deploy
     needs: [flutter]
-    runs-on: macos-15
+    runs-on: macos-15-large
     env:
       FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 180
       FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 10
@@ -211,6 +214,7 @@ jobs:
             ~/.pub-cache
             ./*
           key: ${{ github.sha }}_${{ github.run_number }}
+          retention-days: 1
       - name: Mask APP environment and keys in logs
         id: mask-secrets
         run: |
@@ -237,6 +241,8 @@ jobs:
           channel: "stable"
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
+          cache-key: "flutter-:os:-:channel:-:version:"
+          pub-cache-key: "flutter-pub-:os:-:channel:-:version:"
       - run: flutter --version
       - name: Detect context and set APP environment variables
         id: setup-env
@@ -266,7 +272,7 @@ jobs:
           source .env
           set +a
           ./scripts/generate_ios_export_options.sh --signType $IOS_SIGN_TYPE --bundleId $APP_ID --outputPath ios/ExportOptions.plist
-          flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=.merged.app.env
+          flutter build ipa --release --verbose --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=.merged.app.env
       - name: Deploy iOS App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         run: |
@@ -285,7 +291,7 @@ jobs:
   android-cicd:
     name: Android -- build, deploy
     needs: [flutter]
-    runs-on: macos-15
+    runs-on: macos-15-large
     env:
       APP_VERSION: ${{ needs.flutter.outputs.app_version }}
     steps:
@@ -296,6 +302,7 @@ jobs:
             ~/.pub-cache
             ./*
           key: ${{ github.sha }}_${{ github.run_number }}
+          retention-days: 1
       - name: Mask APP environment and keys in logs
         id: mask-secrets
         run: |
@@ -329,6 +336,8 @@ jobs:
           channel: "stable"
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
+          cache-key: "flutter-:os:-:channel:-:version:"
+          pub-cache-key: "flutter-pub-:os:-:channel:-:version:"
       - run: flutter --version
       - name: Detect context and set APP environment variables
         id: setup-env
@@ -356,7 +365,7 @@ jobs:
         id: build-app
         run: |
           cd main-repo
-          flutter build $ANDROID_ARCHIVE_TYPE --release --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --dart-define-from-file=.merged.app.env
+          flutter build $ANDROID_ARCHIVE_TYPE --release --verbose --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --dart-define-from-file=.merged.app.env
       - name: Deploy Android App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         run: |
