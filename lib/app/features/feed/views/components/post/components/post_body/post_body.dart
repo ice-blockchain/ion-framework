@@ -74,7 +74,7 @@ class PostBody extends HookConsumerWidget {
 
     final hasValidUrlMetadata = firstUrlInPost != null &&
         (ref.watch(urlMetadataProvider(firstUrlInPost)).valueOrNull?.title?.isNotEmpty ?? false);
-        
+
     final showTextContent = useMemoized(
       () {
         if (content.isBlank) {
