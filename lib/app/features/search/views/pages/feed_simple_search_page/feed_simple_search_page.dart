@@ -11,9 +11,9 @@ import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/search/providers/feed_search_history_provider.m.dart'
     show feedSearchHistoryProvider;
-import 'package:ion/app/features/search/views/components/feed_search_history/feed_search_history_user_list_item.dart';
 import 'package:ion/app/features/search/views/components/search_history/search_history.dart';
 import 'package:ion/app/features/search/views/components/search_history_empty/search_history_empty.dart';
+import 'package:ion/app/features/search/views/components/search_history_user_list_item/search_history_user_list_item.dart';
 import 'package:ion/app/features/search/views/components/search_navigation/search_navigation.dart';
 import 'package:ion/app/features/search/views/pages/feed_simple_search_page/feed_simple_search_list_item.dart';
 import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
@@ -59,8 +59,13 @@ class FeedSimpleSearchPage extends HookConsumerWidget {
                         FeedSimpleSearchRoute(query: query).replace(context);
                       },
                       onClearHistory: ref.read(feedSearchHistoryProvider.notifier).clear,
-                      itemBuilder: (context, index) =>
-                          FeedSearchHistoryUserListItem(pubkey: history.pubKeys[index]),
+                      itemBuilder: (context, index) {
+                        final pubkey = history.pubKeys[index];
+                        return SearchHistoryUserListItem(
+                          pubkey: pubkey,
+                          onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
+                        );
+                      },
                     )
             else
               Expanded(
