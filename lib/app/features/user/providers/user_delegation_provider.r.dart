@@ -15,7 +15,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_delegation_provider.r.g.dart';
 
-@Riverpod(keepAlive: true)
+@riverpod
 Future<UserDelegationEntity?> userDelegation(Ref ref, String pubkey, {bool cache = true}) async {
   keepAliveWhenAuthenticated(ref);
   if (cache) {
