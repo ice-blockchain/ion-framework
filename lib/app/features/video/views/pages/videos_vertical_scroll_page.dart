@@ -207,20 +207,27 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
               _loadMore(ref, index, flattenedVideos.length);
               currentEventReference.value = flattenedVideos[index].entity.toEventReference();
             },
-            itemBuilder: (_, index) => VideoPage(
-              videoInfo: VideoPostInfo(videoPost: flattenedVideos[index].entity),
-              bottomOverlay: VideoActions(
-                eventReference: flattenedVideos[index].entity.toEventReference(),
-                onReplyTap: () =>
-                    PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context),
-              ),
-              videoUrl: flattenedVideos[index].media.url,
-              authorPubkey: eventReference.masterPubkey,
-              thumbnailUrl: flattenedVideos[index].media.thumb,
-              blurhash: flattenedVideos[index].media.blurhash,
-              aspectRatio: flattenedVideos[index].media.aspectRatio,
-              framedEventReference: index == initialPage ? framedEventReference : null,
-            ),
+            itemBuilder: (_, index) {
+              final flattenedVideo = flattenedVideos[index];
+              final perPageEventReference = flattenedVideo.entity.toEventReference();
+              final media = flattenedVideo.media;
+
+              return VideoPage(
+                videoInfo: VideoPostInfo(videoPost: flattenedVideo.entity),
+                bottomOverlay: VideoActions(
+                  eventReference: perPageEventReference,
+                  onReplyTap: () => PostDetailsRoute(
+                    eventReference: perPageEventReference.encode(),
+                  ).push<void>(context),
+                ),
+                videoUrl: media.url,
+                authorPubkey: perPageEventReference.masterPubkey,
+                thumbnailUrl: media.thumb,
+                blurhash: media.blurhash,
+                aspectRatio: media.aspectRatio,
+                framedEventReference: index == initialPage ? framedEventReference : null,
+              );
+            },
           ),
         ),
       ),
