@@ -138,7 +138,7 @@ class GalleryNotifier extends _$GalleryNotifier {
         mediaData: [...currentState.mediaData, ...newMedia],
         currentPage: currentState.currentPage + 1,
         hasMore: hasMore,
-        isLoading: true,
+        isLoading: false,
       );
     });
   }
