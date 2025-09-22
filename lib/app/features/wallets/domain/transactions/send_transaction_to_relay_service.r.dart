@@ -123,7 +123,7 @@ class SendTransactionToRelayService {
     required EventMessage eventMessage,
     int kind = ReplaceablePrivateDirectMessageEntity.kind,
   }) async {
-    final randomCreatedAt = randomDateBefore(const Duration(days: 2));
+    final randomCreatedAt = randomDateBefore();
 
     final expirationTag = EntityExpiration(
       value: randomCreatedAt

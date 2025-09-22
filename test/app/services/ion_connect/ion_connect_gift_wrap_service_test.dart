@@ -38,7 +38,7 @@ void main() {
         event: event,
         receiverMasterPubkey: masterPubkey,
         receiverPubkey: receiverSigner.publicKey,
-        randomCreatedAt: randomDateBefore(const Duration(days: 2)),
+        randomCreatedAt: randomDateBefore(),
         contentKinds: [ReplaceablePrivateDirectMessageEntity.kind.toString()],
       );
 
@@ -61,7 +61,7 @@ void main() {
         event: event,
         receiverMasterPubkey: "Doesn't matter",
         receiverPubkey: senderSigner.publicKey,
-        randomCreatedAt: randomDateBefore(const Duration(days: 2)),
+        randomCreatedAt: randomDateBefore(),
         contentKinds: [ReplaceablePrivateDirectMessageEntity.kind.toString()],
       );
 
@@ -84,7 +84,7 @@ void main() {
         event: event,
         receiverMasterPubkey: "Doesn't matter",
         receiverPubkey: receiverSigner.publicKey,
-        randomCreatedAt: randomDateBefore(const Duration(days: 2)),
+        randomCreatedAt: randomDateBefore(),
         contentKinds: [ReplaceablePrivateDirectMessageEntity.kind.toString()],
       );
 

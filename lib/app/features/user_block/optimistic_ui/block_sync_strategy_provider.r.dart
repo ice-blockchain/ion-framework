@@ -51,7 +51,7 @@ SyncStrategy<BlockedUser> blockSyncStrategy(Ref ref) {
 
     final seal = await sealService.createSeal(eventMessage, eventSigner, pubkey);
 
-    final randomCreatedAt = randomDateBefore(const Duration(days: 2));
+    final randomCreatedAt = randomDateBefore();
 
     final giftWrap = await wrapService.createWrap(
       event: seal,

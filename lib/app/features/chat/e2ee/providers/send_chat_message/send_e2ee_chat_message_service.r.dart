@@ -86,7 +86,7 @@ class SendE2eeChatMessageService {
             .fetchUsersKeys(participantsMasterPubkeys);
 
     final createdAt = DateTime.now().microsecondsSinceEpoch;
-    final randomCreatedAt = randomDateBefore(const Duration(days: 2));
+    final randomCreatedAt = randomDateBefore();
 
     try {
       final publishedAt = editedMessageEntity?.publishedAt ?? EntityPublishedAt(value: createdAt);
@@ -353,7 +353,7 @@ class SendE2eeChatMessageService {
     final giftWrapService = await ref.read(ionConnectGiftWrapServiceProvider.future);
     final sealService = await ref.read(ionConnectSealServiceProvider.future);
 
-    final randomCreatedAtTime = randomCreatedAt ?? randomDateBefore(const Duration(days: 2));
+    final randomCreatedAtTime = randomCreatedAt ?? randomDateBefore();
 
     final expirationTag =
         EntityExpiration(value: randomCreatedAtTime.add(expirationDuration).microsecondsSinceEpoch)
