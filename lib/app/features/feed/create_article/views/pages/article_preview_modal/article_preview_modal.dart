@@ -64,6 +64,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
       :content,
       :imageColor,
       :imageUrl,
+      :mediaAttachments,
     ) = ref.watch(draftArticleProvider);
     final whoCanReply = ref.watch(selectedWhoCanReplyOptionProvider);
     final selectedTopics = ref.watch(selectedInterestsNotifierProvider);
@@ -138,6 +139,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
                                 originalImageUrl: imageUrl,
                                 eventReference: modifiedEvent!,
                                 language: detectedLanguage,
+                                mediaAttachments: mediaAttachments,
                               ),
                         );
                       } else {

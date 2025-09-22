@@ -7,12 +7,14 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/components/text_editor/utils/extract_image_ids.dart';
+import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/utils/color.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'draft_article_provider.m.freezed.dart';
+
 part 'draft_article_provider.m.g.dart';
 
 @freezed
@@ -25,6 +27,7 @@ class DraftArticleState with _$DraftArticleState {
     String? imageColor,
     @Default({}) Map<String, String> codeBlocks,
     String? imageUrl,
+    @Default({}) Map<String, MediaAttachment> mediaAttachments,
   }) = _DraftArticleState;
 }
 
@@ -41,6 +44,7 @@ class DraftArticle extends _$DraftArticle {
     String title,
     String? imageUrl,
     String? imageUrlColor,
+    Map<String, MediaAttachment>? mediaAttachments,
   ) async {
     final delta = textEditorController.document.toDelta();
     final imageIds = extractImageIds(textEditorController.document.toDelta());
@@ -54,6 +58,7 @@ class DraftArticle extends _$DraftArticle {
       imageUrl: imageUrl,
       title: title.trim(),
       imageColor: colorHex,
+      mediaAttachments: mediaAttachments ?? state.mediaAttachments,
     );
   }
 

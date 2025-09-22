@@ -245,20 +245,26 @@ class CreateArticle extends _$CreateArticle {
 
       final unusedMediaFileHashes = <String>[];
 
+      // Start with existing media from the article
       final cleanedMedia = Map<String, MediaAttachment>.from(modifiedEntity.data.media);
 
+      // Add/update with media from the editing session
+      for (final entry in modifiedMedia.entries) {
+        cleanedMedia[entry.key] = entry.value;
+      }
+
+      // Only remove media that is not referenced in content AND not in the modified media
       modifiedEntity.data.media.forEach((url, attachment) {
         final urlInContent = contentString.contains(url);
         final urlToCheck = url.replaceAll('url ', '');
-        if (!urlInContent && (originalImageUrl != null && urlToCheck != originalImageUrl)) {
+        final isInModifiedMedia = modifiedMedia.containsKey(url);
+        final isOriginalImage = originalImageUrl != null && urlToCheck == originalImageUrl;
+
+        if (!urlInContent && !isInModifiedMedia && !isOriginalImage) {
           cleanedMedia.remove(url);
           unusedMediaFileHashes.add(attachment.originalFileHash);
         }
       });
-
-      for (final attachment in updatedMediaAttachments) {
-        cleanedMedia[attachment.url] = attachment;
-      }
 
       final mentions = _buildMentions(updatedContent);
 
