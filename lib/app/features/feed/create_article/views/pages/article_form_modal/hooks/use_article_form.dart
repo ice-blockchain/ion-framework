@@ -189,6 +189,7 @@ ArticleFormState useArticleForm(WidgetRef ref, {EventReference? modifiedEvent}) 
           titleController.text,
           selectedImageUrl.value,
           selectedImageUrlColor.value,
+          media.value,
         );
   }
 
