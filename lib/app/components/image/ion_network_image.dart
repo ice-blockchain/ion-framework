@@ -72,7 +72,8 @@ class IonNetworkImage extends HookWidget {
     }
 
     final fetchError = useRef<Object?>(null);
-    final cacheKey = Uri.tryParse(imageUrl)?.path ?? imageUrl;
+    // Use the full URL as cache key to avoid collisions (e.g., '/favicon.ico' across domains)
+    final cacheKey = imageUrl;
 
     if (borderRadius != null) {
       return DecoratedBox(
