@@ -5,7 +5,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'selected_wallet_view_id_provider.r.g.dart';
 
-// TODO: rename to something like "SavedWalletIdNotifier"
 @Riverpod(keepAlive: true)
 class SelectedWalletViewIdNotifier extends _$SelectedWalletViewIdNotifier {
   static String selectedWalletIdKey = 'UserPreferences:selectedWalletId';

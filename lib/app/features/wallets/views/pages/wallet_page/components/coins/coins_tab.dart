@@ -7,11 +7,11 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/wallets/data/database/dao/transactions_visibility_status_dao.m.dart';
 import 'package:ion/app/features/wallets/providers/filtered_assets_provider.r.dart';
-import 'package:ion/app/features/wallets/providers/wallet_page_loader_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/coins_list/coin_item.dart';
 import 'package:ion/app/features/wallets/views/pages/manage_coins/providers/manage_coins_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/coins/coins_tab_footer.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/empty_state/empty_state.dart';
+import 'package:ion/app/features/wallets/views/pages/wallet_page/providers/wallet_page_loader_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/tab_type.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 

@@ -7,10 +7,10 @@ import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user/providers/friends_section_providers.r.dart';
-import 'package:ion/app/features/wallets/providers/wallet_page_loader_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/friends/friends_list_header.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/friends/friends_list_item.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/friends/friends_list_loader.dart';
+import 'package:ion/app/features/wallets/views/pages/wallet_page/providers/wallet_page_loader_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
 class FriendsList extends ConsumerWidget {

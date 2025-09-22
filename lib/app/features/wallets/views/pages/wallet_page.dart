@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
+import 'package:ion/app/features/debug/views/debug_page.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
@@ -24,6 +25,7 @@ import 'package:ion/app/features/wallets/views/pages/wallet_page/tab_type.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
+import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/utils/precache_pictures.dart';
 
 class WalletPage extends HookConsumerWidget {
@@ -52,6 +54,15 @@ class WalletPage extends HookConsumerWidget {
     );
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showSimpleBottomSheet<void>(
+            context: context,
+            child: const DebugPage(),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
       appBar: NavigationAppBar.root(
         title: const WalletHeader(),
         horizontalPadding: ScreenSideOffset.defaultSmallMargin,
