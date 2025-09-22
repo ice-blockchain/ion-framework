@@ -8,6 +8,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/parent_entity.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -69,8 +70,16 @@ class Post extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entity =
-        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
+    final entity = ref.watch(
+          ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
+            final entity = value.valueOrNull;
+            if (entity != null) {
+              ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
+            }
+            return entity;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, eventReference);
 
     if (entity == null) {
       return ScreenSideOffset.small(
@@ -262,8 +271,17 @@ final class _FramedEvent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entity =
-        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
+    final entity = ref.watch(
+          ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
+            final entity = value.valueOrNull;
+            if (entity != null) {
+              ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
+            }
+            return entity;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, eventReference);
+
     Widget? deletedEntity;
 
     if (entity is ModifiablePostEntity && entity.isDeleted) {
@@ -333,8 +351,16 @@ final class _QuotedPost extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final postEntity =
-        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
+    final postEntity = ref.watch(
+          ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
+            final entity = value.valueOrNull;
+            if (entity != null) {
+              ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
+            }
+            return entity;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, eventReference);
 
     return QuotedEntityFrame.post(
       child: GestureDetector(

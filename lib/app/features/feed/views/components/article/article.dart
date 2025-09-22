@@ -8,6 +8,7 @@ import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/entities_list/components/bookmark_button/bookmark_button.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/parent_entity.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
@@ -20,6 +21,7 @@ import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/utils/algorithm.dart';
 import 'package:ion/app/utils/color.dart';
 
@@ -77,8 +79,16 @@ class Article extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entity =
-        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
+    final entity = ref.watch(
+          ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
+            final entity = value.valueOrNull;
+            if (entity != null) {
+              ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
+            }
+            return entity;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, eventReference);
 
     if (entity is! ArticleEntity) {
       return Padding(
