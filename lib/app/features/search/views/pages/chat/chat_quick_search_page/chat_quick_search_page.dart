@@ -12,9 +12,9 @@ import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_local_user_search_provider.r.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_search_history_provider.m.dart'
     show chatSearchHistoryProvider;
-import 'package:ion/app/features/search/views/components/feed_search_history/feed_search_history_user_list_item.dart';
 import 'package:ion/app/features/search/views/components/search_history/search_history.dart';
 import 'package:ion/app/features/search/views/components/search_history_empty/search_history_empty.dart';
+import 'package:ion/app/features/search/views/components/search_history_user_list_item/search_history_user_list_item.dart';
 import 'package:ion/app/features/search/views/components/search_navigation/search_navigation.dart';
 import 'package:ion/app/features/search/views/pages/chat/components/chat_no_results_found.dart';
 import 'package:ion/app/features/search/views/pages/chat/components/chat_search_results.dart';
@@ -81,8 +81,10 @@ class ChatQuickSearchPage extends HookConsumerWidget {
                       onSelectQuery: (String text) =>
                           ChatQuickSearchRoute(query: text).replace(context),
                       onClearHistory: ref.read(chatSearchHistoryProvider.notifier).clear,
-                      itemBuilder: (context, index) => FeedSearchHistoryUserListItem(
+                      itemBuilder: (context, index) => SearchHistoryUserListItem(
                         pubkey: history.pubKeys[index],
+                        onTap: () => ConversationRoute(receiverMasterPubkey: history.pubKeys[index])
+                            .push<void>(context),
                       ),
                     )
             else if (isLoading)
