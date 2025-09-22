@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -17,8 +16,6 @@ import 'package:ion/app/services/media_service/aspect_ratio.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
-
-const foo = true;
 
 class VideoPage extends HookConsumerWidget {
   const VideoPage({
@@ -72,53 +69,49 @@ class VideoPage extends HookConsumerWidget {
 
     useAutoPlay(this.playerController == null ? playerController : null);
 
-    if (playerController == null || !playerController.value.isInitialized) {
-      return _VideoThumbWidget(
-        authorPubkey: authorPubkey,
-        aspectRatio: aspectRatio,
-        bottomPadding: !hideBottomOverlay ? videoBottomPadding.s : 0,
-        thumbnailUrl: thumbnailUrl,
-        blurhash: blurhash,
-      );
-    }
-
     final isPlaying = useIsVideoPlaying(ref, playerController);
 
     return _VisibilityPlayPause(
       playerController: playerController,
       visibilityKey: ValueKey(videoUrl),
-      child: Stack(
-        children: [
-          GestureDetector(
-            onTap: isPlaying.value ? playerController.pause : playerController.play,
-            child: Center(
-              child: Padding(
-                padding: EdgeInsetsDirectional.only(
-                  bottom: !hideBottomOverlay ? videoBottomPadding.s : 0,
-                ),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: _VideoPlayerWidget(controller: playerController),
-                ),
+      child: Padding(
+        padding: EdgeInsetsDirectional.only(bottom: !hideBottomOverlay ? videoBottomPadding.s : 0),
+        child: Stack(
+          children: [
+            Center(
+              child: _VideoThumbWidget(
+                authorPubkey: authorPubkey,
+                aspectRatio: aspectRatio,
+                thumbnailUrl: thumbnailUrl,
+                blurhash: blurhash,
               ),
             ),
-          ),
-          if (!isPlaying.value) Center(child: _PlayButton(controller: playerController)),
-          if (!hideBottomOverlay) ...[
-            SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Spacer(),
-                  if (videoInfo != null) videoInfo!,
-                  _VideoProgressSlider(controller: playerController),
-                  if (bottomOverlay != null) bottomOverlay!,
-                ],
-              ),
-            ),
-            const _BottomNotch(),
+            if (playerController != null) ...[
+              if (playerController.value.isInitialized)
+                GestureDetector(
+                  onTap: isPlaying.value ? playerController.pause : playerController.play,
+                  child: Center(
+                    child: _VideoPlayerWidget(controller: playerController),
+                  ),
+                ),
+              if (!isPlaying.value) Center(child: _PlayButton(controller: playerController)),
+              if (!hideBottomOverlay) ...[
+                SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Spacer(),
+                      if (videoInfo != null) videoInfo!,
+                      _VideoProgressSlider(controller: playerController),
+                      if (bottomOverlay != null) bottomOverlay!,
+                    ],
+                  ),
+                ),
+              ],
+              const _BottomNotch(),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -128,14 +121,12 @@ class _VideoThumbWidget extends StatelessWidget {
   const _VideoThumbWidget({
     required this.thumbnailUrl,
     required this.aspectRatio,
-    required this.bottomPadding,
     required this.blurhash,
     required this.authorPubkey,
   });
 
   final String? authorPubkey;
   final double? aspectRatio;
-  final double? bottomPadding;
   final String? thumbnailUrl;
   final String? blurhash;
 
@@ -143,20 +134,15 @@ class _VideoThumbWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final thumbnailAspectRatio = aspectRatio ?? MediaAspectRatio.landscape;
 
-    Widget thumbnailWidget = Padding(
-      padding: EdgeInsetsDirectional.only(
-        bottom: bottomPadding ?? 0,
-      ),
-      child: VideoThumbnailPreview(
-        thumbnailUrl: thumbnailUrl,
-        blurhash: blurhash,
-        authorPubkey: authorPubkey,
-        aspectRatio: thumbnailAspectRatio,
-      ),
+    final Widget thumbnailWidget = VideoThumbnailPreview(
+      thumbnailUrl: thumbnailUrl,
+      blurhash: blurhash,
+      authorPubkey: authorPubkey,
+      aspectRatio: thumbnailAspectRatio,
     );
 
     if (thumbnailAspectRatio < 1) {
-      thumbnailWidget = ClipRect(
+      return ClipRect(
         child: OverflowBox(
           maxHeight: double.infinity,
           child: AspectRatio(
@@ -166,19 +152,11 @@ class _VideoThumbWidget extends StatelessWidget {
         ),
       );
     } else {
-      thumbnailWidget = AspectRatio(
+      return AspectRatio(
         aspectRatio: thumbnailAspectRatio,
         child: thumbnailWidget,
       );
     }
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        thumbnailWidget,
-        const CenteredLoadingIndicator(),
-      ],
-    );
   }
 }
 
@@ -244,25 +222,29 @@ class _VisibilityPlayPause extends StatelessWidget {
   });
 
   final Key visibilityKey;
-  final VideoPlayerController playerController;
+  final VideoPlayerController? playerController;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return VisibilityDetector(
       key: visibilityKey,
-      onVisibilityChanged: (info) {
-        if (info.visibleFraction <= 0.5) {
-          if (playerController.value.isInitialized && playerController.value.isPlaying) {
-            playerController.pause();
-          }
-        } else if (playerController.value.isInitialized &&
-            playerController.value.isPlaying == false) {
-          playerController.play();
-        }
-      },
+      onVisibilityChanged: _onVisibilityChanges,
       child: child,
     );
+  }
+
+  void _onVisibilityChanges(VisibilityInfo info) {
+    final controller = playerController;
+    if (controller != null) {
+      if (info.visibleFraction <= 0.5) {
+        if (controller.value.isInitialized && controller.value.isPlaying) {
+          controller.pause();
+        }
+      } else if (controller.value.isInitialized && controller.value.isPlaying == false) {
+        controller.play();
+      }
+    }
   }
 }
 
