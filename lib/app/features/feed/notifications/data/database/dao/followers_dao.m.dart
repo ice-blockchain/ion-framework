@@ -39,7 +39,9 @@ class FollowersDao extends DatabaseAccessor<NotificationsDatabase> with _$Follow
 
   Future<DateTime?> getLastCreatedAt() async {
     final maxCreatedAt = followersTable.createdAt.max();
-    final max = await (selectOnly(followersTable)..addColumns([maxCreatedAt]))
+    final max = await (selectOnly(followersTable)
+          ..addColumns([maxCreatedAt])
+          ..limit(1))
         .map((row) => row.read(maxCreatedAt))
         .getSingleOrNull();
     return max?.toDateTime;

@@ -21,7 +21,8 @@ class MessageMediaDao extends DatabaseAccessor<ChatDatabase> with _$MessageMedia
   }) async {
     final existRecord = await (select(messageMediaTable)
           ..where((t) => t.messageEventReference.equalsValue(eventReference))
-          ..where((t) => t.remoteUrl.equalsNullable(remoteUrl)))
+          ..where((t) => t.remoteUrl.equalsNullable(remoteUrl))
+          ..limit(1))
         .getSingleOrNull();
 
     if (existRecord != null) {

@@ -24,7 +24,8 @@ class ConversationMessageDataDao extends DatabaseAccessor<ChatDatabase>
       final conversationId = await (select(conversationMessageTable)
             ..where(
               (table) => table.messageEventReference.equalsValue(messageEventReference),
-            ))
+            )
+            ..limit(1))
           .map((row) => row.conversationId)
           .getSingleOrNull();
 
