@@ -20,7 +20,7 @@ class CreateRecoveryKeyActionNotifier extends _$CreateRecoveryKeyActionNotifier 
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
-      final selectedUser = ref.read(authProvider).valueOrNull?.currentIdentityKeyName;
+      final selectedUser = ref.read(currentIdentityKeyNameSelectorProvider);
       if (selectedUser == null) {
         throw Exception('No selected user');
       }

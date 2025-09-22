@@ -14,8 +14,7 @@ part 'main_wallet_provider.r.g.dart';
 Future<Wallet?> mainWallet(Ref ref) async {
   keepAliveWhenAuthenticated(ref);
 
-  final userAvailable =
-      await ref.watch(authProvider.selectAsync((state) => state.currentIdentityKeyName)) != null;
+  final userAvailable = ref.watch(currentIdentityKeyNameSelectorProvider) != null;
   if (!userAvailable) {
     return null;
   }

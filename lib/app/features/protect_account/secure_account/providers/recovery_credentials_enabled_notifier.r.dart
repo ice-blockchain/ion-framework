@@ -11,7 +11,7 @@ part 'recovery_credentials_enabled_notifier.r.g.dart';
 class RecoveryCredentialsEnabled extends _$RecoveryCredentialsEnabled {
   @override
   Future<bool> build() async {
-    final selectedUser = ref.watch(authProvider).valueOrNull?.currentIdentityKeyName;
+    final selectedUser = ref.watch(currentIdentityKeyNameSelectorProvider);
     if (selectedUser == null) {
       return false;
     }
