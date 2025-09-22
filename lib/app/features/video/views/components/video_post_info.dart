@@ -76,6 +76,7 @@ class VideoPostInfo extends StatelessWidget {
                   shadows: [shadow],
                 ),
                 trailing: muteButton,
+                accentTheme: true,
               ),
               Padding(
                 padding: EdgeInsetsDirectional.only(
