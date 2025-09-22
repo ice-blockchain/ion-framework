@@ -132,7 +132,7 @@ class PostBody extends HookConsumerWidget {
           Padding(
             padding: EdgeInsetsDirectional.symmetric(horizontal: sidePadding ?? 16.0.s),
             child: UrlPreviewContent(
-              url: firstUrlInPost!,
+              url: firstUrlInPost,
             ),
           ),
       ],
