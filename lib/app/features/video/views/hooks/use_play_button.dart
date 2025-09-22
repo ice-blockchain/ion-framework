@@ -4,11 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_route_presence.dart';
 import 'package:video_player/video_player.dart';
 
-ValueNotifier<bool> useIsVideoPlaying(WidgetRef ref, VideoPlayerController? playerController) {
+({bool showPlayButton, VoidCallback onTogglePlay}) usePlayButton(
+  WidgetRef ref,
+  VideoPlayerController? playerController,
+) {
   final isPlaying = useState(playerController?.value.isPlaying ?? false);
+  final isTapped = useState(false);
 
   useEffect(
     () {
@@ -19,6 +24,11 @@ ValueNotifier<bool> useIsVideoPlaying(WidgetRef ref, VideoPlayerController? play
       playerController?.addListener(listener);
       return () => playerController?.removeListener(listener);
     },
+    [playerController],
+  );
+
+  useOnInit(
+    () => isTapped.value = false,
     [playerController],
   );
 
@@ -47,5 +57,17 @@ ValueNotifier<bool> useIsVideoPlaying(WidgetRef ref, VideoPlayerController? play
     }
   });
 
-  return isPlaying;
+  return (
+    showPlayButton: !isPlaying.value && isTapped.value,
+    onTogglePlay: () {
+      isTapped.value = true;
+      if (playerController == null || !playerController.value.isInitialized) return;
+
+      if (playerController.value.isPlaying) {
+        playerController.pause();
+      } else {
+        playerController.play();
+      }
+    }
+  );
 }

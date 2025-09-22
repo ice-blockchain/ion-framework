@@ -11,7 +11,7 @@ import 'package:ion/app/features/video/views/components/video_not_found.dart';
 import 'package:ion/app/features/video/views/components/video_progress.dart';
 import 'package:ion/app/features/video/views/components/video_slider.dart';
 import 'package:ion/app/features/video/views/components/video_thumbnail_preview.dart';
-import 'package:ion/app/features/video/views/hooks/use_is_video_playing.dart';
+import 'package:ion/app/features/video/views/hooks/use_play_button.dart';
 import 'package:ion/app/hooks/use_auto_play.dart';
 import 'package:ion/app/services/media_service/aspect_ratio.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -70,7 +70,7 @@ class VideoPage extends HookConsumerWidget {
 
     useAutoPlay(this.playerController == null ? playerController : null);
 
-    final isPlaying = useIsVideoPlaying(ref, playerController);
+    final (:showPlayButton, :onTogglePlay) = usePlayButton(ref, playerController);
 
     return _VisibilityPlayPause(
       playerController: playerController,
@@ -91,12 +91,12 @@ class VideoPage extends HookConsumerWidget {
             if (playerController != null) ...[
               if (playerController.value.isInitialized)
                 GestureDetector(
-                  onTap: isPlaying.value ? playerController.pause : playerController.play,
+                  onTap: onTogglePlay,
                   child: Center(
                     child: _VideoPlayerWidget(controller: playerController),
                   ),
                 ),
-              if (!isPlaying.value) Center(child: _PlayButton(controller: playerController)),
+              if (showPlayButton) Center(child: _PlayButton(controller: playerController)),
               if (!hideBottomOverlay) ...[
                 SafeArea(
                   child: Column(
