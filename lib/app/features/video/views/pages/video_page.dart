@@ -12,6 +12,8 @@ import 'package:ion/app/features/video/views/components/video_progress.dart';
 import 'package:ion/app/features/video/views/components/video_slider.dart';
 import 'package:ion/app/features/video/views/components/video_thumbnail_preview.dart';
 import 'package:ion/app/features/video/views/hooks/use_play_button.dart';
+import 'package:ion/app/features/video/views/hooks/use_toggle_video_on_lifecycle_change.dart';
+import 'package:ion/app/features/video/views/hooks/use_toggle_video_on_route_change.dart';
 import 'package:ion/app/hooks/use_auto_play.dart';
 import 'package:ion/app/services/media_service/aspect_ratio.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -69,6 +71,8 @@ class VideoPage extends HookConsumerWidget {
             .valueOrNull;
 
     useAutoPlay(this.playerController == null ? playerController : null);
+    useToggleVideoOnRouteChange(playerController);
+    useToggleVideoOnLifecycleChange(ref, playerController);
 
     final (:showPlayButton, :onTogglePlay) = usePlayButton(ref, playerController);
 
@@ -79,6 +83,7 @@ class VideoPage extends HookConsumerWidget {
         padding: EdgeInsetsDirectional.only(bottom: !hideBottomOverlay ? videoBottomPadding.s : 0),
         child: Stack(
           children: [
+            // Showing thumbnail with loading indicator underneath the video player for better UX (no flickering on transition)
             Center(
               child: _VideoThumbWidget(
                 authorPubkey: authorPubkey,

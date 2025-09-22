@@ -3,9 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
-import 'package:ion/app/hooks/use_route_presence.dart';
 import 'package:video_player/video_player.dart';
 
 ({bool showPlayButton, VoidCallback onTogglePlay}) usePlayButton(
@@ -15,6 +13,7 @@ import 'package:video_player/video_player.dart';
   final isPlaying = useState(playerController?.value.isPlaying ?? false);
   final isTapped = useState(false);
 
+  // Toggle [isPlaying] state when video player controller state changes
   useEffect(
     () {
       void listener() {
@@ -27,38 +26,19 @@ import 'package:video_player/video_player.dart';
     [playerController],
   );
 
+  // Reset [isTapped] when the video changes
   useOnInit(
     () => isTapped.value = false,
     [playerController],
   );
 
-  useRoutePresence(
-    onBecameInactive: () {
-      if (playerController != null && playerController.value.isPlaying) {
-        playerController.pause();
-      }
-    },
-    onBecameActive: () {
-      if (playerController != null &&
-          playerController.value.isInitialized &&
-          !playerController.value.isPlaying) {
-        playerController.play();
-      }
-    },
-  );
-
-  ref.listen(appLifecycleProvider, (_, current) {
-    if (!ref.context.mounted || playerController == null) return;
-
-    if (current == AppLifecycleState.resumed) {
-      playerController.play();
-    } else if (current == AppLifecycleState.paused || current == AppLifecycleState.hidden) {
-      playerController.pause();
-    }
-  });
-
   return (
+    /// Show play button if the video is not playing and user has tapped on the video.
+    ///
+    /// Tracking [isTapped] because before auto-play starts, video is not playing for a couple of frames.
     showPlayButton: !isPlaying.value && isTapped.value,
+
+    /// Toggle play/pause state of the video
     onTogglePlay: () {
       isTapped.value = true;
       if (playerController == null || !playerController.value.isInitialized) return;
