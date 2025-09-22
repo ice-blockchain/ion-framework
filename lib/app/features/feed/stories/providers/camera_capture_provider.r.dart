@@ -6,7 +6,6 @@ import 'dart:io';
 import 'package:ion/app/features/feed/stories/data/models/camera_capture_state.f.dart';
 import 'package:ion/app/features/gallery/providers/camera_provider.r.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -18,20 +17,16 @@ class CameraCaptureController extends _$CameraCaptureController {
   CameraCaptureState build() => const CameraCaptureState.initial();
 
   Future<void> takePhoto() async {
-    Logger.info('[ImageCapture] CameraCaptureController.takePhoto');
     final camera = ref.read(cameraControllerNotifierProvider.notifier);
 
     try {
       final xFile = await camera.takePicture();
-      Logger.info('[ImageCapture] CameraCaptureController.takePhoto got xFile');
-
       if (xFile == null) {
         state = const CameraCaptureState.error(message: 'Failed to take photo.');
         return;
       }
 
       final mediaFile = await ref.read(mediaServiceProvider).saveImageToGallery(File(xFile.path));
-      Logger.info('[ImageCapture] CameraCaptureController.takePhoto saved file to gallery');
 
       if (mediaFile == null) {
         state = const CameraCaptureState.error(message: 'Failed to save photo.');

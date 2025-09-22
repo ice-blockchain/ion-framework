@@ -228,7 +228,6 @@ class CameraControllerNotifier extends _$CameraControllerNotifier {
     if (_cameraController == null) return null;
 
     try {
-      Logger.log('[ImageCaptore] Pause Preview');
       unawaited(_cameraController!.pausePreview());
       final picture = await _cameraController!.takePicture();
       return picture;

@@ -55,7 +55,7 @@ class ImageProcessorNotifier extends _$ImageProcessorNotifier {
       state = ImageProcessorState.picked(file: pickedFile);
 
       Logger.info(
-        '[ImageCapture] Original image dimensions: width=${assetEntity.width}, height=${assetEntity.height}',
+        'Original image dimensions: width=${assetEntity.width}, height=${assetEntity.height}',
       );
 
       final croppedImage = await mediaService.cropImage(
