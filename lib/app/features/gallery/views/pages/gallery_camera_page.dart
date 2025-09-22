@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/stories/data/models/camera_capture_state.f.dart';
 import 'package:ion/app/features/feed/stories/hooks/use_recording_progress.dart';
@@ -16,6 +18,7 @@ import 'package:ion/app/features/feed/stories/views/components/story_capture/con
 import 'package:ion/app/features/gallery/data/models/camera_state.f.dart';
 import 'package:ion/app/features/gallery/providers/camera_provider.r.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
+import 'package:ion/app/utils/future.dart';
 
 class GalleryCameraPage extends HookConsumerWidget {
   const GalleryCameraPage({
@@ -27,6 +30,33 @@ class GalleryCameraPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final shutterAnimationController = useAnimationController(duration: 50.milliseconds);
+    final shutterAnimation = useMemoized(
+      () => Tween<double>(begin: 0, end: 1).animate(
+        CurvedAnimation(
+          parent: shutterAnimationController,
+          curve: Curves.easeIn,
+        ),
+      ),
+      [shutterAnimationController],
+    );
+
+    useEffect(
+      () {
+        void animationStatusListener(AnimationStatus status) {
+          if (status == AnimationStatus.completed) {
+            shutterAnimationController.reverse();
+          }
+        }
+
+        shutterAnimationController.addStatusListener(animationStatusListener);
+
+        return () {
+          shutterAnimationController.removeStatusListener(animationStatusListener);
+        };
+      },
+      [shutterAnimationController],
+    );
     final cameraState = ref.watch(cameraControllerNotifierProvider);
 
     ref.listen<CameraCaptureState>(
@@ -50,12 +80,13 @@ class GalleryCameraPage extends HookConsumerWidget {
       isRecording: isRecording,
     );
 
-    final captureNotifier = ref.read(cameraCaptureControllerProvider.notifier);
+    final captureController = ref.read(cameraCaptureControllerProvider.notifier);
     final isCameraReady = cameraState is CameraReady;
 
-    final capturePhotoAction = isCameraReady ? captureNotifier.takePhoto : null;
-    final startVideoAction = isCameraReady ? captureNotifier.startVideoRecording : null;
-    final stopVideoAction = isCameraReady ? captureNotifier.stopVideoRecording : null;
+    final capturePhotoAction =
+        isCameraReady ? () => _takePhoto(captureController, shutterAnimationController) : null;
+    final startVideoAction = isCameraReady ? captureController.startVideoRecording : null;
+    final stopVideoAction = isCameraReady ? captureController.stopVideoRecording : null;
 
     final (onCapturePhoto, onRecordingStart, onRecordingStop) = switch (type) {
       MediaPickerType.image => (capturePhotoAction, null, null),
@@ -80,6 +111,18 @@ class GalleryCameraPage extends HookConsumerWidget {
                 showGalleryButton: false,
                 onGallerySelected: (_) async {},
               ),
+            IgnorePointer(
+              child: AnimatedBuilder(
+                builder: (context, widget) {
+                  return Opacity(
+                    opacity: shutterAnimation.value,
+                    child: widget,
+                  );
+                },
+                animation: shutterAnimationController,
+                child: const ColoredBox(color: Colors.black),
+              ),
+            ),
             Positioned.fill(
               bottom: 16.0.s,
               child: Align(
@@ -93,10 +136,17 @@ class GalleryCameraPage extends HookConsumerWidget {
                 ),
               ),
             ),
-            ScreenBottomOffset(margin: 42.0.s),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _takePhoto(
+    CameraCaptureController captureController,
+    AnimationController shutterAnimationController,
+  ) async {
+    unawaited(shutterAnimationController.forward(from: 0));
+    await captureController.takePhoto();
   }
 }

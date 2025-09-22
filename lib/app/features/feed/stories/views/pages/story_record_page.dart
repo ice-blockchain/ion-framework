@@ -132,7 +132,7 @@ class StoryRecordPage extends HookConsumerWidget {
                     isRecording: isRecording,
                     recordingProgress: recordingProgress,
                     onCapturePhoto: isCameraReady
-                        ? () => takePhoto(captureController, shutterAnimationController)
+                        ? () => _takePhoto(captureController, shutterAnimationController)
                         : null,
                     onRecordingStart: isCameraReady ? captureController.startVideoRecording : null,
                     onRecordingStop: isCameraReady ? captureController.stopVideoRecording : null,
@@ -146,7 +146,7 @@ class StoryRecordPage extends HookConsumerWidget {
     );
   }
 
-  Future<void> takePhoto(
+  Future<void> _takePhoto(
     CameraCaptureController captureController,
     AnimationController shutterAnimationController,
   ) async {
