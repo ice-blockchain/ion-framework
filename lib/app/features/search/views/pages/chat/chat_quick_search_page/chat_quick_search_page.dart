@@ -81,11 +81,14 @@ class ChatQuickSearchPage extends HookConsumerWidget {
                       onSelectQuery: (String text) =>
                           ChatQuickSearchRoute(query: text).replace(context),
                       onClearHistory: ref.read(chatSearchHistoryProvider.notifier).clear,
-                      itemBuilder: (context, index) => SearchHistoryUserListItem(
-                        pubkey: history.pubKeys[index],
-                        onTap: () => ConversationRoute(receiverMasterPubkey: history.pubKeys[index])
-                            .push<void>(context),
-                      ),
+                      itemBuilder: (context, index) {
+                        final pubkey = history.pubKeys[index];
+                        return SearchHistoryUserListItem(
+                          pubkey: pubkey,
+                          onTap: () =>
+                              ConversationRoute(receiverMasterPubkey: pubkey).push<void>(context),
+                        );
+                      },
                     )
             else if (isLoading)
               const ChatSearchResultsSkeleton()
