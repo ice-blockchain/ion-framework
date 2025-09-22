@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/video/views/components/video_button.dart';
@@ -13,12 +11,14 @@ import 'package:ion/app/features/video/views/components/video_not_found.dart';
 import 'package:ion/app/features/video/views/components/video_progress.dart';
 import 'package:ion/app/features/video/views/components/video_slider.dart';
 import 'package:ion/app/features/video/views/components/video_thumbnail_preview.dart';
+import 'package:ion/app/features/video/views/hooks/use_is_video_playing.dart';
 import 'package:ion/app/hooks/use_auto_play.dart';
-import 'package:ion/app/hooks/use_route_presence.dart';
 import 'package:ion/app/services/media_service/aspect_ratio.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+
+const foo = true;
 
 class VideoPage extends HookConsumerWidget {
   const VideoPage({
@@ -69,111 +69,28 @@ class VideoPage extends HookConsumerWidget {
               ),
             )
             .valueOrNull;
+
     useAutoPlay(this.playerController == null ? playerController : null);
 
     if (playerController == null || !playerController.value.isInitialized) {
-      final thumbnailAspectRatio = aspectRatio ?? MediaAspectRatio.landscape;
-
-      Widget thumbnailWidget = Padding(
-        padding: EdgeInsetsDirectional.only(
-          bottom: !hideBottomOverlay ? videoBottomPadding.s : 0,
-        ),
-        child: VideoThumbnailPreview(
-          thumbnailUrl: thumbnailUrl,
-          blurhash: blurhash,
-          authorPubkey: authorPubkey,
-        ),
-      );
-
-      if (thumbnailAspectRatio < 1) {
-        thumbnailWidget = ClipRect(
-          child: OverflowBox(
-            maxHeight: double.infinity,
-            child: AspectRatio(
-              aspectRatio: thumbnailAspectRatio,
-              child: thumbnailWidget,
-            ),
-          ),
-        );
-      } else {
-        thumbnailWidget = Center(
-          child: AspectRatio(
-            aspectRatio: thumbnailAspectRatio,
-            child: thumbnailWidget,
-          ),
-        );
-      }
-
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          thumbnailWidget,
-          const CenteredLoadingIndicator(),
-        ],
+      return _VideoThumbWidget(
+        authorPubkey: authorPubkey,
+        aspectRatio: aspectRatio,
+        bottomPadding: !hideBottomOverlay ? videoBottomPadding.s : 0,
+        thumbnailUrl: thumbnailUrl,
+        blurhash: blurhash,
       );
     }
 
-    final isPlaying = useState(playerController.value.isPlaying);
+    final isPlaying = useIsVideoPlaying(ref, playerController);
 
-    useEffect(
-      () {
-        void listener() {
-          isPlaying.value = playerController.value.isPlaying;
-        }
-
-        playerController.addListener(listener);
-        return () => playerController.removeListener(listener);
-      },
-      [playerController],
-    );
-
-    useRoutePresence(
-      onBecameInactive: () {
-        if (playerController.value.isPlaying) {
-          playerController.pause();
-        }
-      },
-      onBecameActive: () {
-        if (playerController.value.isInitialized && !playerController.value.isPlaying) {
-          playerController.play();
-        }
-      },
-    );
-
-    ref.listen(appLifecycleProvider, (_, current) {
-      if (!context.mounted) return;
-
-      if (current == AppLifecycleState.resumed) {
-        playerController.play();
-      } else if (current == AppLifecycleState.paused || current == AppLifecycleState.hidden) {
-        playerController.pause();
-      }
-    });
-
-    final videoPlayer = _VideoPlayerWidget(controller: playerController);
-
-    return VisibilityDetector(
-      key: ValueKey(videoUrl),
-      onVisibilityChanged: (info) {
-        if (info.visibleFraction <= 0.5) {
-          if (playerController.value.isInitialized && playerController.value.isPlaying) {
-            playerController.pause();
-          }
-        } else if (playerController.value.isInitialized &&
-            playerController.value.isPlaying == false) {
-          playerController.play();
-        }
-      },
+    return _VisibilityPlayPause(
+      playerController: playerController,
+      visibilityKey: ValueKey(videoUrl),
       child: Stack(
         children: [
           GestureDetector(
-            onTap: () {
-              if (isPlaying.value) {
-                playerController.pause();
-              } else {
-                playerController.play();
-              }
-            },
+            onTap: isPlaying.value ? playerController.pause : playerController.play,
             child: Center(
               child: Padding(
                 padding: EdgeInsetsDirectional.only(
@@ -181,63 +98,87 @@ class VideoPage extends HookConsumerWidget {
                 ),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
-                  child: videoPlayer,
+                  child: _VideoPlayerWidget(controller: playerController),
                 ),
               ),
             ),
           ),
-          if (!isPlaying.value)
-            Center(
-              child: VideoButton(
-                size: 48.0.s,
-                borderRadius: BorderRadius.circular(20.0.s),
-                icon: Assets.svg.iconVideoPlay.icon(
-                  color: context.theme.appColors.secondaryBackground,
-                  size: 30.0.s,
-                ),
-                onPressed: playerController.play,
-              ),
-            ),
-          if (!hideBottomOverlay)
+          if (!isPlaying.value) Center(child: _PlayButton(controller: playerController)),
+          if (!hideBottomOverlay) ...[
             SafeArea(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Spacer(),
                   if (videoInfo != null) videoInfo!,
-                  VideoProgress(
-                    controller: playerController,
-                    builder: (context, position, duration) => VideoSlider(
-                      position: position,
-                      duration: duration,
-                      onChangeStart: (_) => playerController.pause(),
-                      onChangeEnd: (_) => playerController.play(),
-                      onChanged: (value) {
-                        if (playerController.value.isInitialized) {
-                          playerController.seekTo(
-                            Duration(milliseconds: value.toInt()),
-                          );
-                        }
-                      },
-                    ),
-                  ),
+                  _VideoProgressSlider(controller: playerController),
                   if (bottomOverlay != null) bottomOverlay!,
                 ],
               ),
             ),
-          if (!hideBottomOverlay)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: ColoredBox(
-                color: context.theme.appColors.primaryText,
-                child: SizedBox(
-                  height: MediaQuery.paddingOf(context).bottom,
-                  width: double.infinity,
-                ),
-              ),
-            ),
+            const _BottomNotch(),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _VideoThumbWidget extends StatelessWidget {
+  const _VideoThumbWidget({
+    required this.thumbnailUrl,
+    required this.aspectRatio,
+    required this.bottomPadding,
+    required this.blurhash,
+    required this.authorPubkey,
+  });
+
+  final String? authorPubkey;
+  final double? aspectRatio;
+  final double? bottomPadding;
+  final String? thumbnailUrl;
+  final String? blurhash;
+
+  @override
+  Widget build(BuildContext context) {
+    final thumbnailAspectRatio = aspectRatio ?? MediaAspectRatio.landscape;
+
+    Widget thumbnailWidget = Padding(
+      padding: EdgeInsetsDirectional.only(
+        bottom: bottomPadding ?? 0,
+      ),
+      child: VideoThumbnailPreview(
+        thumbnailUrl: thumbnailUrl,
+        blurhash: blurhash,
+        authorPubkey: authorPubkey,
+      ),
+    );
+
+    if (thumbnailAspectRatio < 1) {
+      thumbnailWidget = ClipRect(
+        child: OverflowBox(
+          maxHeight: double.infinity,
+          child: AspectRatio(
+            aspectRatio: thumbnailAspectRatio,
+            child: thumbnailWidget,
+          ),
+        ),
+      );
+    } else {
+      thumbnailWidget = Center(
+        child: AspectRatio(
+          aspectRatio: thumbnailAspectRatio,
+          child: thumbnailWidget,
+        ),
+      );
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        thumbnailWidget,
+        const CenteredLoadingIndicator(),
+      ],
     );
   }
 }
@@ -270,6 +211,103 @@ class _VideoPlayerWidget extends StatelessWidget {
       child: AspectRatio(
         aspectRatio: controller.value.aspectRatio,
         child: videoWidget,
+      ),
+    );
+  }
+}
+
+class _PlayButton extends StatelessWidget {
+  const _PlayButton({
+    required this.controller,
+  });
+
+  final VideoPlayerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return VideoButton(
+      size: 48.0.s,
+      borderRadius: BorderRadius.circular(20.0.s),
+      icon: Assets.svg.iconVideoPlay.icon(
+        color: context.theme.appColors.secondaryBackground,
+        size: 30.0.s,
+      ),
+      onPressed: controller.play,
+    );
+  }
+}
+
+class _VisibilityPlayPause extends StatelessWidget {
+  const _VisibilityPlayPause({
+    required this.playerController,
+    required this.child,
+    required this.visibilityKey,
+  });
+
+  final Key visibilityKey;
+  final VideoPlayerController playerController;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return VisibilityDetector(
+      key: visibilityKey,
+      onVisibilityChanged: (info) {
+        if (info.visibleFraction <= 0.5) {
+          if (playerController.value.isInitialized && playerController.value.isPlaying) {
+            playerController.pause();
+          }
+        } else if (playerController.value.isInitialized &&
+            playerController.value.isPlaying == false) {
+          playerController.play();
+        }
+      },
+      child: child,
+    );
+  }
+}
+
+class _VideoProgressSlider extends StatelessWidget {
+  const _VideoProgressSlider({
+    required this.controller,
+  });
+
+  final VideoPlayerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return VideoProgress(
+      controller: controller,
+      builder: (context, position, duration) => VideoSlider(
+        position: position,
+        duration: duration,
+        onChangeStart: (_) => controller.pause(),
+        onChangeEnd: (_) => controller.play(),
+        onChanged: (value) {
+          if (controller.value.isInitialized) {
+            controller.seekTo(
+              Duration(milliseconds: value.toInt()),
+            );
+          }
+        },
+      ),
+    );
+  }
+}
+
+class _BottomNotch extends StatelessWidget {
+  const _BottomNotch();
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ColoredBox(
+        color: context.theme.appColors.primaryText,
+        child: SizedBox(
+          height: MediaQuery.paddingOf(context).bottom,
+          width: double.infinity,
+        ),
       ),
     );
   }
