@@ -384,6 +384,8 @@ jobs:
           steps: ${{ '{}' }}
   cleanup:
     name: Cleanup cache
+    permissions:
+      actions: write
     needs: [flutter, ios-cicd, android-cicd]
     runs-on: macos-15
     if: always()
