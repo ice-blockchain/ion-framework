@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/master_pubkey_tag.f.dart';
+import 'package:ion/app/features/chat/e2ee/providers/e2ee_delete_event_provider.r.dart';
 import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -44,6 +45,8 @@ class DeleteAccountNotifier extends _$DeleteAccountNotifier {
           kind: DeletionRequestEntity.kind,
           onVerifyIdentity: onVerifyIdentity,
         );
+
+        await ref.read(e2eeDeleteAccountProvider.notifier).deleteAccountConversations();
 
         await ref.read(ionConnectNotifierProvider.notifier).sendEvent(event, cache: false);
 

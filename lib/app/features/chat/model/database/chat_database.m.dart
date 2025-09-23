@@ -79,6 +79,18 @@ class ChatDatabase extends _$ChatDatabase {
     return driftDatabase(name: 'conversation_database_$pubkey');
   }
 
+  Future<void> deleteEverything() async {
+    await batch((batch) {
+      batch
+        ..deleteWhere(conversationTable, (tbl) => const Constant(true))
+        ..deleteWhere(eventMessageTable, (tbl) => const Constant(true))
+        ..deleteWhere(conversationMessageTable, (tbl) => const Constant(true))
+        ..deleteWhere(messageStatusTable, (tbl) => const Constant(true))
+        ..deleteWhere(reactionTable, (tbl) => const Constant(true))
+        ..deleteWhere(messageMediaTable, (tbl) => const Constant(true));
+    });
+  }
+
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(

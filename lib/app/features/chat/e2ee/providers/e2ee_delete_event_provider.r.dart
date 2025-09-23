@@ -131,6 +131,23 @@ Future<void> e2eeDeleteConversation(
   );
 }
 
+@riverpod
+class E2eeDeleteAccount extends _$E2eeDeleteAccount {
+  @override
+  FutureOr<void> build() {}
+
+  Future<void> deleteAccountConversations() async {
+    // Send request to delete all conversations
+    final conversationDao = ref.read(conversationDaoProvider);
+    final conversationIds = await conversationDao.getAllConversationsIds();
+    await _deleteConversations(ref: ref, conversationIds: conversationIds, forEveryone: false);
+
+    // Clear local chat database
+    final database = ref.read(chatDatabaseProvider);
+    await database.deleteEverything();
+  }
+}
+
 Future<void> _deleteMessages({
   required Ref ref,
   required bool forEveryone,
