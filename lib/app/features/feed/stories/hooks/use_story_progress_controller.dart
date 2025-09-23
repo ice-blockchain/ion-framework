@@ -6,6 +6,7 @@ import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/stories/hooks/use_story_image_progress.dart';
+import 'package:ion/app/features/feed/stories/providers/story_video_controller_provider.r.dart';
 import 'package:video_player/video_player.dart';
 
 class StoryProgressControllerResult {
@@ -26,6 +27,7 @@ StoryProgressControllerResult useStoryProgressController({
   required bool isCurrent,
   required bool isPaused,
   required VoidCallback onCompleted,
+  String? sessionPubkey,
 }) {
   final media = post.data.primaryMedia;
   final mediaType = media?.mediaType ?? MediaType.unknown;
@@ -42,18 +44,30 @@ StoryProgressControllerResult useStoryProgressController({
     ref: ref,
   );
 
-  final video = isVideo && isCurrent
-      ? ref
+  VideoPlayerController? video;
+  if (isVideo && isCurrent) {
+    final baseParams = VideoControllerParams(
+      sourcePath: media!.url,
+      authorPubkey: post.masterPubkey,
+      uniqueId: post.id,
+    );
+    final session = sessionPubkey;
+    if (session != null) {
+      video = ref
           .watch(
-            videoControllerProvider(
-              VideoControllerParams(
-                sourcePath: media!.url,
-                authorPubkey: post.masterPubkey,
+            storyVideoControllerProvider(
+              StoryVideoControllerParams(
+                storyId: post.id,
+                sessionPubkey: session,
+                baseParams: baseParams,
               ),
             ),
           )
-          .valueOrNull
-      : null;
+          .valueOrNull;
+    } else {
+      video = ref.watch(videoControllerProvider(baseParams)).valueOrNull;
+    }
+  }
 
   return StoryProgressControllerResult(
     mediaType: mediaType,

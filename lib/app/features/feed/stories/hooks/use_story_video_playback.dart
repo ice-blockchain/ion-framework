@@ -8,7 +8,8 @@ import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:video_player/video_player.dart';
 
-void _post(VoidCallback action) => WidgetsBinding.instance.addPostFrameCallback((_) => action());
+void _post(VoidCallback action) =>
+    WidgetsBinding.instance.addPostFrameCallback((_) => action());
 
 void useStoryVideoPlayback({
   required WidgetRef ref,
@@ -76,8 +77,20 @@ void useStoryVideoPlayback({
         }
       }
 
-      controller.addListener(listener);
-      return () => controller.removeListener(listener);
+      var added = false;
+      try {
+        controller.addListener(listener);
+        added = true;
+      } catch (_) {
+        return null;
+      }
+
+      return () {
+        if (!added) return;
+        try {
+          controller.removeListener(listener);
+        } catch (_) {}
+      };
     },
     [controller, isCurrent, onCompleted],
   );
