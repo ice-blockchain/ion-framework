@@ -40,8 +40,9 @@ import 'package:video_player/video_player.dart';
 
     /// Toggle play/pause state of the video
     onTogglePlay: () {
-      isTapped.value = true;
       if (playerController == null || !playerController.value.isInitialized) return;
+
+      isTapped.value = true;
 
       if (playerController.value.isPlaying) {
         playerController.pause();
