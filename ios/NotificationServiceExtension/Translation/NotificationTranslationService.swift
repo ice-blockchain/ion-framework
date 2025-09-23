@@ -225,7 +225,7 @@ class NotificationTranslationService {
     }
     
     private func getUserMetadataFromDatabase(_ pubkey: String) -> UserMetadata? {
-            let chatUsermetadataDB = ChatUserMetadataDatabaseManager(keysStorage: keysStorage)
+            let chatUsermetadataDB = ChatUserMetadataDatabase(keysStorage: keysStorage)
             if chatUsermetadataDB.openDatabase() {
                 defer { chatUsermetadataDB.closeDatabase() }
                 return chatUsermetadataDB.getUserMetadataFromDatabase(pubkey: pubkey)

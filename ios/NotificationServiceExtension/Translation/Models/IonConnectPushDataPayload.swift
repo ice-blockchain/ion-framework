@@ -23,7 +23,7 @@ class IonConnectPushDataPayload: Decodable {
     private static func getCoinData(assetId: String) -> CoinDBInfo? {
         if let storage = try? SharedStorage() {
             let KeysStorage = KeysStorage(storage: storage)
-            let walletsDB = WalletsDatabaseManager(keysStorage: KeysStorage)
+            let walletsDB = WalletsDatabase(keysStorage: KeysStorage)
             if walletsDB.openDatabase() {
                 defer { walletsDB.closeDatabase() }
                 return walletsDB.getCoinData(assetId: assetId)

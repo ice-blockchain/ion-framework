@@ -2,7 +2,7 @@
 
 import Foundation
 
-final class ChatUserMetadataDatabaseManager: DatabaseManager {
+final class ChatUserMetadataDatabase: DatabaseManager {
     init(keysStorage: KeysStorage) {
         super.init(
             keysStorage: keysStorage,

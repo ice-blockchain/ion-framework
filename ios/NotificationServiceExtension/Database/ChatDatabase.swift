@@ -10,7 +10,7 @@ enum MessageDeliveryStatus: Int {
     case deleted = 2
 }
 
-final class ChatDatabaseManager: DatabaseManager {
+final class ChatDatabase: DatabaseManager {
     init(keysStorage: KeysStorage) {
         super.init(
             keysStorage: keysStorage,

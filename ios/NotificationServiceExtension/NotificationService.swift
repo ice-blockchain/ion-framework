@@ -115,7 +115,7 @@ class NotificationService: UNNotificationServiceExtension {
         appBadgeCounter: AppBadgeCounterService,
         mutableContent: UNMutableNotificationContent
     ) {
-        let chatDB = ChatDatabaseManager(keysStorage: keysStorage)
+        let chatDB = ChatDatabase(keysStorage: keysStorage)
         guard chatDB.openDatabase() else {
             NSLog("[NSE] Failed to open chat database")
             return

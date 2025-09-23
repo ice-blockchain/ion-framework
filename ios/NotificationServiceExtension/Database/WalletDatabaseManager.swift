@@ -13,7 +13,7 @@ struct CoinDBInfo {
     let decimals: Int
 }
 
-final class WalletsDatabaseManager: DatabaseManager {
+final class WalletsDatabase: DatabaseManager {
     init(keysStorage: KeysStorage) {
         super.init(
             keysStorage: keysStorage,
