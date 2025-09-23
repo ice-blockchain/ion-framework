@@ -78,16 +78,18 @@ class ChatDatabase extends _$ChatDatabase {
   static QueryExecutor _openConnection(String pubkey) {
     return driftDatabase(name: 'conversation_database_$pubkey');
   }
-
+  /// Deletes all data from every table in the chat database.
   Future<void> deleteEverything() async {
-    await batch((batch) {
-      batch
-        ..deleteWhere(conversationTable, (tbl) => const Constant(true))
-        ..deleteWhere(eventMessageTable, (tbl) => const Constant(true))
-        ..deleteWhere(conversationMessageTable, (tbl) => const Constant(true))
-        ..deleteWhere(messageStatusTable, (tbl) => const Constant(true))
-        ..deleteWhere(reactionTable, (tbl) => const Constant(true))
-        ..deleteWhere(messageMediaTable, (tbl) => const Constant(true));
+    await transaction(() async {
+      await batch((batch) {
+        batch
+          ..deleteAll(conversationTable)
+          ..deleteAll(eventMessageTable)
+          ..deleteAll(conversationMessageTable)
+          ..deleteAll(messageStatusTable)
+          ..deleteAll(reactionTable)
+          ..deleteAll(messageMediaTable);
+      });
     });
   }
 
