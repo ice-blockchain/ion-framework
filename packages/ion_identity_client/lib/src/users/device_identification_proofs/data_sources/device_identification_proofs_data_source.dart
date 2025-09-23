@@ -35,7 +35,7 @@ class DeviceIdentificationProofsDataSource {
         username: username,
         token: token.token,
       ),
-      decoder: (result) {
+      decoder: (result, _) {
         if (result is List) {
           return result.cast<Map<String, dynamic>>();
         }

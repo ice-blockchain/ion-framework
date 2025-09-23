@@ -96,12 +96,15 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
             final updatedProfileBadges = await _buildProfileBadges(
               proofsEvents: deviceIdentificationProofsEvents,
             );
-            await ref.read(ionConnectNotifierProvider.notifier).sendEntitiesData(
-              [
-                if (updatedProfileBadges != null) updatedProfileBadges,
-              ],
-              additionalEvents: [userDelegationEvent, ...deviceIdentificationProofsEvents],
-            );
+
+            final events = [userDelegationEvent, ...deviceIdentificationProofsEvents];
+            if (updatedProfileBadges != null) {
+              events.add(
+                await ref.read(ionConnectNotifierProvider.notifier).sign(updatedProfileBadges),
+              );
+            }
+
+            await ref.read(ionConnectNotifierProvider.notifier).sendEvents(events);
           } on PasskeyCancelledException {
             return;
           }
