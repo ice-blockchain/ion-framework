@@ -66,9 +66,7 @@ class IonConnectSealServiceImpl implements IonConnectSealService {
       compressionAlgorithm: compressionAlgorithm,
     );
 
-    final createdAt = randomDateBefore(
-      const Duration(days: 2),
-    ).microsecondsSinceEpoch;
+    final createdAt = randomDateBefore().microsecondsSinceEpoch;
 
     if (currentUserMasterPubkey.isEmpty) {
       throw UserMasterPubkeyNotFoundException();

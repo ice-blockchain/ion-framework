@@ -99,12 +99,13 @@ String formatDateToMonthYear(DateTime date, {Locale? locale}) {
 /// [maxDuration]: The maximum duration before the current time.
 /// Example:
 /// ```dart
-/// DateTime randomDate = randomDateBefore(const Duration(days: 2));
+/// DateTime randomDate = randomDateBefore();
 /// ```
 ///
-DateTime randomDateBefore(Duration maxDuration) {
+DateTime randomDateBefore({Duration? maxDuration}) {
+  final duration = maxDuration ?? const Duration(days: 2);
   final now = DateTime.now();
-  final differenceInMilliseconds = now.difference(now.subtract(maxDuration)).inMilliseconds;
+  final differenceInMilliseconds = now.difference(now.subtract(duration)).inMilliseconds;
   final randomMilliseconds = Random().nextInt(differenceInMilliseconds);
   return now.subtract(Duration(milliseconds: randomMilliseconds));
 }

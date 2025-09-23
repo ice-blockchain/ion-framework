@@ -19,6 +19,7 @@ import 'package:ion/app/features/user_block/optimistic_ui/block_sync_strategy.da
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_gift_wrap_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_seal_service.r.dart';
+import 'package:ion/app/utils/date.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'block_sync_strategy_provider.r.g.dart';
@@ -50,9 +51,12 @@ SyncStrategy<BlockedUser> blockSyncStrategy(Ref ref) {
 
     final seal = await sealService.createSeal(eventMessage, eventSigner, pubkey);
 
+    final randomCreatedAt = randomDateBefore();
+
     final giftWrap = await wrapService.createWrap(
       event: seal,
       receiverPubkey: pubkey,
+      randomCreatedAt: randomCreatedAt,
       receiverMasterPubkey: masterPubkey,
       contentKinds: [BlockedUserEntity.kind.toString()],
     );

@@ -13,6 +13,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_gift_wrap_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_seal_service.r.dart';
+import 'package:ion/app/utils/date.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'send_transaction_to_relay_service.r.g.dart';
@@ -122,11 +123,11 @@ class SendTransactionToRelayService {
     required EventMessage eventMessage,
     int kind = ReplaceablePrivateDirectMessageEntity.kind,
   }) async {
+    final randomCreatedAt = randomDateBefore();
+
     final expirationTag = EntityExpiration(
-      value: DateTime.now()
-          .add(
-            Duration(hours: env.get<int>(EnvVariable.GIFT_WRAP_EXPIRATION_HOURS)),
-          )
+      value: randomCreatedAt
+          .add(Duration(hours: env.get<int>(EnvVariable.GIFT_WRAP_EXPIRATION_HOURS)))
           .microsecondsSinceEpoch,
     ).toTag();
 
@@ -138,6 +139,7 @@ class SendTransactionToRelayService {
 
     final wrap = await wrapService.createWrap(
       event: seal,
+      randomCreatedAt: randomCreatedAt,
       contentKinds: [kind.toString()],
       receiverPubkey: receiverPubkey,
       receiverMasterPubkey: receiverMasterPubkey,

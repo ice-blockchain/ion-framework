@@ -7,6 +7,7 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/services/ion_connect/ed25519_key_store.dart';
 import 'package:ion/app/services/ion_connect/encrypted_message_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_gift_wrap_service.r.dart';
+import 'package:ion/app/utils/date.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,7 @@ void main() {
         event: event,
         receiverMasterPubkey: masterPubkey,
         receiverPubkey: receiverSigner.publicKey,
+        randomCreatedAt: randomDateBefore(),
         contentKinds: [ReplaceablePrivateDirectMessageEntity.kind.toString()],
       );
 
@@ -59,6 +61,7 @@ void main() {
         event: event,
         receiverMasterPubkey: "Doesn't matter",
         receiverPubkey: senderSigner.publicKey,
+        randomCreatedAt: randomDateBefore(),
         contentKinds: [ReplaceablePrivateDirectMessageEntity.kind.toString()],
       );
 
@@ -81,6 +84,7 @@ void main() {
         event: event,
         receiverMasterPubkey: "Doesn't matter",
         receiverPubkey: receiverSigner.publicKey,
+        randomCreatedAt: randomDateBefore(),
         contentKinds: [ReplaceablePrivateDirectMessageEntity.kind.toString()],
       );
 
