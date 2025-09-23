@@ -32,17 +32,26 @@ class StoryListItem extends HookConsumerWidget {
     final userStory = ref.watch(feedStoriesByPubkeyProvider(pubkey, showOnlySelectedUser: true));
     final storyReference = userStory.firstOrNull?.toEventReference();
 
-    final gradient = useRef(storyBorderGradients[Random().nextInt(storyBorderGradients.length)]);
+    final gradient = useRef(
+      storyBorderGradients[Random().nextInt(storyBorderGradients.length)],
+    );
 
-    usePreloadStoryMedia(ref, userStory.firstOrNull);
+    final firstStory = userStory.firstOrNull;
+
+    usePreloadStoryMedia(
+      ref,
+      firstStory,
+      sessionPubkey: pubkey,
+    );
 
     if (userMetadata == null || storyReference == null) {
       return const SizedBox.shrink();
     }
 
     final isViewed = ref.watch(
-      viewedStoriesProvider
-          .select((viewedStories) => viewedStories?.contains(storyReference) ?? false),
+      viewedStoriesProvider.select(
+        (viewedStories) => viewedStories?.contains(storyReference) ?? false,
+      ),
     );
 
     return Padding(

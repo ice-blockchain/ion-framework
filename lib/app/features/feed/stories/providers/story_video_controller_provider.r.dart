@@ -3,6 +3,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/story_feed_prefetch_registry_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_video_prefetch_targets_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:video_player/video_player.dart';
@@ -44,17 +45,33 @@ Future<Raw<VideoPlayerController>> storyVideoController(
     keepAliveLink ??= ref.keepAlive();
   }
 
+  // Keep the provider alive during initial controller initialization; we'll
+  // release the link if neither feed nor viewer targets require it.
+  ensureKeepAlive();
+
+  void syncKeepAlive() {
+    final viewerTargets = ref.read(storyVideoPrefetchTargetsProvider(params.sessionPubkey));
+    final feedTargets = ref.read(storyFeedPrefetchRegistryProvider(params.sessionPubkey));
+    final shouldKeepAlive =
+        viewerTargets.contains(params.storyId) || feedTargets.contains(params.storyId);
+
+    if (shouldKeepAlive) {
+      ensureKeepAlive();
+    } else {
+      keepAliveLink?.close();
+      keepAliveLink = null;
+    }
+  }
+
   ref
     ..listen<Set<String>>(
       storyVideoPrefetchTargetsProvider(params.sessionPubkey),
-      (_, targets) {
-        if (targets.contains(params.storyId)) {
-          ensureKeepAlive();
-        } else {
-          keepAliveLink?.close();
-          keepAliveLink = null;
-        }
-      },
+      (_, __) => syncKeepAlive(),
+      fireImmediately: true,
+    )
+    ..listen<Set<String>>(
+      storyFeedPrefetchRegistryProvider(params.sessionPubkey),
+      (_, __) => syncKeepAlive(),
       fireImmediately: true,
     )
     ..onDispose(() {

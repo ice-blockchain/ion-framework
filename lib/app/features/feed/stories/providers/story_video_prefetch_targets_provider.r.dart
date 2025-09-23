@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'story_video_prefetch_targets_provider.r.g.dart';
@@ -22,5 +23,11 @@ class StoryVideoPrefetchTargets extends _$StoryVideoPrefetchTargets {
       return;
     }
     state = <String>{};
+  }
+
+  void remove(String storyId) {
+    if (!state.contains(storyId)) return;
+    final next = {...state}..remove(storyId);
+    state = next;
   }
 }

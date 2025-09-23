@@ -8,8 +8,7 @@ import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:video_player/video_player.dart';
 
-void _post(VoidCallback action) =>
-    WidgetsBinding.instance.addPostFrameCallback((_) => action());
+void _post(VoidCallback action) => WidgetsBinding.instance.addPostFrameCallback((_) => action());
 
 void useStoryVideoPlayback({
   required WidgetRef ref,

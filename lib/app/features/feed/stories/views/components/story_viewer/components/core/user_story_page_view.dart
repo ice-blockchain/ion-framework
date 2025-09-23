@@ -54,17 +54,14 @@ class UserStoryPageView extends HookConsumerWidget {
     final currentStory = isCurrentUser ? stories[currentIndex] : stories.first;
     useOnInit(
       () {
-        ref
-            .read(viewedStoriesProvider.notifier)
-            .markStoryAsViewed(currentStory);
+        ref.read(viewedStoriesProvider.notifier).markStoryAsViewed(currentStory);
       },
       [currentStory.id],
     );
 
     useEffect(
       () {
-        final notifier =
-            ref.read(storyVideoPrefetchTargetsProvider(pubkey).notifier);
+        final notifier = ref.read(storyVideoPrefetchTargetsProvider(pubkey).notifier);
         return () {
           Future.microtask(notifier.clear);
         };
@@ -108,7 +105,6 @@ class UserStoryPageView extends HookConsumerWidget {
               context: context,
               story: story,
               sessionPubkey: pubkey,
-              keepAliveForSession: true,
             ),
           );
         }
