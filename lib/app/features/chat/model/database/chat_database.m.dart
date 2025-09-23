@@ -78,6 +78,7 @@ class ChatDatabase extends _$ChatDatabase {
   static QueryExecutor _openConnection(String pubkey) {
     return driftDatabase(name: 'conversation_database_$pubkey');
   }
+
   /// Deletes all data from every table in the chat database.
   Future<void> deleteEverything() async {
     await transaction(() async {
