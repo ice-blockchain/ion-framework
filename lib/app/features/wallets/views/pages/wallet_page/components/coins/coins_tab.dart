@@ -57,8 +57,9 @@ class CoinsTab extends ConsumerWidget {
 
         return ScreenSideOffset.small(
           child: isUpdating
-              ? const CoinsGroupItemPlaceholder()
+              ? CoinsGroupItemPlaceholder(key: ValueKey('placeholder-${group.symbolGroup}'))
               : CoinsGroupItem(
+                  key: ValueKey('item-${group.symbolGroup}'),
                   showNewTransactionsIndicator: true,
                   coinsGroup: group,
                   onTap: () {
