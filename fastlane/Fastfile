@@ -74,7 +74,7 @@ platform :ios do
                     team_id: APPLE_DEVELOPMENT_TEAM,
                     ipa: ipa_path,
                     skip_waiting_for_build_processing: true,
-                    api_key_path: "./fastlane/keys/appstore-connect-key.json",
+                    api_key_path: options[:upload_key_path],
                     skip_submission: true,
                     distribute_external: false,
                     notify_external_testers: false,
@@ -83,7 +83,7 @@ platform :ios do
                 firebase_app_distribution(
                     app: FIREBASE_IOS_APP_ID,
                     ipa_path: ipa_path,
-                    service_credentials_file: "./fastlane/keys/firebase-distribution.json",
+                    service_credentials_file: options[:upload_key_path],
                     release_notes: options[:release_notes] || git_branch,
                     groups: "Internal-testers",
                 )
@@ -112,7 +112,7 @@ platform :android do
                     package_name: APP_ID,
                     track: "internal",
                     aab: "build/app/outputs/bundle/#{APP_FLAVOR}Release/app-#{APP_FLAVOR}-release.aab",
-                    json_key: "./fastlane/keys/gp-console.json",
+                    json_key: options[:upload_key_path],
                     skip_upload_metadata: true,
                     skip_upload_images: true,
                     skip_upload_screenshots: true,
@@ -123,7 +123,7 @@ platform :android do
                 # use bundles when the app is published
                 firebase_app_distribution(
                     app: FIREBASE_ANDROID_APP_ID,
-                    service_credentials_file: "./fastlane/keys/firebase-distribution.json",
+                    service_credentials_file: options[:upload_key_path],
                     android_artifact_type: "APK",
                     android_artifact_path: "build/app/outputs/flutter-apk/app-#{APP_FLAVOR}-release.apk",
                     release_notes: options[:release_notes] || git_branch,

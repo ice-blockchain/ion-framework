@@ -267,11 +267,27 @@ jobs:
           set +a
           ./scripts/generate_ios_export_options.sh --signType $IOS_SIGN_TYPE --bundleId $APP_ID --outputPath ios/ExportOptions.plist
           flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=.merged.app.env
+      - name: Prepare upload key
+        id: prepare_upload_key
+        run: |
+          if [ "$DEPLOYMENT_TARGET" = "firebase" ]; then
+            if [ "$APP_ENV" = "production" ]; then
+              KEY="${{ secrets.UPLOAD_FIREBASE_PRODUCTION_KEY }}"
+            else
+              KEY="${{ secrets.UPLOAD_FIREBASE_STAGING_KEY }}"
+            fi
+          else
+            KEY="${{ secrets.UPLOAD_TESTFLIGHT_KEY }}"
+          fi
+
+          echo "$KEY" > main-repo/fastlane/upload-key.json
+
+          echo "key_path=main-repo/fastlane/upload-key.json" >> $GITHUB_OUTPUT
       - name: Deploy iOS App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         run: |
           cd main-repo
-          bundle exec fastlane ios deploy target:$DEPLOYMENT_TARGET release_notes:$RELEASE_NOTES
+          bundle exec fastlane ios deploy target:$DEPLOYMENT_TARGET upload_key_path:${{ steps.prepare_upload_key.outputs.key_path }} release_notes:$RELEASE_NOTES
       - name: Slack Notification
         if: ${{ always() && github.event_name == 'push' }}
         uses: act10ns/slack@v2
@@ -357,11 +373,27 @@ jobs:
         run: |
           cd main-repo
           flutter build $ANDROID_ARCHIVE_TYPE --release --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --dart-define-from-file=.merged.app.env
+      - name: Prepare upload key
+        id: prepare_upload_key
+        run: |
+          if [ "$DEPLOYMENT_TARGET" = "firebase" ]; then
+            if [ "$APP_ENV" = "production" ]; then
+              KEY="${{ secrets.UPLOAD_FIREBASE_PRODUCTION_KEY }}"
+            else
+              KEY="${{ secrets.UPLOAD_FIREBASE_STAGING_KEY }}"
+            fi
+          else
+            KEY="${{ secrets.UPLOAD_PLAYSTORE_KEY }}"
+          fi
+
+          echo "$KEY" > main-repo/fastlane/upload-key.json
+
+          echo "key_path=main-repo/fastlane/upload-key.json" >> $GITHUB_OUTPUT
       - name: Deploy Android App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         run: |
           cd main-repo
-          bundle exec fastlane android deploy target:$DEPLOYMENT_TARGET release_status:$RELEASE_STATUS release_notes:$RELEASE_NOTES
+          bundle exec fastlane android deploy target:$DEPLOYMENT_TARGET upload_key_path:${{ steps.prepare_upload_key.outputs.key_path }} release_status:$RELEASE_STATUS release_notes:$RELEASE_NOTES
       - name: Slack Notification
         if: ${{ always() && github.event_name == 'push' }}
         uses: act10ns/slack@v2
