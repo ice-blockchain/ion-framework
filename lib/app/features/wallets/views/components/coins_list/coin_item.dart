@@ -69,6 +69,7 @@ class _CoinsGroupItemContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListItem(
+      key: Key(coinsGroup.symbolGroup),
       title: Text(coinsGroup.name),
       subtitle: Text(coinsGroup.abbreviation),
       backgroundColor: context.theme.appColors.tertiaryBackground,
