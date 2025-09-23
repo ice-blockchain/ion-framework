@@ -2,12 +2,12 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
-import 'package:ion/app/features/wallets/providers/mock_data/mock_data.dart';
 import 'package:ion/app/features/wallets/providers/selected_wallet_view_id_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 
 import '../mocks.dart';
 import '../test_utils.dart';
+import 'data/fake_wallet_view_data.dart';
 
 void main() {
   group('CurrentWalletIdProvider', () {

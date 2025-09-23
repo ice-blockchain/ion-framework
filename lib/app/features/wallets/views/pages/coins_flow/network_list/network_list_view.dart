@@ -16,7 +16,6 @@ import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
-import 'package:ion/app/features/wallets/providers/mock_data/mock_data.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/network_list/network_item.dart';
@@ -166,25 +165,36 @@ class _LoadingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const mockedNetwork = NetworkData(
+      id: '',
+      image: '',
+      isTestnet: false,
+      displayName: '',
+      explorerUrl: '',
+      tier: 0,
+    );
+
+    const mockedCoin = CoinInWalletData(
+      coin: CoinData(
+        id: '',
+        contractAddress: '',
+        decimals: 1,
+        iconUrl: '',
+        name: '',
+        network: mockedNetwork,
+        priceUSD: 1,
+        abbreviation: '',
+        symbolGroup: '',
+        syncFrequency: Duration.zero,
+      ),
+    );
+
     return Skeleton(
       child: _NetworksList(
         itemCount: itemCount,
         itemBuilder: (_, __) {
           return NetworkItem(
-            coinInWallet: const CoinInWalletData(
-              coin: CoinData(
-                id: '',
-                contractAddress: '',
-                decimals: 1,
-                iconUrl: '',
-                name: '',
-                network: mockedNetwork,
-                priceUSD: 1,
-                abbreviation: '',
-                symbolGroup: '',
-                syncFrequency: Duration.zero,
-              ),
-            ),
+            coinInWallet: mockedCoin,
             network: mockedNetwork,
             onTap: () {},
           );

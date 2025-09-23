@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/icons/coin_icon.dart';
 import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
@@ -13,6 +14,7 @@ import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_
 import 'package:ion/app/features/wallets/views/components/coins_list/unseen_transaction_indicator.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/num.dart';
+import 'package:ion/app/utils/precache_pictures.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class CoinsGroupItem extends HookConsumerWidget {
@@ -30,7 +32,46 @@ class CoinsGroupItem extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
+    final isContentReady = useState(false);
 
+    useEffect(
+      () {
+        precachePictures([coinsGroup.iconUrl]).whenComplete(() => isContentReady.value = true);
+        return null;
+      },
+      [coinsGroup.iconUrl],
+    );
+
+    final contentWidget = _CoinsGroupItemContent(
+      coinsGroup: coinsGroup,
+      onTap: onTap,
+      showNewTransactionsIndicator: showNewTransactionsIndicator,
+      isBalanceVisible: isBalanceVisible,
+    );
+
+    return Stack(
+      children: [
+        if (!isContentReady.value) const CoinsGroupItemPlaceholder() else contentWidget,
+      ],
+    );
+  }
+}
+
+class _CoinsGroupItemContent extends StatelessWidget {
+  const _CoinsGroupItemContent({
+    required this.onTap,
+    required this.coinsGroup,
+    required this.isBalanceVisible,
+    required this.showNewTransactionsIndicator,
+  });
+
+  final CoinsGroup coinsGroup;
+  final VoidCallback onTap;
+  final bool showNewTransactionsIndicator;
+  final bool isBalanceVisible;
+
+  @override
+  Widget build(BuildContext context) {
     return ListItem(
       key: Key(coinsGroup.symbolGroup),
       title: Text(coinsGroup.name),
