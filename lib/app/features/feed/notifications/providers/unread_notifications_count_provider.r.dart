@@ -15,7 +15,7 @@ class UnreadNotificationsCount extends _$UnreadNotificationsCount {
       final appBadgeCounter = await ref.read(appBadgeCounterProvider.future);
       final unreadCountStream = unreadCountRepository.watch()
         ..listen(
-          (count) => appBadgeCounter?.setBadgeCount(count),
+          (count) => appBadgeCounter?.setBadgeCount(count, CounterCategory.inapp),
         );
 
       yield* unreadCountStream;
@@ -25,7 +25,7 @@ class UnreadNotificationsCount extends _$UnreadNotificationsCount {
   Future<void> readAll() async {
     ref.read(unreadNotificationsCountRepositoryProvider)?.saveLastReadTime(DateTime.now());
     final appBadgeCounter = await ref.read(appBadgeCounterProvider.future);
-    await appBadgeCounter?.clearBadge();
+    await appBadgeCounter?.clearBadge(CounterCategory.inapp);
     ref.invalidateSelf();
   }
 }

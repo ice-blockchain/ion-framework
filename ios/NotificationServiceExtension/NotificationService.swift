@@ -21,16 +21,30 @@ class NotificationService: UNNotificationServiceExtension {
 
         Task {
             do {
-                let storage = try SharedStorageService()
-                let result = await NotificationTranslationService(storage: storage).translate(
+                let storage = try SharedStorage()
+                let keysStorage = KeysStorage(storage: storage)
+                let appBadgeCounter = AppBadgeCounterService(storage: storage)
+                
+                let result = await NotificationTranslationService(
+                    appLocaleStorage: AppLocaleStorage(storage: storage),
+                    keysStorage: KeysStorage(storage: storage)
+                ).translate(
                     request.content.userInfo
                 )
-                
-                // TODO: Temp disable badge count for e2e chats
+
+                // Handle badge count based on notification type
                 if let notificationType = result?.notificationType, !notificationType.isChat {
-                    let badgeCount = storage.getBadgeCount() + 1
-                    mutableNotificationContent.badge = badgeCount as NSNumber
-                    storage.setBadgeCount(badgeCount)
+                    incrementBadge(appBadgeCounter: appBadgeCounter, 
+                                 mutableContent: mutableNotificationContent, 
+                                 category: .inapp)
+                } else if let conversationId = result?.conversationId {
+                    // Chat notification - check if we should increment
+                    handleChatNotificationBadge(
+                        conversationId: conversationId,
+                        keysStorage: keysStorage,
+                        appBadgeCounter: appBadgeCounter,
+                        mutableContent: mutableNotificationContent
+                    )
                 }
 
                 if let result = result {
@@ -68,17 +82,60 @@ class NotificationService: UNNotificationServiceExtension {
     }
 
     override func serviceExtensionTimeWillExpire() {
-
-        
         if let contentHandler = contentHandler, let mutableNotificationContent = mutableNotificationContent {
             do {
-                let storage = try SharedStorageService()
-                let badgeCount = storage.getBadgeCount() + 1
-                mutableNotificationContent.badge = badgeCount as NSNumber
-                storage.setBadgeCount(badgeCount)
+                let storage = try SharedStorage()
+                let badgeCounter = AppBadgeCounterService(storage: storage)
+                incrementBadge(appBadgeCounter: badgeCounter, 
+                             mutableContent: mutableNotificationContent, 
+                             category: .inapp)
             } catch {}
-            
+
             contentHandler(mutableNotificationContent)
+        }
+    }
+    
+    // MARK: - Badge Methods
+    
+    private func incrementBadge(
+        appBadgeCounter: AppBadgeCounterService,
+        mutableContent: UNMutableNotificationContent,
+        category: CounterCategory
+    ) {
+        let currentCount = appBadgeCounter.getBadgeCount(for: category)
+        let newCount = currentCount + 1
+        
+        appBadgeCounter.setBadgeCount(newCount, category: category)
+        mutableContent.badge = NSNumber(value: appBadgeCounter.getTotalBadgeCount())
+    }
+    
+    private func handleChatNotificationBadge(
+        conversationId: String,
+        keysStorage: KeysStorage,
+        appBadgeCounter: AppBadgeCounterService,
+        mutableContent: UNMutableNotificationContent
+    ) {
+        let chatDB = ChatDatabaseManager(keysStorage: keysStorage)
+        guard chatDB.openDatabase() else {
+            NSLog("[NSE] Failed to open chat database")
+            return
+        }
+        defer { chatDB.closeDatabase() }
+        
+        let conversationExists = chatDB.checkIfConversationExists(conversationId: conversationId)
+        
+        let alreadyCounted = appBadgeCounter.isUnreadConversation(conversationId)
+        
+        if conversationExists && !alreadyCounted {
+            incrementBadge(appBadgeCounter: appBadgeCounter, 
+                         mutableContent: mutableContent, 
+                         category: .chat)
+            appBadgeCounter.setUnreadConversation(conversationId)
+        } else if !conversationExists {
+            incrementBadge(appBadgeCounter: appBadgeCounter, 
+                         mutableContent: mutableContent, 
+                         category: .chat)
+            appBadgeCounter.setUnreadConversation(conversationId)
         }
     }
 }
