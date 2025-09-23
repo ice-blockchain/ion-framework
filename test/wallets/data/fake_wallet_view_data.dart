@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 
 final mockedWalletDataArray = <WalletViewData>[
