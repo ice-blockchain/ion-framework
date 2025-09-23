@@ -41,11 +41,12 @@ class AppBadgeCounter {
 
   Future<void> clearAllBadges() async {
     if (await AppBadgePlus.isSupported()) {
-      final clearOperations = CounterCategory.values
+      final clearCategories = CounterCategory.values
           .map((category) => sharedPreferencesFoundation.setInt(category.key, 0));
 
       await Future.wait([
-        ...clearOperations,
+        ...clearCategories,
+        clearUnreadConversations(),
         AppBadgePlus.updateBadge(0),
       ]);
     }
