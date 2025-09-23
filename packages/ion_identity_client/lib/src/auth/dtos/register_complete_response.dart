@@ -18,7 +18,7 @@ class RegistrationCompleteResponse {
       credential: Credential.fromJson(json['credential'] as JsonObject),
       user: User.fromJson(json['user'] as JsonObject),
       authentication: Authentication.fromJson(json['authentication'] as JsonObject),
-      duplicateOf: json['duplicateOf'] as String,
+      duplicateOf: json['duplicateOf'] as String?,
     );
   }
 

@@ -145,6 +145,18 @@ bool isValidNicknameProofBadgeDefinition(
 }
 
 @riverpod
+bool isValidDeviceIdentityProofBadgeDefinition(
+  Ref ref,
+  ReplaceableEventReference badgeRef,
+  List<String> servicePubkeys,
+) {
+  return badgeRef.dTag
+          .startsWith(BadgeDefinitionEntity.deviceIdentificationProofOfOwnershipBadgeDTag) &&
+      (servicePubkeys.isEmpty || servicePubkeys.contains(badgeRef.masterPubkey)) &&
+      badgeRef.kind == BadgeDefinitionEntity.kind;
+}
+
+@riverpod
 bool isUserVerified(
   Ref ref,
   String pubkey,
@@ -201,6 +213,30 @@ bool isNicknameProven(Ref ref, String pubkey) {
         return isBadgeDefinitionValid &&
             isBadgeAwardValid &&
             entry.definitionRef.dTag.endsWith('~${userMetadata!.data.name}');
+      }) ??
+      false;
+}
+
+@riverpod
+bool isDeviceIdentityProven(Ref ref, String pubkey) {
+  var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(pubkey))?.data;
+  if (profileBadgesData == null) {
+    final res = ref.watch(profileBadgesDataProvider(pubkey));
+    if (res.isLoading) {
+      return true;
+    }
+    profileBadgesData = res.valueOrNull;
+  }
+  final pubkeys = ref.watch(servicePubkeysProvider).valueOrNull ?? [];
+
+  return profileBadgesData?.entries.any((entry) {
+        final isBadgeAwardValid =
+            pubkeys.isEmpty || ref.watch(cachedBadgeAwardProvider(entry.awardId, pubkeys)) != null;
+        final isBadgeDefinitionValid = ref
+            .watch(isValidDeviceIdentityProofBadgeDefinitionProvider(entry.definitionRef, pubkeys));
+        return isBadgeDefinitionValid &&
+            isBadgeAwardValid &&
+            entry.definitionRef.dTag.endsWith('~$pubkey');
       }) ??
       false;
 }
