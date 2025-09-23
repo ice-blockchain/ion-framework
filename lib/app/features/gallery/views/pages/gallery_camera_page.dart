@@ -3,10 +3,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
+import 'package:ion/app/components/shutter_animation/hooks/use_shutter_animation_controller.dart';
+import 'package:ion/app/components/shutter_animation/shutter_animation.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/stories/data/models/camera_capture_state.f.dart';
 import 'package:ion/app/features/feed/stories/hooks/use_recording_progress.dart';
@@ -18,7 +19,6 @@ import 'package:ion/app/features/feed/stories/views/components/story_capture/con
 import 'package:ion/app/features/gallery/data/models/camera_state.f.dart';
 import 'package:ion/app/features/gallery/providers/camera_provider.r.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
-import 'package:ion/app/utils/future.dart';
 
 class GalleryCameraPage extends HookConsumerWidget {
   const GalleryCameraPage({
@@ -30,33 +30,7 @@ class GalleryCameraPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final shutterAnimationController = useAnimationController(duration: 50.milliseconds);
-    final shutterAnimation = useMemoized(
-      () => Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(
-          parent: shutterAnimationController,
-          curve: Curves.easeIn,
-        ),
-      ),
-      [shutterAnimationController],
-    );
-
-    useEffect(
-      () {
-        void animationStatusListener(AnimationStatus status) {
-          if (status == AnimationStatus.completed) {
-            shutterAnimationController.reverse();
-          }
-        }
-
-        shutterAnimationController.addStatusListener(animationStatusListener);
-
-        return () {
-          shutterAnimationController.removeStatusListener(animationStatusListener);
-        };
-      },
-      [shutterAnimationController],
-    );
+    final shutterAnimationController = useShutterAnimationController();
     final cameraState = ref.watch(cameraControllerNotifierProvider);
 
     ref.listen<CameraCaptureState>(
@@ -111,18 +85,7 @@ class GalleryCameraPage extends HookConsumerWidget {
                 showGalleryButton: false,
                 onGallerySelected: (_) async {},
               ),
-            IgnorePointer(
-              child: AnimatedBuilder(
-                builder: (context, widget) {
-                  return Opacity(
-                    opacity: shutterAnimation.value,
-                    child: widget,
-                  );
-                },
-                animation: shutterAnimationController,
-                child: const ColoredBox(color: Colors.black),
-              ),
-            ),
+            ShutterAnimation(shutterAnimationController: shutterAnimationController),
             Positioned.fill(
               bottom: 16.0.s,
               child: Align(
