@@ -8,6 +8,7 @@ import 'package:ion/app/features/feed/notifications/data/repository/comments_rep
 import 'package:ion/app/features/feed/notifications/data/repository/content_repository.r.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/followers_repository.r.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/likes_repository.r.dart';
+import 'package:ion/app/features/feed/notifications/data/repository/mentions_repository.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'paginated_notifications_provider.r.g.dart';
@@ -95,15 +96,17 @@ class PaginatedNotifications extends _$PaginatedNotifications {
     final contentRepository = ref.watch(contentRepositoryProvider);
     final followersRepository = ref.watch(followersRepositoryProvider);
     final likesRepository = ref.watch(likesRepositoryProvider);
+    final mentionsRepository = ref.watch(mentionsRepositoryProvider);
 
-    final (comments, content, likes, followers) = await (
+    final (comments, content, likes, followers, mentions) = await (
       commentsRepository.getNotificationsAfter(after: after, limit: _limit),
       contentRepository.getNotificationsAfter(after: after, limit: _limit),
       likesRepository.getNotificationsAfter(after: after, limit: _limit),
       followersRepository.getNotificationsAfter(after: after, limit: _limit),
+      mentionsRepository.getNotificationsAfter(after: after, limit: _limit),
     ).wait;
 
-    final all = [...comments, ...content, ...likes, ...followers]
+    final all = [...comments, ...content, ...likes, ...followers, ...mentions]
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     return all.take(_limit).toList();
