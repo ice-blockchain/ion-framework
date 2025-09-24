@@ -1,21 +1,15 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:async';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
-import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/stories/providers/story_video_prefetch_targets_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/hooks/use_story_viewer_story_preload.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_content.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_gesture_handler.dart';
-import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/hooks/use_preload_story_media.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 
 class UserStoryPageView extends HookConsumerWidget {
@@ -59,69 +53,15 @@ class UserStoryPageView extends HookConsumerWidget {
       [currentStory.id],
     );
 
-    useEffect(
-      () {
-        final notifier = ref.read(storyVideoPrefetchTargetsProvider(pubkey).notifier);
-        return () {
-          Future.microtask(notifier.clear);
-        };
-      },
-      [pubkey],
-    );
-
-    String? storyIdAt(int index) {
-      if (index < 0 || index >= stories.length) {
-        return null;
-      }
-      return stories[index].id;
-    }
-
-    final windowStories = <ModifiablePostEntity>[];
-    for (var offset = -2; offset <= 2; offset++) {
-      if (offset == 0) continue;
-      final targetIndex = currentIndex + offset;
-      if (targetIndex < 0 || targetIndex >= stories.length) continue;
-      windowStories.add(stories[targetIndex]);
-    }
-
-    useOnInit(
-      () {
-        if (!context.mounted) return;
-
-        final nextIds = windowStories.map((story) => story.id).toSet();
-        final currentIds = ref.read(storyVideoPrefetchTargetsProvider(pubkey));
-        if (setEquals(nextIds, currentIds)) {
-          return;
-        }
-
-        ref
-            .read(storyVideoPrefetchTargetsProvider(pubkey).notifier)
-            .replaceWith(windowStories.map((story) => story.id));
-
-        for (final story in windowStories) {
-          unawaited(
-            preloadStoryMedia(
-              ref: ref,
-              context: context,
-              story: story,
-              sessionPubkey: pubkey,
-            ),
-          );
-        }
-      },
-      [
-        pubkey,
-        currentIndex,
-        stories.length,
-        storyIdAt(currentIndex - 2),
-        storyIdAt(currentIndex - 1),
-        storyIdAt(currentIndex + 1),
-        storyIdAt(currentIndex + 2),
-      ],
+    final resetPrefetchTargets = useStoryViewerStoryPreload(
+      ref: ref,
+      sessionPubkey: pubkey,
+      stories: stories,
+      currentStoryIndex: currentIndex,
     );
 
     void handleUserExit(VoidCallback callback) {
-      ref.read(storyVideoPrefetchTargetsProvider(pubkey).notifier).clear();
+      resetPrefetchTargets();
       callback();
     }
 

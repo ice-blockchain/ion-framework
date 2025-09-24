@@ -3,9 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
-import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
+import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
 import 'package:ion/app/features/feed/stories/hooks/use_story_video_playback.dart';
-import 'package:ion/app/features/feed/stories/providers/story_video_controller_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/story_video_controller_provider.m.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoStoryViewer extends HookConsumerWidget {

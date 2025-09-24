@@ -8,12 +8,13 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/providers/ion_connect_media_url_fallback_provider.r.dart';
-import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
+import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/stories/providers/story_feed_prefetch_registry_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_image_loading_provider.r.dart';
-import 'package:ion/app/features/feed/stories/providers/story_video_controller_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/story_video_controller_provider.m.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
+import 'package:ion/app/services/logger/logger.dart';
 
 void usePreloadStoryMedia(
   WidgetRef ref,
@@ -87,8 +88,12 @@ Future<void> preloadStoryMedia({
       );
 
       await precacheImage(imageProvider, context);
-    } catch (_) {
-      // Fall back to the standard loading path when prefetch fails.
+    } catch (e, stackTrace) {
+      Logger.error(
+        e,
+        stackTrace: stackTrace,
+        message: 'Failed to precache story image: $resolvedUrl',
+      );
     }
     return;
   }
