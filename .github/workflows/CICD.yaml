@@ -32,6 +32,10 @@ on:
         default: true
         type: bool
 
+permissions:
+  actions: write
+  contents: read
+
 env:
   APP_ENV: ${{ inputs.environment || (startsWith(github.ref, 'refs/heads/release/') && 'production') || 'staging' }}
   DEPLOYMENT_TYPE: ${{ inputs.deployment || (startsWith(github.ref, 'refs/heads/release/') && 'store') || 'firebase' }}
@@ -143,6 +147,8 @@ jobs:
           channel: "stable"
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
+          cache-key: "flutter-:os:-:channel:-:version:"
+          pub-cache: false
       - run: flutter --version
       - name: Bootstrap
         id: bootstrap
@@ -171,7 +177,7 @@ jobs:
         if: inputs.run_checks
         run: |
           cd main-repo
-          melos run test
+          melos exec -- "flutter test --concurrency=4"
       - name: Check license
         id: check-license
         if: inputs.run_checks
@@ -237,6 +243,8 @@ jobs:
           channel: "stable"
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
+          cache-key: "flutter-:os:-:channel:-:version:"
+          pub-cache: false
       - run: flutter --version
       - name: Detect context and set APP environment variables
         id: setup-env
@@ -329,6 +337,8 @@ jobs:
           channel: "stable"
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
+          cache-key: "flutter-:os:-:channel:-:version:"
+          pub-cache: false
       - run: flutter --version
       - name: Detect context and set APP environment variables
         id: setup-env
@@ -372,3 +382,19 @@ jobs:
           config: main-repo/.github/slack.yml
           status: ${{ job.status }}
           steps: ${{ '{}' }}
+  cleanup:
+    name: Cleanup cache
+    permissions:
+      actions: write
+    needs: [flutter, ios-cicd, android-cicd]
+    runs-on: macos-15
+    if: always() && needs.flutter.result == 'success'
+    steps:
+      - name: Delete cache
+        run: |
+          curl -L \
+            -X DELETE \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/ice-blockchain/ion-framework/actions/caches?key=${{ github.sha }}_${{ github.run_number }}"
+     
