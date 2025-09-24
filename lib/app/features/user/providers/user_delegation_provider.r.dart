@@ -17,6 +17,7 @@ part 'user_delegation_provider.r.g.dart';
 
 @riverpod
 Future<UserDelegationEntity?> userDelegation(Ref ref, String pubkey, {bool cache = true}) async {
+  keepAliveWhenAuthenticated(ref);
   if (cache) {
     final userDelegation = await ref.watch(
       cachedUserDelegationProvider(pubkey).future,
