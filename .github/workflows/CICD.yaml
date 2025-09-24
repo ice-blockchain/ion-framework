@@ -388,7 +388,7 @@ jobs:
       actions: write
     needs: [flutter, ios-cicd, android-cicd]
     runs-on: macos-15
-    if: always()
+    if: always() && needs.flutter.result == 'success'
     steps:
       - name: Delete cache
         run: |
