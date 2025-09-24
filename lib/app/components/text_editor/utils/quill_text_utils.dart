@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:flutter_quill/quill_delta.dart';
 
 class QuillTextUtils {
