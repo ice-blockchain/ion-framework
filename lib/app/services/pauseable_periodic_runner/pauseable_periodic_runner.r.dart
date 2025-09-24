@@ -30,6 +30,7 @@ class PauseablePeriodicRunner {
   Duration? _remainingUntilNext;
 
   CancelToken _cancelToken = CancelToken();
+  ProviderSubscription<AppLifecycleState>? _lifecycleSubscription;
 
   /// Cancels the current token (if not already cancelled) and returns a new one.
   CancelToken replaceCancelToken() {
@@ -53,16 +54,19 @@ class PauseablePeriodicRunner {
     }
 
     // Listen to app lifecycle changes and pause/resume accordingly.
-    ref.listen<AppLifecycleState>(appLifecycleProvider, (previous, next) {
-      if (next == AppLifecycleState.resumed) {
-        // No-op until start() is called.
-        if (_onTick == null || _interval == null) return;
+    _lifecycleSubscription ??= ref.listen<AppLifecycleState>(
+      appLifecycleProvider,
+      (previous, next) {
+        if (next == AppLifecycleState.resumed) {
+          // No-op until start() is called.
+          if (_onTick == null || _interval == null) return;
 
-        resume();
-      } else {
-        pause();
-      }
-    });
+          resume();
+        } else {
+          pause();
+        }
+      },
+    );
   }
 
   /// Explicitly pause the runner (used by lifecycle or sensitive flows like passkeys).
@@ -133,11 +137,13 @@ class PauseablePeriodicRunner {
     if (!_cancelToken.isCancelled) {
       _cancelToken.cancel();
     }
+    _lifecycleSubscription?.close();
+    _lifecycleSubscription = null;
   }
 }
 
 @riverpod
-PauseablePeriodicRunner pauseablePeriodicRunner(Ref ref) {
+PauseablePeriodicRunner pauseablePeriodicRunner(Ref ref, String id) {
   final pauseablePeriodicRunner = PauseablePeriodicRunner(ref: ref);
   ref.onDispose(() async {
     await pauseablePeriodicRunner.dispose();
