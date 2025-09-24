@@ -141,10 +141,6 @@ class E2eeDeleteAccount extends _$E2eeDeleteAccount {
     final conversationDao = ref.read(conversationDaoProvider);
     final conversationIds = await conversationDao.getAllConversationsIds();
     await _deleteConversations(ref: ref, conversationIds: conversationIds, forEveryone: false);
-
-    // Clear local chat database
-    final database = ref.read(chatDatabaseProvider);
-    await database.deleteEverything();
   }
 }
 
