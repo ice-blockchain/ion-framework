@@ -130,6 +130,7 @@ class ReadMoreText extends HookWidget {
             text: textData,
           );
         }
+        textPainter.dispose();
 
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
