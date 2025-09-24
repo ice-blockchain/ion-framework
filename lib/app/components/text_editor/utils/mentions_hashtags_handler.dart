@@ -49,9 +49,10 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
     ref.invalidate(suggestionsNotifierProvider);
   }
 
-  void onMentionSuggestionSelected(({String pubkey, String username}) pubkeyUsernamePair) {
-    final userMetadata =
-        ref.read(userMetadataSyncProvider(pubkeyUsernamePair.pubkey, network: false));
+  Future<void> onMentionSuggestionSelected(
+    ({String pubkey, String username}) pubkeyUsernamePair,
+  ) async {
+    final userMetadata = await ref.read(userMetadataProvider(pubkeyUsernamePair.pubkey).future);
     if (userMetadata == null) return;
     final userMetadataEncoded = userMetadata.toEventReference().encode();
 

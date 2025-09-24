@@ -85,18 +85,6 @@ class UserMetadata extends _$UserMetadata {
 }
 
 @riverpod
-UserMetadataEntity? userMetadataSync(Ref ref, String masterPubkey, {bool network = true}) {
-  return ref.watch(
-    ionConnectSyncEntityProvider(
-      network: network,
-      eventReference:
-          ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserMetadataEntity.kind),
-      search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
-    ),
-  ) as UserMetadataEntity?;
-}
-
-@riverpod
 Future<UserMetadataEntity?> currentUserMetadata(Ref ref) async {
   final currentPubkey = ref.watch(currentPubkeySelectorProvider);
   if (currentPubkey == null) {
