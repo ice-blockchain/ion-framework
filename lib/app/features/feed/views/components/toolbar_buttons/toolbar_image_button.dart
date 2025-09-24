@@ -14,6 +14,8 @@ abstract class ToolbarMediaButtonDelegate {
     }
   }
 
+  ValueNotifier<List<MediaFile>> get attachedMediaNotifier;
+
   void handleSelectedMedia(List<MediaFile> files);
 }
 
@@ -21,13 +23,18 @@ abstract class ToolbarMediaButtonDelegate {
 /// Handles and stores attached media files using a [attachedMediaNotifier].
 ///
 class AttachedMediaHandler extends ToolbarMediaButtonDelegate {
-  AttachedMediaHandler(this._attachedMediaNotifier);
+  AttachedMediaHandler(this.attachedMediaNotifier);
 
-  final ValueNotifier<List<MediaFile>> _attachedMediaNotifier;
+  @override
+  final ValueNotifier<List<MediaFile>> attachedMediaNotifier;
 
   @override
   void handleSelectedMedia(List<MediaFile> files) {
-    files.forEach(_attachedMediaNotifier.value.add);
+    for (final file in files) {
+      if (!attachedMediaNotifier.value.any((e) => e.path == file.path)) {
+        attachedMediaNotifier.value.add(file);
+      }
+    }
   }
 }
 
@@ -35,9 +42,12 @@ class AttachedMediaHandler extends ToolbarMediaButtonDelegate {
 /// Integrates selected media into a text using single image block and QuillController.
 ///
 class QuillControllerHandler extends ToolbarMediaButtonDelegate {
-  QuillControllerHandler(this._textEditorController);
+  QuillControllerHandler(this._textEditorController, this.attachedMediaNotifier);
 
   final QuillController _textEditorController;
+
+  @override
+  final ValueNotifier<List<MediaFile>> attachedMediaNotifier;
 
   @override
   void handleSelectedMedia(List<MediaFile> files) {
@@ -76,9 +86,12 @@ class ToolbarMediaButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final alreadyPickedMedia = delegate.attachedMediaNotifier.value;
+
     return GalleryPermissionButton(
       mediaPickerType: MediaPickerType.common,
       onMediaSelected: delegate.onMediaSelected,
+      preselectedMedia: alreadyPickedMedia,
       maxSelection: maxMedia,
       enabled: enabled,
     );

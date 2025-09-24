@@ -202,8 +202,7 @@ class _ActionsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final isVideo = createOption == CreatePostOption.video;
 
-    final alreadyAttachedMediaCount =
-        attachedMediaNotifier.value.length + attachedMediaLinksNotifier.value.length;
+    final alreadyAttachedMediaCount = attachedMediaLinksNotifier.value.length;
 
     return ScreenSideOffset.small(
       child: ActionsToolbar(

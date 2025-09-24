@@ -5,11 +5,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/gallery/data/models/media_selection_state.f.dart';
 import 'package:ion/app/features/gallery/providers/providers.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
+import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'media_selection_provider.r.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class MediaSelectionNotifier extends _$MediaSelectionNotifier {
   @override
   MediaSelectionState build() {
@@ -17,6 +18,10 @@ class MediaSelectionNotifier extends _$MediaSelectionNotifier {
       selectedMedia: [],
       maxSelection: 5,
     );
+  }
+
+  void preselectMedia(List<MediaFile> media) {
+    state = state.copyWith(selectedMedia: media);
   }
 
   void updateMaxSelection(int newMaxSelection) {
