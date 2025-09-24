@@ -48,6 +48,7 @@ class PostContent extends HookConsumerWidget {
                 context.theme.appTextThemes.body2,
                 constraints.maxWidth,
                 maxLines!,
+                MediaQuery.textScalerOf(context),
               )
             : _TruncationResult(delta: currentContent, hasOverflow: false);
 
@@ -98,6 +99,7 @@ class PostContent extends HookConsumerWidget {
     TextStyle style,
     double maxWidth,
     int maxLines,
+    TextScaler textScaler,
   ) {
     // Ensure content ends with a newline for proper measurement
     final contentForLayout = content;
@@ -113,6 +115,7 @@ class PostContent extends HookConsumerWidget {
       text: TextSpan(text: plainText, style: style),
       textDirection: TextDirection.ltr,
       maxLines: maxLines - 1,
+      textScaler: textScaler,
     )..layout(maxWidth: maxWidth);
 
     // If text fits, return original

@@ -69,13 +69,13 @@ class VideoTextPost extends HookConsumerWidget {
                     content,
                     context.theme.appTextThemes.body2,
                     constraints.maxWidth - _deviation.s,
-                    context,
+                    MediaQuery.textScalerOf(context),
                   );
 
             return GestureDetector(
               onTap: isOneLine ? null : () => isTextExpanded.value = !isTextExpanded.value,
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 250),
                 switchInCurve: Curves.easeInOut,
                 switchOutCurve: Curves.easeInOut,
                 transitionBuilder: (Widget child, Animation<double> animation) {
@@ -126,7 +126,7 @@ class VideoTextPost extends HookConsumerWidget {
     Delta content,
     TextStyle style,
     double maxWidth,
-    BuildContext context,
+    TextScaler textScaler,
   ) {
     // Ensure content ends with a newline for proper measurement
     final contentForLayout = content;
@@ -143,11 +143,13 @@ class VideoTextPost extends HookConsumerWidget {
       text: TextSpan(text: plainText, style: style),
       textDirection: TextDirection.ltr,
       maxLines: 1,
-      textScaler: MediaQuery.of(context).textScaler,
+      textScaler: textScaler,
     )..layout(maxWidth: maxWidth);
 
     // If text fits, return original
     if (!painter.didExceedMaxLines) {
+      painter.dispose();
+
       return content;
     }
 
