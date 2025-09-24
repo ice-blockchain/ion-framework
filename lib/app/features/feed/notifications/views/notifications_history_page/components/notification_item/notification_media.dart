@@ -9,6 +9,8 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
+import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/feed_network_image/feed_network_image.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
@@ -23,13 +25,21 @@ class NotificationMedia extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final eventReference = switch (entity) {
-      final GenericRepostEntity repost => repost.data.eventReference,
-      _ => entity.toEventReference(),
+    // For reposts, get the original entity to display its media
+    final displayEntity = switch (entity) {
+      final GenericRepostEntity _ => ref.watch(getRepostedEntityProvider(entity)),
+      final RepostEntity _ => ref.watch(getRepostedEntityProvider(entity)),
+      _ => entity,
     };
 
-    if (entity is ArticleEntity) {
-      final articleData = (entity as ArticleEntity).data;
+    if (displayEntity == null) {
+      return const SizedBox.shrink();
+    }
+
+    final eventReference = displayEntity.toEventReference();
+
+    if (displayEntity is ArticleEntity) {
+      final articleData = displayEntity.data;
       final imageUrl = articleData.image;
       final thumbUrl =
           articleData.media.values.where((item) => imageUrl == item.url).firstOrNull?.thumb;
@@ -37,7 +47,7 @@ class NotificationMedia extends HookConsumerWidget {
       return _NotificationImage(url: imageUrl ?? thumbUrl, eventReference: eventReference);
     }
 
-    final postData = switch (entity) {
+    final postData = switch (displayEntity) {
       final ModifiablePostEntity post => post.data,
       final PostEntity post => post.data,
       _ => null,
