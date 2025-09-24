@@ -60,7 +60,7 @@ struct ReplaceablePrivateDirectMessageData {
         let primaryAudio = mediaItems.first { $0.mediaType == .audio }
 
         var quotedEvent: SimpleEventReference? = nil
-        if let quotedTags = tagsByType["e"], !quotedTags.isEmpty, quotedTags[0].count >= 2 {
+        if let quotedTags = tagsByType["q"], !quotedTags.isEmpty, quotedTags[0].count >= 2 {
             let eventId = quotedTags[0][1]
             quotedEvent = SimpleEventReference(id: eventId)
         }
