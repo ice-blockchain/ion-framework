@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:ion/app/features/core/providers/init_provider.r.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/configure_firebase_app_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_response_service.r.dart';
@@ -70,9 +71,14 @@ class NotificationResponseHandler extends _$NotificationResponseHandler {
 
   void _handleInitialPushData(Map<String, dynamic> data) {
     // Wait for splash animation to complete before handling push notification
-    final subscription = ref.listen(splashProvider, (prev, animationCompleted) {
+    final subscription = ref.listen(splashProvider, (prev, animationCompleted) async {
       if (animationCompleted) {
-        ref.read(notificationResponseServiceProvider).handleNotificationResponse(data);
+        final isInitCompleted = ref.read(initAppProvider).hasValue;
+        if (!isInitCompleted) {
+          await ref.read(initAppProvider.future);
+        }
+
+        unawaited(ref.read(notificationResponseServiceProvider).handleNotificationResponse(data));
       }
     });
     ref.onDispose(subscription.close);
