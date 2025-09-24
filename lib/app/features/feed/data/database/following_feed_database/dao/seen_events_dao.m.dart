@@ -61,7 +61,8 @@ class SeenEventsDao extends DatabaseAccessor<FollowingFeedDatabase> with _$SeenE
       ..where((tbl) => tbl.feedType.equalsValue(feedType))
       ..where(
         (tbl) => tbl.feedModifier.equals(const FeedModifierConverter().toSql(feedModifier)),
-      );
+      )
+      ..limit(1);
 
     return query.getSingleOrNull();
   }

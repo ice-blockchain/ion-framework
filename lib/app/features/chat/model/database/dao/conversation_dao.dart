@@ -260,7 +260,8 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
     // Check if conversation is already marked as deleted in conversationTable
     final conversation = await (select(conversationTable)
           ..where((t) => t.id.equals(conversationId))
-          ..where((t) => t.isHidden.equals(true)))
+          ..where((t) => t.isHidden.equals(true))
+          ..limit(1))
         .getSingleOrNull();
 
     if (conversation != null) {
