@@ -47,7 +47,7 @@ class RankedRelevantCurrentUserRelaysUrls extends _$RankedRelevantCurrentUserRel
     final controller = StreamController<List<String>>();
     ref
         .watch(
-          pauseablePeriodicRunnerProvider,
+          pauseablePeriodicRunnerProvider('rankedRelevantCurrentUserRelays'),
         )
         .start(
           interval: Duration(seconds: pingIntervalSeconds),

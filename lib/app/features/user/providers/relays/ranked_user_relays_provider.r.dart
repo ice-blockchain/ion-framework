@@ -36,7 +36,7 @@ class RankedCurrentUserRelays extends _$RankedCurrentUserRelays {
     final controller = StreamController<List<UserRelay>>();
     ref
         .watch(
-          pauseablePeriodicRunnerProvider,
+          pauseablePeriodicRunnerProvider('rankedCurrentUserRelays'),
         )
         .start(
           interval: Duration(seconds: pingIntervalSeconds),
