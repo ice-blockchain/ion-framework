@@ -244,12 +244,13 @@ class IonConnectPushDataPayload {
 
           if (notificationType == PushNotificationType.chatMultiGifMessage ||
               notificationType == PushNotificationType.chatMultiPhotoMessage) {
-            data['fileCount'] = message.data.media.values.length.toString();
+            final media = message.data.media.values.where((media) => media.thumb == null).toList();
+            data['fileCount'] = media.length.toString();
           }
 
           if (notificationType == PushNotificationType.chatMultiVideoMessage) {
             data['fileCount'] = message.data.media.values
-                .where((media) => media.mediaType == MediaType.video)
+                .where((media) => media.mediaType == MediaType.video && media.thumb == null)
                 .length
                 .toString();
           }

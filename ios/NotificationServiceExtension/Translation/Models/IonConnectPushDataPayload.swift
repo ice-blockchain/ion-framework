@@ -267,11 +267,12 @@ class IonConnectPushDataPayload: Decodable {
                 if let message = try? ReplaceablePrivateDirectMessageEntity.fromEventMessage(decryptedEvent) {
 
                     if type == PushNotificationType.chatMultiGifMessage || type == PushNotificationType.chatMultiPhotoMessage {
-                        data["fileCount"] = String(message.data.media.count)
+                        let media = message.data.media.filter { $0.thumb == nil }
+                        data["fileCount"] = String(media.count)
                     }
 
                     if type == PushNotificationType.chatMultiVideoMessage {
-                        let videoItems = message.data.media.filter { $0.mediaType == .video }
+                        let videoItems = message.data.media.filter { $0.mediaType == .video && $0.thumb == nil }
                         data["fileCount"] = String(videoItems.count)
                     }
 
