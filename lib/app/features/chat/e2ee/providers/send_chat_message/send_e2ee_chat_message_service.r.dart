@@ -370,7 +370,7 @@ class SendE2eeChatMessageService {
         masterPubkey,
         expirationTag,
         wrappedKinds,
-        randomCreatedAt,
+        randomCreatedAtTime,
       ],
     );
 

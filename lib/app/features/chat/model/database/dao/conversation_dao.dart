@@ -306,6 +306,11 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
     return false;
   }
 
+  Future<List<String>> getAllConversationsIds() async {
+    final conversations = await select(conversationTable).get();
+    return conversations.map((e) => e.id).toList();
+  }
+
   Future<void> removeConversations({
     required EventMessage deleteRequest,
     required List<String> conversationIds,
