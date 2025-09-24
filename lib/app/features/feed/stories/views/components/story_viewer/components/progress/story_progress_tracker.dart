@@ -14,6 +14,7 @@ class StoryProgressTracker extends HookConsumerWidget {
     required this.isCurrent,
     required this.isPreviousStory,
     required this.onCompleted,
+    required this.sessionPubkey,
     this.margin,
     super.key,
   });
@@ -24,13 +25,15 @@ class StoryProgressTracker extends HookConsumerWidget {
     this.margin,
     super.key,
   })  : post = null,
-        onCompleted = null;
+        onCompleted = null,
+        sessionPubkey = null;
 
   final ModifiablePostEntity? post;
   final bool isCurrent;
   final bool isPreviousStory;
   final VoidCallback? onCompleted;
   final EdgeInsetsGeometry? margin;
+  final String? sessionPubkey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -50,6 +53,7 @@ class StoryProgressTracker extends HookConsumerWidget {
       isCurrent: isCurrent,
       isPaused: isPaused,
       onCompleted: onCompleted ?? () {},
+      sessionPubkey: sessionPubkey,
     );
 
     return StoryProgressSegment(

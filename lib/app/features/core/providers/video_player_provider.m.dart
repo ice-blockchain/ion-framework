@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/bool.dart';
@@ -18,7 +19,8 @@ import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:video_player/video_player.dart';
 
-part 'video_player_provider.r.g.dart';
+part 'video_player_provider.m.freezed.dart';
+part 'video_player_provider.m.g.dart';
 
 class NetworkVideosCacheManager {
   static const key = 'networkVideosCacheKey';
@@ -59,32 +61,17 @@ class _ConcurrencyGate {
   }
 }
 
-@immutable
-class VideoControllerParams {
-  const VideoControllerParams({
-    required this.sourcePath,
-    this.authorPubkey,
-    this.uniqueId = '',
-    this.looping = false,
-    this.onlyOneShouldPlay = false,
-  });
-
-  final String sourcePath;
-  final String? authorPubkey;
-  final String
-      uniqueId; // an optional uniqueId parameter which should be used when needed independent controllers for the same sourcePath
-  final bool looping;
-  final bool onlyOneShouldPlay;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is VideoControllerParams &&
-          other.sourcePath == sourcePath &&
-          other.uniqueId == uniqueId;
-
-  @override
-  int get hashCode => sourcePath.hashCode ^ uniqueId.hashCode;
+@Freezed(fromJson: false, toJson: false)
+class VideoControllerParams with _$VideoControllerParams {
+  const factory VideoControllerParams({
+    required String sourcePath,
+    String? authorPubkey,
+    @Default('')
+    String?
+        uniqueId, // an optional uniqueId parameter which should be used when needed independent controllers for the same sourcePath
+    @Default(false) bool looping,
+    @Default(false) bool onlyOneShouldPlay,
+  }) = _VideoControllerParams;
 }
 
 @riverpod

@@ -7,9 +7,9 @@ import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/hooks/use_story_viewer_story_preload.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_content.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_gesture_handler.dart';
-import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/hooks/use_preload_story_media.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 
 class UserStoryPageView extends HookConsumerWidget {
@@ -37,6 +37,7 @@ class UserStoryPageView extends HookConsumerWidget {
       singleUserStoryViewingControllerProvider(pubkey).notifier,
     );
     final stories = ref.watch(userStoriesProvider(pubkey))?.toList() ?? [];
+    final currentIndex = singleUserStoriesViewingState.currentStoryIndex;
 
     if (stories.isEmpty) {
       return const Center(
@@ -44,8 +45,7 @@ class UserStoryPageView extends HookConsumerWidget {
       );
     }
 
-    final currentStory =
-        isCurrentUser ? stories[singleUserStoriesViewingState.currentStoryIndex] : stories.first;
+    final currentStory = isCurrentUser ? stories[currentIndex] : stories.first;
     useOnInit(
       () {
         ref.read(viewedStoriesProvider.notifier).markStoryAsViewed(currentStory);
@@ -53,19 +53,28 @@ class UserStoryPageView extends HookConsumerWidget {
       [currentStory.id],
     );
 
-    usePreloadStoryMedia(
-      ref,
-      stories.elementAtOrNull(singleUserStoriesViewingState.currentStoryIndex + 1),
+    final resetPrefetchTargets = useStoryViewerStoryPreload(
+      ref: ref,
+      sessionPubkey: pubkey,
+      stories: stories,
+      currentStoryIndex: currentIndex,
     );
+
+    void handleUserExit(VoidCallback callback) {
+      resetPrefetchTargets();
+      callback();
+    }
 
     return KeyboardVisibilityProvider(
       child: StoryGestureHandler(
         key: storyGestureKeyFor(pubkey),
         viewerPubkey: pubkey,
-        onTapLeft: () => singleUserStoriesNotifier.rewind(onRewoundAll: onPreviousUser),
+        onTapLeft: () => singleUserStoriesNotifier.rewind(
+          onRewoundAll: () => handleUserExit(onPreviousUser),
+        ),
         onTapRight: () => singleUserStoriesNotifier.advance(
           storiesLength: stories.length,
-          onSeenAll: onNextUser,
+          onSeenAll: () => handleUserExit(onNextUser),
         ),
         child: StoryContent(
           key: Key(currentStory.id),
@@ -73,7 +82,7 @@ class UserStoryPageView extends HookConsumerWidget {
           viewerPubkey: pubkey,
           onNext: () => singleUserStoriesNotifier.advance(
             storiesLength: stories.length,
-            onSeenAll: onNextUser,
+            onSeenAll: () => handleUserExit(onNextUser),
           ),
         ),
       ),

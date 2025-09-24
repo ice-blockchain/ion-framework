@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
-import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
+import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/stories/hooks/use_story_progress_controller.dart';
 import 'package:ion/app/features/feed/stories/hooks/use_story_video_playback.dart';

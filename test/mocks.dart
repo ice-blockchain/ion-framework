@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
-import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
+import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 import 'package:ion/app/features/wallets/providers/selected_wallet_view_id_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';

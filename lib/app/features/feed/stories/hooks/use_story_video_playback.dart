@@ -76,8 +76,20 @@ void useStoryVideoPlayback({
         }
       }
 
-      controller.addListener(listener);
-      return () => controller.removeListener(listener);
+      var added = false;
+      try {
+        controller.addListener(listener);
+        added = true;
+      } catch (_) {
+        return null;
+      }
+
+      return () {
+        if (!added) return;
+        try {
+          controller.removeListener(listener);
+        } catch (_) {}
+      };
     },
     [controller, isCurrent, onCompleted],
   );

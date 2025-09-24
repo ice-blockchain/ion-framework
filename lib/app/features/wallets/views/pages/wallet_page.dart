@@ -42,8 +42,8 @@ class WalletPage extends HookConsumerWidget {
         ref.read(networksByTierProvider(tier: 1).future).then((networks) {
           final iconUrls =
               networks.map((network) => network.image).where((url) => url.isNotEmpty).toList();
-          if (iconUrls.isNotEmpty) {
-            precachePictures(iconUrls);
+          if (iconUrls.isNotEmpty && context.mounted) {
+            precachePictures(context, iconUrls);
           }
         });
         return null;

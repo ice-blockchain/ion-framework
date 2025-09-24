@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
+import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/video/views/components/video_button.dart';
 import 'package:ion/app/features/video/views/components/video_not_found.dart';

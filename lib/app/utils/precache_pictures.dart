@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -17,15 +19,15 @@ class PreCachePicturesCacheManager {
   );
 }
 
-Future<void> precachePictures(Iterable<String> urls) async {
+Future<void> precachePictures(BuildContext context, Iterable<String> urls) async {
   try {
-    await Future.wait(urls.map(_precachePicture));
+    await Future.wait(urls.map((url) => _precachePicture(context, url)));
   } catch (e, stackTrace) {
     Logger.error(e, stackTrace: stackTrace, message: 'Failed to precache pictures: $urls');
   }
 }
 
-Future<void> _precachePicture(String url) async {
+Future<void> _precachePicture(BuildContext context, String url) async {
   if (url.isSvg) {
     final loader = url.isNetworkSvg ? SvgNetworkLoader(url) : SvgAssetLoader(url);
 
@@ -35,5 +37,13 @@ Future<void> _precachePicture(String url) async {
     // .getSingleFile() will download the file if not cached, then return it.
     // We don't need the file itself, just the action of caching.
     await PreCachePicturesCacheManager.instance.getSingleFile(url);
+    if (!context.mounted) return;
+
+    final imageProvider = CachedNetworkImageProvider(
+      url,
+      cacheManager: PreCachePicturesCacheManager.instance,
+      cacheKey: url,
+    );
+    await precacheImage(imageProvider, context);
   }
 }

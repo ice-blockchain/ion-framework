@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/core/providers/video_player_provider.r.dart';
+import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/video_preview_duration.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/video_preview_edit_cover.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
