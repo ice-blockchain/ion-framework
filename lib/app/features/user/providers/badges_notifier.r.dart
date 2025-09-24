@@ -15,7 +15,9 @@ import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
 import 'package:ion/app/features/user/model/badges/verified_badge_data.dart';
+import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/providers/service_pubkeys_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -212,10 +214,14 @@ bool isNicknameProven(Ref ref, String pubkey) {
 }
 
 @riverpod
-bool isDeviceIdentityProven(Ref ref, String pubkey) {
-  var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(pubkey))?.data;
+bool isDeviceIdentityProven(
+  Ref ref, {
+  required String masterPubkey,
+  required String deviceIdentityPubkey,
+}) {
+  var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(masterPubkey))?.data;
   if (profileBadgesData == null) {
-    final res = ref.watch(profileBadgesDataProvider(pubkey));
+    final res = ref.watch(profileBadgesDataProvider(masterPubkey));
     if (res.isLoading) {
       return true;
     }
@@ -230,7 +236,42 @@ bool isDeviceIdentityProven(Ref ref, String pubkey) {
             .watch(isValidDeviceIdentityProofBadgeDefinitionProvider(entry.definitionRef, pubkeys));
         return isBadgeDefinitionValid &&
             isBadgeAwardValid &&
-            entry.definitionRef.dTag.endsWith('~$pubkey');
+            entry.definitionRef.dTag.endsWith('~$deviceIdentityPubkey');
+      }) ??
+      false;
+}
+
+@riverpod
+Future<bool> hasUserProvenIdentities(Ref ref, String masterPubkey) async {
+  final profileBadgesData = ref.read(cachedProfileBadgesDataProvider(masterPubkey))?.data ??
+      await ref.read(profileBadgesDataProvider(masterPubkey).future);
+  final userDelegation = await ref.read(
+    userDelegationProvider(masterPubkey).future,
+  );
+  if (userDelegation == null) {
+    return true;
+  }
+
+  final activeDelegatePubkeys = userDelegation.data.delegates
+      .where((d) => d.status == DelegationStatus.active)
+      .map((d) => d.pubkey)
+      .toSet();
+
+  if (activeDelegatePubkeys.isEmpty) {
+    return true;
+  }
+
+  final pubkeys = await ref.read(servicePubkeysProvider.future);
+
+  return profileBadgesData?.entries.any((entry) {
+        final isBadgeAwardValid =
+            pubkeys.isEmpty || ref.watch(cachedBadgeAwardProvider(entry.awardId, pubkeys)) != null;
+        final isBadgeDefinitionValid = ref
+            .watch(isValidDeviceIdentityProofBadgeDefinitionProvider(entry.definitionRef, pubkeys));
+        final dTag = entry.definitionRef.dTag;
+        return isBadgeAwardValid &&
+            isBadgeDefinitionValid &&
+            activeDelegatePubkeys.any((delegatePubkey) => dTag.endsWith('~$delegatePubkey'));
       }) ??
       false;
 }
