@@ -99,8 +99,8 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
           final usernameProofsEvents =
               usernameProofsJsonPayloads.map(EventMessage.fromPayloadJson).toList();
           additionalEvents.addAll(usernameProofsEvents);
-          final updatedProfileBadges = await ref
-              .read(updateProfileBadgesWithUsernameProofsProvider(usernameProofsEvents).future);
+          final updatedProfileBadges =
+              await ref.read(updateProfileBadgesWithProofsProvider(usernameProofsEvents).future);
           if (updatedProfileBadges != null) {
             entitiesData.add(updatedProfileBadges);
           }
