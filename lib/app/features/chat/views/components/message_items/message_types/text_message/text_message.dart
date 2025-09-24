@@ -170,7 +170,7 @@ class _TextMessageContent extends HookWidget {
 
     final oneLineMetrics = oneLineTextPainter.computeLineMetrics();
     oneLineTextPainter.dispose();
-    
+
     final multiline = oneLineMetrics.length > 1 && !oneLineMetrics.every((m) => m.hardBreak);
     if (hasReactionsOrMetadata) {
       return _TextRichContent(
