@@ -44,8 +44,8 @@ class ReportNotifier extends _$ReportNotifier {
   Future<String> _getReportBody(ReportReason reason) async {
     final deepLinkService = ref.read(deepLinkServiceProvider);
 
-    final encodedReason = switch (reason) {
-      ReportReasonUser() => await deepLinkService.createDeeplink(
+    final encodedReason = await switch (reason) {
+      ReportReasonUser() => deepLinkService.createDeeplink(
           path:
               ReplaceableEventReference(masterPubkey: reason.pubkey, kind: UserMetadataEntity.kind)
                   .encode(),
