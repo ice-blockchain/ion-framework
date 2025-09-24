@@ -3,15 +3,28 @@
 import Foundation
 
 extension String {
-    /// Determines if the string consists only of emoji characters
+    private static let emojiOnlyRegex: NSRegularExpression? = {
+        do {
+            // Match Flutter's regex pattern exactly
+            return try NSRegularExpression(
+                pattern: #"^(?:\p{Emoji}|\p{Emoji_Presentation}|\p{Extended_Pictographic})(?!\d)$"#,
+                options: []
+            )
+        } catch {
+            return nil
+        }
+    }()
+    
     var isEmoji: Bool {
-        // Simple check: if the string is not empty and contains only emoji characters
         guard !isEmpty else { return false }
         
-        // Check if all characters are emoji
-        // This is a simplified implementation - a more robust one would use Unicode properties
-        return unicodeScalars.allSatisfy { scalar in
-            scalar.properties.isEmoji && !scalar.properties.isWhitespace
+        if self.allSatisfy({ $0.isNumber }) {
+            return false
         }
+        
+        guard let regex = Self.emojiOnlyRegex else { return false }
+        
+        let range = NSRange(location: 0, length: self.utf16.count)
+        return regex.firstMatch(in: self, options: [], range: range) != nil
     }
 }
