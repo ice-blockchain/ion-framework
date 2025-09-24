@@ -25,6 +25,21 @@ class MentionsDao extends DatabaseAccessor<NotificationsDatabase> with _$Mention
         .get();
   }
 
+  Future<List<Mention>> getMentionsAfter({
+    required int limit,
+    DateTime? after,
+  }) async {
+    final query = select(mentionsTable)
+      ..orderBy([(t) => OrderingTerm.desc(mentionsTable.createdAt)])
+      ..limit(limit);
+
+    if (after != null) {
+      query.where((t) => t.createdAt.isBiggerThanValue(after.microsecondsSinceEpoch));
+    }
+
+    return query.get();
+  }
+
   Future<DateTime?> getLastCreatedAt() async {
     final maxCreatedAt = mentionsTable.createdAt.max();
     final max = await (selectOnly(mentionsTable)..addColumns([maxCreatedAt]))
