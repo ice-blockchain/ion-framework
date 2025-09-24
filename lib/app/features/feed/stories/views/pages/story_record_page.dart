@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
+import 'package:ion/app/components/shutter_animation/hooks/use_shutter_animation_controller.dart';
+import 'package:ion/app/components/shutter_animation/shutter_animation.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/permissions/data/models/permissions_types.dart';
@@ -36,6 +39,8 @@ class StoryRecordPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final shutterAnimationController = useShutterAnimationController();
+
     final cameraState = ref.watch(cameraControllerNotifierProvider);
     final isRecording = cameraState.maybeWhen(
       ready: (_, recording, __) => recording,
@@ -81,6 +86,7 @@ class StoryRecordPage extends HookConsumerWidget {
                 CameraIdlePreview(
                   onGallerySelected: onGallerySelected,
                 ),
+              ShutterAnimation(shutterAnimationController: shutterAnimationController),
               Positioned.fill(
                 bottom: 16.0.s,
                 child: Align(
@@ -88,18 +94,27 @@ class StoryRecordPage extends HookConsumerWidget {
                   child: CameraCaptureButton(
                     isRecording: isRecording,
                     recordingProgress: recordingProgress,
-                    onCapturePhoto: isCameraReady ? captureController.takePhoto : null,
+                    onCapturePhoto: isCameraReady
+                        ? () => _takePhoto(captureController, shutterAnimationController)
+                        : null,
                     onRecordingStart: isCameraReady ? captureController.startVideoRecording : null,
                     onRecordingStop: isCameraReady ? captureController.stopVideoRecording : null,
                   ),
                 ),
               ),
-              ScreenBottomOffset(margin: 42.0.s),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _takePhoto(
+    CameraCaptureController captureController,
+    AnimationController shutterAnimationController,
+  ) async {
+    unawaited(shutterAnimationController.forward(from: 0));
+    await captureController.takePhoto();
   }
 
   Future<void> _handleCameraCaptureState(
