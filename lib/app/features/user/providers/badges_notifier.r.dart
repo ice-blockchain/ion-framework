@@ -191,9 +191,10 @@ bool isNicknameProven(Ref ref, String pubkey) {
             pubkeys.isEmpty || ref.watch(cachedBadgeAwardProvider(entry.awardId, pubkeys)) != null;
         final isBadgeDefinitionValid =
             ref.watch(isValidNicknameProofBadgeDefinitionProvider(entry.definitionRef, pubkeys));
-        return isBadgeDefinitionValid &&
+        return userMetadata != null &&
+            isBadgeDefinitionValid &&
             isBadgeAwardValid &&
-            entry.definitionRef.dTag.endsWith('~${userMetadata?.data.name}');
+            entry.definitionRef.dTag.endsWith('~${userMetadata.data.name}');
       }) ??
       false;
 }
