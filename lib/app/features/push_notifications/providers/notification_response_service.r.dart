@@ -47,6 +47,22 @@ class NotificationResponseService {
   final EventParser _eventParser;
   final String? _currentPubkey;
 
+  /// Checks if any modal is open and closes it before navigation
+  Future<void> _checkModal() async {
+    final context = rootNavigatorKey.currentContext;
+    if (context != null && context.mounted) {
+      final router = GoRouter.maybeOf(context);
+      final isMainModalOpen = router?.state.isMainModalOpen ?? false;
+      final canPop = context.canPop();
+
+      if (isMainModalOpen || canPop) {
+        context.pop();
+        // Wait for modal to close
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+    }
+  }
+
   RouteMatchList get _currentRouteMatchList {
     final router = GoRouter.of(rootNavigatorKey.currentContext!);
     final lastMatch = router.routerDelegate.currentConfiguration.last;
@@ -70,6 +86,8 @@ class NotificationResponseService {
       );
 
       final entity = _eventParser.parse(notificationPayload.event);
+
+      await _checkModal();
 
       switch (entity) {
         case ModifiablePostEntity():
