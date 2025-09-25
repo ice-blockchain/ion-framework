@@ -52,26 +52,10 @@ class PermissionRequestSheet extends ConsumerWidget {
         ),
         SizedBox(height: 32.0.s),
         ScreenSideOffset.small(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                child: Button(
-                  type: ButtonType.outlined,
-                  mainAxisSize: MainAxisSize.max,
-                  label: Text(context.i18n.button_dont_allow),
-                  onPressed: () => Navigator.of(context).pop(false),
-                ),
-              ),
-              SizedBox(width: 16.0.s),
-              Flexible(
-                child: Button(
-                  mainAxisSize: MainAxisSize.max,
-                  label: Text(context.i18n.button_continue),
-                  onPressed: () => Navigator.of(context).pop(true),
-                ),
-              ),
-            ],
+          child: Button(
+            mainAxisSize: MainAxisSize.max,
+            label: Text(context.i18n.button_continue),
+            onPressed: () => Navigator.of(context).pop(true),
           ),
         ),
         ScreenBottomOffset(),
