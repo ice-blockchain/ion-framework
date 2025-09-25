@@ -20,6 +20,8 @@ int useTextLineCount({
       )..layout(maxWidth: maxWidth);
 
       final lineMetrics = textPainter.computeLineMetrics();
+      textPainter.dispose();
+
       return lineMetrics.length;
     },
     [text, textStyle, maxWidth, scaler],

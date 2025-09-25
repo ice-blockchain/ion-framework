@@ -169,6 +169,8 @@ class _TextMessageContent extends HookWidget {
     )..layout(maxWidth: maxAvailableWidth - metadataWidth.value.s);
 
     final oneLineMetrics = oneLineTextPainter.computeLineMetrics();
+    oneLineTextPainter.dispose();
+
     final multiline = oneLineMetrics.length > 1 && !oneLineMetrics.every((m) => m.hardBreak);
     if (hasReactionsOrMetadata) {
       return _TextRichContent(
@@ -203,6 +205,7 @@ class _TextMessageContent extends HookWidget {
       )..layout(maxWidth: maxAvailableWidth);
 
       final lineMetrics = multiLineTextPainter.computeLineMetrics();
+      multiLineTextPainter.dispose();
 
       final wouldOverlap = lineMetrics.last.width > (maxAvailableWidth - metadataWidth.value.s);
 

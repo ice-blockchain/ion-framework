@@ -5,6 +5,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/text_editor_preview.dart';
+import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_styles.dart';
 import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -47,6 +48,7 @@ class PostContent extends HookConsumerWidget {
                 context.theme.appTextThemes.body2,
                 constraints.maxWidth,
                 maxLines!,
+                MediaQuery.textScalerOf(context),
               )
             : _TruncationResult(delta: currentContent, hasOverflow: false);
 
@@ -92,36 +94,12 @@ class PostContent extends HookConsumerWidget {
     );
   }
 
-  Delta _truncateDelta(Delta original, int maxChars) {
-    final truncated = Delta();
-    var consumed = 0;
-    for (final op in original.toList()) {
-      final data = op.data;
-      if (data is String) {
-        if (consumed >= maxChars) break;
-        final remaining = maxChars - consumed;
-        if (data.length <= remaining) {
-          truncated.push(op);
-          consumed += data.length;
-        } else {
-          truncated.insert(data.substring(0, remaining), op.attributes);
-          break;
-        }
-      } else {
-        // preserve embeds until overflow
-        if (consumed < maxChars) {
-          truncated.push(op);
-        }
-      }
-    }
-    return truncated;
-  }
-
   _TruncationResult _truncateForMaxLines(
     Delta content,
     TextStyle style,
     double maxWidth,
     int maxLines,
+    TextScaler textScaler,
   ) {
     // Ensure content ends with a newline for proper measurement
     final contentForLayout = content;
@@ -137,10 +115,13 @@ class PostContent extends HookConsumerWidget {
       text: TextSpan(text: plainText, style: style),
       textDirection: TextDirection.ltr,
       maxLines: maxLines - 1,
+      textScaler: textScaler,
     )..layout(maxWidth: maxWidth);
 
     // If text fits, return original
     if (!painter.didExceedMaxLines) {
+      painter.dispose();
+
       return _TruncationResult(delta: content, hasOverflow: false);
     }
 
@@ -148,12 +129,13 @@ class PostContent extends HookConsumerWidget {
     final yOffset = painter.height - 0.1;
     final textPosition = painter.getPositionForOffset(Offset(maxWidth, yOffset));
     final truncateOffset = textPosition.offset;
+    painter.dispose();
 
     // Truncate content and ensure newline at end
-    final truncated = _truncateDelta(content, truncateOffset);
+    final truncated = QuillTextUtils.truncateDelta(content, truncateOffset);
     if (truncated.isNotEmpty) {
       final lastOp = truncated.operations.last;
-      if (lastOp.data is String && !(lastOp.data! as String).endsWith('\n')) {
+      if (lastOp.data case final data? when data is String && !data.endsWith('\n')) {
         truncated.insert('\n');
       }
     }
