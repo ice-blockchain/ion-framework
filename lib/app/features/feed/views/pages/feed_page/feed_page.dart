@@ -8,7 +8,6 @@ import 'package:ion/app/components/screen_offset/screen_top_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/feed_category.dart';
@@ -68,38 +67,36 @@ class FeedPage extends HookConsumerWidget {
         scrollController: scrollController,
         horizontalPadding: ScreenSideOffset.defaultSmallMargin,
       ),
-      body: ListCachedObjects(
-        child: LoadMoreBuilder(
-          slivers: slivers,
-          hasMore: hasMorePosts,
-          onLoadMore: () => _onLoadMore(ref),
-          builder: (context, slivers) {
-            return PullToRefreshBuilder(
-              sliverAppBar: CollapsingAppBar(
-                height: Stories.height,
-                bottomOffset: 0,
-                topOffset: 8.0.s,
-                child: Column(
-                  children: [
-                    if (feedCategory == FeedCategory.articles) const ArticleCategoriesMenu(),
-                    if (showStories) const Stories(),
-                  ],
-                ),
+      body: LoadMoreBuilder(
+        slivers: slivers,
+        hasMore: hasMorePosts,
+        onLoadMore: () => _onLoadMore(ref),
+        builder: (context, slivers) {
+          return PullToRefreshBuilder(
+            sliverAppBar: CollapsingAppBar(
+              height: Stories.height,
+              bottomOffset: 0,
+              topOffset: 8.0.s,
+              child: Column(
+                children: [
+                  if (feedCategory == FeedCategory.articles) const ArticleCategoriesMenu(),
+                  if (showStories) const Stories(),
+                ],
               ),
+            ),
+            slivers: slivers,
+            onRefresh: () =>
+                _onRefresh(ref, showStories: showStories, showTrendingVideos: showTrendingVideos),
+            refreshIndicatorEdgeOffset: FeedControls.height +
+                MediaQuery.paddingOf(context).top +
+                ScreenTopOffset.defaultMargin,
+            builder: (context, slivers) => CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
               slivers: slivers,
-              onRefresh: () =>
-                  _onRefresh(ref, showStories: showStories, showTrendingVideos: showTrendingVideos),
-              refreshIndicatorEdgeOffset: FeedControls.height +
-                  MediaQuery.paddingOf(context).top +
-                  ScreenTopOffset.defaultMargin,
-              builder: (context, slivers) => CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: slivers,
-                controller: scrollController,
-              ),
-            );
-          },
-        ),
+              controller: scrollController,
+            ),
+          );
+        },
       ),
     );
   }

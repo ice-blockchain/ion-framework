@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/hooks/use_on_init.dart';
 
 class LoadMoreBuilder extends HookWidget {
   LoadMoreBuilder({
@@ -14,7 +13,6 @@ class LoadMoreBuilder extends HookWidget {
     Widget Function(BuildContext context, List<Widget> slivers)? builder,
     this.loadingIndicatorContainerBuilder,
     this.loadMoreOffset,
-    this.forceLoadMore = false,
     this.showIndicator = true,
     super.key,
   }) : builder = builder ??
@@ -32,8 +30,6 @@ class LoadMoreBuilder extends HookWidget {
 
   final bool hasMore;
 
-  final bool forceLoadMore;
-
   final bool showIndicator;
 
   @override
@@ -48,15 +44,6 @@ class LoadMoreBuilder extends HookWidget {
         }
       },
       [hasMore, loading.value, onLoadMore],
-    );
-
-    useOnInit(
-      () {
-        if (forceLoadMore) {
-          loadMore();
-        }
-      },
-      [forceLoadMore, loadMore],
     );
 
     final loadingIndicator = Center(
