@@ -107,7 +107,7 @@ dependencies:
   hooks_riverpod: ^2.6.1
   icloud_storage: ^2.2.0
   image: ^4.5.4
-  image_cropper: ^8.1.0
+  image_cropper: ^11.0.0
   intl: any
   ion_connect_cache:
     path: packages/ion_connect_cache
