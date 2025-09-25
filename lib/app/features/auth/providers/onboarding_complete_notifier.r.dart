@@ -5,6 +5,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
 import 'package:ion/app/features/auth/providers/onboarding_data_provider.m.dart';
+import 'package:ion/app/features/feed/providers/feed_config_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
@@ -218,7 +219,12 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
 
   Future<List<EventMessage>> _getDeviceIdentificationProofsEvents({
     required EventMessage userDelegationEvent,
-  }) {
+  }) async {
+    final feedConfig = await ref.watch(feedConfigProvider.future);
+    if (feedConfig.deviceIdentificationEnabled == false) {
+      return [];
+    }
+
     return ref.read(
       deviceIdentificationProofsProvider(
         delegationEvent: userDelegationEvent,

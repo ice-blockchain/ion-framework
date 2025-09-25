@@ -4,7 +4,9 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/bool.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/feed/providers/feed_config_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -219,6 +221,10 @@ bool isDeviceIdentityProven(
   required String masterPubkey,
   required String deviceIdentityPubkey,
 }) {
+  final feedConfigState = ref.watch(feedConfigProvider);
+  if (feedConfigState.value?.deviceIdentificationEnabled.falseOrValue == false) {
+    return true;
+  }
   var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(masterPubkey))?.data;
   if (profileBadgesData == null) {
     final res = ref.watch(profileBadgesDataProvider(masterPubkey));
@@ -243,6 +249,10 @@ bool isDeviceIdentityProven(
 
 @riverpod
 Future<bool> hasUserProvenIdentities(Ref ref, String masterPubkey) async {
+  final feedConfigState = ref.watch(feedConfigProvider);
+  if (feedConfigState.value?.deviceIdentificationEnabled.falseOrValue == false) {
+    return true;
+  }
   final profileBadgesData = ref.read(cachedProfileBadgesDataProvider(masterPubkey))?.data ??
       await ref.read(profileBadgesDataProvider(masterPubkey).future);
   final userDelegation = await ref.read(

@@ -8,6 +8,7 @@ import 'package:fpjs_pro_plugin/fpjs_pro_plugin.dart';
 import 'package:fpjs_pro_plugin/region.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/feed/providers/feed_config_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -19,6 +20,7 @@ part 'device_identification_service.r.g.dart';
 @Riverpod(keepAlive: true)
 class DeviceIdentificationService extends _$DeviceIdentificationService {
   bool _initialized = false;
+  bool _deviceIdentificationEnabled = false;
 
   @override
   Future<void> build() async {
@@ -28,11 +30,15 @@ class DeviceIdentificationService extends _$DeviceIdentificationService {
 
     final env = ref.read(envProvider.notifier);
     final origin = env.get<String>(EnvVariable.ION_ORIGIN);
-    await FpjsProPlugin.initFpjs(
-      env.get(EnvVariable.DEVICE_IDENTIFICATION_CLIENT_API_KEY),
-      region: Region.eu,
-      endpoint: '$origin/v1/device-identifications',
-    );
+    final feedConfig = await ref.read(feedConfigProvider.future);
+    _deviceIdentificationEnabled = feedConfig.deviceIdentificationEnabled;
+    if (_deviceIdentificationEnabled) {
+      await FpjsProPlugin.initFpjs(
+        env.get(EnvVariable.DEVICE_IDENTIFICATION_CLIENT_API_KEY),
+        region: Region.eu,
+        endpoint: '$origin/v1/device-identifications',
+      );
+    }
     _initialized = true;
   }
 
@@ -41,6 +47,9 @@ class DeviceIdentificationService extends _$DeviceIdentificationService {
     await future;
 
     try {
+      if (!_deviceIdentificationEnabled) {
+        return '';
+      }
       final eventSigner =
           await ref.read(ionConnectEventSignerProvider(identityKeyName).notifier).initEventSigner();
       if (eventSigner == null) {
