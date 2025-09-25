@@ -14,6 +14,7 @@ import 'package:ion/app/features/gallery/views/components/manage_access_banner.d
 import 'package:ion/app/features/gallery/views/pages/album_selection_page.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
+import 'package:ion/app/hooks/use_route_presence.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
@@ -29,6 +30,7 @@ class MediaPickerPage extends HookConsumerWidget {
     this.maxVideoDurationInSeconds,
     this.showCameraCell = true,
     this.onSelectCallback,
+    this.preselectedMedia,
   });
 
   final int maxSelection;
@@ -38,6 +40,7 @@ class MediaPickerPage extends HookConsumerWidget {
   final int? maxVideoDurationInSeconds;
   final bool showCameraCell;
   final void Function(List<MediaFile> media)? onSelectCallback;
+  final List<String>? preselectedMedia;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -75,6 +78,12 @@ class MediaPickerPage extends HookConsumerWidget {
             .updateDurationLimit(maxVideoDurationInSeconds);
       },
       [maxSelection, maxVideoDurationInSeconds],
+    );
+
+    useRoutePresence(
+      onBecameInactive: () {
+        ref.invalidate(mediaSelectionNotifierProvider);
+      },
     );
 
     final slivers = [

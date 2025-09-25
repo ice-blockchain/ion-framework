@@ -6,6 +6,7 @@ import 'package:ion/app/features/core/permissions/data/models/permissions_types.
 import 'package:ion/app/features/core/permissions/views/components/permission_aware_widget.dart';
 import 'package:ion/app/features/core/permissions/views/components/permission_dialogs/permission_sheets.dart';
 import 'package:ion/app/features/feed/views/components/actions_toolbar_button/actions_toolbar_button.dart';
+import 'package:ion/app/features/gallery/providers/media_selection_provider.r.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -17,6 +18,7 @@ class GalleryPermissionButton extends ConsumerWidget {
     required this.onMediaSelected,
     required this.maxSelection,
     this.enabled = true,
+    this.preselectedMedia,
     super.key,
   });
 
@@ -24,6 +26,7 @@ class GalleryPermissionButton extends ConsumerWidget {
   final ValueChanged<List<MediaFile>?> onMediaSelected;
   final int? maxSelection;
   final bool enabled;
+  final List<MediaFile>? preselectedMedia;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,6 +35,8 @@ class GalleryPermissionButton extends ConsumerWidget {
       requestId: 'gallery_permission_button',
       onGranted: () async {
         if (context.mounted) {
+          ref.read(mediaSelectionNotifierProvider.notifier).preselectMedia(preselectedMedia ?? []);
+
           final mediaFiles = await MediaPickerRoute(
             maxSelection: maxSelection,
             mediaPickerType: mediaPickerType,
