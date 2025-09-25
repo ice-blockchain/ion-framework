@@ -25,6 +25,7 @@ scripts:
     exec: flutter test
   build_runner:
     exec: flutter pub run build_runner build --delete-conflicting-outputs
+    concurrency: 4
   build_runner_watch:
     exec: flutter pub run build_runner watch --delete-conflicting-outputs
   generate_code:
