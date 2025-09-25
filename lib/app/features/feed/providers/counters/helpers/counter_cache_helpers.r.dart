@@ -9,7 +9,7 @@ import 'package:ion/app/features/feed/reposts/providers/optimistic/intents/remov
 import 'package:ion/app/features/feed/reposts/providers/optimistic/post_repost_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
-import 'package:ion/app/features/optimistic_ui/core/optimistic_service.dart';
+import 'package:ion/app/features/optimistic_ui/core/optimistic_intent.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'counter_cache_helpers.r.g.dart';
@@ -55,7 +55,7 @@ int countFromCache(
 /// Service for updating quote counters using optimistic UI
 class QuoteCounterUpdater {
   QuoteCounterUpdater({
-    required this.postRepostService,
+    required this.disposePostRepostService,
     required this.removeCacheItem,
     required this.getCurrentPostRepost,
     required this.findRepostInCache,
@@ -63,7 +63,7 @@ class QuoteCounterUpdater {
     required this.cacheKeys,
   });
 
-  final OptimisticService<PostRepost> postRepostService;
+  final FutureOr<void> Function(OptimisticIntent<PostRepost> intent, PostRepost current) disposePostRepostService;
   final void Function(String cacheKey) removeCacheItem;
   final PostRepost? Function(String id) getCurrentPostRepost;
   final PostRepost? Function(EventReference) findRepostInCache;
@@ -93,7 +93,7 @@ class QuoteCounterUpdater {
     }
 
     final intent = isAdding ? const AddQuoteIntent() : const RemoveQuoteIntent();
-    await postRepostService.dispatch(intent, current);
+    await disposePostRepostService(intent, current);
 
     _invalidateRepostCounterCache(quotedEvent);
   }
@@ -126,11 +126,11 @@ class QuoteCounterUpdater {
 @riverpod
 QuoteCounterUpdater quoteCounterUpdater(Ref ref) {
   return QuoteCounterUpdater(
-    postRepostService: ref.watch(postRepostServiceProvider),
     removeCacheItem: ref.watch(ionConnectCacheProvider.notifier).remove,
     getCurrentPostRepost: (id) => ref.watch(postRepostWatchProvider(id)).valueOrNull,
     findRepostInCache: (eventRef) => ref.watch(findRepostInCacheProvider(eventRef)),
     getRepostCounts: (eventRef) => ref.watch(repostCountsFromCacheProvider(eventRef)),
     cacheKeys: ref.watch(ionConnectCacheProvider).keys.toList(),
+    disposePostRepostService: (intent, current) => ref.read(postRepostServiceProvider).dispatch(intent, current),
   );
 }
