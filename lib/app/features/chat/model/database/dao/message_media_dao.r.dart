@@ -48,11 +48,11 @@ class MessageMediaDao extends DatabaseAccessor<ChatDatabase> with _$MessageMedia
     return (select(messageMediaTable)
           ..where((t) => t.messageEventReference.equalsValue(eventReference)))
         .watch()
-        .map((items) {
-      final seen = <String?>{};
-      return items.where((item) {
-        if (item.remoteUrl == null) return true;
-        return seen.add(item.remoteUrl);
+        .map((messageMedia) {
+      final mediaUrls = <String?>{};
+      return messageMedia.where((media) {
+        if (media.remoteUrl == null) return true;
+        return mediaUrls.add(media.remoteUrl);
       }).toList();
     });
   }
