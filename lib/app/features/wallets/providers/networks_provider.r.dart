@@ -3,6 +3,7 @@
 import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/wallets/data/repository/networks_repository.r.dart';
+import 'package:ion/app/features/wallets/domain/networks/networks_comparator.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -25,7 +26,11 @@ Future<List<NetworkData>> networksByTier(Ref ref, {required int tier}) {
 
 @riverpod
 Future<List<NetworkData>> networksWithNft(Ref ref) {
-  return ref.watch(networksRepositoryProvider).getNftNetworks();
+  final comparator = NetworksComparator(sortType: NetworkSortType.nftPopularity);
+  return ref
+      .watch(networksRepositoryProvider)
+      .getNftNetworks()
+      .then((networks) => networks.sorted(comparator.compareNetworks));
 }
 
 @riverpod
