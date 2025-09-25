@@ -44,12 +44,15 @@ class BadgeAwardHandler extends GlobalSubscriptionEventHandler {
     if (eventRef.kind == BadgeDefinitionEntity.kind &&
         eventRef.dTag == BadgeDefinitionEntity.verifiedBadgeDTag &&
         (pubkeys.isEmpty || pubkeys.contains(eventRef.masterPubkey))) {
+      final badgeEntries = [
+        BadgeEntry(
+          definitionRef: badgeAwardEntity.data.badgeDefinitionRef,
+          awardId: badgeAwardEntity.id,
+        ),
+      ];
       final updatedData = await ref.read(
         updatedProfileBadgesProvider(
-          BadgeEntry(
-            definitionRef: badgeAwardEntity.data.badgeDefinitionRef,
-            awardId: badgeAwardEntity.id,
-          ),
+          badgeEntries,
           currentPubkey,
         ).future,
       );

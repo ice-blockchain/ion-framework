@@ -186,7 +186,7 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
   Future<ProfileBadgesData?> _buildProfileBadges({
     required List<EventMessage> usernameProofsEvents,
   }) {
-    return ref.read(updateProfileBadgesWithUsernameProofsProvider(usernameProofsEvents).future);
+    return ref.read(updateProfileBadgesWithProofsProvider(usernameProofsEvents).future);
   }
 
   Future<Map<String, String>> _buildUserWallets() async {

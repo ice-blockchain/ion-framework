@@ -268,48 +268,82 @@ Future<VerifiedBadgeEntities?> currentUserVerifiedBadgeData(Ref ref) async {
 }
 
 @riverpod
-Future<ProfileBadgesData> updatedProfileBadges(Ref ref, BadgeEntry newEntry, String pubkey) async {
-  final profileData = await ref.watch(
-    profileBadgesDataProvider(pubkey).future,
-  );
-  final existing = profileData?.entries ?? [];
-  final newDTag = newEntry.definitionRef.dTag;
+Future<ProfileBadgesData> updatedProfileBadges(
+  Ref ref,
+  List<BadgeEntry> newEntries,
+  String pubkey,
+) async {
+  {
+    final profileData = await ref.watch(
+      profileBadgesDataProvider(pubkey).future,
+    );
+    final existing = profileData?.entries ?? [];
 
-  // Filter out any entry with the same dTag
-  final filtered = existing.where((e) => e.definitionRef.dTag != newDTag).toList();
+    // Incoming entries may include multiple badge updates. We merge them while
+    // enforcing uniqueness per dTag, and at most one username-proof badge.
+    const usernameProofPrefix = BadgeDefinitionEntity.usernameProofOfOwnershipBadgeDTag;
 
-  return ProfileBadgesData(
-    entries: [...filtered, newEntry],
-  );
+    // Gather dTags of incoming entries and whether any is a username-proof.
+    final newDTags = newEntries.map((e) => e.definitionRef.dTag).toSet();
+    final hasNewUsernameProof = newEntries.any(
+      (e) => e.definitionRef.dTag.startsWith(usernameProofPrefix),
+    );
+
+    // Keep existing entries that do not conflict with incoming ones:
+    //  - remove if exact dTag collision with any new entry
+    //  - remove if it's a username-proof when we also add a username-proof (only one allowed)
+    final filtered = existing.where((e) {
+      final dTag = e.definitionRef.dTag;
+      if (newDTags.contains(dTag)) return false;
+      if (hasNewUsernameProof && dTag.startsWith(usernameProofPrefix)) return false;
+      return true;
+    }).toList();
+
+    // Deduplicate new entries by dTag (last-write-wins within the batch)
+    final dedupedNewEntries = <String, BadgeEntry>{};
+    for (final entry in newEntries) {
+      dedupedNewEntries[entry.definitionRef.dTag] = entry;
+    }
+
+    return ProfileBadgesData(
+      entries: [
+        ...filtered,
+        ...dedupedNewEntries.values,
+      ],
+    );
+  }
 }
 
 @riverpod
-Future<ProfileBadgesData?> updateProfileBadgesWithUsernameProofs(
+Future<ProfileBadgesData?> updateProfileBadgesWithProofs(
   Ref ref,
   List<EventMessage> events,
 ) async {
   final currentPubkey = ref.watch(currentPubkeySelectorProvider);
   if (currentPubkey == null) return null;
 
-  final awardEntity = events
+  final awardEntities = events
       .where((event) => event.kind == BadgeAwardEntity.kind)
       .map(BadgeAwardEntity.fromEventMessage)
       .nonNulls
-      .where(
-        (entity) => entity.data.badgeDefinitionRef.dTag
-            .startsWith(BadgeDefinitionEntity.usernameProofOfOwnershipBadgeDTag),
-      )
-      .firstOrNull;
-  if (awardEntity == null) {
+      .toList();
+  if (awardEntities.isEmpty) {
     return null;
   }
 
+  // Map each BadgeAwardEntity to a BadgeEntry
+  final newEntries = awardEntities
+      .map(
+        (awardEntity) => BadgeEntry(
+          definitionRef: awardEntity.data.badgeDefinitionRef,
+          awardId: awardEntity.id,
+        ),
+      )
+      .toList();
+
   return ref.read(
     updatedProfileBadgesProvider(
-      BadgeEntry(
-        definitionRef: awardEntity.data.badgeDefinitionRef,
-        awardId: awardEntity.id,
-      ),
+      newEntries,
       currentPubkey,
     ).future,
   );
