@@ -8,7 +8,7 @@ import 'package:ion/app/features/chat/views/components/message_items/message_met
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 
-class VisualMediaMetadata extends HookConsumerWidget {
+class VisualMediaMetadata extends ConsumerWidget {
   const VisualMediaMetadata({
     required this.eventMessage,
     super.key,
@@ -19,7 +19,7 @@ class VisualMediaMetadata extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
-    final message = eventMessage.content;
+    final messageContent = eventMessage.content;
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -29,11 +29,11 @@ class VisualMediaMetadata extends HookConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (message.isNotEmpty)
+              if (messageContent.isNotEmpty)
                 Padding(
                   padding: EdgeInsetsDirectional.only(top: 8.0.s),
                   child: Text(
-                    message,
+                    messageContent,
                     style: context.theme.appTextThemes.body2.copyWith(
                       color: isMe
                           ? context.theme.appColors.onPrimaryAccent
