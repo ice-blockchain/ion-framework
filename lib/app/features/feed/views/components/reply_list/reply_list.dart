@@ -9,6 +9,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/entities_list/entities_list.dart';
 import 'package:ion/app/features/components/entities_list/entities_list_skeleton.dart';
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
 import 'package:ion/app/features/core/model/paged.f.dart';
 import 'package:ion/app/features/feed/providers/replies_data_source_provider.r.dart';
 import 'package:ion/app/features/feed/providers/replies_provider.r.dart';
@@ -38,39 +39,45 @@ class ReplyList extends ConsumerWidget {
 
     final isLoading = replies?.data is PagedLoading;
 
-    return LoadMoreBuilder(
-      hasMore: hasMoreReplies,
-      onLoadMore: () => ref.read(repliesProvider(eventReference).notifier).loadMore(eventReference),
-      showIndicator: !isLoading,
-      slivers: [
-        if (headers != null) ...headers!,
-        if (entities == null)
-          const EntitiesListSkeleton()
-        else if (entities.isEmpty)
-          const _EmptyState()
-        else
-          EntitiesList(
-            items: entities
-                .map((entity) => IonEntityListItem.event(eventReference: entity.toEventReference()))
-                .toList(),
-            separatorHeight: 1.0.s,
-            onVideoTap: ({
-              required String eventReference,
-              required int initialMediaIndex,
-              String? framedEventReference,
-            }) =>
-                ReplyListVideosRoute(
-              eventReference: eventReference,
-              initialMediaIndex: initialMediaIndex,
-              parentEventReference: this.eventReference.encode(),
-              framedEventReference: framedEventReference,
-            ).push<void>(context),
-          ),
-      ],
-      builder: (context, slivers) => PullToRefreshBuilder(
-        slivers: slivers,
-        onRefresh: () => _onRefresh(ref),
-        builder: (BuildContext context, List<Widget> slivers) => CustomScrollView(slivers: slivers),
+    return ListCachedObjects(
+      child: LoadMoreBuilder(
+        hasMore: hasMoreReplies,
+        onLoadMore: () =>
+            ref.read(repliesProvider(eventReference).notifier).loadMore(eventReference),
+        showIndicator: !isLoading,
+        slivers: [
+          if (headers != null) ...headers!,
+          if (entities == null)
+            const EntitiesListSkeleton()
+          else if (entities.isEmpty)
+            const _EmptyState()
+          else
+            EntitiesList(
+              items: entities
+                  .map(
+                    (entity) => IonEntityListItem.event(eventReference: entity.toEventReference()),
+                  )
+                  .toList(),
+              separatorHeight: 1.0.s,
+              onVideoTap: ({
+                required String eventReference,
+                required int initialMediaIndex,
+                String? framedEventReference,
+              }) =>
+                  ReplyListVideosRoute(
+                eventReference: eventReference,
+                initialMediaIndex: initialMediaIndex,
+                parentEventReference: this.eventReference.encode(),
+                framedEventReference: framedEventReference,
+              ).push<void>(context),
+            ),
+        ],
+        builder: (context, slivers) => PullToRefreshBuilder(
+          slivers: slivers,
+          onRefresh: () => _onRefresh(ref),
+          builder: (BuildContext context, List<Widget> slivers) =>
+              CustomScrollView(slivers: slivers),
+        ),
       ),
     );
   }

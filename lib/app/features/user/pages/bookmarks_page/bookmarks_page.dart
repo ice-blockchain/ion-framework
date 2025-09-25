@@ -9,6 +9,7 @@ import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/features/components/entities_list/entities_list.dart';
 import 'package:ion/app/features/components/entities_list/entities_list_skeleton.dart';
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
 import 'package:ion/app/features/feed/data/models/bookmarks/bookmarks_set.f.dart';
 import 'package:ion/app/features/feed/providers/feed_bookmarks_notifier.r.dart';
 import 'package:ion/app/features/user/pages/bookmarks_page/components/bookmarks_filters.dart';
@@ -61,9 +62,12 @@ class BookmarksPage extends HookConsumerWidget {
                 ];
               } else {
                 return [
-                  EntitiesList(
-                    items: refs.map((ref) => IonEntityListItem.event(eventReference: ref)).toList(),
-                    readFromDB: true,
+                  ListCachedObjects(
+                    child: EntitiesList(
+                      items:
+                          refs.map((ref) => IonEntityListItem.event(eventReference: ref)).toList(),
+                      readFromDB: true,
+                    ),
                   ),
                 ];
               }

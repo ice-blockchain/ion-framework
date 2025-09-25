@@ -6,6 +6,7 @@ import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/features/components/entities_list/entities_list.dart';
 import 'package:ion/app/features/components/entities_list/entities_list_skeleton.dart';
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/topic_articles_data_source_provider.r.dart';
@@ -35,21 +36,24 @@ class ArticlesFromTopicPage extends ConsumerWidget {
       appBar: NavigationAppBar.screen(
         title: Text(topicName),
       ),
-      body: LoadMoreBuilder(
-        hasMore: entitiesPagedData?.hasMore ?? false,
-        onLoadMore: ref.read(entitiesPagedDataProvider(dataSource).notifier).fetchEntities,
-        slivers: [
-          if (entities == null)
-            const EntitiesListSkeleton()
-          else
-            EntitiesList(
-              items: entities
-                  .map(
-                    (entity) => IonEntityListItem.event(eventReference: entity.toEventReference()),
-                  )
-                  .toList(),
-            ),
-        ],
+      body: ListCachedObjects(
+        child: LoadMoreBuilder(
+          hasMore: entitiesPagedData?.hasMore ?? false,
+          onLoadMore: ref.read(entitiesPagedDataProvider(dataSource).notifier).fetchEntities,
+          slivers: [
+            if (entities == null)
+              const EntitiesListSkeleton()
+            else
+              EntitiesList(
+                items: entities
+                    .map(
+                      (entity) =>
+                          IonEntityListItem.event(eventReference: entity.toEventReference()),
+                    )
+                    .toList(),
+              ),
+          ],
+        ),
       ),
     );
   }
