@@ -55,7 +55,7 @@ int countFromCache(
 /// Service for updating quote counters using optimistic UI
 class QuoteCounterUpdater {
   QuoteCounterUpdater({
-    required this.disposePostRepostService,
+    required this.dispatchPostRepostService,
     required this.removeCacheItem,
     required this.getCurrentPostRepost,
     required this.findRepostInCache,
@@ -64,7 +64,7 @@ class QuoteCounterUpdater {
   });
 
   final FutureOr<void> Function(OptimisticIntent<PostRepost> intent, PostRepost current)
-      disposePostRepostService;
+      dispatchPostRepostService;
   final void Function(String cacheKey) removeCacheItem;
   final PostRepost? Function(String id) getCurrentPostRepost;
   final PostRepost? Function(EventReference) findRepostInCache;
@@ -94,7 +94,7 @@ class QuoteCounterUpdater {
     }
 
     final intent = isAdding ? const AddQuoteIntent() : const RemoveQuoteIntent();
-    await disposePostRepostService(intent, current);
+    await dispatchPostRepostService(intent, current);
 
     _invalidateRepostCounterCache(quotedEvent);
   }
@@ -132,7 +132,7 @@ QuoteCounterUpdater quoteCounterUpdater(Ref ref) {
     findRepostInCache: (eventRef) => ref.watch(findRepostInCacheProvider(eventRef)),
     getRepostCounts: (eventRef) => ref.watch(repostCountsFromCacheProvider(eventRef)),
     cacheKeys: ref.watch(ionConnectCacheProvider).keys.toList(),
-    disposePostRepostService: (intent, current) =>
+    dispatchPostRepostService: (intent, current) =>
         ref.read(postRepostServiceProvider).dispatch(intent, current),
   );
 }
