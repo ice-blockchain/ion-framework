@@ -135,7 +135,7 @@ class ListEntityHelper {
 
   static bool hasMetadata(BuildContext context, WidgetRef ref, IonConnectEntity entity) {
     final userMetadata = ref.watch(
-          userMetadataProvider(entity.masterPubkey).select((value) {
+          userMetadataProvider(entity.masterPubkey, network: false).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
               ListCachedObjects.updateObject<UserMetadataEntity>(context, entity);

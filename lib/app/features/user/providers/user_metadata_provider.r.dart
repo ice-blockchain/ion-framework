@@ -26,11 +26,13 @@ class UserMetadata extends _$UserMetadata {
   Future<UserMetadataEntity?> build(
     String masterPubkey, {
     bool cache = true,
+    bool network = true,
     Duration? expirationDuration,
   }) async {
     final userMetadata = await ref.watch(
       ionConnectEntityProvider(
         cache: cache,
+        network: network,
         expirationDuration: expirationDuration,
         eventReference: ReplaceableEventReference(
           masterPubkey: masterPubkey,
@@ -47,33 +49,35 @@ class UserMetadata extends _$UserMetadata {
       return userMetadata;
     }
 
-    // If user metadata is null, information can be not available yet on read
-    // relays, so we check write relays
-    final userMetadataFromWriteRelay = await ref.watch(
-      ionConnectEntityProvider(
-        actionType: ActionType.write,
-        cache: cache,
-        expirationDuration: expirationDuration,
-        eventReference: ReplaceableEventReference(
-          masterPubkey: masterPubkey,
-          kind: UserMetadataEntity.kind,
-        ),
-        cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
-        // Always include ProfileBadgesSearchExtension to avoid provider rebuilds
-        // when badge data changes from null to cached
-        search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
-      ).future,
-    ) as UserMetadataEntity?;
+    if (network) {
+      // If user metadata is null, information can be not available yet on read
+      // relays, so we check write relays
+      final userMetadataFromWriteRelay = await ref.watch(
+        ionConnectEntityProvider(
+          actionType: ActionType.write,
+          cache: cache,
+          expirationDuration: expirationDuration,
+          eventReference: ReplaceableEventReference(
+            masterPubkey: masterPubkey,
+            kind: UserMetadataEntity.kind,
+          ),
+          cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
+          // Always include ProfileBadgesSearchExtension to avoid provider rebuilds
+          // when badge data changes from null to cached
+          search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
+        ).future,
+      ) as UserMetadataEntity?;
 
-    if (userMetadataFromWriteRelay != null) {
-      return userMetadataFromWriteRelay;
-    }
+      if (userMetadataFromWriteRelay != null) {
+        return userMetadataFromWriteRelay;
+      }
 
-    if (userMetadata == null) {
-      // If user metadata is null, we unfollow the user and delete it from the database
-      unawaited(ref.read(toggleFollowNotifierProvider.notifier).unfollow(masterPubkey));
-      unawaited(ref.watch(userMetadataDaoProvider).deleteMetadata([masterPubkey]));
-      unawaited(ref.watch(userDelegationDaoProvider).deleteDelegation([masterPubkey]));
+      if (userMetadata == null) {
+        // If user metadata is null, we unfollow the user and delete it from the database
+        unawaited(ref.read(toggleFollowNotifierProvider.notifier).unfollow(masterPubkey));
+        unawaited(ref.watch(userMetadataDaoProvider).deleteMetadata([masterPubkey]));
+        unawaited(ref.watch(userDelegationDaoProvider).deleteDelegation([masterPubkey]));
+      }
     }
 
     return null;

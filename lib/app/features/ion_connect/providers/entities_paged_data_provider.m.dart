@@ -85,6 +85,11 @@ final class DataSourceFetchResult {
   const DataSourceFetchResult({
     required this.entry,
     required this.missingEvents,
+    // Tracking the pending inserts to keep the initial order when fetching missing events.
+    // It is currently needed only for the case with the following users where we keep kind0 events in the state
+    // and some kind0 events might be missing so we fetch those manually and then insert to the initial positions.
+    // For other use-cases it is not needed since we store other event kinds and using kind0 only as secondary data.
+    // So missing kind0 do not break the initial order.
     required this.pendingInserts,
   });
 
