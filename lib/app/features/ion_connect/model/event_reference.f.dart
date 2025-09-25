@@ -163,13 +163,17 @@ class ReplaceableEventReference with _$ReplaceableEventReference implements Even
   }
 
   factory ReplaceableEventReference.fromString(String input) {
-    final parts = input.split(EventReference.separator);
+    try {
+      final parts = input.split(EventReference.separator);
 
-    return ReplaceableEventReference(
-      kind: int.parse(parts[0]),
-      masterPubkey: parts[1],
-      dTag: parts[2],
-    );
+      return ReplaceableEventReference(
+        kind: int.parse(parts[0]),
+        masterPubkey: parts[1],
+        dTag: parts[2],
+      );
+    } catch (e) {
+      throw IncorrectEventTagException(tag: [tagName, input]);
+    }
   }
 
   @override
