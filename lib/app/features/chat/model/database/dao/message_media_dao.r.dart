@@ -49,10 +49,8 @@ class MessageMediaDao extends DatabaseAccessor<ChatDatabase> with _$MessageMedia
           ..where((t) => t.messageEventReference.equalsValue(eventReference)))
         .watch()
         .map((items) {
-      // Remove duplicates based on remoteUrl
       final seen = <String?>{};
       return items.where((item) {
-        // Keep nulls (or skip them based on your needs)
         if (item.remoteUrl == null) return true;
         return seen.add(item.remoteUrl);
       }).toList();
