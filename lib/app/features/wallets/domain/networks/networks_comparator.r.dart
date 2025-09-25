@@ -27,12 +27,9 @@ class NftPopularitySortStrategy implements NetworkSortStrategy {
     const NetworkIds(mainnetNetworkId: 'AvalancheC', testnetNetworkId: 'AvalancheCFuji'),
   ];
 
-  int _getNftPopularityIndex(String networkId) {
-    final index = _nftPopularityList.indexWhere(
-      (ids) => ids.mainnetNetworkId == networkId || ids.testnetNetworkId == networkId,
-    );
-    return index == -1 ? -1 : index;
-  }
+  int _getNftPopularityIndex(String networkId) => _nftPopularityList.indexWhere(
+        (ids) => ids.mainnetNetworkId == networkId || ids.testnetNetworkId == networkId,
+      );
 
   @override
   int compare(NetworkData networkA, NetworkData networkB) {
