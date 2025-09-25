@@ -177,7 +177,7 @@
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Ucrop.CropTheme" />
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name="com.banuba.sdk.ve.flow.VideoCreationActivity"
             android:screenOrientation="portrait"
