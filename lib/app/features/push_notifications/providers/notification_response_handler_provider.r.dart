@@ -2,6 +2,8 @@
 
 import 'dart:async';
 
+import 'package:ion/app/features/core/providers/init_provider.r.dart';
+import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/configure_firebase_app_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_response_service.r.dart';
 import 'package:ion/app/services/firebase/firebase_messaging_service_provider.r.dart';
@@ -42,7 +44,7 @@ class NotificationResponseHandler extends _$NotificationResponseHandler {
     // Notifications are handled there with a Notification Service Extension then passed to FCM SDK.
     final initialFcmNotificationData = await firebaseMessagingService.getInitialMessageData();
     if (initialFcmNotificationData != null) {
-      _handlePushData(initialFcmNotificationData);
+      _handleInitialPushData(initialFcmNotificationData);
     }
 
     // When the app is opened from a terminated state by a notification.
@@ -51,7 +53,7 @@ class NotificationResponseHandler extends _$NotificationResponseHandler {
     final initialLocalNotificationData =
         await localNotificationsService.getInitialNotificationData();
     if (initialLocalNotificationData != null) {
-      _handlePushData(initialLocalNotificationData);
+      _handleInitialPushData(initialLocalNotificationData);
     }
 
     // if the app is opened from a background state (not terminated) by pressing an FCM notification.
@@ -65,5 +67,20 @@ class NotificationResponseHandler extends _$NotificationResponseHandler {
 
   void _handlePushData(Map<String, dynamic> data) {
     ref.read(notificationResponseServiceProvider).handleNotificationResponse(data);
+  }
+
+  void _handleInitialPushData(Map<String, dynamic> data) {
+    // Wait for splash animation to complete before handling push notification
+    final subscription = ref.listen(splashProvider, (prev, animationCompleted) async {
+      if (animationCompleted) {
+        final isInitCompleted = ref.read(initAppProvider).hasValue;
+        if (!isInitCompleted) {
+          await ref.read(initAppProvider.future);
+        }
+
+        unawaited(ref.read(notificationResponseServiceProvider).handleNotificationResponse(data));
+      }
+    });
+    ref.onDispose(subscription.close);
   }
 }
