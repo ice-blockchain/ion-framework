@@ -63,7 +63,8 @@ class QuoteCounterUpdater {
     required this.cacheKeys,
   });
 
-  final FutureOr<void> Function(OptimisticIntent<PostRepost> intent, PostRepost current) disposePostRepostService;
+  final FutureOr<void> Function(OptimisticIntent<PostRepost> intent, PostRepost current)
+      disposePostRepostService;
   final void Function(String cacheKey) removeCacheItem;
   final PostRepost? Function(String id) getCurrentPostRepost;
   final PostRepost? Function(EventReference) findRepostInCache;
@@ -131,6 +132,7 @@ QuoteCounterUpdater quoteCounterUpdater(Ref ref) {
     findRepostInCache: (eventRef) => ref.watch(findRepostInCacheProvider(eventRef)),
     getRepostCounts: (eventRef) => ref.watch(repostCountsFromCacheProvider(eventRef)),
     cacheKeys: ref.watch(ionConnectCacheProvider).keys.toList(),
-    disposePostRepostService: (intent, current) => ref.read(postRepostServiceProvider).dispatch(intent, current),
+    disposePostRepostService: (intent, current) =>
+        ref.read(postRepostServiceProvider).dispatch(intent, current),
   );
 }
