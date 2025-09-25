@@ -148,7 +148,7 @@ jobs:
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
           cache-key: "flutter-:os:-:channel:-:version:"
-          pub-cache: false
+          pub-cache-key: ""
       - run: flutter --version
       - name: Bootstrap
         id: bootstrap
@@ -160,12 +160,14 @@ jobs:
         run: |
           cd main-repo
           melos exec -- "flutter pub get"
-      - name: Generate code
+      - name: Generate code (parallel)
         id: generate-code
         run: |
           cd main-repo
-          ./scripts/generate_locales.sh
-          ./scripts/generate_code.sh
+          # Run locale generation and code generation in parallel
+          ./scripts/generate_locales.sh &
+          ./scripts/generate_code.sh &
+          wait
       - name: Analyze code
         id: analyze-code
         if: inputs.run_checks
@@ -244,7 +246,7 @@ jobs:
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
           cache-key: "flutter-:os:-:channel:-:version:"
-          pub-cache: false
+          pub-cache-key: ""
       - run: flutter --version
       - name: Detect context and set APP environment variables
         id: setup-env
@@ -338,7 +340,7 @@ jobs:
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
           cache-key: "flutter-:os:-:channel:-:version:"
-          pub-cache: false
+          pub-cache-key: ""
       - run: flutter --version
       - name: Detect context and set APP environment variables
         id: setup-env
