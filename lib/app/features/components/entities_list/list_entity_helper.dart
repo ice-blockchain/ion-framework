@@ -135,6 +135,9 @@ class ListEntityHelper {
 
   static bool hasMetadata(BuildContext context, WidgetRef ref, IonConnectEntity entity) {
     final userMetadata = ref.watch(
+          // We don't request the events individually - we just wait for them to appear in cache
+          // from either search ext OR from fetching missing events if relay returns 21750
+          // for the metadata and we fetch those in batches.
           userMetadataProvider(entity.masterPubkey, network: false).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {

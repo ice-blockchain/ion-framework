@@ -9,6 +9,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/entities_list/entities_list.dart';
 import 'package:ion/app/features/components/entities_list/entities_list_skeleton.dart';
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
 import 'package:ion/app/features/feed/providers/user_posts_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
@@ -66,65 +67,67 @@ class TabEntitiesList extends HookConsumerWidget {
     final tabData = ref.watch(tabEntitiesDataProvider(type: type, pubkey: pubkey));
     final entities = tabData.items ?? [];
 
-    return LoadMoreBuilder(
-      onLoadMore: () async {
-        if (type == TabEntityType.posts) {
-          await ref.read(userPostsProvider(pubkey).notifier).fetchEntities();
-        } else {
-          final dataSource = ref.read(tabDataSourceProvider(type: type, pubkey: pubkey));
-          if (dataSource != null) {
-            await ref.read(entitiesPagedDataProvider(dataSource).notifier).fetchEntities();
-          }
-        }
-      },
-      hasMore: tabData.hasMore,
-      slivers: [
-        if (entities.isEmpty && tabData.hasMore)
-          const EntitiesListSkeleton()
-        else if (entities.isEmpty || isBlockedOrBlockedBy)
-          EmptyState(
-            type: type,
-            isCurrentUserProfile: pubkey == ref.watch(currentPubkeySelectorProvider),
-            username: prefixUsername(username: userMetadata?.data.name, context: context),
-          )
-        else
-          builder != null
-              ? builder!(entities.toList())
-              : EntitiesList(
-                  items: entities
-                      .map(
-                        (entity) =>
-                            IonEntityListItem.event(eventReference: entity.toEventReference()),
-                      )
-                      .toList(),
-                  showMuted: true,
-                  onVideoTap: ({
-                    required String eventReference,
-                    required int initialMediaIndex,
-                    String? framedEventReference,
-                  }) =>
-                      ProfileVideosRoute(
-                    eventReference: eventReference,
-                    initialMediaIndex: initialMediaIndex,
-                    framedEventReference: framedEventReference,
-                    pubkey: pubkey,
-                    tabEntityType: type,
-                  ).push<void>(context),
-                ),
-      ],
-      builder: (context, slivers) => PullToRefreshBuilder(
-        slivers: slivers,
-        onRefresh: () async {
+    return ListCachedObjects(
+      child: LoadMoreBuilder(
+        onLoadMore: () async {
           if (type == TabEntityType.posts) {
-            ref.invalidate(userPostsProvider(pubkey));
+            await ref.read(userPostsProvider(pubkey).notifier).fetchEntities();
           } else {
             final dataSource = ref.read(tabDataSourceProvider(type: type, pubkey: pubkey));
             if (dataSource != null) {
-              ref.invalidate(entitiesPagedDataProvider(dataSource));
+              await ref.read(entitiesPagedDataProvider(dataSource).notifier).fetchEntities();
             }
           }
-          onRefresh?.call();
         },
+        hasMore: tabData.hasMore,
+        slivers: [
+          if (entities.isEmpty && tabData.hasMore)
+            const EntitiesListSkeleton()
+          else if (entities.isEmpty || isBlockedOrBlockedBy)
+            EmptyState(
+              type: type,
+              isCurrentUserProfile: pubkey == ref.watch(currentPubkeySelectorProvider),
+              username: prefixUsername(username: userMetadata?.data.name, context: context),
+            )
+          else
+            builder != null
+                ? builder!(entities.toList())
+                : EntitiesList(
+                    items: entities
+                        .map(
+                          (entity) =>
+                              IonEntityListItem.event(eventReference: entity.toEventReference()),
+                        )
+                        .toList(),
+                    showMuted: true,
+                    onVideoTap: ({
+                      required String eventReference,
+                      required int initialMediaIndex,
+                      String? framedEventReference,
+                    }) =>
+                        ProfileVideosRoute(
+                      eventReference: eventReference,
+                      initialMediaIndex: initialMediaIndex,
+                      framedEventReference: framedEventReference,
+                      pubkey: pubkey,
+                      tabEntityType: type,
+                    ).push<void>(context),
+                  ),
+        ],
+        builder: (context, slivers) => PullToRefreshBuilder(
+          slivers: slivers,
+          onRefresh: () async {
+            if (type == TabEntityType.posts) {
+              ref.invalidate(userPostsProvider(pubkey));
+            } else {
+              final dataSource = ref.read(tabDataSourceProvider(type: type, pubkey: pubkey));
+              if (dataSource != null) {
+                ref.invalidate(entitiesPagedDataProvider(dataSource));
+              }
+            }
+            onRefresh?.call();
+          },
+        ),
       ),
     );
   }
