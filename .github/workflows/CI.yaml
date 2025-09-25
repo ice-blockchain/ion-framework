@@ -51,6 +51,8 @@ jobs:
           channel: "stable"
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
+          cache-key: "flutter-:os:-:channel:-:version:"
+          pub-cache-key: ""
       - run: flutter --version
       - name: Bootstrap
         id: bootstrap

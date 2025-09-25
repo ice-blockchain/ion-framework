@@ -148,7 +148,7 @@ jobs:
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
           cache-key: "flutter-:os:-:channel:-:version:"
-          pub-cache: false
+          pub-cache-key: ""
       - run: flutter --version
       - name: Bootstrap
         id: bootstrap
@@ -244,7 +244,7 @@ jobs:
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
           cache-key: "flutter-:os:-:channel:-:version:"
-          pub-cache: false
+          pub-cache-key: ""
       - run: flutter --version
       - name: Detect context and set APP environment variables
         id: setup-env
@@ -338,7 +338,7 @@ jobs:
           flutter-version-file: main-repo/pubspec.yaml
           cache: true
           cache-key: "flutter-:os:-:channel:-:version:"
-          pub-cache: false
+          pub-cache-key: ""
       - run: flutter --version
       - name: Detect context and set APP environment variables
         id: setup-env
