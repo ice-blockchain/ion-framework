@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -20,6 +22,11 @@ class WebView extends HookConsumerWidget {
       children: [
         InAppWebView(
           initialUrlRequest: URLRequest(url: WebUri(url)),
+          gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{
+            Factory<VerticalDragGestureRecognizer>(VerticalDragGestureRecognizer.new),
+            Factory<HorizontalDragGestureRecognizer>(HorizontalDragGestureRecognizer.new),
+            Factory<PanGestureRecognizer>(PanGestureRecognizer.new),
+          },
           onLoadStart: (controller, url) {
             isLoadingPage.value = true;
           },
