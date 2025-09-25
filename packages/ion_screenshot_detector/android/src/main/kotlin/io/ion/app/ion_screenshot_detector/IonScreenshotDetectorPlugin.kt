@@ -136,59 +136,82 @@ class IonScreenshotDetectorPlugin : FlutterPlugin, EventChannel.StreamHandler, A
     }
   }
 
-  private fun queryDataColumn(uri: Uri): String {
-    var finalPath: String = ""
-    val projection = arrayOf(
-      MediaStore.Images.Media.DATA
-    )
-    contentResolver?.query(
-      uri,
-      projection,
-      null,
-      null,
-      null
-    )?.use { cursor ->
-      val dataColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
-
-      while (cursor.moveToNext()) {
-        val path = cursor.getString(dataColumn)
-        if (path.contains("screenshot", true)) {
-          finalPath = path
-          break
+  private fun queryWithRetry(uri: Uri, maxRetries: Int, queryFunction: (Uri) -> String): String {
+    repeat(maxRetries) { attempt ->
+      try {
+        return queryFunction(uri)
+      } catch (e: IllegalStateException) {
+        if (attempt == maxRetries - 1) {
+          android.util.Log.w("IonScreenshotDetector", "Media content not accessible after $maxRetries attempts: ${e.message}")
+          return ""
         }
+        // Wait before retry (exponential backoff)
+        Thread.sleep(100L * (attempt + 1))
+      } catch (e: Exception) {
+        android.util.Log.e("IonScreenshotDetector", "Unexpected error in query: ${e.message}")
+        return ""
       }
     }
-    return finalPath
+    return ""
+  }
+
+  private fun queryDataColumn(uri: Uri): String {
+    return queryWithRetry(uri, maxRetries = 3) { uriToQuery ->
+      var finalPath: String = ""
+      val projection = arrayOf(
+        MediaStore.Images.Media.DATA
+      )
+      contentResolver?.query(
+        uriToQuery,
+        projection,
+        null,
+        null,
+        null
+      )?.use { cursor ->
+        val dataColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
+
+        while (cursor.moveToNext()) {
+          val path = cursor.getString(dataColumn)
+          if (path.contains("screenshot", true)) {
+            finalPath = path
+            break
+          }
+        }
+      }
+      finalPath
+    }
   }
 
   private fun queryRelativeDataColumn(uri: Uri): String {
-    var finalPath: String = ""
-    val projection = arrayOf(
-      MediaStore.Images.Media.DISPLAY_NAME,
-      MediaStore.Images.Media.RELATIVE_PATH
-    )
-    contentResolver?.query(
-      uri,
-      projection,
-      null,
-      null,
-      null
-    )?.use { cursor ->
-      val relativePathColumn =
-        cursor.getColumnIndex(MediaStore.Images.Media.RELATIVE_PATH)
-      val displayNameColumn =
-        cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)
-      while (cursor.moveToNext()) {
-        val name = cursor.getString(displayNameColumn)
-        val relativePath = cursor.getString(relativePathColumn)
-        if (name.contains("screenshot", true) or
-          relativePath.contains("screenshot", true)
-        ) {
-          finalPath = relativePath
-          break
+    return queryWithRetry(uri, maxRetries = 3) { uriToQuery ->
+      var finalPath: String = ""
+      val projection = arrayOf(
+        MediaStore.Images.Media.DISPLAY_NAME,
+        MediaStore.Images.Media.RELATIVE_PATH
+      )
+      contentResolver?.query(
+        uriToQuery,
+        projection,
+        null,
+        null,
+        null
+      )?.use { cursor ->
+        val relativePathColumn =
+          cursor.getColumnIndex(MediaStore.Images.Media.RELATIVE_PATH)
+        val displayNameColumn =
+          cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)
+        while (cursor.moveToNext()) {
+          val name = cursor.getString(displayNameColumn)
+          val relativePath = cursor.getString(relativePathColumn)
+          if (name.contains("screenshot", true) or
+            relativePath.contains("screenshot", true)
+          ) {
+            finalPath = relativePath
+            break
+          }
         }
       }
+      finalPath
     }
-    return finalPath
   }
 }
