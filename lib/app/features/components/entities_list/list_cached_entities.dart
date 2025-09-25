@@ -1,10 +1,17 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';
+
+typedef FileWithKey = ({String key, File file});
 
 class ListCachedObjectsWrapper extends StatefulWidget {
   const ListCachedObjectsWrapper({required this.child, super.key});
@@ -33,6 +40,9 @@ class ListCachedObjects extends InheritedWidget {
 
   static dynamic identifierSelector<T extends Object>(T object) {
     return switch (object) {
+      final FileWithKey fileMap => fileMap.key,
+      final EventMessage event => event.sharedId,
+      final MessageMediaTableData media => media.messageEventReference,
       final UserMetadataEntity user => user.masterPubkey,
       final IonConnectEntity entity => entity.toEventReference(),
       final BlockedUser blocked => blocked.masterPubkey,
@@ -50,9 +60,17 @@ class ListCachedObjects extends InheritedWidget {
         );
   }
 
-  static List<T> maybeObjectsOf<T extends Object>(BuildContext context) {
+  static List<T> maybeObjectsOf<T extends Object>(BuildContext context, {dynamic identifier}) {
     final objects = context.dependOnInheritedWidgetOfExactType<ListCachedObjects>()?.objects;
     if (objects == null) return <T>[];
+    if (identifier != null) {
+      return objects
+          .whereType<T>()
+          .where(
+            (object) => identifierSelector<T>(object) == identifier,
+          )
+          .toList();
+    }
     return objects.whereType<T>().toList();
   }
 
@@ -75,14 +93,18 @@ class ListCachedObjects extends InheritedWidget {
     objects.add(object);
   }
 
-  static void updateObjects<T extends Object>(BuildContext context, List<T> newObjects) {
+  static void updateObjects<T extends Object>(
+    BuildContext context,
+    List<T> newObjects, {
+    dynamic Function(T object)? identifierSelectorOverride,
+  }) {
     final objects = context.dependOnInheritedWidgetOfExactType<ListCachedObjects>()?.objects;
     if (objects == null || newObjects.isEmpty) return;
 
-    const equality = DeepCollectionEquality();
+    final identifierSelectorFn = identifierSelectorOverride ?? identifierSelector<T>;
 
     final newObjectsMap = <dynamic, T>{
-      for (final newObject in newObjects) identifierSelector<T>(newObject): newObject,
+      for (final newObject in newObjects) identifierSelectorFn(newObject): newObject,
     };
 
     final updatedIdentifiers = <dynamic>{};
@@ -90,7 +112,7 @@ class ListCachedObjects extends InheritedWidget {
       final object = objects[i];
       if (object is! T) continue;
 
-      final identifier = identifierSelector<T>(object);
+      final identifier = identifierSelectorFn(object);
       final newObject = newObjectsMap[identifier];
       if (newObject != null) {
         if (!equality.equals(object, newObject)) {
@@ -102,7 +124,7 @@ class ListCachedObjects extends InheritedWidget {
 
     objects.addAll(
       newObjectsMap.values.where(
-        (newObject) => !updatedIdentifiers.contains(identifierSelector<T>(newObject)),
+        (newObject) => !updatedIdentifiers.contains(identifierSelectorFn(newObject)),
       ),
     );
   }

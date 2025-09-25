@@ -20,6 +20,7 @@ import 'package:ion/app/features/chat/recent_chats/providers/selected_reply_mess
 import 'package:ion/app/features/chat/views/components/chat_input_bar/chat_input_bar.dart';
 import 'package:ion/app/features/chat/views/components/message_items/edit_message_info/edit_message_info.dart';
 import 'package:ion/app/features/chat/views/components/message_items/replied_message_info/replied_message_info.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
 import 'package:ion/app/features/user_profile/providers/user_profile_sync_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -96,21 +97,23 @@ class OneToOneMessagesPage extends HookConsumerWidget {
     return Scaffold(
       backgroundColor: context.theme.appColors.secondaryBackground,
       body: SafeArea(
-        child: Column(
-          children: [
-            _Header(
-              receiverMasterPubkey: receiverMasterPubkey,
-              conversationId: conversationId.value ?? '',
-            ),
-            _MessagesList(conversationId: conversationId.value),
-            const EditMessageInfo(),
-            const RepliedMessageInfo(),
-            ChatInputBar(
-              onSubmitted: onSubmitted,
-              receiverMasterPubkey: receiverMasterPubkey,
-              conversationId: conversationId.value,
-            ),
-          ],
+        child: ListCachedObjectsWrapper(
+          child: Column(
+            children: [
+              _Header(
+                receiverMasterPubkey: receiverMasterPubkey,
+                conversationId: conversationId.value ?? '',
+              ),
+              _MessagesList(conversationId: conversationId.value),
+              const EditMessageInfo(),
+              const RepliedMessageInfo(),
+              ChatInputBar(
+                onSubmitted: onSubmitted,
+                receiverMasterPubkey: receiverMasterPubkey,
+                conversationId: conversationId.value,
+              ),
+            ],
+          ),
         ),
       ),
     );
