@@ -14,47 +14,31 @@ abstract class NetworkSortStrategy {
 }
 
 class NftPopularitySortStrategy implements NetworkSortStrategy {
-  static const _topNetwork = NetworkIds(mainnetNetworkId: 'Ion', testnetNetworkId: 'IonTestnet');
-
-  final _nftPopularityList = <NetworkIds>[
-    _topNetwork,
+  final _nftPrioritizedList = <NetworkIds>[
+    const NetworkIds(mainnetNetworkId: 'Ion', testnetNetworkId: 'IonTestnet'),
     const NetworkIds(mainnetNetworkId: 'Ethereum', testnetNetworkId: 'EthereumSepolia'),
     const NetworkIds(mainnetNetworkId: 'Solana', testnetNetworkId: 'SolanaDevnet'),
     const NetworkIds(mainnetNetworkId: 'Bitcoin', testnetNetworkId: 'BitcoinSignet'),
-    const NetworkIds(mainnetNetworkId: 'Polygon', testnetNetworkId: 'PolygonAmoy'),
     const NetworkIds(mainnetNetworkId: 'Bsc', testnetNetworkId: 'BscTestnet'),
+    const NetworkIds(mainnetNetworkId: 'Polygon', testnetNetworkId: 'PolygonAmoy'),
     const NetworkIds(mainnetNetworkId: 'ArbitrumOne', testnetNetworkId: 'ArbitrumSepolia'),
     const NetworkIds(mainnetNetworkId: 'AvalancheC', testnetNetworkId: 'AvalancheCFuji'),
   ];
 
-  int _getNftPopularityIndex(String networkId) => _nftPopularityList.indexWhere(
-        (ids) => ids.mainnetNetworkId == networkId || ids.testnetNetworkId == networkId,
-      );
+  int _getNetworkPriorityIndex(String networkId) {
+    final index = _nftPrioritizedList.indexWhere((ids) => ids.matches(networkId));
+    return index == -1 ? _nftPrioritizedList.length : index;
+  }
 
   @override
   int compare(NetworkData networkA, NetworkData networkB) {
-    // 0. ION always comes first, regardless of other conditions
-    final isNetworkATop = _topNetwork.matches(networkA);
-    final isNetworkBTop = _topNetwork.matches(networkB);
+    final aPriority = _getNetworkPriorityIndex(networkA.id);
+    final bPriority = _getNetworkPriorityIndex(networkB.id);
 
-    if (isNetworkATop && !isNetworkBTop) return -1;
-    if (isNetworkBTop && !isNetworkATop) return 1;
-
-    // 1. Compare by NFT popularity priority list using network IDs
-    final aPriority = _getNftPopularityIndex(networkA.id);
-    final bPriority = _getNftPopularityIndex(networkB.id);
-
-    // If both are in priority list, compare their positions
-    if (aPriority != -1 && bPriority != -1 && aPriority != bPriority) {
-      return aPriority.compareTo(bPriority);
-    }
-
-    // If only one is in priority list, it should come first
-    if (aPriority != -1 && bPriority == -1) return -1;
-    if (bPriority != -1 && aPriority == -1) return 1;
-
-    // 2. Compare alphabetically by display name
-    return networkA.displayName.compareTo(networkB.displayName);
+    // Compare by priority index, then alphabetically for same priority
+    return aPriority != bPriority
+        ? aPriority.compareTo(bPriority)
+        : networkA.displayName.compareTo(networkB.displayName);
   }
 }
 
@@ -67,8 +51,7 @@ class NetworkIds {
   final String mainnetNetworkId;
   final String testnetNetworkId;
 
-  bool matches(NetworkData network) =>
-      mainnetNetworkId == network.id || testnetNetworkId == network.id;
+  bool matches(String networkId) => mainnetNetworkId == networkId || testnetNetworkId == networkId;
 }
 
 class NetworksComparator {
