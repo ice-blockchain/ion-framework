@@ -15,9 +15,8 @@ class NetworkIds {
   final String mainnetNetworkId;
   final String testnetNetworkId;
 
-  bool isTopNetwork(NetworkData network) {
-    return mainnetNetworkId == network.id || testnetNetworkId == network.id;
-  }
+  bool matches(NetworkData network) =>
+      mainnetNetworkId == network.id || testnetNetworkId == network.id;
 }
 
 class NetworksComparator {
@@ -37,8 +36,8 @@ class NetworksComparator {
     const topNetwork = NetworkPriority._topNetwork;
 
     // 0. ION always comes first, regardless of other conditions
-    final isNetworkATop = topNetwork.isTopNetwork(networkA);
-    final isNetworkBTop = topNetwork.isTopNetwork(networkB);
+    final isNetworkATop = topNetwork.matches(networkA);
+    final isNetworkBTop = topNetwork.matches(networkB);
 
     if (isNetworkATop && !isNetworkBTop) return -1;
     if (isNetworkBTop && !isNetworkATop) return 1;
