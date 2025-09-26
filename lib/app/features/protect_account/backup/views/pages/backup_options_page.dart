@@ -7,7 +7,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/protect_account/backup/views/components/backup_option.dart';
 import 'package:ion/app/features/protect_account/backup/views/pages/create_recover_key_page/components/cloud_backup_option.dart';
-import 'package:ion/app/features/protect_account/secure_account/providers/security_account_provider.r.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/recovery_keys_completed_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
@@ -20,7 +20,7 @@ class BackupOptionsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = context.i18n;
-    final securityMethods = ref.watch(securityAccountControllerProvider).value;
+    final isBackupEnabled = ref.watch(recoveryKeysCompletedProvider).value.falseOrValue;
 
     return SheetContent(
       body: Column(
@@ -67,7 +67,7 @@ class BackupOptionsPage extends ConsumerWidget {
                   icon: Assets.svg.walletLoginRecovery.icon(
                     size: 48.0.s,
                   ),
-                  isOptionEnabled: securityMethods?.isBackupEnabled ?? false,
+                  isOptionEnabled: isBackupEnabled,
                   onTap: () => BackupRecoveryKeysRoute().push<void>(context),
                 ),
                 ScreenBottomOffset(margin: 32.0.s),
