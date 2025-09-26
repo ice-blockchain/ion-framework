@@ -9,34 +9,57 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 part 'app_badge_counter_provider.r.g.dart';
 
+enum CounterCategory {
+  inapp('app_badge_count'),
+  chat('app_badge_chat_count');
+
+  const CounterCategory(this.key);
+
+  final String key;
+}
+
 class AppBadgeCounter {
   AppBadgeCounter(this.sharedPreferencesFoundation);
 
   final SharedPreferencesAsync sharedPreferencesFoundation;
 
-  Future<void> setBadgeCount(int count) async {
+  Future<void> setBadgeCount(int count, CounterCategory category) async {
     if (await AppBadgePlus.isSupported()) {
       await Future.wait([
-        _cacheBadgeCount(count),
-        AppBadgePlus.updateBadge(count),
+        sharedPreferencesFoundation.setInt(category.key, count),
+        AppBadgePlus.updateBadge(
+          await _updateBadgeCount(),
+        ),
       ]);
     }
   }
 
-  Future<void> clearBadge() async {
+  Future<void> clearBadge(CounterCategory category) async => setBadgeCount(0, category);
+
+  Future<void> clearUnreadConversations() async =>
+      sharedPreferencesFoundation.remove('unread_conversations');
+
+  Future<void> clearAllBadges() async {
     if (await AppBadgePlus.isSupported()) {
+      final clearCategories = CounterCategory.values
+          .map((category) => sharedPreferencesFoundation.setInt(category.key, 0));
+
       await Future.wait([
-        _cacheBadgeCount(0),
+        ...clearCategories,
+        clearUnreadConversations(),
         AppBadgePlus.updateBadge(0),
       ]);
     }
   }
 
-  Future<void> _cacheBadgeCount(int count) async {
-    await sharedPreferencesFoundation.setInt(_storeKey, count);
-  }
+  Future<int> _updateBadgeCount() async {
+    final countFutures =
+        CounterCategory.values.map((category) => sharedPreferencesFoundation.getInt(category.key));
 
-  static const String _storeKey = 'app_badge_count';
+    final counts = await Future.wait(countFutures);
+
+    return counts.fold<int>(0, (sum, count) => sum + (count ?? 0));
+  }
 }
 
 @riverpod
@@ -51,7 +74,7 @@ Future<AppBadgeCounter?> appBadgeCounter(Ref ref) async {
   final sharedPreferencesFoundation = await ref.read(sharedPreferencesFoundationProvider.future);
   final appBadge = AppBadgeCounter(sharedPreferencesFoundation);
 
-  onLogout(ref, appBadge.clearBadge);
+  onLogout(ref, appBadge.clearAllBadges);
 
   return appBadge;
 }

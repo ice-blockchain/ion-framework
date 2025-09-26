@@ -47,25 +47,24 @@ class TranslationsRepository<T: TranslationWithVersion & Decodable> {
     private let translationsPath = "ion-app_push-notifications_translations"
 
     private let ionOrigin: String
-    private let storage: SharedStorageService
+    private let appLocaleStorage: AppLocaleStorage
     private let cacheDirectory: URL
     let cacheMaxAge: TimeInterval
 
     init(
         ionOrigin: String,
-        storage: SharedStorageService,
+        appLocaleStorage: AppLocaleStorage,
         cacheMaxAge: TimeInterval
     ) {
         self.ionOrigin = ionOrigin
-        self.storage = storage
+        self.appLocaleStorage = appLocaleStorage
         self.cacheMaxAge = cacheMaxAge
 
         let translationCacheDirName = "TranslationCache"
-        let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: storage.appGroupIdentifier)
+        let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appLocaleStorage.storage.appGroupIdentifier)
         self.cacheDirectory =
             containerURL?.appendingPathComponent(translationCacheDirName, isDirectory: true)
             ?? URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(translationCacheDirName)
-
     }
 
     func getTranslations(locale: Locale) async throws -> T {
@@ -140,7 +139,7 @@ class TranslationsRepository<T: TranslationWithVersion & Decodable> {
             throw TranslationError.notFound(locale: locale)
         }
 
-        let cacheVersion = storage.getCacheVersionKey(languageCode: languageCode)
+        let cacheVersion = appLocaleStorage.getCacheVersionKey(languageCode: languageCode)
 
         let urlString = "\(ionOrigin)/v1/config/\(translationsPath)_\(languageCode)"
         guard var urlComponents = URLComponents(string: urlString) else {
@@ -175,7 +174,7 @@ class TranslationsRepository<T: TranslationWithVersion & Decodable> {
 
             case 200:
                 if let translations = try? JSONDecoder().decode(T.self, from: data) {
-                    storage.setCacheVersionKey(for: languageCode, with: translations.version)
+                    appLocaleStorage.setCacheVersionKey(for: languageCode, with: translations.version)
                 }
                 return data
 

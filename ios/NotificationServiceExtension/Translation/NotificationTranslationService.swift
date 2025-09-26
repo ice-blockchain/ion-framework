@@ -8,21 +8,23 @@ struct NotificationTranslationResult {
     let avatarFilePath: String?
     let attachmentFilePaths: String?
     let notificationType: PushNotificationType?
+    let conversationId: String?
 }
 
 class NotificationTranslationService {
+    private let appLocaleStorage: AppLocaleStorage
+    private let keysStorage: KeysStorage
     private let translator: Translator<PushNotificationTranslations>
-    private let storage: SharedStorageService
     private let encryptedMessageService: EncryptedMessageService?
-    private let database: DatabaseManager?
 
-    init(storage: SharedStorageService) {
-        self.storage = storage
+    init(appLocaleStorage: AppLocaleStorage, keysStorage: KeysStorage) {
+        self.appLocaleStorage = appLocaleStorage
+        self.keysStorage = keysStorage
 
-        let appLocale = storage.getAppLocale()
+        let appLocale = appLocaleStorage.getAppLocale()
         let repository = TranslationsRepository<PushNotificationTranslations>(
             ionOrigin: Environment.ionOrigin,
-            storage: storage,
+            appLocaleStorage: appLocaleStorage,
             cacheMaxAge: TimeInterval(Environment.pushTranslationsCacheMinutes * 60)
         )
 
@@ -31,20 +33,19 @@ class NotificationTranslationService {
             appLocale: appLocale
         )
 
-        if let pubkey = storage.getCurrentPubkey(), let currentIdentityKeyName = storage.getCurrentIdentityKeyName() {
+        
+        if let pubkey = keysStorage.getCurrentPubkey(), let currentIdentityKeyName = keysStorage.getCurrentIdentityKeyName() {
             self.encryptedMessageService = EncryptedMessageService(
                 keychainService: KeychainService(currentIdentityKeyName: currentIdentityKeyName),
                 pubkey: pubkey
             )
-            self.database = DatabaseManager(storage: storage)
         } else {
             self.encryptedMessageService = nil
-            self.database = nil
         }
     }
 
     func translate(_ pushPayload: [AnyHashable: Any]) async -> NotificationTranslationResult? {
-        guard let currentPubkey = storage.getCurrentPubkey() else {
+        guard let currentPubkey = keysStorage.getCurrentPubkey() else {
             return nil
         }
 
@@ -84,7 +85,8 @@ class NotificationTranslationService {
             body: result.body,
             avatarFilePath: media.avatar,
             attachmentFilePaths: media.attachment,
-            notificationType: notificationType
+            notificationType: notificationType,
+            conversationId: getConversationId(from: data.decryptedEvent)
         )
     }
 
@@ -105,7 +107,7 @@ class NotificationTranslationService {
                 var metadata: UserMetadata? = nil
 
                 if let decryptedEvent = decryptedEvent, let pubkey = try? decryptedEvent.masterPubkey() {
-                    metadata = self.getUserMetadataFromDatabase(pubkey: pubkey)
+                    metadata = self.getUserMetadataFromDatabase(pubkey)
                 } else {
                     NSLog("Could not extract master pubkey from decrypted event")
                 }
@@ -221,73 +223,27 @@ class NotificationTranslationService {
         let regex = try! NSRegularExpression(pattern: "\\{\\{(.*?)\\}\\}", options: [])
         return regex.firstMatch(in: input, options: [], range: NSRange(location: 0, length: (input as NSString).length)) != nil
     }
-
-    /// Fetches user metadata from the SQLite database for a given pubkey
-    /// - Parameter pubkey: The pubkey of the user to fetch metadata for
-    /// - Returns: UserMetadata if found, nil otherwise
-    private func getUserMetadataFromDatabase(pubkey: String) -> UserMetadata? {
-        guard let database = database else {
-            return nil
-        }
-
-        if !database.openDatabase() {
-            NSLog("Failed to open database connection")
-            return nil
-        }
-
-        defer { database.closeDatabase() }
-
-        let query = "SELECT content FROM user_metadata_table WHERE master_pubkey = '\(pubkey)' ORDER BY created_at DESC LIMIT 1"
-
-        guard let results = database.executeQuery(query) else {
-            return nil
-        }
-
-        if results.isEmpty {
-            NSLog("No user metadata found in database for pubkey: \(pubkey)")
-            return nil
-        }
-
-        var content: String? = nil
-
-        if let firstResult = results.first as? [String: Any], let contentValue = firstResult["content"] as? String {
-            content = contentValue
-        } else if let firstResult = results.first as? [Any], firstResult.count > 0 {
-            if let contentDict = firstResult.first as? [String: String], let contentValue = contentDict["content"] {
-                content = contentValue
-            } else if let contentDict = firstResult.first as? [String: Any],
-                let contentValue = contentDict["content"] as? String
-            {
-                content = contentValue
+    
+    private func getUserMetadataFromDatabase(_ pubkey: String) -> UserMetadata? {
+            let chatUsermetadataDB = ChatUserMetadataDatabase(keysStorage: keysStorage)
+            if chatUsermetadataDB.openDatabase() {
+                defer { chatUsermetadataDB.closeDatabase() }
+                return chatUsermetadataDB.getUserMetadataFromDatabase(pubkey: pubkey)
+            }
+        
+        return nil
+    }
+    
+    private func getConversationId(from event: EventMessage?) -> String? {
+        guard let event = event else { return nil }
+        
+        // Look for "h" tag in the tags array
+        for tag in event.tags {
+            if tag.count >= 2 && tag[0] == "h" {
+                return tag[1]
             }
         }
-
-        guard let extractedContent = content else {
-            return nil
-        }
-
-        guard let contentData = extractedContent.data(using: .utf8) else {
-            NSLog("Failed to convert content string to data")
-            return nil
-        }
-
-        do {
-            let userData = try JSONDecoder().decode(
-                UserDataEventMessageContent.self,
-                from: contentData
-            )
-
-            // Create and return UserMetadata
-            let metadata = UserMetadata(
-                name: userData.name ?? "",
-                displayName: userData.displayName ?? "",
-                picture: userData.picture
-            )
-
-            return metadata
-        } catch {
-            NSLog("Error parsing user metadata: \(error)")
-            return nil
-        }
+        
+        return nil
     }
 }

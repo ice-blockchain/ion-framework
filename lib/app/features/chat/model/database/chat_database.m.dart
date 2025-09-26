@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
@@ -24,6 +26,7 @@ import 'package:ion/app/features/ion_connect/database/converters/event_tags_conv
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/utils/directory.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
 
@@ -50,7 +53,10 @@ ChatDatabase chatDatabase(Ref ref) {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  final database = ChatDatabase(pubkey);
+  final appGroup = Platform.isIOS
+      ? ref.watch(envProvider.notifier).get<String>(EnvVariable.FOUNDATION_APP_GROUP)
+      : null;
+  final database = ChatDatabase(pubkey, appGroupId: appGroup);
 
   onLogout(ref, database.close);
 
@@ -68,15 +74,32 @@ ChatDatabase chatDatabase(Ref ref) {
   ],
 )
 class ChatDatabase extends _$ChatDatabase {
-  ChatDatabase(this.pubkey) : super(_openConnection(pubkey));
+  ChatDatabase(
+    this.pubkey, {
+    this.appGroupId,
+  }) : super(_openConnection(pubkey, appGroupId));
 
   final String pubkey;
+  final String? appGroupId;
 
   @override
   int get schemaVersion => 3;
 
-  static QueryExecutor _openConnection(String pubkey) {
-    return driftDatabase(name: 'conversation_database_$pubkey');
+  static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
+    final databaseName = 'conversation_database_$pubkey';
+
+    if (appGroupId == null) {
+      return driftDatabase(name: databaseName);
+    }
+
+    return driftDatabase(
+      name: databaseName,
+      native: DriftNativeOptions(
+        databasePath: () async =>
+            getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroupId),
+        shareAcrossIsolates: true,
+      ),
+    );
   }
 
   @override
