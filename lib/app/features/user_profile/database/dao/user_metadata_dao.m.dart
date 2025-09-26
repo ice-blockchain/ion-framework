@@ -31,6 +31,11 @@ class UserMetadataDao extends DatabaseAccessor<UserProfileDatabase> with _$UserM
     });
   }
 
+  Future<void> insert(UserMetadataEntity userMetadata) async {
+    final eventMessageDbModel = await userMetadata.toEventMessageDbModel();
+    await into(db.userMetadataTable).insert(eventMessageDbModel, mode: InsertMode.insertOrReplace);
+  }
+
   Future<UserMetadataEntity?> get(String masterPubkey) async {
     final query = select(db.userMetadataTable)
       ..where((user) => user.masterPubkey.equals(masterPubkey))
