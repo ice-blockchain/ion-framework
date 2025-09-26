@@ -78,11 +78,19 @@ class Ed25519KeyStore with EventSigner {
     required String privateKey,
     required String publicKey,
   }) async {
-    final keyPair = await X25519().newKeyPairFromSeed(hex.decode(privateKey));
-    final remotePublicKey = SimplePublicKey(hex.decode(publicKey), type: KeyPairType.x25519);
-    final sharedSecret =
-        await X25519().sharedSecretKey(keyPair: keyPair, remotePublicKey: remotePublicKey);
-    return Uint8List.fromList(await sharedSecret.extractBytes());
+    try {
+      final keyPair = await X25519().newKeyPairFromSeed(hex.decode(privateKey));
+      final remotePublicKey = SimplePublicKey(hex.decode(publicKey), type: KeyPairType.x25519);
+      final sharedSecret =
+          await X25519().sharedSecretKey(keyPair: keyPair, remotePublicKey: remotePublicKey);
+
+      return Uint8List.fromList(await sharedSecret.extractBytes());
+    } catch (e) {
+      throw Exception(
+        // Do not expose key, just its length
+        'Failed to compute X25519 shared secret, privateKey: ${privateKey.length}, error: $e',
+      );
+    }
   }
 
   static const signaturePrefix = 'eddsa/curve25519';
