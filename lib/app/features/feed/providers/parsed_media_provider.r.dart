@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -22,15 +21,6 @@ part 'parsed_media_provider.r.g.dart';
 ) {
   keepAliveWhenAuthenticated(ref);
 
-  return ref.watch(parsedMediaProvider(data)).valueOrNull ??
-      (content: Delta().blank, media: <MediaAttachment>[]);
-}
-
-@riverpod
-FutureOr<({Delta content, List<MediaAttachment> media})> parsedMedia(
-  Ref ref,
-  EntityDataWithMediaContent data,
-) {
   return parseMediaContent(data: data);
 }
 
