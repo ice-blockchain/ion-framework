@@ -424,7 +424,7 @@
   "wallet_arrival_time_type_slow": "Slow",
   "wallet_arrival_time_minutes": "min",
   "wallet_transactions_in_tier2_network": "Transactions",
-  "wallet_transactions_in_tier2_network_info": "Please note that incoming transactions from other wallets may not be displayed in the transaction history for this coin.",
+  "wallet_transactions_in_tier2_network_info": "Incoming transactions from external wallets may not be displayed in the transaction history for this coin.",
   "wallet_network_fee": "Network fee",
   "wallet_network_fee_info": "A small cryptocurrency payment required to process and validate blockchain transactions. It is paid by the sender and helps maintain network security and efficiency. The fee amount varies based on transaction speed and network demand.",
   "wallet_max": "max",
