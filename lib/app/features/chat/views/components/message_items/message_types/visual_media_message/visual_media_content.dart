@@ -34,12 +34,12 @@ class VisualMediaContent extends HookConsumerWidget {
   final bool isReply;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final localFile = useState<File?>(
-      ListCachedObjects.maybeObjectOf<FileWithKey>(
-        context,
-        messageMediaTableData.remoteUrl,
-      )?.file,
-    );
+    final cachedPath = ListCachedObjects.maybeObjectOf<PathWithKey>(
+      context,
+      messageMediaTableData.remoteUrl,
+    )?.filePath;
+
+    final localFile = useState<File?>(cachedPath != null ? File(cachedPath) : null);
 
     final entity = useMemoized(
       () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
@@ -59,10 +59,10 @@ class VisualMediaContent extends HookConsumerWidget {
         )
             .then((file) {
           if (context.mounted) {
-            if (file == null || messageMediaTableData.remoteUrl == null) return;
-            ListCachedObjects.updateObject<FileWithKey>(
+            if (file == null) return;
+            ListCachedObjects.updateObject<PathWithKey>(
               context,
-              (key: messageMediaTableData.remoteUrl!, file: file),
+              (key: messageMediaTableData.remoteUrl!, filePath: file.path),
             );
             localFile.value = file;
           }
