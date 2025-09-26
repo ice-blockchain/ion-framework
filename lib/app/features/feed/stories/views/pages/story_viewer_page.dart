@@ -9,7 +9,6 @@ import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/stories/providers/story_index_keeper_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
@@ -93,10 +92,9 @@ class StoryViewerPage extends HookConsumerWidget {
             ? stories.indexWhere((story) => story.toEventReference() == initialStoryReference)
             : null;
         final currentUserPubkey = storyViewerState.currentUserPubkey;
-        final currentStoryIndex =
-            ref.read(storyIndexKeeperProvider.notifier).getStoryIndex(currentUserPubkey);
-        final moveToIndex = initialStoryIndex ??
-            (firstNotViewedStoryIndex != -1 ? firstNotViewedStoryIndex : currentStoryIndex);
+        // If all stories for the user are already viewed, restart from the beginning.
+        final moveToIndex =
+            initialStoryIndex ?? (firstNotViewedStoryIndex != -1 ? firstNotViewedStoryIndex : 0);
         if (moveToIndex != -1 && moveToIndex < stories.length) {
           ref
               .watch(
