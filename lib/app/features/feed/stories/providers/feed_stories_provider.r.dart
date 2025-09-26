@@ -34,9 +34,12 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
         ),
     };
 
-    final userStories = data.items?.whereType<ModifiablePostEntity>();
+    final userStories =
+        data.items?.whereType<ModifiablePostEntity>().where((story) => !story.isDeleted);
+    final filteredCurrentUserStory =
+        currentUserStory != null && !currentUserStory.isDeleted ? currentUserStory : null;
     final stories = {
-      if (currentUserStory != null) currentUserStory,
+      if (filteredCurrentUserStory != null) filteredCurrentUserStory,
       if (userStories != null) ...userStories,
     };
 
@@ -44,7 +47,7 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
       items: stories,
       hasMore: data.hasMore,
       // Approx number of items needed to fill the viewport
-      ready: stories.length >= (currentUserStory != null ? 5 : 4) || !data.isLoading
+      ready: stories.length >= (filteredCurrentUserStory != null ? 5 : 4) || !data.isLoading
     );
   }
 

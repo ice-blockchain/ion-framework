@@ -105,6 +105,42 @@ void main() {
       expect(result.items.length, 3);
       expect(result.items.map((u) => u.masterPubkey).toSet(), equals({'alice', 'bob', 'carol'}));
     });
+
+    test('filters stories that were soft-deleted', () {
+      final deletedStory = _post(
+        id: 'deleted',
+        author: 'alice',
+        mediaType: MediaType.image,
+        createdAt: DateTime(2024),
+        expiration: DateTime(2025),
+      );
+      when(() => deletedStory.isDeleted).thenReturn(true);
+
+      final activeStory = _post(
+        id: 'active',
+        author: 'bob',
+        mediaType: MediaType.image,
+        createdAt: DateTime(2024),
+        expiration: DateTime(2025),
+      );
+      when(() => activeStory.isDeleted).thenReturn(false);
+
+      final container = createContainer(
+        overrides: [
+          feedForYouContentProvider(FeedType.story).overrideWith(
+            () => _FakeFeedForYouContent(_stateWith([deletedStory, activeStory])),
+          ),
+          currentUserFeedStoryProvider.overrideWith(
+            () => _FakeCurrentUserStory(deletedStory),
+          ),
+        ],
+      );
+
+      final result = container.read(feedStoriesProvider);
+
+      expect(result.items.length, 1);
+      expect(result.items.map((story) => story.id).toSet(), equals({'active'}));
+    });
   });
 
   group('filteredStoriesByPubkeyProvider', () {
