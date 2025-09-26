@@ -30,6 +30,7 @@ class CurrentUserFeedStory extends _$CurrentUserFeedStory {
         ?.data
         .items
         ?.whereType<ModifiablePostEntity>()
+        .where((story) => !story.isDeleted)
         .firstOrNull;
   }
 

@@ -51,6 +51,7 @@ ModifiablePostEntity buildPost(
       expiration != null ? EntityExpiration(value: expiration.microsecondsSinceEpoch) : null,
     ),
   );
+  when(() => post.isDeleted).thenReturn(false);
   when(post.toEventReference).thenReturn(FakeEventReference());
   return post;
 }
