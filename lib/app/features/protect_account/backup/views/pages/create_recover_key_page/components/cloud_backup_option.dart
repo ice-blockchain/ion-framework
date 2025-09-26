@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
+import 'package:ion/app/features/protect_account/backup/providers/cloud_stored_recovery_keys_names_provider.r.dart';
 import 'package:ion/app/features/protect_account/backup/providers/create_recovery_key_action_notifier.r.dart';
 import 'package:ion/app/features/protect_account/backup/views/components/backup_option.dart';
-import 'package:ion/app/features/protect_account/secure_account/providers/security_account_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/cloud_storage/cloud_storage_service.r.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -30,8 +30,7 @@ class CloudBackupOption extends HookConsumerWidget {
         }
       });
 
-    final securityMethodsState = ref.watch(securityAccountControllerProvider);
-    final securityMethods = securityMethodsState.valueOrNull;
+    final storedRecoveryKeysProvider = ref.watch(cloudStoredRecoveryKeysNamesProvider);
 
     final locale = context.i18n;
     return BackupOption(
@@ -42,8 +41,8 @@ class CloudBackupOption extends HookConsumerWidget {
       icon: Assets.svg.walletLoginCloud.icon(
         size: 48.0.s,
       ),
-      isOptionEnabled: securityMethods?.hasCloudEnabled ?? false,
-      isLoading: securityMethodsState.isLoading,
+      isOptionEnabled: storedRecoveryKeysProvider.valueOrNull?.isNotEmpty ?? false,
+      isLoading: storedRecoveryKeysProvider.isLoading,
       onTap: () async {
         final cloudAvailable = await ref.read(cloudStorageProvider).isAvailable();
         if (!context.mounted) return;
