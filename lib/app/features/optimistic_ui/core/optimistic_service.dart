@@ -13,9 +13,13 @@ class OptimisticService<T extends OptimisticModel> {
 
   final OptimisticOperationManager<T> _manager;
 
-  Stream<T?> watch(String id) => _manager.stream.map(
-        (l) => l.firstWhereOrNull((e) => e.optimisticId == id),
-      );
+  Stream<T?> watch(String id) async* {
+    yield get(id);
+
+    yield* _manager.stream.map(
+      (l) => l.firstWhereOrNull((e) => e.optimisticId == id),
+    );
+  }
 
   T? get(String id) => _manager.snapshot.firstWhereOrNull((e) => e.optimisticId == id);
 
