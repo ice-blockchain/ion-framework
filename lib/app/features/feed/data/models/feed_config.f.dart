@@ -27,6 +27,7 @@ class FeedConfig with _$FeedConfig implements AppConfigWithVersion {
     @Default(true) bool allowNewRegistrations,
     @Default(false) bool enableEarlyAccessRegistrations,
     @Default(true) bool forceSecurityEnabled,
+    @Default(false) bool deviceIdentificationEnabled,
   }) = _FeedConfig;
 
   const FeedConfig._();

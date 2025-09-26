@@ -10,6 +10,7 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
@@ -131,6 +132,28 @@ class ListEntityHelper {
     }
 
     return false;
+  }
+
+  static bool isDeviceIdentityWithoutProofs(
+    WidgetRef ref,
+    IonConnectEntity entity,
+  ) {
+    final isDeviceIdentityProven = ref.watch(
+      isDeviceIdentityProvenProvider(
+        masterPubkey: entity.masterPubkey,
+        deviceIdentityPubkey: entity.pubkey,
+      ),
+    );
+    return isDeviceIdentityProven == false;
+  }
+
+  static bool userHasNoProvenIdentities(
+    WidgetRef ref,
+    String masterPubkey,
+  ) {
+    final hasUserProvenIdentities =
+        ref.watch(hasUserProvenIdentitiesProvider(masterPubkey)).valueOrNull ?? true;
+    return hasUserProvenIdentities == false;
   }
 
   static bool hasMetadata(BuildContext context, WidgetRef ref, IonConnectEntity entity) {

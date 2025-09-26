@@ -2,6 +2,7 @@
 
 import 'package:ion/app/features/auth/data/models/twofa_type.dart';
 import 'package:ion/app/features/protect_account/authenticator/data/adapter/twofa_type_adapter.dart';
+import 'package:ion/app/services/device_identification/device_identification_service.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -38,9 +39,13 @@ class LoginActionNotifier extends _$LoginActionNotifier {
       ];
 
       try {
+        final deviceIdentificationServiceProviderNotifier =
+            ref.read(deviceIdentificationServiceProvider.notifier);
         await ionIdentity(username: keyName).auth.loginUser(
               onVerifyIdentity: onVerifyIdentity,
               twoFATypes: twoFATypes,
+              getRequestId: (username) async =>
+                  deviceIdentificationServiceProviderNotifier.getRequestIdFor(username),
               localCredsOnly: localCredsOnly,
             );
       } on NoLocalPasskeyCredsFoundIONIdentityException {

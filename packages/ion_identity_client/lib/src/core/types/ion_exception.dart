@@ -263,3 +263,7 @@ class InvalidEmailException extends IONIdentityException {
     }
   }
 }
+
+class DeviceIdentityDuplicateException extends IONIdentityException {
+  const DeviceIdentityDuplicateException() : super('Device identity duplicate exception');
+}

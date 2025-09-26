@@ -2,6 +2,7 @@
 
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/paginated_users_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -30,13 +31,26 @@ class SearchUsers extends _$SearchUsers {
             .toList() ??
         [];
 
-    final filteredUsers = paginatedUsersMetadataData.items
+    final prelimUsers = paginatedUsersMetadataData.items
         .where(
           (user) =>
               user.masterPubkey != masterPubkey &&
               !blockedUsersMasterPubkeys.contains(user.masterPubkey),
         )
         .toList();
+
+    // Filter out users with NO identity proofs, in parallel, without subscribing to changes.
+    final proofEntries = await Future.wait(
+      prelimUsers.map((u) async {
+        final ok = await ref.read(hasUserProvenIdentitiesProvider(u.masterPubkey).future);
+        return MapEntry(u.masterPubkey, ok);
+      }),
+    );
+    final provenSet = {
+      for (final e in proofEntries)
+        if (e.value) e.key,
+    };
+    final filteredUsers = prelimUsers.where((u) => provenSet.contains(u.masterPubkey)).toList();
 
     return (users: filteredUsers, hasMore: paginatedUsersMetadataData.hasMore);
   }

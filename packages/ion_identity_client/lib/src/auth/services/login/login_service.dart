@@ -92,6 +92,7 @@ class LoginService {
   Future<void> loginUser({
     required OnVerifyIdentity<AssertionRequestData> onVerifyIdentity,
     required List<TwoFAType> twoFATypes,
+    required GetRequestId getRequestId,
     required bool localCredsOnly,
   }) async {
     final challenge = await dataSource.loginInit(username: username, twoFATypes: twoFATypes);
@@ -135,9 +136,11 @@ class LoginService {
       },
     );
 
+    final requestId = await getRequestId(username);
     final tokens = await dataSource.loginComplete(
       challengeIdentifier: challenge.challengeIdentifier,
       assertion: assertion,
+      requestId: requestId,
     );
     final tokenKeyUsername = username.isEmpty ? extractUsernameFromToken(tokens.token) : username;
 

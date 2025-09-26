@@ -2,6 +2,7 @@
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/core/network/network_client.dart';
 import 'package:ion_identity_client/src/core/network/utils.dart';
+import 'package:ion_identity_client/src/core/types/request_headers.dart';
 import 'package:ion_identity_client/src/signer/dtos/dtos.dart';
 
 class LoginDataSource {
@@ -33,6 +34,7 @@ class LoginDataSource {
   Future<Authentication> loginComplete({
     required AssertionRequestData assertion,
     required String challengeIdentifier,
+    required String requestId,
   }) {
     final requestData = UserActionSigningCompleteRequest(
       challengeIdentifier: challengeIdentifier,
@@ -42,6 +44,9 @@ class LoginDataSource {
     return networkClient.post(
       loginCompletePath,
       data: requestData.toJson(),
+      headers: {
+        RequestHeaders.deviceIdentificationRequestId: requestId,
+      },
       decoder: (result, _) => parseJsonObject(result, fromJson: Authentication.fromJson),
     );
   }

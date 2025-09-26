@@ -3,6 +3,7 @@
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/auth/services/extract_user_id/extract_user_id_service.dart';
 import 'package:ion_identity_client/src/users/available_ion_connect_relays/available_ion_connect_relays_service.dart';
+import 'package:ion_identity_client/src/users/device_identification_proofs/device_identification_proofs_service.dart';
 import 'package:ion_identity_client/src/users/get_content_creators/content_creators_service.dart';
 import 'package:ion_identity_client/src/users/ion_connect_indexers/get_user_connect_indexers_service.dart';
 import 'package:ion_identity_client/src/users/ion_connect_relays/ion_connect_relays_service.dart';
@@ -25,6 +26,7 @@ class IONIdentityUsers {
     this._searchUsersSocialProfileService,
     this._extractUserIdService,
     this._availableIONConnectRelaysService,
+    this._deviceIdentificationProofsService,
   );
 
   final String username;
@@ -35,6 +37,7 @@ class IONIdentityUsers {
   final NicknameAvailabilityService _nicknameAvailabilityService;
   final SetIONConnectRelaysService _setIONConnectRelaysService;
   final UpdateUserSocialProfileService _updateUserSocialProfileService;
+  final DeviceIdentificationProofsService _deviceIdentificationProofsService;
   final SearchUsersSocialProfileService _searchUsersSocialProfileService;
   final ExtractUserIdService _extractUserIdService;
   final AvailableIONConnectRelaysService _availableIONConnectRelaysService;
@@ -103,6 +106,16 @@ class IONIdentityUsers {
     return _updateUserSocialProfileService.updateUserSocialProfile(
       userId: userId,
       data: data,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getDeviceIdentificationProofs({
+    required Map<String, dynamic> eventJsonPayload,
+  }) async {
+    final userId = _extractUserIdService.extractUserId(username: username);
+    return _deviceIdentificationProofsService.getDeviceIdentificationProofs(
+      userId: userId,
+      eventJsonPayload: eventJsonPayload,
     );
   }
 

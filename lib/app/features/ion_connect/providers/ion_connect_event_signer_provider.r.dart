@@ -33,6 +33,14 @@ class IonConnectEventSigner extends _$IonConnectEventSigner {
       return currentUserIonConnectEventSigner;
     }
 
+    // if we previously created a keypair while username was empty (used for
+    // device-identifications preflight), adopt that keypair for the now-known identity
+    // and delete it from the pending location.
+    final adopted = await _adoptPendingSignerIfAny();
+    if (adopted != null) {
+      return adopted;
+    }
+
     final deviceKeypairAttachment = await DeviceKeypairUtils.findDeviceKeypairAttachment(ref: ref);
     if (deviceKeypairAttachment != null) {
       // There's an uploaded keypair - return null and restore it later (LinkNewDevice)
@@ -41,6 +49,29 @@ class IonConnectEventSigner extends _$IonConnectEventSigner {
 
     // Generate a new event signer
     return _generate();
+  }
+
+  /// If a keypair was created under the empty-username storage key ("_ion_connect_key_store")
+  /// during pre-login flows, move it under the current identity's key and return it.
+  /// Returns null if nothing to adopt.
+  Future<EventSigner?> _adoptPendingSignerIfAny() async {
+    if (identityKeyName.isEmpty) {
+      return null;
+    }
+    final storage = ref.read(secureStorageProvider);
+    final pendingKey = _storageKeySuffix;
+    final pendingPrivate = await storage.getString(key: pendingKey);
+    if (pendingPrivate == null) {
+      return null;
+    }
+
+    // Persist under the user-specific key and remove the pending one.
+    await storage.setString(key: _storageKey, value: pendingPrivate);
+    await storage.remove(key: pendingKey);
+
+    final signer = await Ed25519KeyStore.fromPrivate(pendingPrivate);
+    state = AsyncData(signer);
+    return signer;
   }
 
   /// Restores an event signer from a private key string
@@ -62,7 +93,9 @@ class IonConnectEventSigner extends _$IonConnectEventSigner {
     return signer;
   }
 
-  String get _storageKey => '${identityKeyName}_ion_connect_key_store';
+  String get _storageKeySuffix => '_ion_connect_key_store';
+
+  String get _storageKey => '$identityKeyName$_storageKeySuffix';
 }
 
 @Riverpod(keepAlive: true)

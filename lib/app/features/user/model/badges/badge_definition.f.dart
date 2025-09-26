@@ -59,6 +59,10 @@ class BadgeDefinitionEntity
 
   // Actual d tag is username_proof_of_ownership~<username>
   static const String usernameProofOfOwnershipBadgeDTag = 'username_proof_of_ownership~';
+
+  // Actual d tag is device_identification_proof~<keypair_pubkey>
+  static const String deviceIdentificationProofOfOwnershipBadgeDTag =
+      'device_identification_proof~';
 }
 
 @freezed

@@ -16,3 +16,5 @@ typedef OnVerifyIdentity<T> = Future<T> Function({
 });
 
 typedef WithVerifyIdentity<T> = void Function(OnVerifyIdentity<T> onVerifyIdentity);
+
+typedef GetRequestId = Future<String> Function(String username);
