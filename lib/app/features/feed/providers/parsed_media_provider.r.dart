@@ -31,10 +31,7 @@ FutureOr<({Delta content, List<MediaAttachment> media})> parsedMedia(
   Ref ref,
   EntityDataWithMediaContent data,
 ) {
-  return compute(
-    (data) => parseMediaContent(data: data),
-    data,
-  );
+  return parseMediaContent(data: data);
 }
 
 ({Delta content, List<MediaAttachment> media}) parseMediaContent({
