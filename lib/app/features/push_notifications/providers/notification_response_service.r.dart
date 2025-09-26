@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -47,6 +48,20 @@ class NotificationResponseService {
   final EventParser _eventParser;
   final String? _currentPubkey;
 
+  /// Checks if any modal is open and closes it before navigation
+  void _checkModal() {
+    final context = rootNavigatorKey.currentContext;
+    if (context != null && context.mounted) {
+      final router = GoRouter.maybeOf(context);
+      final isMainModalOpen = router?.state.isMainModalOpen ?? false;
+
+      if (isMainModalOpen || context.canPop()) {
+        // there's no animation for popUntil, so no need to delay
+        Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
+      }
+    }
+  }
+
   RouteMatchList get _currentRouteMatchList {
     final router = GoRouter.of(rootNavigatorKey.currentContext!);
     final lastMatch = router.routerDelegate.currentConfiguration.last;
@@ -70,6 +85,8 @@ class NotificationResponseService {
       );
 
       final entity = _eventParser.parse(notificationPayload.event);
+
+      _checkModal();
 
       switch (entity) {
         case ModifiablePostEntity():
