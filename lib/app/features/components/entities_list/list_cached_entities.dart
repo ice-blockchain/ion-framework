@@ -6,11 +6,28 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';
 
-class ListCachedObjects extends InheritedWidget {
-  ListCachedObjects({required super.child, super.key}) : super();
+class ListCachedObjectsWrapper extends StatefulWidget {
+  const ListCachedObjectsWrapper({required this.child, super.key});
 
-  final List<Object> _objects = <Object>[];
-  List<Object> get objects => _objects;
+  final Widget child;
+
+  @override
+  State<ListCachedObjectsWrapper> createState() => _ListCachedObjectsWrapperState();
+}
+
+class _ListCachedObjectsWrapperState extends State<ListCachedObjectsWrapper> {
+  final List<Object> objects = <Object>[];
+
+  @override
+  Widget build(BuildContext context) {
+    return ListCachedObjects(objects: objects, child: widget.child);
+  }
+}
+
+class ListCachedObjects extends InheritedWidget {
+  const ListCachedObjects({required super.child, required this.objects, super.key}) : super();
+
+  final List<Object> objects;
 
   static const equality = DeepCollectionEquality();
 
