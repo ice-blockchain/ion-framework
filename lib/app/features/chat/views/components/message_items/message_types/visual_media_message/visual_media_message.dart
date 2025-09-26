@@ -55,7 +55,7 @@ class VisualMediaMessage extends HookConsumerWidget {
         ) ??
         ListCachedObjects.maybeObjectsOf<MessageMediaTableData>(
           context,
-          identifier: eventReference,
+          eventReference,
         );
 
     final messageItem = useMemoized(

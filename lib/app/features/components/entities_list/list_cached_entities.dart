@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:io';
-
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
@@ -11,7 +9,7 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';
 
-typedef FileWithKey = ({String key, File file});
+typedef PathWithKey = ({String key, String filePath});
 
 class ListCachedObjectsWrapper extends StatefulWidget {
   const ListCachedObjectsWrapper({required this.child, super.key});
@@ -40,7 +38,7 @@ class ListCachedObjects extends InheritedWidget {
 
   static dynamic identifierSelector<T extends Object>(T object) {
     return switch (object) {
-      final FileWithKey fileMap => fileMap.key,
+      final PathWithKey fileMap => fileMap.key,
       final EventMessage event => event.sharedId,
       final MessageMediaTableData media => media.messageEventReference,
       final UserMetadataEntity user => user.masterPubkey,
@@ -60,7 +58,7 @@ class ListCachedObjects extends InheritedWidget {
         );
   }
 
-  static List<T> maybeObjectsOf<T extends Object>(BuildContext context, {dynamic identifier}) {
+  static List<T> maybeObjectsOf<T extends Object>(BuildContext context, [dynamic identifier]) {
     final objects = context.dependOnInheritedWidgetOfExactType<ListCachedObjects>()?.objects;
     if (objects == null) return <T>[];
     if (identifier != null) {
