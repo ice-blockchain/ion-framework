@@ -47,7 +47,14 @@ class MessageMediaDao extends DatabaseAccessor<ChatDatabase> with _$MessageMedia
   Stream<List<MessageMediaTableData>> watchByEventId(EventReference eventReference) {
     return (select(messageMediaTable)
           ..where((t) => t.messageEventReference.equalsValue(eventReference)))
-        .watch();
+        .watch()
+        .map((messageMedia) {
+      final mediaUrls = <String?>{};
+      return messageMedia.where((media) {
+        if (media.remoteUrl == null) return true;
+        return mediaUrls.add(media.remoteUrl);
+      }).toList();
+    });
   }
 
   Future<void> updateById(
