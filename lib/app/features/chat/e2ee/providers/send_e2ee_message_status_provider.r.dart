@@ -60,6 +60,17 @@ class SendE2eeMessageStatusService {
         ReplaceablePrivateDirectMessageEntity.fromEventMessage(messageEventMessage)
             .toEventReference();
 
+    if (status == MessageDeliveryStatus.read) {
+      final currentStatus = await conversationMessageDataDaoProvider.checkMessageStatus(
+        eventReference: eventReference,
+        masterPubkey: currentUserMasterPubkey,
+      );
+
+      if (currentStatus == MessageDeliveryStatus.read) {
+        return;
+      }
+    }
+
     final messageReactionData = PrivateMessageReactionEntityData(
       content: status.name,
       reference: eventReference,

@@ -23,19 +23,22 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
     required String conversationId,
     required String currentUserMasterPubkey,
   }) {
-    final query = select(conversationMessageTable).join([
-      innerJoin(
-        messageStatusTable,
-        messageStatusTable.messageEventReference
-            .equalsExp(conversationMessageTable.messageEventReference),
-      ),
-    ])
+    final countExp = conversationMessageTable.messageEventReference.count();
+
+    final query = selectOnly(conversationMessageTable)
+      ..addColumns([countExp])
+      ..join([
+        innerJoin(
+          messageStatusTable,
+          messageStatusTable.messageEventReference
+              .equalsExp(conversationMessageTable.messageEventReference),
+        ),
+      ])
       ..where(conversationMessageTable.conversationId.equals(conversationId))
       ..where(messageStatusTable.masterPubkey.equals(currentUserMasterPubkey))
-      ..where(messageStatusTable.status.equals(MessageDeliveryStatus.received.index))
-      ..groupBy([messageStatusTable.messageEventReference]);
+      ..where(messageStatusTable.status.equals(MessageDeliveryStatus.received.index));
 
-    return query.watch().map((rows) => rows.length);
+    return query.watchSingle().map((row) => row.read(countExp) ?? 0);
   }
 
   Stream<int> getAllUnreadMessagesCountInArchive(
