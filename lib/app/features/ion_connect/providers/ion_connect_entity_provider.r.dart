@@ -160,10 +160,13 @@ class IonConnectNetworkEntitiesManager extends _$IonConnectNetworkEntitiesManage
     required ActionSource actionSource,
     required List<EventReference> eventReferences,
     String? search,
+    ActionType? actionType,
   }) async* {
     if (eventReferences.isEmpty) {
       yield* const Stream.empty();
     }
+
+    final aType = actionType ?? ActionType.read;
 
     final immutableRefs = eventReferences.whereType<ImmutableEventReference>().toList();
     final replaceableRefs = eventReferences.whereType<ReplaceableEventReference>().toList();
@@ -181,6 +184,7 @@ class IonConnectNetworkEntitiesManager extends _$IonConnectNetworkEntitiesManage
 
     final entityStream = ref.read(ionConnectNotifierProvider.notifier).requestEntities(
           requestMessage,
+          actionType: aType,
           actionSource: actionSource,
         );
 
@@ -314,6 +318,8 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
     String? search,
     bool cache = true,
     bool network = true,
+    ActionType? actionType,
+    ActionSource? actionSource,
     Duration? expirationDuration,
   }) async {
     final remainingEvents = eventReferences.toSet();
@@ -356,11 +362,13 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
           .read(ionConnectNetworkEntitiesManagerProvider.notifier)
           .fetch(
             search: search,
+            actionType: actionType,
             eventReferences: notCachedEvents,
-            actionSource: ActionSource.optimalRelays(
-              strategy: OptimalRelaysStrategy.mostUsers,
-              masterPubkeys: notCachedEvents.map((e) => e.masterPubkey).toSet().toList(),
-            ),
+            actionSource: actionSource ??
+                ActionSource.optimalRelays(
+                  strategy: OptimalRelaysStrategy.mostUsers,
+                  masterPubkeys: notCachedEvents.map((e) => e.masterPubkey).toSet().toList(),
+                ),
           )
           .handleError((Object e, StackTrace stack) {
         Logger.log(
