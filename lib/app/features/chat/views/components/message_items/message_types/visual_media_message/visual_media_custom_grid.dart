@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/visual_media_message/visual_media_content.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 
-class VisualMediaCustomGrid extends HookConsumerWidget {
+class VisualMediaCustomGrid extends StatelessWidget {
   VisualMediaCustomGrid({
     required this.messageMedias,
     required this.eventMessage,
@@ -31,7 +30,7 @@ class VisualMediaCustomGrid extends HookConsumerWidget {
   final EventMessage eventMessage;
   final bool isReply;
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final mediaCount = messageMedias.length;
 
     if (mediaCount == 1) {
