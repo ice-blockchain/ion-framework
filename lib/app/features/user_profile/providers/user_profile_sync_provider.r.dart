@@ -150,7 +150,8 @@ class UserProfileSync extends _$UserProfileSync {
         await userBadgesDao
             .insertAllProfileBadges(extractEntities<ProfileBadgesEntity>(entitiesFromWriteRelay));
         await userBadgesDao.insertAllBadgeDefinitions(
-            extractEntities<BadgeDefinitionEntity>(entitiesFromWriteRelay));
+          extractEntities<BadgeDefinitionEntity>(entitiesFromWriteRelay),
+        );
         await userBadgesDao
             .insertAllBadgeAwards(extractEntities<BadgeAwardEntity>(entitiesFromWriteRelay));
       }
