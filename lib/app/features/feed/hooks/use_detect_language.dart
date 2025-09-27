@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/utils/debounced_quill_controller_listener.dart';
 import 'package:ion/app/features/feed/providers/selected_entity_language_notifier.r.dart';
 import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 
 void useDetectLanguage(
   WidgetRef ref, {
@@ -13,6 +14,8 @@ void useDetectLanguage(
   bool enabled = true,
 }) {
   final labeler = ref.read(ionContentLabelerProvider);
+  final context = useContext();
+  final isRunning = useRef(false);
   useEffect(
     () {
       if (enabled && quillController != null) {
@@ -20,9 +23,23 @@ void useDetectLanguage(
           quillController,
           duration: const Duration(seconds: 1),
         ).listen((text) async {
-          final detectedLanguage = await labeler.detectLanguageLabels(text);
-          if (detectedLanguage != null) {
-            ref.read(selectedEntityLanguageNotifierProvider.notifier).lang = detectedLanguage;
+          try {
+            if (text.trim().length < 3) return; // don't ping the model on noise
+            if (isRunning.value) {
+              return;
+            }
+            isRunning.value = true;
+            final detectedLanguage = await labeler.detectLanguageLabels(text);
+            if (!context.mounted) {
+              return;
+            }
+            if (detectedLanguage != null) {
+              ref.read(selectedEntityLanguageNotifierProvider.notifier).lang = detectedLanguage;
+            }
+          } catch (e, st) {
+            Logger.error('[Content Labeler] useDetectLanguage failed: $e', stackTrace: st);
+          } finally {
+            isRunning.value = false;
           }
         });
         return subscription.cancel;
