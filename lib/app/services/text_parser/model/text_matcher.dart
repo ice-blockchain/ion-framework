@@ -19,7 +19,7 @@ class HashtagMatcher extends TextMatcher {
   const HashtagMatcher();
 
   @override
-  String get pattern => r'#[^\s]+';
+  String get pattern => r'#[^\s.]+';
 }
 
 class UrlMatcher extends TextMatcher {

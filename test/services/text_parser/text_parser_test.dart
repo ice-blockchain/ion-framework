@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 import 'package:ion/app/services/text_parser/text_parser.dart';
 
+import '../../test_utils.dart';
+
 void main() {
   group('TextParser', () {
     late TextParser parser;
@@ -216,6 +218,33 @@ void main() {
 
       expect(results.length, equals(1));
       expect(results[0].text, equals('Visit ice.ion for info'));
+    });
+
+    test('should not include trailing dot in hashtag', () {
+      final results = parser.parse('Hi #online+.', onlyMatches: true);
+
+      expect(results.length, equals(1));
+      expect(results[0].text, equals('#online+'));
+      expect(results[0].matcher, isA<HashtagMatcher>());
+    });
+
+    // Parameterized tests for hashtags: exclude trailing dots, keep other punctuation.
+    parameterizedGroup('hashtag parsing with trailing punctuation', [
+      (input: 'Hi #online+.', expected: '#online+'),
+      (input: 'Hi #tag..', expected: '#tag'),
+      (input: 'See #tag. Next', expected: '#tag'),
+      (input: '#онлайн+', expected: '#онлайн+'),
+      (input: '#tag_name.', expected: '#tag_name'),
+      (input: '#tag!', expected: '#tag!'),
+      (input: '#tag,', expected: '#tag,'),
+    ], (t) {
+      test('should parse "${t.input}" -> ${t.expected}', () {
+        final results = parser.parse(t.input, onlyMatches: true);
+
+        expect(results.length, equals(1));
+        expect(results[0].text, equals(t.expected));
+        expect(results[0].matcher, isA<HashtagMatcher>());
+      });
     });
   });
 }
