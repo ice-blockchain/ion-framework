@@ -18,6 +18,7 @@ Future<Set<String>> nsfwAccounts(Ref ref) async {
     // Using Set (LinkedHashSet) for fast lookup
     parser: (data) => (jsonDecode(data) as List<dynamic>).cast<String>().toSet(),
     checkVersion: true,
+    refreshInterval: const Duration(seconds: 1),
   );
   return result;
 }
