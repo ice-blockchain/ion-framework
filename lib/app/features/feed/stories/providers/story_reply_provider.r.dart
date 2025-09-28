@@ -104,7 +104,7 @@ class StoryReply extends _$StoryReply {
           throw UserPubkeyNotFoundException(masterPubkey);
         }
 
-        await ref.read(eventMessageDaoProvider).add(kind16Rumor);
+        await ref.read(eventMessageDaoProvider).add(kind16Rumor, wrapId: null);
         final entity = GenericRepostEntity.fromEventMessage(kind16Rumor);
 
         for (final pubkey in pubkeys) {

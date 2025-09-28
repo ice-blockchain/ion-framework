@@ -19,7 +19,7 @@ class ConversationMessageReactionDao extends DatabaseAccessor<ChatDatabase>
   }) async {
     final reactionEntity = PrivateMessageReactionEntity.fromEventMessage(reactionEvent);
 
-    await eventMessageDao.add(reactionEvent);
+    await eventMessageDao.add(reactionEvent, wrapId: null);
     await into(reactionTable).insert(
       ReactionTableCompanion.insert(
         reactionEventReference: reactionEntity.toEventReference(),

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -26,6 +27,9 @@ import 'package:ion/app/features/ion_connect/database/converters/event_tags_conv
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
+import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
+import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
 import 'package:ion/app/utils/directory.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -83,7 +87,7 @@ class ChatDatabase extends _$ChatDatabase {
   final String? appGroupId;
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
     final databaseName = 'conversation_database_$pubkey';
@@ -138,6 +142,9 @@ class ChatDatabase extends _$ChatDatabase {
           //  Rename "isDeleted" column from ConversationTable to "isHidden"
           await m.dropColumn(schema.conversationTable, 'is_deleted');
           await m.addColumn(schema.conversationTable, schema.conversationTable.isHidden);
+        },
+        from3To4: (m, schema) async {
+          await m.addColumn(schema.eventMessageTable, schema.eventMessageTable.wrapIds);
         },
       ),
     );

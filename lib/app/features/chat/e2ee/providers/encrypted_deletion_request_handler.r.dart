@@ -77,7 +77,6 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
         .toList();
 
     if (deleteConversationIds.isNotEmpty) {
-      await eventMessageDao.add(rumor);
       await conversationDao.removeConversations(
         deleteRequest: rumor,
         conversationIds: deleteConversationIds,

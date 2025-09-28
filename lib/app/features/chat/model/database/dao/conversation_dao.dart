@@ -317,7 +317,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
     required List<String> conversationIds,
     required EventMessageDao eventMessageDao,
   }) async {
-    await eventMessageDao.add(deleteRequest);
+    await eventMessageDao.add(deleteRequest, wrapId: null);
 
     final messageEventReference = await (select(conversationMessageTable).join([
       innerJoin(

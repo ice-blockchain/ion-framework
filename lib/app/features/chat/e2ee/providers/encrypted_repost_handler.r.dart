@@ -43,7 +43,6 @@ class EncryptedRepostHandler extends GlobalSubscriptionEncryptedEventMessageHand
   @override
   Future<void> handle(EventMessage rumor) async {
     _syncUserProfile(rumor: rumor);
-    await eventMessageDao.add(rumor);
   }
 
   void _syncUserProfile({required EventMessage rumor}) {

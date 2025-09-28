@@ -17,7 +17,7 @@ EventMessageDao eventMessageDao(Ref ref) => EventMessageDao(ref.watch(chatDataba
 class EventMessageDao extends DatabaseAccessor<ChatDatabase> with _$EventMessageDaoMixin {
   EventMessageDao(super.db);
 
-  Future<void> add(EventMessage event) async {
+  Future<void> add(EventMessage event, {required String? wrapId}) async {
     final EventReference eventReference;
     switch (event.kind) {
       case DeletionRequestEntity.kind:
@@ -29,13 +29,29 @@ class EventMessageDao extends DatabaseAccessor<ChatDatabase> with _$EventMessage
             ReplaceablePrivateDirectMessageEntity.fromEventMessage(event).toEventReference();
       case PrivateMessageReactionEntity.kind:
         eventReference = PrivateMessageReactionEntity.fromEventMessage(event).toEventReference();
+      case FundsRequestEntity.kind:
+        eventReference = FundsRequestEntity.fromEventMessage(event).toEventReference();
+      case WalletAssetEntity.kind:
+        eventReference = WalletAssetEntity.fromEventMessage(event).toEventReference();
+      case BlockedUserEntity.kind:
+        eventReference = BlockedUserEntity.fromEventMessage(event).toEventReference();
       default:
         return;
     }
 
-    final dbModel = event.toChatDbModel(eventReference);
+    final existRecord = await (select(db.eventMessageTable)
+          ..where((table) => table.eventReference.equalsValue(eventReference)))
+        .getSingleOrNull();
 
-    await into(db.eventMessageTable).insert(dbModel, mode: InsertMode.insertOrReplace);
+    final wrapIds = existRecord?.wrapIds ?? [];
+    if (wrapId != null && !wrapIds.contains(wrapId)) {
+      wrapIds.add(wrapId);
+    }
+
+    final dbModel = event.toChatDbModel(eventReference, wrapIds: wrapIds);
+
+    await into(db.eventMessageTable)
+        .insert(dbModel.copyWith(wrapIds: Value(wrapIds)), mode: InsertMode.insertOrReplace);
   }
 
   Future<List<EventMessage>> search(String query) async {
@@ -45,6 +61,14 @@ class EventMessageDao extends DatabaseAccessor<ChatDatabase> with _$EventMessage
         await (select(db.eventMessageTable)..where((tbl) => tbl.content.like('%$query%'))).get();
 
     return searchResults.map((row) => row.toEventMessage()).toList();
+  }
+
+  Future<bool> isExistByWrapId(String wrapId) async {
+    final result = await (select(db.eventMessageTable)
+          ..where((table) => table.wrapIds.contains(wrapId))
+          ..limit(1))
+        .getSingleOrNull();
+    return result != null;
   }
 
   Future<EventMessage> getByReference(EventReference eventReference) async {

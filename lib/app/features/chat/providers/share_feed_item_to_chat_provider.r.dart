@@ -188,7 +188,7 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
     final participantsKeysMap =
         await conversationPubkeysNotifier.fetchUsersKeys(participantsMasterPubkeys);
 
-    await ref.read(eventMessageDaoProvider).add(kind16Rumor);
+    await ref.read(eventMessageDaoProvider).add(kind16Rumor, wrapId: null);
 
     final kind16Entity = GenericRepostEntity.fromEventMessage(kind16Rumor);
 
