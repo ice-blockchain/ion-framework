@@ -159,14 +159,12 @@ class IonConnectNetworkEntitiesManager extends _$IonConnectNetworkEntitiesManage
   Stream<IonConnectEntity> fetch({
     required ActionSource actionSource,
     required List<EventReference> eventReferences,
+    ActionType actionType = ActionType.read,
     String? search,
-    ActionType? actionType,
   }) async* {
     if (eventReferences.isEmpty) {
       yield* const Stream.empty();
     }
-
-    final aType = actionType ?? ActionType.read;
 
     final immutableRefs = eventReferences.whereType<ImmutableEventReference>().toList();
     final replaceableRefs = eventReferences.whereType<ReplaceableEventReference>().toList();
@@ -184,7 +182,7 @@ class IonConnectNetworkEntitiesManager extends _$IonConnectNetworkEntitiesManage
 
     final entityStream = ref.read(ionConnectNotifierProvider.notifier).requestEntities(
           requestMessage,
-          actionType: aType,
+          actionType: actionType,
           actionSource: actionSource,
         );
 
@@ -318,7 +316,7 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
     String? search,
     bool cache = true,
     bool network = true,
-    ActionType? actionType,
+    ActionType actionType = ActionType.read,
     ActionSource? actionSource,
     Duration? expirationDuration,
   }) async {
