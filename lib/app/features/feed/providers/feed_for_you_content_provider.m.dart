@@ -526,13 +526,26 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       return false;
     }
 
-    final nsfwAccounts = await ref.read(nsfwAccountsProvider.future);
-    if (nsfwAccounts.contains(entity.masterPubkey)) {
+    if (await _isNsfwAccount(entity.masterPubkey)) {
       Logger.info('$_logTag Entity is from NSFW account, skipping: ${entity.id}');
       return false;
     }
 
     return true;
+  }
+
+  Future<bool> _isNsfwAccount(String pubkey) async {
+    try {
+      final nsfwAccounts = await ref.read(nsfwAccountsProvider.future);
+      return nsfwAccounts.contains(pubkey);
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: '$_logTag Error checking NSFW account: $pubkey',
+      );
+      return false;
+    }
   }
 
   Future<String?> _getRequestInterest({
