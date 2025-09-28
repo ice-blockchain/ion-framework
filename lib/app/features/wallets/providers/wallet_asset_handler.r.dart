@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_encrypted_event_message_handler.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/wallets/data/repository/request_assets_repository.r.dart';
@@ -39,7 +40,7 @@ class WalletAssetHandler extends GlobalSubscriptionEncryptedEventMessageHandler 
   }
 
   @override
-  Future<void> handle(EventMessage rumor) async {
+  Future<EventReference> handle(EventMessage rumor) async {
     final message = WalletAssetEntity.fromEventMessage(rumor);
 
     // Since the current user is the recipient,
@@ -63,7 +64,6 @@ class WalletAssetHandler extends GlobalSubscriptionEncryptedEventMessageHandler 
         Logger.error(
           'Request validation failed for 1756 event: ${adjustedMessage.id}. Ignoring transaction.',
         );
-        return; // Skip processing if validation fails
       }
     }
 
@@ -83,6 +83,8 @@ class WalletAssetHandler extends GlobalSubscriptionEncryptedEventMessageHandler 
         Logger.error('Failed to parse request JSON: $e');
       }
     }
+
+    return message.toEventReference();
   }
 }
 

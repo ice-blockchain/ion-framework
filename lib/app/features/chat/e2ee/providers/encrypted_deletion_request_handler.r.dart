@@ -60,13 +60,18 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
   }
 
   @override
-  Future<void> handle(EventMessage rumor) async {
+  Future<EventReference> handle(EventMessage rumor) async {
+    final deletionRequest = DeletionRequestEntity.fromEventMessage(rumor);
+    final eventsToDelete = deletionRequest.data.events.whereType<EventToDelete>().toList();
+
     unawaited(_deleteConversation(rumor));
-    unawaited(deleteConversationMessages(rumor));
+    unawaited(deleteConversationMessages(eventsToDelete));
     unawaited(_deleteMessageReaction(rumor));
     unawaited(userProfileSyncProvider.syncUserProfile(masterPubkeys: {rumor.masterPubkey}));
     unawaited(_deleteFundsRequest(rumor));
     unawaited(_deleteWalletAsset(rumor));
+
+    return deletionRequest.toEventReference();
   }
 
   Future<void> _deleteConversation(EventMessage rumor) async {
@@ -110,10 +115,7 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
     );
   }
 
-  Future<void> deleteConversationMessages(EventMessage rumor) async {
-    final eventsToDelete =
-        DeletionRequest.fromEventMessage(rumor).events.whereType<EventToDelete>().toList();
-
+  Future<void> deleteConversationMessages(List<EventToDelete> eventsToDelete) async {
     if (eventsToDelete.isEmpty) return;
 
     for (final event in eventsToDelete) {

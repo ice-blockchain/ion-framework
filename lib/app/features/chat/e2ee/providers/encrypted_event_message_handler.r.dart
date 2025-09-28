@@ -10,6 +10,7 @@ import 'package:ion/app/features/chat/e2ee/providers/encrypted_direct_message_re
 import 'package:ion/app/features/chat/e2ee/providers/encrypted_direct_message_status_handler.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/encrypted_repost_handler.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
+import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_encrypted_event_message_handler.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_event_handler.dart';
@@ -25,10 +26,12 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
   EncryptedMessageEventHandler({
     required this.handlers,
     required this.giftUnwrapService,
+    required this.processedGiftWrapDao,
   });
 
   final List<GlobalSubscriptionEncryptedEventMessageHandler?> handlers;
   final GiftUnwrapService giftUnwrapService;
+  final ProcessedGiftWrapDao processedGiftWrapDao;
 
   @override
   bool canHandle(EventMessage eventMessage) {
@@ -37,12 +40,25 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
 
   @override
   Future<void> handle(EventMessage eventMessage) async {
+    final isAlreadyProcessed =
+        await processedGiftWrapDao.isGiftWrapAlreadyProcessed(giftWrapId: eventMessage.id);
+    if (isAlreadyProcessed) {
+      return;
+    }
+
     final entity = IonConnectGiftWrapEntity.fromEventMessage(eventMessage);
     final rumor = await giftUnwrapService.unwrap(eventMessage);
 
     final futures = handlers.nonNulls
         .where((handler) => handler.canHandle(entity: entity))
-        .map((handler) => handler.handle(rumor));
+        .map((handler) async {
+      final eventReference = await handler.handle(rumor);
+      if (eventReference != null) {
+        unawaited(
+          processedGiftWrapDao.add(eventReference: eventReference, giftWrapId: eventMessage.id),
+        );
+      }
+    });
 
     unawaited(Future.wait(futures));
   }
@@ -65,5 +81,6 @@ Future<EncryptedMessageEventHandler> encryptedMessageEventHandler(Ref ref) async
   return EncryptedMessageEventHandler(
     handlers: handlers,
     giftUnwrapService: await ref.watch(giftUnwrapServiceProvider.future),
+    processedGiftWrapDao: ref.watch(processedGiftWrapDaoProvider),
   );
 }

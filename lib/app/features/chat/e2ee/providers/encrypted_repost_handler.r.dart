@@ -41,9 +41,11 @@ class EncryptedRepostHandler extends GlobalSubscriptionEncryptedEventMessageHand
   }
 
   @override
-  Future<void> handle(EventMessage rumor) async {
+  Future<EventReference> handle(EventMessage rumor) async {
+    final entity = GenericRepostEntity.fromEventMessage(rumor);
     _syncUserProfile(rumor: rumor);
     await eventMessageDao.add(rumor);
+    return entity.toEventReference();
   }
 
   void _syncUserProfile({required EventMessage rumor}) {

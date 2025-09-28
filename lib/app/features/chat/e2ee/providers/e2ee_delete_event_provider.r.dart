@@ -193,7 +193,8 @@ Future<void> _deleteMessages({
 
   // Mark message as deleted in the database
   final deletionHandler = await ref.read(encryptedDeletionRequestHandlerProvider.future);
-  await deletionHandler?.deleteConversationMessages(eventMessage);
+  await deletionHandler
+      ?.deleteConversationMessages(deleteRequest.events.whereType<EventToDelete>().toList());
 
   try {
     final participantsKeysMap =
