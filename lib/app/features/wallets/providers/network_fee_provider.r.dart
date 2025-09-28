@@ -133,7 +133,7 @@ NetworkFeeOption _buildNetworkFeeOption(
   return NetworkFeeOption(
     amount: amount,
     priceUSD: amount * nativeCoin.priceUSD,
-    symbol: networkNativeToken.symbol,
+    symbol: nativeCoin.abbreviation,
     arrivalTime: fee.waitTime,
     type: type,
   );
