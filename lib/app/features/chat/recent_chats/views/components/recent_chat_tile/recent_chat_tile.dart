@@ -109,6 +109,12 @@ class RecentChatTile extends HookConsumerWidget {
 
     return GestureDetector(
       onTap: () {
+        print('delete');
+        //check is wrap_ids_index index exists in event_message_table
+        // final db = ref.watch(chatDatabaseProvider);
+        // final indexExists = db.wrapIdsIndex;
+        // print('$indexExists');
+        // return;
         if (isEditMode) {
           ref.read(selectedConversationsProvider.notifier).toggle(conversation);
         } else {

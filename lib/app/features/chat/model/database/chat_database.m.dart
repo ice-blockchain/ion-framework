@@ -145,9 +145,11 @@ class ChatDatabase extends _$ChatDatabase {
         },
         from3To4: (m, schema) async {
           await m.addColumn(schema.eventMessageTable, schema.eventMessageTable.wrapIds);
-          await m.createIndex(
-            Index('wrap_ids_index', schema.eventMessageTable.wrapIds.name),
-          );
+          await m.database.customStatement('''
+            CREATE INDEX IF NOT EXISTS wrap_ids_index 
+            ON event_message_table(wrap_ids) 
+            WHERE json_valid(wrap_ids)
+          ''');
         },
       ),
     );
