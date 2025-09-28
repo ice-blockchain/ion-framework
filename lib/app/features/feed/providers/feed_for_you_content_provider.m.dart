@@ -28,6 +28,7 @@ import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provi
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/optimistic_ui/features/language/language_sync_strategy_provider.r.dart';
+import 'package:ion/app/features/user/providers/nsfw_accounts_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/relevant_user_relays_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/functions.dart';
@@ -449,7 +450,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
           missingEvents.addAll(missing);
 
           if (entity != null) {
-            if (_shouldShowEntity(entity)) {
+            if (await _shouldShowEntity(entity)) {
               resultsController.add(entity);
             }
             // Even when we don't add an entity to the results (to not count this entity as "fetched"),
@@ -503,7 +504,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     yield* resultsController.stream;
   }
 
-  bool _shouldShowEntity(IonConnectEntity entity) {
+  Future<bool> _shouldShowEntity(IonConnectEntity entity) async {
     final currentItems = state.items ?? {};
 
     // The entity might have already been added to the state by another request.
@@ -522,6 +523,12 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       Logger.info(
         '$_logTag Story from the same author already exists in the state, skipping: ${entity.id}',
       );
+      return false;
+    }
+
+    final nsfwAccounts = await ref.read(nsfwAccountsProvider.future);
+    if (nsfwAccounts.contains(entity.masterPubkey)) {
+      Logger.info('$_logTag Entity is from NSFW account, skipping: ${entity.id}');
       return false;
     }
 

@@ -10,12 +10,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'nsfw_accounts_provider.r.g.dart';
 
 @Riverpod(keepAlive: true)
-Future<List<String>> nsfwAccounts(Ref ref) async {
+Future<Set<String>> nsfwAccounts(Ref ref) async {
   final repo = await ref.watch(configRepositoryProvider.future);
-  final result = await repo.getConfig<List<String>>(
+  final result = await repo.getConfig<Set<String>>(
     'nsfw_accounts',
     cacheStrategy: AppConfigCacheStrategy.file,
-    parser: (data) => (jsonDecode(data) as List<dynamic>).cast<String>(),
+    // Using Set (LinkedHashSet) for fast lookup
+    parser: (data) => (jsonDecode(data) as List<dynamic>).cast<String>().toSet(),
     checkVersion: true,
   );
   return result;
