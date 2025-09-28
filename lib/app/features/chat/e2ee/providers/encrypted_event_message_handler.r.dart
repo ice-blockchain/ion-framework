@@ -52,8 +52,6 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
 
     await eventMessageDao.add(rumor, wrapId: eventMessage.id);
 
-    print('[GLOBAL LOG] ADD wrapId: ${eventMessage.id} ${rumor.kind} ${rumor.content}');
-
     final futures = handlers.nonNulls
         .where((handler) => handler.canHandle(entity: entity))
         .map((handler) => handler.handle(rumor));
