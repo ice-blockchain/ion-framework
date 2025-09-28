@@ -24,7 +24,7 @@ void useDetectLanguage(
           duration: const Duration(seconds: 1),
         ).listen((text) async {
           try {
-            if (text.trim().length < 3) return; // don't ping the model on noise
+            if (text.trim().length < 2) return; // don't ping the model on noise
             if (isRunning.value) {
               return;
             }
@@ -37,7 +37,7 @@ void useDetectLanguage(
               ref.read(selectedEntityLanguageNotifierProvider.notifier).lang = detectedLanguage;
             }
           } catch (e, st) {
-            Logger.error('[Content Labeler] useDetectLanguage failed: $e', stackTrace: st);
+            Logger.error(e, stackTrace: st, message: '[Content Labeler] useDetectLanguage failed');
           } finally {
             isRunning.value = false;
           }

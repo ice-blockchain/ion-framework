@@ -15,7 +15,7 @@ class IonContentLabeler {
   final IONTextLabeler _labeler;
 
   Future<String?> detectLanguageLabels(String content) async {
-    if (content.trim().length < 3) {
+    if (content.trim().length < 2) {
       return null;
     }
     try {
@@ -31,7 +31,7 @@ class IonContentLabeler {
         return bestResult.name;
       }
     } catch (e, st) {
-      Logger.error('[Content Labeler] detectLanguageLabels failed: $e', stackTrace: st);
+      Logger.error(e, stackTrace: st, message: '[Content Labeler] detectLanguageLabels failed');
     }
     return null;
   }

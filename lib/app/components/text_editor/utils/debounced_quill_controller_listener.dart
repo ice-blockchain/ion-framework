@@ -8,26 +8,22 @@ Stream<String> debouncedQuillControllerListener(
   QuillController controller, {
   Duration duration = const Duration(milliseconds: 500),
 }) {
-  late StreamController<String> streamController;
+  final streamController = StreamController<String>.broadcast();
   Timer? debounce;
 
-  late void Function() listener;
-
-  streamController = StreamController<String>.broadcast(
-    onCancel: () {
-      debounce?.cancel();
-      controller.removeListener(listener);
-      streamController.close(); // ensure no further adds
-    },
-  );
-
-  listener = () {
+  void listener() {
     if (debounce?.isActive ?? false) debounce!.cancel();
     debounce = Timer(duration, () {
       if (!streamController.isClosed) {
         streamController.add(controller.plainTextEditingValue.text);
       }
     });
+  }
+
+  streamController.onCancel = () {
+    debounce?.cancel();
+    controller.removeListener(listener);
+    streamController.close(); // ensure no further adds
   };
 
   controller.addListener(listener);
