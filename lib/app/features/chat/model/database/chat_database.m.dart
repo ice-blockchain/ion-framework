@@ -145,6 +145,9 @@ class ChatDatabase extends _$ChatDatabase {
         },
         from3To4: (m, schema) async {
           await m.addColumn(schema.eventMessageTable, schema.eventMessageTable.wrapIds);
+          await m.createIndex(
+            Index('wrap_ids_index', schema.eventMessageTable.wrapIds.name),
+          );
         },
       ),
     );

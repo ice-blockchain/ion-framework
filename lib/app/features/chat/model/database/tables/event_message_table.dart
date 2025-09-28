@@ -3,6 +3,10 @@
 part of '../chat_database.m.dart';
 
 @DataClassName('EventMessageDbModel')
+@TableIndex(
+  name: 'wrap_ids_index',
+  columns: {#wrapIds},
+)
 class EventMessageTable extends Table {
   TextColumn get id => text()();
   IntColumn get kind => integer()();
