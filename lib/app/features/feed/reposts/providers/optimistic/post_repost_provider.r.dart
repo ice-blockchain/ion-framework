@@ -123,9 +123,8 @@ OptimisticService<PostRepost> postRepostService(Ref ref) {
   keepAliveWhenAuthenticated(ref);
 
   final manager = ref.watch(postRepostManagerProvider);
-  final postReposts = ref.watch(loadRepostsFromCacheProvider);
-
-  final service = OptimisticService<PostRepost>(manager: manager)..initialize(postReposts);
+  // optimistic state items are added only though dispatch and removed by the service itself
+  final service = OptimisticService<PostRepost>(manager: manager);
 
   return service;
 }
@@ -167,6 +166,7 @@ OptimisticOperationManager<PostRepost> postRepostManager(Ref ref) {
       return true;
     },
     enableLocal: localEnabled,
+    clearOnSuccessfulSync: true,
   );
 
   ref.onDispose(manager.dispose);
