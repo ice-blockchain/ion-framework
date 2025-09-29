@@ -29,10 +29,6 @@ abstract class ModelFile {
     try {
       directory = await getApplicationSupportDirectory();
     } catch (_) {
-      directory = await getApplicationDocumentsDirectory();
-    }
-
-    if (directory.path.isEmpty) {
       directory = await getTemporaryDirectory();
     }
 
