@@ -9,6 +9,7 @@ import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message
 import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_message_status_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_encrypted_event_message_handler.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/user_profile/providers/user_profile_sync_provider.r.dart';
@@ -48,10 +49,13 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
   }
 
   @override
-  Future<void> handle(EventMessage rumor) async {
+  Future<EventReference> handle(EventMessage rumor) async {
+    final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
     await _addDirectMessageToDatabase(rumor);
     unawaited(_sendReceivedStatus(rumor));
     unawaited(userProfileSyncProvider.syncUserProfile(masterPubkeys: {rumor.masterPubkey}));
+
+    return entity.toEventReference();
   }
 
   Future<void> _addDirectMessageToDatabase(

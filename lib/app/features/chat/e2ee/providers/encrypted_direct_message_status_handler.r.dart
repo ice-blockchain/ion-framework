@@ -7,6 +7,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_message_reaction_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_encrypted_event_message_handler.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -30,7 +31,7 @@ class EncryptedDirectMessageStatusHandler extends GlobalSubscriptionEncryptedEve
   }
 
   @override
-  Future<void> handle(EventMessage rumor) async {
+  Future<EventReference> handle(EventMessage rumor) async {
     final entity = PrivateMessageReactionEntity.fromEventMessage(rumor);
     await conversationMessageDataDao.addOrUpdateStatus(
       messageEventReference: entity.data.reference,
@@ -39,6 +40,7 @@ class EncryptedDirectMessageStatusHandler extends GlobalSubscriptionEncryptedEve
       updateAllBefore: rumor.createdAt.toDateTime,
       status: MessageDeliveryStatus.values.byName(entity.data.content),
     );
+    return entity.toEventReference();
   }
 }
 

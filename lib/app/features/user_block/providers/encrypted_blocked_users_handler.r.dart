@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_encrypted_event_message_handler.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/user_block/model/database/block_user_database.m.dart';
@@ -28,12 +29,17 @@ class EncryptedBlockedUserHandler extends GlobalSubscriptionEncryptedEventMessag
   }
 
   @override
-  Future<void> handle(EventMessage rumor) async {
+  Future<EventReference?> handle(EventMessage rumor) async {
     if (rumor.kind == BlockedUserEntity.kind) {
+      final entity = BlockedUserEntity.fromEventMessage(rumor);
       await _blockUser(rumor);
+      return entity.toEventReference();
     } else if (rumor.kind == DeletionRequestEntity.kind) {
+      final entity = DeletionRequestEntity.fromEventMessage(rumor);
       await _unblockUser(rumor);
+      return entity.toEventReference();
     }
+    return null;
   }
 
   Future<void> _blockUser(EventMessage rumor) async {

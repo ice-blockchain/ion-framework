@@ -386,9 +386,161 @@ i1.GeneratedColumn<bool> _column_19(String aliasedName) =>
         type: i1.DriftSqlType.bool,
         defaultConstraints: i1.GeneratedColumn.constraintIsAlways('CHECK ("is_hidden" IN (0, 1))'),
         defaultValue: const CustomExpression('0'));
+
+final class Schema4 extends i0.VersionedSchema {
+  Schema4({required super.database}) : super(version: 4);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    conversationTable,
+    eventMessageTable,
+    conversationMessageTable,
+    messageStatusTable,
+    reactionTable,
+    messageMediaTable,
+    processedGiftWrapTable,
+  ];
+  late final Shape6 conversationTable = Shape6(
+      source: i0.VersionedTable(
+        entityName: 'conversation_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(id)',
+        ],
+        columns: [
+          _column_0,
+          _column_1,
+          _column_2,
+          _column_3,
+          _column_19,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape1 eventMessageTable = Shape1(
+      source: i0.VersionedTable(
+        entityName: 'event_message_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(event_reference)',
+        ],
+        columns: [
+          _column_0,
+          _column_5,
+          _column_6,
+          _column_7,
+          _column_8,
+          _column_9,
+          _column_10,
+          _column_11,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape2 conversationMessageTable = Shape2(
+      source: i0.VersionedTable(
+        entityName: 'conversation_message_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(message_event_reference)',
+        ],
+        columns: [
+          _column_12,
+          _column_13,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape3 messageStatusTable = Shape3(
+      source: i0.VersionedTable(
+        entityName: 'message_status_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_14,
+          _column_13,
+          _column_6,
+          _column_7,
+          _column_15,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape4 reactionTable = Shape4(
+      source: i0.VersionedTable(
+        entityName: 'reaction_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(reaction_event_reference, master_pubkey)',
+        ],
+        columns: [
+          _column_16,
+          _column_13,
+          _column_9,
+          _column_7,
+          _column_4,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape5 messageMediaTable = Shape5(
+      source: i0.VersionedTable(
+        entityName: 'message_media_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_14,
+          _column_15,
+          _column_17,
+          _column_18,
+          _column_13,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape7 processedGiftWrapTable = Shape7(
+      source: i0.VersionedTable(
+        entityName: 'processed_gift_wrap_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(event_reference, gift_wrap_id)',
+        ],
+        columns: [
+          _column_20,
+          _column_21,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+}
+
+class Shape7 extends i0.VersionedTable {
+  Shape7({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get eventReference =>
+      columnsByName['event_reference']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get giftWrapId =>
+      columnsByName['gift_wrap_id']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<String> _column_20(String aliasedName) => i1.GeneratedColumn<String>(
+    'event_reference', aliasedName, false,
+    type: i1.DriftSqlType.string,
+    defaultConstraints:
+        i1.GeneratedColumn.constraintIsAlways('REFERENCES event_message_table (event_reference)'));
+i1.GeneratedColumn<String> _column_21(String aliasedName) =>
+    i1.GeneratedColumn<String>('gift_wrap_id', aliasedName, false,
+        type: i1.DriftSqlType.string,
+        defaultConstraints: i1.GeneratedColumn.constraintIsAlways('UNIQUE'));
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
+  required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -402,6 +554,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from2To3(migrator, schema);
         return 3;
+      case 3:
+        final schema = Schema4(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from3To4(migrator, schema);
+        return 4;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -411,9 +568,11 @@ i0.MigrationStepWithVersion migrationSteps({
 i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
+  required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
 }) =>
     i0.VersionedSchema.stepByStepHelper(
         step: migrationSteps(
       from1To2: from1To2,
       from2To3: from2To3,
+      from3To4: from3To4,
     ));

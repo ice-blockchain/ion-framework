@@ -38,11 +38,13 @@ part 'dao/conversation_message_data_dao.dart';
 part 'dao/conversation_message_reaction_dao.r.dart';
 part 'dao/event_message_dao.dart';
 part 'dao/message_media_dao.r.dart';
+part 'dao/processed_gift_wrap_dao.dart';
 part 'tables/chat_message_table.dart';
 part 'tables/conversation_table.dart';
 part 'tables/event_message_table.dart';
 part 'tables/message_media_table.dart';
 part 'tables/message_status_table.dart';
+part 'tables/processed_gift_wrap_table.dart';
 part 'tables/reaction_table.dart';
 
 @Riverpod(keepAlive: true)
@@ -71,6 +73,7 @@ ChatDatabase chatDatabase(Ref ref) {
     MessageStatusTable,
     ReactionTable,
     MessageMediaTable,
+    ProcessedGiftWrapTable,
   ],
 )
 class ChatDatabase extends _$ChatDatabase {
@@ -83,7 +86,7 @@ class ChatDatabase extends _$ChatDatabase {
   final String? appGroupId;
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
     final databaseName = 'conversation_database_$pubkey';
@@ -138,6 +141,9 @@ class ChatDatabase extends _$ChatDatabase {
           //  Rename "isDeleted" column from ConversationTable to "isHidden"
           await m.dropColumn(schema.conversationTable, 'is_deleted');
           await m.addColumn(schema.conversationTable, schema.conversationTable.isHidden);
+        },
+        from3To4: (Migrator m, Schema4 schema) async {
+          await m.createTable(schema.processedGiftWrapTable);
         },
       ),
     );

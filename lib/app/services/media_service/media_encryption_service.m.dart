@@ -46,9 +46,6 @@ class MediaEncryptionService {
           attachment.encryptionNonce != null &&
           attachment.encryptionMac != null) {
         final url = attachment.url;
-        final mac = base64Decode(attachment.encryptionMac!);
-        final nonce = base64Decode(attachment.encryptionNonce!);
-        final secretKey = base64Decode(attachment.encryptionKey!);
 
         final cacheFileInfo = await fileCacheService.getFileFromCache(url);
 
@@ -58,27 +55,35 @@ class MediaEncryptionService {
 
         final file = await _downloadFile(url, authorPubkey: authorPubkey);
 
-        final fileBytes = await compute(
-          (file) {
-            return file.readAsBytes();
+        final (decryptedFileBytes, decryptedFile) = await compute(
+          (args) async {
+            final file = args.file;
+            final attachment = args.attachment;
+
+            final fileBytes = await file.readAsBytes();
+
+            final mac = base64Decode(attachment.encryptionMac!);
+            final nonce = base64Decode(attachment.encryptionNonce!);
+            final secretKey = base64Decode(attachment.encryptionKey!);
+
+            final secretBox = SecretBox(
+              fileBytes,
+              nonce: nonce,
+              mac: Mac(mac),
+            );
+
+            final decryptedFileBytesList = await AesGcm.with256bits().decrypt(
+              secretBox,
+              secretKey: SecretKey(secretKey),
+            );
+
+            final decryptedFileBytes = Uint8List.fromList(decryptedFileBytesList);
+            final decryptedFile = File.fromRawPath(decryptedFileBytes);
+
+            return (decryptedFileBytes, decryptedFile);
           },
-          file,
+          (file: file, attachment: attachment),
         );
-
-        final secretBox = SecretBox(
-          fileBytes,
-          nonce: nonce,
-          mac: Mac(mac),
-        );
-        // Wrong Mac authentication error described here
-        // https://github.com/dint-dev/cryptography/issues/147
-        final decryptedFileBytesList = await AesGcm.with256bits().decrypt(
-          secretBox,
-          secretKey: SecretKey(secretKey),
-        );
-
-        final decryptedFileBytes = Uint8List.fromList(decryptedFileBytesList);
-        final decryptedFile = File.fromRawPath(decryptedFileBytes);
 
         final mimeType =
             ionMimeTypeResolver.lookup(decryptedFile.path, headerBytes: decryptedFileBytes);
