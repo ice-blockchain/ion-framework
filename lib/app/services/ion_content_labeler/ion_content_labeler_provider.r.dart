@@ -15,18 +15,23 @@ class IonContentLabeler {
   final IONTextLabeler _labeler;
 
   Future<String?> detectLanguageLabels(String content) async {
-    final detectionResults = await _labeler.detect(
-      content,
-      model: TextLabelerModel.language,
-    );
-    Logger.log(
-      '[Content Labeler] language labels: ${detectionResults.labels}, input: ${content.length > 50 ? '${content.substring(0, 50)}...' : content}',
-    );
-    final bestResult = detectionResults.labels.firstOrNull;
-    if (content.isNotEmpty &&
-        bestResult != null &&
-        bestResult.score > _languageDetectionThreshold) {
-      return bestResult.name;
+    if (content.trim().length < 2) {
+      return null;
+    }
+    try {
+      final detectionResults = await _labeler.detect(
+        content,
+        model: TextLabelerModel.language,
+      );
+      Logger.log(
+        '[Content Labeler] language labels: ${detectionResults.labels}, input: ${content.length > 50 ? '${content.substring(0, 50)}...' : content}',
+      );
+      final bestResult = detectionResults.labels.firstOrNull;
+      if (bestResult != null && bestResult.score > _languageDetectionThreshold) {
+        return bestResult.name;
+      }
+    } catch (e, st) {
+      Logger.error(e, stackTrace: st, message: '[Content Labeler] detectLanguageLabels failed');
     }
     return null;
   }
