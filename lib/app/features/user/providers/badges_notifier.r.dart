@@ -4,7 +4,9 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/bool.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/feed/providers/feed_config_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -15,7 +17,9 @@ import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
 import 'package:ion/app/features/user/model/badges/verified_badge_data.dart';
+import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/providers/service_pubkeys_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -145,6 +149,18 @@ bool isValidNicknameProofBadgeDefinition(
 }
 
 @riverpod
+bool isValidDeviceIdentityProofBadgeDefinition(
+  Ref ref,
+  ReplaceableEventReference badgeRef,
+  List<String> servicePubkeys,
+) {
+  return badgeRef.dTag
+          .startsWith(BadgeDefinitionEntity.deviceIdentificationProofOfOwnershipBadgeDTag) &&
+      (servicePubkeys.isEmpty || servicePubkeys.contains(badgeRef.masterPubkey)) &&
+      badgeRef.kind == BadgeDefinitionEntity.kind;
+}
+
+@riverpod
 bool isUserVerified(
   Ref ref,
   String pubkey,
@@ -195,6 +211,77 @@ bool isNicknameProven(Ref ref, String pubkey) {
             isBadgeDefinitionValid &&
             isBadgeAwardValid &&
             entry.definitionRef.dTag.endsWith('~${userMetadata.data.name}');
+      }) ??
+      false;
+}
+
+@riverpod
+bool isDeviceIdentityProven(
+  Ref ref, {
+  required String masterPubkey,
+  required String deviceIdentityPubkey,
+}) {
+  final feedConfigState = ref.watch(feedConfigProvider);
+  if (feedConfigState.value?.deviceIdentificationEnabled.falseOrValue == false) {
+    return true;
+  }
+  var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(masterPubkey))?.data;
+  if (profileBadgesData == null) {
+    final res = ref.watch(profileBadgesDataProvider(masterPubkey));
+    if (res.isLoading) {
+      return true;
+    }
+    profileBadgesData = res.valueOrNull;
+  }
+  final pubkeys = ref.watch(servicePubkeysProvider).valueOrNull ?? [];
+
+  return profileBadgesData?.entries.any((entry) {
+        final isBadgeAwardValid =
+            pubkeys.isEmpty || ref.watch(cachedBadgeAwardProvider(entry.awardId, pubkeys)) != null;
+        final isBadgeDefinitionValid = ref
+            .watch(isValidDeviceIdentityProofBadgeDefinitionProvider(entry.definitionRef, pubkeys));
+        return isBadgeDefinitionValid &&
+            isBadgeAwardValid &&
+            entry.definitionRef.dTag.endsWith('~$deviceIdentityPubkey');
+      }) ??
+      false;
+}
+
+@riverpod
+Future<bool> hasUserProvenIdentities(Ref ref, String masterPubkey) async {
+  final feedConfigState = ref.watch(feedConfigProvider);
+  if (feedConfigState.value?.deviceIdentificationEnabled.falseOrValue == false) {
+    return true;
+  }
+  final profileBadgesData = ref.read(cachedProfileBadgesDataProvider(masterPubkey))?.data ??
+      await ref.read(profileBadgesDataProvider(masterPubkey).future);
+  final userDelegation = await ref.read(
+    userDelegationProvider(masterPubkey).future,
+  );
+  if (userDelegation == null) {
+    return true;
+  }
+
+  final activeDelegatePubkeys = userDelegation.data.delegates
+      .where((d) => d.status == DelegationStatus.active)
+      .map((d) => d.pubkey)
+      .toSet();
+
+  if (activeDelegatePubkeys.isEmpty) {
+    return true;
+  }
+
+  final pubkeys = await ref.read(servicePubkeysProvider.future);
+
+  return profileBadgesData?.entries.any((entry) {
+        final isBadgeAwardValid =
+            pubkeys.isEmpty || ref.watch(cachedBadgeAwardProvider(entry.awardId, pubkeys)) != null;
+        final isBadgeDefinitionValid = ref
+            .watch(isValidDeviceIdentityProofBadgeDefinitionProvider(entry.definitionRef, pubkeys));
+        final dTag = entry.definitionRef.dTag;
+        return isBadgeAwardValid &&
+            isBadgeDefinitionValid &&
+            activeDelegatePubkeys.any((delegatePubkey) => dTag.endsWith('~$delegatePubkey'));
       }) ??
       false;
 }

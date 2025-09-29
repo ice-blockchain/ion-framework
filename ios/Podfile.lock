@@ -151,6 +151,7 @@ PODS:
     - Flutter
   - file_saver (0.0.1):
     - Flutter
+  - FingerprintPro (2.9.0)
   - Firebase/Analytics (11.10.0):
     - Firebase/Core
   - Firebase/Core (11.10.0):
@@ -225,6 +226,9 @@ PODS:
   - flutter_local_notifications (0.0.1):
     - Flutter
   - flutter_secure_storage (6.0.0):
+    - Flutter
+  - fpjs_pro_plugin (3.3.2):
+    - FingerprintPro (< 2.10.0, >= 2.9.0)
     - Flutter
   - google_sign_in_ios (0.0.1):
     - AppAuth (>= 1.7.4)
@@ -437,6 +441,7 @@ DEPENDENCIES:
   - flutter_keyboard_visibility_temp_fork (from `.symlinks/plugins/flutter_keyboard_visibility_temp_fork/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
+  - fpjs_pro_plugin (from `.symlinks/plugins/fpjs_pro_plugin/ios`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
   - GoogleUtilities
   - icloud_storage (from `.symlinks/plugins/icloud_storage/ios`)
@@ -482,6 +487,7 @@ SPEC REPOS:
     - AppsFlyerFramework
     - DKImagePickerController
     - DKPhotoGallery
+    - FingerprintPro
     - Firebase
     - FirebaseAnalytics
     - FirebaseCore
@@ -562,6 +568,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
   flutter_secure_storage:
     :path: ".symlinks/plugins/flutter_secure_storage/ios"
+  fpjs_pro_plugin:
+    :path: ".symlinks/plugins/fpjs_pro_plugin/ios"
   google_sign_in_ios:
     :path: ".symlinks/plugins/google_sign_in_ios/darwin"
   icloud_storage:
@@ -653,6 +661,7 @@ SPEC CHECKSUMS:
   ffmpeg_kit_flutter: 03e1c7562aee29a33b03def7b10a2fbc0456c63d
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   file_saver: 6cdbcddd690cb02b0c1a0c225b37cd805c2bf8b6
+  FingerprintPro: 0d3e5957cd165ff4065853c3b7089c118656a234
   Firebase: 1fe1c0a7d9aaea32efe01fbea5f0ebd8d70e53a2
   firebase_analytics: 1998960b8fa16fd0cd9e77a6f9fd35a2009ad65e
   firebase_core: 2d4534e7b489907dcede540c835b48981d890943
@@ -668,6 +677,7 @@ SPEC CHECKSUMS:
   flutter_keyboard_visibility_temp_fork: 95b2d534bacf6ac62e7fcbe5c2a9e2c2a17ce06f
   flutter_local_notifications: 862d8c0d83902dcc67006f626c2a2b920d0cc78d
   flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
+  fpjs_pro_plugin: 85f682d99e728903dd8aaa7e6c9fb016ee4f0688
   google_sign_in_ios: b48bb9af78576358a168361173155596c845f0b9
   GoogleAppMeasurement: 36684bfb3ee034e2b42b4321eb19da3a1b81e65d
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7

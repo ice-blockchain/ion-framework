@@ -99,6 +99,7 @@ class _EntityListItem extends ConsumerWidget {
     if (entity == null ||
         ListEntityHelper.isUserMuted(ref, entity.masterPubkey, showMuted: showMuted) ||
         ListEntityHelper.isUserBlockedOrBlocking(context, ref, entity) ||
+        ListEntityHelper.isDeviceIdentityWithoutProofs(ref, entity) ||
         ListEntityHelper.isEntityOrRepostedEntityDeleted(context, ref, entity) ||
         !ListEntityHelper.hasMetadata(context, ref, entity)) {
       return const SizedBox.shrink();

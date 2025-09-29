@@ -2,13 +2,8 @@
 
 import 'dart:async';
 
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user_block/model/database/block_user_database.m.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/block_user_provider.r.dart';
@@ -119,34 +114,4 @@ class IsBlockedOrBlockedByNotifier extends _$IsBlockedOrBlockedByNotifier {
 
     return isBlocked || isBlockedBy;
   }
-}
-
-@riverpod
-bool isEntityBlockedOrBlockedBy(Ref ref, IonConnectEntity entity) {
-  final isUserBlocked =
-      ref.watch(blockedUserWatchProvider(entity.masterPubkey)).valueOrNull?.isBlocked ?? false;
-  final blockedByList = ref.watch(currentUserBlockedByListNotifierProvider).valueOrNull ?? [];
-  if (isUserBlocked ||
-      blockedByList.any((bEntity) => bEntity.masterPubkey == entity.masterPubkey)) {
-    return true;
-  }
-  if (entity is ModifiablePostEntity && entity.data.quotedEvent != null) {
-    final quotedEntity = ref.watch(
-      ionConnectInMemoryEntityProvider(
-        eventReference: entity.data.quotedEvent!.eventReference,
-      ),
-    );
-    if (quotedEntity != null) {
-      return ref.watch(isEntityBlockedOrBlockedByProvider(quotedEntity));
-    }
-  } else if (entity is GenericRepostEntity) {
-    final childEntity = ref.watch(
-      ionConnectSyncEntityProvider(eventReference: entity.data.eventReference),
-    );
-    if (childEntity != null) {
-      return ref.watch(isEntityBlockedOrBlockedByProvider(childEntity));
-    }
-  }
-
-  return false;
 }

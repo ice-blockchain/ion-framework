@@ -1349,6 +1349,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  fpjs_pro_plugin:
+    dependency: "direct main"
+    description:
+      name: fpjs_pro_plugin
+      sha256: "9083c2c4f7196ff718d37411a897761f672e01a92a58d811ed669594f3e03dd8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.1.0"
   freezed:
     dependency: "direct dev"
     description:

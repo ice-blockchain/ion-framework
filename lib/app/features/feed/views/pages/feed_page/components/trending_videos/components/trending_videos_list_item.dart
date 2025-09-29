@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/placeholder/ion_placeholder.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_entity_helper.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/views/components/feed_network_image/feed_network_image.dart';
 import 'package:ion/app/features/feed/views/components/overlay_menu/user_info_menu.dart';
@@ -11,8 +12,6 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/components/trending_video_likes_button.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
-import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
 class TrendingVideoListItem extends ConsumerWidget {
@@ -27,7 +26,7 @@ class TrendingVideoListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (_isBlockedOrMutedOrBlocking(ref, video)) {
+    if (_isBlockedOrMutedOrBlocking(context, ref, video)) {
       return const SizedBox.shrink();
     }
 
@@ -55,10 +54,11 @@ class TrendingVideoListItem extends ConsumerWidget {
     );
   }
 
-  bool _isBlockedOrMutedOrBlocking(WidgetRef ref, IonConnectEntity entity) {
-    final isMuted = ref.watch(isUserMutedProvider(entity.masterPubkey));
-    final isBlockedOrBlockedBy = ref.watch(isEntityBlockedOrBlockedByProvider(entity));
-    return isMuted || isBlockedOrBlockedBy;
+  bool _isBlockedOrMutedOrBlocking(BuildContext context, WidgetRef ref, IonConnectEntity entity) {
+    return ListEntityHelper.isUserMuted(ref, entity.masterPubkey, showMuted: false) ||
+        ListEntityHelper.isUserBlockedOrBlocking(context, ref, entity) ||
+        ListEntityHelper.isDeviceIdentityWithoutProofs(ref, entity) ||
+        ListEntityHelper.isEntityOrRepostedEntityDeleted(context, ref, entity);
   }
 }
 

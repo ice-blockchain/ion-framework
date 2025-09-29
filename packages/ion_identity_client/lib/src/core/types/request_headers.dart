@@ -3,6 +3,7 @@
 class RequestHeaders {
   static const ionIdentityClientId = 'X-Client-ID';
   static const ionIdentityKeyName = 'X-Username';
+  static const deviceIdentificationRequestId = 'X-Device-Identification-Request-ID';
   static const ionIdentityUserAction = 'X-Useraction';
   static const authorization = 'Authorization';
 

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/features/auth/providers/early_access_provider.r.dart';
+import 'package:ion/app/services/device_identification/device_identification_service.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -19,7 +20,16 @@ class RegisterActionNotifier extends _$RegisterActionNotifier {
       final ionIdentity = await ref.read(ionIdentityProvider.future);
       final earlyAccessEmail = ref.read(earlyAccessEmailProvider);
       try {
-        await ionIdentity(username: keyName).auth.registerUser(earlyAccessEmail);
+        final deviceIdentificationServiceProviderNotifier =
+            ref.read(deviceIdentificationServiceProvider.notifier);
+        await ionIdentity(username: keyName).auth.registerUser(
+              (username) async =>
+                  deviceIdentificationServiceProviderNotifier.getRequestIdFor(username),
+              earlyAccessEmail,
+            );
+      } on DeviceIdentityDuplicateException {
+        // TODO: show modal
+        return;
       } on PasskeyCancelledException {
         return;
       }
@@ -32,9 +42,19 @@ class RegisterActionNotifier extends _$RegisterActionNotifier {
     state = await AsyncValue.guard(() async {
       final ionIdentity = await ref.read(ionIdentityProvider.future);
       final earlyAccessEmail = ref.read(earlyAccessEmailProvider);
-      await ionIdentity(username: keyName)
-          .auth
-          .registerUserWithPassword(password, earlyAccessEmail);
+      final deviceIdentificationServiceProviderNotifier =
+          ref.read(deviceIdentificationServiceProvider.notifier);
+      try {
+        await ionIdentity(username: keyName).auth.registerUserWithPassword(
+              password,
+              (username) async =>
+                  deviceIdentificationServiceProviderNotifier.getRequestIdFor(username),
+              earlyAccessEmail,
+            );
+      } on DeviceIdentityDuplicateException {
+        // TODO: show modal
+        return;
+      }
     });
   }
 }
