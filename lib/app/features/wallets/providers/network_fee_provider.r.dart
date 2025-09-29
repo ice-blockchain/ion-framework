@@ -168,16 +168,18 @@ double _calculateFeeAmount(
 bool canUserCoverFee({
   required NetworkFeeOption? selectedFee,
   required ion.WalletAsset? networkNativeToken,
+  double sendAmount = 0.0,
+  bool isSendingNativeToken = false,
 }) {
   if (networkNativeToken == null) return false;
 
   final parsedBalance = double.tryParse(networkNativeToken.balance) ?? 0;
   final convertedBalance = parsedBalance / pow(10, networkNativeToken.decimals);
 
-  // We don't have fees for the selected networks.
-  // So if a user has native coins of the network,
-  // we allow him to make a transaction.
-  if (selectedFee == null) return convertedBalance > 0;
+  // Calculate total required amount
+  final feeAmount = selectedFee?.amount ?? 0.0;
+  final totalRequired = isSendingNativeToken ? feeAmount + sendAmount : feeAmount;
 
-  return convertedBalance >= selectedFee.amount;
+  if (selectedFee == null) return convertedBalance > (isSendingNativeToken ? sendAmount : 0);
+  return convertedBalance >= totalRequired;
 }
