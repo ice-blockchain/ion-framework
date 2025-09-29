@@ -28,72 +28,81 @@ class TapToSeeHint extends HookWidget {
       onVisibilityChanged?.call(showTooltip.value);
     }
 
-    return GestureDetector(
-      onTap: showTooltip.value ? null : toggleTooltip,
-      child: Stack(
-        children: [
-          Positioned.fill(child: child),
-          if (showTooltip.value)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: toggleTooltip,
-                behavior: HitTestBehavior.opaque,
-                child: Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      toggleTooltip();
-                      onTap();
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: EdgeInsetsDirectional.only(
-                            start: 16.0.s,
-                            end: 12.0.s,
-                            top: 9.0.s,
-                            bottom: 9.0.s,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colors.onPrimaryAccent,
-                            borderRadius: BorderRadius.circular(8.0.s),
-                            boxShadow: [
-                              BoxShadow(
-                                color: colors.primaryText.withValues(alpha: 0.2),
-                                blurRadius: 8.0.s,
-                                offset: Offset(0, 2.0.s),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                context.i18n.story_see_post,
-                                style: textStyles.subtitle3.copyWith(
-                                  color: colors.primaryText,
-                                ),
-                              ),
-                              SizedBox(width: 4.0.s),
-                              Assets.svg.iconArrowRight.icon(
-                                size: 16.0.s,
+    return Stack(
+      children: [
+        Positioned.fill(child: child),
+        Positioned.directional(
+          textDirection: Directionality.of(context),
+          top: 0,
+          bottom: 0,
+          start: 64.s,
+          end: 64.s,
+          child: GestureDetector(
+            onTap: showTooltip.value ? null : toggleTooltip,
+            behavior: HitTestBehavior.opaque,
+            child: const SizedBox.expand(),
+          ),
+        ),
+        if (showTooltip.value)
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: toggleTooltip,
+              behavior: HitTestBehavior.opaque,
+              child: Center(
+                child: GestureDetector(
+                  onTap: () {
+                    toggleTooltip();
+                    onTap();
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: EdgeInsetsDirectional.only(
+                          start: 16.0.s,
+                          end: 12.0.s,
+                          top: 9.0.s,
+                          bottom: 9.0.s,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colors.onPrimaryAccent,
+                          borderRadius: BorderRadius.circular(8.0.s),
+                          boxShadow: [
+                            BoxShadow(
+                              color: colors.primaryText.withValues(alpha: 0.2),
+                              blurRadius: 8.0.s,
+                              offset: Offset(0, 2.0.s),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              context.i18n.story_see_post,
+                              style: textStyles.subtitle3.copyWith(
                                 color: colors.primaryText,
                               ),
-                            ],
-                          ),
+                            ),
+                            SizedBox(width: 4.0.s),
+                            Assets.svg.iconArrowRight.icon(
+                              size: 16.0.s,
+                              color: colors.primaryText,
+                            ),
+                          ],
                         ),
-                        CustomPaint(
-                          painter: _NotchPainter(color: colors.onPrimaryAccent),
-                          size: Size(19.0.s, 7.0.s),
-                        ),
-                      ],
-                    ),
+                      ),
+                      CustomPaint(
+                        painter: _NotchPainter(color: colors.onPrimaryAccent),
+                        size: Size(19.0.s, 7.0.s),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }
