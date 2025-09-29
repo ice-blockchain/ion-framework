@@ -243,7 +243,7 @@ class OneToOneMessageList extends HookConsumerWidget {
     );
   }
 
-  Future<void> _markasRead(WidgetRef ref, List<EventMessage> allMessages) async {
+  Future<void> _markAsRead(WidgetRef ref, List<EventMessage> allMessages) async {
     final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
 
     final latestMessageFromReceiver =
