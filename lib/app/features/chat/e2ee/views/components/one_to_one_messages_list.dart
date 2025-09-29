@@ -6,7 +6,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_message_status_provider.r.dart';
+import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/views/components/message_items/components.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/document_message/document_message.dart';
@@ -53,6 +56,14 @@ class OneToOneMessageList extends HookConsumerWidget {
       () => messages.values.expand((e) => e).toList()
         ..sortByCompare((e) => e.publishedAt, (a, b) => b.compareTo(a)),
       [messages],
+    );
+
+    useEffect(
+      () {
+        _markAsRead(ref, allMessages);
+        return null;
+      },
+      [allMessages],
     );
 
     final dateHeaderLookup = useMemoized(
@@ -229,6 +240,24 @@ class OneToOneMessageList extends HookConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _markAsRead(WidgetRef ref, List<EventMessage> allMessages) async {
+    final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
+
+    final latestMessageFromReceiver =
+        allMessages.where((m) => m.masterPubkey != currentUserMasterPubkey).firstOrNull;
+
+    if (latestMessageFromReceiver == null || currentUserMasterPubkey == null) {
+      return;
+    }
+
+    final service = await ref.read(sendE2eeMessageStatusServiceProvider.future);
+
+    await service.sendMessageStatus(
+      messageEventMessage: latestMessageFromReceiver,
+      status: MessageDeliveryStatus.read,
     );
   }
 }
