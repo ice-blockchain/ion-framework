@@ -196,6 +196,7 @@ class MediaService {
         toolbarWidgetColor: context.theme.appColors.primaryBackground,
         cropStyle: cropStyle,
         aspectRatioPresets: aspectRatioPresets,
+        statusBarLight: false,
       ),
       IOSUiSettings(
         title: context.i18n.common_crop_image,
