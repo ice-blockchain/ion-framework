@@ -180,6 +180,9 @@ bool canUserCoverFee({
   final feeAmount = selectedFee?.amount ?? 0.0;
   final totalRequired = isSendingNativeToken ? feeAmount + sendAmount : feeAmount;
 
+  // We don't have fees for the selected network.
+  // So if a user has native coins of the network, we allow him to make a transaction.
   if (selectedFee == null) return convertedBalance > (isSendingNativeToken ? sendAmount : 0);
+
   return convertedBalance >= totalRequired;
 }

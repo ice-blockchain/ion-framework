@@ -46,7 +46,7 @@ class TransferStatusUpdater {
     );
     if (broadcasted.isEmpty) return;
 
-    var updated = <TransactionData>[];
+    final updated = <TransactionData>[];
     final externalHashesToRemove = <String>[];
     String? nextPageToken = '';
 
@@ -90,14 +90,15 @@ class TransferStatusUpdater {
       }
 
       if (updated.isNotEmpty) {
-        if (updated.any((t) => t.externalHash != null)) {
-          updated = await _externalHashProcessor.process(updated);
-        }
+        final transactionsToSave = updated.any((t) => t.externalHash != null)
+            ? await _externalHashProcessor.process(updated)
+            : updated;
 
-        Logger.log('TransferStatusUpdater.update: Saving ${updated.length} updated transactions: '
-            '${updated.map((t) => '${t.txHash}(${t.status})').join(', ')}');
-        await _transactionsRepository.saveTransactions(updated);
-        await _handleFailedTransfersDeletion(updated);
+        Logger.log(
+            'TransferStatusUpdater.update: Saving ${transactionsToSave.length} updated transactions: '
+            '${transactionsToSave.map((t) => '${t.txHash}(${t.status})').join(', ')}');
+        await _transactionsRepository.saveTransactions(transactionsToSave);
+        await _handleFailedTransfersDeletion(transactionsToSave);
       }
 
       if (externalHashesToRemove.isNotEmpty) {
