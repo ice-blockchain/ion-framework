@@ -25,9 +25,9 @@ Future<bool> hasCurrentUserBackupInCloud(Ref ref) async {
   try {
     final recoveryKeyNames = await ref.watch(cloudStoredRecoveryKeysNamesProvider.future);
     return recoveryKeyNames.contains(currentIdentityKeyName);
-  } catch (e) {
+  } catch (e, stackTrace) {
     // handles cancel, permission denied, etc.
-    Logger.error(e);
+    Logger.error(e, stackTrace: stackTrace, message: 'Error checking user backup in cloud');
     return false;
   }
 }
