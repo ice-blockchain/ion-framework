@@ -6,16 +6,13 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_interests_interaction.dart';
 import 'package:ion/app/features/feed/providers/counters/like_reaction_provider.r.dart';
 import 'package:ion/app/features/feed/providers/counters/likes_count_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/optimistic_ui/core/operation_manager.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_service.dart';
@@ -28,65 +25,15 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'post_like_provider.r.g.dart';
 
-List<PostLike> _loadInitialLikesFromCache(Ref ref) {
-  final currentPubkey = ref.read(currentPubkeySelectorProvider);
-  final cache = ref.read(ionConnectCacheProvider);
-  final reactions = cache.values
-      .map((e) => e.entity)
-      .whereType<ReactionEntity>()
-      .where((r) => r.data.content == ReactionEntity.likeSymbol)
-      .toList();
-
-  final grouped = groupBy<ReactionEntity, EventReference>(
-    reactions,
-    (r) => r.data.eventReference,
-  );
-
-  return grouped.entries.map((entry) {
-    final eventRef = entry.key;
-    final list = entry.value;
-
-    final counterCacheKey = EventCountResultEntity.cacheKeyBuilder(
-      key: eventRef.toString(),
-      type: EventCountResultType.reactions,
-    );
-    final counterEntity = cache[counterCacheKey]?.entity as EventCountResultEntity?;
-
-    int count;
-    if (counterEntity != null) {
-      final reactionsCount = counterEntity.data.content as Map<String, dynamic>;
-      count = (reactionsCount[ReactionEntity.likeSymbol] ?? 0) as int;
-    } else {
-      count = list.length;
-    }
-
-    final likedByMe = currentPubkey != null && list.any((r) => r.pubkey == currentPubkey);
-    return PostLike(
-      eventReference: eventRef,
-      likesCount: count,
-      likedByMe: likedByMe,
-    );
-  }).toList();
-}
-
 @riverpod
 class PostLikeServiceNotifier extends _$PostLikeServiceNotifier {
-  bool _initialized = false;
-  late OptimisticService<PostLike> _service;
-
   @override
   OptimisticService<PostLike> build() {
     keepAliveWhenAuthenticated(ref);
     final manager = ref.watch(postLikeManagerProvider);
-    _service = OptimisticService<PostLike>(manager: manager);
-
-    if (!_initialized) {
-      final initialLikes = _loadInitialLikesFromCache(ref);
-      _service.initialize(initialLikes);
-      _initialized = true;
-    }
-
-    return _service;
+    // no need to initialise the service with initial items,
+    // optimistic state should be used for the pending operation only and cache should be use as source in other cases
+    return OptimisticService<PostLike>(manager: manager);
   }
 }
 
