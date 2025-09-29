@@ -512,9 +512,9 @@ packages:
     dependency: "direct main"
     description:
       path: cryptography_flutter
-      ref: df669ebe199ab857f017c1f764e6a3f0dfc60151
-      resolved-ref: df669ebe199ab857f017c1f764e6a3f0dfc60151
-      url: "https://github.com/ice-endymion/cryptography.git"
+      ref: "9893cd9"
+      resolved-ref: "9893cd9f0f6542c382004d339a0b64a3f115f8a0"
+      url: "https://github.com/zkrige/cryptography.git"
     source: git
     version: "2.3.2"
   cryptography_plus:
