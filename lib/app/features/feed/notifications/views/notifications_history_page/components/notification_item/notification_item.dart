@@ -68,19 +68,19 @@ class NotificationItem extends HookConsumerWidget {
       behavior: HitTestBehavior.opaque,
       child: Column(
         children: [
+          SizedBox(height: 16.0.s),
+          ScreenSideOffset.small(
+            child: NotificationIcons(notification: notification),
+          ),
+          SizedBox(height: 8.0.s),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 16.0.s),
-                    ScreenSideOffset.small(
-                      child: NotificationIcons(notification: notification),
-                    ),
-                    SizedBox(height: 8.0.s),
                     ScreenSideOffset.small(
                       child: NotificationInfo(
                         notification: notification,
@@ -90,12 +90,7 @@ class NotificationItem extends HookConsumerWidget {
                       Padding(
                         padding: EdgeInsetsGeometry.only(top: 6.s),
                         child: ScreenSideOffset.small(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: 18.s,
-                            ),
-                            child: NotificationContent(entity: entity),
-                          ),
+                          child: NotificationContent(entity: entity),
                         ),
                       ),
                   ],
