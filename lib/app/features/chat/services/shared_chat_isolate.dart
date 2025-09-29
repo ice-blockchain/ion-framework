@@ -15,8 +15,6 @@ import 'package:isolate_manager/isolate_manager.dart';
 /// instead of spawning new isolates or using `compute`, to prevent excessive
 /// isolate spawning and improve performance.
 final sharedChatIsolate = IsolateManager.createShared(
-  //TODO: remove this after testing
-  isDebug: true,
   workerMappings: {
     unwrapGiftFn: 'unwrapGiftFn',
     createGiftWrapFn: 'createGiftWrapFn',
