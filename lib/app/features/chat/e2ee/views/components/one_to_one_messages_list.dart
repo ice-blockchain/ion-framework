@@ -60,7 +60,7 @@ class OneToOneMessageList extends HookConsumerWidget {
 
     useEffect(
       () {
-        _markasRead(ref, allMessages);
+        _markAsRead(ref, allMessages);
         return null;
       },
       [allMessages],
