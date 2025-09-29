@@ -312,7 +312,7 @@ PODS:
     - Flutter
   - image_cropper (0.0.4):
     - Flutter
-    - TOCropViewController (~> 2.7.4)
+    - TOCropViewController (~> 2.8.0)
   - ion_content_labeler (0.0.1):
     - Flutter
   - ion_screenshot_detector (0.0.1):
@@ -395,7 +395,7 @@ PODS:
     - sqlite3/rtree
     - sqlite3/session
   - SwiftyGif (5.4.5)
-  - TOCropViewController (2.7.4)
+  - TOCropViewController (2.8.0)
   - ua_client_hints (1.4.1):
     - Flutter
   - url_launcher_ios (0.0.1):
@@ -676,7 +676,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   icloud_storage: e55639f0c0d7cb2b0ba9c0b3d5968ccca9cd9aa2
-  image_cropper: 5f162dcf988100dc1513f9c6b7eb42cd6fbf9156
+  image_cropper: 64567491beea6cd1bc4b11948e2babb590de5826
   ion_content_labeler: f7b0a605150742a6e41c82730110b008c582d788
   ion_screenshot_detector: 12965038c2274b1876c39ee328507e8bb9c7b794
   local_auth_crypto: 0f489ce05f51504fc091a53ce357e98313696085
@@ -704,7 +704,7 @@ SPEC CHECKSUMS:
   sqlite3: 73513155ec6979715d3904ef53a8d68892d4032b
   sqlite3_flutter_libs: 83f8e9f5b6554077f1d93119fe20ebaa5f3a9ef1
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
-  TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
+  TOCropViewController: 797deaf39c90e6e9ddd848d88817f6b9a8a09888
   ua_client_hints: 92fe0d139619b73ec9fcb46cc7e079a26178f586
   url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
   video_player_avfoundation: 2cef49524dd1f16c5300b9cd6efd9611ce03639b
