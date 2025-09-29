@@ -8,10 +8,10 @@ import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/chat/services/shared_chat_isolate.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/core/providers/ion_connect_media_url_fallback_provider.r.dart';
-import 'package:ion/app/features/core/services/global_long_lived_isolate.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/services/compressors/brotli_compressor.r.dart';
 import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
@@ -55,7 +55,7 @@ class MediaEncryptionService {
 
         final file = await _downloadFile(url, authorPubkey: authorPubkey);
 
-        final decryptedFileBytes = await globalLongLivedIsolate.compute(
+        final decryptedFileBytes = await sharedChatIsolate.compute(
           (args) async {
             return decryptMediaFileFn(args);
           },
@@ -105,7 +105,7 @@ class MediaEncryptionService {
   ) async {
     final documentsDir = await getApplicationDocumentsDirectory();
 
-    final encryptedMediaFile = await globalLongLivedIsolate.compute(
+    final encryptedMediaFile = await sharedChatIsolate.compute(
       (args) async {
         final mediaFile = args.mediaFile;
         final documentsDir = args.documentsDir;

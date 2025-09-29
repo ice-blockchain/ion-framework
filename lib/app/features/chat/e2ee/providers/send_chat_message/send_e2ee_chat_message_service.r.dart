@@ -15,9 +15,9 @@ import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_chat
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/group_subject.f.dart';
 import 'package:ion/app/features/chat/providers/conversation_pubkeys_provider.r.dart';
+import 'package:ion/app/features/chat/services/shared_chat_isolate.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
-import 'package:ion/app/features/core/services/global_long_lived_isolate.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_editing_ended_at.f.dart';
@@ -359,7 +359,7 @@ class SendE2eeChatMessageService {
         EntityExpiration(value: randomCreatedAtTime.add(expirationDuration).microsecondsSinceEpoch)
             .toTag();
 
-    final giftWrap = await globalLongLivedIsolate.compute(
+    final giftWrap = await sharedChatIsolate.compute(
       createGiftWrapFn,
       [
         sealService,

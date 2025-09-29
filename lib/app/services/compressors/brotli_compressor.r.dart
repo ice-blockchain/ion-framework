@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:es_compression/brotli.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/chat/services/shared_chat_isolate.dart';
 import 'package:ion/app/features/core/model/mime_type.dart';
-import 'package:ion/app/features/core/services/global_long_lived_isolate.dart';
 import 'package:ion/app/services/compressors/compressor.r.dart';
 import 'package:ion/app/services/compressors/output_path_generator.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -34,7 +34,7 @@ class BrotliCompressor implements Compressor<BrotliCompressionSettings> {
   Future<MediaFile> compress(MediaFile file, {BrotliCompressionSettings? settings}) async {
     try {
       final outputFilePath = await generateOutputPath(extension: 'br');
-      return await globalLongLivedIsolate.compute(
+      return await sharedChatIsolate.compute(
         (args) async {
           final mediaFile = await compressBrotliFn(args);
           return mediaFile;
@@ -58,7 +58,7 @@ class BrotliCompressor implements Compressor<BrotliCompressionSettings> {
   Future<File> decompress(List<int> compressedData, {String outputExtension = ''}) async {
     try {
       final outputFilePath = await generateOutputPath(extension: outputExtension);
-      return await globalLongLivedIsolate.compute(
+      return await sharedChatIsolate.compute(
         (arg) async {
           final decompressedData = await decompressBrotliFn(arg);
           return decompressedData;
