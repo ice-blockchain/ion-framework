@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'dart:io';
 
 import 'package:ion/app/features/core/model/mime_type.dart';
