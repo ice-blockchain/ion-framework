@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/compression_tag.f.dart';
+import 'package:ion/app/features/core/services/global_long_lived_isolate.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
@@ -13,7 +14,6 @@ import 'package:ion/app/services/ion_connect/ion_connect.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_gift_wrap_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_logger.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_seal_service.r.dart';
-import 'package:isolate_manager/isolate_manager.dart';
 import 'package:nip44/nip44.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -48,7 +48,7 @@ class GiftUnwrapService {
           ? CompressionTag.fromTag(compressionTag).algorithm
           : CompressionAlgorithm.none;
 
-      final (rumor, seal) = await unwrapGiftSharedIsolate.compute(unwrapGiftFn, [
+      final (rumor, seal) = await globalLongLivedIsolate.compute(unwrapGiftFn, [
         _giftWrapService,
         _sealService,
         _privateKey,
@@ -92,13 +92,6 @@ Future<GiftUnwrapService> giftUnwrapService(Ref ref) async {
     },
   );
 }
-
-final unwrapGiftSharedIsolate = IsolateManager.createShared(
-  useWorker: true,
-  workerMappings: {
-    unwrapGiftFn: 'unwrapGiftFn',
-  },
-);
 
 @pragma('vm:entry-point')
 Future<(EventMessage, EventMessage)> unwrapGiftFn(List<dynamic> args) async {
