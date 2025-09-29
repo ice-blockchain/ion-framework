@@ -72,8 +72,6 @@ class SendE2eeChatMessageService {
     final preparedMediaFiles =
         mediaFiles.map((e) => e.copyWith(originalMimeType: e.mimeType)).toList();
 
-    print('[LOG2] originalMimeType: ${preparedMediaFiles.map((e) => e.originalMimeType)}');
-
     EventMessage? sentMessage;
 
     final sharedId = editedMessage?.sharedId ?? failedEventMessage?.sharedId ?? generateUuid();
