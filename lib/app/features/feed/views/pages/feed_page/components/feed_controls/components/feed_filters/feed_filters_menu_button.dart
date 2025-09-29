@@ -18,7 +18,6 @@ class FeedFiltersMenuButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OverlayMenu(
-      isNeedHideOnTabChange: true,
       scrollController: scrollController,
       menuBuilder: (closeMenu) => FeedFiltersMenuOverlay(closeMenu: closeMenu),
       child: const _MenuButton(),

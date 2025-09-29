@@ -13,7 +13,6 @@ class OverlayMenu extends HookWidget {
     this.onOpen,
     this.onClose,
     this.scrollController,
-    this.isNeedHideOnTabChange = false,
     super.key,
   });
 
@@ -22,7 +21,6 @@ class OverlayMenu extends HookWidget {
   final VoidCallback? onOpen;
   final VoidCallback? onClose;
   final ScrollController? scrollController;
-  final bool isNeedHideOnTabChange;
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +35,7 @@ class OverlayMenu extends HookWidget {
 
     useHideOnScroll(context, overlayPortalController, scrollController);
 
-    if (isNeedHideOnTabChange) {
-      useHideOnTabChange(context, overlayPortalController);
-    }
+    useHideOnTabChange(context, overlayPortalController);
 
     final hideMenu = useCallback(
       () {

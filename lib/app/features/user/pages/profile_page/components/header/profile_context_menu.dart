@@ -32,7 +32,6 @@ class ProfileContextMenu extends ConsumerWidget {
     ref.displayErrors(reportNotifierProvider);
 
     return OverlayMenu(
-      isNeedHideOnTabChange: true,
       menuBuilder: (closeMenu) {
         final menuItems = _buildMenuItems(
           context,
