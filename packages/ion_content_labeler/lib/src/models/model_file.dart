@@ -24,7 +24,18 @@ abstract class ModelFile {
   }
 
   Future<File> get _file async {
-    final directory = await getApplicationSupportDirectory();
+    Directory directory;
+
+    try {
+      directory = await getApplicationSupportDirectory();
+    } catch (_) {
+      directory = await getTemporaryDirectory();
+    }
+
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+
     return File('${directory.path}/$name');
   }
 }

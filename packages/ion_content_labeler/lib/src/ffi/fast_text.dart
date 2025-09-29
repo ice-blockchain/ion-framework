@@ -10,20 +10,20 @@ class FastText {
   factory FastText() {
     final lib = _loadLibrary();
 
-    final createInstance = lib.lookupFunction<Uint64 Function(), int Function()>('create_instance');
+    final createInstance = lib.lookupFunction<Int32 Function(), int Function()>('create_instance');
 
-    final loadModel = lib.lookupFunction<Void Function(Uint64 handle, Pointer<Utf8> filename),
-        void Function(int handle, Pointer<Utf8> filename)>('load_model');
+    final loadModel = lib.lookupFunction<Int32 Function(Int32 handle, Pointer<Utf8> filename),
+        int Function(int handle, Pointer<Utf8> filename)>('load_model');
 
     final predict = lib.lookupFunction<
-        Void Function(
-          Uint64 handle,
+        Int32 Function(
+          Int32 handle,
           Pointer<Utf8> input,
           Int32 k,
           Pointer<Utf8> out,
-          Uint64 outSize,
+          Size outSize,
         ),
-        void Function(
+        int Function(
           int handle,
           Pointer<Utf8> input,
           int k,
@@ -32,12 +32,12 @@ class FastText {
         )>('predict');
 
     final destroyInstance =
-        lib.lookupFunction<Void Function(Uint64 handle), void Function(int handle)>(
+        lib.lookupFunction<Int32 Function(Int32 handle), int Function(int handle)>(
       'destroy_instance',
     );
 
     final handle = createInstance();
-    if (handle == 0) {
+    if (handle < 0) {
       throw const CreateFastTextInstanceException();
     }
 
@@ -53,17 +53,19 @@ class FastText {
 
   final int _handle;
 
-  final void Function(int handle, Pointer<Utf8> filename) _loadModel;
-  final void Function(int handle, Pointer<Utf8> input, int k, Pointer<Utf8> out, int outSize)
+  final int Function(int handle, Pointer<Utf8> filename) _loadModel;
+  final int Function(int handle, Pointer<Utf8> input, int k, Pointer<Utf8> out, int outSize)
       _predict;
-  final void Function(int handle) _destroyInstance;
+  final int Function(int handle) _destroyInstance;
 
   void loadModel(String modelPath) {
     final modelPathPtr = modelPath.toNativeUtf8();
+
     try {
-      _loadModel(_handle, modelPathPtr);
-    } catch (error) {
-      throw LoadFfiModelException(error);
+      final resultCode = _loadModel(_handle, modelPathPtr);
+      if (resultCode != 0) {
+        throw LoadFfiModelException('error code $resultCode');
+      }
     } finally {
       calloc.free(modelPathPtr);
     }
@@ -74,10 +76,11 @@ class FastText {
     final outPtr = calloc.allocate<Utf8>(512);
 
     try {
-      _predict(_handle, textPtr, k, outPtr, 512);
+      final resultCode = _predict(_handle, textPtr, k, outPtr, 512);
+      if (resultCode != 0) {
+        throw FastTextPredictionException('error code $resultCode');
+      }
       return outPtr.toDartString();
-    } catch (error) {
-      throw FastTextPredictionException(error);
     } finally {
       calloc
         ..free(textPtr)
@@ -86,10 +89,9 @@ class FastText {
   }
 
   void dispose() {
-    try {
-      _destroyInstance(_handle);
-    } catch (error) {
-      throw FastTextDisposeException(error);
+    final resultCode = _destroyInstance(_handle);
+    if (resultCode != 0) {
+      throw FastTextDisposeException('error code $resultCode');
     }
   }
 
