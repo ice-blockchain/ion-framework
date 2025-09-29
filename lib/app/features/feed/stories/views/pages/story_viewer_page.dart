@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,6 +10,7 @@ import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/stories/providers/story_index_keeper_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
@@ -84,23 +86,44 @@ class StoryViewerPage extends HookConsumerWidget {
       [storyViewerState.userStories.isEmpty],
     );
 
+    final visitedUsers = useRef<Set<String>>(<String>{});
+
     useOnInit(
-      () async {
+      () {
+        if (stories.isEmpty) {
+          return;
+        }
         final firstNotViewedStoryIndex =
             stories.indexWhere((story) => !viewedStories.contains(story.toEventReference()));
         final initialStoryIndex = initialStoryReference != null
             ? stories.indexWhere((story) => story.toEventReference() == initialStoryReference)
             : null;
         final currentUserPubkey = storyViewerState.currentUserPubkey;
-        // If all stories for the user are already viewed, restart from the beginning.
-        final moveToIndex =
-            initialStoryIndex ?? (firstNotViewedStoryIndex != -1 ? firstNotViewedStoryIndex : 0);
+
+        final alreadyVisited = visitedUsers.value.contains(currentUserPubkey);
+
+        // Decide fallback when all stories are viewed:
+        // - revisiting within this viewer session => use last remembered index
+        // - opening directly => start from 0
+        final fallbackWhenAllViewed = alreadyVisited
+            ? ref.read(storyIndexKeeperProvider.notifier).getStoryIndex(currentUserPubkey)
+            : 0;
+
+        // Compute the target index once
+        final moveToIndex = initialStoryIndex ??
+            (firstNotViewedStoryIndex != -1 ? firstNotViewedStoryIndex : fallbackWhenAllViewed);
+
         if (moveToIndex != -1 && moveToIndex < stories.length) {
           ref
               .watch(
                 singleUserStoryViewingControllerProvider(currentUserPubkey).notifier,
               )
               .moveToStoryIndex(moveToIndex);
+        }
+
+        // Mark user as visited for this session
+        if (!alreadyVisited) {
+          visitedUsers.value.add(currentUserPubkey);
         }
       },
       // Do not include [viewedStories] to dependencies intentionally.
