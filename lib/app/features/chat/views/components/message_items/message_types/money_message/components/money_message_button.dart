@@ -83,6 +83,9 @@ class _CancelMoneyRequestButton extends ConsumerWidget {
       child: Button.compact(
         type: ButtonType.outlined,
         backgroundColor: context.theme.appColors.tertiaryBackground,
+        style: ButtonStyle(
+          side: WidgetStateProperty.all(BorderSide.none),
+        ),
         minimumSize: RequestedMoneyMessageButton._defaultMinimumSize,
         disabled: isDisabled,
         label: isLoading
