@@ -117,7 +117,7 @@ dependencies:
     path: packages/ion_identity_client
   ion_screenshot_detector:
     path: packages/ion_screenshot_detector
-  isolate_manager: ^6.0.0+2
+  isolate_manager: ^6.1.0
   json_annotation: ^4.8.1
   lottie: ^3.1.0
   markdown: ^7.3.0

@@ -58,10 +58,14 @@ class VideoPreview extends HookConsumerWidget {
     final isRouteFocused = useState(true);
     useRoutePresence(
       onBecameInactive: () {
-        isRouteFocused.value = false;
+        if (context.mounted) {
+          isRouteFocused.value = false;
+        }
       },
       onBecameActive: () {
-        isRouteFocused.value = true;
+        if (context.mounted) {
+          isRouteFocused.value = true;
+        }
       },
     );
 

@@ -15,6 +15,7 @@ import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_chat
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/group_subject.f.dart';
 import 'package:ion/app/features/chat/providers/conversation_pubkeys_provider.r.dart';
+import 'package:ion/app/features/chat/services/shared_chat_isolate.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
@@ -38,7 +39,6 @@ import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:ion/app/utils/date.dart';
-import 'package:isolate_manager/isolate_manager.dart';
 import 'package:nip44/nip44.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -359,7 +359,7 @@ class SendE2eeChatMessageService {
         EntityExpiration(value: randomCreatedAtTime.add(expirationDuration).microsecondsSinceEpoch)
             .toTag();
 
-    final giftWrap = await giftWrapSharedIsolate.compute(
+    final giftWrap = await sharedChatIsolate.compute(
       createGiftWrapFn,
       [
         sealService,
@@ -464,12 +464,6 @@ class SendE2eeChatMessageService {
     return messageMediaIds;
   }
 }
-
-final giftWrapSharedIsolate = IsolateManager.createShared(
-  workerMappings: {
-    createGiftWrapFn: 'createGiftWrapFn',
-  },
-);
 
 @pragma('vm:entry-point')
 Future<EventMessage> createGiftWrapFn(List<dynamic> args) async {

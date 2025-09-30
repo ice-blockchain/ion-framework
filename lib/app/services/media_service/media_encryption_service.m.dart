@@ -2,13 +2,13 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/chat/services/shared_chat_isolate.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/core/providers/ion_connect_media_url_fallback_provider.r.dart';
@@ -55,53 +55,23 @@ class MediaEncryptionService {
 
         final file = await _downloadFile(url, authorPubkey: authorPubkey);
 
-        final (decryptedFileBytes, decryptedFile) = await compute(
+        final decryptedFileBytes = await sharedChatIsolate.compute(
           (args) async {
-            final file = args.file;
-            final attachment = args.attachment;
-
-            final fileBytes = await file.readAsBytes();
-
-            final mac = base64Decode(attachment.encryptionMac!);
-            final nonce = base64Decode(attachment.encryptionNonce!);
-            final secretKey = base64Decode(attachment.encryptionKey!);
-
-            final secretBox = SecretBox(
-              fileBytes,
-              nonce: nonce,
-              mac: Mac(mac),
-            );
-
-            final decryptedFileBytesList = await AesGcm.with256bits().decrypt(
-              secretBox,
-              secretKey: SecretKey(secretKey),
-            );
-
-            final decryptedFileBytes = Uint8List.fromList(decryptedFileBytesList);
-            final decryptedFile = File.fromRawPath(decryptedFileBytes);
-
-            return (decryptedFileBytes, decryptedFile);
+            return decryptMediaFileFn(args);
           },
           (file: file, attachment: attachment),
         );
+        final decryptedFile = File.fromRawPath(decryptedFileBytes);
 
         final mimeType =
             ionMimeTypeResolver.lookup(decryptedFile.path, headerBytes: decryptedFileBytes);
 
-        Logger.log('Identified media mimeType for decrypted media: $mimeType}');
-
-        if (mimeType == null) {
-          throw FailedToDecryptFileException();
-        }
-
-        final fileExtension = extensionFromMime(mimeType);
-        if (fileExtension == null) {
-          throw FailedToDecryptFileException();
-        }
+        final fileExtension = mimeType != null ? extensionFromMime(mimeType) ?? '' : '';
 
         await fileCacheService.removeFile(url);
 
-        final mediaType = MediaType.fromMimeType(mimeType);
+        final mediaType = mimeType != null ? MediaType.fromMimeType(mimeType) : MediaType.unknown;
+
         if (mediaType == MediaType.unknown) {
           final decompressedFile = await brotliCompressor.decompress(decryptedFileBytes);
 
@@ -134,56 +104,18 @@ class MediaEncryptionService {
     MediaFile mediaFile,
   ) async {
     final documentsDir = await getApplicationDocumentsDirectory();
-    final encryptedFiles = <File>[];
 
-    try {
-      final encryptedMediaFile = await Isolate.run<EncryptedMediaFile>(() async {
-        final secretKey = await AesGcm.with256bits().newSecretKey();
-        final secretKeyBytes = await secretKey.extractBytes();
-        final secretKeyString = base64Encode(secretKeyBytes);
+    final encryptedMediaFile = await sharedChatIsolate.compute(
+      (args) async {
+        final mediaFile = args.mediaFile;
+        final documentsDir = args.documentsDir;
+        final encryptedMediaFile = await encryptMediaFileFn(mediaFile, documentsDir: documentsDir);
+        return encryptedMediaFile;
+      },
+      (mediaFile: mediaFile, documentsDir: documentsDir),
+    );
 
-        final compressedMediaFileBytes = await File(mediaFile.path).readAsBytes();
-
-        final secretBox = await AesGcm.with256bits().encrypt(
-          compressedMediaFileBytes,
-          secretKey: secretKey,
-        );
-
-        final nonceBytes = secretBox.nonce;
-        final nonceString = base64Encode(nonceBytes);
-        final macString = base64Encode(secretBox.mac.bytes);
-
-        final compressedEncryptedFile =
-            File('${documentsDir.path}/${compressedMediaFileBytes.hashCode}.enc');
-
-        await compressedEncryptedFile.writeAsBytes(secretBox.cipherText);
-
-        encryptedFiles.add(compressedEncryptedFile);
-
-        final compressedEncryptedMediaFile = MediaFile(
-          path: compressedEncryptedFile.path,
-          width: mediaFile.width,
-          height: mediaFile.height,
-          mimeType: MimeType.generic.value,
-          originalMimeType: mediaFile.originalMimeType,
-          duration: mediaFile.duration,
-        );
-
-        return EncryptedMediaFile(
-          mediaFile: compressedEncryptedMediaFile,
-          secretKey: secretKeyString,
-          nonce: nonceString,
-          mac: macString,
-        );
-      });
-
-      return encryptedMediaFile;
-    } catch (e) {
-      for (final file in encryptedFiles) {
-        await file.delete();
-      }
-      rethrow;
-    }
+    return encryptedMediaFile;
   }
 
   Future<File> _downloadFile(
@@ -225,4 +157,84 @@ class EncryptedMediaFile with _$EncryptedMediaFile {
     required String nonce,
     required String mac,
   }) = _EncryptedMediaFile;
+}
+
+@pragma('vm:entry-point')
+Future<EncryptedMediaFile> encryptMediaFileFn(
+  MediaFile mediaFile, {
+  required Directory documentsDir,
+}) async {
+  final encryptedFiles = <File>[];
+
+  try {
+    final secretKey = await AesGcm.with256bits().newSecretKey();
+    final secretKeyBytes = await secretKey.extractBytes();
+    final secretKeyString = base64Encode(secretKeyBytes);
+
+    final compressedMediaFileBytes = await File(mediaFile.path).readAsBytes();
+
+    final secretBox = await AesGcm.with256bits().encrypt(
+      compressedMediaFileBytes,
+      secretKey: secretKey,
+    );
+
+    final nonceBytes = secretBox.nonce;
+    final nonceString = base64Encode(nonceBytes);
+    final macString = base64Encode(secretBox.mac.bytes);
+
+    final compressedEncryptedFile =
+        File('${documentsDir.path}/${compressedMediaFileBytes.hashCode}.enc');
+
+    await compressedEncryptedFile.writeAsBytes(secretBox.cipherText);
+
+    encryptedFiles.add(compressedEncryptedFile);
+
+    final compressedEncryptedMediaFile = MediaFile(
+      path: compressedEncryptedFile.path,
+      width: mediaFile.width,
+      height: mediaFile.height,
+      mimeType: MimeType.generic.value,
+      originalMimeType: mediaFile.originalMimeType,
+      duration: mediaFile.duration,
+    );
+
+    return EncryptedMediaFile(
+      mediaFile: compressedEncryptedMediaFile,
+      secretKey: secretKeyString,
+      nonce: nonceString,
+      mac: macString,
+    );
+  } catch (e) {
+    for (final file in encryptedFiles) {
+      await file.delete();
+    }
+    rethrow;
+  }
+}
+
+@pragma('vm:entry-point')
+Future<Uint8List> decryptMediaFileFn(({MediaAttachment attachment, File file}) args) async {
+  final file = args.file;
+  final attachment = args.attachment;
+
+  final fileBytes = await file.readAsBytes();
+
+  final mac = base64Decode(attachment.encryptionMac!);
+  final nonce = base64Decode(attachment.encryptionNonce!);
+  final secretKey = base64Decode(attachment.encryptionKey!);
+
+  final secretBox = SecretBox(
+    fileBytes,
+    nonce: nonce,
+    mac: Mac(mac),
+  );
+
+  final decryptedFileBytesList = await AesGcm.with256bits().decrypt(
+    secretBox,
+    secretKey: SecretKey(secretKey),
+  );
+
+  final decryptedFileBytes = Uint8List.fromList(decryptedFileBytesList);
+
+  return decryptedFileBytes;
 }
