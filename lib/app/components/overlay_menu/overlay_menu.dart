@@ -3,6 +3,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/overlay_menu/hooks/use_hide_on_scroll.dart';
+import 'package:ion/app/components/overlay_menu/hooks/use_hide_on_tab_change.dart';
 import 'package:ion/app/extensions/extensions.dart';
 
 class OverlayMenu extends HookWidget {
@@ -33,6 +34,8 @@ class OverlayMenu extends HookWidget {
     final scaleAnimation = CurvedAnimation(parent: animationController, curve: Curves.easeOutBack);
 
     useHideOnScroll(context, overlayPortalController, scrollController);
+
+    useHideOnTabChange(context, overlayPortalController);
 
     final hideMenu = useCallback(
       () {
