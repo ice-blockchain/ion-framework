@@ -16,7 +16,6 @@ import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'entities_paged_data_provider.m.freezed.dart';
-
 part 'entities_paged_data_provider.m.g.dart';
 
 abstract class PagedNotifier {
@@ -109,7 +108,10 @@ final class DataSourceFetchResult {
 @riverpod
 class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
   @override
-  EntitiesPagedDataState? build(List<EntitiesDataSource>? dataSources) {
+  EntitiesPagedDataState? build(
+    List<EntitiesDataSource>? dataSources, {
+    bool awaitMissingEvents = false,
+  }) {
     if (dataSources != null) {
       Future.microtask(fetchEntities);
 
@@ -143,14 +145,18 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
       for (final result in fetchResults) ...result.pendingInserts,
     };
 
+    if (awaitMissingEvents) {
+      await _handleMissingEvents(missingEvents, pendingInserts);
+    } else {
+      unawaited(_handleMissingEvents(missingEvents, pendingInserts));
+    }
+
     state = state?.copyWith(
       data: Paged.data(
         state!.data.items ?? {},
         pagination: Map.fromEntries(paginationEntries),
       ),
     );
-
-    await _handleMissingEvents(missingEvents, pendingInserts);
   }
 
   @override

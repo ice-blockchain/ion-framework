@@ -38,7 +38,10 @@ class SearchUsers extends _$SearchUsers {
         )
         .toList();
 
-    return (users: filteredUsers, hasMore: paginatedUsersMetadataData.hasMore);
+    return (
+      users: filteredUsers,
+      hasMore: paginatedUsersMetadataData.hasMore,
+    );
   }
 
   Future<void> loadMore() async {

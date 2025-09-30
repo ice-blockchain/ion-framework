@@ -37,11 +37,12 @@ class FollowersList extends HookConsumerWidget {
         .valueOrNull;
     final hasMore = result?.hasMore ?? false;
     final entities = result?.users;
+    final isReady = result?.ready ?? false;
 
     final slivers = [
       FollowAppBar(title: FollowType.followers.getTitleWithCounter(context, followersCount ?? 0)),
       FollowSearchBar(onTextChanged: (query) => searchQuery.value = query),
-      if (entities == null)
+      if (entities == null || !isReady)
         const FollowListLoading()
       else if (entities.isEmpty)
         const NothingIsFound()
