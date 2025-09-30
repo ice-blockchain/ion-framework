@@ -61,7 +61,7 @@ class GlobalSubscription {
     ArticleEntity.kind,
   ];
   // Used when we reinstall the app to refetch all encrypted events
-  static int? _inMemoryEncryptedSince;
+  int? _inMemoryEncryptedSince;
   static const List<int> _encryptedEventKinds = [IonConnectGiftWrapEntity.kind];
 
   void init() {
@@ -140,12 +140,15 @@ class GlobalSubscription {
       await latestEventTimestampService.updateRegularFilter(timestamp, filterType);
     }
 
-    // If during restoring of encrypted events user closed the app or moved to
-    // background, we should restart subscription and refetch all encrypted events
+    // If there was an incomplete restoration of encrypted events from a previous session
+    // (e.g., user closed the app or moved it to the background), we should restart the subscription
+    // and refetch all encrypted events. This is indicated by _inMemoryEncryptedSince being not null.
     final shouldRefetchAllEncrypted = _inMemoryEncryptedSince != null;
 
-    // If we have encrypted timestamp in storage, we subtract 2 days to account
-    // for any events that might been created since last fetch time minus two days
+        // If we have an encrypted timestamp in storage, we subtract 2 days to account
+    // for the potential random timestamp range of encrypted events. This ensures
+    // that we refetch any encrypted events that might have been created with a
+    // random timestamp up to 2 days before the last fetch time.
     final encryptedLatestTimestampFromStorage =
         latestEventTimestampService.getEncryptedTimestamp() != null
             ? latestEventTimestampService.getEncryptedTimestamp()! -
