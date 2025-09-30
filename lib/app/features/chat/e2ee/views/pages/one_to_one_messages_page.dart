@@ -139,7 +139,7 @@ class _Header extends HookConsumerWidget {
   }
 }
 
-class _MessagesList extends ConsumerWidget {
+class _MessagesList extends HookConsumerWidget {
   const _MessagesList({required this.conversationId});
 
   final String? conversationId;
@@ -157,21 +157,61 @@ class _MessagesList extends ConsumerWidget {
     final messages =
         ref.watch(conversationMessagesProvider(conversationId!, ConversationType.oneToOne));
 
-    return Expanded(
-      child: messages.maybeWhen(
-        data: (messages) {
-          if (messages.isEmpty) {
-            return const E2eeConversationEmptyView();
+    final loadingStartTime = useRef<DateTime?>(null);
+    final canShowContent = useState(false);
+
+    useEffect(
+      () {
+        if (messages.isLoading) {
+          // Reset when loading starts
+          loadingStartTime.value = DateTime.now();
+          canShowContent.value = false;
+        } else if (messages.hasValue || messages.hasError) {
+          // Data or error arrived
+          final startTime = loadingStartTime.value;
+
+          if (startTime == null) {
+            // No loading was shown, show content immediately
+            canShowContent.value = true;
+          } else {
+            final elapsed = DateTime.now().difference(startTime);
+            final remaining = const Duration(seconds: 1) - elapsed;
+
+            if (remaining.isNegative) {
+              canShowContent.value = true;
+            } else {
+              Future.delayed(remaining, () {
+                if (context.mounted) {
+                  canShowContent.value = true;
+                }
+              });
+            }
           }
-          return OneToOneMessageList(messages);
-        },
-        loading: () => const E2eeConversationLoadingView(),
-        orElse: () {
-          return ColoredBox(
+        }
+        return null;
+      },
+      [messages],
+    );
+
+    return Expanded(
+      child: () {
+        // Show loading if actively loading OR if we have data but minimum duration hasn't passed
+        if (messages.isLoading || !canShowContent.value) {
+          return const E2eeConversationLoadingView();
+        }
+
+        return messages.maybeWhen(
+          data: (msgs) {
+            if (msgs.isEmpty) {
+              return const E2eeConversationEmptyView();
+            }
+            return OneToOneMessageList(msgs);
+          },
+          orElse: () => ColoredBox(
             color: context.theme.appColors.primaryBackground,
-          );
-        },
-      ),
+          ),
+        );
+      }(),
     );
   }
 }
