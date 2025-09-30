@@ -11,6 +11,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/components/messaging_header/one_to_one_messaging_header.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/e2ee/views/components/e2ee_conversation_empty_view.dart';
+import 'package:ion/app/features/chat/e2ee/views/components/e2ee_conversation_loading_view.dart';
 import 'package:ion/app/features/chat/e2ee/views/components/one_to_one_messages_list.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/conversation_messages_provider.r.dart';
@@ -164,6 +165,7 @@ class _MessagesList extends ConsumerWidget {
           }
           return OneToOneMessageList(messages);
         },
+        loading: () => const E2eeConversationLoadingView(),
         orElse: () {
           return ColoredBox(
             color: context.theme.appColors.primaryBackground,

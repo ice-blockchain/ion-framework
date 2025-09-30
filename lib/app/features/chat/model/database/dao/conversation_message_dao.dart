@@ -135,7 +135,7 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
       }
 
       return groupedMessages;
-    }).startWithStream(Stream.value(<DateTime, List<EventMessage>>{}));
+    });
   }
 
   Future<EventMessage> getEventMessage({required EventReference eventReference}) async {
