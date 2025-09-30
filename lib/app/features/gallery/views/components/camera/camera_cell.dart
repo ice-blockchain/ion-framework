@@ -24,6 +24,17 @@ class CameraCell extends HookConsumerWidget {
   static double get cellHeight => 120.0.s;
   static double get cellWidth => 122.0.s;
 
+  Future<void> _openCamera(
+    BuildContext context,
+    GalleryNotifier galleryNotifier,
+  ) async {
+    final mediaFile = await GalleryCameraRoute(mediaPickerType: type).push<MediaFile?>(context);
+
+    if (mediaFile != null) {
+      await galleryNotifier.addCapturedMediaFileToGallery(mediaFile);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hasPermission = ref.watch(hasPermissionProvider(Permission.camera));
@@ -48,16 +59,18 @@ class CameraCell extends HookConsumerWidget {
         (previous, next) async {
           await next.whenOrNull(
             ready: (_, __, ___) async {
-              if (shouldOpenCamera.value) {
+              /// Open camera only if the camera is ready
+              /// and also if the camera was not opened before
+              /// it's prevents opening the camera multiple times
+              final isTransitonReady = previous is! CameraReady && next is CameraReady;
+
+              if (shouldOpenCamera.value && isTransitonReady) {
                 shouldOpenCamera.value = false;
 
-                final mediaFile =
-                    await GalleryCameraRoute(mediaPickerType: type).push<MediaFile?>(context);
-
-                if (mediaFile != null) {
-                  final galleryNotifier = ref.read(galleryNotifierProvider(type: type).notifier);
-                  await galleryNotifier.addCapturedMediaFileToGallery(mediaFile);
-                }
+                await _openCamera(
+                  context,
+                  ref.read(galleryNotifierProvider(type: type).notifier),
+                );
               }
             },
           );
@@ -68,20 +81,15 @@ class CameraCell extends HookConsumerWidget {
       permissionType: Permission.camera,
       onGranted: () async {
         await ref.read(cameraControllerNotifierProvider).maybeWhen(
-          ready: (_, __, ___) async {
-            final mediaFile =
-                await GalleryCameraRoute(mediaPickerType: type).push<MediaFile?>(context);
-
-            if (mediaFile != null) {
-              final galleryNotifier = ref.read(galleryNotifierProvider(type: type).notifier);
-              await galleryNotifier.addCapturedMediaFileToGallery(mediaFile);
-            }
-          },
-          orElse: () {
-            shouldOpenCamera.value = true;
-            cameraControllerNotifier.resumeCamera();
-          },
-        );
+              ready: (_, __, ___) => _openCamera(
+                context,
+                ref.read(galleryNotifierProvider(type: type).notifier),
+              ),
+              orElse: () {
+                shouldOpenCamera.value = true;
+                cameraControllerNotifier.resumeCamera();
+              },
+            );
       },
       requestDialog: const PermissionRequestSheet(permission: Permission.camera),
       settingsDialog: SettingsRedirectSheet.fromType(context, Permission.camera),
