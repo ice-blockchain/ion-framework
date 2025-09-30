@@ -60,7 +60,8 @@ class GlobalSubscription {
     GenericRepostEntity.modifiablePostRepostKind,
     ArticleEntity.kind,
   ];
-
+  // Used when we reinstall the app to refetch all encrypted events
+  static int? _inMemoryEncryptedSince;
   static const List<int> _encryptedEventKinds = [IonConnectGiftWrapEntity.kind];
 
   void init() {
@@ -139,13 +140,22 @@ class GlobalSubscription {
       await latestEventTimestampService.updateRegularFilter(timestamp, filterType);
     }
 
-    final encryptedLatestEventTimestamp = latestEventTimestampService.getEncryptedTimestamp();
+    // If during restoring of encrypted events user closed the app or moved to
+    // background, we should restart subscription and refetch all encrypted events
+    final shouldRefetchAllEncrypted = _inMemoryEncryptedSince != null;
+
+    // If we have encrypted timestamp in storage, we subtract 2 days to account
+    // for any events that might been created since last fetch time minus two days
+    final encryptedLatestTimestampFromStorage =
+        latestEventTimestampService.getEncryptedTimestamp() != null
+            ? latestEventTimestampService.getEncryptedTimestamp()! -
+                const Duration(days: 2).inMicroseconds
+            : null;
 
     unawaited(
       _subscribe(
         eventLimit: 100,
-        encryptedSince:
-            encryptedLatestEventTimestamp ?? now - const Duration(days: 2).inMicroseconds,
+        encryptedSince: shouldRefetchAllEncrypted ? null : encryptedLatestTimestampFromStorage,
       ),
     );
   }
@@ -197,6 +207,16 @@ class GlobalSubscription {
 
       globalSubscriptionNotifier.subscribe(
         requestMessage,
+        onEndOfStoredEvents: () {
+          // If we had finished to fetch all encrypted events, we can update
+          // the timestamp in storage to avoid refetching them on next app start
+          // and start using storage timestamp instead of in-memory one
+          if (_inMemoryEncryptedSince != null) {
+            latestEventTimestampService
+                .updateEncryptedTimestampInStorage(DateTime.now().microsecondsSinceEpoch);
+            _inMemoryEncryptedSince = null;
+          }
+        },
         onEvent: (event) => _handleEvent(event, eventSource: EventSource.subscription),
       );
     } catch (e) {
@@ -231,7 +251,16 @@ class GlobalSubscription {
             await latestEventTimestampService.updateAllRegularTimestamps(eventTimestamp);
         }
       } else {
-        await latestEventTimestampService.updateEncrypted();
+        // For encrypted events, we only update the in-memory timestamp until
+        // we finish restoring all encrypted events, then we update the storage
+        // timestamp to avoid refetching them on next app start
+        final hasTimestampInStorage = latestEventTimestampService.getEncryptedTimestamp() != null;
+        if (!hasTimestampInStorage) {
+          _inMemoryEncryptedSince ??= eventTimestamp;
+        } else {
+          await latestEventTimestampService
+              .updateEncryptedTimestampInStorage(DateTime.now().microsecondsSinceEpoch);
+        }
       }
 
       globalSubscriptionEventDispatcher.dispatch(eventMessage);
@@ -255,8 +284,14 @@ class GlobalSubscriptionNotifier extends _$GlobalSubscriptionNotifier {
   void subscribe(
     RequestMessage requestMessage, {
     required void Function(EventMessage) onEvent,
+    void Function()? onEndOfStoredEvents,
   }) {
-    final stream = ref.watch(ionConnectEventsSubscriptionProvider(requestMessage));
+    final stream = ref.watch(
+      ionConnectEventsSubscriptionProvider(
+        requestMessage,
+        onEndOfStoredEvents: onEndOfStoredEvents,
+      ),
+    );
     _subscription = stream.listen(onEvent);
   }
 }
