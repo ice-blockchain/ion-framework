@@ -30,7 +30,7 @@ class CloudBackupOption extends HookConsumerWidget {
         }
       });
 
-    final storedRecoveryKeysProvider = ref.watch(cloudStoredRecoveryKeysNamesProvider);
+    final hasCurrentUserBackupInCloud = ref.watch(hasCurrentUserBackupInCloudProvider);
 
     final locale = context.i18n;
     return BackupOption(
@@ -41,8 +41,8 @@ class CloudBackupOption extends HookConsumerWidget {
       icon: Assets.svg.walletLoginCloud.icon(
         size: 48.0.s,
       ),
-      isOptionEnabled: storedRecoveryKeysProvider.valueOrNull?.isNotEmpty ?? false,
-      isLoading: storedRecoveryKeysProvider.isLoading,
+      isOptionEnabled: hasCurrentUserBackupInCloud.value.falseOrValue,
+      isLoading: hasCurrentUserBackupInCloud.isLoading,
       onTap: () async {
         final cloudAvailable = await ref.read(cloudStorageProvider).isAvailable();
         if (!context.mounted) return;
