@@ -212,8 +212,7 @@ class GlobalSubscription {
           // the timestamp in storage to avoid refetching them on next app start
           // and start using storage timestamp instead of in-memory one
           if (_inMemoryEncryptedSince != null) {
-            latestEventTimestampService
-                .updateEncryptedTimestampInStorage(DateTime.now().microsecondsSinceEpoch);
+            latestEventTimestampService.updateEncryptedTimestampInStorage();
             _inMemoryEncryptedSince = null;
           }
         },
@@ -258,8 +257,7 @@ class GlobalSubscription {
         if (!hasTimestampInStorage) {
           _inMemoryEncryptedSince ??= eventTimestamp;
         } else {
-          await latestEventTimestampService
-              .updateEncryptedTimestampInStorage(DateTime.now().microsecondsSinceEpoch);
+          await latestEventTimestampService.updateEncryptedTimestampInStorage();
         }
       }
 
