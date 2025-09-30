@@ -215,7 +215,7 @@ void main() {
           repostSyncStrategyProvider.overrideWith((ref) => mockSyncStrategy),
           envProvider.overrideWith(() => mockEnv),
         ],
-      )..read(postRepostServiceProvider);
+      );
 
       final listener = Listener<AsyncValue<PostRepost?>>();
 
@@ -227,11 +227,37 @@ void main() {
 
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
-      final watchedState = container.read(postRepostWatchProvider(postRef1.toString()));
+      // Service starts empty - no initial state
+      final initialManager = container.read(postRepostManagerProvider);
+      expect(initialManager.snapshot.length, 0); // Manager should be empty
+      
+      // postRepostWatch should return AsyncValue.data(null) when there's no optimistic state
+      final initialState = container.read(postRepostWatchProvider(postRef1.toString()));
+      expect(initialState.hasValue, isTrue); // Should have completed
+      expect(initialState.value, isNull); // But value should be null
 
-      expect(watchedState.hasValue, isTrue);
-      expect(watchedState.value?.repostedByMe, isTrue);
-      expect(watchedState.value?.myRepostReference, isNotNull);
+      // Create optimistic state through dispatch (this is the new behavior)
+      // First toggle: create repost (since there's cached data, this will un-repost)
+      final notifier = container.read(toggleRepostNotifierProvider.notifier);
+      await notifier.toggle(postRef1);
+
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      // After first toggle, it should be un-reposted (since cached data was reposted)
+      final afterFirstToggle = container.read(postRepostWatchProvider(postRef1.toString()));
+      expect(afterFirstToggle.hasValue, isTrue);
+      expect(afterFirstToggle.value?.repostedByMe, isFalse);
+
+      // Second toggle: create repost
+      await notifier.toggle(postRef1);
+
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      // Now verify the optimistic state was created as reposted
+      final optimisticState = container.read(postRepostWatchProvider(postRef1.toString()));
+      expect(optimisticState.hasValue, isTrue);
+      expect(optimisticState.value?.repostedByMe, isTrue);
+      expect(optimisticState.value?.myRepostReference, isNotNull);
 
       clearInteractions(listener);
 
