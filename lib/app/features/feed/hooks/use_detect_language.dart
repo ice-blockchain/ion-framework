@@ -29,10 +29,7 @@ void useDetectLanguage(
             }
             isRunning.value = true;
             final detectedLanguage = await labeler.detectLanguageLabels(text);
-            if (!context.mounted) {
-              return;
-            }
-            if (detectedLanguage != null) {
+            if (detectedLanguage != null && context.mounted) {
               ref.read(selectedEntityLanguageNotifierProvider.notifier).lang = detectedLanguage;
             }
           } catch (e, st) {
