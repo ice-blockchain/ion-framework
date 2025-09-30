@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_command/flutter_command.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/wallets/data/repository/networks_repository.r.dart';
+import 'package:ion/app/features/wallets/domain/networks/networks_comparator.r.dart';
 import 'package:ion/app/features/wallets/domain/nfts/nft_network_filter_manager.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/services/command/command.dart';
@@ -29,23 +30,25 @@ class NftNetworksViewModel {
     required NftNetworkFilterManager filterService,
     required NetworksRepository networksRepository,
   })  : _filterService = filterService,
-        _networksRepository = networksRepository {
+        _networksRepository = networksRepository,
+        _networksComparator = NetworksComparator() {
     _initializeCommands();
   }
 
   final NftNetworkFilterManager _filterService;
   final NetworksRepository _networksRepository;
+  final NetworksComparator _networksComparator;
 
   late final StateCommand<String> searchQueryCommand;
   late final Command<Set<String>, Set<NetworkData>> selectedNetworks;
-  late final Command<void, Set<String>> _allNetworksCommand;
+  late final Command<void, List<NetworkData>> _allNetworksCommand;
 
-  late final ValueListenable<Set<String>> filteredNetworks;
+  late final ValueListenable<List<NetworkData>> filteredNetworks;
   ValueListenable<Set<String>> get selectedNetworkIds => _filterService.selectedNetworksCommand;
 
   void _initializeCommands() {
     searchQueryCommand = stateCommand('');
-    _allNetworksCommand = Command.createAsync(_loadAllNetworks, initialValue: {});
+    _allNetworksCommand = Command.createAsync(_loadAllNetworks, initialValue: []);
 
     filteredNetworks = _allNetworksCommand.combineLatest(
       searchQueryCommand,
@@ -61,18 +64,20 @@ class NftNetworksViewModel {
     _allNetworksCommand();
   }
 
-  Future<Set<String>> _loadAllNetworks(void _) async {
-    final allNetworks = await _networksRepository.getNftNetworks();
-    return allNetworks.map((network) => network.id).toSet();
+  Future<List<NetworkData>> _loadAllNetworks(void _) async {
+    return _networksRepository.getNftNetworks();
   }
 
-  Set<String> _filterNetworks(Set<String> networks, String query) {
+  List<NetworkData> _filterNetworks(List<NetworkData> networks, String query) {
     final lowerCaseQuery = query.toLowerCase();
     return networks
         .where(
-          (network) => network.toLowerCase().contains(lowerCaseQuery),
+          (network) =>
+              network.id.toLowerCase().contains(lowerCaseQuery) ||
+              network.displayName.toLowerCase().contains(lowerCaseQuery),
         )
-        .toSet();
+        .toList()
+      ..sort(_networksComparator.compareNftNetworksByPopularity);
   }
 
   Future<Set<NetworkData>> _loadSelectedNetworks(Set<String> networks) async {
