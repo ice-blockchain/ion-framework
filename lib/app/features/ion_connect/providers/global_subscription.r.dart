@@ -248,13 +248,21 @@ class GlobalSubscription {
     required EventSource eventSource,
   }) async {
     try {
-      final eventType = eventMessage.kind == IonConnectGiftWrapEntity.kind
-          ? EventType.encrypted
-          : EventType.regular;
-
       final eventTimestamp = eventMessage.createdAt.toMicroseconds;
 
-      if (eventType == EventType.regular) {
+      if (_awardEventKinds.contains(eventMessage.kind)) {
+        await latestEventTimestampService.updateAwardTimestamp(eventTimestamp);
+      } else if (_encryptedEventKinds.contains(eventMessage.kind)) {
+        // For encrypted events, we only update the in-memory timestamp until
+        // we finish restoring all encrypted events, then we update the storage
+        // timestamp to avoid refetching them on next app start
+        final hasTimestampInStorage = latestEventTimestampService.getEncryptedTimestamp() != null;
+        if (!hasTimestampInStorage) {
+          _inMemoryEncryptedSince ??= eventTimestamp;
+        } else {
+          await latestEventTimestampService.updateEncryptedTimestampInStorage();
+        }
+      } else {
         switch (eventSource) {
           case EventSource.pFilter:
             await latestEventTimestampService.updateRegularFilter(
@@ -268,18 +276,6 @@ class GlobalSubscription {
             );
           case EventSource.subscription:
             await latestEventTimestampService.updateAllRegularTimestamps(eventTimestamp);
-        }
-      } else if (eventMessage.kind == BadgeAwardEntity.kind) {
-        await latestEventTimestampService.updateAwardTimestamp(eventTimestamp);
-      } else {
-        // For encrypted events, we only update the in-memory timestamp until
-        // we finish restoring all encrypted events, then we update the storage
-        // timestamp to avoid refetching them on next app start
-        final hasTimestampInStorage = latestEventTimestampService.getEncryptedTimestamp() != null;
-        if (!hasTimestampInStorage) {
-          _inMemoryEncryptedSince ??= eventTimestamp;
-        } else {
-          await latestEventTimestampService.updateEncryptedTimestampInStorage();
         }
       }
 
