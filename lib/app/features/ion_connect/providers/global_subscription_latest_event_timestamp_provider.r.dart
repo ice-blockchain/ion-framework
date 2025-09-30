@@ -16,7 +16,7 @@ enum EventType {
   String get localKey {
     return switch (this) {
       EventType.regular => 'global_subscription_latest_regular_event_timestamp',
-      EventType.encrypted => 'global_subscription_latest_encrypted_event_timestamp_V2',
+      EventType.encrypted => 'global_subscription_latest_encrypted_event_timestamp_V3',
     };
   }
 }
