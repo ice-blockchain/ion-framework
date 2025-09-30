@@ -82,7 +82,7 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
     Duration? expirationDuration,
-    DatabaseCacheStrategy cacheStrategy = DatabaseCacheStrategy.alwaysReturn,
+    DatabaseCacheStrategy cacheStrategy = DatabaseCacheStrategy.returnIfNotExpired,
   }) async {
     final parser = ref.read(eventParserProvider);
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
