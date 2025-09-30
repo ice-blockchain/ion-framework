@@ -90,7 +90,9 @@ class GlobalSubscriptionLatestEventTimestampService {
 
   Future<void> updateEncryptedTimestampInStorage() async {
     return _updateTimestampInStorage(
-        EventType.encrypted.localKey, DateTime.now().microsecondsSinceEpoch);
+      EventType.encrypted.localKey,
+      DateTime.now().microsecondsSinceEpoch,
+    );
   }
 }
 
