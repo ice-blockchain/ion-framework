@@ -53,16 +53,17 @@ class GlobalSubscription {
   final EventBackfillService eventBackfillService;
 
   static const List<int> _genericEventKinds = [
-    BadgeAwardEntity.kind,
     FollowListEntity.kind,
     ReactionEntity.kind,
     ModifiablePostEntity.kind,
     GenericRepostEntity.modifiablePostRepostKind,
     ArticleEntity.kind,
   ];
+  static const List<int> _awardEventKinds = [BadgeAwardEntity.kind];
+  static const List<int> _encryptedEventKinds = [IonConnectGiftWrapEntity.kind];
+
   // Used when we reinstall the app to refetch all encrypted events
   int? _inMemoryEncryptedSince;
-  static const List<int> _encryptedEventKinds = [IonConnectGiftWrapEntity.kind];
 
   void init() {
     final now = DateTime.now().microsecondsSinceEpoch;
@@ -155,10 +156,15 @@ class GlobalSubscription {
                 const Duration(days: 2).inMicroseconds
             : null;
 
+    final awardTimestamp = latestEventTimestampService.getAwardTimestamp();
     unawaited(
       _subscribe(
         eventLimit: 100,
         encryptedSince: shouldRefetchAllEncrypted ? null : encryptedLatestTimestampFromStorage,
+        awardSince: ((awardTimestamp ?? now) - const Duration(days: 2).inMicroseconds).clamp(
+          0,
+          now,
+        ),
       ),
     );
   }
@@ -166,6 +172,7 @@ class GlobalSubscription {
   Future<void> _subscribe({
     required int eventLimit,
     int? encryptedSince,
+    int? awardSince,
   }) async {
     try {
       // Get per-filter timestamps for precise filtering
@@ -205,6 +212,16 @@ class GlobalSubscription {
             },
             since: encryptedSince,
           ),
+          RequestFilter(
+            kinds: _awardEventKinds,
+            tags: {
+              '#p': [
+                [currentUserMasterPubkey],
+              ],
+            },
+            limit: eventLimit,
+            since: awardSince,
+          ),
         ],
       );
 
@@ -231,13 +248,21 @@ class GlobalSubscription {
     required EventSource eventSource,
   }) async {
     try {
-      final eventType = eventMessage.kind == IonConnectGiftWrapEntity.kind
-          ? EventType.encrypted
-          : EventType.regular;
-
       final eventTimestamp = eventMessage.createdAt.toMicroseconds;
 
-      if (eventType == EventType.regular) {
+      if (_awardEventKinds.contains(eventMessage.kind)) {
+        await latestEventTimestampService.updateAwardTimestamp(eventTimestamp);
+      } else if (_encryptedEventKinds.contains(eventMessage.kind)) {
+        // For encrypted events, we only update the in-memory timestamp until
+        // we finish restoring all encrypted events, then we update the storage
+        // timestamp to avoid refetching them on next app start
+        final hasTimestampInStorage = latestEventTimestampService.getEncryptedTimestamp() != null;
+        if (!hasTimestampInStorage) {
+          _inMemoryEncryptedSince ??= eventTimestamp;
+        } else {
+          await latestEventTimestampService.updateEncryptedTimestampInStorage();
+        }
+      } else {
         switch (eventSource) {
           case EventSource.pFilter:
             await latestEventTimestampService.updateRegularFilter(
@@ -251,16 +276,6 @@ class GlobalSubscription {
             );
           case EventSource.subscription:
             await latestEventTimestampService.updateAllRegularTimestamps(eventTimestamp);
-        }
-      } else {
-        // For encrypted events, we only update the in-memory timestamp until
-        // we finish restoring all encrypted events, then we update the storage
-        // timestamp to avoid refetching them on next app start
-        final hasTimestampInStorage = latestEventTimestampService.getEncryptedTimestamp() != null;
-        if (!hasTimestampInStorage) {
-          _inMemoryEncryptedSince ??= eventTimestamp;
-        } else {
-          await latestEventTimestampService.updateEncryptedTimestampInStorage();
         }
       }
 
