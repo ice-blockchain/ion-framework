@@ -230,7 +230,7 @@ void main() {
       // Service starts empty - no initial state
       final initialManager = container.read(postRepostManagerProvider);
       expect(initialManager.snapshot.length, 0); // Manager should be empty
-      
+
       // postRepostWatch should return AsyncValue.data(null) when there's no optimistic state
       final initialState = container.read(postRepostWatchProvider(postRef1.toString()));
       expect(initialState.hasValue, isTrue); // Should have completed
