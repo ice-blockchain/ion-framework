@@ -88,10 +88,10 @@ class ToolbarLinkButton extends HookWidget {
         return CupertinoAlertDialog(
           title: Text(dialogContext.i18n.toolbar_link_title),
           content: SizedBox(
-            height: 44,
+            height: 44.s,
             child: Column(
               children: [
-                const SizedBox(height: 10),
+                SizedBox(height: 10.s),
                 CupertinoTextField(
                   controller: linkController,
                   focusNode: linkFocusNode,
