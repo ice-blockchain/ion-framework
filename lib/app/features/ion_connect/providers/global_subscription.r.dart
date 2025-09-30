@@ -145,7 +145,7 @@ class GlobalSubscription {
     // and refetch all encrypted events. This is indicated by _inMemoryEncryptedSince being not null.
     final shouldRefetchAllEncrypted = _inMemoryEncryptedSince != null;
 
-        // If we have an encrypted timestamp in storage, we subtract 2 days to account
+    // If we have an encrypted timestamp in storage, we subtract 2 days to account
     // for the potential random timestamp range of encrypted events. This ensures
     // that we refetch any encrypted events that might have been created with a
     // random timestamp up to 2 days before the last fetch time.
