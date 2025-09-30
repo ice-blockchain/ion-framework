@@ -142,7 +142,6 @@ class _ChatMediaItem extends HookConsumerWidget {
             authorPubkey: entity.masterPubkey,
             blurhash: media.blurhash,
             aspectRatio: media.aspectRatio,
-            videoBottomPadding: 0,
             hideBottomOverlay: true,
             playerController: playerController,
           ),

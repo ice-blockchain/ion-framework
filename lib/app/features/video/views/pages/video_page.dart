@@ -28,7 +28,6 @@ class VideoPage extends HookConsumerWidget {
     this.framedEventReference,
     this.videoInfo,
     this.bottomOverlay,
-    this.videoBottomPadding = 42.0,
     this.thumbnailUrl,
     this.blurhash,
     this.aspectRatio,
@@ -43,7 +42,6 @@ class VideoPage extends HookConsumerWidget {
   final bool looping;
   final Widget? videoInfo;
   final Widget? bottomOverlay;
-  final double videoBottomPadding;
   final String? thumbnailUrl;
   final String? blurhash;
   final double? aspectRatio;
@@ -74,38 +72,37 @@ class VideoPage extends HookConsumerWidget {
     useToggleVideoOnRouteChange(playerController);
     useToggleVideoOnLifecycleChange(ref, playerController);
 
-    final (:showPlayButton, :onTogglePlay) = usePlayButton(ref, playerController);
-
     return _VisibilityPlayPause(
       playerController: playerController,
       visibilityKey: ValueKey(videoUrl),
-      child: Padding(
-        padding: EdgeInsetsDirectional.only(bottom: !hideBottomOverlay ? videoBottomPadding.s : 0),
-        child: Stack(
-          children: [
-            // Showing thumbnail with loading indicator underneath the video player for better UX (no flickering on transition)
-            Center(
-              child: _VideoThumbWidget(
-                authorPubkey: authorPubkey,
-                aspectRatio: aspectRatio,
-                thumbnailUrl: thumbnailUrl,
-                blurhash: blurhash,
-              ),
-            ),
-            const CenteredLoadingIndicator(),
-            if (playerController != null) ...[
-              if (playerController.value.isInitialized)
-                GestureDetector(
-                  onTap: onTogglePlay,
-                  child: Center(
-                    child: _VideoPlayerWidget(controller: playerController),
+      child: Column(
+        children: [
+          Expanded(
+            child: Stack(
+              children: [
+                // Aligns the content to be with a small bottom padding when the bottom overlay should be shown
+                _ContentAlignment(
+                  addBottomPadding: !hideBottomOverlay,
+                  // Showing thumbnail with loading indicator underneath the video player
+                  // for better UX (no flickering on transition)
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: _VideoThumbWidget(
+                          authorPubkey: authorPubkey,
+                          aspectRatio: aspectRatio,
+                          thumbnailUrl: thumbnailUrl,
+                          blurhash: blurhash,
+                        ),
+                      ),
+                      const CenteredLoadingIndicator(),
+                      if (playerController != null)
+                        _VideoPlayerWidget(controller: playerController),
+                    ],
                   ),
                 ),
-              if (showPlayButton) Center(child: _PlayButton(controller: playerController)),
-              if (!hideBottomOverlay) ...[
-                SafeArea(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                if (playerController != null && !hideBottomOverlay)
+                  Column(
                     children: [
                       const Spacer(),
                       if (videoInfo != null) videoInfo!,
@@ -113,13 +110,30 @@ class VideoPage extends HookConsumerWidget {
                       if (bottomOverlay != null) bottomOverlay!,
                     ],
                   ),
-                ),
               ],
-              const _BottomNotch(),
-            ],
-          ],
-        ),
+            ),
+          ),
+          if (!hideBottomOverlay) const _BottomNotch(),
+        ],
       ),
+    );
+  }
+}
+
+class _ContentAlignment extends StatelessWidget {
+  const _ContentAlignment({required this.child, this.addBottomPadding = false});
+
+  final bool addBottomPadding;
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsetsDirectional.only(
+        bottom: addBottomPadding ? 42.0.s : 0,
+      ),
+      child: child,
     );
   }
 }
@@ -167,7 +181,7 @@ class _VideoThumbWidget extends StatelessWidget {
   }
 }
 
-class _VideoPlayerWidget extends StatelessWidget {
+class _VideoPlayerWidget extends HookConsumerWidget {
   const _VideoPlayerWidget({
     required this.controller,
   });
@@ -175,26 +189,37 @@ class _VideoPlayerWidget extends StatelessWidget {
   final VideoPlayerController controller;
 
   @override
-  Widget build(BuildContext context) {
-    final videoWidget = VideoPlayer(controller);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final (:showPlayButton, :onTogglePlay) = usePlayButton(ref, controller);
 
-    if (controller.value.aspectRatio < 1) {
-      return SizedBox.expand(
-        child: FittedBox(
-          fit: BoxFit.fitWidth,
-          child: SizedBox(
-            width: controller.value.size.width,
-            height: controller.value.size.height,
-            child: videoWidget,
-          ),
-        ),
-      );
+    if (!controller.value.isInitialized) {
+      return const SizedBox.shrink();
     }
 
-    return Center(
-      child: AspectRatio(
-        aspectRatio: controller.value.aspectRatio,
-        child: videoWidget,
+    return GestureDetector(
+      onTap: onTogglePlay,
+      child: Stack(
+        children: [
+          if (controller.value.aspectRatio < 1)
+            SizedBox.expand(
+              child: FittedBox(
+                fit: BoxFit.fitWidth,
+                child: SizedBox(
+                  width: controller.value.size.width,
+                  height: controller.value.size.height,
+                  child: VideoPlayer(controller),
+                ),
+              ),
+            )
+          else
+            Center(
+              child: AspectRatio(
+                aspectRatio: controller.value.aspectRatio,
+                child: VideoPlayer(controller),
+              ),
+            ),
+          if (showPlayButton) Center(child: _PlayButton(controller: controller)),
+        ],
       ),
     );
   }
