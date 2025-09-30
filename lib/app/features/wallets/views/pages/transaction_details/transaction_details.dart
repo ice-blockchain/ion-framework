@@ -106,7 +106,8 @@ class _TransactionDetailsContent extends StatelessWidget {
         transaction.assetData.mapOrNull(coin: (coin) => coin.coinsGroup)?.abbreviation;
 
     final disableTransactionDetailsButtons = abbreviationsToExclude.contains(assetAbbreviation) &&
-        transaction.status != TransactionStatus.confirmed;
+        (transaction.status != TransactionStatus.confirmed &&
+            transaction.status != TransactionStatus.failed);
 
     return CustomScrollView(
       shrinkWrap: true,

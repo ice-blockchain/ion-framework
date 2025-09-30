@@ -136,30 +136,35 @@ class SendAssetFormController extends _$SendAssetFormController {
             selectedOption: selectedOption,
           ),
         );
-        _checkIfUserCanCoverFee();
+        _checkIfUserCanCoverFee(coin);
       }
     }
   }
 
-  void _checkIfUserCanCoverFee() {
-    state = state.copyWith(
-      canCoverNetworkFee: canUserCoverFee(
-        selectedFee: state.selectedNetworkFeeOption,
-        networkNativeToken: state.networkNativeToken,
-      ),
+  void _checkIfUserCanCoverFee(CoinAssetToSendData coin) {
+    final isSendingNativeToken = coin.selectedOption?.coin.native ?? false;
+    final canCover = canUserCoverFee(
+      sendAmount: coin.amount,
+      isSendingNativeToken: isSendingNativeToken,
+      selectedFee: state.selectedNetworkFeeOption,
+      networkNativeToken: state.networkNativeToken,
     );
+    state = state.copyWith(canCoverNetworkFee: canCover);
   }
 
   void setCoinsAmount(String amount) {
     if (state.assetData case final CoinAssetToSendData coin) {
       final parsedAmount = parseAmount(amount) ?? 0.0;
+      final updatedCoin = coin.copyWith(
+        amount: parsedAmount,
+        amountUSD: parsedAmount * (coin.selectedOption?.coin.priceUSD ?? 0),
+      );
+
       state = state.copyWith(
-        assetData: coin.copyWith(
-          amount: parsedAmount,
-          amountUSD: parsedAmount * (coin.selectedOption?.coin.priceUSD ?? 0),
-        ),
+        assetData: updatedCoin,
         exceedsMaxAmount: false,
       );
+      _checkIfUserCanCoverFee(updatedCoin);
     }
   }
 
@@ -171,7 +176,10 @@ class SendAssetFormController extends _$SendAssetFormController {
     state = state.copyWith(
       selectedNetworkFeeOption: selectedOption,
     );
-    _checkIfUserCanCoverFee();
+
+    if (state.assetData case final CoinAssetToSendData coin) {
+      _checkIfUserCanCoverFee(coin);
+    }
   }
 
   void setRequest(FundsRequestEntity request) {
