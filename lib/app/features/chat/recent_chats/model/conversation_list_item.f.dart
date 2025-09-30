@@ -14,7 +14,7 @@ class ConversationListItem with _$ConversationListItem {
     required ConversationType type,
     required int joinedAt,
     required bool isArchived,
-    required EventMessage? latestMessage,
+    EventMessage? latestMessage,
   }) = _ConversationListItem;
 }
 
