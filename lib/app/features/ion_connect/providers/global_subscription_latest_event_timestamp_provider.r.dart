@@ -16,7 +16,7 @@ enum EventType {
   String get localKey {
     return switch (this) {
       EventType.regular => 'global_subscription_latest_regular_event_timestamp',
-      EventType.encrypted => 'global_subscription_latest_encrypted_event_timestamp_V2',
+      EventType.encrypted => 'global_subscription_latest_encrypted_event_timestamp_V3',
     };
   }
 }
@@ -58,10 +58,10 @@ class GlobalSubscriptionLatestEventTimestampService {
       return;
     }
 
-    await _updateTimestamp(filterType.localKey, createdAt);
+    await _updateTimestampInStorage(filterType.localKey, createdAt);
   }
 
-  Future<void> _updateTimestamp(String key, int timestamp) async {
+  Future<void> _updateTimestampInStorage(String key, int timestamp) async {
     await userPreferenceService.setValue(key, timestamp);
   }
 
@@ -88,11 +88,11 @@ class GlobalSubscriptionLatestEventTimestampService {
     return _get(EventType.encrypted);
   }
 
-  Future<void> updateEncrypted() async {
-    // encrypted events have the random created_at that could be any in between now and two days ago
-    final latestEventTimestamp =
-        DateTime.now().microsecondsSinceEpoch - const Duration(days: 2).inMicroseconds;
-    return _updateTimestamp(EventType.encrypted.localKey, latestEventTimestamp);
+  Future<void> updateEncryptedTimestampInStorage() async {
+    return _updateTimestampInStorage(
+      EventType.encrypted.localKey,
+      DateTime.now().microsecondsSinceEpoch,
+    );
   }
 }
 
