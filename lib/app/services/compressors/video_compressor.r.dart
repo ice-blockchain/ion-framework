@@ -41,6 +41,7 @@ class VideoCompressionSettings {
     required this.audioBitrate,
     required this.pixelFormat,
     required this.movFlags,
+    this.videoBitrate,
   });
 
   static const balanced = VideoCompressionSettings(
@@ -56,6 +57,20 @@ class VideoCompressionSettings {
     movFlags: FfmpegMovFlagArg.faststart,
   );
 
+  static const iosHardware = VideoCompressionSettings(
+    videoCodec: FFmpegVideoCodecArg.h264VideoToolbox,
+    preset: FfmpegPresetArg.veryfast,
+    crf: FfmpegCrfArg.balanced,
+    maxRate: FfmpegBitrateArg.high,
+    bufSize: FfmpegBitrateArg.medium,
+    scale: FfmpegScaleArg.p720,
+    audioCodec: FfmpegAudioCodecArg.aac,
+    audioBitrate: FfmpegAudioBitrateArg.low,
+    pixelFormat: FfmpegPixelFormatArg.yuv420p,
+    movFlags: FfmpegMovFlagArg.faststart,
+    videoBitrate: FfmpegBitrateArg.high,
+  );
+
   final FFmpegVideoCodecArg videoCodec;
   final FfmpegPresetArg preset;
   final FfmpegCrfArg crf;
@@ -66,6 +81,7 @@ class VideoCompressionSettings {
   final FfmpegAudioBitrateArg audioBitrate;
   final FfmpegPixelFormatArg pixelFormat;
   final FfmpegMovFlagArg movFlags;
+  final FfmpegBitrateArg? videoBitrate;
 }
 
 class VideoCompressor implements Compressor<VideoCompressionSettings> {
@@ -96,8 +112,9 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
   Future<MediaFile> compress(
     MediaFile file, {
     Completer<FFmpegSession>? sessionIdCompleter,
-    VideoCompressionSettings settings = VideoCompressionSettings.balanced,
+    VideoCompressionSettings? settings,
   }) async {
+    settings ??= Platform.isIOS ? VideoCompressionSettings.iosHardware : VideoCompressionSettings.balanced;
     try {
       final output = await generateOutputPath(extension: 'mp4');
       final sessionResultCompleter = Completer<FFmpegSession>();
@@ -119,6 +136,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
         pixelFormat: settings.pixelFormat.name,
         scaleResolution: settings.scale.resolution,
         movFlags: settings.movFlags.value,
+        videoBitrate: settings.videoBitrate?.bitrate,
       );
 
       final session = await compressExecutor.execute(
