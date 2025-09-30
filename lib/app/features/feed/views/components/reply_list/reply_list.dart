@@ -22,12 +22,14 @@ class ReplyList extends ConsumerWidget {
     required this.eventReference,
     this.headers,
     this.onPullToRefresh,
+    this.scrollController,
     super.key,
   });
 
   final List<Widget>? headers;
   final EventReference eventReference;
   final VoidCallback? onPullToRefresh;
+  final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -72,7 +74,10 @@ class ReplyList extends ConsumerWidget {
       builder: (context, slivers) => PullToRefreshBuilder(
         slivers: slivers,
         onRefresh: () => _onRefresh(ref),
-        builder: (BuildContext context, List<Widget> slivers) => CustomScrollView(slivers: slivers),
+        builder: (BuildContext context, List<Widget> slivers) => CustomScrollView(
+          controller: scrollController,
+          slivers: slivers,
+        ),
       ),
     );
   }
