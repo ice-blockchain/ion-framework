@@ -8,10 +8,10 @@ void useHideOnTabChange(
   BuildContext context,
   OverlayPortalController overlayPortalController,
 ) {
+  final tabPressStream = MainTabNavigationContainer.of(context).tabPressStream;
+
   useEffect(
     () {
-      final tabPressStream = MainTabNavigationContainer.of(context).tabPressStream;
-
       final listener = tabPressStream.listen((tabPressData) {
         if (!overlayPortalController.isShowing) return;
 
