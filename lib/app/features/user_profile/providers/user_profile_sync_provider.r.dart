@@ -126,21 +126,25 @@ class UserProfileSync extends _$UserProfileSync {
 
     if (missingMasterPubkeys.isEmpty) return;
 
-    // Try to fetch missing entities from write relays in parallel
+    // Try to fetch missing entities from write relays in parallel, ignore errors
     final entitiesFromWriteRelays = await Future.wait(
-      missingMasterPubkeys.map((missingPubkey) {
-        return ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
-              cache: false,
-              actionType: ActionType.write,
-              actionSource: ActionSource.user(missingPubkey),
-              eventReferences: [
-                ReplaceableEventReference(
-                  masterPubkey: missingPubkey,
-                  kind: UserMetadataEntity.kind,
-                ),
-              ],
-              search: searchExtensions,
-            );
+      missingMasterPubkeys.map((missingPubkey) async {
+        try {
+          return await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
+                cache: false,
+                actionType: ActionType.write,
+                actionSource: ActionSource.user(missingPubkey),
+                eventReferences: [
+                  ReplaceableEventReference(
+                    masterPubkey: missingPubkey,
+                    kind: UserMetadataEntity.kind,
+                  ),
+                ],
+                search: searchExtensions,
+              );
+        } catch (_) {
+          return <dynamic>[]; // Return empty list on error
+        }
       }),
     );
 
