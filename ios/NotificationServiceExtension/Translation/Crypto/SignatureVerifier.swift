@@ -45,7 +45,7 @@ class SignatureVerifier {
             let publicKey = try Curve25519.Signing.PublicKey(rawRepresentation: publicKeyData)
             return publicKey.isValidSignature(signatureData, for: messageData)
         } catch {
-            NSLog("Ed25519 verification error: \(error)")
+            NSLog("[NSE] Ed25519 verification error: \(error)")
             return false
         }
     }

@@ -46,6 +46,7 @@ import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/model/replaceable_event_identifier.f.dart';
 import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
 import 'package:ion/app/features/ion_connect/model/source_post_reference.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_delete_file_notifier.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -334,7 +335,14 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ),
     ]);
 
-    return ModifiablePostEntity.fromEventMessage(postEvent);
+    final publishedPost = ModifiablePostEntity.fromEventMessage(postEvent);
+
+    // Save to ION Connect cache for background notification processing
+    await ref
+        .read(ionConnectDatabaseCacheProvider.notifier)
+        .saveEntity(publishedPost as DbCacheableEntity);
+
+    return publishedPost;
   }
 
   EntityPublishedAt _buildEntityPublishedAt() {

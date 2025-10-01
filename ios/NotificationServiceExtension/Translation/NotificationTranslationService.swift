@@ -46,24 +46,31 @@ class NotificationTranslationService {
 
     func translate(_ pushPayload: [AnyHashable: Any]) async -> NotificationTranslationResult? {
         guard let currentPubkey = keysStorage.getCurrentPubkey() else {
+            NSLog("[NSE] Current pubkey is nil")
             return nil
         }
 
         guard let data = await parsePayload(from: pushPayload) else {
+            NSLog("[NSE] Failed to parse payload")
             return nil
         }
 
         let dataIsValid = data.validate(currentPubkey: currentPubkey)
 
         if !dataIsValid {
+            NSLog("[NSE] Data is invalid")
             return nil
         }
 
-        guard let notificationType = data.getNotificationType(currentPubkey: currentPubkey) else {
+        guard let notificationType = data.getNotificationType(currentPubkey: currentPubkey, keysStorage: keysStorage) else {
+            NSLog("[NSE] Notification type is nil")
             return nil
         }
+
+        NSLog("[NSE] Notification type: \(notificationType)")
 
         guard let (title, body) = await getNotificationTranslation(for: notificationType) else {
+            NSLog("[NSE] Notification translation is nil")
             return nil
         }
 
@@ -75,6 +82,7 @@ class NotificationTranslationService {
         )
         
         if hasPlaceholders(result.title) || hasPlaceholders(result.body) {
+            NSLog("[NSE] Notification translation has placeholders")
             return nil
         }
         
@@ -99,9 +107,9 @@ class NotificationTranslationService {
                 let decryptedEvent = try? await self.encryptedMessageService?.decryptMessage(event)
 
                 if let decryptedEvent = decryptedEvent {
-                    NSLog("Successfully decrypted event: \(decryptedEvent.id)")
+                    NSLog("[NSE] Successfully decrypted event")
                 } else {
-                    NSLog("Failed to decrypt event or decryption returned nil")
+                    NSLog("[NSE] Failed to decrypt event or decryption returned nil")
                 }
 
                 var metadata: UserMetadata? = nil
@@ -109,7 +117,7 @@ class NotificationTranslationService {
                 if let decryptedEvent = decryptedEvent, let pubkey = try? decryptedEvent.masterPubkey() {
                     metadata = self.getUserMetadataFromDatabase(pubkey)
                 } else {
-                    NSLog("Could not extract master pubkey from decrypted event")
+                    NSLog("[NSE] Could not extract master pubkey from decrypted event")
                 }
 
                 return (event: decryptedEvent, metadata: metadata)
@@ -117,7 +125,7 @@ class NotificationTranslationService {
 
             return payload
         } catch {
-            NSLog("Error parsing payload: \(error)")
+            NSLog("[NSE] Error parsing payload: \(error)")
             return nil
         }
     }
@@ -136,6 +144,10 @@ class NotificationTranslationService {
                 return translations.quote
             case .like:
                 return translations.like
+            case .likeComment:
+                return translations.likeComment
+            case .likeStory:
+                return translations.likeStory
             case .follower:
                 return translations.follower
             case .paymentRequest:
@@ -154,6 +166,8 @@ class NotificationTranslationService {
                 return translations.chatReaction
             case .chatSharePostMessage:
                 return translations.chatSharePostMessage
+            case .chatShareArticleMessage:
+                return translations.chatShareArticleMessage
             case .chatShareStoryMessage:
                 return translations.chatShareStoryMessage
             case .chatSharedStoryReplyMessage:
@@ -187,6 +201,7 @@ class NotificationTranslationService {
             let title = translation.title,
             let body = translation.body
         else {
+            NSLog("[NSE] Translation is nil")
             return nil
         }
 

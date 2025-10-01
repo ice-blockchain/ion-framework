@@ -81,7 +81,7 @@ struct PostData {
                     quotedEvent = try QuotedEventFactory.fromTag(tag)
                     break
                 } catch {
-                    NSLog("Error parsing quoted event: \(error)")
+                    NSLog("[NSE] Error parsing quoted event: \(error)")
                 }
             }
         }
@@ -94,7 +94,7 @@ struct PostData {
                     richText = try RichText.fromTag(tag)
                     break
                 } catch {
-                    NSLog("Error parsing rich text: \(error)")
+                    NSLog("[NSE] Error parsing rich text: \(error)")
                 }
             }
         }

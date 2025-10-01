@@ -18,6 +18,8 @@ import 'package:ion/app/features/config/providers/config_repository.r.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/push_notifications/data/models/ion_connect_push_data_payload.f.dart';
 import 'package:ion/app/features/push_notifications/providers/app_translations_provider.m.dart';
@@ -211,6 +213,25 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           parseContainer.read(fundsRequestDisplayDataProvider(eventMessage).future),
       getTransactionData: (eventMessage) =>
           parseContainer.read(transactionDisplayDataProvider(eventMessage).future),
+      getRelatedEntity: (eventReference) async {
+        try {
+          final cacheService =
+              await parseContainer.read(ionConnectPersistentCacheServiceProvider.future);
+          final parser = parseContainer.read(eventParserProvider);
+
+          final cacheKey = eventReference.toString();
+          final result = await cacheService.get(cacheKey);
+          if (result == null) {
+            return null;
+          }
+
+          final entity = parser.parse(result.eventMessage);
+          return entity;
+        } catch (e, st) {
+          Logger.error('☁️ Background getRelatedEntity failed: $e', stackTrace: st);
+          return null;
+        }
+      },
     );
   } catch (e, st) {
     Logger.error('☁️ Background parser.parse failed: $e\n$st');

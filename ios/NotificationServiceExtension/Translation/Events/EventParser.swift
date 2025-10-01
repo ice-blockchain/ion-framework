@@ -23,6 +23,8 @@ class EventParser {
             return try IonConnectGiftWrapEntity.fromEventMessage(eventMessage)
         case ModifiablePostEntity.kind:
             return try ModifiablePostEntity.fromEventMessage(eventMessage)
+        case ArticleEntity.kind:
+            return try ArticleEntity.fromEventMessage(eventMessage)
         case ReplaceablePrivateDirectMessageEntity.kind:
             return try ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage)
         case FundsRequestEntity.kind:

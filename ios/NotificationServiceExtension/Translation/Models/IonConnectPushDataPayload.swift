@@ -121,7 +121,7 @@ class IonConnectPushDataPayload: Decodable {
                     relevantEvents = []
                 }
             } catch {
-                NSLog("Error decompressing data: \(error)")
+                NSLog("[NSE] Error decompressing data: \(error)")
                 throw error
             }
         } else {
@@ -165,7 +165,7 @@ class IonConnectPushDataPayload: Decodable {
         return try? EventParser.parse(event)
     }
 
-    func getNotificationType(currentPubkey: String) -> PushNotificationType? {
+    func getNotificationType(currentPubkey: String, keysStorage: KeysStorage) -> PushNotificationType? {
         guard let entity = mainEntity else {
             return nil
         }
@@ -197,8 +197,8 @@ class IonConnectPushDataPayload: Decodable {
             } else {
                 return .reply
             }
-        } else if entity is ReactionEntity {
-            return .like
+        } else if let reactionEntity = entity as? ReactionEntity {
+            return getLikeNotificationType(entity: reactionEntity, keysStorage: keysStorage)
         } else if entity is FollowListEntity {
             return .follower
         } else if let entity = entity as? IonConnectGiftWrapEntity {
@@ -211,6 +211,11 @@ class IonConnectPushDataPayload: Decodable {
             } else if entity.data.kinds.contains(String(ReplaceablePrivateDirectMessageEntity.kind)) {
                 // If we don't have a decrypted event, we can't determine the message type
                 guard let decryptedEvent = decryptedEvent else { return nil }
+                
+                // Check if this is a first contact message (no user metadata)
+                if decryptedPlaceholders == nil {
+                    return .chatFirstContactMessage
+                }
 
                 do {
                     let message = try ReplaceablePrivateDirectMessageEntity.fromEventMessage(decryptedEvent)
@@ -226,17 +231,17 @@ class IonConnectPushDataPayload: Decodable {
                         return .chatEmojiMessage
                     case .profile:
                         return .chatProfileMessage
-                    case .sharedPost:
-                        return .chatSharePostMessage
                     case .requestFunds:
                         return .chatPaymentRequestMessage
                     case .moneySent:
                         return .chatPaymentReceivedMessage
+                    case .sharedPost:
+                        return getSharedPostNotificationType(message: message)
                     case .visualMedia:
                         return getVisualMediaNotificationType(message: message)
                     }
                 } catch {
-                    NSLog("Error parsing decrypted message: \(error)")
+                    NSLog("[NSE] Error parsing decrypted message: \(error)")
                     return nil
                 }
             }
@@ -329,7 +334,7 @@ class IonConnectPushDataPayload: Decodable {
                 )
                 avatarFilePath = outputFileURL.path
             } catch {
-                NSLog("Conversion failed: \(error)")
+                NSLog("[NSE] Conversion failed: \(error)")
             }
 
         }
@@ -413,12 +418,72 @@ class IonConnectPushDataPayload: Decodable {
                     try UserDelegationEntity.fromEventMessage(delegationEvent)
                 return delegationEntity.data.validate(event)
             } catch {
-                NSLog("Error parsing delegation entity: \(error)")
+                NSLog("[NSE] Error parsing delegation entity: \(error)")
                 return false
             }
         }
     }
 
+    /// Determines the notification type for like/reaction based on the related entity
+    /// - Parameter entity: The reaction entity
+    /// - Parameter keysStorage: The keys storage for database access
+    /// - Returns: The appropriate push notification type (like, likeComment, or likeStory)
+    private func getLikeNotificationType(entity: ReactionEntity, keysStorage: KeysStorage) -> PushNotificationType {
+        let cacheKey = entity.data.eventReference.toString()
+        
+        let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
+        guard cacheDB.openDatabase() else {
+            NSLog("[NSE] Failed to open ion_connect_cache database for like notification type")
+            return .like
+        }
+        defer { cacheDB.closeDatabase() }
+        
+        guard let relatedEntity = cacheDB.getRelatedEntity(eventReference: cacheKey) else {
+            NSLog("[NSE] No related entity found in cache for: \(cacheKey)")
+            return .like
+        }
+        
+        // Check if it's a story (has expiration)
+        if let modifiablePost = relatedEntity as? ModifiablePostEntity {
+            if modifiablePost.data.expiration != nil {
+                return .likeStory
+            }
+            if modifiablePost.data.parentEvent != nil {
+                return .likeComment
+            }
+            return .like
+        }
+                
+        return .like
+    }
+    
+    /// Determines the notification type for shared post messages based on content
+    /// - Parameter message: The private direct message entity containing shared post
+    /// - Returns: The appropriate push notification type based on shared content
+    private func getSharedPostNotificationType(message: ReplaceablePrivateDirectMessageEntity) -> PushNotificationType {
+        // If message has content, it's a reply to a shared story
+        if !message.data.content.isEmpty {
+            return .chatSharedStoryReplyMessage
+        }
+        
+        // Check the quoted event kind to determine the type
+        if let quotedEventKind = message.data.quotedEventKind,
+           let kind = Int(quotedEventKind) {
+            switch kind {
+            case ModifiablePostEntity.kind, PostEntity.kind:
+                return .chatSharePostMessage
+            case ModifiablePostEntity.storyKind:
+                return .chatShareStoryMessage
+            case ArticleEntity.kind:
+                return .chatShareArticleMessage
+            default:
+                return .chatSharePostMessage
+            }
+        }
+        
+        return .chatSharePostMessage
+    }
+    
     /// Determines the notification type for visual media messages based on media content
     /// - Parameter message: The private direct message entity containing visual media
     /// - Returns: The appropriate push notification type based on media content
@@ -483,6 +548,8 @@ enum PushNotificationType: String, Decodable {
     case repost
     case quote
     case like
+    case likeComment
+    case likeStory
     case follower
     case paymentRequest
     case paymentReceived
@@ -492,6 +559,7 @@ enum PushNotificationType: String, Decodable {
     case chatProfileMessage
     case chatReaction
     case chatSharePostMessage
+    case chatShareArticleMessage
     case chatShareStoryMessage
     case chatSharedStoryReplyMessage
     case chatTextMessage
@@ -514,6 +582,7 @@ enum PushNotificationType: String, Decodable {
              .chatProfileMessage,
              .chatReaction,
              .chatSharePostMessage,
+             .chatShareArticleMessage,
              .chatShareStoryMessage,
              .chatSharedStoryReplyMessage,
              .chatTextMessage,

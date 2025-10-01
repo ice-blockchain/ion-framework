@@ -40,7 +40,7 @@ final class ChatDatabase: DatabaseManager {
         """
         
         guard let rows = executeQuery(query) else {
-            NSLog("[CHATDB] failed to check conversation existence for id: %@", conversationId)
+            NSLog("[NSE] [CHATDB] failed to check conversation existence for id: %@", conversationId)
             return false
         }
         
@@ -54,7 +54,7 @@ final class ChatDatabase: DatabaseManager {
     func getMutedConversationIds(currentUserMasterPubkey: String) -> [String] {
         // Check if the required tables exist
         guard tableExists("event_message_table") else {
-            NSLog("[CHATDB] event_message_table not found for muted conversations")
+            NSLog("[NSE] [CHATDB] event_message_table not found for muted conversations")
             return []
         }
         
@@ -73,12 +73,12 @@ final class ChatDatabase: DatabaseManager {
         """
         
         guard let rows = executeQuery(query), let row = rows.first else {
-            NSLog("[CHATDB] no muted conversations found")
+            NSLog("[NSE] [CHATDB] no muted conversations found")
             return []
         }
         
         guard let content = row["content"] as? String else {
-            NSLog("[CHATDB] invalid content format for muted conversations")
+            NSLog("[NSE] [CHATDB] invalid content format for muted conversations")
             return []
         }
         
@@ -93,13 +93,13 @@ final class ChatDatabase: DatabaseManager {
     /// - Returns: Array of muted conversation IDs
     private func parseMutedConversationIds(from content: String, currentUserMasterPubkey: String) -> [String] {
         guard let data = content.data(using: .utf8) else {
-            NSLog("[CHATDB] failed to convert content to data")
+            NSLog("[NSE] [CHATDB] failed to convert content to data")
             return []
         }
         
         do {
             guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                NSLog("[CHATDB] failed to parse JSON")
+                NSLog("[NSE] [CHATDB] failed to parse JSON")
                 return []
             }
             
@@ -126,7 +126,7 @@ final class ChatDatabase: DatabaseManager {
             return mutedConversationIds
             
         } catch {
-            NSLog("[CHATDB] JSON parsing error: %@", error.localizedDescription)
+            NSLog("[NSE] [CHATDB] JSON parsing error: %@", error.localizedDescription)
             return []
         }
     }

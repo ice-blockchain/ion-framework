@@ -21,7 +21,17 @@ struct EventMessage: Decodable {
         case tags
         case sig
     }
-
+    
+    init(id: String, pubkey: String, createdAt: Int, kind: Int, tags: [[String]], content: String, sig: String?) {
+        self.id = id
+        self.pubkey = pubkey
+        self.createdAt = createdAt
+        self.kind = kind
+        self.tags = tags
+        self.content = content
+        self.sig = sig
+    }
+    
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)

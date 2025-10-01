@@ -22,7 +22,7 @@ final class ChatUserMetadataDatabase: DatabaseManager {
         }
 
         if results.isEmpty {
-            NSLog("No user metadata found in database for pubkey: \(pubkey)")
+            NSLog("[NSE] No user metadata found in database for pubkey: \(pubkey)")
             return nil
         }
 
@@ -45,7 +45,7 @@ final class ChatUserMetadataDatabase: DatabaseManager {
         }
 
         guard let contentData = extractedContent.data(using: .utf8) else {
-            NSLog("Failed to convert content string to data")
+            NSLog("[NSE] Failed to convert content string to data")
             return nil
         }
 
@@ -64,7 +64,7 @@ final class ChatUserMetadataDatabase: DatabaseManager {
 
             return metadata
         } catch {
-            NSLog("Error parsing user metadata: \(error)")
+            NSLog("[NSE] Error parsing user metadata: \(error)")
             return nil
         }
     }

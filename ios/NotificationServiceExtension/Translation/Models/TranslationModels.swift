@@ -18,6 +18,8 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
     let repost: NotificationTranslation?
     let quote: NotificationTranslation?
     let like: NotificationTranslation?
+    let likeComment: NotificationTranslation?
+    let likeStory: NotificationTranslation?
     let follower: NotificationTranslation?
     let paymentRequest: NotificationTranslation?
     let paymentReceived: NotificationTranslation?
@@ -27,6 +29,7 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
     let chatProfileMessage: NotificationTranslation?
     let chatReaction: NotificationTranslation?
     let chatSharePostMessage: NotificationTranslation?
+    let chatShareArticleMessage: NotificationTranslation?
     let chatShareStoryMessage: NotificationTranslation?
     let chatSharedStoryReplyMessage: NotificationTranslation?
     let chatTextMessage: NotificationTranslation?
@@ -43,11 +46,12 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
     
     enum CodingKeys: String, CodingKey {
         case version = "_version"
-        case reply, mention, repost, quote, like, follower
+        case like, likeComment, likeStory
+        case reply, mention, repost, quote, follower
         case paymentRequest, paymentReceived
         case chatDocumentMessage, chatEmojiMessage, chatPhotoMessage
-        case chatProfileMessage, chatReaction, chatSharePostMessage
-        case chatShareStoryMessage, chatSharedStoryReplyMessage, chatTextMessage
+        case chatTextMessage, chatProfileMessage, chatReaction
+        case chatSharePostMessage, chatShareArticleMessage, chatShareStoryMessage, chatSharedStoryReplyMessage
         case chatVideoMessage, chatVoiceMessage, chatFirstContactMessage
         case chatGifMessage, chatMultiGifMessage, chatMultiMediaMessage
         case chatMultiPhotoMessage, chatMultiVideoMessage

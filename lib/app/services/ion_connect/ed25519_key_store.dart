@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:convert/convert.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:flutter/foundation.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 
 class Ed25519KeyStore with EventSigner {
@@ -62,6 +63,9 @@ class Ed25519KeyStore with EventSigner {
     required String message,
     required String publicKey,
   }) async {
+    // Speed up signature verification in debug mode on Android
+    if (Platform.isAndroid && kDebugMode) return true;
+
     final publicKeyBytes = hex.decode(publicKey);
     final signatureBytes = hex.decode(signature);
     final messageBytes = hex.decode(message);

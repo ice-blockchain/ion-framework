@@ -63,6 +63,13 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
           _ => throw EntityNotFoundException(eventReference),
         };
 
+        final quotedEventKind = switch (feedItemEntity) {
+          final ModifiablePostEntity entity =>
+            entity.isStory ? ModifiablePostEntity.storyKind : ModifiablePostEntity.kind,
+          final ArticleEntity _ => ArticleEntity.kind,
+          _ => throw EntityNotFoundException(eventReference),
+        };
+
         final feedItemAsContent = jsonEncode(feedItemEventMessage.toJson().last);
 
         unawaited(
@@ -81,6 +88,7 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
               feedItemEventMessage: feedItemEventMessage,
               sendChatMessageService: sendChatMessageService,
               currentUserMasterPubkey: currentUserMasterPubkey,
+              quotedEventKind: quotedEventKind.toString(),
             );
           }),
         );
@@ -139,6 +147,7 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
     required String currentUserMasterPubkey,
     required EventMessage feedItemEventMessage,
     required SendE2eeChatMessageService sendChatMessageService,
+    required String quotedEventKind,
   }) async {
     final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
 
@@ -221,6 +230,7 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
           content: '',
           conversationId: conversationId,
           participantsMasterPubkeys: participantsMasterPubkeys,
+          quotedEventKind: quotedEventKind,
           quotedEvent: QuotedImmutableEvent(
             eventReference: ImmutableEventReference(
               eventId: kind16Rumor.id,

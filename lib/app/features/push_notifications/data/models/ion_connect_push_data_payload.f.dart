@@ -9,6 +9,7 @@ import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
@@ -89,9 +90,10 @@ class IonConnectPushDataPayload {
     return EventParser().parse(event);
   }
 
-  PushNotificationType? getNotificationType({
+  Future<PushNotificationType?> getNotificationType({
     required String currentPubkey,
-  }) {
+    required Future<IonConnectEntity?> Function(EventReference) getRelatedEntity,
+  }) async {
     final entity = mainEntity;
     if (entity is GenericRepostEntity || entity is RepostEntity) {
       return PushNotificationType.repost;
@@ -113,7 +115,7 @@ class IonConnectPushDataPayload {
         return PushNotificationType.reply;
       }
     } else if (entity is ReactionEntity) {
-      return PushNotificationType.like;
+      return _getLikeNotificationType(entity, getRelatedEntity);
     } else if (entity is FollowListEntity) {
       return PushNotificationType.follower;
     } else if (entity is IonConnectGiftWrapEntity) {
@@ -128,6 +130,7 @@ class IonConnectPushDataPayload {
       } else if (entity.data.kinds
           .any((list) => list.contains(ReplaceablePrivateDirectMessageEntity.kind.toString()))) {
         if (decryptedEvent == null) return null;
+        if (decryptedUserMetadata == null) return PushNotificationType.chatFirstContactMessage;
 
         final message = ReplaceablePrivateDirectMessageEntity.fromEventMessage(decryptedEvent!);
         switch (message.data.messageType) {
@@ -141,19 +144,36 @@ class IonConnectPushDataPayload {
             return PushNotificationType.chatEmojiMessage;
           case MessageType.profile:
             return PushNotificationType.chatProfileMessage;
-          case MessageType.sharedPost:
-            return PushNotificationType.chatSharePostMessage;
           case MessageType.requestFunds:
             return PushNotificationType.chatPaymentRequestMessage;
           case MessageType.moneySent:
             return PushNotificationType.chatPaymentReceivedMessage;
           case MessageType.visualMedia:
             return _getVisualMediaNotificationType(message);
+          case MessageType.sharedPost:
+            return _getSharedPostNotificationType(message);
         }
       }
     }
 
     return null;
+  }
+
+  Future<PushNotificationType> _getLikeNotificationType(
+    ReactionEntity entity,
+    Future<IonConnectEntity?> Function(EventReference) getRelatedEntity,
+  ) async {
+    final relatedEntity = await getRelatedEntity(entity.data.eventReference);
+
+    return switch (relatedEntity) {
+      ModifiablePostEntity(:final data) when data.expiration != null =>
+        PushNotificationType.likeStory,
+      ModifiablePostEntity(:final data) when data.parentEvent != null =>
+        PushNotificationType.likeComment,
+      ArticleEntity() => PushNotificationType.like,
+      ModifiablePostEntity() => PushNotificationType.like,
+      _ => PushNotificationType.like,
+    };
   }
 
   PushNotificationType _getVisualMediaNotificationType(
@@ -193,6 +213,30 @@ class IonConnectPushDataPayload {
     }
 
     return PushNotificationType.chatMultiMediaMessage;
+  }
+
+  Future<PushNotificationType> _getSharedPostNotificationType(
+    ReplaceablePrivateDirectMessageEntity message,
+  ) async {
+    // If message has content, it's a reply to a shared story
+    if (message.data.content.isNotEmpty) {
+      return PushNotificationType.chatSharedStoryReplyMessage;
+    }
+    final quotedEventKind = message.data.quotedEventKind;
+    if (quotedEventKind != null) {
+      switch (int.parse(quotedEventKind)) {
+        case ModifiablePostEntity.kind || PostEntity.kind:
+          return PushNotificationType.chatSharePostMessage;
+        case ModifiablePostEntity.storyKind:
+          return PushNotificationType.chatShareStoryMessage;
+        case ArticleEntity.kind:
+          return PushNotificationType.chatShareArticleMessage;
+        default:
+          return PushNotificationType.chatSharePostMessage;
+      }
+    }
+
+    return PushNotificationType.chatSharePostMessage;
   }
 
   Future<Map<String, String>> placeholders(
@@ -434,6 +478,8 @@ enum PushNotificationType {
   repost,
   quote,
   like,
+  likeComment,
+  likeStory,
   follower,
   paymentRequest,
   paymentReceived,
@@ -443,6 +489,7 @@ enum PushNotificationType {
   chatProfileMessage,
   chatReaction,
   chatSharePostMessage,
+  chatShareArticleMessage,
   chatShareStoryMessage,
   chatSharedStoryReplyMessage,
   chatTextMessage,
@@ -464,6 +511,7 @@ enum PushNotificationType {
         chatProfileMessage,
         chatReaction,
         chatSharePostMessage,
+        chatShareArticleMessage,
         chatShareStoryMessage,
         chatSharedStoryReplyMessage,
         chatTextMessage,
