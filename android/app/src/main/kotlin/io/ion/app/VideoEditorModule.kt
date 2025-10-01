@@ -1,6 +1,10 @@
 package io.ion.app
 
 import android.app.Application
+import android.content.Context
+import android.net.Uri
+import androidx.core.net.toFile
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.banuba.sdk.arcloud.data.source.ArEffectsRepositoryProvider
 import com.banuba.sdk.arcloud.di.ArCloudKoinModule
@@ -12,6 +16,12 @@ import com.banuba.sdk.core.domain.DraftConfig
 import com.banuba.sdk.core.ui.ContentFeatureProvider
 import com.banuba.sdk.effectplayer.adapter.BanubaEffectPlayerKoinModule
 import com.banuba.sdk.export.di.VeExportKoinModule
+import com.banuba.sdk.export.data.ExportParamsProvider
+import com.banuba.sdk.export.data.ExportParams
+import com.banuba.sdk.core.VideoResolution
+import com.banuba.sdk.ve.effects.Effects
+import com.banuba.sdk.ve.domain.VideoRangeList
+import com.banuba.sdk.ve.effects.music.MusicEffect
 import com.banuba.sdk.gallery.di.GalleryKoinModule
 import com.banuba.sdk.playback.di.VePlaybackSdkKoinModule
 import com.banuba.sdk.ve.data.EditorAspectSettings
@@ -119,5 +129,39 @@ private class SampleIntegrationVeKoinModule(
                 maxTotalVideoDurationMs = maxVideoDurationMs ?: 60_000,
             )
         }
+
+        factory<ExportParamsProvider> {
+            CustomExportParamsProvider(
+                exportDir = get(named("exportDir")),
+            )
+        }
+    }
+}
+
+class CustomExportParamsProvider(
+    private val exportDir: Uri,
+) : ExportParamsProvider {
+
+    override fun provideExportParams(
+        effects: Effects,
+        videoRangeList: VideoRangeList,
+        musicEffects: List<MusicEffect>,
+        videoVolume: Float
+    ): List<ExportParams> {
+        val exportSessionDir = exportDir.toFile().apply {
+            deleteRecursively()
+            mkdirs()
+        }
+
+        val exportVideoHD = ExportParams.Builder(VideoResolution.Original)
+            .effects(effects)
+            .fileName("export_video")
+            .videoRangeList(videoRangeList)
+            .destDir(exportSessionDir)
+            .musicEffects(musicEffects)
+            .volumeVideo(videoVolume)
+            .build()
+
+        return listOf(exportVideoHD)
     }
 }
