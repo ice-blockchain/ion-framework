@@ -94,6 +94,10 @@ class NotificationDataParser {
       return null;
     }
 
+    if (result.title.isEmpty || result.body.isEmpty) {
+      return null;
+    }
+
     final (avatar, media) = await data.getMediaPlaceholders();
 
     return NotificationParsedData(

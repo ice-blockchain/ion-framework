@@ -86,6 +86,11 @@ class NotificationTranslationService {
             return nil
         }
         
+        if result.title.isEmpty || result.body.isEmpty {
+            NSLog("[NSE] Notification translation is empty")
+            return nil
+        }
+        
         let media = await data.getMediaPlaceholders()
 
         return NotificationTranslationResult(
