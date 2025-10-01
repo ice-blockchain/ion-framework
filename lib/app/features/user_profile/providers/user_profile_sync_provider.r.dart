@@ -84,6 +84,15 @@ class UserProfileSync extends _$UserProfileSync {
     // Helper to extract entities by type
     List<T> extractEntities<T>(List<dynamic> entities) => entities.whereType<T>().toList();
 
+    // Common search extensions
+    final searchExtensions = SearchExtensions([
+      GenericIncludeSearchExtension(
+        forKind: UserMetadataEntity.kind,
+        includeKind: UserDelegationEntity.kind,
+      ),
+      ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
+    ]).toString();
+
     // Fetch from read relays
     final entitiesFromReadRelay = await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
           cache: false,
@@ -95,24 +104,19 @@ class UserProfileSync extends _$UserProfileSync {
                 ),
               )
               .toList(),
-          search: SearchExtensions([
-            GenericIncludeSearchExtension(
-              forKind: UserMetadataEntity.kind,
-              includeKind: UserDelegationEntity.kind,
-            ),
-            ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
-          ]).toString(),
+          search: searchExtensions,
         );
 
     // Insert all fetched entities
-    await userMetadataDao.insertAll(extractEntities<UserMetadataEntity>(entitiesFromReadRelay));
-    await userDelegationDao.insertAll(extractEntities<UserDelegationEntity>(entitiesFromReadRelay));
-    await userBadgesDao
-        .insertAllProfileBadges(extractEntities<ProfileBadgesEntity>(entitiesFromReadRelay));
-    await userBadgesDao
-        .insertAllBadgeDefinitions(extractEntities<BadgeDefinitionEntity>(entitiesFromReadRelay));
-    await userBadgesDao
-        .insertAllBadgeAwards(extractEntities<BadgeAwardEntity>(entitiesFromReadRelay));
+    await Future.wait([
+      userMetadataDao.insertAll(extractEntities<UserMetadataEntity>(entitiesFromReadRelay)),
+      userDelegationDao.insertAll(extractEntities<UserDelegationEntity>(entitiesFromReadRelay)),
+      userBadgesDao
+          .insertAllProfileBadges(extractEntities<ProfileBadgesEntity>(entitiesFromReadRelay)),
+      userBadgesDao
+          .insertAllBadgeDefinitions(extractEntities<BadgeDefinitionEntity>(entitiesFromReadRelay)),
+      userBadgesDao.insertAllBadgeAwards(extractEntities<BadgeAwardEntity>(entitiesFromReadRelay)),
+    ]);
 
     // Find missing master pubkeys
     final fetchedMasterPubkeys = extractEntities<UserMetadataEntity>(entitiesFromReadRelay)
@@ -120,41 +124,40 @@ class UserProfileSync extends _$UserProfileSync {
         .toSet();
     final missingMasterPubkeys = masterPubkeysToSync.difference(fetchedMasterPubkeys);
 
-    // Try to fetch missing entities from write relays
-    for (final missingPubkey in missingMasterPubkeys) {
-      final entitiesFromWriteRelay =
-          await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
-                cache: false,
-                actionType: ActionType.write,
-                actionSource: ActionSource.user(missingPubkey),
-                eventReferences: [
-                  ReplaceableEventReference(
-                    masterPubkey: missingPubkey,
-                    kind: UserMetadataEntity.kind,
-                  ),
-                ],
-                search: SearchExtensions([
-                  GenericIncludeSearchExtension(
-                    forKind: UserMetadataEntity.kind,
-                    includeKind: UserDelegationEntity.kind,
-                  ),
-                  ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
-                ]).toString(),
-              );
+    if (missingMasterPubkeys.isEmpty) return;
 
-      if (entitiesFromWriteRelay.isNotEmpty) {
-        await userMetadataDao
-            .insertAll(extractEntities<UserMetadataEntity>(entitiesFromWriteRelay));
-        await userDelegationDao
-            .insertAll(extractEntities<UserDelegationEntity>(entitiesFromWriteRelay));
-        await userBadgesDao
-            .insertAllProfileBadges(extractEntities<ProfileBadgesEntity>(entitiesFromWriteRelay));
-        await userBadgesDao.insertAllBadgeDefinitions(
-          extractEntities<BadgeDefinitionEntity>(entitiesFromWriteRelay),
-        );
-        await userBadgesDao
-            .insertAllBadgeAwards(extractEntities<BadgeAwardEntity>(entitiesFromWriteRelay));
-      }
+    // Try to fetch missing entities from write relays in parallel
+    final entitiesFromWriteRelays = await Future.wait(
+      missingMasterPubkeys.map((missingPubkey) {
+        return ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
+              cache: false,
+              actionType: ActionType.write,
+              actionSource: ActionSource.user(missingPubkey),
+              eventReferences: [
+                ReplaceableEventReference(
+                  masterPubkey: missingPubkey,
+                  kind: UserMetadataEntity.kind,
+                ),
+              ],
+              search: searchExtensions,
+            );
+      }),
+    );
+
+    // Flatten the list of lists into a single list
+    final entitiesFromWriteRelay = entitiesFromWriteRelays.expand((e) => e).toList();
+
+    if (entitiesFromWriteRelay.isNotEmpty) {
+      await Future.wait([
+        userMetadataDao.insertAll(extractEntities<UserMetadataEntity>(entitiesFromWriteRelay)),
+        userDelegationDao.insertAll(extractEntities<UserDelegationEntity>(entitiesFromWriteRelay)),
+        userBadgesDao
+            .insertAllProfileBadges(extractEntities<ProfileBadgesEntity>(entitiesFromWriteRelay)),
+        userBadgesDao.insertAllBadgeDefinitions(
+            extractEntities<BadgeDefinitionEntity>(entitiesFromWriteRelay)),
+        userBadgesDao
+            .insertAllBadgeAwards(extractEntities<BadgeAwardEntity>(entitiesFromWriteRelay)),
+      ]);
     }
   }
 }
