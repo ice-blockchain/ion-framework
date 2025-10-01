@@ -3,6 +3,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
+import 'package:ion/app/features/gallery/providers/media_selection_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/image_proccessing_config.dart';
@@ -65,6 +66,8 @@ class ImageProcessorNotifier extends _$ImageProcessorNotifier {
       );
       if (croppedImage == null) {
         state = const ImageProcessorState.initial();
+        // Reset media selection when user cancels cropping
+        ref.invalidate(mediaSelectionNotifierProvider);
         return;
       }
 

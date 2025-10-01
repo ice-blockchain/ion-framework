@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
@@ -60,7 +61,7 @@ class MediaPickerPage extends HookConsumerWidget {
         if (onSelectCallback == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (context.mounted) {
-              Navigator.of(context).pop(value.selectedMedia);
+              context.pop(value.selectedMedia);
             }
           });
         } else {
@@ -108,11 +109,11 @@ class MediaPickerPage extends HookConsumerWidget {
             backgroundColor: Colors.transparent,
             borderColor: Colors.transparent,
           ),
-          onBackPress: () => Navigator.of(context).pop(),
+          onBackPress: () => context.pop(),
           actions: [
             if (maxSelection > 1 && selectedMedia.isNotEmpty)
               AddMediaButton(
-                onPressed: () => Navigator.of(context).pop(selectedMedia),
+                onPressed: () => context.pop(selectedMedia),
                 mediaCount: selectedMedia.length,
               ),
           ],
