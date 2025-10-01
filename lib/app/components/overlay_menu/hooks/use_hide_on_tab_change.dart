@@ -10,9 +10,9 @@ void useHideOnTabChange(
   BuildContext context,
   OverlayPortalController overlayPortalController,
 ) {
-  // Use useMemoized to get the container in build, not in initState
-  final container = useMemoized(() => MainTabNavigationContainer.maybeOf(context), [context]);
-  final tabPressStream = container?.tabPressStream;
+  final mainTabNavigationContainer =
+      useMemoized(() => MainTabNavigationContainer.maybeOf(context), [context]);
+  final tabPressStream = mainTabNavigationContainer?.tabPressStream;
 
   useEffect(
     () {
