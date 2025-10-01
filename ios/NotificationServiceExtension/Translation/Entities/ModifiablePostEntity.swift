@@ -76,6 +76,10 @@ struct ModifiablePostData {
         
         return replyParent ?? rootParent
     }
+    
+    var rootRelatedEvent: RelatedEvent? {
+        return relatedEvents.first { $0.marker == .root }
+    }
 
     static func fromEventMessage(_ eventMessage: EventMessage) -> ModifiablePostData {
         let textContent = eventMessage.content

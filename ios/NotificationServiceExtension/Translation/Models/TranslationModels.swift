@@ -14,10 +14,17 @@ struct NotificationTranslation: Decodable {
 struct PushNotificationTranslations: TranslationWithVersion, Decodable {
     let version: Int
     let reply: NotificationTranslation?
+    let replyArticle: NotificationTranslation?
+    let replyComment: NotificationTranslation?
     let mention: NotificationTranslation?
     let repost: NotificationTranslation?
+    let repostArticle: NotificationTranslation?
+    let repostComment: NotificationTranslation?
     let quote: NotificationTranslation?
+    let quoteArticle: NotificationTranslation?
+    let quoteComment: NotificationTranslation?
     let like: NotificationTranslation?
+    let likeArticle: NotificationTranslation?
     let likeComment: NotificationTranslation?
     let likeStory: NotificationTranslation?
     let follower: NotificationTranslation?
@@ -46,8 +53,12 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
     
     enum CodingKeys: String, CodingKey {
         case version = "_version"
-        case like, likeComment, likeStory
-        case reply, mention, repost, quote, follower
+        case reply, replyArticle, replyComment
+        case mention
+        case repost, repostArticle, repostComment
+        case quote, quoteArticle, quoteComment
+        case like, likeArticle, likeComment, likeStory
+        case follower
         case paymentRequest, paymentReceived
         case chatDocumentMessage, chatEmojiMessage, chatPhotoMessage
         case chatTextMessage, chatProfileMessage, chatReaction

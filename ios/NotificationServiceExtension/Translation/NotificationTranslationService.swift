@@ -141,14 +141,28 @@ class NotificationTranslationService {
             switch notificationType {
             case .reply:
                 return translations.reply
+            case .replyArticle:
+                return translations.replyArticle
+            case .replyComment:
+                return translations.replyComment
             case .mention:
                 return translations.mention
             case .repost:
                 return translations.repost
+            case .repostArticle:
+                return translations.repostArticle
+            case .repostComment:
+                return translations.repostComment
             case .quote:
                 return translations.quote
+            case .quoteArticle:
+                return translations.quoteArticle
+            case .quoteComment:
+                return translations.quoteComment
             case .like:
                 return translations.like
+            case .likeArticle:
+                return translations.likeArticle
             case .likeComment:
                 return translations.likeComment
             case .likeStory:

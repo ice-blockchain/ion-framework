@@ -171,10 +171,10 @@ class IonConnectPushDataPayload: Decodable {
         }
 
         if entity is GenericRepostEntity || entity is RepostEntity {
-            return .repost
+            return getRepostNotificationType(entity: entity, keysStorage: keysStorage)
         } else if (entity as? ModifiablePostEntity)?.data.quotedEvent != nil ||
                   (entity as? PostEntity)?.data.quotedEvent != nil {
-            return .quote
+            return getQuoteNotificationType(entity: entity, keysStorage: keysStorage)
         } else if entity is ModifiablePostEntity || entity is PostEntity {
             let currentUserMention = ReplaceableEventReference(
                 masterPubkey: currentPubkey,
@@ -194,9 +194,9 @@ class IonConnectPushDataPayload: Decodable {
 
             if let content = content, content.contains(currentUserMention) {
                 return .mention
-            } else {
-                return .reply
             }
+                
+            return getReplyNotificationType(entity: entity, keysStorage: keysStorage)
         } else if let reactionEntity = entity as? ReactionEntity {
             return getLikeNotificationType(entity: reactionEntity, keysStorage: keysStorage)
         } else if entity is FollowListEntity {
@@ -424,10 +424,6 @@ class IonConnectPushDataPayload: Decodable {
         }
     }
 
-    /// Determines the notification type for like/reaction based on the related entity
-    /// - Parameter entity: The reaction entity
-    /// - Parameter keysStorage: The keys storage for database access
-    /// - Returns: The appropriate push notification type (like, likeComment, or likeStory)
     private func getLikeNotificationType(entity: ReactionEntity, keysStorage: KeysStorage) -> PushNotificationType {
         let cacheKey = entity.data.eventReference.toString()
         
@@ -453,13 +449,153 @@ class IonConnectPushDataPayload: Decodable {
             }
             return .like
         }
+        
+        // Check if it's an article
+        if relatedEntity is ArticleEntity {
+            return .likeArticle
+        }
                 
         return .like
     }
+
+    private func getRepostNotificationType(entity: IonConnectEntity, keysStorage: KeysStorage) -> PushNotificationType {
+        // Extract event reference from the repost entity
+        let eventReference: EventReference
+        if let genericRepost = entity as? GenericRepostEntity {
+            eventReference = genericRepost.data.eventReference
+        } else if let repost = entity as? RepostEntity {
+            eventReference = repost.data.eventReference
+        } else {
+            return .repost
+        }
+        
+        let cacheKey = eventReference.toString()
+        
+        let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
+        guard cacheDB.openDatabase() else {
+            NSLog("[NSE] Failed to open ion_connect_cache database for repost notification type")
+            return .repost
+        }
+        defer { cacheDB.closeDatabase() }
+        
+        guard let repostedEntity = cacheDB.getRelatedEntity(eventReference: cacheKey) else {
+            NSLog("[NSE] No related entity found in cache for: \(cacheKey)")
+            return .repost
+        }
+        
+        // Check if it's an article
+        if repostedEntity is ArticleEntity {
+            return .repostArticle
+        }
+        
+        // Check if it's a comment (post with parent event)
+        if let modifiablePost = repostedEntity as? ModifiablePostEntity {
+            if modifiablePost.data.parentEvent != nil {
+                return .repostComment
+            }
+        } else if let post = repostedEntity as? PostEntity {
+            if post.data.parentEvent != nil {
+                return .repostComment
+            }
+        }
+        
+        return .repost
+    }
     
-    /// Determines the notification type for shared post messages based on content
-    /// - Parameter message: The private direct message entity containing shared post
-    /// - Returns: The appropriate push notification type based on shared content
+    private func getQuoteNotificationType(entity: IonConnectEntity, keysStorage: KeysStorage) -> PushNotificationType {
+        // Extract quoted event reference from the entity
+        let quotedEventRef: EventReference?
+        if let modifiablePost = entity as? ModifiablePostEntity {
+            quotedEventRef = modifiablePost.data.quotedEvent?.eventReference
+        } else if let post = entity as? PostEntity {
+            quotedEventRef = post.data.quotedEvent?.eventReference
+        } else {
+            return .quote
+        }
+        
+        guard let eventReference = quotedEventRef else {
+            return .quote
+        }
+        
+        let cacheKey = eventReference.toString()
+        
+        let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
+        guard cacheDB.openDatabase() else {
+            NSLog("[NSE] Failed to open ion_connect_cache database for quote notification type")
+            return .quote
+        }
+        defer { cacheDB.closeDatabase() }
+        
+        guard let quotedEntity = cacheDB.getRelatedEntity(eventReference: cacheKey) else {
+            NSLog("[NSE] No related entity found in cache for: \(cacheKey)")
+            return .quote
+        }
+        
+        // Check if it's an article
+        if quotedEntity is ArticleEntity {
+            return .quoteArticle
+        }
+        
+        // Check if it's a comment (post with parent event)
+        if let modifiablePost = quotedEntity as? ModifiablePostEntity {
+            if modifiablePost.data.parentEvent != nil {
+                return .quoteComment
+            }
+        } else if let post = quotedEntity as? PostEntity {
+            if post.data.parentEvent != nil {
+                return .quoteComment
+            }
+        }
+        
+        return .quote
+    }
+    
+    private func getReplyNotificationType(entity: IonConnectEntity, keysStorage: KeysStorage) -> PushNotificationType {
+        // Extract parent event reference string from the entity
+        let parentEventRefString: String?
+        if let modifiablePost = entity as? ModifiablePostEntity {
+            parentEventRefString = modifiablePost.data.parentEvent?.eventReference
+        } else if let post = entity as? PostEntity {
+            parentEventRefString = post.data.parentEvent?.eventReference
+        } else {
+            return .reply
+        }
+        
+        guard let cacheKey = parentEventRefString else {
+            return .reply
+        }
+        
+        let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
+        guard cacheDB.openDatabase() else {
+            NSLog("[NSE] Failed to open ion_connect_cache database for reply notification type")
+            return .reply
+        }
+        defer { cacheDB.closeDatabase() }
+        
+        guard let parentEntity = cacheDB.getRelatedEntity(eventReference: cacheKey) else {
+            NSLog("[NSE] No related entity found in cache for: \(cacheKey)")
+            return .reply
+        }
+        
+        // Check if it's an article
+        if parentEntity is ArticleEntity {
+            return .replyArticle
+        }
+        
+        // Check if it's a comment (post with parent event)
+        if let modifiablePost = parentEntity as? ModifiablePostEntity {
+            if modifiablePost.data.parentEvent != nil {
+                return .replyComment
+            }
+        } else if let post = parentEntity as? PostEntity {
+            if post.data.parentEvent != nil {
+                return .replyComment
+            }
+        }
+        
+        return .reply
+    }
+    
     private func getSharedPostNotificationType(message: ReplaceablePrivateDirectMessageEntity) -> PushNotificationType {
         // If message has content, it's a reply to a shared story
         if !message.data.content.isEmpty {
@@ -484,9 +620,6 @@ class IonConnectPushDataPayload: Decodable {
         return .chatSharePostMessage
     }
     
-    /// Determines the notification type for visual media messages based on media content
-    /// - Parameter message: The private direct message entity containing visual media
-    /// - Returns: The appropriate push notification type based on media content
     private func getVisualMediaNotificationType(message: ReplaceablePrivateDirectMessageEntity) -> PushNotificationType {
         let mediaItems = message.data.media
 
@@ -544,10 +677,17 @@ class IonConnectPushDataPayload: Decodable {
 
 enum PushNotificationType: String, Decodable {
     case reply
+    case replyArticle
+    case replyComment
     case mention
     case repost
+    case repostArticle
+    case repostComment
     case quote
+    case quoteArticle
+    case quoteComment
     case like
+    case likeArticle
     case likeComment
     case likeStory
     case follower

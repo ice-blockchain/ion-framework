@@ -119,6 +119,14 @@ class NotificationDataParser {
             await translator.translate((t) => t.reply?.title),
             await translator.translate((t) => t.reply?.body),
           ),
+        PushNotificationType.replyArticle => (
+            await translator.translate((t) => t.replyArticle?.title),
+            await translator.translate((t) => t.replyArticle?.body),
+          ),
+        PushNotificationType.replyComment => (
+            await translator.translate((t) => t.replyComment?.title),
+            await translator.translate((t) => t.replyComment?.body),
+          ),
         PushNotificationType.mention => (
             await translator.translate((t) => t.mention?.title),
             await translator.translate((t) => t.mention?.body)
@@ -127,13 +135,33 @@ class NotificationDataParser {
             await translator.translate((t) => t.repost?.title),
             await translator.translate((t) => t.repost?.body)
           ),
+        PushNotificationType.repostArticle => (
+            await translator.translate((t) => t.repostArticle?.title),
+            await translator.translate((t) => t.repostArticle?.body)
+          ),
+        PushNotificationType.repostComment => (
+            await translator.translate((t) => t.repostComment?.title),
+            await translator.translate((t) => t.repostComment?.body)
+          ),
         PushNotificationType.quote => (
             await translator.translate((t) => t.quote?.title),
             await translator.translate((t) => t.quote?.body)
           ),
+        PushNotificationType.quoteArticle => (
+            await translator.translate((t) => t.quoteArticle?.title),
+            await translator.translate((t) => t.quoteArticle?.body)
+          ),
+        PushNotificationType.quoteComment => (
+            await translator.translate((t) => t.quoteComment?.title),
+            await translator.translate((t) => t.quoteComment?.body)
+          ),
         PushNotificationType.like => (
             await translator.translate((t) => t.like?.title),
             await translator.translate((t) => t.like?.body)
+          ),
+        PushNotificationType.likeArticle => (
+            await translator.translate((t) => t.likeArticle?.title),
+            await translator.translate((t) => t.likeArticle?.body)
           ),
         PushNotificationType.likeComment => (
             await translator.translate((t) => t.likeComment?.title),
