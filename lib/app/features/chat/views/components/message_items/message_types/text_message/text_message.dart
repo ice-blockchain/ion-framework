@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -17,10 +16,8 @@ import 'package:ion/app/features/chat/views/components/message_items/components.
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/reply_message/reply_message.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 import 'package:ion/app/services/text_parser/text_parser.dart';
-import 'package:ion/app/utils/url.dart';
 
 class TextMessage extends HookConsumerWidget {
   const TextMessage({
@@ -37,14 +34,15 @@ class TextMessage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final firstUrl = useState<String?>(null);
-
-    useOnInit(() {
-      compute(extractFirstUrl, eventMessage.content).then((url) {
-        if (context.mounted) {
-          firstUrl.value = url;
-        }
-      });
-    });
+    
+    //TODO: re-enable once isolate issue is resolved
+    //useOnInit(() {
+    //  sharedChatIsolate.compute(extractFirstUrl, eventMessage.content).then((url) {
+    //    if (context.mounted) {
+    //      firstUrl.value = url;
+    //    }
+    //  });
+    //});
 
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
 
