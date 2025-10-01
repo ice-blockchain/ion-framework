@@ -955,5 +955,7 @@
   "report_content_description": "This is a report for the content",
   "share_user_on_app": "{userDisplayName} on {shareAppName}",
   "share_story_watch_message": "Watch this story by {userDisplayName} before it disappears.",
-  "follow_user_message": "You followed @{userDisplayName}"
+  "follow_user_message": "You followed @{userDisplayName}",
+  "nsfw_blocked_dialog_title": "Inappropriate Content",
+  "nsfw_blocked_dialog_body": "The uploaded media contain material that violates our community guidelines. Such posts cannot be published."
 }

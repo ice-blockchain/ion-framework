@@ -22,6 +22,7 @@ import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.da
 import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
 import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
@@ -117,6 +118,19 @@ class ArticlePreviewModal extends HookConsumerWidget {
                         ref.read(topicTooltipVisibilityNotifierProvider.notifier).show();
                         return;
                       }
+
+                      // NSFW validation before publishing (cover image and embedded images if available)
+                      final imagesToCheck = <String>[
+                        if (image?.path != null) image!.path,
+                        ...mediaAttachments.values
+                            .where((m) => m.mimeType.startsWith('image/'))
+                            .map((m) => m.url),
+                      ];
+                      final blocked = await NsfwSubmitGuard.checkAndBlockImagePaths(
+                        ref,
+                        imagesToCheck,
+                      );
+                      if (blocked) return;
 
                       final labeler = ref.read(ionContentLabelerProvider);
                       final detectedLanguage = await labeler.detectLanguageLabels(
