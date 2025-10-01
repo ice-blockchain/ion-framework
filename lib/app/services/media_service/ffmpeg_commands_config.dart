@@ -17,36 +17,7 @@ class FFmpegCommands {
     required String scaleResolution,
     required String movFlags,
     required String crf,
-    String? videoBitrate,
   }) {
-    if (videoCodec == 'h264_videotoolbox') {
-      return [
-        '-i',
-        inputPath,
-        '-vf',
-        'format=nv12,$scaleResolution',
-        '-c:v',
-        videoCodec,
-        if (videoBitrate != null) ...['-b:v', videoBitrate],
-        '-maxrate',
-        maxRate,
-        '-bufsize',
-        bufSize,
-        '-profile:v',
-        'high',
-        '-level',
-        '4.0',
-        '-c:a',
-        audioCodec,
-        '-b:a',
-        audioBitrate,
-        '-movflags',
-        '+faststart',
-        '-y',
-        outputPath,
-      ];
-    }
-    
     return [
       '-i',
       inputPath,

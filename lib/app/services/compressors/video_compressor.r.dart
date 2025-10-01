@@ -12,6 +12,7 @@ import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/services/compressors/compress_executor.r.dart';
 import 'package:ion/app/services/compressors/compressor.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
+import 'package:ion/app/services/compressors/ios_native_video_compressor.r.dart';
 import 'package:ion/app/services/compressors/output_path_generator.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_audio_bitrate_arg.dart';
@@ -57,20 +58,6 @@ class VideoCompressionSettings {
     movFlags: FfmpegMovFlagArg.faststart,
   );
 
-  static const iosHardware = VideoCompressionSettings(
-    videoCodec: FFmpegVideoCodecArg.h264VideoToolbox,
-    preset: FfmpegPresetArg.veryfast,
-    crf: FfmpegCrfArg.balanced,
-    maxRate: FfmpegBitrateArg.high,
-    bufSize: FfmpegBitrateArg.medium,
-    scale: FfmpegScaleArg.p720,
-    audioCodec: FfmpegAudioCodecArg.aac,
-    audioBitrate: FfmpegAudioBitrateArg.low,
-    pixelFormat: FfmpegPixelFormatArg.yuv420p,
-    movFlags: FfmpegMovFlagArg.faststart,
-    videoBitrate: FfmpegBitrateArg.high,
-  );
-
   final FFmpegVideoCodecArg videoCodec;
   final FfmpegPresetArg preset;
   final FfmpegCrfArg crf;
@@ -88,10 +75,12 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
   VideoCompressor({
     required this.compressExecutor,
     required this.imageCompressor,
+    required this.iosNativeVideoCompressor,
   });
 
   final CompressExecutor compressExecutor;
   final ImageCompressor imageCompressor;
+  final IosNativeVideoCompressor iosNativeVideoCompressor;
 
   String _formatBytes(int bytes) {
     final megabytes = bytes / (1024 * 1024);
@@ -114,7 +103,14 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     Completer<FFmpegSession>? sessionIdCompleter,
     VideoCompressionSettings? settings,
   }) async {
-    settings ??= Platform.isIOS ? VideoCompressionSettings.iosHardware : VideoCompressionSettings.balanced;
+    if (Platform.isIOS) {
+      return iosNativeVideoCompressor.compress(
+        file,
+        settings: IosNativeVideoCompressionSettings.balanced,
+      );
+    }
+
+    settings ??= VideoCompressionSettings.balanced;
     try {
       final output = await generateOutputPath(extension: 'mp4');
       final sessionResultCompleter = Completer<FFmpegSession>();
@@ -136,7 +132,6 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
         pixelFormat: settings.pixelFormat.name,
         scaleResolution: settings.scale.resolution,
         movFlags: settings.movFlags.value,
-        videoBitrate: settings.videoBitrate?.bitrate,
       );
 
       final session = await compressExecutor.execute(
@@ -283,4 +278,5 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
 VideoCompressor videoCompressor(Ref ref) => VideoCompressor(
       compressExecutor: ref.read(compressExecutorProvider),
       imageCompressor: ref.read(imageCompressorProvider),
+      iosNativeVideoCompressor: ref.read(iosNativeVideoCompressorProvider),
     );

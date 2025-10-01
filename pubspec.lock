@@ -3120,6 +3120,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.11"
+  video_toolbox:
+    dependency: "direct main"
+    description:
+      name: video_toolbox
+      sha256: "93a42ae5344047e29f878c8734d63704427904794fccf36aebd48cf4fd834ff4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   visibility_detector:
     dependency: "direct main"
     description:
