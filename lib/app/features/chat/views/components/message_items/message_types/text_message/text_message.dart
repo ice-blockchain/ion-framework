@@ -34,7 +34,7 @@ class TextMessage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final firstUrl = useState<String?>(null);
-    
+
     //TODO: re-enable once isolate issue is resolved
     //useOnInit(() {
     //  sharedChatIsolate.compute(extractFirstUrl, eventMessage.content).then((url) {
