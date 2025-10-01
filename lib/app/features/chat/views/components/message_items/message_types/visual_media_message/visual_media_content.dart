@@ -45,6 +45,7 @@ class VisualMediaContent extends HookConsumerWidget {
       () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
       [eventMessage],
     );
+
     final mediaAttachment = entity.data.media[messageMediaTableData.remoteUrl];
 
     useEffect(
@@ -59,12 +60,13 @@ class VisualMediaContent extends HookConsumerWidget {
         )
             .then((file) {
           if (context.mounted) {
+            localFile.value = file;
+
             if (file == null || messageMediaTableData.remoteUrl == null) return;
             ListCachedObjects.updateObject<PathWithKey>(
               context,
               (key: messageMediaTableData.remoteUrl!, filePath: file.path),
             );
-            localFile.value = file;
           }
         });
         return null;
