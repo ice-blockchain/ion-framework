@@ -36,10 +36,10 @@ class ListCachedObjects extends InheritedWidget {
 
   static const equality = DeepCollectionEquality();
 
-  static dynamic identifierSelector<T extends Object>(T object) {
+  static Object identifierSelector<T extends Object>(T object) {
     return switch (object) {
       final PathWithKey fileMap => fileMap.key,
-      final EventMessage event => event.sharedId,
+      final EventMessage event => event.sharedId ?? event.id,
       final MessageMediaTableData media => media.messageEventReference,
       final UserMetadataEntity user => user.masterPubkey,
       final IonConnectEntity entity => entity.toEventReference(),
