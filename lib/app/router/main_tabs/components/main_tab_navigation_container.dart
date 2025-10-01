@@ -22,6 +22,10 @@ class MainTabNavigationContainer extends InheritedWidget {
     return result!;
   }
 
+  static MainTabNavigationContainer? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<MainTabNavigationContainer>();
+  }
+
   @override
   bool updateShouldNotify(MainTabNavigationContainer oldWidget) =>
       oldWidget.tabPressStream != tabPressStream;
