@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:developer' as Logger;
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -143,7 +144,8 @@ class UserProfileSync extends _$UserProfileSync {
                 search: searchExtensions,
               );
         } catch (_) {
-          return <dynamic>[]; // Return empty list on error
+          Logger.log('Failed to fetch user profile for $missingPubkey from write relays');
+          return <dynamic>[];
         }
       }),
     );
