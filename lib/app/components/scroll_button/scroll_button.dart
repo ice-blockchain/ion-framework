@@ -110,22 +110,9 @@ class _ScrollButtonWidget extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 24.0.s,
-              height: 24.0.s,
-              clipBehavior: Clip.antiAlias,
-              decoration: const BoxDecoration(),
-              child: Center(
-                child: IconTheme(
-                  data: IconThemeData(color: iconColor),
-                  child: icon,
-                ),
-              ),
-            ),
-          ],
+        child: IconTheme(
+          data: IconThemeData(color: iconColor),
+          child: icon,
         ),
       ),
     );
