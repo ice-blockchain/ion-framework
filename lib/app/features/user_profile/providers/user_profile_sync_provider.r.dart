@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:developer' as Logger;
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -21,6 +20,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_badge_info_dao.m.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_delegation_dao.m.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_metadata_dao.m.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
