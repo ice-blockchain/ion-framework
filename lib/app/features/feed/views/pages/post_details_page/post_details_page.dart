@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/scroll_to_top_button/scroll_to_top_button.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -14,6 +13,7 @@ import 'package:ion/app/features/feed/providers/can_reply_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/replies_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/post/post.dart';
 import 'package:ion/app/features/feed/views/components/reply_list/reply_list.dart';
+import 'package:ion/app/features/feed/views/components/scroll_to_top_button/scroll_to_top_button.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
@@ -54,9 +54,11 @@ class PostDetailsPage extends HookConsumerWidget {
                   eventReference: eventReference,
                   scrollController: scrollController,
                   onPullToRefresh: () {
-                    ref
-                        .read(ionConnectCacheProvider.notifier)
-                        .remove(CacheableEntity.cacheKeyBuilder(eventReference: eventReference));
+                    ref.read(ionConnectCacheProvider.notifier).remove(
+                          CacheableEntity.cacheKeyBuilder(
+                            eventReference: eventReference,
+                          ),
+                        );
                   },
                   headers: [
                     SliverToBoxAdapter(

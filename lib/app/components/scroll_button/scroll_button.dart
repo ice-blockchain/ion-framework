@@ -6,26 +6,33 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class ScrollToTopButton extends HookWidget {
-  const ScrollToTopButton({
+enum ScrollDirection {
+  up,
+  down,
+}
+
+class ScrollButton extends HookWidget {
+  const ScrollButton({
     required this.scrollController,
+    required this.direction,
+    required this.onTap,
     super.key,
   });
 
-  static final _offsetThreshold = 200.0.s;
-
-  /// Minimum number of comments required to show the scroll-to-top button
-  static const int minCommentsThreshold = 5;
-
   final ScrollController scrollController;
+  final ScrollDirection direction;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final isVisible = useState(false);
+    final threshold = _getDefaultThreshold();
+    final icon = _getIcon();
+    final color = context.theme.appColors.primaryAccent;
 
     useEffect(() {
       void listener() {
-        isVisible.value = scrollController.offset > _offsetThreshold;
+        isVisible.value = _shouldShowButton(threshold);
       }
 
       scrollController.addListener(listener);
@@ -44,26 +51,42 @@ class ScrollToTopButton extends HookWidget {
         );
       },
       child: isVisible.value
-          ? _ScrollButton(
-        onTap: () {
-          scrollController.animateTo(
-            0,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeOut,
-          );
-        },
-      )
+          ? _ScrollButtonWidget(
+              onTap: onTap,
+              icon: icon,
+              iconColor: color,
+            )
           : const SizedBox.shrink(),
     );
   }
+
+  double _getDefaultThreshold() {
+    return direction == ScrollDirection.up ? 200.0.s : 16.0.s;
+  }
+
+  Widget _getIcon() {
+    return direction == ScrollDirection.up
+        ? Assets.svg.iconArrowUp.icon(size: 24.0.s)
+        : Assets.svg.iconArrowDown.icon(size: 24.0.s);
+  }
+
+  bool _shouldShowButton(double threshold) {
+    return direction == ScrollDirection.up
+        ? scrollController.offset > threshold
+        : scrollController.offset > threshold;
+  }
 }
 
-class _ScrollButton extends StatelessWidget {
-  const _ScrollButton({
+class _ScrollButtonWidget extends StatelessWidget {
+  const _ScrollButtonWidget({
     required this.onTap,
+    required this.icon,
+    required this.iconColor,
   });
 
   final VoidCallback onTap;
+  final Widget icon;
+  final Color iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -96,9 +119,9 @@ class _ScrollButton extends StatelessWidget {
               clipBehavior: Clip.antiAlias,
               decoration: const BoxDecoration(),
               child: Center(
-                child: Assets.svg.iconArrowUp.icon(
-                  size: 24.0.s,
-                  color: context.theme.appColors.sharkText,
+                child: IconTheme(
+                  data: IconThemeData(color: iconColor),
+                  child: icon,
                 ),
               ),
             ),
