@@ -27,4 +27,30 @@ mixin SentryService {
       appRunner: appRunner,
     );
   }
+
+  /// Manually log an exception to Sentry
+  ///
+  /// [exception] - The exception to log
+  /// [stackTrace] - Optional stack trace for the exception
+  /// [level] - Optional severity level (defaults to SentryLevel.error)
+  /// [tag] - Optional tag to categorize the exception
+  static Future<SentryId> logException(
+    dynamic exception, {
+    StackTrace? stackTrace,
+    SentryLevel? level,
+    String? tag,
+  }) async {
+    return Sentry.captureException(
+      exception,
+      stackTrace: stackTrace,
+      withScope: (scope) {
+        if (level != null) {
+          scope.level = level;
+        }
+        if (tag != null) {
+          scope.setTag('manual_log', tag);
+        }
+      },
+    );
+  }
 }
