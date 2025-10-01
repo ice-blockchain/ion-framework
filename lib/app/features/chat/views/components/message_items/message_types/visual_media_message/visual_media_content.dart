@@ -12,6 +12,7 @@ import 'package:ion/app/features/chat/e2ee/providers/chat_medias_provider.r.dart
 import 'package:ion/app/features/chat/e2ee/providers/chat_message_load_media_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_chat_media_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -33,8 +34,17 @@ class VisualMediaContent extends HookConsumerWidget {
   final bool isReply;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final localFile = useState<File?>(null);
-    final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage);
+    final cachedPath = ListCachedObjects.maybeObjectOf<PathWithKey>(
+      context,
+      messageMediaTableData.remoteUrl,
+    )?.filePath;
+
+    final localFile = useState<File?>(cachedPath != null ? File(cachedPath) : null);
+
+    final entity = useMemoized(
+      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
+      [eventMessage],
+    );
     final mediaAttachment = entity.data.media[messageMediaTableData.remoteUrl];
 
     useEffect(
@@ -47,9 +57,14 @@ class VisualMediaContent extends HookConsumerWidget {
             cacheKey: messageMediaTableData.cacheKey,
           ),
         )
-            .then((value) {
+            .then((file) {
           if (context.mounted) {
-            localFile.value = value;
+            if (file == null || messageMediaTableData.remoteUrl == null) return;
+            ListCachedObjects.updateObject<PathWithKey>(
+              context,
+              (key: messageMediaTableData.remoteUrl!, filePath: file.path),
+            );
+            localFile.value = file;
           }
         });
         return null;

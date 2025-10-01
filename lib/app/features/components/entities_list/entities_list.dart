@@ -8,7 +8,7 @@ import 'package:ion/app/features/components/entities_list/components/article_lis
 import 'package:ion/app/features/components/entities_list/components/post_list_item.dart';
 import 'package:ion/app/features/components/entities_list/components/repost_list_item.dart';
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
-import 'package:ion/app/features/components/entities_list/list_cached_entities.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/components/entities_list/list_entity_helper.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
