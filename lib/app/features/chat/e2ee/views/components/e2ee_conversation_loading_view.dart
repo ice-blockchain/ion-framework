@@ -13,7 +13,7 @@ class E2eeConversationLoadingView extends HookConsumerWidget {
     return Container(
       color: context.theme.appColors.primaryBackground,
       width: double.infinity,
-      padding: EdgeInsets.only(left: 16.0.s, right: 16.0.s, top: 12.0.s),
+      padding: EdgeInsetsDirectional.only(start: 16.0.s, end: 16.0.s, top: 12.0.s),
       child: SingleChildScrollView(
         padding: EdgeInsets.zero,
         physics: const NeverScrollableScrollPhysics(),
