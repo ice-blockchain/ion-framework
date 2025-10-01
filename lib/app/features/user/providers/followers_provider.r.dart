@@ -22,6 +22,7 @@ class Followers extends _$Followers {
             searchUsersProvider(
               query: query,
               followerOfPubkey: pubkey,
+              includeCurrentUser: true,
             ),
           )
           .valueOrNull;
@@ -54,6 +55,7 @@ class Followers extends _$Followers {
             searchUsersProvider(
               query: query,
               followerOfPubkey: pubkey,
+              includeCurrentUser: true,
             ).notifier,
           )
           .loadMore();
