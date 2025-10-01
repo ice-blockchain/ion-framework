@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
-import 'package:ion/app/features/chat/e2ee/providers/shared_post_message_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
