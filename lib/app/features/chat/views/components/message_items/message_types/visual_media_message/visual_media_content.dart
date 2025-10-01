@@ -59,7 +59,7 @@ class VisualMediaContent extends HookConsumerWidget {
         )
             .then((file) {
           if (context.mounted) {
-            if (file == null) return;
+            if (file == null || messageMediaTableData.remoteUrl == null) return;
             ListCachedObjects.updateObject<PathWithKey>(
               context,
               (key: messageMediaTableData.remoteUrl!, filePath: file.path),
