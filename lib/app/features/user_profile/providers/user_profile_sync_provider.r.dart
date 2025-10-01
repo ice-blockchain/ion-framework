@@ -143,8 +143,10 @@ class UserProfileSync extends _$UserProfileSync {
                 ],
                 search: searchExtensions,
               );
-        } catch (_) {
-          Logger.error('Failed to fetch user profile for $missingPubkey from write relays');
+        } catch (error, stackTrace) {
+          Logger.error(error,
+              stackTrace: stackTrace,
+              message: 'Failed to fetch user profile for $missingPubkey from write relays');
           return <dynamic>[];
         }
       }),
