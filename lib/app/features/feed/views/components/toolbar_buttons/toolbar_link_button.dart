@@ -87,24 +87,27 @@ class ToolbarLinkButton extends HookWidget {
         });
         return CupertinoAlertDialog(
           title: Text(dialogContext.i18n.toolbar_link_title),
-          content: Column(
-            children: [
-              const SizedBox(height: 10),
-              CupertinoTextField(
-                controller: linkController,
-                focusNode: linkFocusNode,
-                placeholder: dialogContext.i18n.toolbar_link_placeholder,
-                placeholderStyle: dialogContext.theme.appTextThemes.body2.copyWith(
-                  color: dialogContext.theme.appColors.tertiaryText,
+          content: SizedBox(
+            height: 44.s,
+            child: Column(
+              children: [
+                SizedBox(height: 10.s),
+                CupertinoTextField(
+                  controller: linkController,
+                  focusNode: linkFocusNode,
+                  placeholder: dialogContext.i18n.toolbar_link_placeholder,
+                  placeholderStyle: dialogContext.theme.appTextThemes.body2.copyWith(
+                    color: dialogContext.theme.appColors.tertiaryText,
+                  ),
+                  style: dialogContext.theme.appTextThemes.body2.copyWith(
+                    color: dialogContext.theme.appColors.primaryText,
+                  ),
+                  inputFormatters: [
+                    emojiRestrictionFormatter(),
+                  ],
                 ),
-                style: dialogContext.theme.appTextThemes.body2.copyWith(
-                  color: dialogContext.theme.appColors.primaryText,
-                ),
-                inputFormatters: [
-                  emojiRestrictionFormatter(),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
           actions: [
             CupertinoDialogAction(
