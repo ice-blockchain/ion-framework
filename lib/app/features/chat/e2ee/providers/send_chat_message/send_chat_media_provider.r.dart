@@ -26,7 +26,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'send_chat_media_provider.r.g.dart';
 
-@Riverpod(keepAlive: true)
+@riverpod
 class SendChatMedia extends _$SendChatMedia {
   CancelToken? _cancelToken;
   Completer<FFmpegSession>? _sessionIdCompleter;
