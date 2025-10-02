@@ -91,7 +91,6 @@ class VisualMediaContent extends HookConsumerWidget {
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: height,
-                filterQuality: FilterQuality.none,
               ),
             ),
           if (isVideo && !isReply)
