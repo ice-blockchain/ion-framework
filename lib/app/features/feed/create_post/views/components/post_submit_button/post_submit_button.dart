@@ -21,6 +21,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
@@ -99,6 +100,10 @@ class PostSubmitButton extends HookConsumerWidget {
             : await ref
                 .read(mediaServiceProvider)
                 .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
+
+        // NSFW validation: block posting if any selected image is NSFW
+        final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, filesToUpload);
+        if (isBlocked) return;
 
         final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
 

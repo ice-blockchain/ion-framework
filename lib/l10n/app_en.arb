@@ -955,5 +955,8 @@
   "report_content_description": "This is a report for the content",
   "share_user_on_app": "{userDisplayName} on {shareAppName}",
   "share_story_watch_message": "Watch this story by {userDisplayName} before it disappears.",
-  "follow_user_message": "You followed @{userDisplayName}"
+  "follow_user_message": "You followed @{userDisplayName}",
+  "nsfw_blocked_dialog_title": "Inappropriate Content",
+  "nsfw_blocked_dialog_body_ios": "This media cannot be published because it contains material considered inappropriate under App Store guidelines.",
+  "nsfw_blocked_dialog_body_android": "This media cannot be published because it contains material considered inappropriate under Play Store guidelines."
 }
