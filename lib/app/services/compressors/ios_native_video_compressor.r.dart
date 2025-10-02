@@ -71,7 +71,7 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
         destBitRate: targetBitrate,
         destWidth: targetDimensions.width,
         destHeight: targetDimensions.height,
-        codec: VideoCodec.h264,
+        codec: VideoCodec.hevc,
       );
 
       return MediaFile(
