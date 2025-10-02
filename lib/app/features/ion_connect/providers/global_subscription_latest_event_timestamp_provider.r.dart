@@ -11,14 +11,12 @@ part 'global_subscription_latest_event_timestamp_provider.r.g.dart';
 
 enum EventType {
   regular,
-  encrypted,
-  award;
+  encrypted;
 
   String get localKey {
     return switch (this) {
       EventType.regular => 'global_subscription_latest_regular_event_timestamp',
       EventType.encrypted => 'global_subscription_latest_encrypted_event_timestamp_V3',
-      EventType.award => 'global_subscription_latest_award_event_timestamp',
     };
   }
 }
@@ -95,18 +93,6 @@ class GlobalSubscriptionLatestEventTimestampService {
       EventType.encrypted.localKey,
       DateTime.now().microsecondsSinceEpoch,
     );
-  }
-
-  int? getAwardTimestamp() {
-    return _get(EventType.award);
-  }
-
-  Future<void> updateAwardTimestamp(int createdAt) async {
-    final existingValue = getAwardTimestamp();
-    if (existingValue != null && existingValue >= createdAt) {
-      return;
-    }
-    await _updateTimestampInStorage(EventType.award.localKey, createdAt);
   }
 }
 
