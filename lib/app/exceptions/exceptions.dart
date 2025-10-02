@@ -664,3 +664,11 @@ class CurrentUserMetadataNotFoundException extends IONException {
 class FailedToPickIndexerRelay extends IONException {
   FailedToPickIndexerRelay() : super(10127, 'Failed to pick indexer relay');
 }
+
+class TokenBelowMinimumException extends IONException {
+  TokenBelowMinimumException({required this.abbreviation, required this.minAmount})
+      : super(10128, 'Token below minimum');
+
+  final String abbreviation;
+  final double minAmount;
+}
