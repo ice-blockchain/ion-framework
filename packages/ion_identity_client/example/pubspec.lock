@@ -724,26 +724,34 @@ packages:
     dependency: transitive
     description:
       name: passkeys
-      sha256: "0cea3937dfd1ccd14450b50e54f404e4903de390d90cf80e780ebfaaa617a8cc"
+      sha256: "8b3ccf8b3f6a67aa2820e8dd6413fde2e16a225edd11076db9f8c6c9d53e801d"
       url: "https://pub.dev"
     source: hosted
-    version: "2.13.0"
+    version: "2.15.1"
   passkeys_android:
     dependency: transitive
     description:
       name: passkeys_android
-      sha256: a06851f8e6a51bd08c249d5e47d6f0e3e36f9b8db68b53a6cc6d4001c5755b40
+      sha256: "88aaab86a362cc2b562753680de5e2d346fec121e6b99032e329aba1fb83dcf0"
       url: "https://pub.dev"
     source: hosted
-    version: "2.10.0"
+    version: "2.11.0"
+  passkeys_darwin:
+    dependency: transitive
+    description:
+      name: passkeys_darwin
+      sha256: dca2349992cd5cadbe34d7cf1d9bfa6cb3dbd2578b59418130b7d5d7a6992d9d
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   passkeys_doctor:
     dependency: transitive
     description:
       name: passkeys_doctor
-      sha256: e380712ec530d8c1fbaa6d64cdc390767a505864c5f653812df3fdb0ce54a22b
+      sha256: "6e700f957053505eeb57b021dd4c0825a05af163fe059015a006908a5ee6bbaa"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.2.0"
   passkeys_ios:
     dependency: transitive
     description:
@@ -756,18 +764,18 @@ packages:
     dependency: transitive
     description:
       name: passkeys_platform_interface
-      sha256: "6003fafa1da65b3d73c582fc7f7ada358d38f2d511b98f8b8fd3077786f4b71c"
+      sha256: "69f3c499a035add59995f4a978f28f76100f96cf7d19eda459be15779ff1d5d1"
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.1"
+    version: "2.4.0"
   passkeys_web:
     dependency: transitive
     description:
       name: passkeys_web
-      sha256: "98d28223292738a9fbb24db33cdba00609675d54521694fdde45b7e5caf59b19"
+      sha256: "4e08fb93ae8a1c0e62d37ce851db428e52bd5be3e523c4759e88b2f4d7534e84"
       url: "https://pub.dev"
     source: hosted
-    version: "2.6.0"
+    version: "2.7.0"
   path:
     dependency: transitive
     description:
