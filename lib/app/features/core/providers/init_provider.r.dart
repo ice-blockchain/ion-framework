@@ -23,6 +23,7 @@ import 'package:ion/app/features/user/providers/account_notifications_sync_provi
 import 'package:ion/app/features/user/providers/relays/user_chat_relays_sync_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_file_storage_relays_sync_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_sync_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_awards_sync_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/coins_sync_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/user_public_wallets_sync_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallets_initializer_provider.r.dart';
@@ -69,6 +70,7 @@ Future<void> initApp(Ref ref) async {
     ..listen(walletsInitializerNotifierProvider, noop)
     ..listen(userPublicWalletsSyncProvider, noop)
     ..listen(userRelaysSyncProvider, noop)
+    ..listen(userAwardsSyncProvider, noop)
     ..listen(userChatRelaysSyncProvider, noop)
     ..listen(userFileStorageRelaysSyncProvider, noop)
     ..listen(feedBookmarksSyncProvider, noop)
