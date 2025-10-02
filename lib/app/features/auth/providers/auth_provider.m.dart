@@ -55,7 +55,7 @@ class Auth extends _$Auth {
         currentIdentityKeyName != null ? localPasskeyCredsStates[currentIdentityKeyName] : null;
     final eventSigner = currentIdentityKeyName != null
         ? await ref
-            .watch(ionConnectEventSignerProvider(currentIdentityKeyName).notifier)
+            .watch(ed25519IonConnectEventSignerProviderProvider(currentIdentityKeyName).notifier)
             .initEventSigner()
         : null;
 

@@ -19,6 +19,7 @@ import 'package:ion/app/features/ion_connect/model/events_metadata_builder.dart'
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
+import 'package:ion/app/features/ion_connect/model/signing_algorithm.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
@@ -394,6 +395,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
   Future<EventMessage> sign(
     EventSerializable entityData, {
     bool includeMasterPubkey = true,
+    SigningAlgorithm algorithm = SigningAlgorithm.ed25519,
   }) async {
     final mainWallet = await ref.read(mainWalletProvider.future);
 
@@ -401,14 +403,23 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       throw MainWalletNotFoundException();
     }
 
-    final eventSigner = await ref.read(currentUserIonConnectEventSignerProvider.future);
-
+    // Get the appropriate signer based on the algorithm
+    // The provider handles initialization automatically
+    // Ed25519 will have prefix (default behavior), Secp256k1Schnorr won't have prefix
+    final eventSigner = await ref.read(currentUserEventSignerProvider(algorithm).future);
     if (eventSigner == null) {
       throw EventSignerNotFoundException();
     }
 
+    // Only use createdAtSeconds for secp256k1Schnorr (Nostr protocol expects seconds)
+    // For ed25519, use default (null will use current time in microseconds)
+    final createdAt = algorithm == SigningAlgorithm.secp256k1Schnorr
+        ? DateTime.now().millisecondsSinceEpoch ~/ 1000
+        : null;
+
     return entityData.toEventMessage(
       eventSigner,
+      createdAt: createdAt,
       tags: [
         if (includeMasterPubkey) MasterPubkeyTag(value: mainWallet.signingKey.publicKey).toTag(),
       ],
@@ -436,9 +447,15 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     final createdAt = DateTime.now();
     final masterPubkey = mainWallet.signingKey.publicKey;
 
+    // Only use createdAtSeconds for secp256k1 (Nostr protocol expects seconds)
+    // For ed25519, use microseconds (default behavior)
+    final createdAtTimestamp = mainWallet.signingKey.curve.toLowerCase() == 'secp256k1'
+        ? createdAt.millisecondsSinceEpoch ~/ 1000
+        : createdAt.microsecondsSinceEpoch;
+
     final eventId = EventMessage.calculateEventId(
       publicKey: masterPubkey,
-      createdAt: createdAt.microsecondsSinceEpoch,
+      createdAt: createdAtTimestamp,
       kind: kind,
       tags: tags,
       content: '',
@@ -464,7 +481,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     return EventMessage(
       id: eventId,
       pubkey: masterPubkey,
-      createdAt: createdAt.microsecondsSinceEpoch,
+      createdAt: createdAtTimestamp,
       kind: kind,
       tags: tags,
       content: '',

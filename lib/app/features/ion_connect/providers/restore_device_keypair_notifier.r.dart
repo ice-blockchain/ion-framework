@@ -87,7 +87,8 @@ class RestoreDeviceKeypairNotifier extends _$RestoreDeviceKeypairNotifier {
     String identityKeyName,
   ) async {
     // Restore the keypair using the ion connect event signer provider
-    final eventSignerNotifier = ref.read(ionConnectEventSignerProvider(identityKeyName).notifier);
+    final eventSignerNotifier =
+        ref.read(ed25519IonConnectEventSignerProviderProvider(identityKeyName).notifier);
 
     // Use the restoreFromPrivateKey method to restore the keypair
     return eventSignerNotifier.restoreFromPrivateKey(privateKey);
