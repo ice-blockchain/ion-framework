@@ -338,9 +338,9 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     final publishedPost = ModifiablePostEntity.fromEventMessage(postEvent);
 
     // Save to ION Connect cache for background notification processing
-    await ref
-        .read(ionConnectDatabaseCacheProvider.notifier)
-        .saveEntity(publishedPost as DbCacheableEntity);
+    unawaited(
+      ref.read(ionConnectDatabaseCacheProvider.notifier).saveEntity(publishedPost),
+    );
 
     return publishedPost;
   }

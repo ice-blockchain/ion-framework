@@ -134,9 +134,9 @@ class CreateArticle extends _$CreateArticle {
       );
 
       // Save to ION Connect cache for background notification processing
-      await ref
-          .read(ionConnectDatabaseCacheProvider.notifier)
-          .saveEntity(article as DbCacheableEntity);
+      unawaited(
+        ref.read(ionConnectDatabaseCacheProvider.notifier).saveEntity(article),
+      );
 
       _createArticleNotifierStreamController.add(article);
 
