@@ -21,14 +21,12 @@ Future<void> Function({required String username, required String password})
           await ref.read(userBiometricsStateProvider(username: username).future);
 
       if (userBiometricsState == BiometricsState.canSuggest && context.mounted) {
-
-        // Additional check on Android, because local_auth.authorize() allows to authenticate 
-        // even if biometrics are not set up on the device and it leads to native crush in 
+        // Additional check on Android, because local_auth.authorize() allows to authenticate
+        // even if biometrics are not set up on the device and it leads to native crush in
         // local_auth_crypto.authenticate then. So we should not even suggest to add biometrics
-        // in this case. 
+        // in this case.
         if (!Platform.isAndroid ||
             await const BiometricsService().isBiometricsAvailable() && context.mounted) {
-
           // Show suggest to add biometrics popup
           await showSimpleBottomSheet<void>(
             context: context,
@@ -38,7 +36,6 @@ Future<void> Function({required String username, required String password})
             ),
           );
         } else {
-
           // If biometrics are not available on Android then we should reject to use biometrics
           await ref
               .read(rejectToUseBiometricsNotifierProvider.notifier)
