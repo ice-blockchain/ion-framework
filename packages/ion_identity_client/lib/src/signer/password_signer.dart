@@ -7,7 +7,6 @@ import 'package:crypto/crypto.dart';
 import 'package:cryptography/cryptography.dart' as crypto;
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/auth/dtos/private_key_data.j.dart';
-import 'package:ion_identity_client/src/auth/services/biometrics_service.dart';
 import 'package:ion_identity_client/src/auth/services/key_service.dart';
 import 'package:ion_identity_client/src/core/storage/biometrics_state_storage.dart';
 import 'package:ion_identity_client/src/core/storage/private_key_storage.dart';
