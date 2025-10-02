@@ -33,7 +33,9 @@ class KeyService {
   }
 
   /// Reconstructs a KeyPairData object from a hex-encoded Ed25519 private key (seed).
-  Future<KeyPairData> reconstructKeyPairFromPrivateKeyBytes(String hexEncodedPrivateKeyBytes) async {
+  Future<KeyPairData> reconstructKeyPairFromPrivateKeyBytes(
+    String hexEncodedPrivateKeyBytes,
+  ) async {
     final privateKeyBytes = Uint8List.fromList(hex.decode(hexEncodedPrivateKeyBytes));
 
     if (privateKeyBytes.length != 32) {

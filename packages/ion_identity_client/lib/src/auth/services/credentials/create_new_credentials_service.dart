@@ -24,7 +24,7 @@ class CreateNewCredentialsService {
   final IdentitySigner identitySigner;
   final LocalPasskeyCredsStateStorage localPasskeyCredsStateStorage;
 
-  Future<void> createNewCredentials(
+  Future<void> _createNewCredentials(
     OnVerifyIdentity<CredentialRequestData> onVerifyIdentity,
   ) async {
     final credentialChallenge = await dataSource.createCredentialInit(username: username);
@@ -79,7 +79,7 @@ class CreateNewCredentialsService {
 
   Future<void> createLocalPasskeyCredentials() async {
     try {
-      await createNewCredentials(
+      await _createNewCredentials(
         ({required onPasskeyFlow, required onPasswordFlow, required onBiometricsFlow}) =>
             onPasskeyFlow(),
       );

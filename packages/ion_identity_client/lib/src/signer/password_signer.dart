@@ -7,6 +7,7 @@ import 'package:crypto/crypto.dart';
 import 'package:cryptography/cryptography.dart' as crypto;
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/auth/dtos/private_key_data.j.dart';
+import 'package:ion_identity_client/src/auth/services/biometrics_service.dart';
 import 'package:ion_identity_client/src/auth/services/key_service.dart';
 import 'package:ion_identity_client/src/core/storage/biometrics_state_storage.dart';
 import 'package:ion_identity_client/src/core/storage/private_key_storage.dart';
@@ -211,27 +212,13 @@ class PasswordSigner {
   }
 
   Future<void> _updateStateToCanSuggest(String username) async {
-    final biometricsAvailable = await isBiometricsAvailable();
+    final biometricsAvailable = await const BiometricsService().isBiometricsAvailable();
     if (biometricsAvailable) {
       await biometricsStateStorage.updateBiometricsState(
         username: username,
         biometricsState: BiometricsState.canSuggest,
       );
     }
-  }
-
-  Future<bool> isBiometricsAvailable() async {
-    final localAuth = LocalAuthentication();
-
-    final results = await Future.wait<bool>([
-      localAuth.canCheckBiometrics,
-      localAuth.isDeviceSupported(),
-    ]);
-
-    final canCheckBiometrics = results[0];
-    final isDeviceSupported = results[1];
-
-    return canCheckBiometrics && isDeviceSupported;
   }
 
   String _buildClientData({

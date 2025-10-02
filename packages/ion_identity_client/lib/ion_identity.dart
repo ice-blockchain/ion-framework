@@ -4,6 +4,7 @@ library ion_identity_client;
 
 export 'src/auth/dtos/dtos.dart';
 export 'src/auth/ion_identity_auth.dart';
+export 'src/auth/services/biometrics_service.dart';
 export 'src/auth/services/credentials/models/recovery_credentials.j.dart';
 export 'src/auth/services/twofa/models/twofa_type.f.dart';
 export 'src/coins/models/coin.f.dart';
