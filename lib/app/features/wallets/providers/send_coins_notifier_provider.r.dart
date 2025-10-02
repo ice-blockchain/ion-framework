@@ -111,13 +111,8 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
         ),
       );
 
-      final testResult = result.copyWith(
-        status: TransactionStatus.failed,
-        reason: 'Token: BelowMinimum',
-      );
-
       // Validate transaction status to display issue, if we have unsuccessful one
-      _validateTransactionResult(testResult, coinAssetData);
+      _validateTransactionResult(result, coinAssetData);
 
       return details;
     });
