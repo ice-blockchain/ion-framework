@@ -52,13 +52,5 @@ Future<List<String>> mentionSuggestions(Ref ref, String query) async {
     ).future,
   );
 
-  // Sort users to prioritize @ion account
-  final sortedUsers = [
-    ...paginatedUsersMetadataData.items
-        .where((UserMetadataEntity u) => u.data.name.toLowerCase() == 'ion'),
-    ...paginatedUsersMetadataData.items
-        .where((UserMetadataEntity u) => u.data.name.toLowerCase() != 'ion'),
-  ];
-
-  return sortedUsers.map((metadata) => metadata.masterPubkey).toList();
+  return paginatedUsersMetadataData.items.map((metadata) => metadata.masterPubkey).toList();
 }
