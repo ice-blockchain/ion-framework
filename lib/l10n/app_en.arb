@@ -957,5 +957,6 @@
   "share_story_watch_message": "Watch this story by {userDisplayName} before it disappears.",
   "follow_user_message": "You followed @{userDisplayName}",
   "nsfw_blocked_dialog_title": "Inappropriate Content",
-  "nsfw_blocked_dialog_body": "The uploaded media contain material that violates our community guidelines. Such posts cannot be published."
+  "nsfw_blocked_dialog_body_ios": "This media cannot be published because it contains material considered inappropriate under App Store guidelines.",
+  "nsfw_blocked_dialog_body_android": "This media cannot be published because it contains material considered inappropriate under Play Store guidelines."
 }

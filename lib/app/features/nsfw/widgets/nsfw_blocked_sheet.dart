@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
@@ -40,7 +42,7 @@ class NsfwBlockedSheet extends StatelessWidget {
               ),
               SizedBox(height: 8.0.s),
               Text(
-                locales.nsfw_blocked_dialog_body,
+                _getBodyText(context),
                 textAlign: TextAlign.center,
                 style: textStyles.body2.copyWith(color: colors.secondaryText),
               ),
@@ -55,6 +57,14 @@ class NsfwBlockedSheet extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _getBodyText(BuildContext context) {
+    final locales = context.i18n;
+    return switch (Platform.isIOS) {
+      true => locales.nsfw_blocked_dialog_body_ios,
+      false => locales.nsfw_blocked_dialog_body_android,
+    };
   }
 }
 

@@ -126,11 +126,11 @@ class ArticlePreviewModal extends HookConsumerWidget {
                             .where((m) => m.mimeType.startsWith('image/'))
                             .map((m) => m.url),
                       ];
-                      final blocked = await NsfwSubmitGuard.checkAndBlockImagePaths(
+                      final isBlocked = await NsfwSubmitGuard.checkAndBlockImagePaths(
                         ref,
                         imagesToCheck,
                       );
-                      if (blocked) return;
+                      if (isBlocked) return;
 
                       final labeler = ref.read(ionContentLabelerProvider);
                       final detectedLanguage = await labeler.detectLanguageLabels(

@@ -5,12 +5,14 @@ import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:meta/meta.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 enum NsfwDecision { allow, warn, block }
 
+@immutable
 class NsfwResult {
-  NsfwResult({
+  const NsfwResult({
     required this.nsfw,
     required this.sfw,
     required this.decision,
@@ -23,8 +25,10 @@ class NsfwResult {
 
 class NsfwDetector {
   NsfwDetector._(this._interpreter);
+
+  final Interpreter _interpreter;
+
   static const _size = 224;
-  late final Interpreter _interpreter;
 
   static Future<NsfwDetector> create() async {
     final options = InterpreterOptions()
@@ -36,7 +40,7 @@ class NsfwDetector {
         XNNPackDelegate(options: XNNPackDelegateOptions(numThreads: Platform.numberOfProcessors)),
       );
     } catch (e) {
-      Logger.error(e, message: "XNNPACK isn't available on the platform");
+      Logger.warning("XNNPACK isn't available on the platform");
       // Safe fallback: continue without the delegate
     }
     final interpreter = await Interpreter.fromAsset('assets/ml/nsfw_int8.tflite', options: options);
