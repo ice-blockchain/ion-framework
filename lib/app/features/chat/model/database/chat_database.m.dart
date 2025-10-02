@@ -28,7 +28,6 @@ import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/utils/directory.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:stream_transform/stream_transform.dart';
 
 part 'chat_database.m.g.dart';
 part 'dao/conversation_dao.dart';
