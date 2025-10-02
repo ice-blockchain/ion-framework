@@ -26,13 +26,14 @@ class ScrollButton extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final isVisible = useState(false);
-    final threshold = _getDefaultThreshold();
     final icon = _getIcon();
-    final color = context.theme.appColors.primaryAccent;
 
     useEffect(() {
       void listener() {
-        isVisible.value = _shouldShowButton(threshold);
+        final newVisibility = scrollController.offset > 16.0.s;
+        if (isVisible.value != newVisibility) {
+          isVisible.value = newVisibility;
+        }
       }
 
       scrollController.addListener(listener);
@@ -54,26 +55,16 @@ class ScrollButton extends HookWidget {
           ? _ScrollButtonWidget(
               onTap: onTap,
               icon: icon,
-              iconColor: color,
+              iconColor: context.theme.appColors.primaryAccent,
             )
           : const SizedBox.shrink(),
     );
-  }
-
-  double _getDefaultThreshold() {
-    return direction == ScrollDirection.up ? 200.0.s : 16.0.s;
   }
 
   Widget _getIcon() {
     return direction == ScrollDirection.up
         ? Assets.svg.iconArrowUp.icon(size: 24.0.s)
         : Assets.svg.iconArrowDown.icon(size: 24.0.s);
-  }
-
-  bool _shouldShowButton(double threshold) {
-    return direction == ScrollDirection.up
-        ? scrollController.offset > threshold
-        : scrollController.offset > threshold;
   }
 }
 

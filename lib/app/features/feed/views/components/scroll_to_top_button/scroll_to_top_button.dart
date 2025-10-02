@@ -9,9 +9,6 @@ class ScrollToTopButton extends StatelessWidget {
     super.key,
   });
 
-  /// Minimum number of comments required to show the scroll-to-top button
-  static const int minCommentsThreshold = 5;
-
   final ScrollController scrollController;
 
   @override

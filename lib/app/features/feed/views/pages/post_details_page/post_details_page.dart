@@ -10,7 +10,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/create_post/views/components/reply_input_field/reply_input_field.dart';
 import 'package:ion/app/features/feed/data/models/analytics_events.dart';
 import 'package:ion/app/features/feed/providers/can_reply_notifier.r.dart';
-import 'package:ion/app/features/feed/providers/replies_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/post/post.dart';
 import 'package:ion/app/features/feed/views/components/reply_list/reply_list.dart';
 import 'package:ion/app/features/feed/views/components/scroll_to_top_button/scroll_to_top_button.dart';
@@ -33,9 +32,6 @@ class PostDetailsPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final canReply = ref.watch(canReplyProvider(eventReference)).value ?? false;
     final scrollController = useScrollController();
-    final replies = ref.watch(repliesProvider(eventReference));
-    final repliesCount = replies?.data.items?.length ?? 0;
-    final shouldShowScrollButton = repliesCount > ScrollToTopButton.minCommentsThreshold;
 
     useOnInit(() {
       ref.read(analyticsServiceProvider).logEvent(PostViewAnalyticsEvent(eventReference));
@@ -74,14 +70,13 @@ class PostDetailsPage extends HookConsumerWidget {
                     const SliverToBoxAdapter(child: SectionSeparator()),
                   ],
                 ),
-                if (shouldShowScrollButton)
-                  PositionedDirectional(
-                    bottom: 12.5.s,
-                    end: 16.0.s,
-                    child: ScrollToTopButton(
-                      scrollController: scrollController,
-                    ),
+                PositionedDirectional(
+                  bottom: 12.5.s,
+                  end: 16.0.s,
+                  child: ScrollToTopButton(
+                    scrollController: scrollController,
                   ),
+                ),
               ],
             ),
           ),
