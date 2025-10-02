@@ -17,6 +17,7 @@ class SearchUsers extends _$SearchUsers {
     Duration? expirationDuration,
     String? followedByPubkey,
     String? followerOfPubkey,
+    bool includeCurrentUser = false,
   }) async {
     final masterPubkey = ref.watch(currentPubkeySelectorProvider);
     final paginatedUsersMetadataData = await ref.watch(
@@ -33,7 +34,7 @@ class SearchUsers extends _$SearchUsers {
     final filteredUsers = paginatedUsersMetadataData.items
         .where(
           (user) =>
-              user.masterPubkey != masterPubkey &&
+              (includeCurrentUser || user.masterPubkey != masterPubkey) &&
               !blockedUsersMasterPubkeys.contains(user.masterPubkey),
         )
         .toList();

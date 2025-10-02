@@ -28,7 +28,7 @@ class FeedSimpleSearchPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final history = ref.watch(feedSearchHistoryProvider);
     final debouncedQuery = useDebounced(query, const Duration(milliseconds: 300)) ?? '';
-    final searchProvider = searchUsersProvider(query: debouncedQuery);
+    final searchProvider = searchUsersProvider(query: debouncedQuery, includeCurrentUser: true);
     final searchResults = ref.watch(searchProvider).valueOrNull;
     final searchUsers = searchResults?.users ?? [];
     final hasMore = searchResults?.hasMore ?? true;

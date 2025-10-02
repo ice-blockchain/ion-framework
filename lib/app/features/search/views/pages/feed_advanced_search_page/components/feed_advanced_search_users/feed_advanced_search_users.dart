@@ -21,7 +21,8 @@ class FeedAdvancedSearchUsers extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     useAutomaticKeepAlive();
 
-    final searchResults = ref.watch(searchUsersProvider(query: query)).valueOrNull;
+    final searchResults =
+        ref.watch(searchUsersProvider(query: query, includeCurrentUser: true)).valueOrNull;
 
     final searchUsers = searchResults?.users ?? [];
     final hasMore = searchResults?.hasMore ?? true;
@@ -43,10 +44,12 @@ class FeedAdvancedSearchUsers extends HookConsumerWidget {
                 FeedAdvancedSearchUserListItem(user: searchUsers[index]),
           ),
       ],
-      onRefresh: ref.read(searchUsersProvider(query: query).notifier).refresh,
+      onRefresh:
+          ref.read(searchUsersProvider(query: query, includeCurrentUser: true).notifier).refresh,
       builder: (context, slivers) => LoadMoreBuilder(
         slivers: slivers,
-        onLoadMore: ref.read(searchUsersProvider(query: query).notifier).loadMore,
+        onLoadMore:
+            ref.read(searchUsersProvider(query: query, includeCurrentUser: true).notifier).loadMore,
         hasMore: searchResults?.hasMore ?? false,
       ),
     );

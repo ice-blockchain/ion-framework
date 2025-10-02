@@ -31,6 +31,7 @@ class FollowingList extends HookConsumerWidget {
           searchUsersProvider(
             query: debouncedQuery,
             followedByPubkey: pubkey,
+            includeCurrentUser: true,
           ),
         )
         .valueOrNull;
@@ -44,6 +45,7 @@ class FollowingList extends HookConsumerWidget {
             searchUsersProvider(
               query: debouncedQuery,
               followedByPubkey: pubkey,
+              includeCurrentUser: true,
             ).notifier,
           )
           .loadMore(),
