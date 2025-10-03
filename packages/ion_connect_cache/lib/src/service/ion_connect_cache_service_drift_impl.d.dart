@@ -28,7 +28,7 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
             File(path),
             logStatements: true,
             readPool: 1,
-            setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
+            setup: (database) => database.execute('journalModeWAL'),
           ),
         ),
       );
