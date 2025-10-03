@@ -19,7 +19,7 @@ class HashtagMatcher extends TextMatcher {
   const HashtagMatcher();
 
   @override
-  String get pattern => r'#[^\s.]+';
+  String get pattern => r'#[A-Za-z0-9_\u00C0-\u017F\u0400-\u04FF\u4E00-\u9FFF\uAC00-\uD7AF\u3040-\u309F\u30A0-\u30FF]+[!+]?';
 }
 
 class UrlMatcher extends TextMatcher {

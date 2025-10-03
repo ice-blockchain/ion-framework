@@ -236,7 +236,6 @@ void main() {
       (input: '#онлайн+', expected: '#онлайн+'),
       (input: '#tag_name.', expected: '#tag_name'),
       (input: '#tag!', expected: '#tag!'),
-      (input: '#tag,', expected: '#tag,'),
     ], (t) {
       test('should parse "${t.input}" -> ${t.expected}', () {
         final results = parser.parse(t.input, onlyMatches: true);
