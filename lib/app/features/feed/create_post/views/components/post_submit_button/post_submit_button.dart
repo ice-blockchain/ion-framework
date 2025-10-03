@@ -101,11 +101,11 @@ class PostSubmitButton extends HookConsumerWidget {
                 .read(mediaServiceProvider)
                 .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
 
-        if (context.mounted) {
-          // NSFW validation: block posting if any selected image is NSFW
-          final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, filesToUpload);
-          if (isBlocked) return;
+        // NSFW validation: block posting if any selected image is NSFW
+        final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, filesToUpload);
+        if (isBlocked) return;
 
+        if (context.mounted) {
           final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
 
           if (modifiedEvent != null) {
