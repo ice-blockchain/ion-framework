@@ -3,6 +3,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
@@ -39,7 +40,7 @@ class BlockUserDatabase extends _$BlockUserDatabase {
     return driftDatabase(
       name: 'block_user_database_$pubkey',
       native: DriftNativeOptions(
-        setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
+        setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
       ),
     );
   }

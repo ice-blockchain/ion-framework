@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/database.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -94,7 +95,7 @@ class ChatDatabase extends _$ChatDatabase {
       return driftDatabase(
         name: databaseName,
         native: DriftNativeOptions(
-          setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
+          setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
         ),
       );
     }
@@ -105,7 +106,7 @@ class ChatDatabase extends _$ChatDatabase {
         databasePath: () async =>
             getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroupId),
         shareAcrossIsolates: true,
-        setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
+        setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
       ),
     );
   }
