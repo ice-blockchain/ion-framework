@@ -635,6 +635,8 @@
   "error_identity_2fa_required_description": "Two-factor authentication is required to access this account. Please complete the 2FA process to proceed.",
   "error_payment_no_destination_title": "Unable to Transfer",
   "error_payment_no_destination_description": "To receive this coin, the receiver must have an existing {abbreviation} balance",
+  "error_token_below_minimum_title": "Unable to Transfer",
+  "error_token_below_minimum_description": "This transfer would drop one of the accounts under {minAmount} {abbreviation} minimum required by the network to stay active",
   "error_network_sync_failed_title": "Network sync failed",
   "error_network_sync_failed_description": "Please retry or reopen the app.",
   "error_nickname_reserved_title": "Nickname is reserved",

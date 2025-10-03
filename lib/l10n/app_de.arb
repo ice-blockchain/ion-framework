@@ -616,6 +616,8 @@
   "error_identity_2fa_required_description": "Bitte schließen Sie die 2FA ab, um fortzufahren.",
   "error_payment_no_destination_title": "Überweisung nicht möglich",
   "error_payment_no_destination_description": "Der Empfänger muss ein {abbreviation}-Guthaben haben",
+  "error_token_below_minimum_title": "Überweisung nicht möglich",
+  "error_token_below_minimum_description": "Diese Überweisung würde ein Konto unter das vom Netzwerk geforderte Minimum von {minAmount} {abbreviation} senken, um aktiv zu bleiben",
   "warning_avoid_storing_keys": "Bewahren Sie Keys nicht auf Geräten auf, um Hacks zu vermeiden",
   "warning_authenticator_setup": "Bewahren Sie diesen Schlüssel sicher auf, um Zugriff wiederherzustellen.",
   "authenticator_setup_title": "Authenticator-Einrichtung",

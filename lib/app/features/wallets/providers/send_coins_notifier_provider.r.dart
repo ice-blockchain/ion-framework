@@ -63,7 +63,6 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       );
 
       result = await _waitForTransactionCompletion(senderWallet.id, result);
-      _validateTransactionResult(result, coinAssetData);
 
       Logger.info('Transaction was successful. Hash: ${result.txHash}');
 
@@ -111,6 +110,9 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
           symbolGroups: [coinAssetData.coinsGroup.symbolGroup],
         ),
       );
+
+      // Validate transaction status to display issue, if we have unsuccessful one
+      _validateTransactionResult(result, coinAssetData);
 
       return details;
     });
@@ -215,6 +217,12 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
     return switch (reason) {
       'paymentNoDestination' => PaymentNoDestinationException(
           abbreviation: coinAssetData.coinsGroup.abbreviation,
+        ),
+      // As for now this type of issue is only for Polkadot
+      'Token: BelowMinimum' when coinAssetData.selectedOption?.coin.network.isPolkadot ?? false =>
+        TokenBelowMinimumException(
+          abbreviation: coinAssetData.coinsGroup.abbreviation,
+          minAmount: 0.2,
         ),
       _ => FailedToSendCryptoAssetsException(reason),
     };

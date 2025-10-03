@@ -854,5 +854,7 @@
   "report_content_description": "هذا تقرير للمحتوى",
   "share_user_on_app": "{userDisplayName} على {shareAppName}",
   "share_story_watch_message": "شاهد هذه القصة من {userDisplayName} قبل أن تختفي.",
-  "follow_user_message": "أنت تتابع @{userDisplayName}"
+  "follow_user_message": "أنت تتابع @{userDisplayName}",
+  "error_token_below_minimum_title": "غير قادر على التحويل",
+  "error_token_below_minimum_description": "سيؤدي هذا التحويل إلى خفض أحد الحسابات إلى أقل من الحد الأدنى المطلوب {minAmount} {abbreviation} للبقاء نشطًا في الشبكة"
 }

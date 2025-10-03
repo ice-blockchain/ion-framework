@@ -48,5 +48,7 @@ class NetworkData with _$NetworkData {
       id == 'Stellar' ||
       id == 'StellarTestnet';
 
+  bool get isPolkadot => id == 'Polkadot' || id == 'Westends';
+
   String getExplorerUrl(String txHash) => explorerUrl.replaceAll('{txHash}', txHash);
 }
