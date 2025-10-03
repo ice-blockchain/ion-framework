@@ -36,6 +36,7 @@ import 'package:ion/app/utils/pagination.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'feed_for_you_content_provider.m.freezed.dart';
+
 part 'feed_for_you_content_provider.m.g.dart';
 
 @riverpod
@@ -596,15 +597,14 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     final since = DateTime.now().subtract(maxAge).microsecondsSinceEpoch;
     final until = lastEventCreatedAt != null ? lastEventCreatedAt - 1 : null;
     final requestMessage = RequestMessage();
-    for (final filter in dataSource.requestFilters) {
-      requestMessage.addFilter(
-        filter.copyWith(
-          limit: () => 1,
-          until: () => until,
-          since: () => since,
-        ),
-      );
-    }
+    final filter = dataSource.requestFilter;
+    requestMessage.addFilter(
+      filter.copyWith(
+        limit: () => 1,
+        until: () => until,
+        since: () => since,
+      ),
+    );
 
     final entities = await ionConnectNotifier
         .requestEntities(requestMessage, actionSource: dataSource.actionSource)

@@ -22,25 +22,23 @@ List<EntitiesDataSource>? followersDataSource(
       actionSource: ActionSourceUser(pubkey),
       entityFilter: (entity) => entity is UserMetadataEntity || entity is FollowListEntity,
       pagedFilter: (entity) => entity is FollowListEntity,
-      requestFilters: [
-        RequestFilter(
-          kinds: const [FollowListEntity.kind],
-          tags: {
-            '#p': [pubkey],
-          },
-          search: SearchExtensions(
-            [
-              GenericIncludeSearchExtension(
-                forKind: FollowListEntity.kind,
-                includeKind: UserMetadataEntity.kind,
-              ),
-              if (ref.watch(cachedProfileBadgesDataProvider(pubkey)) == null)
-                ProfileBadgesSearchExtension(forKind: FollowListEntity.kind),
-            ],
-          ).toString(),
-          limit: 20,
-        ),
-      ],
+      requestFilter: RequestFilter(
+        kinds: const [FollowListEntity.kind],
+        tags: {
+          '#p': [pubkey],
+        },
+        search: SearchExtensions(
+          [
+            GenericIncludeSearchExtension(
+              forKind: FollowListEntity.kind,
+              includeKind: UserMetadataEntity.kind,
+            ),
+            if (ref.watch(cachedProfileBadgesDataProvider(pubkey)) == null)
+              ProfileBadgesSearchExtension(forKind: FollowListEntity.kind),
+          ],
+        ).toString(),
+        limit: 20,
+      ),
     ),
   ];
 }

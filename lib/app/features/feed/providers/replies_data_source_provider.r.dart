@@ -39,35 +39,23 @@ List<EntitiesDataSource>? repliesDataSource(
           (entity is ModifiablePostEntity &&
               entity.data.parentEvent?.eventReference == eventReference) ||
           (entity is PostEntity && entity.data.parentEvent?.eventReference == eventReference),
-      requestFilters: [
-        RequestFilter(
-          kinds: const [ModifiablePostEntity.kind],
-          tags: Map.fromEntries([relatedTags]),
-          search: SearchExtensions(
-            [
-              ...SearchExtensions.withCounters(currentPubkey: currentPubkey).extensions,
-              ...SearchExtensions.withAuthors().extensions,
-              ExpirationSearchExtension(expiration: false),
-            ],
-          ).toString(),
-          limit: 10,
-        ),
-        RequestFilter(
-          kinds: const [PostEntity.kind],
-          tags: Map.fromEntries([relatedTags]),
-          search: SearchExtensions(
-            [
-              ...SearchExtensions.withCounters(
-                currentPubkey: currentPubkey,
-                forKind: PostEntity.kind,
-              ).extensions,
-              ...SearchExtensions.withAuthors(forKind: PostEntity.kind).extensions,
-              ExpirationSearchExtension(expiration: false),
-            ],
-          ).toString(),
-          limit: 10,
-        ),
-      ],
+      requestFilter: RequestFilter(
+        kinds: const [ModifiablePostEntity.kind, PostEntity.kind],
+        tags: Map.fromEntries([relatedTags]),
+        search: SearchExtensions(
+          [
+            ...SearchExtensions.withCounters(currentPubkey: currentPubkey).extensions,
+            ...SearchExtensions.withAuthors().extensions,
+            ...SearchExtensions.withCounters(
+              currentPubkey: currentPubkey,
+              forKind: PostEntity.kind,
+            ).extensions,
+            ...SearchExtensions.withAuthors(forKind: PostEntity.kind).extensions,
+            ExpirationSearchExtension(expiration: false),
+          ],
+        ).toString(),
+        limit: 10,
+      ),
     ),
   ];
 

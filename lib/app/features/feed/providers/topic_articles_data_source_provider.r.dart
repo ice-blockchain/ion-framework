@@ -46,22 +46,20 @@ EntitiesDataSource _buildArticlesDataSource({
   return EntitiesDataSource(
     actionSource: actionSource,
     entityFilter: (entity) => entity is ArticleEntity,
-    requestFilters: [
-      RequestFilter(
-        kinds: const [ArticleEntity.kind],
-        authors: authors,
-        search: SearchExtensions([
-          ...SearchExtensions.withCounters(
-            currentPubkey: currentPubkey,
-            forKind: ArticleEntity.kind,
-          ).extensions,
-          ...SearchExtensions.withAuthors(forKind: ArticleEntity.kind).extensions,
-        ]).toString(),
-        limit: 20,
-        tags: {
-          '#t': [topic],
-        },
-      ),
-    ],
+    requestFilter: RequestFilter(
+      kinds: const [ArticleEntity.kind],
+      authors: authors,
+      search: SearchExtensions([
+        ...SearchExtensions.withCounters(
+          currentPubkey: currentPubkey,
+          forKind: ArticleEntity.kind,
+        ).extensions,
+        ...SearchExtensions.withAuthors(forKind: ArticleEntity.kind).extensions,
+      ]).toString(),
+      limit: 20,
+      tags: {
+        '#t': [topic],
+      },
+    ),
   );
 }

@@ -44,23 +44,17 @@ List<EntitiesDataSource>? userVideosDataSource(Ref ref, String pubkey) {
               entity is GenericRepostEntity ||
               entity is PostEntity ||
               entity is RepostEntity),
-      requestFilters: [
-        RequestFilter(
-          kinds: const [ModifiablePostEntity.kind, PostEntity.kind, RepostEntity.kind],
-          authors: [pubkey],
-          search: search,
-          limit: 10,
-        ),
-        RequestFilter(
-          kinds: const [GenericRepostEntity.kind],
-          authors: [pubkey],
-          search: search,
-          tags: {
-            '#k': [ModifiablePostEntity.kind.toString()],
-          },
-          limit: 10,
-        ),
-      ],
+      requestFilter: RequestFilter(
+        kinds: const [
+          ModifiablePostEntity.kind,
+          PostEntity.kind,
+          RepostEntity.kind,
+          GenericRepostEntity.modifiablePostRepostKind,
+        ],
+        authors: [pubkey],
+        search: search,
+        limit: 10,
+      ),
     ),
   ];
 }

@@ -37,14 +37,12 @@ List<EntitiesDataSource>? userRepliesDataSource(Ref ref, String pubkey) {
       actionSource: ActionSourceUser(pubkey),
       entityFilter: (entity) =>
           entity.masterPubkey == pubkey && (entity is ModifiablePostEntity || entity is PostEntity),
-      requestFilters: [
-        RequestFilter(
-          kinds: const [ModifiablePostEntity.kind, PostEntity.kind],
-          authors: [pubkey],
-          search: search,
-          limit: 10,
-        ),
-      ],
+      requestFilter: RequestFilter(
+        kinds: const [ModifiablePostEntity.kind, PostEntity.kind],
+        authors: [pubkey],
+        search: search,
+        limit: 10,
+      ),
     ),
   ];
 }
