@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:io';
-
 import 'package:convert/convert.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
