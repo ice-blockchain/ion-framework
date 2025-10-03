@@ -80,11 +80,11 @@ sealed class WalletAsset with _$WalletAsset {
 
   @FreezedUnionValue('Tep74')
   const factory WalletAsset.tep74({
-    required String mint,
     required String symbol,
     required int decimals,
     @StringOrIntConverter() required String balance,
     required String kind,
+    String? mint,
     String? name,
   }) = _WalletAssetTep74;
 

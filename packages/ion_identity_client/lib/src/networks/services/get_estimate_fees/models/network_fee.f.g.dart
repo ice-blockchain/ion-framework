@@ -8,12 +8,11 @@ part of 'network_fee.f.dart';
 
 _$NetworkFeeImpl _$$NetworkFeeImplFromJson(Map<String, dynamic> json) =>
     _$NetworkFeeImpl(
-      maxFeePerGas: _$JsonConverterFromJson<dynamic, String>(
-          json['maxFeePerGas'], const NumberToStringConverter().fromJson),
-      maxPriorityFeePerGas: _$JsonConverterFromJson<dynamic, String>(
-          json['maxPriorityFeePerGas'], const NumberToStringConverter().fromJson),
-      feeRate: _$JsonConverterFromJson<dynamic, String>(
-          json['feeRate'], const NumberToStringConverter().fromJson),
+      maxFeePerGas:
+          const NumberToStringConverter().fromJson(json['maxFeePerGas']),
+      maxPriorityFeePerGas: const NumberToStringConverter()
+          .fromJson(json['maxPriorityFeePerGas']),
+      feeRate: const NumberToStringConverter().fromJson(json['feeRate']),
       waitTime: _$JsonConverterFromJson<int, Duration>(
           json['waitTime'], const DurationConverter().fromJson),
     );
@@ -24,8 +23,8 @@ Map<String, dynamic> _$$NetworkFeeImplToJson(_$NetworkFeeImpl instance) =>
               instance.maxFeePerGas, const NumberToStringConverter().toJson)
           case final value?)
         'maxFeePerGas': value,
-      if (_$JsonConverterToJson<dynamic, String>(
-              instance.maxPriorityFeePerGas, const NumberToStringConverter().toJson)
+      if (_$JsonConverterToJson<dynamic, String>(instance.maxPriorityFeePerGas,
+              const NumberToStringConverter().toJson)
           case final value?)
         'maxPriorityFeePerGas': value,
       if (_$JsonConverterToJson<dynamic, String>(

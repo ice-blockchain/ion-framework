@@ -150,18 +150,18 @@ Map<String, dynamic> _$$Sep41TransferImplToJson(_$Sep41TransferImpl instance) =>
 
 _$Tep74TransferImpl _$$Tep74TransferImplFromJson(Map<String, dynamic> json) =>
     _$Tep74TransferImpl(
-      master: json['master'] as String,
       to: json['to'] as String,
       amount: json['amount'] as String,
       kind: json['kind'] as String? ?? 'Tep74',
+      master: json['master'] as String?,
     );
 
 Map<String, dynamic> _$$Tep74TransferImplToJson(_$Tep74TransferImpl instance) =>
     <String, dynamic>{
-      'master': instance.master,
       'to': instance.to,
       'amount': instance.amount,
       'kind': instance.kind,
+      if (instance.master case final value?) 'master': value,
     };
 
 _$Trc10TransferImpl _$$Trc10TransferImplFromJson(Map<String, dynamic> json) =>

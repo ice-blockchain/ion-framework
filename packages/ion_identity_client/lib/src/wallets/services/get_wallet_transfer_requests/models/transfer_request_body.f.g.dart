@@ -21,7 +21,7 @@ Map<String, dynamic> _$$NativeTransferRequestBodyImplToJson(
       'kind': instance.kind,
       'to': instance.to,
       'amount': instance.amount,
-      'memo': instance.memo,
+      if (instance.memo case final value?) 'memo': value,
     };
 
 _$Erc721TransferRequestBodyImpl _$$Erc721TransferRequestBodyImplFromJson(
@@ -133,7 +133,7 @@ Map<String, dynamic> _$$Sep41TransferRequestBodyImplToJson(
       'assetCode': instance.assetCode,
       'to': instance.to,
       'amount': instance.amount,
-      'memo': instance.memo,
+      if (instance.memo case final value?) 'memo': value,
     };
 
 _$Tep74TransferRequestBodyImpl _$$Tep74TransferRequestBodyImplFromJson(
