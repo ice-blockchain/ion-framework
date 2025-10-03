@@ -27,6 +27,7 @@ import 'package:ion/app/features/ion_connect/database/converters/event_tags_conv
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/directory.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -61,21 +62,21 @@ ChatDatabase chatDatabase(Ref ref) {
   final database = ChatDatabase(pubkey, appGroupId: appGroup);
 
   ref.onDispose(() {
-    print('chatDatabase disposed');
+    Logger.log('[CHAT DATABASE] provider disposed');
     database.close();
   });
 
   database.doWhenOpened((_) {
-    print('chatDatabase opened');
+    Logger.log('[CHAT DATABASE] database opened');
   });
 
   onLogout(ref, database.close);
 
   onAppStateChange(ref, () {
-    print('chatDatabase app state changed to paused');
+    Logger.log('[CHAT DATABASE] app state changed to paused');
     database.close();
   }, () {
-    print('chatDatabase app state changed to resumed');
+    Logger.log('[CHAT DATABASE] app state changed to resumed');
     ref.invalidateSelf();
   });
 
