@@ -104,6 +104,11 @@ class SharedStoryMessage extends HookConsumerWidget {
     final isReplyToStory =
         useHasReaction(replyEntity.toEventReference(), ref) || replyEventMessage.content.isNotEmpty;
 
+    // prevent story viewer state from being disposed
+    ref.watch(
+      userStoriesViewingNotifierProvider(storyEntity.masterPubkey, showOnlySelectedUser: true),
+    );
+
     return Container(
       margin: margin,
       child: Align(
