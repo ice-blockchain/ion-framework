@@ -27,7 +27,7 @@ class NotificationService: UNNotificationServiceExtension {
                 
                 let result = await NotificationTranslationService(
                     appLocaleStorage: AppLocaleStorage(storage: storage),
-                    keysStorage: KeysStorage(storage: storage)
+                    keysStorage: keysStorage
                 ).translate(
                     request.content.userInfo
                 )
@@ -60,7 +60,7 @@ class NotificationService: UNNotificationServiceExtension {
 
                 }
             } catch {
-                NSLog("Failed to translate notification: \(error)")
+                NSLog("[NSE] Failed to translate notification: \(error)")
             }
 
             if let communicationPushData = communicationPushData {

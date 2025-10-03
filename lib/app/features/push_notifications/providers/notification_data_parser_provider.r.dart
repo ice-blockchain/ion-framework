@@ -4,6 +4,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/push_notifications/data/models/ion_connect_push_data_payload.f.dart';
 import 'package:ion/app/features/push_notifications/providers/app_translations_provider.m.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
@@ -43,6 +45,7 @@ class NotificationDataParser {
     IonConnectPushDataPayload data, {
     required Future<MoneyDisplayData?> Function(EventMessage) getFundsRequestData,
     required Future<MoneyDisplayData?> Function(EventMessage) getTransactionData,
+    required Future<IonConnectEntity?> Function(EventReference) getRelatedEntity,
   }) async {
     // reading from shared prefs because this method might be used from a background service
     final currentPubkey = await _prefs.getString(CurrentPubkeySelector.persistenceKey);
@@ -57,7 +60,10 @@ class NotificationDataParser {
       return null;
     }
 
-    final notificationType = data.getNotificationType(currentPubkey: currentPubkey);
+    final notificationType = await data.getNotificationType(
+      currentPubkey: currentPubkey,
+      getRelatedEntity: getRelatedEntity,
+    );
 
     if (notificationType == null) {
       return null;
@@ -88,6 +94,10 @@ class NotificationDataParser {
       return null;
     }
 
+    if (result.title.isEmpty || result.body.isEmpty) {
+      return null;
+    }
+
     final (avatar, media) = await data.getMediaPlaceholders();
 
     return NotificationParsedData(
@@ -109,6 +119,14 @@ class NotificationDataParser {
             await translator.translate((t) => t.reply?.title),
             await translator.translate((t) => t.reply?.body),
           ),
+        PushNotificationType.replyArticle => (
+            await translator.translate((t) => t.replyArticle?.title),
+            await translator.translate((t) => t.replyArticle?.body),
+          ),
+        PushNotificationType.replyComment => (
+            await translator.translate((t) => t.replyComment?.title),
+            await translator.translate((t) => t.replyComment?.body),
+          ),
         PushNotificationType.mention => (
             await translator.translate((t) => t.mention?.title),
             await translator.translate((t) => t.mention?.body)
@@ -117,13 +135,41 @@ class NotificationDataParser {
             await translator.translate((t) => t.repost?.title),
             await translator.translate((t) => t.repost?.body)
           ),
+        PushNotificationType.repostArticle => (
+            await translator.translate((t) => t.repostArticle?.title),
+            await translator.translate((t) => t.repostArticle?.body)
+          ),
+        PushNotificationType.repostComment => (
+            await translator.translate((t) => t.repostComment?.title),
+            await translator.translate((t) => t.repostComment?.body)
+          ),
         PushNotificationType.quote => (
             await translator.translate((t) => t.quote?.title),
             await translator.translate((t) => t.quote?.body)
           ),
+        PushNotificationType.quoteArticle => (
+            await translator.translate((t) => t.quoteArticle?.title),
+            await translator.translate((t) => t.quoteArticle?.body)
+          ),
+        PushNotificationType.quoteComment => (
+            await translator.translate((t) => t.quoteComment?.title),
+            await translator.translate((t) => t.quoteComment?.body)
+          ),
         PushNotificationType.like => (
             await translator.translate((t) => t.like?.title),
             await translator.translate((t) => t.like?.body)
+          ),
+        PushNotificationType.likeArticle => (
+            await translator.translate((t) => t.likeArticle?.title),
+            await translator.translate((t) => t.likeArticle?.body)
+          ),
+        PushNotificationType.likeComment => (
+            await translator.translate((t) => t.likeComment?.title),
+            await translator.translate((t) => t.likeComment?.body)
+          ),
+        PushNotificationType.likeStory => (
+            await translator.translate((t) => t.likeStory?.title),
+            await translator.translate((t) => t.likeStory?.body)
           ),
         PushNotificationType.follower => (
             await translator.translate((t) => t.follower?.title),
@@ -160,6 +206,10 @@ class NotificationDataParser {
         PushNotificationType.chatSharePostMessage => (
             await translator.translate((t) => t.chatSharePostMessage?.title),
             await translator.translate((t) => t.chatSharePostMessage?.body)
+          ),
+        PushNotificationType.chatShareArticleMessage => (
+            await translator.translate((t) => t.chatShareArticleMessage?.title),
+            await translator.translate((t) => t.chatShareArticleMessage?.body)
           ),
         PushNotificationType.chatShareStoryMessage => (
             await translator.translate((t) => t.chatShareStoryMessage?.title),

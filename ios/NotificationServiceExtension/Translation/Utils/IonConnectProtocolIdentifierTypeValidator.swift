@@ -4,7 +4,7 @@ import Foundation
 
 class IonConnectProtocolIdentifierTypeValidator {
     static func isProfileIdentifier(_ content: String) -> Bool {
-        return content.hasPrefix("nostr:npub") || content.hasPrefix("npub")
+        return content.hasPrefix("nostr:nprofile") || content.hasPrefix("npub")
     }
     
     static func isEventIdentifier(_ content: String) -> Bool {

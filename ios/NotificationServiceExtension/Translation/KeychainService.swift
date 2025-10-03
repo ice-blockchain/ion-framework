@@ -23,7 +23,7 @@ class KeychainService {
         do {
             _ = try self.getPrivateKey()
         } catch {
-            NSLog("Failed to preload private key: \(error)")
+            NSLog("[NSE] Failed to preload private key: \(error)")
         }
 
     }
@@ -71,7 +71,7 @@ class KeychainService {
         // If access failed with specific accessibility, try without it
         // This provides fallback for items stored with different accessibility settings
         if status == errSecInteractionNotAllowed || status == errSecItemNotFound {
-            NSLog("First keychain access attempt failed with status \(status), trying fallback query")
+            NSLog("[NSE] First keychain access attempt failed with status \(status), trying fallback query")
             
             // Remove accessibility constraint and try again
             query.removeValue(forKey: kSecAttrAccessible as String)
@@ -79,7 +79,7 @@ class KeychainService {
         }
 
         if status != errSecSuccess {
-            NSLog("Keychain access failed with status: \(status)")
+            NSLog("[NSE] Keychain access failed with status: \(status)")
             throw KeychainError.keychainAccessFailed(status)
         }
 

@@ -83,6 +83,7 @@ class ReplaceablePrivateDirectMessageData
     List<RelatedReplaceableEvent>? relatedEvents,
     List<RelatedPubkey>? relatedPubkeys,
     QuotedImmutableEvent? quotedEvent,
+    String? quotedEventKind,
     String? paymentRequested,
     String? paymentSent,
   }) = _ReplaceablePrivateDirectMessageData;
@@ -122,6 +123,7 @@ class ReplaceablePrivateDirectMessageData
       groupSubject: tags[GroupSubject.tagName]?.map(GroupSubject.fromTag).singleOrNull,
       quotedEvent:
           tags[QuotedImmutableEvent.tagName]?.map(QuotedImmutableEvent.fromTag).singleOrNull,
+      quotedEventKind: tags[quotedEventKindTagName]?.first.elementAtOrNull(1),
       conversationId:
           tags[ConversationIdentifier.tagName]!.map(ConversationIdentifier.fromTag).first.value,
       paymentRequested: tags[paymentRequestedTagName]?.first.elementAtOrNull(1),
@@ -155,6 +157,7 @@ class ReplaceablePrivateDirectMessageData
         if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),
         if (paymentRequested != null) [paymentRequestedTagName, paymentRequested!],
         if (paymentSent != null) [paymentSentTagName, paymentSent!],
+        if (quotedEventKind != null) [quotedEventKindTagName, quotedEventKind.toString()],
         ReplaceableEventIdentifier(value: messageId).toTag(),
         ConversationIdentifier(value: conversationId).toTag(),
       ],
@@ -177,6 +180,7 @@ class ReplaceablePrivateDirectMessageData
 
   static const paymentRequestedTagName = 'payment-requested';
   static const paymentSentTagName = 'payment-sent';
+  static const quotedEventKindTagName = 'quoted-event-kind';
 }
 
 extension Pubkeys on ReplaceablePrivateDirectMessageEntity {

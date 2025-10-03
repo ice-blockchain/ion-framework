@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:typed_data';
-
 import 'package:convert/convert.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:flutter/foundation.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 
 class Ed25519KeyStore with EventSigner {

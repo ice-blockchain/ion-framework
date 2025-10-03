@@ -49,6 +49,26 @@ struct PostData {
     var content: String {
         return richText?.content ?? textContent
     }
+    
+    var parentEvent: RelatedEvent? {
+        var rootParent: RelatedEvent? = nil
+        var replyParent: RelatedEvent? = nil
+        
+        for relatedEvent in relatedEvents {
+            if relatedEvent.marker == .reply {
+                replyParent = relatedEvent
+                break
+            } else if relatedEvent.marker == .root {
+                rootParent = relatedEvent
+            }
+        }
+        
+        return replyParent ?? rootParent
+    }
+    
+    var rootRelatedEvent: RelatedEvent? {
+        return relatedEvents.first { $0.marker == .root }
+    }
 
     static func fromEventMessage(_ eventMessage: EventMessage) -> PostData {
         let textContent = eventMessage.content
@@ -81,7 +101,7 @@ struct PostData {
                     quotedEvent = try QuotedEventFactory.fromTag(tag)
                     break
                 } catch {
-                    NSLog("Error parsing quoted event: \(error)")
+                    NSLog("[NSE] Error parsing quoted event: \(error)")
                 }
             }
         }
@@ -94,7 +114,7 @@ struct PostData {
                     richText = try RichText.fromTag(tag)
                     break
                 } catch {
-                    NSLog("Error parsing rich text: \(error)")
+                    NSLog("[NSE] Error parsing rich text: \(error)")
                 }
             }
         }

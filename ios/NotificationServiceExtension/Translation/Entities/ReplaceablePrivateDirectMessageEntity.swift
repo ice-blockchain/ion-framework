@@ -11,6 +11,7 @@ struct ReplaceablePrivateDirectMessageData {
     let relatedPubkeys: [RelatedPubkey]?
     let primaryAudio: MediaItem?
     let quotedEvent: SimpleEventReference?
+    let quotedEventKind: String?
 
     // fields carrying stringified JSON of 1755/1756, coming from tags on kind 30014
     let paymentRequested: String?
@@ -23,6 +24,7 @@ struct ReplaceablePrivateDirectMessageData {
         relatedPubkeys: [RelatedPubkey]? = nil,
         primaryAudio: MediaItem? = nil,
         quotedEvent: SimpleEventReference? = nil,
+        quotedEventKind: String? = nil,
         paymentRequested: String? = nil,
         paymentSent: String? = nil
     ) {
@@ -32,6 +34,7 @@ struct ReplaceablePrivateDirectMessageData {
         self.relatedPubkeys = relatedPubkeys
         self.primaryAudio = primaryAudio
         self.quotedEvent = quotedEvent
+        self.quotedEventKind = quotedEventKind
         self.paymentRequested = paymentRequested
         self.paymentSent = paymentSent
     }
@@ -75,13 +78,18 @@ struct ReplaceablePrivateDirectMessageData {
             }
         }
 
+        var quotedEventKindValue: String? = nil
+        if let qek = tagsByType[quotedEventKindTagName]?.first, qek.count >= 2 {
+            quotedEventKindValue = qek[1]
+        }
+
         // New: read the first value of payment-requested / payment-sent tags (stringified JSON)
         var paymentRequestedJson: String? = nil
-        if let pr = tagsByType["payment-requested"]?.first, pr.count >= 2 {
+        if let pr = tagsByType[paymentRequestedTagName]?.first, pr.count >= 2 {
             paymentRequestedJson = pr[1]
         }
         var paymentSentJson: String? = nil
-        if let ps = tagsByType["payment-sent"]?.first, ps.count >= 2 {
+        if let ps = tagsByType[paymentSentTagName]?.first, ps.count >= 2 {
             paymentSentJson = ps[1]
         }
 
@@ -92,6 +100,7 @@ struct ReplaceablePrivateDirectMessageData {
             relatedPubkeys: relatedPubkeys,
             primaryAudio: primaryAudio,
             quotedEvent: quotedEvent,
+            quotedEventKind: quotedEventKindValue,
             paymentRequested: paymentRequestedJson,
             paymentSent: paymentSentJson
         )
@@ -138,7 +147,12 @@ struct ReplaceablePrivateDirectMessageData {
             return item.mediaType == .image || item.mediaType == .video || item.mediaType == .gif
         }
     }
+    
+    static let paymentRequestedTagName = "payment-requested"
+    static let paymentSentTagName = "payment-sent"
+    static let quotedEventKindTagName = "quoted-event-kind"
 }
+
 
 struct ReplaceablePrivateDirectMessageEntity: IonConnectEntity {
     let id: String

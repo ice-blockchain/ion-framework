@@ -8,7 +8,7 @@ public enum CryptoAmountFormatter {
         if let parsed = Double(input) {
             return parsed / pow(10.0, Double(decimals))
         } else {
-            NSLog("[CryptoAmountFormatter] Failed to parse coins amount with `%@` value.", input)
+            NSLog("[NSE] [CryptoAmountFormatter] Failed to parse coins amount with `%@` value.", input)
             return 0
         }
     }

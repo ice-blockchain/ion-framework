@@ -66,6 +66,7 @@ class SendE2eeChatMessageService {
     EventMessage? failedEventMessage,
     List<String>? groupImageTag,
     QuotedImmutableEvent? quotedEvent,
+    String? quotedEventKind,
     List<MediaFile> mediaFiles = const [],
     Map<String, List<String>>? failedParticipantsMasterPubkeys,
   }) async {
@@ -130,6 +131,7 @@ class SendE2eeChatMessageService {
         relatedPubkeys:
             participantsMasterPubkeys.map((pubkey) => RelatedPubkey(value: pubkey)).toList(),
         quotedEvent: quotedEvent ?? editedMessageEntity?.quotedEvent,
+        quotedEventKind: quotedEventKind,
         relatedEvents: editedMessageEntity?.relatedEvents ?? _generateRelatedEvents(repliedMessage),
       );
 
@@ -197,6 +199,7 @@ class SendE2eeChatMessageService {
                 },
                 masterPubkey: currentUserMasterPubkey,
                 quotedEvent: quotedEvent ?? editedMessageEntity?.quotedEvent,
+                quotedEventKind: quotedEventKind,
                 relatedPubkeys: participantsMasterPubkeys
                     .map((pubkey) => RelatedPubkey(value: pubkey))
                     .toList(),
@@ -410,6 +413,7 @@ class SendE2eeChatMessageService {
       content: eventMessage.content,
       failedEventMessage: eventMessage,
       quotedEvent: entity.data.quotedEvent,
+      quotedEventKind: entity.data.quotedEventKind,
       conversationId: entity.data.conversationId,
       participantsMasterPubkeys: entity.allPubkeys,
       failedParticipantsMasterPubkeys:

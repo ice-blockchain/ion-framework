@@ -23,6 +23,7 @@ import 'package:ion/app/features/ion_connect/model/replaceable_event_identifier.
 import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
 import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 
 part 'article_data.f.freezed.dart';
 
@@ -34,7 +35,7 @@ class ArticleEntity
         ReplaceableEntity,
         SoftDeletableEntity<ArticleData>,
         _$ArticleEntity
-    implements EntityEventSerializable {
+    implements EntityEventSerializable, DbCacheableEntity {
   const factory ArticleEntity({
     required String id,
     required String pubkey,

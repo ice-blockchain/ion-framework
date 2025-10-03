@@ -19,7 +19,7 @@ class Decompressor {
             try mutableData.decompress(using: .zlib)
             return mutableData as Data
         } catch let error {
-            NSLog("Decompression failed: \(error)")
+            NSLog("[NSE] Decompression failed: \(error)")
             throw DecompressionError.decompressionFailed
         }
     }
