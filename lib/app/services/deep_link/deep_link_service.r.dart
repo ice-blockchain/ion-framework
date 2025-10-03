@@ -26,6 +26,7 @@ import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/retry.dart';
 import 'package:ion/app/utils/url.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -351,42 +352,38 @@ final class DeepLinkService {
       return _fallbackUrl;
     }
 
-    const maxAttempts = 3;
-    const retryDelay = Duration(milliseconds: 200);
+    try {
+      return await withRetry(
+        ({error}) async {
+          final result = await _generateInviteLink(
+            path: path,
+            contentType: contentType,
+            ogTitle: ogTitle,
+            ogImageUrl: ogImageUrl,
+            ogDescription: ogDescription,
+          );
 
-    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        final result = await _generateInviteLink(
-          path: path,
-          contentType: contentType,
-          ogTitle: ogTitle,
-          ogImageUrl: ogImageUrl,
-          ogDescription: ogDescription,
-        );
-
-        if (isOneLinkUrl(result)) {
-          Logger.log('Deep link generated successfully on attempt $attempt: $result');
-          return result;
-        } else {
-          Logger.warning('Invalid URL returned on attempt $attempt: $result');
-          if (attempt < maxAttempts) {
-            Logger.log('Retrying deep link generation in ${retryDelay.inMilliseconds}ms...');
-            await Future<void>.delayed(retryDelay);
+          if (isOneLinkUrl(result)) {
+            Logger.log('Deep link generated successfully: $result');
+            return result;
+          } else {
+            Logger.warning('Invalid URL returned: $result');
+            throw Exception('Invalid URL returned: $result');
           }
-        }
-      } catch (error) {
-        Logger.error('Deep link generation failed on attempt $attempt: $error');
-        if (attempt < maxAttempts) {
-          Logger.log('Retrying deep link generation in ${retryDelay.inMilliseconds}ms...');
-          await Future<void>.delayed(retryDelay);
-        }
-      }
+        },
+        maxRetries: 3,
+        initialDelay: const Duration(milliseconds: 200),
+        maxDelay: const Duration(milliseconds: 300),
+        onRetry: (error) {
+          Logger.log('Retrying deep link generation due to: $error');
+        },
+      );
+    } catch (error) {
+      Logger.error(
+        'Deep link generation failed after all retries: $error',
+      );
+      return _fallbackUrl;
     }
-
-    Logger.error(
-      'Deep link generation failed after $maxAttempts attempts, using fallback URL',
-    );
-    return _fallbackUrl;
   }
 
   Future<String> _generateInviteLink({
