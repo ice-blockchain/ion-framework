@@ -6,7 +6,14 @@ import 'dart:io';
 import 'package:ion/app/services/logger/logger.dart';
 
 /// Connectivity status enum compatible with previous usage.
-enum InternetStatus { connected, disconnected }
+enum InternetStatus {
+  connected,
+  disconnected,
+
+  /// Paused states used to handle app lifecycle
+  pausedAfterConnected,
+  pausedAfterDisconnected,
+}
 
 /// Options describing a host to check using a low-level TCP dial.
 class InternetCheckOption {
