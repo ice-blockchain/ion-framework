@@ -351,22 +351,21 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
 
     final until = lastEventCreatedAt != null ? lastEventCreatedAt - 1 : null;
     final requestMessage = RequestMessage();
-    for (final filter in dataSource.requestFilters) {
-      requestMessage.addFilter(
-        // Do not use `since` here (from feedConfig.followingReqMaxAge),
-        // as we want to request one overflow entity (if it exists),
-        // to avoid the unnecessary requests in the future.
-        filter.copyWith(
-          limit: () => 1,
-          until: () => until,
-          tags: () => selectedArticleCategories.isEmpty
-              ? null
-              : {
-                  '#${RelatedHashtag.tagName}': selectedArticleCategories.toList(),
-                },
-        ),
-      );
-    }
+    final filter = dataSource.requestFilter;
+    requestMessage.addFilter(
+      // Do not use `since` here (from feedConfig.followingReqMaxAge),
+      // as we want to request one overflow entity (if it exists),
+      // to avoid the unnecessary requests in the future.
+      filter.copyWith(
+        limit: () => 1,
+        until: () => until,
+        tags: () => selectedArticleCategories.isEmpty
+            ? null
+            : {
+                '#${RelatedHashtag.tagName}': selectedArticleCategories.toList(),
+              },
+      ),
+    );
 
     final entities = await ionConnectNotifier
         .requestEntities(requestMessage, actionSource: dataSource.actionSource)

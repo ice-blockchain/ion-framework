@@ -74,18 +74,16 @@ FeedEntitiesDataSource buildArticlesDataSource({
 
       return entity is ArticleEntity || entity is GenericRepostEntity;
     },
-    requestFilters: [
-      RequestFilter(
-        kinds: const [
-          ArticleEntity.kind,
-          GenericRepostEntity.articleRepostKind,
-        ],
-        authors: authors,
-        limit: limit,
-        tags: tags,
-        search: search,
-      ),
-    ],
+    requestFilter: RequestFilter(
+      kinds: const [
+        ArticleEntity.kind,
+        GenericRepostEntity.articleRepostKind,
+      ],
+      authors: authors,
+      limit: limit,
+      tags: tags,
+      search: search,
+    ),
   );
 
   return FeedEntitiesDataSource(dataSource: dataSource);
@@ -137,20 +135,18 @@ FeedEntitiesDataSource buildVideosDataSource({
           entity is RepostEntity ||
           entity is GenericRepostEntity;
     },
-    requestFilters: [
-      RequestFilter(
-        kinds: const [
-          PostEntity.kind,
-          ModifiablePostEntity.kind,
-          RepostEntity.kind,
-          GenericRepostEntity.modifiablePostRepostKind,
-        ],
-        search: search,
-        authors: authors,
-        limit: limit,
-        tags: tags,
-      ),
-    ],
+    requestFilter: RequestFilter(
+      kinds: const [
+        PostEntity.kind,
+        ModifiablePostEntity.kind,
+        RepostEntity.kind,
+        GenericRepostEntity.modifiablePostRepostKind,
+      ],
+      search: search,
+      authors: authors,
+      limit: limit,
+      tags: tags,
+    ),
   );
 
   return FeedEntitiesDataSource(dataSource: dataSource);
@@ -201,22 +197,20 @@ FeedEntitiesDataSource buildPostsDataSource({
           entity is GenericRepostEntity ||
           entity is ArticleEntity;
     },
-    requestFilters: [
-      RequestFilter(
-        kinds: const [
-          PostEntity.kind,
-          ModifiablePostEntity.kind,
-          RepostEntity.kind,
-          ArticleEntity.kind,
-          GenericRepostEntity.modifiablePostRepostKind,
-          GenericRepostEntity.articleRepostKind,
-        ],
-        search: search,
-        authors: authors,
-        limit: limit,
-        tags: tags,
-      ),
-    ],
+    requestFilter: RequestFilter(
+      kinds: const [
+        PostEntity.kind,
+        ModifiablePostEntity.kind,
+        RepostEntity.kind,
+        ArticleEntity.kind,
+        GenericRepostEntity.modifiablePostRepostKind,
+        GenericRepostEntity.articleRepostKind,
+      ],
+      search: search,
+      authors: authors,
+      limit: limit,
+      tags: tags,
+    ),
   );
 
   return FeedEntitiesDataSource(dataSource: dataSource);
@@ -255,15 +249,13 @@ FeedEntitiesDataSource buildStoriesDataSource({
         (entity is ModifiablePostEntity &&
             entity.data.parentEvent == null &&
             entity.data.expiration != null),
-    requestFilters: [
-      RequestFilter(
-        kinds: const [ModifiablePostEntity.kind],
-        authors: authors,
-        limit: limit,
-        search: search,
-        tags: tags,
-      ),
-    ],
+    requestFilter: RequestFilter(
+      kinds: const [ModifiablePostEntity.kind],
+      authors: authors,
+      limit: limit,
+      search: search,
+      tags: tags,
+    ),
   );
 
   return FeedEntitiesDataSource(dataSource: dataSource);

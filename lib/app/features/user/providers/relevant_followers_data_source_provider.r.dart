@@ -16,20 +16,18 @@ List<EntitiesDataSource>? relevantFollowersDataSource(Ref ref, String pubkey, {i
     EntitiesDataSource(
       actionSource: ActionSourceUser(pubkey),
       entityFilter: (entity) => entity is UserMetadataEntity,
-      requestFilters: [
-        RequestFilter(
-          kinds: const [UserMetadataEntity.kind],
-          tags: {
-            '#p': [pubkey],
-          },
-          search: SearchExtensions(
-            [
-              MostRelevantFollowersSearchExtension(),
-            ],
-          ).toString(),
-          limit: limit,
-        ),
-      ],
+      requestFilter: RequestFilter(
+        kinds: const [UserMetadataEntity.kind],
+        tags: {
+          '#p': [pubkey],
+        },
+        search: SearchExtensions(
+          [
+            MostRelevantFollowersSearchExtension(),
+          ],
+        ).toString(),
+        limit: limit,
+      ),
     ),
   ];
 }

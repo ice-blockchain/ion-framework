@@ -62,7 +62,7 @@ mixin DelegatedPagedNotifier implements PagedNotifier {
 class EntitiesDataSource with _$EntitiesDataSource {
   const factory EntitiesDataSource({
     required ActionSource actionSource,
-    required List<RequestFilter> requestFilters,
+    required RequestFilter requestFilter,
     required bool Function(IonConnectEntity entity) entityFilter,
     bool Function(IonConnectEntity entity)? pagedFilter,
   }) = _EntitiesDataSource;
@@ -200,11 +200,10 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
       }
 
       final requestMessage = RequestMessage();
-      for (final filter in dataSource.requestFilters) {
-        requestMessage.addFilter(
-          filter.copyWith(until: () => paginationParams.until?.microsecondsSinceEpoch),
-        );
-      }
+      final filter = dataSource.requestFilter;
+      requestMessage.addFilter(
+        filter.copyWith(until: () => paginationParams.until?.microsecondsSinceEpoch),
+      );
 
       final entitiesStream = ref.read(ionConnectNotifierProvider.notifier).requestEntities(
             requestMessage,

@@ -31,23 +31,12 @@ List<EntitiesDataSource>? userArticlesDataSource(Ref ref, String pubkey) {
       entityFilter: (entity) =>
           entity.masterPubkey == pubkey &&
           (entity is ArticleEntity || entity is GenericRepostEntity),
-      requestFilters: [
-        RequestFilter(
-          kinds: const [ArticleEntity.kind],
-          authors: [pubkey],
-          search: search,
-          limit: 10,
-        ),
-        RequestFilter(
-          kinds: const [GenericRepostEntity.kind],
-          authors: [pubkey],
-          tags: {
-            '#k': [ArticleEntity.kind.toString()],
-          },
-          search: search,
-          limit: 10,
-        ),
-      ],
+      requestFilter: RequestFilter(
+        kinds: const [ArticleEntity.kind, GenericRepostEntity.articleRepostKind],
+        authors: [pubkey],
+        search: search,
+        limit: 10,
+      ),
     ),
   ];
 }

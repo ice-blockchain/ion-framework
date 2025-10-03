@@ -71,7 +71,7 @@ List<EntitiesDataSource>? feedSearchPostsDataSource(
           strategy: OptimalRelaysStrategy.mostUsers,
         ),
         authors: filters.source == FeedSearchSource.following ? filterRelayMasterPubkeys : null,
-        filters: _buildFilters(
+        filter: _buildFilter(
           authors: filters.source == FeedSearchSource.following ? filterRelayMasterPubkeys : null,
           currentPubkey: currentPubkey,
           tags: tags,
@@ -89,7 +89,7 @@ List<EntitiesDataSource>? feedSearchPostsDataSource(
 EntitiesDataSource _buildSearchDataSource({
   required ActionSource actionSource,
   required List<String>? authors,
-  required List<RequestFilter> filters,
+  required RequestFilter filter,
 }) {
   return EntitiesDataSource(
     actionSource: actionSource,
@@ -104,11 +104,11 @@ EntitiesDataSource _buildSearchDataSource({
           entity is GenericRepostEntity ||
           entity is ArticleEntity;
     },
-    requestFilters: filters,
+    requestFilter: filter,
   );
 }
 
-List<RequestFilter> _buildFilters({
+RequestFilter _buildFilter({
   required List<String>? authors,
   required String currentPubkey,
   required bool includePosts,
@@ -143,33 +143,22 @@ List<RequestFilter> _buildFilters({
     ...SearchExtensions.withAuthors(forKind: ArticleEntity.kind).extensions,
   ]).toString();
 
-  return [
-    RequestFilter(
-      kinds: [
-        if (includePosts) ...[
-          PostEntity.kind,
-          ModifiablePostEntity.kind,
-          RepostEntity.kind,
-        ],
-        if (includeArticles) ArticleEntity.kind,
+  return RequestFilter(
+    kinds: [
+      if (includePosts) ...[
+        PostEntity.kind,
+        ModifiablePostEntity.kind,
+        RepostEntity.kind,
+        GenericRepostEntity.modifiablePostRepostKind,
       ],
-      tags: tags,
-      search: search,
-      authors: authors,
-      limit: 20,
-    ),
-    RequestFilter(
-      kinds: const [GenericRepostEntity.kind],
-      authors: authors,
-      search: search,
-      tags: {
-        ...tags,
-        '#k': [
-          if (includePosts) ModifiablePostEntity.kind.toString(),
-          if (includeArticles) ArticleEntity.kind.toString(),
-        ],
-      },
-      limit: 20,
-    ),
-  ];
+      if (includeArticles) ...[
+        ArticleEntity.kind,
+        GenericRepostEntity.articleRepostKind,
+      ],
+    ],
+    tags: tags,
+    search: search,
+    authors: authors,
+    limit: 20,
+  );
 }
