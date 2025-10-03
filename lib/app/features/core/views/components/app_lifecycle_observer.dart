@@ -28,3 +28,13 @@ class AppLifecycleObserver extends HookConsumerWidget {
     return child;
   }
 }
+
+void onAppStateChange(Ref ref, void Function()? onBackground, void Function()? onForeground) {
+  ref.listen(appLifecycleProvider, (prev, next) {
+    if (prev == AppLifecycleState.paused && next == AppLifecycleState.resumed) {
+      onForeground?.call();
+    } else if (prev != null && next == AppLifecycleState.paused) {
+      onBackground?.call();
+    }
+  });
+}

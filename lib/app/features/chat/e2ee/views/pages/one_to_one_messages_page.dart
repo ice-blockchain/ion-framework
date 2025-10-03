@@ -105,6 +105,24 @@ class OneToOneMessagesPage extends HookConsumerWidget {
                 receiverMasterPubkey: receiverMasterPubkey,
                 conversationId: conversationId.value ?? '',
               ),
+              const SizedBox(height: 10),
+              // send bulk messages
+              ElevatedButton(
+                onPressed: () {
+                  for (var i = 0; i < 1000; i++) {
+                    final currentPubkey = ref.read(currentPubkeySelectorProvider);
+                    if (currentPubkey == null) {
+                      throw UserMasterPubkeyNotFoundException();
+                    }
+                    ref.read(sendE2eeChatMessageServiceProvider).sendMessage(
+                      content: 'Hello $i',
+                      conversationId: conversationId.value!,
+                      participantsMasterPubkeys: [receiverMasterPubkey, currentPubkey],
+                    );
+                  }
+                },
+                child: const Text('Send Bulk Messages'),
+              ),
               _MessagesList(conversationId: conversationId.value),
               const EditMessageInfo(),
               const RepliedMessageInfo(),

@@ -52,7 +52,7 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
   Future<EventReference> handle(EventMessage rumor) async {
     final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
     await _addDirectMessageToDatabase(rumor);
-    unawaited(_sendReceivedStatus(rumor));
+    await _sendReceivedStatus(rumor);
     unawaited(userProfileSyncProvider.syncUserProfile(masterPubkeys: {rumor.masterPubkey}));
 
     return entity.toEventReference();

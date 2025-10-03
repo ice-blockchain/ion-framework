@@ -20,6 +20,7 @@ import 'package:ion/app/features/chat/model/group_subject.f.dart';
 import 'package:ion/app/features/chat/model/message_reaction.f.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/core/views/components/app_lifecycle_observer.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_tags_converter.dart';
@@ -59,7 +60,24 @@ ChatDatabase chatDatabase(Ref ref) {
       : null;
   final database = ChatDatabase(pubkey, appGroupId: appGroup);
 
+  ref.onDispose(() {
+    print('chatDatabase disposed');
+    database.close();
+  });
+
+  database.doWhenOpened((_) {
+    print('chatDatabase opened');
+  });
+
   onLogout(ref, database.close);
+
+  onAppStateChange(ref, () {
+    print('chatDatabase app state changed to paused');
+    database.close();
+  }, () {
+    print('chatDatabase app state changed to resumed');
+    ref.invalidateSelf();
+  });
 
   return database;
 }
