@@ -91,7 +91,12 @@ class ChatDatabase extends _$ChatDatabase {
     final databaseName = 'conversation_database_$pubkey';
 
     if (appGroupId == null) {
-      return driftDatabase(name: databaseName);
+      return driftDatabase(
+        name: databaseName,
+        native: DriftNativeOptions(
+          setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
+        ),
+      );
     }
 
     return driftDatabase(
@@ -100,6 +105,7 @@ class ChatDatabase extends _$ChatDatabase {
         databasePath: () async =>
             getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroupId),
         shareAcrossIsolates: true,
+        setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
       ),
     );
   }

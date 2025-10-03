@@ -36,6 +36,11 @@ class BlockUserDatabase extends _$BlockUserDatabase {
   int get schemaVersion => 1;
 
   static QueryExecutor _openConnection(String pubkey) {
-    return driftDatabase(name: 'block_user_database_$pubkey');
+    return driftDatabase(
+      name: 'block_user_database_$pubkey',
+      native: DriftNativeOptions(
+        setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
+      ),
+    );
   }
 }

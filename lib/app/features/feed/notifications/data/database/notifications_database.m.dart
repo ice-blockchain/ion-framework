@@ -262,6 +262,11 @@ class NotificationsDatabase extends _$NotificationsDatabase {
   }
 
   static QueryExecutor _openConnection(String pubkey) {
-    return driftDatabase(name: 'notifications_database_$pubkey');
+    return driftDatabase(
+      name: 'notifications_database_$pubkey',
+      native: DriftNativeOptions(
+        setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
+      ),
+    );
   }
 }

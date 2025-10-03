@@ -76,7 +76,12 @@ class WalletsDatabase extends _$WalletsDatabase {
   static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
     final databaseName = 'wallets_database_$pubkey';
     if (appGroupId == null) {
-      return driftDatabase(name: databaseName);
+      return driftDatabase(
+        name: databaseName,
+        native: DriftNativeOptions(
+          setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
+        ),
+      );
     }
 
     return driftDatabase(
@@ -85,6 +90,7 @@ class WalletsDatabase extends _$WalletsDatabase {
         databasePath: () async =>
             getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroupId),
         shareAcrossIsolates: true,
+        setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
       ),
     );
   }

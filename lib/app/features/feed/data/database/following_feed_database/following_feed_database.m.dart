@@ -95,6 +95,11 @@ class FollowingFeedDatabase extends _$FollowingFeedDatabase {
   }
 
   static QueryExecutor _openConnection(String pubkey) {
-    return driftDatabase(name: 'following_feed_database_$pubkey');
+    return driftDatabase(
+      name: 'following_feed_database_$pubkey',
+      native: DriftNativeOptions(
+        setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
+      ),
+    );
   }
 }
