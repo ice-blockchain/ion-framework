@@ -11,6 +11,7 @@ class PostListItem extends StatelessWidget {
   const PostListItem({
     required this.eventReference,
     this.displayParent = false,
+    this.showNotInterested = true,
     this.onVideoTap,
     super.key,
   });
@@ -21,6 +22,8 @@ class PostListItem extends StatelessWidget {
 
   final OnVideoTapCallback? onVideoTap;
 
+  final bool showNotInterested;
+
   @override
   Widget build(BuildContext context) {
     // TODO: process 20002 in the feed provider to fetch 10002
@@ -29,6 +32,7 @@ class PostListItem extends StatelessWidget {
       onTap: () => PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context),
       behavior: HitTestBehavior.opaque,
       child: Post(
+        showNotInterested: showNotInterested,
         eventReference: eventReference,
         displayParent: displayParent,
         onVideoTap: onVideoTap,

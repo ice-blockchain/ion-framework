@@ -8,9 +8,14 @@ import 'package:ion/app/features/feed/views/components/article/article.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
 class ArticleListItem extends ConsumerWidget {
-  const ArticleListItem({required this.article, super.key});
+  const ArticleListItem({
+    required this.article,
+    this.showNotInterested = true,
+    super.key,
+  });
 
   final ArticleEntity article;
+  final bool showNotInterested;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,6 +29,7 @@ class ArticleListItem extends ConsumerWidget {
             ArticleDetailsRoute(eventReference: eventReference.encode()).push<void>(context),
         child: Article(
           eventReference: eventReference,
+          showNotInterested: showNotInterested,
         ),
       ),
     );

@@ -31,6 +31,7 @@ class UserInfoMenu extends ConsumerWidget {
     this.reportTitle,
     this.showShadow = false,
     this.padding = EdgeInsets.zero,
+    this.showNotInterested = true,
     this.iconSize,
     super.key,
   });
@@ -43,6 +44,7 @@ class UserInfoMenu extends ConsumerWidget {
   final bool showShadow;
   final EdgeInsetsGeometry padding;
   final double? iconSize;
+  final bool showNotInterested;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -66,13 +68,15 @@ class UserInfoMenu extends ConsumerWidget {
         constraints: BoxConstraints(maxWidth: 300.0.s),
         child: Column(
           children: [
-            OverlayMenuContainer(
-              child: _NotInterestedMenuItem(
-                pubkey: eventReference.masterPubkey,
-                closeMenu: closeMenu,
+            if (showNotInterested == true) ...[
+              OverlayMenuContainer(
+                child: _NotInterestedMenuItem(
+                  pubkey: eventReference.masterPubkey,
+                  closeMenu: closeMenu,
+                ),
               ),
-            ),
-            SizedBox(height: 14.0.s),
+              SizedBox(height: 14.0.s),
+            ],
             OverlayMenuContainer(
               child: Column(
                 children: [

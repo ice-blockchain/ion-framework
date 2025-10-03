@@ -34,6 +34,7 @@ class Article extends ConsumerWidget {
     this.accentTheme = false,
     this.addTrailingPadding = true,
     this.showActionButtons = true,
+    this.showNotInterested = true,
     this.timeFormat = TimestampFormat.short,
     super.key,
   });
@@ -76,6 +77,7 @@ class Article extends ConsumerWidget {
   final bool isReplied;
   final Widget? footer;
   final bool accentTheme;
+  final bool showNotInterested;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -129,7 +131,10 @@ class Article extends ConsumerWidget {
                         if (isOwnedByCurrentUser)
                           OwnEntityMenu(eventReference: eventReference)
                         else
-                          UserInfoMenu(eventReference: eventReference),
+                          UserInfoMenu(
+                            eventReference: eventReference,
+                            showNotInterested: showNotInterested,
+                          ),
                       ],
                     )
                   : null,
@@ -180,7 +185,10 @@ class Article extends ConsumerWidget {
                                           if (isOwnedByCurrentUser)
                                             OwnEntityMenu(eventReference: eventReference)
                                           else
-                                            UserInfoMenu(eventReference: eventReference),
+                                            UserInfoMenu(
+                                              eventReference: eventReference,
+                                              showNotInterested: showNotInterested,
+                                            ),
                                         ],
                                       )
                                     : null,
