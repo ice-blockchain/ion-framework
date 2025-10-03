@@ -63,9 +63,6 @@ class Ed25519KeyStore with EventSigner {
     required String message,
     required String publicKey,
   }) async {
-    // Speed up signature verification in debug mode on Android
-    if (Platform.isAndroid && kDebugMode) return true;
-
     final publicKeyBytes = hex.decode(publicKey);
     final signatureBytes = hex.decode(signature);
     final messageBytes = hex.decode(message);
