@@ -155,24 +155,24 @@ Map<String, dynamic> _$$WalletAssetSep41ImplToJson(
 _$WalletAssetTep74Impl _$$WalletAssetTep74ImplFromJson(
         Map<String, dynamic> json) =>
     _$WalletAssetTep74Impl(
-      mint: json['mint'] as String,
       symbol: json['symbol'] as String,
       decimals: (json['decimals'] as num).toInt(),
       balance: const StringOrIntConverter().fromJson(json['balance']),
       kind: json['kind'] as String,
+      mint: json['mint'] as String?,
       name: json['name'] as String?,
     );
 
 Map<String, dynamic> _$$WalletAssetTep74ImplToJson(
         _$WalletAssetTep74Impl instance) =>
     <String, dynamic>{
-      'mint': instance.mint,
       'symbol': instance.symbol,
       'decimals': instance.decimals,
       if (const StringOrIntConverter().toJson(instance.balance)
           case final value?)
         'balance': value,
       'kind': instance.kind,
+      if (instance.mint case final value?) 'mint': value,
       if (instance.name case final value?) 'name': value,
     };
 

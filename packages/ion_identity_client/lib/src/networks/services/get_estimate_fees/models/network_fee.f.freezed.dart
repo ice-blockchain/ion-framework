@@ -186,16 +186,15 @@ class _$NetworkFeeImpl implements _NetworkFee {
                 other.maxFeePerGas == maxFeePerGas) &&
             (identical(other.maxPriorityFeePerGas, maxPriorityFeePerGas) ||
                 other.maxPriorityFeePerGas == maxPriorityFeePerGas) &&
-            (identical(other.feeRate, feeRate) ||
-                other.feeRate == feeRate) &&
+            (identical(other.feeRate, feeRate) || other.feeRate == feeRate) &&
             (identical(other.waitTime, waitTime) ||
                 other.waitTime == waitTime));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, maxFeePerGas, maxPriorityFeePerGas, feeRate, waitTime);
+  int get hashCode => Object.hash(
+      runtimeType, maxFeePerGas, maxPriorityFeePerGas, feeRate, waitTime);
 
   /// Create a copy of NetworkFee
   /// with the given fields replaced by the non-null parameter values.

@@ -1884,9 +1884,6 @@ Tep74Transfer _$Tep74TransferFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Tep74Transfer {
-  /// The jetton master address
-  String get master => throw _privateConstructorUsedError;
-
   /// The destination address
   String get to => throw _privateConstructorUsedError;
 
@@ -1895,6 +1892,9 @@ mixin _$Tep74Transfer {
 
   /// The kind, should be 'Tep74'
   String get kind => throw _privateConstructorUsedError;
+
+  /// The jetton master address
+  String? get master => throw _privateConstructorUsedError;
 
   /// Serializes this Tep74Transfer to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1912,7 +1912,7 @@ abstract class $Tep74TransferCopyWith<$Res> {
           Tep74Transfer value, $Res Function(Tep74Transfer) then) =
       _$Tep74TransferCopyWithImpl<$Res, Tep74Transfer>;
   @useResult
-  $Res call({String master, String to, String amount, String kind});
+  $Res call({String to, String amount, String kind, String? master});
 }
 
 /// @nodoc
@@ -1930,16 +1930,12 @@ class _$Tep74TransferCopyWithImpl<$Res, $Val extends Tep74Transfer>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? master = null,
     Object? to = null,
     Object? amount = null,
     Object? kind = null,
+    Object? master = freezed,
   }) {
     return _then(_value.copyWith(
-      master: null == master
-          ? _value.master
-          : master // ignore: cast_nullable_to_non_nullable
-              as String,
       to: null == to
           ? _value.to
           : to // ignore: cast_nullable_to_non_nullable
@@ -1952,6 +1948,10 @@ class _$Tep74TransferCopyWithImpl<$Res, $Val extends Tep74Transfer>
           ? _value.kind
           : kind // ignore: cast_nullable_to_non_nullable
               as String,
+      master: freezed == master
+          ? _value.master
+          : master // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -1964,7 +1964,7 @@ abstract class _$$Tep74TransferImplCopyWith<$Res>
       __$$Tep74TransferImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String master, String to, String amount, String kind});
+  $Res call({String to, String amount, String kind, String? master});
 }
 
 /// @nodoc
@@ -1980,16 +1980,12 @@ class __$$Tep74TransferImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? master = null,
     Object? to = null,
     Object? amount = null,
     Object? kind = null,
+    Object? master = freezed,
   }) {
     return _then(_$Tep74TransferImpl(
-      master: null == master
-          ? _value.master
-          : master // ignore: cast_nullable_to_non_nullable
-              as String,
       to: null == to
           ? _value.to
           : to // ignore: cast_nullable_to_non_nullable
@@ -2002,6 +1998,10 @@ class __$$Tep74TransferImplCopyWithImpl<$Res>
           ? _value.kind
           : kind // ignore: cast_nullable_to_non_nullable
               as String,
+      master: freezed == master
+          ? _value.master
+          : master // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -2010,17 +2010,13 @@ class __$$Tep74TransferImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$Tep74TransferImpl implements _Tep74Transfer {
   const _$Tep74TransferImpl(
-      {required this.master,
-      required this.to,
+      {required this.to,
       required this.amount,
-      this.kind = 'Tep74'});
+      this.kind = 'Tep74',
+      this.master});
 
   factory _$Tep74TransferImpl.fromJson(Map<String, dynamic> json) =>
       _$$Tep74TransferImplFromJson(json);
-
-  /// The jetton master address
-  @override
-  final String master;
 
   /// The destination address
   @override
@@ -2035,9 +2031,13 @@ class _$Tep74TransferImpl implements _Tep74Transfer {
   @JsonKey()
   final String kind;
 
+  /// The jetton master address
+  @override
+  final String? master;
+
   @override
   String toString() {
-    return 'Tep74Transfer(master: $master, to: $to, amount: $amount, kind: $kind)';
+    return 'Tep74Transfer(to: $to, amount: $amount, kind: $kind, master: $master)';
   }
 
   @override
@@ -2045,15 +2045,15 @@ class _$Tep74TransferImpl implements _Tep74Transfer {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$Tep74TransferImpl &&
-            (identical(other.master, master) || other.master == master) &&
             (identical(other.to, to) || other.to == to) &&
             (identical(other.amount, amount) || other.amount == amount) &&
-            (identical(other.kind, kind) || other.kind == kind));
+            (identical(other.kind, kind) || other.kind == kind) &&
+            (identical(other.master, master) || other.master == master));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, master, to, amount, kind);
+  int get hashCode => Object.hash(runtimeType, to, amount, kind, master);
 
   /// Create a copy of Tep74Transfer
   /// with the given fields replaced by the non-null parameter values.
@@ -2073,17 +2073,13 @@ class _$Tep74TransferImpl implements _Tep74Transfer {
 
 abstract class _Tep74Transfer implements Tep74Transfer {
   const factory _Tep74Transfer(
-      {required final String master,
-      required final String to,
+      {required final String to,
       required final String amount,
-      final String kind}) = _$Tep74TransferImpl;
+      final String kind,
+      final String? master}) = _$Tep74TransferImpl;
 
   factory _Tep74Transfer.fromJson(Map<String, dynamic> json) =
       _$Tep74TransferImpl.fromJson;
-
-  /// The jetton master address
-  @override
-  String get master;
 
   /// The destination address
   @override
@@ -2096,6 +2092,10 @@ abstract class _Tep74Transfer implements Tep74Transfer {
   /// The kind, should be 'Tep74'
   @override
   String get kind;
+
+  /// The jetton master address
+  @override
+  String? get master;
 
   /// Create a copy of Tep74Transfer
   /// with the given fields replaced by the non-null parameter values.

@@ -183,9 +183,6 @@ class Sep41Transfer with _$Sep41Transfer implements Transfer {
 @freezed
 class Tep74Transfer with _$Tep74Transfer implements Transfer {
   const factory Tep74Transfer({
-    /// The jetton master address
-    required String master,
-
     /// The destination address
     required String to,
 
@@ -194,6 +191,9 @@ class Tep74Transfer with _$Tep74Transfer implements Transfer {
 
     /// The kind, should be 'Tep74'
     @Default('Tep74') String kind,
+
+    /// The jetton master address
+    String? master,
   }) = _Tep74Transfer;
 
   factory Tep74Transfer.fromJson(Map<String, dynamic> json) => _$Tep74TransferFromJson(json);
