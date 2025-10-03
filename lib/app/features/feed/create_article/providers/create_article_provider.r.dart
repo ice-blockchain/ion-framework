@@ -31,7 +31,6 @@ import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_delete_file_notifier.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -131,11 +130,6 @@ class CreateArticle extends _$CreateArticle {
         articleData,
         files: files,
         mentions: mentions,
-      );
-
-      // Save to ION Connect cache for background notification processing
-      unawaited(
-        ref.read(ionConnectDatabaseCacheProvider.notifier).saveEntity(article),
       );
 
       _createArticleNotifierStreamController.add(article);
