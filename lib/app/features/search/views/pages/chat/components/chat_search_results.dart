@@ -20,10 +20,13 @@ class ChatSearchResults extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ListView.separated(
+    if (searchResults.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return ListView.builder(
       itemCount: searchResults.length,
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
-      separatorBuilder: (_, __) => const HorizontalSeparator(),
       itemBuilder: (context, index) {
         return Column(
           children: [
@@ -31,7 +34,9 @@ class ChatSearchResults extends ConsumerWidget {
               showLastMessage: showLastMessage,
               item: searchResults[index],
             ),
-            if (index == searchResults.length - 1)
+            if (index < searchResults.length - 1)
+              const HorizontalSeparator()
+            else
               Padding(
                 padding: EdgeInsetsDirectional.only(bottom: 12.s),
                 child: const HorizontalSeparator(),

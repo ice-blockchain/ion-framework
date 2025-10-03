@@ -60,28 +60,32 @@ class ChatAdvancedSearchPeople extends HookConsumerWidget {
             child: ChatSearchNoResults(),
           )
         else
-          SliverList.separated(
-            itemCount: searchResults.length,
-            separatorBuilder: (_, __) => const HorizontalSeparator(),
-            itemBuilder: (context, index) {
-              return Column(
-                children: [
-                  if (index == 0)
-                    Padding(
-                      padding: EdgeInsetsDirectional.only(top: 12.s),
+          SliverFixedExtentList(
+            itemExtent: 57.0.s, // Fixed height for search result items
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                return Column(
+                  children: [
+                    if (index == 0)
+                      Padding(
+                        padding: EdgeInsetsDirectional.only(top: 12.s),
+                      ),
+                    ChatSearchResultListItem(
+                      showLastMessage: true,
+                      item: searchResults[index],
                     ),
-                  ChatSearchResultListItem(
-                    showLastMessage: true,
-                    item: searchResults[index],
-                  ),
-                  if (index == searchResults.length - 1)
-                    Padding(
-                      padding: EdgeInsetsDirectional.only(bottom: 12.s),
-                      child: const HorizontalSeparator(),
-                    ),
-                ],
-              );
-            },
+                    if (index == searchResults.length - 1)
+                      Padding(
+                        padding: EdgeInsetsDirectional.only(bottom: 12.s),
+                        child: const HorizontalSeparator(),
+                      )
+                    else
+                      const HorizontalSeparator(),
+                  ],
+                );
+              },
+              childCount: searchResults.length,
+            ),
           ),
       ],
       onRefresh: () async {
