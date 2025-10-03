@@ -168,6 +168,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
   Future<MediaFile> getThumbnail(
     MediaFile videoFile, {
     String? thumb,
+    String? timestamp,
   }) async {
     try {
       var thumbPath = thumb;
@@ -180,6 +181,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
           FFmpegCommands.extractThumbnail(
             videoPath: videoFile.path,
             outputPath: outputPath,
+            timestamp: timestamp ?? '00:00:01.000',
           ),
           sessionResultCompleter,
         );
