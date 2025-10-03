@@ -101,44 +101,46 @@ class PostSubmitButton extends HookConsumerWidget {
                 .read(mediaServiceProvider)
                 .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
 
-        // NSFW validation: block posting if any selected image is NSFW
-        final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, filesToUpload);
-        if (isBlocked) return;
+        if (context.mounted) {
+          // NSFW validation: block posting if any selected image is NSFW
+          final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, filesToUpload);
+          if (isBlocked) return;
 
-        final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
+          final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
 
-        if (modifiedEvent != null) {
-          unawaited(
-            notifier.modify(
-              content: textEditorController.document.toDelta(),
-              mediaFiles: filesToUpload,
-              mediaAttachments: mediaAttachments,
-              eventReference: modifiedEvent!,
-              whoCanReply: whoCanReply,
-              topics: selectedTopics,
-              poll: PollUtils.pollDraftToPollData(draftPoll),
-              language: language,
-            ),
-          );
-        } else {
-          unawaited(
-            notifier.create(
-              content: textEditorController.document.toDelta(),
-              parentEvent: parentEvent,
-              quotedEvent: quotedEvent,
-              mediaFiles: filesToUpload,
-              whoCanReply: whoCanReply,
-              topics: selectedTopics,
-              poll: PollUtils.pollDraftToPollData(draftPoll),
-              language: language,
-            ),
-          );
-        }
+          if (modifiedEvent != null) {
+            unawaited(
+              notifier.modify(
+                content: textEditorController.document.toDelta(),
+                mediaFiles: filesToUpload,
+                mediaAttachments: mediaAttachments,
+                eventReference: modifiedEvent!,
+                whoCanReply: whoCanReply,
+                topics: selectedTopics,
+                poll: PollUtils.pollDraftToPollData(draftPoll),
+                language: language,
+              ),
+            );
+          } else {
+            unawaited(
+              notifier.create(
+                content: textEditorController.document.toDelta(),
+                parentEvent: parentEvent,
+                quotedEvent: quotedEvent,
+                mediaFiles: filesToUpload,
+                whoCanReply: whoCanReply,
+                topics: selectedTopics,
+                poll: PollUtils.pollDraftToPollData(draftPoll),
+                language: language,
+              ),
+            );
+          }
 
-        if (onSubmitted != null) {
-          onSubmitted!();
-        } else if (context.mounted) {
-          ref.context.pop(true);
+          if (onSubmitted != null) {
+            onSubmitted!();
+          } else if (context.mounted) {
+            ref.context.pop(true);
+          }
         }
       },
     );

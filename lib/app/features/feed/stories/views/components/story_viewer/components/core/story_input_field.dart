@@ -35,7 +35,11 @@ class StoryInputField extends HookConsumerWidget {
     final body2 = textTheme.body2;
 
     useOnInit(
-      () => ref.read(storyPauseControllerProvider.notifier).paused = replyLoading || focused.value,
+      () {
+        if (ref.context.mounted) {
+          ref.read(storyPauseControllerProvider.notifier).paused = replyLoading || focused.value;
+        }
+      },
       [focused.value],
     );
 

@@ -145,7 +145,9 @@ class StoryRecordPage extends HookConsumerWidget {
               await _handleStoryPreviewResult(context, ref, result);
             }
           }
-          await ref.read(cameraControllerNotifierProvider.notifier).resumeCamera();
+          if (context.mounted) {
+            await ref.read(cameraControllerNotifierProvider.notifier).resumeCamera();
+          }
         } else if (mediaType == MediaType.image) {
           await ref
               .read(
@@ -196,7 +198,9 @@ class StoryRecordPage extends HookConsumerWidget {
             await _handleStoryPreviewResult(context, ref, result);
           }
         }
-        await ref.read(cameraControllerNotifierProvider.notifier).resumeCamera();
+        if (context.mounted) {
+          await ref.read(cameraControllerNotifierProvider.notifier).resumeCamera();
+        }
       },
     );
   }
@@ -233,19 +237,23 @@ class StoryRecordPage extends HookConsumerWidget {
           await _handleStoryPreviewResult(context, ref, result);
         }
       }
-      await ref.read(cameraControllerNotifierProvider.notifier).resumeCamera();
+      if (context.mounted) {
+        await ref.read(cameraControllerNotifierProvider.notifier).resumeCamera();
+      }
     } else if (mediaType == MediaType.image) {
-      await ref
-          .read(
-            imageProcessorNotifierProvider(ImageProcessingType.story).notifier,
-          )
-          .process(
-            assetId: file.path,
-            cropUiSettings: ref.read(mediaServiceProvider).buildCropImageUiSettings(
-              context,
-              aspectRatioPresets: [CropAspectRatioPreset.ratio16x9],
-            ),
-          );
+      if (context.mounted) {
+        await ref
+            .read(
+              imageProcessorNotifierProvider(ImageProcessingType.story).notifier,
+            )
+            .process(
+              assetId: file.path,
+              cropUiSettings: ref.read(mediaServiceProvider).buildCropImageUiSettings(
+                context,
+                aspectRatioPresets: [CropAspectRatioPreset.ratio16x9],
+              ),
+            );
+      }
     }
   }
 

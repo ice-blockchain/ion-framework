@@ -52,10 +52,12 @@ class StoryContextMenu extends HookConsumerWidget {
           ),
         );
 
-        if ((confirmed ?? false) && context.mounted) {
-          Navigator.of(context).pop();
-        } else {
-          ref.read(storyPauseControllerProvider.notifier).paused = false;
+        if (context.mounted) {
+          if (confirmed ?? false) {
+            Navigator.of(context).pop();
+          } else {
+            ref.read(storyPauseControllerProvider.notifier).paused = false;
+          }
         }
 
         isDeletingStory.value = false;

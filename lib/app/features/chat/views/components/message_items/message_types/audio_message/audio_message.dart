@@ -76,7 +76,7 @@ class AudioMessage extends HookConsumerWidget {
           ),
         )
             .then((value) {
-          if (value != null) {
+          if (value != null && context.mounted) {
             ref.read(audioCompressorProvider).compressAudioToWav(value.path).then((value) {
               audioUrl.value = value;
             });

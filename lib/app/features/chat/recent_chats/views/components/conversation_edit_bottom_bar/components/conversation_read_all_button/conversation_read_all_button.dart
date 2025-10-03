@@ -37,8 +37,10 @@ class ConversationReadAllButton extends ConsumerWidget {
           }),
         );
 
-        ref.read(conversationsEditModeProvider.notifier).editMode = false;
-        ref.read(selectedConversationsProvider.notifier).clear();
+        if (context.mounted) {
+          ref.read(conversationsEditModeProvider.notifier).editMode = false;
+          ref.read(selectedConversationsProvider.notifier).clear();
+        }
       },
       child: Row(
         children: [

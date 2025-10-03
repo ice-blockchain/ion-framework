@@ -24,10 +24,14 @@ void usePreloadStoryMedia(
   final context = useContext();
   final hasRegistered = useRef(false);
   final registeredStoryId = useRef<String?>(null);
+
   useOnInit(
     () {
       if (story == null) return;
       final storyId = story.id;
+      if (!context.mounted) {
+        return;
+      }
       final feedRegistry = ref.read(storyFeedPrefetchRegistryProvider(sessionPubkey));
       if (feedRegistry.contains(storyId)) {
         return;
@@ -52,7 +56,7 @@ void usePreloadStoryMedia(
       if (story == null) return null;
       final storyId = story.id;
       return () {
-        if (!hasRegistered.value || registeredStoryId.value != storyId) {
+        if (!hasRegistered.value || registeredStoryId.value != storyId || !context.mounted) {
           return;
         }
         ref.read(storyFeedPrefetchRegistryProvider(sessionPubkey).notifier).remove(storyId);
@@ -71,7 +75,7 @@ Future<void> preloadStoryMedia({
   required String sessionPubkey,
 }) async {
   final media = story.data.primaryMedia;
-  if (media == null) return;
+  if (media == null || !context.mounted) return;
 
   if (media.mediaType == MediaType.image) {
     final cacheManager = ref.read(storyImageCacheManagerProvider);
@@ -105,6 +109,7 @@ Future<void> preloadStoryMedia({
       uniqueId: story.id,
     );
 
+    if (!context.mounted) return;
     await ref.read(
       storyVideoControllerProvider(
         StoryVideoControllerParams(

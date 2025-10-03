@@ -132,12 +132,14 @@ class SharedStoryMessage extends HookConsumerWidget {
                       )
                       .setUserStoryByReference(storyEntity.toEventReference());
 
-                  storyViewerState = ref.read(
-                    userStoriesViewingNotifierProvider(
-                      storyEntity.masterPubkey,
-                      showOnlySelectedUser: true,
-                    ),
-                  );
+                  if (context.mounted) {
+                    storyViewerState = ref.read(
+                      userStoriesViewingNotifierProvider(
+                        storyEntity.masterPubkey,
+                        showOnlySelectedUser: true,
+                      ),
+                    );
+                  }
                 }
 
                 if (context.mounted && storyViewerState.userStories.isNotEmpty) {

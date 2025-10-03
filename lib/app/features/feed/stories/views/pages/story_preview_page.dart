@@ -180,10 +180,9 @@ class StoryPreviewPage extends HookConsumerWidget {
                               language: language,
                             );
                           }
-
-                          _refreshProviders(ref);
-
                           if (context.mounted) {
+                            _refreshProviders(ref);
+
                             isPublishing.value = false;
                           }
                         },

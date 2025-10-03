@@ -214,31 +214,34 @@ class SignInStep extends HookConsumerWidget {
         localCredsOnly: true,
         twoFaTypes: twoFAOptions.value,
       );
-      final loginState = ref.read(loginActionNotifierProvider);
-      if (loginState.hasError) {
-        if (ref.context.mounted &&
-            loginState.error is NoLocalPasskeyCredsFoundIONIdentityException) {
-          final proceed = await showSimpleBottomSheet<bool>(
-            context: ref.context,
-            child: const NoLocalPasskeyCredsPopup(),
-          );
-          if (ref.context.mounted && proceed != null && proceed) {
-            await showSignInDialog(
-              ref,
-              identityKeyName: usernameRef.value,
-              localCredsOnly: false,
-              twoFaTypes: twoFAOptions.value,
+
+      if (ref.context.mounted) {
+        final loginState = ref.read(loginActionNotifierProvider);
+        if (loginState.hasError) {
+          if (ref.context.mounted &&
+              loginState.error is NoLocalPasskeyCredsFoundIONIdentityException) {
+            final proceed = await showSimpleBottomSheet<bool>(
+              context: ref.context,
+              child: const NoLocalPasskeyCredsPopup(),
             );
-            if (ref.context.mounted && !ref.read(loginActionNotifierProvider).hasError) {
-              await onSuggestToCreatePasskeyCreds(username);
+            if (ref.context.mounted && proceed != null && proceed) {
+              await showSignInDialog(
+                ref,
+                identityKeyName: usernameRef.value,
+                localCredsOnly: false,
+                twoFaTypes: twoFAOptions.value,
+              );
+              if (ref.context.mounted && !ref.read(loginActionNotifierProvider).hasError) {
+                await onSuggestToCreatePasskeyCreds(username);
+              }
             }
           }
+        } else if (loginPassword != null) {
+          await onSuggestToAddBiometrics(
+            username: username,
+            password: loginPassword,
+          );
         }
-      } else if (loginPassword != null) {
-        await onSuggestToAddBiometrics(
-          username: username,
-          password: loginPassword,
-        );
       }
     }
   }

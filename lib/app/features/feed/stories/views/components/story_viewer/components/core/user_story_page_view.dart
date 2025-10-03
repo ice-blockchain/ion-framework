@@ -48,7 +48,9 @@ class UserStoryPageView extends HookConsumerWidget {
     final currentStory = isCurrentUser ? stories[currentIndex] : stories.first;
     useOnInit(
       () {
-        ref.read(viewedStoriesProvider.notifier).markStoryAsViewed(currentStory);
+        if (context.mounted) {
+          ref.read(viewedStoriesProvider.notifier).markStoryAsViewed(currentStory);
+        }
       },
       [currentStory.id],
     );
