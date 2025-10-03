@@ -36,21 +36,21 @@ Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) a
 
   final result = <ChatSearchResultItem>[];
 
-  lastConversationEntities.reversed.toList().forEach((message) async {
+  for (final message in lastConversationEntities.reversed) {
     final receiverMasterPubkey = message.allPubkeys.firstWhereOrNull(
       (key) => key != currentUserMasterPubkey,
     );
 
-    if (receiverMasterPubkey == null) return;
+    if (receiverMasterPubkey == null) continue;
 
     final userMetadata = await ref.watch(userMetadataDaoProvider).get(receiverMasterPubkey);
 
-    if (userMetadata == null) return;
+    if (userMetadata == null) continue;
 
     final nameMatches = userMetadata.data.name.toLowerCase().contains(caseInsensitiveQuery);
     final displayNameMatches =
         userMetadata.data.displayName.toLowerCase().contains(caseInsensitiveQuery);
-    if (!nameMatches && !displayNameMatches) return;
+    if (!nameMatches && !displayNameMatches) continue;
 
     result.add(
       ChatSearchResultItem(
@@ -58,7 +58,7 @@ Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) a
         lastMessageContent: message.data.content,
       ),
     );
-  });
+  }
 
   return result;
 }
