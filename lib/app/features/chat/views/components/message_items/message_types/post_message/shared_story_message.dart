@@ -147,6 +147,7 @@ class SharedStoryMessage extends HookConsumerWidget {
                     StoryViewerRoute(
                       pubkey: storyEntity.masterPubkey,
                       initialStoryReference: storyEntity.toEventReference().encode(),
+                      showOnlySelectedUser: true,
                     ).push<void>(context),
                   );
                 }
