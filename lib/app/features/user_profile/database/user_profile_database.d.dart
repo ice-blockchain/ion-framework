@@ -36,7 +36,12 @@ class UserProfileDatabase extends _$UserProfileDatabase {
   static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
     final databaseName = 'user_profile_database_$pubkey';
     if (appGroupId == null) {
-      return driftDatabase(name: databaseName);
+      return driftDatabase(
+        name: databaseName,
+        native: DriftNativeOptions(
+          setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
+        ),
+      );
     }
 
     return driftDatabase(
@@ -45,6 +50,7 @@ class UserProfileDatabase extends _$UserProfileDatabase {
         databasePath: () async =>
             getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroupId),
         shareAcrossIsolates: true,
+        setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
       ),
     );
   }

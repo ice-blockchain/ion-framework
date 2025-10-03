@@ -50,6 +50,11 @@ class OptimisticUiDatabase extends _$OptimisticUiDatabase {
   }
 
   static QueryExecutor _openConnection(String pubkey) {
-    return driftDatabase(name: 'optimistic_ui_database_$pubkey');
+    return driftDatabase(
+      name: 'optimistic_ui_database_$pubkey',
+      native: DriftNativeOptions(
+        setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
+      ),
+    );
   }
 }
