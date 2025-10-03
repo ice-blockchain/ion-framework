@@ -106,6 +106,7 @@ class EntityDeleteConfirmationModal extends HookConsumerWidget {
   }
 
   void _refreshProviders(WidgetRef ref, EventReference eventReference) {
+    if (ref.context.mounted) return;
     final pubkey = ref.read(currentPubkeySelectorProvider) ?? '';
     final id = switch (eventReference) {
       ImmutableEventReference() => eventReference.eventId,

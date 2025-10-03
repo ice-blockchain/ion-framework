@@ -90,12 +90,16 @@ class ActionButton extends HookConsumerWidget {
             isRecordingCancelled.value = false;
             await startRecording();
             if (isRecordingCancelled.value) {
-              ref.invalidate(voiceRecordingActiveStateProvider);
+              if (context.mounted) {
+                ref.invalidate(voiceRecordingActiveStateProvider);
+              }
               await recorderController.stop();
               return;
             }
-            ref.read(voiceRecordingActiveStateProvider.notifier).start();
-            unawaited(HapticFeedback.lightImpact());
+            if (context.mounted) {
+              ref.read(voiceRecordingActiveStateProvider.notifier).start();
+              unawaited(HapticFeedback.lightImpact());
+            }
           } else {
             unawaited(
               ref.read(permissionsProvider.notifier).requestPermission(Permission.microphone),

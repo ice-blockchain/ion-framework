@@ -47,6 +47,9 @@ class UrlPreview extends HookConsumerWidget {
     }
 
     useOnInit(() {
+      if (!context.mounted) {
+        return;
+      }
       final urlMetadata = ref.read(urlMetadataProvider(normalizedUrl));
       if (urlMetadata.valueOrNull != null && !urlMetadata.isLoading) {
         metaListener?.call(urlMetadata.valueOrNull);
@@ -54,6 +57,10 @@ class UrlPreview extends HookConsumerWidget {
     });
 
     final favIconUrl = _resolveFavIconUrl(normalizedUrl);
+
+    if (!context.mounted) {
+      return builder(null, null);
+    }
 
     final metadataAsync = ref.watch(urlMetadataProvider(normalizedUrl));
     ref.listen(urlMetadataProvider(normalizedUrl), (_, next) {

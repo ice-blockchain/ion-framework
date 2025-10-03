@@ -45,7 +45,9 @@ class StoryViewerActionButtons extends ConsumerWidget {
               eventReference: post.toEventReference().encode(),
             ).push<void>(context);
 
-            ref.read(storyPauseControllerProvider.notifier).paused = false;
+            if (context.mounted) {
+              ref.read(storyPauseControllerProvider.notifier).paused = false;
+            }
           },
         ),
         SizedBox(height: 16.0.s),

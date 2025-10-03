@@ -72,24 +72,26 @@ class FillProfile extends HookConsumerWidget {
           ],
         );
         isLoading.value = false;
-        if (ref.read(userNicknameNotifierProvider).hasError ||
-            (referral.isNotEmpty && ref.read(userReferralNotifierProvider).hasError)) {
-          return;
-        }
-
-        final pickedAvatar = ref
-            .read(imageProcessorNotifierProvider(ImageProcessingType.avatar))
-            .whenOrNull(processed: (file) => file);
-        if (pickedAvatar != null) {
-          ref.read(onboardingDataProvider.notifier).avatar = pickedAvatar;
-        }
-        ref.read(onboardingDataProvider.notifier).name = nickname.value;
-        ref.read(onboardingDataProvider.notifier).displayName = name.value;
-        if (referral.isNotEmpty) {
-          ref.read(onboardingDataProvider.notifier).referralName = referral;
-        }
         if (context.mounted) {
-          await SelectLanguagesRoute().push<void>(context);
+          if (ref.read(userNicknameNotifierProvider).hasError ||
+              (referral.isNotEmpty && ref.read(userReferralNotifierProvider).hasError)) {
+            return;
+          }
+
+          final pickedAvatar = ref
+              .read(imageProcessorNotifierProvider(ImageProcessingType.avatar))
+              .whenOrNull(processed: (file) => file);
+          if (pickedAvatar != null) {
+            ref.read(onboardingDataProvider.notifier).avatar = pickedAvatar;
+          }
+          ref.read(onboardingDataProvider.notifier).name = nickname.value;
+          ref.read(onboardingDataProvider.notifier).displayName = name.value;
+          if (referral.isNotEmpty) {
+            ref.read(onboardingDataProvider.notifier).referralName = referral;
+          }
+          if (context.mounted) {
+            await SelectLanguagesRoute().push<void>(context);
+          }
         }
       }
     });

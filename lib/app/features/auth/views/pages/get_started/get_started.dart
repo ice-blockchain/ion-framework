@@ -110,24 +110,26 @@ class GetStartedPage extends HookConsumerWidget {
         provider: loginActionNotifierProvider,
         identityKeyName: identityKeyName,
         requestWithVerifyIdentity: (OnVerifyIdentity<AssertionRequestData> onVerifyIdentity) {
-          ref.read(loginActionNotifierProvider.notifier).signIn(
-                keyName: identityKeyName,
-                onVerifyIdentity: ({
-                  required onPasskeyFlow,
-                  required onPasswordFlow,
-                  required onBiometricsFlow,
-                }) =>
-                    onVerifyIdentity(
-                  onPasskeyFlow: onPasskeyFlow,
-                  onBiometricsFlow: onBiometricsFlow,
-                  onPasswordFlow: ({required String password}) {
-                    loginPassword = password;
-                    return onPasswordFlow(password: password);
-                  },
-                ),
-                twoFaTypes: twoFaTypes,
-                localCredsOnly: localCredsOnly,
-              );
+          if (ref.context.mounted) {
+            ref.read(loginActionNotifierProvider.notifier).signIn(
+                  keyName: identityKeyName,
+                  onVerifyIdentity: ({
+                    required onPasskeyFlow,
+                    required onPasswordFlow,
+                    required onBiometricsFlow,
+                  }) =>
+                      onVerifyIdentity(
+                    onPasskeyFlow: onPasskeyFlow,
+                    onBiometricsFlow: onBiometricsFlow,
+                    onPasswordFlow: ({required String password}) {
+                      loginPassword = password;
+                      return onPasswordFlow(password: password);
+                    },
+                  ),
+                  twoFaTypes: twoFaTypes,
+                  localCredsOnly: localCredsOnly,
+                );
+          }
         },
         child: child,
       ),

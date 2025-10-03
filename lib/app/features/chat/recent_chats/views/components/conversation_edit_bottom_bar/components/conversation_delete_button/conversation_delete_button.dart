@@ -29,8 +29,10 @@ class ConversationDeleteButton extends ConsumerWidget {
           conversationIds: conversationsToManage.map((e) => e.conversationId).toList(),
         ).push<void>(context);
 
-        ref.invalidate(selectedConversationsProvider);
-        ref.read(conversationsEditModeProvider.notifier).editMode = false;
+        if (context.mounted) {
+          ref.invalidate(selectedConversationsProvider);
+          ref.read(conversationsEditModeProvider.notifier).editMode = false;
+        }
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
