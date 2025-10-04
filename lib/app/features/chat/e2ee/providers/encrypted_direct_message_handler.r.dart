@@ -53,7 +53,6 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
     final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
     await _addDirectMessageToDatabase(rumor);
     unawaited(_sendReceivedStatus(rumor));
-    unawaited(userProfileSyncProvider.syncUserProfile(masterPubkeys: {rumor.masterPubkey}));
 
     return entity.toEventReference();
   }
