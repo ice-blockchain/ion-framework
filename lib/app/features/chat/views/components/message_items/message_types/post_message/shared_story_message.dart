@@ -210,7 +210,7 @@ class _StoryOwnerUserInfo extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataFromDbProvider(masterPubkey));
+    final userMetadata = ref.watch(userMetadataProvider(masterPubkey)).valueOrNull;
 
     final isDeleted = ref.watch(isUserDeletedProvider(masterPubkey)).valueOrNull ?? false;
 
