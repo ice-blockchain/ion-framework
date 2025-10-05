@@ -45,7 +45,9 @@ class ContentCreationBlockedModal extends ConsumerWidget {
                 label: Text(locale.button_try_again),
                 leadingIcon: Assets.svg.iconbuttonTryagain.icon(size: 24.s),
                 onPressed: () {
-                  invalidateCurrentUserMetadataProviders(ref);
+                  ref
+                      .read(userMetadataInvalidatorNotifierProvider.notifier)
+                      .invalidateCurrentUserMetadataProviders();
                 },
               ),
             ],

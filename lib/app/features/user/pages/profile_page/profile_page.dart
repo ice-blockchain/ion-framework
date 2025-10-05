@@ -84,7 +84,9 @@ class ProfilePage extends HookConsumerWidget {
             .read(ionConnectDatabaseCacheProvider.notifier)
             .remove(userMetadata.value!.toEventReference().toString());
 
-        invalidateCurrentUserMetadataProviders(ref);
+        ref
+            .read(userMetadataInvalidatorNotifierProvider.notifier)
+            .invalidateCurrentUserMetadataProviders();
 
         ref.read(ionConnectCacheProvider.notifier).remove(
               EventCountResultEntity.cacheKeyBuilder(

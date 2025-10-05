@@ -4,12 +4,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_event_handler.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/service_pubkeys_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'badge_award_handler.r.g.dart';
@@ -33,6 +35,7 @@ class BadgeAwardHandler extends GlobalSubscriptionEventHandler {
     }
 
     final isVerified = ref.read(isUserVerifiedProvider(currentPubkey));
+
     if (isVerified) {
       return;
     }
@@ -50,13 +53,26 @@ class BadgeAwardHandler extends GlobalSubscriptionEventHandler {
           awardId: badgeAwardEntity.id,
         ),
       ];
+
       final updatedData = await ref.read(
         updatedProfileBadgesProvider(
           badgeEntries,
           currentPubkey,
         ).future,
       );
+
       await ref.read(ionConnectNotifierProvider.notifier).sendEntitiesData([updatedData]);
+
+      final userMetadata = await ref.watch(userMetadataProvider(currentPubkey).future);
+
+      if (userMetadata != null) {
+        await ref
+            .read(ionConnectDatabaseCacheProvider.notifier)
+            .remove(userMetadata.toEventReference().toString());
+        await ref
+            .read(userMetadataInvalidatorNotifierProvider.notifier)
+            .invalidateCurrentUserMetadataProviders();
+      }
     }
   }
 }

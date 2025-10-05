@@ -27,12 +27,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'global_subscription.r.g.dart';
 
-enum EventSource {
-  pFilter,
-  qFilter,
-  subscription,
-}
-
 class GlobalSubscription {
   GlobalSubscription({
     required this.currentUserMasterPubkey,
@@ -60,9 +54,11 @@ class GlobalSubscription {
     GenericRepostEntity.modifiablePostRepostKind,
     ArticleEntity.kind,
   ];
-  // Used when we reinstall the app to refetch all encrypted events
-  int? _inMemoryEncryptedSince;
   static const List<int> _encryptedEventKinds = [IonConnectGiftWrapEntity.kind];
+
+  int? _inMemoryPFilterSince;
+  int? _inMemoryQFilterSince;
+  int? _inMemoryEncryptedSince;
 
   void init() {
     final now = DateTime.now().microsecondsSinceEpoch;
@@ -108,7 +104,10 @@ class GlobalSubscription {
                 ],
               },
             ),
-            onEvent: (event) => _handleEvent(event, eventSource: EventSource.pFilter),
+            onEvent: (event) {
+              _inMemoryPFilterSince ??= event.createdAt.toMicroseconds;
+              _handleEvent(event);
+            },
           )
           .then((result) => (RegularFilterType.pFilter, result)),
     );
@@ -127,7 +126,10 @@ class GlobalSubscription {
                 ],
               },
             ),
-            onEvent: (event) => _handleEvent(event, eventSource: EventSource.qFilter),
+            onEvent: (event) {
+              _inMemoryQFilterSince ??= event.createdAt.toMicroseconds;
+              _handleEvent(event);
+            },
           )
           .then((result) => (RegularFilterType.qFilter, result)),
     );
@@ -139,11 +141,6 @@ class GlobalSubscription {
     for (final (filterType, timestamp) in backfillResults) {
       await latestEventTimestampService.updateRegularFilter(timestamp, filterType);
     }
-
-    // If there was an incomplete restoration of encrypted events from a previous session
-    // (e.g., user closed the app or moved it to the background), we should restart the subscription
-    // and refetch all encrypted events. This is indicated by _inMemoryEncryptedSince being not null.
-    final shouldRefetchAllEncrypted = _inMemoryEncryptedSince != null;
 
     // If we have an encrypted timestamp in storage, we subtract 2 days to account
     // for the potential random timestamp range of encrypted events. This ensures
@@ -158,7 +155,7 @@ class GlobalSubscription {
     unawaited(
       _subscribe(
         eventLimit: 100,
-        encryptedSince: shouldRefetchAllEncrypted ? null : encryptedLatestTimestampFromStorage,
+        encryptedSince: encryptedLatestTimestampFromStorage,
       ),
     );
   }
@@ -218,52 +215,31 @@ class GlobalSubscription {
             latestEventTimestampService.updateEncryptedTimestampInStorage();
             _inMemoryEncryptedSince = null;
           }
+          if (_inMemoryPFilterSince != null) {
+            latestEventTimestampService.updateRegularFilter(
+              _inMemoryPFilterSince!,
+              RegularFilterType.pFilter,
+            );
+          }
+          if (_inMemoryQFilterSince != null) {
+            latestEventTimestampService.updateRegularFilter(
+              _inMemoryQFilterSince!,
+              RegularFilterType.qFilter,
+            );
+          }
         },
-        onEvent: (event) => _handleEvent(event, eventSource: EventSource.subscription),
+        onEvent: (event) {
+          _inMemoryEncryptedSince ??= event.createdAt.toMicroseconds;
+          _handleEvent(event);
+        },
       );
     } catch (e) {
       throw GlobalSubscriptionSubscribeException(e);
     }
   }
 
-  Future<void> _handleEvent(
-    EventMessage eventMessage, {
-    required EventSource eventSource,
-  }) async {
+  Future<void> _handleEvent(EventMessage eventMessage) async {
     try {
-      final eventType = eventMessage.kind == IonConnectGiftWrapEntity.kind
-          ? EventType.encrypted
-          : EventType.regular;
-
-      final eventTimestamp = eventMessage.createdAt.toMicroseconds;
-
-      if (eventType == EventType.regular) {
-        switch (eventSource) {
-          case EventSource.pFilter:
-            await latestEventTimestampService.updateRegularFilter(
-              eventTimestamp,
-              RegularFilterType.pFilter,
-            );
-          case EventSource.qFilter:
-            await latestEventTimestampService.updateRegularFilter(
-              eventTimestamp,
-              RegularFilterType.qFilter,
-            );
-          case EventSource.subscription:
-            await latestEventTimestampService.updateAllRegularTimestamps(eventTimestamp);
-        }
-      } else {
-        // For encrypted events, we only update the in-memory timestamp until
-        // we finish restoring all encrypted events, then we update the storage
-        // timestamp to avoid refetching them on next app start
-        final hasTimestampInStorage = latestEventTimestampService.getEncryptedTimestamp() != null;
-        if (!hasTimestampInStorage) {
-          _inMemoryEncryptedSince ??= eventTimestamp;
-        } else {
-          await latestEventTimestampService.updateEncryptedTimestampInStorage();
-        }
-      }
-
       globalSubscriptionEventDispatcher.dispatch(eventMessage);
     } catch (e) {
       throw GlobalSubscriptionEventMessageHandlingException(e);
