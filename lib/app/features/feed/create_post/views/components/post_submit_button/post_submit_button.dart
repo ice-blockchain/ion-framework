@@ -124,7 +124,7 @@ class PostSubmitButton extends HookConsumerWidget {
             );
           } else {
             //TODO: DELETE AFTER TESTING
-            for (var i = 0; i < 1000; i++) {
+            for (var i = 0; i < 1; i++) {
               await notifier.create(
                 content: Delta()..insert('test $i\n'),
                 parentEvent: parentEvent,
