@@ -30,6 +30,7 @@
 		A8ACC8E12CF89AB6009437D5 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A8ACC8DF2CF89AB6009437D5 /* Localizable.strings */; };
 		A8D084B92CFE283000BB0883 /* PhotoEditorModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8D084B82CFE283000BB0883 /* PhotoEditorModule.swift */; };
 		C8A68BF141BE5E639E434971 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5C388FFC5152BD17B14057CC /* GoogleService-Info.plist */; };
+		CCF928632E915D0D00C0825F /* VideoCompressionPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCF928622E915D0D00C0825F /* VideoCompressionPlugin.swift */; };
 		CF05CA692FD525023B8A1ADB /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF74CF83CAA6A5E7CC1FE5E7 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
@@ -98,6 +99,7 @@
 		A827DFE82D5BC6E700FC38CB /* luts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = luts; sourceTree = "<group>"; };
 		A8ACC8E02CF89AB6009437D5 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A8D084B82CFE283000BB0883 /* PhotoEditorModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoEditorModule.swift; sourceTree = "<group>"; };
+		CCF928622E915D0D00C0825F /* VideoCompressionPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCompressionPlugin.swift; sourceTree = "<group>"; };
 		E11D91F1BB409CD498BBD2F9 /* Pods_NotificationServiceExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationServiceExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE72D1C3337F269FC97F4D68 /* Pods-NotificationServiceExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.release.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.release.xcconfig"; sourceTree = "<group>"; };
 		EF74CF83CAA6A5E7CC1FE5E7 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -207,6 +209,7 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				CCF928622E915D0D00C0825F /* VideoCompressionPlugin.swift */,
 				6B71B0D42A978051000F7A98 /* Runner.entitlements */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
@@ -476,6 +479,7 @@
 				A827DFE52D5B83CB00FC38CB /* VideoEditorModule.swift in Sources */,
 				A827DFE72D5B874100FC38CB /* CustomViewFactory.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
+				CCF928632E915D0D00C0825F /* VideoCompressionPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

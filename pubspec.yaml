@@ -173,7 +173,6 @@ dependencies:
   uuid: ^4.5.1
   video_player: ^2.10.0
   video_player_win: ^2.3.11
-  video_toolbox: ^1.0.0
   visibility_detector: ^0.4.0+2
   wakelock_plus: ^1.2.11
   window_manager: ^0.4.2

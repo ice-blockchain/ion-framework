@@ -71,6 +71,8 @@ class VideoCompressionSettings {
   final FfmpegBitrateArg? videoBitrate;
 }
 
+const hardwareCompressionThreshold = Duration(seconds: 25);
+
 class VideoCompressor implements Compressor<VideoCompressionSettings> {
   VideoCompressor({
     required this.compressExecutor,
@@ -104,10 +106,13 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     VideoCompressionSettings? settings,
   }) async {
     if (Platform.isIOS) {
-      return iosNativeVideoCompressor.compress(
-        file,
-        settings: IosNativeVideoCompressionSettings.balanced,
-      );
+      final duration = file.duration;
+      if (duration != null && duration > hardwareCompressionThreshold.inSeconds) {
+        return iosNativeVideoCompressor.compress(
+          file,
+          settings: IosNativeVideoCompressionSettings.balanced,
+        );
+      }
     }
 
     settings ??= VideoCompressionSettings.balanced;
