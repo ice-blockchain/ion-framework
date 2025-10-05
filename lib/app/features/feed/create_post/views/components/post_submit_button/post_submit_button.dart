@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/quill_delta.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
@@ -122,9 +123,10 @@ class PostSubmitButton extends HookConsumerWidget {
               ),
             );
           } else {
-            unawaited(
-              notifier.create(
-                content: textEditorController.document.toDelta(),
+            //TODO: DELETE AFTER TESTING
+            for (var i = 0; i < 1000; i++) {
+              await notifier.create(
+                content: Delta()..insert('test $i\n'),
                 parentEvent: parentEvent,
                 quotedEvent: quotedEvent,
                 mediaFiles: filesToUpload,
@@ -132,14 +134,14 @@ class PostSubmitButton extends HookConsumerWidget {
                 topics: selectedTopics,
                 poll: PollUtils.pollDraftToPollData(draftPoll),
                 language: language,
-              ),
-            );
-          }
+              );
+            }
 
-          if (onSubmitted != null) {
-            onSubmitted!();
-          } else if (context.mounted) {
-            ref.context.pop(true);
+            if (onSubmitted != null) {
+              onSubmitted!();
+            } else if (context.mounted) {
+              ref.context.pop(true);
+            }
           }
         }
       },
