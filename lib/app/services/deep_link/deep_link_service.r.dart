@@ -26,6 +26,8 @@ import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/retry.dart';
+import 'package:ion/app/utils/url.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'deep_link_service.r.g.dart';
@@ -102,12 +104,26 @@ class DeeplinkPath extends _$DeeplinkPath {
 @Riverpod(keepAlive: true)
 DeepLinkService deepLinkService(Ref ref) {
   final env = ref.read(envProvider.notifier);
+  final devKey = env.get<String>(EnvVariable.AF_DEV_KEY);
+  final appId = env.get<String>(EnvVariable.AF_APP_ID);
   final templateId = env.get<String>(EnvVariable.AF_ONE_LINK_TEMPLATE_ID);
   final brandDomain = env.get<String>(EnvVariable.AF_BRAND_DOMAIN);
   final baseHost = env.get<String>(EnvVariable.AF_BASE_HOST);
 
+  final sdk = AppsflyerSdk(
+    AppsFlyerOptions(
+      afDevKey: devKey,
+      appId: appId,
+      appInviteOneLink: templateId,
+      disableAdvertisingIdentifier: true,
+      disableCollectASA: true,
+      showDebug: kDebugMode,
+      manualStart: true,
+    ),
+  );
+
   return DeepLinkService(
-    ref.watch(appsflyerSdkProvider),
+    sdk,
     templateId: templateId,
     brandDomain: brandDomain,
     baseHost: baseHost,
@@ -231,26 +247,6 @@ Future<void> deeplinkInitializer(Ref ref) async {
   );
 }
 
-@riverpod
-AppsflyerSdk appsflyerSdk(Ref ref) {
-  final env = ref.watch(envProvider.notifier);
-  final devKey = env.get<String>(EnvVariable.AF_DEV_KEY);
-  final templateId = env.get<String>(EnvVariable.AF_ONE_LINK_TEMPLATE_ID);
-  final appId = env.get<String>(EnvVariable.AF_APP_ID);
-
-  return AppsflyerSdk(
-    AppsFlyerOptions(
-      afDevKey: devKey,
-      appId: appId,
-      appInviteOneLink: templateId,
-      disableAdvertisingIdentifier: true,
-      disableCollectASA: true,
-      showDebug: kDebugMode,
-      manualStart: true,
-    ),
-  );
-}
-
 final class DeepLinkService {
   DeepLinkService(
     this._appsflyerSdk, {
@@ -282,6 +278,9 @@ final class DeepLinkService {
   Future<void> init({
     required void Function(String path, SharedContentType? contentType) onDeeplink,
   }) async {
+    await _appsflyerSdk.setAppInviteOneLinkID(_templateId, (dynamic data) {
+      Logger.log('AppsFlyer setAppInviteOneLinkIDCallback callback: $data');
+    });
     _appsflyerSdk
       ..onDeepLinking((link) {
         final path = link.deepLink?.deepLinkValue;
@@ -333,7 +332,8 @@ final class DeepLinkService {
   /// Creates a deep link for the given path using AppsFlyer
   ///
   /// Returns the generated deep link URL, or a fallback URL if generation fails.
-  /// The method has a timeout to prevent hanging indefinitely.
+  /// The method has a timeout to prevent hanging indefinitely and retry logic
+  /// to handle cases where AppsFlyer returns invalid URLs.
   ///
   /// [path] - The path to encode in the deep link
   /// [contentType] - The type of content being shared (required)
@@ -352,6 +352,47 @@ final class DeepLinkService {
       return _fallbackUrl;
     }
 
+    try {
+      return await withRetry(
+        ({error}) async {
+          final result = await _generateInviteLink(
+            path: path,
+            contentType: contentType,
+            ogTitle: ogTitle,
+            ogImageUrl: ogImageUrl,
+            ogDescription: ogDescription,
+          );
+
+          if (isOneLinkUrl(result)) {
+            Logger.log('Deep link generated successfully: $result');
+            return result;
+          } else {
+            Logger.warning('Invalid URL returned: $result');
+            throw Exception('Invalid URL returned: $result');
+          }
+        },
+        maxRetries: 3,
+        initialDelay: const Duration(milliseconds: 200),
+        maxDelay: const Duration(milliseconds: 300),
+        onRetry: (error) {
+          Logger.log('Retrying deep link generation due to: $error');
+        },
+      );
+    } catch (error) {
+      Logger.error(
+        'Deep link generation failed after all retries: $error',
+      );
+      return _fallbackUrl;
+    }
+  }
+
+  Future<String> _generateInviteLink({
+    required String path,
+    SharedContentType? contentType,
+    String? ogTitle,
+    String? ogImageUrl,
+    String? ogDescription,
+  }) async {
     final completer = Completer<String>();
 
     try {
