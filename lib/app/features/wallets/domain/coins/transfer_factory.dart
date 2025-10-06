@@ -3,6 +3,11 @@
 part of 'coins_service.r.dart';
 
 class _TransferFactory {
+  String _convertAmount(double amountValue, int decimals) {
+    final str = amountValue.toStringAsFixed(decimals);
+    return BigInt.parse(str.replaceAll('.', '')).toString();
+  }
+
   Transfer create({
     required String receiverAddress,
     required double amountValue,
@@ -10,8 +15,7 @@ class _TransferFactory {
     NetworkFeeType? networkFeeType,
     String? memo,
   }) {
-    final amount = BigInt.from(amountValue * BigInt.from(10).pow(sendableAsset.decimals).toDouble())
-        .toString();
+    final amount = _convertAmount(amountValue, sendableAsset.decimals);
     final priority = switch (networkFeeType) {
       NetworkFeeType.fast => TransferPriority.fast,
       NetworkFeeType.standard => TransferPriority.standard,
