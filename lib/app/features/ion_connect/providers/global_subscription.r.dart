@@ -237,6 +237,9 @@ class GlobalSubscription {
         ' formatted:  ${encryptedSince != null ? DateTime.fromMicrosecondsSinceEpoch(encryptedSince).toIso8601String() : 'null'}',
       );
 
+      Logger.log(
+          '[GLOBAL_SUBSCRIPTION] _subscribe currentUserMasterPubkey: $currentUserMasterPubkey');
+
       final requestMessage = RequestMessage(
         filters: [
           RequestFilter(
@@ -333,6 +336,8 @@ class GlobalSubscription {
           : EventType.regular;
 
       final eventTimestamp = eventMessage.createdAt.toMicroseconds;
+
+      Logger.log('[GLOBAL_SUBSCRIPTION] _handleEvent eventMessage: $eventMessage');
 
       Logger.log('[GLOBAL_SUBSCRIPTION] _handleEvent regular event kind: ${eventMessage.kind}');
 

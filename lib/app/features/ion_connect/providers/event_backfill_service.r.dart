@@ -78,7 +78,7 @@ class EventBackfillService {
         ],
       );
 
-      var maxCreatedAt = previousMaxCreatedAt ?? 0;
+      var maxCreatedAt = previousMaxCreatedAt ?? initialLatestEventTimestamp;
       int? minCreatedAt;
       final regularIds = <String>{};
       await for (final event in ionConnectNotifier.requestEvents(
