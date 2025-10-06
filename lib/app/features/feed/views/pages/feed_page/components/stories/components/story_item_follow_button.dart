@@ -22,7 +22,6 @@ class StoryItemFollowButton extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isAlwaysShowButton = useState<bool>(false);
-    final followListState = ref.watch(currentUserFollowListProvider);
     final isFollowUser = ref.watch(
       isCurrentUserFollowingSelectorProvider(
         pubkey,
@@ -38,7 +37,7 @@ class StoryItemFollowButton extends HookConsumerWidget {
       username,
     );
 
-    if (isFollowUser && !isAlwaysShowButton.value || followListState.isLoading) {
+    if (isFollowUser && !isAlwaysShowButton.value) {
       return const SizedBox.shrink();
     }
 
