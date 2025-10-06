@@ -236,10 +236,6 @@ class GlobalSubscription {
         '[GLOBAL_SUBSCRIPTION] _subscribe encryptedSince: $encryptedSince'
         ' formatted:  ${encryptedSince != null ? DateTime.fromMicrosecondsSinceEpoch(encryptedSince).toIso8601String() : 'null'}',
       );
-
-      Logger.log(
-          '[GLOBAL_SUBSCRIPTION] _subscribe currentUserMasterPubkey: $currentUserMasterPubkey');
-
       final requestMessage = RequestMessage(
         filters: [
           RequestFilter(
