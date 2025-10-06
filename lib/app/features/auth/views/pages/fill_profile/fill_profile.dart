@@ -152,9 +152,7 @@ class FillProfile extends HookConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           onBackPress: () async {
             await ref.read(authProvider.notifier).signOut();
-            if (context.mounted) {
-              GetStartedRoute().go(context);
-            }
+            // Router will automatically redirect based on authentication state
           },
           children: [
             Form(
