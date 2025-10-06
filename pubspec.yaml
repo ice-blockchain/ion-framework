@@ -61,7 +61,7 @@ dependencies:
     git:
       url: https://github.com/ice-blockchain/ffmpeg-kit
       path: flutter/flutter
-      ref: local-binaries-v6.0.3
+      ref: main
   file: ^7.0.1
   file_picker: ^8.1.2
   file_saver: ^0.2.12

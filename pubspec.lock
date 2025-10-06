@@ -818,8 +818,8 @@ packages:
     dependency: "direct main"
     description:
       path: "flutter/flutter"
-      ref: "local-binaries-v6.0.3"
-      resolved-ref: "8c060d0ea894e05381b1708b0a64b19e7bf462ec"
+      ref: main
+      resolved-ref: c457f16e1181bf1f0491cafeea8b8c1c063c9ae2
       url: "https://github.com/ice-blockchain/ffmpeg-kit"
     source: git
     version: "6.0.3"
