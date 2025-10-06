@@ -88,23 +88,27 @@ class UserAlreadyExistsException extends IONIdentityException {
   const UserAlreadyExistsException() : super('User already exists');
 
   static bool isMatch(DioException dioException) {
-    final responseData = dioException.response?.data;
-
-    if (responseData == null) return false;
-    if (responseData is! String) return false;
+    // Backward compatibility with old response format (String)
+    final responseData = switch (dioException.response?.data) {
+      final Map<String, dynamic> mapData => mapData,
+      final String stringData => jsonDecode(stringData) as Map<String, dynamic>,
+      _ => null,
+    };
 
     try {
-      final jsonError = jsonDecode(responseData) as Map<String, dynamic>;
-      final error = jsonError['error'] as Map<String, dynamic>?;
-      if (error == null) return false;
+      if (responseData != null) {
+        final error = responseData['error'] as Map<String, dynamic>?;
+        if (error == null) return false;
 
-      final errorMessage = const UserAlreadyExistsException().message?.toLowerCase();
-      if (errorMessage == null) return false;
+        final errorMessage = const UserAlreadyExistsException().message?.toLowerCase();
+        if (errorMessage == null) return false;
 
-      final message = error['message']?.toString().toLowerCase();
-      if (message == null) return false;
+        final message = error['message']?.toString().toLowerCase();
+        if (message == null) return false;
 
-      return message.contains(errorMessage);
+        return message.contains(errorMessage);
+      }
+      return false;
     } catch (_) {
       return false;
     }
