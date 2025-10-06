@@ -38,7 +38,7 @@ class PushNotificationsSettings extends ConsumerWidget {
             pinned: true,
             delegate: _NavBarDelegate(
               child: NavigationAppBar.modal(
-                onBackPress: () => context.pop(true),
+                onBackPress: context.pop,
                 title: Text(context.i18n.settings_push_notifications),
                 actions: const [NavigationCloseButton()],
               ),
