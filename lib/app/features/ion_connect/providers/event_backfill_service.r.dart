@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:ui';
+
 import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -15,9 +18,11 @@ part 'event_backfill_service.r.g.dart';
 class EventBackfillService {
   EventBackfillService({
     required this.ionConnectNotifier,
+    required this.ref,
   });
 
   final IonConnectNotifier ionConnectNotifier;
+  final Ref ref;
 
   Future<int> startBackfill({
     required int latestEventTimestamp,
@@ -28,6 +33,7 @@ class EventBackfillService {
     int? tmpLastCreatedAt;
     while (true) {
       final (maxCreatedAt, stopFetching) = await _fetchPagedEvents(
+        initialLatestEventTimestamp: latestEventTimestamp,
         regularSince: tmpLastCreatedAt ?? latestEventTimestamp,
         filter: filter,
         onEvent: onEvent,
@@ -42,6 +48,7 @@ class EventBackfillService {
   }
 
   Future<(int maxCreatedAt, bool stopFetching)> _fetchPagedEvents({
+    required int initialLatestEventTimestamp,
     required RequestFilter filter,
     required void Function(EventMessage event) onEvent,
     int? regularSince,
@@ -52,6 +59,15 @@ class EventBackfillService {
     ActionSource? actionSource,
   }) async {
     try {
+      final appState = ref.read(appLifecycleProvider);
+      if (appState != AppLifecycleState.resumed) {
+        Logger.log(
+          '[GLOBAL_SUBSCRIPTION] _backfill stopping backfill because app is backgrounded',
+        );
+        // return the initial latest event timestamp
+        // to avoid setting invalid timestamp in storage
+        return (initialLatestEventTimestamp, true);
+      }
       final requestMessage = RequestMessage(
         filters: [
           filter.copyWith(
@@ -91,6 +107,7 @@ class EventBackfillService {
       }
 
       return _fetchPagedEvents(
+        initialLatestEventTimestamp: initialLatestEventTimestamp,
         regularSince: regularSince,
         regularUntil: minCreatedAt,
         previousMaxCreatedAt: maxCreatedAt,
@@ -115,5 +132,6 @@ EventBackfillService eventBackfillService(Ref ref) {
   final ionConnectNotifier = ref.watch(ionConnectNotifierProvider.notifier);
   return EventBackfillService(
     ionConnectNotifier: ionConnectNotifier,
+    ref: ref,
   );
 }

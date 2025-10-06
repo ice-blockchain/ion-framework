@@ -184,7 +184,7 @@ class GlobalSubscription {
       }),
     );
 
-    Logger.log('[GLOBAL_SUBSCRIPTION] _backfill pFilterTimestamp: $pFilterTimestamp');
+    Logger.log('[GLOBAL_SUBSCRIPTION] _backfill qFilterTimestamp: $qFilterTimestamp');
 
     // Q filter backfill
     backfillServices.add(
@@ -406,17 +406,12 @@ class GlobalSubscriptionNotifier extends _$GlobalSubscriptionNotifier {
 
   @override
   void build() {
-    ref
-      ..listen(appLifecycleProvider, (previous, next) {
-        if (next != AppLifecycleState.resumed) {
-          Logger.log('[GLOBAL_SUBSCRIPTION] _subscription cancel on lifecycle change');
-          _subscription?.cancel();
-        }
-      })
-      ..onDispose(() {
-        Logger.log('[GLOBAL_SUBSCRIPTION] _subscription cancel onDispose');
+    ref.listen(appLifecycleProvider, (previous, next) {
+      if (next != AppLifecycleState.resumed) {
+        Logger.log('[GLOBAL_SUBSCRIPTION] _subscription cancel on lifecycle change');
         _subscription?.cancel();
-      });
+      }
+    });
   }
 
   void subscribe(
