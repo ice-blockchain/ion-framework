@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
@@ -31,21 +32,23 @@ class StoryList extends ConsumerWidget {
 
     return SliverPadding(
       padding: EdgeInsets.symmetric(horizontal: ScreenSideOffset.defaultSmallMargin),
-      sliver: SliverList.builder(
-        itemCount: filteredPubkeys.length + 1,
-        itemBuilder: (_, index) {
-          if (index == 0) {
-            return CurrentUserStoryListItem(
-              gradient: storyBorderGradients.first,
-            );
-          }
+      sliver: ListCachedObjectsWrapper(
+        child: SliverList.builder(
+          itemCount: filteredPubkeys.length + 1,
+          itemBuilder: (_, index) {
+            if (index == 0) {
+              return CurrentUserStoryListItem(
+                gradient: storyBorderGradients.first,
+              );
+            }
 
-          final pubkey = filteredPubkeys[index - 1];
-          return StoryListItem(
-            key: Key('story_list_item_$pubkey'),
-            pubkey: pubkey,
-          );
-        },
+            final pubkey = filteredPubkeys[index - 1];
+            return StoryListItem(
+              key: Key('story_list_item_$pubkey'),
+              pubkey: pubkey,
+            );
+          },
+        ),
       ),
     );
   }
