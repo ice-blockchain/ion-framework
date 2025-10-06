@@ -9,6 +9,7 @@ import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_crypto_asset.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
+import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -25,6 +26,8 @@ class TransactionNotifier extends _$TransactionNotifier {
     required String txHash,
   }) async {
     final repository = await ref.watch(transactionsRepositoryProvider.future);
+    final walletData = await ref.watch(walletViewByIdProvider(id: walletViewId).future);
+
     _subscription = repository
         .watchTransactions(
           externalHashes: [txHash],
@@ -44,7 +47,7 @@ class TransactionNotifier extends _$TransactionNotifier {
           },
         )
         .distinct((list1, list2) => const ListEquality<TransactionData>().equals(list1, list2))
-        .listen(_handleTransactions);
+        .listen((transactions) => _handleTransactions(transactions, walletData.name));
 
     ref.onDispose(() {
       _subscription?.cancel();
@@ -53,7 +56,10 @@ class TransactionNotifier extends _$TransactionNotifier {
     return null;
   }
 
-  Future<void> _handleTransactions(List<TransactionData> transactions) async {
+  Future<void> _handleTransactions(
+    List<TransactionData> transactions,
+    String walletViewName,
+  ) async {
     try {
       if (transactions.isEmpty) {
         state = AsyncValue.error(Exception('No transaction was found'), StackTrace.current);
@@ -69,6 +75,7 @@ class TransactionNotifier extends _$TransactionNotifier {
       final transactionDetails = TransactionDetails.fromTransactionData(
         resolvedTransaction,
         coinsGroup: coinsGroup,
+        walletViewName: walletViewName,
       );
 
       state = AsyncValue.data(transactionDetails);
