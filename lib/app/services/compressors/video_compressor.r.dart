@@ -71,6 +71,9 @@ class VideoCompressionSettings {
   final FfmpegBitrateArg? videoBitrate;
 }
 
+// Video duration threshold for using hardware compression
+// Based on testing, the time difference between hardware and software compression is not significant 
+// until the video is longer than 25 seconds, but the file size is smaller with libx264
 const hardwareCompressionThreshold = Duration(seconds: 25);
 
 class VideoCompressor implements Compressor<VideoCompressionSettings> {
