@@ -38,10 +38,8 @@ class ImportTokenNotifier extends _$ImportTokenNotifier {
         await coinsRepository.updateCoins([tokenData.toDB()]);
       }
 
-      // Check if valid coin already exists in database
       final existingCoin = await coinsRepository.getCoinById(tokenData.id);
       if (existingCoin == null) {
-        // Save valid coin to database if it doesn't exist
         await coinsRepository.updateCoins([tokenData.toDB()]);
       }
 
