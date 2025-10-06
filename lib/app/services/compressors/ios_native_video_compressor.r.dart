@@ -28,7 +28,7 @@ class IosNativeVideoCompressionSettings {
   static const int defaultMaxDimension = 1080;
 
   static const balanced = IosNativeVideoCompressionSettings(
-    quality: 0.5,
+    quality: 0.75,
     height: defaultMaxDimension,
     realtime: true,
   );
@@ -54,8 +54,8 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
     MediaFile file, {
     IosNativeVideoCompressionSettings? settings,
   }) async {
+    final stopwatch = Stopwatch()..start();
     try {
-      final stopwatch = Stopwatch()..start();
       final originalFile = File(file.path);
       final originalSize = await originalFile.length();
 
@@ -87,14 +87,13 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
         'outputPath': output,
         'destWidth': targetDimensions.width,
         'destHeight': targetDimensions.height,
-        'codec': 'h264',
+        'codec': 'hevc',
         'quality': settings?.quality,
         'realtime': false,
       });
 
       final compressedFile = File(output);
       final compressedSize = await compressedFile.length();
-      stopwatch.stop();
 
       Logger.log(
         'Compressed video size: ${(compressedSize / 1024 / 1024).toStringAsFixed(2)} MB',
@@ -118,6 +117,8 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
         stackTrace: stackTrace,
       );
       rethrow;
+    } finally {
+      stopwatch.stop();
     }
   }
 
