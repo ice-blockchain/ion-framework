@@ -21,6 +21,8 @@ class ImportTokenNotifier extends _$ImportTokenNotifier {
       var tokenData = await ref.read(tokenDataNotifierProvider.future);
       if (tokenData == null) return;
 
+      final coinsRepository = ref.read(coinsRepositoryProvider);
+
       if (!tokenData.isValid) {
         final form = ref.read(tokenFormNotifierProvider);
         if (!form.canBeImported) {
@@ -33,7 +35,13 @@ class ImportTokenNotifier extends _$ImportTokenNotifier {
           decimals: form.decimals!,
         );
 
-        final coinsRepository = ref.read(coinsRepositoryProvider);
+        await coinsRepository.updateCoins([tokenData.toDB()]);
+      }
+
+      // Check if valid coin already exists in database
+      final existingCoin = await coinsRepository.getCoinById(tokenData.id);
+      if (existingCoin == null) {
+        // Save valid coin to database if it doesn't exist
         await coinsRepository.updateCoins([tokenData.toDB()]);
       }
 
