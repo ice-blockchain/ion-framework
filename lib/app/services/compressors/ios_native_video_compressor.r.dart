@@ -25,9 +25,11 @@ class IosNativeVideoCompressionSettings {
     required this.realtime,
   });
 
+  static const int defaultMaxDimension = 1080;
+
   static const balanced = IosNativeVideoCompressionSettings(
     quality: 0.5,
-    height: 1080,
+    height: defaultMaxDimension,
     realtime: true,
   );
 
@@ -53,7 +55,7 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
     IosNativeVideoCompressionSettings? settings,
   }) async {
     try {
-      final startTime = DateTime.now();
+      final stopwatch = Stopwatch()..start();
       final originalFile = File(file.path);
       final originalSize = await originalFile.length();
 
@@ -71,13 +73,13 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
       final targetDimensions = _calculateTargetDimensions(
         originalWidth: originalWidth,
         originalHeight: originalHeight,
-        maxDimension: settings?.height ?? 1080,
+        maxDimension: settings?.height ?? IosNativeVideoCompressionSettings.defaultMaxDimension,
       );
 
       Logger.log('Target dimensions: ${targetDimensions.width}x${targetDimensions.height}');
 
       Logger.log(
-        'Time since start: ${DateTime.now().difference(startTime).inSeconds}.${DateTime.now().difference(startTime).inMilliseconds % 1000}s',
+        'Time since start: ${stopwatch.elapsed.inSeconds}.${stopwatch.elapsed.inMilliseconds % 1000}s',
       );
 
       await _channel.invokeMethod('compressVideo', {
@@ -92,13 +94,13 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
 
       final compressedFile = File(output);
       final compressedSize = await compressedFile.length();
-      final compressionTime = DateTime.now().difference(startTime);
+      stopwatch.stop();
 
       Logger.log(
         'Compressed video size: ${(compressedSize / 1024 / 1024).toStringAsFixed(2)} MB',
       );
       Logger.log(
-        'Compression time: ${compressionTime.inSeconds}.${compressionTime.inMilliseconds % 1000}s',
+        'Compression time: ${stopwatch.elapsed.inSeconds}.${stopwatch.elapsed.inMilliseconds % 1000}s',
       );
 
       return MediaFile(
