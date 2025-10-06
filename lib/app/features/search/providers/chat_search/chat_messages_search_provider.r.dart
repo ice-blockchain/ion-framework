@@ -29,16 +29,16 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) as
 
   final result = <ChatSearchResultItem>[];
 
-  entities.sortedBy((entity) => entity.createdAt.toDateTime).reversed.forEach((message) async {
+  for (final message in entities.sortedBy((entity) => entity.createdAt.toDateTime).reversed) {
     final receiverMasterPubkey = message.allPubkeys.firstWhereOrNull(
       (key) => key != currentUserMasterPubkey,
     );
 
-    if (receiverMasterPubkey == null) return;
+    if (receiverMasterPubkey == null) continue;
 
     final userMetadata = await ref.watch(userMetadataDaoProvider).get(receiverMasterPubkey);
 
-    if (userMetadata == null) return;
+    if (userMetadata == null) continue;
 
     result.add(
       ChatSearchResultItem(
@@ -46,7 +46,7 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) as
         lastMessageContent: message.data.content,
       ),
     );
-  });
+  }
 
   return result;
 }
