@@ -426,6 +426,9 @@ class GlobalSubscriptionNotifier extends _$GlobalSubscriptionNotifier {
   }) {
     final appState = ref.watch(appLifecycleProvider);
     if (appState != AppLifecycleState.resumed) {
+      // Do not subscribe to the stream if the app is in the background.
+      // Subscribing while backgrounded can cause crashes and high resource usage,
+      // especially when processing encrypted events.
       return;
     }
     final stream = ref.watch(
