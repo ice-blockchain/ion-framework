@@ -31,6 +31,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'global_subscription.r.g.dart';
 
+enum EventSource {
+  pFilter,
+  qFilter,
+  subscription,
+}
+
 class GlobalSubscription {
   GlobalSubscription({
     required this.currentUserMasterPubkey,
@@ -58,126 +64,179 @@ class GlobalSubscription {
     GenericRepostEntity.modifiablePostRepostKind,
     ArticleEntity.kind,
   ];
-  static const List<int> _encryptedEventKinds = [IonConnectGiftWrapEntity.kind];
-
+  // Used when we reinstall the app to refetch all encrypted events
   int? _inMemoryEncryptedSince;
+  int? _inMemoryPFilterSince;
+  int? _inMemoryQFilterSince;
+
+  bool _isEoseProcessed = false;
+
+  static const List<int> _encryptedEventKinds = [IonConnectGiftWrapEntity.kind];
 
   void init() {
     Logger.log('[GLOBAL_SUBSCRIPTION] init');
     final now = DateTime.now().microsecondsSinceEpoch;
-    final encryptedTimestamp = latestEventTimestampService.getEncryptedTimestamp();
-    final pFilterTimestamp =
-        latestEventTimestampService.getRegularFilter(RegularFilterType.pFilter);
-    final qFilterTimestamp =
-        latestEventTimestampService.getRegularFilter(RegularFilterType.qFilter);
 
-    Logger.log(
-      '[GLOBAL_SUBSCRIPTION] INITIALIZATION encrypted timestamp: $encryptedTimestamp formatted: ${encryptedTimestamp != null ? DateTime.fromMicrosecondsSinceEpoch(encryptedTimestamp).toIso8601String() : 'null'}, '
-      'p filter timestamp: $pFilterTimestamp formatted: ${pFilterTimestamp != null ? DateTime.fromMicrosecondsSinceEpoch(pFilterTimestamp).toIso8601String() : 'null'}, '
-      'q filter timestamp: $qFilterTimestamp formatted: ${qFilterTimestamp != null ? DateTime.fromMicrosecondsSinceEpoch(qFilterTimestamp).toIso8601String() : 'null'}, '
-      'now: $now formatted: ${DateTime.fromMicrosecondsSinceEpoch(now).toIso8601String()}',
-    );
-
-    // if (pFilterTimestamp == null) {
-    //   latestEventTimestampService.updateRegularFilter(now, RegularFilterType.pFilter);
-    // }
-
-    // if (qFilterTimestamp == null) {
-    //   latestEventTimestampService.updateRegularFilter(now, RegularFilterType.qFilter);
-    // }
-
-    // if (encryptedTimestamp == null) {
-    //   latestEventTimestampService.updateEncryptedTimestampInStorage();
-    // }
-
-    _subscribe(
-      eventLimit: 100,
-      pFilterTimestamp: pFilterTimestamp ?? now,
-      qFilterTimestamp: qFilterTimestamp ?? now,
-      encryptedSince: encryptedTimestamp,
-    );
-
-    _backFillEvents(
-      pFilterTimestamp: pFilterTimestamp ?? now,
-      qFilterTimestamp: qFilterTimestamp ?? now,
-    );
-  }
-
-  Future<void> _backFillEvents({
-    required int pFilterTimestamp,
-    required int qFilterTimestamp,
-  }) async {
-    // Run backfill for each filter in parallel with separate event handlers
-
-    final pFilterBackfillService = eventBackfillService
-        .startBackfill(
-      latestEventTimestamp: pFilterTimestamp,
-      filter: RequestFilter(
-        kinds: _genericEventKinds,
-        tags: {
-          '#p': [
-            [currentUserMasterPubkey],
-          ],
-        },
-      ),
-      onEvent: _handleEvent,
-    )
-        .then((latestEventMessageCreatedAt) {
-      latestEventTimestampService.updateRegularFilter(
-        latestEventMessageCreatedAt,
-        RegularFilterType.pFilter,
-      );
-      return (RegularFilterType.pFilter, latestEventMessageCreatedAt);
-    });
-
-    final qFilterBackfillService = eventBackfillService
-        .startBackfill(
-      latestEventTimestamp: qFilterTimestamp,
-      filter: RequestFilter(
-        kinds: const [ModifiablePostEntity.kind],
-        tags: {
-          '#Q': [
-            [null, null, currentUserMasterPubkey],
-          ],
-        },
-      ),
-      onEvent: _handleEvent,
-    )
-        .then((latestEventMessageCreatedAt) {
-      latestEventTimestampService.updateRegularFilter(
-        latestEventMessageCreatedAt,
-        RegularFilterType.qFilter,
-      );
-      return (RegularFilterType.qFilter, latestEventMessageCreatedAt);
-    });
-
-    final backfillServices = <Future<(RegularFilterType, int)>>[
-      pFilterBackfillService,
-      qFilterBackfillService,
-    ];
-
-    final backfillResults = await Future.wait(backfillServices);
-
-    for (final result in backfillResults) {
-      Logger.log(
-        '[GLOBAL_SUBSCRIPTION] backfill result: ${result.$1} timestamp: ${result.$2} formatted: ${DateTime.fromMicrosecondsSinceEpoch(result.$2).toIso8601String()}',
+    if (latestEventTimestampService.hasNoRegularTimestamps()) {
+      // All filter timestamps are null, update them with now and start subscription
+      latestEventTimestampService.updateAllRegularTimestamps(now);
+      _startSubscription();
+    } else {
+      // All timestamps exist, proceed with reconnection
+      _reConnectToGlobalSubscription(
+        now: now,
       );
     }
   }
 
+  void _startSubscription() {
+    _subscribe(
+      eventLimit: 1,
+    );
+  }
+
+  Future<void> _reConnectToGlobalSubscription({
+    required int now,
+  }) async {
+    while (true) {
+      Logger.log('[GLOBAL_SUBSCRIPTION] _backfill restart');
+      final regularFilterTimestamps = latestEventTimestampService.getAllRegularFilterTimestamps();
+
+      final pFilterTimestamp = regularFilterTimestamps[RegularFilterType.pFilter];
+      final qFilterTimestamp = regularFilterTimestamps[RegularFilterType.qFilter];
+
+      Logger.log('[GLOBAL_SUBSCRIPTION] _backfill restart pFilterTimestamp: $pFilterTimestamp');
+      Logger.log('[GLOBAL_SUBSCRIPTION] _backfill restart qFilterTimestamp: $qFilterTimestamp');
+
+      final latestTimestamps = await _backfill(
+        pFilterTimestamp: pFilterTimestamp,
+        qFilterTimestamp: qFilterTimestamp,
+        now: now,
+      );
+
+      final fetchedPFilterTimestamp =
+          latestTimestamps.firstWhere((result) => result.$1 == RegularFilterType.pFilter).$2;
+      final fetchedQFilterTimestamp =
+          latestTimestamps.firstWhere((result) => result.$1 == RegularFilterType.qFilter).$2;
+
+      Logger.log(
+        '[GLOBAL_SUBSCRIPTION] _backfill restart fetchedPFilterTimestamp: $fetchedPFilterTimestamp',
+      );
+      Logger.log(
+        '[GLOBAL_SUBSCRIPTION] _backfill restart fetchedQFilterTimestamp: $fetchedQFilterTimestamp',
+      );
+
+      if (fetchedPFilterTimestamp == pFilterTimestamp &&
+          fetchedQFilterTimestamp == qFilterTimestamp) {
+        Logger.log('[GLOBAL_SUBSCRIPTION] _backfill restart break');
+        break;
+      }
+    }
+
+    // Wait for all backfill operations to complete
+
+    // If we have an encrypted timestamp in storage, we subtract 2 days to account
+    // for the potential random timestamp range of encrypted events. This ensures
+    // that we refetch any encrypted events that might have been created with a
+    // random timestamp up to 2 days before the last fetch time.
+    final encryptedLatestTimestampFromStorage =
+        latestEventTimestampService.getEncryptedTimestamp() != null
+            ? latestEventTimestampService.getEncryptedTimestamp()! -
+                const Duration(days: 2).inMicroseconds
+            : null;
+
+    unawaited(
+      _subscribe(
+        eventLimit: 100,
+        encryptedSince: encryptedLatestTimestampFromStorage,
+      ),
+    );
+  }
+
+  Future<List<(RegularFilterType, int)>> _backfill({
+    required int? pFilterTimestamp,
+    required int? qFilterTimestamp,
+    required int now,
+  }) async {
+    // Run backfill for each filter in parallel with separate event handlers
+    final backfillServices = <Future<(RegularFilterType, int)>>[];
+
+    Logger.log('[GLOBAL_SUBSCRIPTION] _backfill pFilterTimestamp: $pFilterTimestamp');
+
+    // P filter backfill
+    backfillServices.add(
+      eventBackfillService
+          .startBackfill(
+        latestEventTimestamp: pFilterTimestamp ?? now,
+        filter: RequestFilter(
+          kinds: _genericEventKinds,
+          tags: {
+            '#p': [
+              [currentUserMasterPubkey],
+            ],
+          },
+        ),
+        onEvent: (event) => _handleEvent(event, eventSource: EventSource.pFilter),
+      )
+          .then((result) {
+        latestEventTimestampService.updateRegularFilter(result, RegularFilterType.pFilter);
+        return (RegularFilterType.pFilter, result);
+      }),
+    );
+
+    Logger.log('[GLOBAL_SUBSCRIPTION] _backfill pFilterTimestamp: $pFilterTimestamp');
+
+    // Q filter backfill
+    backfillServices.add(
+      eventBackfillService
+          .startBackfill(
+        latestEventTimestamp: qFilterTimestamp ?? now,
+        filter: RequestFilter(
+          kinds: const [ModifiablePostEntity.kind],
+          tags: {
+            '#Q': [
+              [null, null, currentUserMasterPubkey],
+            ],
+          },
+        ),
+        onEvent: (event) => _handleEvent(event, eventSource: EventSource.qFilter),
+      )
+          .then((result) {
+        latestEventTimestampService.updateRegularFilter(result, RegularFilterType.qFilter);
+        return (RegularFilterType.qFilter, result);
+      }),
+    );
+
+    final result = await Future.wait(backfillServices);
+    Logger.log('[GLOBAL_SUBSCRIPTION] _backfill result: $result');
+
+    return result;
+  }
+
   Future<void> _subscribe({
     required int eventLimit,
-    required int pFilterTimestamp,
-    required int qFilterTimestamp,
-    required int? encryptedSince,
+    int? encryptedSince,
   }) async {
     try {
+      // Get per-filter timestamps for precise filtering
+      final pFilterTimestamp =
+          latestEventTimestampService.getRegularFilter(RegularFilterType.pFilter);
+      final qFilterTimestamp =
+          latestEventTimestampService.getRegularFilter(RegularFilterType.qFilter);
+
       Logger.log(
-        '[GLOBAL_SUBSCRIPTION] '
-        'p filter subscription timestamp: $pFilterTimestamp formatted: ${DateTime.fromMicrosecondsSinceEpoch(pFilterTimestamp).toIso8601String()}, '
-        'q filter subscription timestamp: $qFilterTimestamp formatted: ${DateTime.fromMicrosecondsSinceEpoch(qFilterTimestamp).toIso8601String()}, '
-        'encrypted since: $encryptedSince formatted: ${encryptedSince != null ? DateTime.fromMicrosecondsSinceEpoch(encryptedSince).toIso8601String() : 'null'}',
+        '[GLOBAL_SUBSCRIPTION] _subscribe pFilterTimestamp: $pFilterTimestamp'
+        ' formatted:  ${pFilterTimestamp != null ? DateTime.fromMicrosecondsSinceEpoch(pFilterTimestamp).toIso8601String() : 'null'}',
       );
+      Logger.log(
+        '[GLOBAL_SUBSCRIPTION] _subscribe qFilterTimestamp: $qFilterTimestamp'
+        ' formatted:  ${qFilterTimestamp != null ? DateTime.fromMicrosecondsSinceEpoch(qFilterTimestamp).toIso8601String() : 'null'}',
+      );
+      Logger.log(
+        '[GLOBAL_SUBSCRIPTION] _subscribe encryptedSince: $encryptedSince'
+        ' formatted:  ${encryptedSince != null ? DateTime.fromMicrosecondsSinceEpoch(encryptedSince).toIso8601String() : 'null'}',
+      );
+
       final requestMessage = RequestMessage(
         filters: [
           RequestFilter(
@@ -207,9 +266,7 @@ class GlobalSubscription {
                 [currentUserMasterPubkey, '', devicePubkey],
               ],
             },
-            since: encryptedSince != null
-                ? encryptedSince - const Duration(days: 2).inMicroseconds
-                : null,
+            since: encryptedSince,
           ),
         ],
       );
@@ -217,63 +274,125 @@ class GlobalSubscription {
       globalSubscriptionNotifier.subscribe(
         requestMessage,
         onEndOfStoredEvents: () {
-          Logger.log('[GLOBAL_SUBSCRIPTION] on EOSE');
+          _isEoseProcessed = true;
+
           // If we had finished to fetch all encrypted events, we can update
           // the timestamp in storage to avoid refetching them on next app start
           // and start using storage timestamp instead of in-memory one
+
+          Logger.log('[GLOBAL_SUBSCRIPTION] EOSE');
           if (_inMemoryEncryptedSince != null) {
-            Logger.log('[GLOBAL_SUBSCRIPTION] updating encrypted timestamp in storage');
+            Logger.log(
+              '[GLOBAL_SUBSCRIPTION] EOSE updating encrypted timestamp in storage with in-memory timestamp: $_inMemoryEncryptedSince formatted: ${DateTime.fromMicrosecondsSinceEpoch(_inMemoryEncryptedSince!).toIso8601String()}',
+            );
             latestEventTimestampService.updateEncryptedTimestampInStorage();
             _inMemoryEncryptedSince = null;
           }
-        },
-        onEvent: (event) {
-          if (event.kind == IonConnectGiftWrapEntity.kind) {
-            _inMemoryEncryptedSince ??= event.createdAt.toMicroseconds;
-          } else {
-            final tags = groupBy(event.tags, (tag) => tag[0]);
 
-            final pubkeyTag = tags[PubkeyTag.tagName]?.firstOrNull;
-            if (pubkeyTag != null) {
-              final pTagValue = PubkeyTag.fromTag(pubkeyTag).value;
-              if (pTagValue == currentUserMasterPubkey) {
-                Logger.log(
-                  '[GLOBAL_SUBSCRIPTION] updating p filter timestamp in storage timestamp: ${event.createdAt.toMicroseconds} formatted: ${DateTime.fromMicrosecondsSinceEpoch(event.createdAt.toMicroseconds).toIso8601String()}',
-                );
-                latestEventTimestampService.updateRegularFilter(
-                  event.createdAt.toMicroseconds,
-                  RegularFilterType.pFilter,
-                );
-              }
-            }
-
-            final qTag = tags[QTag.tagName]?.firstOrNull;
-            if (qTag != null) {
-              final qTagValue = QTag.fromTag(qTag).value;
-              if (qTagValue == currentUserMasterPubkey) {
-                Logger.log(
-                  '[GLOBAL_SUBSCRIPTION] updating q filter timestamp in storage timestamp: ${event.createdAt.toMicroseconds} formatted: ${DateTime.fromMicrosecondsSinceEpoch(event.createdAt.toMicroseconds).toIso8601String()}',
-                );
-                latestEventTimestampService.updateRegularFilter(
-                  event.createdAt.toMicroseconds,
-                  RegularFilterType.qFilter,
-                );
-              }
-            }
+          if (_inMemoryPFilterSince != null) {
+            Logger.log(
+              '[GLOBAL_SUBSCRIPTION] EOSE updating p filter timestamp in storage with in-memory timestamp: $_inMemoryPFilterSince formatted: ${DateTime.fromMicrosecondsSinceEpoch(_inMemoryPFilterSince!).toIso8601String()}',
+            );
+            latestEventTimestampService
+                .updateRegularFilter(
+              _inMemoryPFilterSince!,
+              RegularFilterType.pFilter,
+            )
+                .then((_) {
+              _inMemoryPFilterSince = null;
+            });
           }
-          _handleEvent(event);
+          if (_inMemoryQFilterSince != null) {
+            Logger.log(
+              '[GLOBAL_SUBSCRIPTION] EOSE updating q filter timestamp in storage with in-memory timestamp: $_inMemoryQFilterSince formatted: ${DateTime.fromMicrosecondsSinceEpoch(_inMemoryQFilterSince!).toIso8601String()}',
+            );
+            latestEventTimestampService
+                .updateRegularFilter(
+              _inMemoryQFilterSince!,
+              RegularFilterType.qFilter,
+            )
+                .then((_) {
+              _inMemoryQFilterSince = null;
+            });
+          }
         },
+        onEvent: (event) => _handleEvent(event, eventSource: EventSource.subscription),
       );
     } catch (e) {
       throw GlobalSubscriptionSubscribeException(e);
     }
   }
 
-  Future<void> _handleEvent(EventMessage eventMessage) async {
+  Future<void> _handleEvent(
+    EventMessage eventMessage, {
+    required EventSource eventSource,
+  }) async {
     try {
-      Logger.log(
-        '[GLOBAL_SUBSCRIPTION] handling event: kind: ${eventMessage.kind}',
-      );
+      final eventType = eventMessage.kind == IonConnectGiftWrapEntity.kind
+          ? EventType.encrypted
+          : EventType.regular;
+
+      final eventTimestamp = eventMessage.createdAt.toMicroseconds;
+
+      Logger.log('[GLOBAL_SUBSCRIPTION] _handleEvent regular event kind: ${eventMessage.kind}');
+
+      if (eventType == EventType.regular) {
+        final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
+
+        final pubkeyTag = tags[PubkeyTag.tagName]?.firstOrNull;
+        if (pubkeyTag != null) {
+          final pTagValue = PubkeyTag.fromTag(pubkeyTag).value;
+          if (pTagValue == currentUserMasterPubkey) {
+            if (_inMemoryPFilterSince == null) {
+              _inMemoryPFilterSince = eventTimestamp;
+            } else if (_inMemoryPFilterSince! < eventTimestamp) {
+              _inMemoryPFilterSince = eventTimestamp;
+            }
+            if (_isEoseProcessed) {
+              Logger.log(
+                '[GLOBAL_SUBSCRIPTION] _handleEvent updating p filter timestamp in storage with in-memory timestamp: $_inMemoryPFilterSince formatted: ${DateTime.fromMicrosecondsSinceEpoch(_inMemoryPFilterSince!).toIso8601String()}',
+              );
+              await latestEventTimestampService.updateRegularFilter(
+                _inMemoryPFilterSince!,
+                RegularFilterType.pFilter,
+              );
+              _inMemoryPFilterSince = null;
+            }
+          }
+        }
+
+        final qTag = tags[QTag.tagName]?.firstOrNull;
+        if (qTag != null) {
+          final qTagValue = QTag.fromTag(qTag).value;
+          if (qTagValue == currentUserMasterPubkey) {
+            if (_inMemoryQFilterSince == null) {
+              _inMemoryQFilterSince = eventTimestamp;
+            } else if (_inMemoryQFilterSince! < eventTimestamp) {
+              _inMemoryQFilterSince = eventTimestamp;
+            }
+            if (_isEoseProcessed) {
+              Logger.log(
+                '[GLOBAL_SUBSCRIPTION] _handleEvent updating q filter timestamp in storage with in-memory timestamp: $_inMemoryQFilterSince formatted: ${DateTime.fromMicrosecondsSinceEpoch(_inMemoryQFilterSince!).toIso8601String()}',
+              );
+              await latestEventTimestampService.updateRegularFilter(
+                _inMemoryQFilterSince!,
+                RegularFilterType.qFilter,
+              );
+              _inMemoryQFilterSince = null;
+            }
+          }
+        }
+      } else {
+        _inMemoryEncryptedSince ??= eventTimestamp;
+        if (_isEoseProcessed) {
+          Logger.log(
+            '[GLOBAL_SUBSCRIPTION] _handleEvent updating encrypted timestamp in storage with in-memory timestamp: $_inMemoryEncryptedSince formatted: ${DateTime.fromMicrosecondsSinceEpoch(_inMemoryEncryptedSince!).toIso8601String()}',
+          );
+          await latestEventTimestampService.updateEncryptedTimestampInStorage();
+          _inMemoryEncryptedSince = null;
+        }
+      }
+
       globalSubscriptionEventDispatcher.dispatch(eventMessage);
     } catch (e) {
       throw GlobalSubscriptionEventMessageHandlingException(e);
@@ -287,9 +406,17 @@ class GlobalSubscriptionNotifier extends _$GlobalSubscriptionNotifier {
 
   @override
   void build() {
-    ref.onDispose(() {
-      _subscription?.cancel();
-    });
+    ref
+      ..listen(appLifecycleProvider, (previous, next) {
+        if (next != AppLifecycleState.resumed) {
+          Logger.log('[GLOBAL_SUBSCRIPTION] _subscription cancel on lifecycle change');
+          _subscription?.cancel();
+        }
+      })
+      ..onDispose(() {
+        Logger.log('[GLOBAL_SUBSCRIPTION] _subscription cancel onDispose');
+        _subscription?.cancel();
+      });
   }
 
   void subscribe(
@@ -297,12 +424,17 @@ class GlobalSubscriptionNotifier extends _$GlobalSubscriptionNotifier {
     required void Function(EventMessage) onEvent,
     void Function()? onEndOfStoredEvents,
   }) {
+    final appState = ref.watch(appLifecycleProvider);
+    if (appState != AppLifecycleState.resumed) {
+      return;
+    }
     final stream = ref.watch(
       ionConnectEventsSubscriptionProvider(
         requestMessage,
         onEndOfStoredEvents: onEndOfStoredEvents,
       ),
     );
+    Logger.log('[GLOBAL_SUBSCRIPTION] _subscription subscribe');
     _subscription = stream.listen(onEvent);
   }
 }
@@ -313,15 +445,15 @@ GlobalSubscription? globalSubscription(Ref ref) {
 
   final appState = ref.watch(appLifecycleProvider);
 
-  if (appState != AppLifecycleState.resumed) {
-    return null;
-  }
-
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
   final devicePubkey = ref.watch(currentUserIonConnectEventSignerProvider).valueOrNull?.publicKey;
   final delegationComplete = ref.watch(delegationCompleteProvider).valueOrNull.falseOrValue;
 
   if (currentUserMasterPubkey == null || devicePubkey == null || !delegationComplete) {
+    return null;
+  }
+
+  if (appState != AppLifecycleState.resumed) {
     return null;
   }
 

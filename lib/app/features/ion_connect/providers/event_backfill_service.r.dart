@@ -33,12 +33,12 @@ class EventBackfillService {
         onEvent: onEvent,
         actionSource: actionSource,
       );
+      tmpLastCreatedAt = maxCreatedAt;
       if (stopFetching) {
         break;
       }
-      tmpLastCreatedAt = maxCreatedAt;
     }
-    return tmpLastCreatedAt ?? latestEventTimestamp;
+    return tmpLastCreatedAt;
   }
 
   Future<(int maxCreatedAt, bool stopFetching)> _fetchPagedEvents({
