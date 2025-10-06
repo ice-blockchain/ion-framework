@@ -76,11 +76,11 @@ class IonScreenshotDetectorPlugin : FlutterPlugin, EventChannel.StreamHandler, A
           }
           lastDetectedPath = it.path
           var path: String = ""
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            path = queryRelativeDataColumn(uri)
-          } else {
-            path = queryDataColumn(uri)
-          }
+            path = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                queryRelativeDataColumn(uri)
+            } else {
+                queryDataColumn(uri)
+            }
           if (!path.isEmpty()) {
             eventSink?.success(path)
           }
@@ -88,11 +88,13 @@ class IonScreenshotDetectorPlugin : FlutterPlugin, EventChannel.StreamHandler, A
       }
     }
 
-    contentResolver?.registerContentObserver(
-      MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-      true,
-      screenshotObserver!!
-    )
+    screenshotObserver?.let { observer ->
+      contentResolver?.registerContentObserver(
+        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+        true,
+        observer
+      )
+    }
   }
 
   private fun registerScreenshotDetector() {
@@ -107,7 +109,9 @@ class IonScreenshotDetectorPlugin : FlutterPlugin, EventChannel.StreamHandler, A
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
       unregisterScreenCaptureCallback()
     } else {
-      contentResolver?.unregisterContentObserver(screenshotObserver!!)
+      screenshotObserver?.let {
+        contentResolver?.unregisterContentObserver(it)
+      }
     }
     eventSink = null
     screenshotObserver = null
@@ -122,10 +126,12 @@ class IonScreenshotDetectorPlugin : FlutterPlugin, EventChannel.StreamHandler, A
       }
     }
     // Cast screenCaptureCallback to the correct type and register
-    activity?.registerScreenCaptureCallback(
-      activity!!.mainExecutor,
-      screenCaptureCallback as Activity.ScreenCaptureCallback
-    )
+    activity?.let { activity ->
+        activity.registerScreenCaptureCallback(
+        activity.mainExecutor,
+        screenCaptureCallback as Activity.ScreenCaptureCallback
+      )
+    }
   }
 
   private fun unregisterScreenCaptureCallback() {
