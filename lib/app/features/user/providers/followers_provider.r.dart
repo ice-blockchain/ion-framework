@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:ion/app/features/core/model/paged.f.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
@@ -11,6 +13,9 @@ part 'followers_provider.r.g.dart';
 
 @riverpod
 class Followers extends _$Followers {
+  // Keep the exact dataSources instance used to key the family provider.
+  List<EntitiesDataSource>? _dataSourcesKey;
+
   @override
   FutureOr<({bool hasMore, List<UserMetadataEntity>? users, bool ready})?> build({
     required String pubkey,
@@ -32,10 +37,11 @@ class Followers extends _$Followers {
         ready: true,
       );
     }
-    final dataSource = ref.watch(followersDataSourceProvider(pubkey));
+    // Capture the instance to preserve provider identity across loadMore().
+    _dataSourcesKey = ref.watch(followersDataSourceProvider(pubkey));
     final entitiesPagedData = ref.watch(
       entitiesPagedDataProvider(
-        dataSource,
+        _dataSourcesKey,
         awaitMissingEvents: true,
       ),
     );
@@ -49,6 +55,8 @@ class Followers extends _$Followers {
   }
 
   Future<void> loadMore() async {
+    await future;
+
     if (query.isNotEmpty) {
       return ref
           .read(
@@ -60,7 +68,15 @@ class Followers extends _$Followers {
           )
           .loadMore();
     }
-    final dataSource = ref.read(followersDataSourceProvider(pubkey));
-    await ref.read(entitiesPagedDataProvider(dataSource).notifier).fetchEntities();
+    if (_dataSourcesKey != null) {
+      await ref
+          .read(
+            entitiesPagedDataProvider(
+              _dataSourcesKey,
+              awaitMissingEvents: true,
+            ).notifier,
+          )
+          .fetchEntities();
+    }
   }
 }
