@@ -225,7 +225,13 @@ class AudioFocusHandler: NSObject {
 
         }
         GeneratedPluginRegistrant.register(with: self)
-        
+
+        // Register VideoCompressionPlugin
+        if let controller = window?.rootViewController as? FlutterViewController {
+            let registrar = controller.engine.registrar(forPlugin: "VideoCompressionPlugin")
+            VideoCompressionPlugin.register(with: registrar!)
+        }
+
         audioBrowserFlutterEngine.run(withEntrypoint: "audioBrowser")
         GeneratedPluginRegistrant.register(with: audioBrowserFlutterEngine)
 

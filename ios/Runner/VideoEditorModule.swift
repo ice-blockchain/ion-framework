@@ -1,4 +1,5 @@
 import Foundation
+import AVFoundation
 import BanubaVideoEditorSDK
 import BanubaAudioBrowserSDK
 import BanubaVideoEditorCore
@@ -220,10 +221,16 @@ extension VideoEditorModule {
         }
         
         // Video configuration
+        let exportVideoInfo = ExportVideoInfo(
+            resolution: .original,
+            useHEVCCodecIfPossible: false,
+            frameRate: 30
+        )
+        
         let exportVideoConfigurations: [ExportVideoConfiguration] = [
             ExportVideoConfiguration(
                 fileURL: firstFileURL,
-                quality: .auto,
+                quality: .videoConfiguration(exportVideoInfo),
                 useHEVCCodecIfPossible: false,
                 watermarkConfiguration: nil
             )

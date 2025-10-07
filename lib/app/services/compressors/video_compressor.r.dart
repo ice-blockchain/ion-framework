@@ -12,6 +12,7 @@ import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/services/compressors/compress_executor.r.dart';
 import 'package:ion/app/services/compressors/compressor.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
+import 'package:ion/app/services/compressors/ios_native_video_compressor.r.dart';
 import 'package:ion/app/services/compressors/output_path_generator.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_audio_bitrate_arg.dart';
@@ -41,11 +42,12 @@ class VideoCompressionSettings {
     required this.audioBitrate,
     required this.pixelFormat,
     required this.movFlags,
+    this.videoBitrate,
   });
 
   static const balanced = VideoCompressionSettings(
     videoCodec: FFmpegVideoCodecArg.libx264,
-    preset: FfmpegPresetArg.veryfast,
+    preset: FfmpegPresetArg.fast,
     crf: FfmpegCrfArg.balanced,
     maxRate: FfmpegBitrateArg.high,
     bufSize: FfmpegBitrateArg.highest,
@@ -66,16 +68,24 @@ class VideoCompressionSettings {
   final FfmpegAudioBitrateArg audioBitrate;
   final FfmpegPixelFormatArg pixelFormat;
   final FfmpegMovFlagArg movFlags;
+  final FfmpegBitrateArg? videoBitrate;
 }
+
+// Video duration threshold for using hardware compression
+// Based on testing, the time difference between hardware and software compression is not significant
+// until the video is longer than 25 seconds, but the file size is smaller with libx264
+const hardwareCompressionThreshold = Duration(seconds: 25);
 
 class VideoCompressor implements Compressor<VideoCompressionSettings> {
   VideoCompressor({
     required this.compressExecutor,
     required this.imageCompressor,
+    required this.iosNativeVideoCompressor,
   });
 
   final CompressExecutor compressExecutor;
   final ImageCompressor imageCompressor;
+  final IosNativeVideoCompressor iosNativeVideoCompressor;
 
   String _formatBytes(int bytes) {
     final megabytes = bytes / (1024 * 1024);
@@ -96,8 +106,19 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
   Future<MediaFile> compress(
     MediaFile file, {
     Completer<FFmpegSession>? sessionIdCompleter,
-    VideoCompressionSettings settings = VideoCompressionSettings.balanced,
+    VideoCompressionSettings? settings,
   }) async {
+    if (Platform.isIOS) {
+      final duration = file.duration;
+      if (duration != null && duration > hardwareCompressionThreshold.inSeconds) {
+        return iosNativeVideoCompressor.compress(
+          file,
+          settings: IosNativeVideoCompressionSettings.balanced,
+        );
+      }
+    }
+
+    settings ??= VideoCompressionSettings.balanced;
     try {
       final output = await generateOutputPath(extension: 'mp4');
       final sessionResultCompleter = Completer<FFmpegSession>();
@@ -265,4 +286,5 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
 VideoCompressor videoCompressor(Ref ref) => VideoCompressor(
       compressExecutor: ref.read(compressExecutorProvider),
       imageCompressor: ref.read(imageCompressorProvider),
+      iosNativeVideoCompressor: ref.read(iosNativeVideoCompressorProvider),
     );
