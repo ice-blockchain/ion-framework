@@ -30,7 +30,7 @@ class EditMessageInfo extends HookConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SenderSummary(pubkey: editMessage.eventMessage.masterPubkey, isEdit: true),
+                  SenderSummary(masterPubkey: editMessage.eventMessage.masterPubkey, isEdit: true),
                   Text(
                     editMessage.contentDescription,
                     style: context.theme.appTextThemes.body2.copyWith(

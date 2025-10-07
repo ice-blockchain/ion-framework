@@ -12,7 +12,6 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_encrypted_event_message_handler.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
-import 'package:ion/app/features/user_profile/providers/user_profile_sync_provider.r.dart';
 import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -27,7 +26,6 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
     this.messageMediaDao,
     this.sendE2eeMessageStatusService,
     this.mediaEncryptionService,
-    this.userProfileSyncProvider,
   );
 
   final String masterPubkey;
@@ -37,7 +35,6 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
   final MessageMediaDao messageMediaDao;
   final SendE2eeMessageStatusService sendE2eeMessageStatusService;
   final MediaEncryptionService mediaEncryptionService;
-  final UserProfileSync userProfileSyncProvider;
 
   @override
   bool canHandle({
@@ -139,6 +136,5 @@ Future<EncryptedDirectMessageHandler?> encryptedDirectMessageHandler(Ref ref) as
     ref.watch(messageMediaDaoProvider),
     await ref.watch(sendE2eeMessageStatusServiceProvider.future),
     ref.watch(mediaEncryptionServiceProvider),
-    ref.watch(userProfileSyncProvider.notifier),
   );
 }

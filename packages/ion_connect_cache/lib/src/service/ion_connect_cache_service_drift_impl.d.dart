@@ -147,8 +147,14 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     String? keyword,
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
+    List<String> masterPubkeys = const [],
   }) {
-    final query = _buildFilteredQuery(kinds: kinds, keyword: keyword, cacheKeys: cacheKeys);
+    final query = _buildFilteredQuery(
+      kinds: kinds,
+      keyword: keyword,
+      cacheKeys: cacheKeys,
+      masterPubkeys: masterPubkeys,
+    );
     return query.watch().map((rows) => rows.map((row) => row.toEventMessage()).toList());
   }
 
@@ -167,8 +173,14 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     String? keyword,
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
+    List<String> masterPubkeys = const [],
   }) async {
-    final conditions = _buildConditions(keyword: keyword, kinds: kinds, cacheKeys: cacheKeys);
+    final conditions = _buildConditions(
+      keyword: keyword,
+      kinds: kinds,
+      cacheKeys: cacheKeys,
+      masterPubkeys: masterPubkeys,
+    );
     final deleteQuery = delete(eventMessagesTable);
     if (conditions.isNotEmpty) {
       deleteQuery.where((tbl) => conditions.reduce((previous, next) => previous & next));
@@ -181,6 +193,7 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     String? keyword,
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
+    List<String> masterPubkeys = const [],
   }) {
     final conditions = <Expression<bool>>[];
     final q = keyword != null ? '%${keyword.toLowerCase()}%' : null;
@@ -190,6 +203,9 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     }
     if (cacheKeys.isNotEmpty) {
       conditions.add(eventMessagesTable.cacheKey.isIn(cacheKeys));
+    }
+    if (masterPubkeys.isNotEmpty) {
+      conditions.add(eventMessagesTable.masterPubkey.isIn(masterPubkeys));
     }
     if (keyword != null) {
       conditions.add(
@@ -205,8 +221,14 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     String? keyword,
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
+    List<String> masterPubkeys = const [],
   }) {
-    final conditions = _buildConditions(keyword: keyword, kinds: kinds, cacheKeys: cacheKeys);
+    final conditions = _buildConditions(
+      keyword: keyword,
+      kinds: kinds,
+      cacheKeys: cacheKeys,
+      masterPubkeys: masterPubkeys,
+    );
     final query = select(eventMessagesTable);
     if (conditions.isNotEmpty) {
       query.where((tbl) => conditions.reduce((previous, next) => previous & next));

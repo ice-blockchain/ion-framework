@@ -38,7 +38,7 @@ class FullscreenMediaPage extends HookConsumerWidget {
 
     final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
 
-    final isDeleted = entity is SoftDeletableEntity && entity.isDeleted;
+    final isEntityDeleted = entity is SoftDeletableEntity && entity.isDeleted;
 
     return Material(
       color: Colors.transparent,
@@ -57,7 +57,7 @@ class FullscreenMediaPage extends HookConsumerWidget {
               ),
             ),
             onBackPress: () => context.pop(),
-            actions: isDeleted
+            actions: isEntityDeleted
                 ? null
                 : [
                     Padding(

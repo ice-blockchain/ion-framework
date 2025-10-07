@@ -210,13 +210,14 @@ class _StoryOwnerUserInfo extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(masterPubkey)).valueOrNull;
+    final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
 
-    final isDeleted = ref.watch(isUserDeletedProvider(masterPubkey)).valueOrNull ?? false;
-
-    if (userMetadata == null && !isDeleted) {
+    if (userMetadata.isLoading) {
       return const SizedBox.shrink();
     }
+
+    final metadata = userMetadata.valueOrNull;
+    final isUserDeleted = metadata == null;
 
     return PositionedDirectional(
       top: 12.0.s,
@@ -229,9 +230,7 @@ class _StoryOwnerUserInfo extends ConsumerWidget {
           SizedBox(width: 4.0.s),
           Expanded(
             child: Text(
-              isDeleted
-                  ? context.i18n.common_deleted_account
-                  : userMetadata?.data.displayName ?? '',
+              isUserDeleted ? context.i18n.common_deleted_account : metadata.data.displayName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: context.theme.appTextThemes.caption3.copyWith(

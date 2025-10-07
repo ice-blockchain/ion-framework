@@ -61,7 +61,10 @@ class RepliedMessageInfo extends HookConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SenderSummary(pubkey: repliedMessage.eventMessage.masterPubkey, isReply: true),
+                  SenderSummary(
+                    masterPubkey: repliedMessage.eventMessage.masterPubkey,
+                    isReply: true,
+                  ),
                   Text(
                     repliedMessage.contentDescription,
                     style: context.theme.appTextThemes.body2.copyWith(

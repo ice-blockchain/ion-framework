@@ -31,33 +31,35 @@ import 'package:ion/generated/assets.gen.dart';
 
 class ProfilePage extends HookConsumerWidget {
   const ProfilePage({
-    required this.pubkey,
+    required this.masterPubkey,
     this.showBackButton = true,
     super.key,
   });
 
-  final String pubkey;
+  final String masterPubkey;
   final bool showBackButton;
 
   double get paddingTop => 60.0.s;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDeleted = ref.watch(isUserDeletedProvider(pubkey)).valueOrNull.falseOrValue;
+    final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
+
+    if (userMetadata.isLoading) {
+      return ProfileSkeleton(showBackButton: showBackButton);
+    }
+
+    final metadata = userMetadata.valueOrNull;
+    final isUserDeleted = metadata == null;
+
     final isBlockedOrBlockedBy =
-        ref.watch(isBlockedOrBlockedByNotifierProvider(pubkey)).valueOrNull.falseOrValue;
+        ref.watch(isBlockedOrBlockedByNotifierProvider(masterPubkey)).valueOrNull.falseOrValue;
 
-    if (isDeleted || isBlockedOrBlockedBy) {
+    if (isUserDeleted || isBlockedOrBlockedBy) {
       return const CantFindProfilePage();
     }
 
-    final userMetadata = ref.watch(userMetadataProvider(pubkey));
-
-    if (userMetadata.hasError) {
-      return const CantFindProfilePage();
-    }
-
-    final isCurrentUserProfile = ref.watch(isCurrentUserSelectorProvider(pubkey));
+    final isCurrentUserProfile = ref.watch(isCurrentUserSelectorProvider(masterPubkey));
 
     final didRefresh = useState(false);
 
@@ -90,13 +92,13 @@ class ProfilePage extends HookConsumerWidget {
 
         ref.read(ionConnectCacheProvider.notifier).remove(
               EventCountResultEntity.cacheKeyBuilder(
-                key: pubkey,
+                key: masterPubkey,
                 type: EventCountResultType.followers,
               ),
             );
         ref.read(ionConnectCacheProvider.notifier).remove(
               EventCountResultEntity.cacheKeyBuilder(
-                key: pubkey,
+                key: masterPubkey,
                 type: EventCountResultType.stories,
               ),
             );
@@ -125,9 +127,9 @@ class ProfilePage extends HookConsumerWidget {
                       child: Column(
                         children: [
                           SizedBox(height: 12.0.s),
-                          ProfileAvatar(pubkey: pubkey),
+                          ProfileAvatar(pubkey: masterPubkey),
                           SizedBox(height: 16.0.s),
-                          ProfileDetails(pubkey: pubkey),
+                          ProfileDetails(pubkey: masterPubkey),
                           SizedBox(height: 16.0.s),
                           const HorizontalSeparator(),
                           SizedBox(height: 16.0.s),
@@ -148,11 +150,11 @@ class ProfilePage extends HookConsumerWidget {
                       .map(
                         (type) => type == TabEntityType.replies
                             ? TabEntitiesList.replies(
-                                pubkey: pubkey,
+                                pubkey: masterPubkey,
                                 onRefresh: onRefresh,
                               )
                             : TabEntitiesList(
-                                pubkey: pubkey,
+                                pubkey: masterPubkey,
                                 type: type,
                                 onRefresh: onRefresh,
                               ),
@@ -173,7 +175,7 @@ class ProfilePage extends HookConsumerWidget {
                   horizontalPadding: 0,
                   title: Header(
                     opacity: opacity,
-                    pubkey: pubkey,
+                    pubkey: masterPubkey,
                     showBackButton: !isCurrentUserProfile,
                   ),
                 ),
@@ -185,7 +187,7 @@ class ProfilePage extends HookConsumerWidget {
                 padding: EdgeInsetsDirectional.only(end: 16.s),
                 child: SizedBox(
                   height: NavigationAppBar.screenHeaderHeight,
-                  child: ProfileContextMenu(pubkey: pubkey),
+                  child: ProfileContextMenu(pubkey: masterPubkey),
                 ),
               ),
             ),

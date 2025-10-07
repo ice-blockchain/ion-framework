@@ -178,10 +178,14 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     await cacheService.remove(cacheKey);
   }
 
-  Future<void> removeAll(List<String> cacheKeys) async {
+  Future<void> removeAll({
+    List<int> kinds = const [],
+    List<String> cacheKeys = const [],
+    List<String> masterPubkeys = const [],
+  }) async {
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
-    await cacheService.removeAll(cacheKeys: cacheKeys);
+    await cacheService.removeAll(cacheKeys: cacheKeys, kinds: kinds, masterPubkeys: masterPubkeys);
   }
 
   bool isExpired(DateTime insertedAt, Duration? expirationDuration) {

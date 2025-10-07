@@ -236,7 +236,7 @@ class RecentChatTile extends HookConsumerWidget {
 
 class SenderSummary extends ConsumerWidget {
   const SenderSummary({
-    required this.pubkey,
+    required this.masterPubkey,
     this.textColor,
     this.isReply = false,
     this.isEdit = false,
@@ -245,15 +245,15 @@ class SenderSummary extends ConsumerWidget {
 
   final bool isReply;
   final bool isEdit;
-  final String pubkey;
+  final String masterPubkey;
 
   final Color? textColor;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+    final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
 
-    if (userMetadata == null) {
+    if (userMetadata.isLoading) {
       return const SizedBox.shrink();
     }
 
@@ -276,7 +276,7 @@ class SenderSummary extends ConsumerWidget {
             ),
           ),
         Text(
-          isEdit ? context.i18n.button_edit : userMetadata.data.name,
+          isEdit ? context.i18n.button_edit : userMetadata.valueOrNull?.data.name ?? '',
           style: context.theme.appTextThemes.subtitle3.copyWith(
             color: textColor ?? context.theme.appColors.primaryText,
           ),
@@ -334,9 +334,7 @@ class ChatPreview extends HookConsumerWidget {
       MessageType.moneySent => getMoneySentTitle(ref, lastMessage) ?? lastMessageContent,
       MessageType.profile => ref
               .watch(
-                userMetadataProvider(
-                  EventReference.fromEncoded(lastMessageContent).masterPubkey,
-                ),
+                userMetadataProvider(EventReference.fromEncoded(lastMessageContent).masterPubkey),
               )
               .valueOrNull
               ?.data
