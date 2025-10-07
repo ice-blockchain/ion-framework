@@ -251,7 +251,7 @@ class SenderSummary extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataFromDbProvider(pubkey));
+    final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
 
     if (userMetadata == null) {
       return const SizedBox.shrink();

@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:io';
+
 import 'package:drift/drift.dart';
 import 'package:drift/extensions/json1.dart';
+import 'package:drift/native.dart';
 import 'package:ion_connect_cache/src/database/ion_connect_cache_database.d.dart';
 import 'package:ion_connect_cache/src/database/tables/event_messages_table.d.dart';
 import 'package:ion_connect_cache/src/extensions/event_message.dart';
@@ -17,6 +20,18 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     with _$IonConnectCacheServiceDriftImplMixin
     implements IonConnectCacheService {
   IonConnectCacheServiceDriftImpl({required IONConnectCacheDatabase db}) : super(db);
+
+  IonConnectCacheServiceDriftImpl.persistent(String path)
+    : super(
+        IONConnectCacheDatabase(
+          NativeDatabase.createInBackground(
+            File(path),
+            logStatements: true,
+            readPool: 1,
+            setup: (database) => database.execute('PRAGMA journal_mode = WAL'),
+          ),
+        ),
+      );
 
   @override
   Future<EventMessage?> save(({String cacheKey, EventMessage eventMessage}) value) async {
@@ -153,11 +168,7 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
   }) async {
-    final conditions = _buildConditions(
-      keyword: keyword,
-      kinds: kinds,
-      cacheKeys: cacheKeys,
-    );
+    final conditions = _buildConditions(keyword: keyword, kinds: kinds, cacheKeys: cacheKeys);
     final deleteQuery = delete(eventMessagesTable);
     if (conditions.isNotEmpty) {
       deleteQuery.where((tbl) => conditions.reduce((previous, next) => previous & next));
@@ -195,11 +206,7 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
   }) {
-    final conditions = _buildConditions(
-      keyword: keyword,
-      kinds: kinds,
-      cacheKeys: cacheKeys,
-    );
+    final conditions = _buildConditions(keyword: keyword, kinds: kinds, cacheKeys: cacheKeys);
     final query = select(eventMessagesTable);
     if (conditions.isNotEmpty) {
       query.where((tbl) => conditions.reduce((previous, next) => previous & next));

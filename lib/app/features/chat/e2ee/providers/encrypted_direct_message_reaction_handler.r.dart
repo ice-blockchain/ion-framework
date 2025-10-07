@@ -39,7 +39,6 @@ class EncryptedDirectMessageReactionHandler extends GlobalSubscriptionEncryptedE
   @override
   Future<EventReference> handle(EventMessage rumor) async {
     final entity = PrivateMessageReactionEntity.fromEventMessage(rumor);
-    unawaited(userProfileSyncProvider.syncUserProfile(masterPubkeys: {rumor.masterPubkey}));
     await conversationMessageReactionDao.add(
       reactionEvent: rumor,
       eventMessageDao: eventMessageDao,

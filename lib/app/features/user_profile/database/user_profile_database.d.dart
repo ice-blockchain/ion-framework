@@ -2,6 +2,7 @@
 
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_tags_converter.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -36,7 +37,12 @@ class UserProfileDatabase extends _$UserProfileDatabase {
   static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
     final databaseName = 'user_profile_database_$pubkey';
     if (appGroupId == null) {
-      return driftDatabase(name: databaseName);
+      return driftDatabase(
+        name: databaseName,
+        native: DriftNativeOptions(
+          setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
+        ),
+      );
     }
 
     return driftDatabase(
@@ -45,6 +51,7 @@ class UserProfileDatabase extends _$UserProfileDatabase {
         databasePath: () async =>
             getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroupId),
         shareAcrossIsolates: true,
+        setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
       ),
     );
   }

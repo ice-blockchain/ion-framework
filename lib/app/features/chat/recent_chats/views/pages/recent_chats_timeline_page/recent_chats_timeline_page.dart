@@ -317,7 +317,7 @@ class E2eeRecentChatTile extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final userMetadata = ref.watch(userMetadataFromDbProvider(receiverMasterPubkey));
+    final userMetadata = ref.watch(userMetadataProvider(receiverMasterPubkey)).valueOrNull;
 
     final unreadMessagesCount =
         ref.watch(getUnreadMessagesCountProvider(conversation.conversationId));

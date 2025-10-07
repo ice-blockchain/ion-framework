@@ -35,7 +35,7 @@ class OneToOneMessagingHeader extends ConsumerWidget {
     final isNicknameProven = ref.watch(isNicknameProvenProvider(receiverMasterPubkey));
     final isDeleted = ref.watch(isUserDeletedProvider(receiverMasterPubkey)).valueOrNull ?? false;
 
-    final userMetadata = ref.watch(userMetadataFromDbProvider(receiverMasterPubkey))?.data;
+    final userMetadata = ref.watch(userMetadataProvider(receiverMasterPubkey)).valueOrNull?.data;
 
     // Show skeleton while loading user data (unless deleted)
     if ((userMetadata == null) && !isDeleted) {

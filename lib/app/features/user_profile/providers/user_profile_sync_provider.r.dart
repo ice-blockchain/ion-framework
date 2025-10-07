@@ -20,6 +20,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_badge_info_dao.m.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_delegation_dao.m.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_metadata_dao.m.dart';
+import 'package:ion/app/features/user_profile/providers/user_profile_database_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -85,6 +86,21 @@ class UserProfileSync extends _$UserProfileSync {
     // Helper to extract entities by type
     List<T> extractEntities<T>(List<dynamic> entities) => entities.whereType<T>().toList();
 
+    // Helper to insert all entities in a single transaction
+    Future<void> insertEntities(List<dynamic> entities) async {
+      if (entities.isEmpty) return;
+
+      final userProfileDatabase = ref.read(userProfileDatabaseProvider);
+      await userProfileDatabase.transaction(() async {
+        await userMetadataDao.insertAll(extractEntities<UserMetadataEntity>(entities));
+        await userDelegationDao.insertAll(extractEntities<UserDelegationEntity>(entities));
+        await userBadgesDao.insertAllProfileBadges(extractEntities<ProfileBadgesEntity>(entities));
+        await userBadgesDao
+            .insertAllBadgeDefinitions(extractEntities<BadgeDefinitionEntity>(entities));
+        await userBadgesDao.insertAllBadgeAwards(extractEntities<BadgeAwardEntity>(entities));
+      });
+    }
+
     // Common search extensions
     final searchExtensions = SearchExtensions([
       GenericIncludeSearchExtension(
@@ -108,16 +124,8 @@ class UserProfileSync extends _$UserProfileSync {
           search: searchExtensions,
         );
 
-    // Insert all fetched entities
-    await Future.wait([
-      userMetadataDao.insertAll(extractEntities<UserMetadataEntity>(entitiesFromReadRelay)),
-      userDelegationDao.insertAll(extractEntities<UserDelegationEntity>(entitiesFromReadRelay)),
-      userBadgesDao
-          .insertAllProfileBadges(extractEntities<ProfileBadgesEntity>(entitiesFromReadRelay)),
-      userBadgesDao
-          .insertAllBadgeDefinitions(extractEntities<BadgeDefinitionEntity>(entitiesFromReadRelay)),
-      userBadgesDao.insertAllBadgeAwards(extractEntities<BadgeAwardEntity>(entitiesFromReadRelay)),
-    ]);
+    // Insert all entities from read relay in a single transaction
+    await insertEntities(entitiesFromReadRelay);
 
     // Find missing master pubkeys
     final fetchedMasterPubkeys = extractEntities<UserMetadataEntity>(entitiesFromReadRelay)
@@ -157,18 +165,7 @@ class UserProfileSync extends _$UserProfileSync {
     // Flatten the list of lists into a single list
     final entitiesFromWriteRelay = entitiesFromWriteRelays.expand((e) => e).toList();
 
-    if (entitiesFromWriteRelay.isNotEmpty) {
-      await Future.wait([
-        userMetadataDao.insertAll(extractEntities<UserMetadataEntity>(entitiesFromWriteRelay)),
-        userDelegationDao.insertAll(extractEntities<UserDelegationEntity>(entitiesFromWriteRelay)),
-        userBadgesDao
-            .insertAllProfileBadges(extractEntities<ProfileBadgesEntity>(entitiesFromWriteRelay)),
-        userBadgesDao.insertAllBadgeDefinitions(
-          extractEntities<BadgeDefinitionEntity>(entitiesFromWriteRelay),
-        ),
-        userBadgesDao
-            .insertAllBadgeAwards(extractEntities<BadgeAwardEntity>(entitiesFromWriteRelay)),
-      ]);
-    }
+    // Insert all entities from write relay in a single transaction
+    await insertEntities(entitiesFromWriteRelay);
   }
 }
