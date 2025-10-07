@@ -259,13 +259,25 @@ class NotificationTranslationService {
     }
     
     private func getUserMetadataFromDatabase(_ pubkey: String) -> UserMetadata? {
-            let chatUsermetadataDB = ChatUserMetadataDatabase(keysStorage: keysStorage)
-            if chatUsermetadataDB.openDatabase() {
-                defer { chatUsermetadataDB.closeDatabase() }
-                return chatUsermetadataDB.getUserMetadataFromDatabase(pubkey: pubkey)
-            }
+        let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
+        guard cacheDB.openDatabase() else {
+            NSLog("[NSE] Failed to open ion_connect_cache database for quote notification type")
+            return nil
+        }
         
-        return nil
+        defer { cacheDB.closeDatabase() }
+        
+        let cacheKey = ReplaceableEventReference(masterPubkey: pubkey, kind: UserMetadataEntity.kind)
+        
+        guard let cachedEntity = cacheDB.getRelatedEntity(eventReference: cacheKey.toString()) else {
+            return nil
+        }
+        
+        guard let userMetadata = cachedEntity as? UserMetadataEntity else {
+            return nil
+        }
+        
+        return userMetadata.data
     }
     
     private func getConversationId(from event: EventMessage?) -> String? {
