@@ -5,6 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_colored_border.dart';
+import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
+import 'package:ion/generated/assets.gen.dart';
 
 class StoryItemContent extends HookConsumerWidget {
   const StoryItemContent({
@@ -25,11 +27,15 @@ class StoryItemContent extends HookConsumerWidget {
   final Widget? child;
 
   static double get width => 65.0.s;
+
   static double get height => 91.0.s;
+
   static double get borderSize => 2.0.s;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isUserVerified = ref.watch(isUserVerifiedProvider(pubkey));
+
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
@@ -67,12 +73,24 @@ class StoryItemContent extends HookConsumerWidget {
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 2.0.s),
-              child: Text(
-                name,
-                style: context.theme.appTextThemes.caption3.copyWith(
-                  color: context.theme.appColors.primaryText,
-                ),
-                overflow: TextOverflow.ellipsis,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
+                      name,
+                      style: context.theme.appTextThemes.caption3.copyWith(
+                        color: context.theme.appColors.primaryText,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (isUserVerified)
+                    Padding(
+                      padding: EdgeInsetsDirectional.only(start: 2.0.s),
+                      child: Assets.svg.iconBadgeVerify.icon(size: 12.0.s),
+                    ),
+                ],
               ),
             ),
           ],
