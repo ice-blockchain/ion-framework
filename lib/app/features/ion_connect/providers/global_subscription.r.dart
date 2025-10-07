@@ -427,6 +427,10 @@ class GlobalSubscriptionNotifier extends _$GlobalSubscriptionNotifier {
       // especially when processing encrypted events.
       return;
     }
+
+    // Cancel existing subscription to prevent duplicates
+    _subscription?.cancel();
+
     final stream = ref.watch(
       ionConnectEventsSubscriptionProvider(
         requestMessage,
