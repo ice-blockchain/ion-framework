@@ -61,6 +61,9 @@ class OneToOneMessagesPage extends HookConsumerWidget {
               conversationType: ConversationType.oneToOne,
               receiverMasterPubkeys: [receiverMasterPubkey, currentUserMasterPubkey],
             );
+        conversationId.value = conversationIdValue;
+        final localNotificationsService = await ref.read(localNotificationsServiceProvider.future);
+        unawaited(localNotificationsService.clearConversationNotifications(conversationIdValue));
 
         await ref.read(userMetadataProvider(receiverMasterPubkey, cache: false).future);
       },
