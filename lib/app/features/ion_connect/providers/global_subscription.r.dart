@@ -15,9 +15,9 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
-import 'package:ion/app/features/feed/data/models/q_tag.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
+import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
 import 'package:ion/app/features/ion_connect/providers/event_backfill_service.r.dart';
 import 'package:ion/app/features/ion_connect/providers/global_subscription_event_dispatcher_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/global_subscription_latest_event_timestamp_provider.r.dart';
@@ -362,9 +362,9 @@ class GlobalSubscription {
           }
         }
 
-        final qTag = tags[QTag.tagName]?.firstOrNull;
+        final qTag = tags[QuotedReplaceableEvent.tagName]?.firstOrNull;
         if (qTag != null) {
-          final qTagValue = QTag.fromTag(qTag).value;
+          final qTagValue = QuotedReplaceableEvent.fromTag(qTag).eventReference.masterPubkey;
           if (qTagValue == currentUserMasterPubkey) {
             if (_inMemoryQFilterSince == null) {
               _inMemoryQFilterSince = eventTimestamp;
