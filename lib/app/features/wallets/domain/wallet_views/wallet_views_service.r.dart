@@ -26,7 +26,7 @@ import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_update.f.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_parser.dart';
+import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/concurrency.dart';

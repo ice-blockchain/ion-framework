@@ -15,7 +15,7 @@ import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.d
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_parser.dart';
+import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -136,7 +136,7 @@ Future<MoneyDisplayData?> transactionDisplayData(
     if (assetId != null && assetId.isNotEmpty && rawAmount != null && rawAmount.isNotEmpty) {
       final coin = await ref.watch(coinByIdProvider(assetId).future);
       if (coin != null) {
-        final normalizedAmount = parseCryptoAmount(rawAmount, coin.decimals);
+        final normalizedAmount = fromBlockchainUnits(rawAmount, coin.decimals);
         return (
           amount: formatCrypto(normalizedAmount),
           coin: coin.abbreviation,

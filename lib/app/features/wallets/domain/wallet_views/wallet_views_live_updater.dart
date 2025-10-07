@@ -320,7 +320,7 @@ class WalletViewsLiveUpdater {
         }
       }
 
-      final adjustedAmount = parseCryptoAmount(
+      final adjustedAmount = fromBlockchainUnits(
         (adjustedRawAmount.isNegative ? 0 : adjustedRawAmount).toString(),
         coinInWallet.coin.decimals,
       );

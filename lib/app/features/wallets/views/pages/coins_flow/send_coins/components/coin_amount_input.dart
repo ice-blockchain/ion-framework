@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/inputs/text_input/text_input.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/wallets/model/coin_data.f.dart';
+import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/num.dart';
@@ -14,7 +16,7 @@ class CoinAmountInput extends HookWidget {
     required this.controller,
     this.balanceUSD,
     this.maxValue,
-    this.coinAbbreviation,
+    this.coin,
     this.enabled = true,
     this.errorText,
     super.key,
@@ -23,7 +25,7 @@ class CoinAmountInput extends HookWidget {
   final TextEditingController controller;
   final double? balanceUSD;
   final double? maxValue;
-  final String? coinAbbreviation;
+  final CoinData? coin;
   final bool enabled;
   final String? errorText;
 
@@ -33,7 +35,7 @@ class CoinAmountInput extends HookWidget {
     final colors = context.theme.appColors;
     final textTheme = context.theme.appTextThemes;
 
-    final label = locale.wallet_coin_amount(coinAbbreviation ?? '');
+    final label = locale.wallet_coin_amount(coin?.abbreviation ?? '');
     final isValidInput = useState(true);
 
     return Column(
@@ -58,6 +60,12 @@ class CoinAmountInput extends HookWidget {
               return locale.wallet_coin_amount_insufficient_funds;
             } else if (parsed < 0) {
               return locale.wallet_coin_amount_must_be_positive;
+            } else if (coin != null) {
+              final decimals = coin!.decimals;
+              final amount = toBlockchainUnits(parsed, decimals);
+              if (amount == BigInt.zero && parsed > 0) {
+                return locale.wallet_coin_amount_too_low_for_sending;
+              }
             }
 
             return null;

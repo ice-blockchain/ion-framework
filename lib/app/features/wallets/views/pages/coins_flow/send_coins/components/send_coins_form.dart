@@ -187,7 +187,7 @@ class SendCoinsForm extends HookConsumerWidget {
                       CoinAmountInput(
                         controller: amountController,
                         maxValue: coin?.selectedOption?.amount ?? 0,
-                        coinAbbreviation: coin?.coinsGroup.abbreviation ?? '',
+                        coin: coin?.selectedOption?.coin,
                         balanceUSD: usdAmount,
                         errorText:
                             exceedsMaxAmount ? locale.wallet_coin_amount_insufficient_funds : null,
