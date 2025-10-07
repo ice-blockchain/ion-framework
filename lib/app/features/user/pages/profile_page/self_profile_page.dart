@@ -19,7 +19,7 @@ class SelfProfilePage extends ConsumerWidget {
     }
 
     return ProfilePage(
-      pubkey: currentPubkey,
+      masterPubkey: currentPubkey,
       showBackButton: false,
     );
   }

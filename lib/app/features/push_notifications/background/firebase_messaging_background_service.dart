@@ -26,7 +26,6 @@ import 'package:ion/app/features/push_notifications/providers/app_translations_p
 import 'package:ion/app/features/push_notifications/providers/notification_data_parser_provider.r.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_delegation_dao.m.dart';
 import 'package:ion/app/features/user_profile/database/dao/user_metadata_dao.m.dart';
-import 'package:ion/app/features/user_profile/providers/user_profile_database_provider.r.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
@@ -170,7 +169,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         return (null, null);
       } finally {
         // Close database connection which we use inside providers to prevent isolate leaks
-        await messageContainer.read(userProfileDatabaseProvider).close();
+        //await messageContainer.read(userProfileDatabaseProvider).close();
         messageContainer.dispose();
       }
     },

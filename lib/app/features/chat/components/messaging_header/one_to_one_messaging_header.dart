@@ -33,18 +33,21 @@ class OneToOneMessagingHeader extends ConsumerWidget {
         ref.watch(isBlockedByNotifierProvider(receiverMasterPubkey)).valueOrNull ?? true;
     final isVerified = ref.watch(isUserVerifiedProvider(receiverMasterPubkey));
     final isNicknameProven = ref.watch(isNicknameProvenProvider(receiverMasterPubkey));
-    final isDeleted = ref.watch(isUserDeletedProvider(receiverMasterPubkey)).valueOrNull ?? false;
 
-    final userMetadata = ref.watch(userMetadataFromDbProvider(receiverMasterPubkey))?.data;
-
+    final userMetadata = ref.watch(userMetadataProvider(receiverMasterPubkey));
     // Show skeleton while loading user data (unless deleted)
-    if ((userMetadata == null) && !isDeleted) {
+    if (userMetadata.isLoading) {
       return const _HeaderSkeleton();
     }
 
-    final receiverPicture = isDeleted ? null : userMetadata?.avatarUrl;
-    final receiverName = userMetadata?.name;
-    final receiverDisplayName = userMetadata?.displayName;
+    final metadata = userMetadata.valueOrNull;
+
+    final isUserDeleted = metadata == null;
+
+    final receiverPicture =
+        !isUserDeleted && !isBlockedBy ? metadata.data.avatarUrl : Assets.svg.iconProfileNoimage;
+    final receiverName = metadata?.data.name;
+    final receiverDisplayName = metadata?.data.displayName;
 
     final subtitle = Text(
       prefixUsername(
@@ -80,7 +83,7 @@ class OneToOneMessagingHeader extends ConsumerWidget {
                       pubkey: receiverMasterPubkey,
                       size: 36.0.s,
                       useRandomGradient: true,
-                      imageUrl: (!isBlockedBy && !isDeleted) ? receiverPicture : null,
+                      imageUrl: receiverPicture,
                     ),
                   SizedBox(width: 10.0.s),
                   Expanded(
@@ -91,7 +94,7 @@ class OneToOneMessagingHeader extends ConsumerWidget {
                           children: [
                             Flexible(
                               child: Text(
-                                isDeleted
+                                isUserDeleted
                                     ? context.i18n.common_deleted_account
                                     : receiverDisplayName ?? '',
                                 maxLines: 1,

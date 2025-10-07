@@ -69,7 +69,7 @@ class SharedPostMessage extends HookConsumerWidget {
         )
         .valueOrNull;
 
-    final isDeleted = useMemoized(
+    final isPostDeleted = useMemoized(
       () => switch (postFromNetwork) {
         final ArticleEntity article => article.isDeleted,
         final ModifiablePostEntity post => post.isDeleted,
@@ -78,7 +78,7 @@ class SharedPostMessage extends HookConsumerWidget {
       [postFromNetwork],
     );
 
-    if (postData is! EntityDataWithMediaContent || isDeleted) {
+    if (postData is! EntityDataWithMediaContent || isPostDeleted) {
       return const SizedBox.shrink();
     }
 

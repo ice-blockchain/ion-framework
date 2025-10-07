@@ -10,8 +10,6 @@ import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dar
 import 'package:ion/app/features/chat/views/components/chat_privacy_tooltip.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_search_history_provider.m.dart';
-import 'package:ion/app/features/user_profile/database/dao/user_metadata_dao.m.dart';
-import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -28,10 +26,6 @@ class ChatSearchResultListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useOnInit(() {
-      ref.read(userMetadataDaoProvider).insert(item.userMetadata);
-    });
-
     final userMetadata = item.userMetadata;
     final canSendMessage =
         ref.watch(canSendMessageProvider(userMetadata.masterPubkey)).valueOrNull ?? false;

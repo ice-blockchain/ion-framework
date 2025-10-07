@@ -95,7 +95,7 @@ class ReplyMessage extends HookConsumerWidget {
                 children: [
                   SenderSummary(
                     textColor: textColor,
-                    pubkey: repliedMessageItem!.eventMessage.masterPubkey,
+                    masterPubkey: repliedMessageItem!.eventMessage.masterPubkey,
                   ),
                   Row(
                     children: [

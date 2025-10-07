@@ -11,6 +11,7 @@ import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/replaceable_event_identifier.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 
 part 'badge_definition.f.freezed.dart';
 
@@ -24,7 +25,7 @@ class Thumbnail {
 @Freezed(equal: false)
 class BadgeDefinitionEntity
     with IonConnectEntity, CacheableEntity, ReplaceableEntity, _$BadgeDefinitionEntity
-    implements EntityEventSerializable {
+    implements EntityEventSerializable, DbCacheableEntity {
   const factory BadgeDefinitionEntity({
     required String id,
     required String pubkey,

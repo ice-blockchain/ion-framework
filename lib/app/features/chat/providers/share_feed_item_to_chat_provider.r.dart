@@ -22,7 +22,6 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
-import 'package:ion/app/features/user_profile/providers/user_profile_sync_provider.r.dart';
 import 'package:ion/app/services/uuid/generate_conversation_id.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -71,12 +70,6 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
         };
 
         final feedItemAsContent = jsonEncode(feedItemEventMessage.toJson().last);
-
-        unawaited(
-          ref
-              .read(userProfileSyncProvider.notifier)
-              .syncUserProfile(masterPubkeys: receiversMasterPubkeys.toSet()),
-        );
 
         await Future.wait(
           receiversMasterPubkeys.map((masterPubkey) async {

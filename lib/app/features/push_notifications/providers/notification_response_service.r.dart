@@ -212,7 +212,7 @@ NotificationResponseService notificationResponseService(Ref ref) {
   final currentPubkey = ref.watch(currentPubkeySelectorProvider);
   Future<GiftUnwrapService> getGiftUnwrapService() => ref.watch(giftUnwrapServiceProvider.future);
   UserMetadataEntity? getUserMetadata(String pubkey) =>
-      ref.read(userMetadataFromDbProvider(pubkey));
+      ref.watch(userMetadataProvider(pubkey)).valueOrNull;
   final eventParser = ref.watch(eventParserProvider);
 
   return NotificationResponseService(
