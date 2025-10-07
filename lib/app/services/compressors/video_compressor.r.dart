@@ -24,6 +24,7 @@ import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_pixel_format_a
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_preset_arg.dart';
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_scale_arg.dart';
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_video_codec_arg.dart';
+import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_video_profile.dart';
 import 'package:ion/app/services/media_service/ffmpeg_commands_config.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -42,6 +43,7 @@ class VideoCompressionSettings {
     required this.audioBitrate,
     required this.pixelFormat,
     required this.movFlags,
+    required this.profile,
     this.videoBitrate,
   });
 
@@ -56,6 +58,7 @@ class VideoCompressionSettings {
     audioBitrate: FfmpegAudioBitrateArg.medium,
     pixelFormat: FfmpegPixelFormatArg.yuv420p,
     movFlags: FfmpegMovFlagArg.faststart,
+    profile: FfmpegProfileArg.main,
   );
 
   final FFmpegVideoCodecArg videoCodec;
@@ -69,6 +72,7 @@ class VideoCompressionSettings {
   final FfmpegPixelFormatArg pixelFormat;
   final FfmpegMovFlagArg movFlags;
   final FfmpegBitrateArg? videoBitrate;
+  final FfmpegProfileArg profile;
 }
 
 // Video duration threshold for using hardware compression
@@ -140,6 +144,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
         pixelFormat: settings.pixelFormat.name,
         scaleResolution: settings.scale.resolution,
         movFlags: settings.movFlags.value,
+        profile: settings.profile.value,
       );
 
       final session = await compressExecutor.execute(
