@@ -212,7 +212,8 @@ class ConversationList extends ConsumerWidget {
                   conversation: conversation,
                   key: ValueKey(conversation.conversationId),
                 ),
-              const HorizontalSeparator(), // Add separator after each item
+              if (index < conversations.length - 1)
+                const HorizontalSeparator(), // Add separator after each item except the last one
             ],
           );
         },
