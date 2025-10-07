@@ -31,7 +31,7 @@ dependencies:
   local_auth: ^2.3.0
   local_auth_crypto: ^1.1.1
   on_chain: ^6.0.0
-  passkeys: ^2.11.0
+  passkeys: ^2.15.1
   pointycastle: ^3.9.1
   rxdart: ^0.28.0
   sprintf: ^7.0.0

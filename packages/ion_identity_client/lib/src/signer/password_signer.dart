@@ -211,27 +211,13 @@ class PasswordSigner {
   }
 
   Future<void> _updateStateToCanSuggest(String username) async {
-    final biometricsAvailable = await isBiometricsAvailable();
+    final biometricsAvailable = await const BiometricsService().isBiometricsAvailable();
     if (biometricsAvailable) {
       await biometricsStateStorage.updateBiometricsState(
         username: username,
         biometricsState: BiometricsState.canSuggest,
       );
     }
-  }
-
-  Future<bool> isBiometricsAvailable() async {
-    final localAuth = LocalAuthentication();
-
-    final results = await Future.wait<bool>([
-      localAuth.canCheckBiometrics,
-      localAuth.isDeviceSupported(),
-    ]);
-
-    final canCheckBiometrics = results[0];
-    final isDeviceSupported = results[1];
-
-    return canCheckBiometrics && isDeviceSupported;
   }
 
   String _buildClientData({

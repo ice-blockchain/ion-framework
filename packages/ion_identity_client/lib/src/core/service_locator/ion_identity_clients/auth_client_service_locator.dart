@@ -58,7 +58,7 @@ class AuthClientServiceLocator {
         identitySigner: identitySigner,
       ),
       getCredentialsService: getCredentials(username: username, config: config),
-      createNewCredentialsService: createNewCredentials(
+      createNewCredentialsService: _createNewCredentials(
         username: username,
         config: config,
         identitySigner: identitySigner,
@@ -172,7 +172,7 @@ class AuthClientServiceLocator {
     );
   }
 
-  CreateNewCredentialsService createNewCredentials({
+  CreateNewCredentialsService _createNewCredentials({
     required String username,
     required IONIdentityConfig config,
     required IdentitySigner identitySigner,

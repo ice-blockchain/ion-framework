@@ -84,3 +84,8 @@ Future<void> _performPasswordDelegation(Ref ref, String password) async {
     );
   }
 }
+
+@riverpod
+BiometricsService biometricsService(Ref ref) {
+  return const BiometricsService();
+}
