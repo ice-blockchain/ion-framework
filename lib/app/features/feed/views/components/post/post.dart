@@ -44,6 +44,7 @@ class Post extends ConsumerWidget {
     this.accentTheme = false,
     this.videoAutoplay = true,
     this.isTextSelectable = false,
+    this.showNotInterested = true,
     this.bodyMaxLines = 6,
     this.contentWrapper,
     this.onVideoTap,
@@ -67,6 +68,7 @@ class Post extends ConsumerWidget {
   final bool videoAutoplay;
   final Widget Function(Widget content)? contentWrapper;
   final OnVideoTapCallback? onVideoTap;
+  final bool showNotInterested;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -159,6 +161,7 @@ class Post extends ConsumerWidget {
                     )
                   : UserInfoMenu(
                       eventReference: eventReference,
+                      showNotInterested: showNotInterested,
                       padding: EdgeInsetsGeometry.symmetric(
                         horizontal: ScreenSideOffset.defaultSmallMargin,
                         vertical: 5.0.s,

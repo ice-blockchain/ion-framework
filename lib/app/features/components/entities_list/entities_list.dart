@@ -28,6 +28,7 @@ class EntitiesList extends HookWidget {
     this.onVideoTap,
     this.readFromDB = false,
     this.showMuted = false,
+    this.showNotInterested = true,
     super.key,
   });
 
@@ -37,6 +38,7 @@ class EntitiesList extends HookWidget {
   final OnVideoTapCallback? onVideoTap;
   final bool readFromDB;
   final bool showMuted;
+  final bool showNotInterested;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +58,7 @@ class EntitiesList extends HookWidget {
                 onVideoTap: onVideoTap,
                 readFromDB: readFromDB,
                 showMuted: showMuted,
+                showNotInterested: showNotInterested,
               ),
             IonEntityListItem() => const SizedBox.shrink()
           };
@@ -71,6 +74,7 @@ class _EntityListItem extends ConsumerWidget {
     required this.displayParent,
     required this.readFromDB,
     required this.showMuted,
+    required this.showNotInterested,
     this.onVideoTap,
     double? separatorHeight,
     super.key,
@@ -82,6 +86,7 @@ class _EntityListItem extends ConsumerWidget {
   final bool readFromDB;
   final OnVideoTapCallback? onVideoTap;
   final bool showMuted;
+  final bool showNotInterested;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -108,14 +113,20 @@ class _EntityListItem extends ConsumerWidget {
       height: separatorHeight,
       child: switch (entity) {
         ModifiablePostEntity() || PostEntity() => PostListItem(
+            showNotInterested: showNotInterested,
             eventReference: entity.toEventReference(),
             displayParent: displayParent,
             onVideoTap: onVideoTap,
           ),
-        final ArticleEntity article => ArticleListItem(article: article),
-        GenericRepostEntity() ||
-        RepostEntity() =>
-          RepostListItem(eventReference: entity.toEventReference(), onVideoTap: onVideoTap),
+        final ArticleEntity article => ArticleListItem(
+            article: article,
+            showNotInterested: showNotInterested,
+          ),
+        GenericRepostEntity() || RepostEntity() => RepostListItem(
+            eventReference: entity.toEventReference(),
+            onVideoTap: onVideoTap,
+            showNotInterested: showNotInterested,
+          ),
         _ => const SizedBox.shrink()
       },
     );

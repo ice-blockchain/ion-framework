@@ -65,6 +65,7 @@ class PostDetailsPage extends HookConsumerWidget {
                         isTextSelectable: true,
                         bodyMaxLines: null,
                         displayParent: true,
+                        showNotInterested: false,
                       ),
                     ),
                     const SliverToBoxAdapter(child: SectionSeparator()),

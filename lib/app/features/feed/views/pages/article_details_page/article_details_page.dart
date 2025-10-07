@@ -78,7 +78,10 @@ class ArticleDetailsPage extends HookConsumerWidget {
           if (isOwnedByCurrentUser)
             OwnEntityMenu(eventReference: eventReference, onDelete: context.pop)
           else
-            UserInfoMenu(eventReference: eventReference),
+            UserInfoMenu(
+              eventReference: eventReference,
+              showNotInterested: false,
+            ),
         ],
       ),
       body: Column(

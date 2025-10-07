@@ -44,6 +44,7 @@ class TabEntitiesList extends HookConsumerWidget {
             .map((entity) => IonEntityListItem.event(eventReference: entity.toEventReference()))
             .toList(),
         displayParent: true,
+        showNotInterested: false,
       ),
     );
   }
@@ -98,6 +99,7 @@ class TabEntitiesList extends HookConsumerWidget {
                       )
                       .toList(),
                   showMuted: true,
+                  showNotInterested: false,
                   onVideoTap: ({
                     required String eventReference,
                     required int initialMediaIndex,
