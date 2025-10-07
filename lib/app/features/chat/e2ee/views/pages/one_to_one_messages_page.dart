@@ -56,7 +56,7 @@ class OneToOneMessagesPage extends HookConsumerWidget {
           existChatConversationIdProvider(participantsMasterPubkeys).future,
         );
 
-        conversationId.value = existingConversationId ??
+        final conversationIdValue = existingConversationId ??
             generateConversationId(
               conversationType: ConversationType.oneToOne,
               receiverMasterPubkeys: [receiverMasterPubkey, currentUserMasterPubkey],

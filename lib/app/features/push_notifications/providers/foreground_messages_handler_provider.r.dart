@@ -87,6 +87,7 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
       payload: jsonEncode(response.data),
       icon: avatar,
       attachment: media,
+      conversationId: parsedData?.conversationId,
     );
   }
 

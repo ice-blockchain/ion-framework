@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -48,12 +49,14 @@ class LocalNotificationsService {
     String? payload,
     String? icon,
     String? attachment,
+    String? conversationId,
   }) async {
     final notificationDetails = await _buildNotificationDetails(
       avatarUrl: icon,
       attachmentUrl: attachment,
       userName: title,
       textMessage: body,
+      conversationId: conversationId,
     );
 
     await _plugin.show(
@@ -71,7 +74,21 @@ class LocalNotificationsService {
     return payload != null ? jsonDecode(payload) as Map<String, dynamic> : null;
   }
 
-  static InitializationSettings get _settings {
+  ///
+  /// Clears notifications for a specific conversation
+  ///
+  Future<void> clearConversationNotifications(String conversationId) async {
+    const channel = MethodChannel('notification_channel');
+    try {
+      await channel.invokeMethod('clearConversationNotifications', {
+        'conversationId': conversationId,
+      });
+    } catch (e, stackTrace) {
+      Logger.error(e, stackTrace: stackTrace, message: 'Error clearing notifications');
+    }
+  }
+
+  InitializationSettings get _settings {
     const initializationSettingsAndroid = AndroidInitializationSettings('ic_stat_ic_notification');
     // Do not request permissions on iOS when the plugin is initialized
     // We do that manually either during the onboarding or in the app settings
@@ -95,6 +112,7 @@ class LocalNotificationsService {
     String? attachmentUrl,
     String? userName,
     String? textMessage,
+    String? conversationId,
   }) async {
     Person? messagePerson;
     String? avatarFilePath;
@@ -138,6 +156,8 @@ class LocalNotificationsService {
       largeIcon: attachmentFilePath != null ? FilePathAndroidBitmap(attachmentFilePath) : null,
       styleInformation: styleInformation,
       shortcutId: const Uuid().v4(),
+      groupKey: conversationId ?? userName,
+      tag: conversationId,
     );
 
     final iOSPerson = DarwinCommunicationPerson(
@@ -147,7 +167,7 @@ class LocalNotificationsService {
     );
 
     final iOSPlatformChannelSpecifics = DarwinCommunicationNotificationDetails(
-      conversationIdentifier: userName ?? 'ion_miscellaneous',
+      conversationIdentifier: conversationId ?? userName ?? 'ion_miscellaneous',
       messages: [
         DarwinCommunicationMessage(
           text: textMessage ?? '',

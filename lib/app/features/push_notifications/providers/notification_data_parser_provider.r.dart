@@ -2,6 +2,7 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/chat/community/models/entities/tags/conversation_identifier.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -22,6 +23,7 @@ class NotificationParsedData {
     required this.notificationType,
     this.avatar,
     this.media,
+    this.conversationId,
   });
 
   final String title;
@@ -29,6 +31,7 @@ class NotificationParsedData {
   final PushNotificationType notificationType;
   final String? avatar;
   final String? media;
+  final String? conversationId;
 }
 
 class NotificationDataParser {
@@ -100,12 +103,28 @@ class NotificationDataParser {
 
     final (avatar, media) = await data.getMediaPlaceholders();
 
+    // Extract conversationId from event tags (looking for "h" tag)
+    String? conversationId;
+
+    final decryptedEvent = data.decryptedEvent;
+
+    // Set conversationId from decrypted event tags
+    if (decryptedEvent != null && decryptedEvent.tags.isNotEmpty) {
+      for (final tag in decryptedEvent.tags) {
+        if (tag.isNotEmpty && tag.first == ConversationIdentifier.tagName && tag.length >= 2) {
+          conversationId = tag[1];
+          break;
+        }
+      }
+    }
+
     return NotificationParsedData(
       title: result.title,
       body: result.body,
       avatar: avatar,
       media: media,
       notificationType: notificationType,
+      conversationId: conversationId,
     );
   }
 
