@@ -127,16 +127,25 @@ class SendAssetFormController extends _$SendAssetFormController {
       );
 
       if (networkFeeInfo != null) {
+        final updatedCoin = coin.copyWith(
+          associatedAssetWithSelectedOption: networkFeeInfo.sendableAsset,
+          selectedOption: selectedOption,
+        );
+
         state = state.copyWith(
           networkFeeOptions: networkFeeInfo.networkFeeOptions,
           selectedNetworkFeeOption: networkFeeInfo.networkFeeOptions.firstOrNull,
           networkNativeToken: networkFeeInfo.networkNativeToken,
-          assetData: coin.copyWith(
-            associatedAssetWithSelectedOption: networkFeeInfo.sendableAsset,
-            selectedOption: selectedOption,
+        );
+
+        final maxAmountToSend = _calculateMaxAmountToSend(updatedCoin);
+
+        state = state.copyWith(
+          assetData: updatedCoin.copyWith(
+            maxAmountToSend: maxAmountToSend,
           ),
         );
-        _checkIfUserCanCoverFee(coin);
+        _checkIfUserCanCoverFee(updatedCoin);
       }
     }
   }
@@ -155,9 +164,11 @@ class SendAssetFormController extends _$SendAssetFormController {
   void setCoinsAmount(String amount) {
     if (state.assetData case final CoinAssetToSendData coin) {
       final parsedAmount = parseAmount(amount) ?? 0.0;
+      final maxAmountToSend = _calculateMaxAmountToSend(coin);
       final updatedCoin = coin.copyWith(
         amount: parsedAmount,
         amountUSD: parsedAmount * (coin.selectedOption?.coin.priceUSD ?? 0),
+        maxAmountToSend: maxAmountToSend,
       );
 
       state = state.copyWith(
@@ -178,7 +189,15 @@ class SendAssetFormController extends _$SendAssetFormController {
     );
 
     if (state.assetData case final CoinAssetToSendData coin) {
-      _checkIfUserCanCoverFee(coin);
+      final maxAmountToSend = _calculateMaxAmountToSend(coin);
+      final updatedCoin = coin.copyWith(
+        maxAmountToSend: maxAmountToSend,
+      );
+
+      state = state.copyWith(
+        assetData: updatedCoin,
+      );
+      _checkIfUserCanCoverFee(updatedCoin);
     }
   }
 
@@ -192,5 +211,26 @@ class SendAssetFormController extends _$SendAssetFormController {
 
   void setMemo(String memo) {
     state = state.copyWith(memo: memo);
+  }
+
+  double _calculateMaxAmountToSend(CoinAssetToSendData coin) {
+    final selectedOption = coin.selectedOption;
+    final selectedFee = state.selectedNetworkFeeOption;
+
+    if (selectedOption == null) return 0.0;
+
+    final availableBalance = selectedOption.amount;
+    final feeAmount = selectedFee?.amount ?? 0.0;
+    final isSendingNativeToken = selectedOption.coin.native;
+
+    if (isSendingNativeToken) {
+      // When sending native token, we need to reserve fee from the same balance
+      final maxAmount = availableBalance - feeAmount;
+      return maxAmount > 0 ? maxAmount : availableBalance;
+    } else {
+      // When sending non-native token, fee is paid with native token separately
+      // So max amount is just the token balance
+      return availableBalance;
+    }
   }
 }
