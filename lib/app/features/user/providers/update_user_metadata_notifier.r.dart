@@ -89,7 +89,7 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
           updateUserSocialProfileProvider(
             data: UserSocialProfileData(
               username: usernameChanged ? data.name : null,
-              displayName: displayNameChanged ? trimmedDisplayName: null,
+              displayName: displayNameChanged ? trimmedDisplayName : null,
               bio: bioChanged ? data.about : null,
               avatar: avatarChanged ? data.picture : null,
             ),
