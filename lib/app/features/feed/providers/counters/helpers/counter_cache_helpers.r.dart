@@ -114,12 +114,13 @@ class QuoteCounterUpdater {
     removeCacheItem(quotesCacheKey);
   }
 
-  void invalidateAllReactionCaches() {
-    final reactionTypeString = EventCountResultType.reactions.toShortString();
-    final reactionKeys = cacheKeys.where((key) => key.endsWith(':$reactionTypeString')).toList();
-
-    for (final key in reactionKeys) {
-      removeCacheItem(key);
+  void invalidateReactionCachesForEvents(Iterable<EventReference> eventReferences) {
+    for (final eventReference in eventReferences) {
+      final cacheKey = EventCountResultEntity.cacheKeyBuilder(
+        key: eventReference.toString(),
+        type: EventCountResultType.reactions,
+      );
+      removeCacheItem(cacheKey);
     }
   }
 }
