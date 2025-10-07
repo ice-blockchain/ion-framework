@@ -110,7 +110,11 @@ class FeedPage extends HookConsumerWidget {
     required bool showStories,
     required bool showTrendingVideos,
   }) async {
-    ref.read(quoteCounterUpdaterProvider).invalidateAllReactionCaches();
+    final currentFeedItems = ref.read(feedPostsProvider).items;
+    if (currentFeedItems != null) {
+      final eventReferences = currentFeedItems.map((entity) => entity.toEventReference());
+      ref.read(quoteCounterUpdaterProvider).invalidateReactionCachesForEvents(eventReferences);
+    }
     ref.read(feedPostsProvider.notifier).refresh();
     if (showTrendingVideos) {
       ref.read(feedTrendingVideosProvider.notifier).refresh();
