@@ -86,11 +86,6 @@ Future<void> _performPasswordDelegation(Ref ref, String password) async {
 }
 
 @riverpod
-Future<bool> isBiometricsAvailable(Ref ref) async {
-  try {
-    return await const BiometricsService().isBiometricsAvailable();
-  } catch (error, stackTrace) {
-    Logger.log('Biometrics availability check exception', error: error, stackTrace: stackTrace);
-    return false;
-  }
+BiometricsService biometricsService(Ref ref) {
+  return const BiometricsService();
 }

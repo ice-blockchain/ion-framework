@@ -26,7 +26,7 @@ Future<void> Function({required String username, required String password})
         // local_auth_crypto.authenticate then. So we should not even suggest to add biometrics
         // in this case.
         if (!Platform.isAndroid ||
-            await ref.read(isBiometricsAvailableProvider.future) && context.mounted) {
+            await ref.read(biometricsServiceProvider).isBiometricsAvailable() && context.mounted) {
           // Show suggest to add biometrics popup
           await showSimpleBottomSheet<void>(
             context: context,
