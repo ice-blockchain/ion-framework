@@ -32,7 +32,7 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
 
     final selectedCategoriesSubscription =
         await ref.watch(selectedPushCategoriesIonSubscriptionProvider.future);
-    final publishedSubscription = await ref.watch(currentUserPushSubscriptionProvider.future);
+    final publishedSubscription = await ref.read(currentUserPushSubscriptionProvider.future);
 
     if (selectedCategoriesSubscription != null &&
         selectedCategoriesSubscription != publishedSubscription?.data) {
