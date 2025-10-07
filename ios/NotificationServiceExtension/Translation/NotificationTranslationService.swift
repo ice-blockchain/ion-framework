@@ -267,13 +267,10 @@ class NotificationTranslationService {
         
         defer { cacheDB.closeDatabase() }
         
-        let cacheKey = ReplaceableEventReference(masterPubkey: pubkey, kind: UserMetadataEntity.kind)
+        let eventReference = ReplaceableEventReference(masterPubkey: pubkey, kind: UserMetadataEntity.kind)
+        let eventReferenceKey = eventReference.toString()
         
-        guard let cachedEntity = cacheDB.getRelatedEntity(eventReference: cacheKey.toString()) else {
-            return nil
-        }
-        
-        guard let userMetadata = cachedEntity as? UserMetadataEntity else {
+        guard let userMetadata: UserMetadataEntity = cacheDB.getEntity(for: eventReferenceKey) else {
             return nil
         }
         
