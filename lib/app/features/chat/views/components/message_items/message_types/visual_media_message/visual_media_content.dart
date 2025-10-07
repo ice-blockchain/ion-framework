@@ -9,10 +9,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/chat_medias_provider.r.dart';
-import 'package:ion/app/features/chat/e2ee/providers/chat_message_load_media_provider.r.dart';
+import 'package:ion/app/features/chat/e2ee/providers/chat_message_media_path_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_chat_media_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
-import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -34,13 +33,6 @@ class VisualMediaContent extends HookConsumerWidget {
   final bool isReply;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cachedPath = ListCachedObjects.maybeObjectOf<PathWithKey>(
-      context,
-      messageMediaTableData.remoteUrl,
-    )?.filePath;
-
-    final localFile = useState<File?>(cachedPath != null ? File(cachedPath) : null);
-
     final entity = useMemoized(
       () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
       [eventMessage],
@@ -48,33 +40,17 @@ class VisualMediaContent extends HookConsumerWidget {
 
     final mediaAttachment = entity.data.media[messageMediaTableData.remoteUrl];
 
-    useEffect(
-      () {
-        ref
-            .read(
-          chatMessageLoadMediaProvider(
+    final localMediaPath = ref
+        .watch(
+          chatMessageMediaPathProvider(
             entity: entity,
             mediaAttachment: mediaAttachment,
             cacheKey: messageMediaTableData.cacheKey,
           ),
         )
-            .then((file) {
-          if (context.mounted) {
-            localFile.value = file;
+        .valueOrNull;
 
-            if (file == null || messageMediaTableData.remoteUrl == null) return;
-            ListCachedObjects.updateObject<PathWithKey>(
-              context,
-              (key: messageMediaTableData.remoteUrl!, filePath: file.path),
-            );
-          }
-        });
-        return null;
-      },
-      [mediaAttachment?.thumb, messageMediaTableData.cacheKey],
-    );
-
-    if (localFile.value == null && mediaAttachment?.blurhash == null) {
+    if (localMediaPath == null && mediaAttachment?.blurhash == null) {
       return const SizedBox.shrink();
     }
 
@@ -97,7 +73,7 @@ class VisualMediaContent extends HookConsumerWidget {
         key: Key(messageMediaTableData.id.toString()),
         alignment: Alignment.center,
         children: [
-          if (mediaAttachment?.blurhash != null && localFile.value == null)
+          if (mediaAttachment?.blurhash != null && localMediaPath == null)
             ClipRRect(
               borderRadius: BorderRadius.circular(height <= 30.0.s ? 2.0.s : 5.0.s),
               child: SizedBox(
@@ -107,11 +83,11 @@ class VisualMediaContent extends HookConsumerWidget {
                 ),
               ),
             ),
-          if (localFile.value != null)
+          if (localMediaPath != null)
             ClipRRect(
               borderRadius: BorderRadius.circular(height <= 30.0.s ? 2.0.s : 5.0.s),
               child: Image.file(
-                localFile.value!,
+                File(localMediaPath),
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: height,
