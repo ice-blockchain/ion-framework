@@ -146,23 +146,16 @@ class _MessagesList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (conversationId == null) {
-      return Expanded(
-        child: ColoredBox(
-          color: context.theme.appColors.primaryBackground,
-        ),
-      );
-    }
-
-    final messages =
-        ref.watch(conversationMessagesProvider(conversationId!, ConversationType.oneToOne));
+    final messages = conversationId == null
+        ? null
+        : ref.watch(conversationMessagesProvider(conversationId!, ConversationType.oneToOne));
 
     final loadingStartTime = useRef<DateTime?>(null);
     final canShowContent = useState(false);
 
     useEffect(
       () {
-        if (messages.isLoading) {
+        if (messages == null || messages.isLoading) {
           // Reset when loading starts
           loadingStartTime.value = DateTime.now();
           canShowContent.value = false;
@@ -196,7 +189,7 @@ class _MessagesList extends HookConsumerWidget {
     return Expanded(
       child: () {
         // Show loading if actively loading OR if we have data but minimum duration hasn't passed
-        if (messages.isLoading || !canShowContent.value) {
+        if (messages == null || messages.isLoading || !canShowContent.value) {
           return const E2eeConversationLoadingView();
         }
 

@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/providers/encrypted_event_message_handler.r.dart';
 import 'package:ion/app/features/feed/notifications/providers/notifications/follow_notification_handler.r.dart';
 import 'package:ion/app/features/feed/notifications/providers/notifications/like_notification_handler.r.dart';
@@ -24,9 +25,10 @@ class GlobalSubscriptionEventDispatcher {
   final List<GlobalSubscriptionEventHandler?> _handlers;
 
   void dispatch(EventMessage eventMessage) {
-    final futures = _handlers.nonNulls
-        .where((handler) => handler.canHandle(eventMessage))
-        .map((handler) => handler.handle(eventMessage));
+    final futures = _handlers.nonNulls.where((handler) {
+      final authState = ref.read(authProvider);
+      return handler.canHandle(eventMessage) && (authState.valueOrNull?.isAuthenticated ?? false);
+    }).map((handler) => handler.handle(eventMessage));
 
     unawaited(Future.wait(futures));
   }

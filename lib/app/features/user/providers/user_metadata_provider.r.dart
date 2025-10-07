@@ -133,23 +133,28 @@ class UserMetadataFromDb extends _$UserMetadataFromDb {
   }
 }
 
-Future<void> invalidateCurrentUserMetadataProviders(
-  WidgetRef ref, {
-  ActionType? actionType,
-}) async {
-  final masterPubkey = ref.read(currentPubkeySelectorProvider);
-  if (masterPubkey == null) {
-    return;
-  }
+@riverpod
+class UserMetadataInvalidatorNotifier extends _$UserMetadataInvalidatorNotifier {
+  @override
+  FutureOr<void> build() async {}
 
-  final _ = await ref.refresh(
-    ionConnectNetworkEntityProvider(
-      search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
-      actionType: actionType,
-      eventReference: ReplaceableEventReference(
-        masterPubkey: masterPubkey,
-        kind: UserMetadataEntity.kind,
-      ),
-    ).future,
-  );
+  Future<void> invalidateCurrentUserMetadataProviders({
+    ActionType? actionType,
+  }) async {
+    final masterPubkey = ref.read(currentPubkeySelectorProvider);
+    if (masterPubkey == null) {
+      return;
+    }
+
+    final _ = await ref.refresh(
+      ionConnectNetworkEntityProvider(
+        search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
+        actionType: actionType,
+        eventReference: ReplaceableEventReference(
+          masterPubkey: masterPubkey,
+          kind: UserMetadataEntity.kind,
+        ),
+      ).future,
+    );
+  }
 }
