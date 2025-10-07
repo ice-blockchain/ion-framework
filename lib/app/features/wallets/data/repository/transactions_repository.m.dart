@@ -25,7 +25,7 @@ import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 import 'package:ion/app/features/wallets/providers/transactions_visibility_cloud_autobackup.r.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_parser.dart';
+import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -478,7 +478,7 @@ class TransactionsRepository {
     CoinData coin,
   ) {
     final rawAmount = transaction.value;
-    final amount = parseCryptoAmount(rawAmount.emptyOrValue, coin.decimals);
+    final amount = fromBlockchainUnits(rawAmount.emptyOrValue, coin.decimals);
     final amountUSD = amount * coin.priceUSD;
 
     return TransactionCryptoAsset.coin(

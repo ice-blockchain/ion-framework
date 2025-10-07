@@ -430,6 +430,7 @@
   "wallet_coin_amount": "{coin}-Betrag",
   "wallet_coin_amount_insufficient_funds": "Unzureichendes Guthaben",
   "wallet_coin_amount_must_be_positive": "Betrag muss positiv sein",
+  "wallet_coin_amount_too_low_for_sending": "Der eingegebene Betrag ist zu niedrig, um gesendet zu werden",
   "wallet_address_is_invalid": "Ungültige Adresse",
   "wallet_import_token_title": "Token importieren",
   "wallet_import_token_address_label": "Token-Adresse",

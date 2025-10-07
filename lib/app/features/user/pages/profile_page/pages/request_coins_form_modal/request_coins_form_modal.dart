@@ -128,7 +128,7 @@ class RequestCoinsFormModal extends HookConsumerWidget {
                           balanceUSD: (parseAmount(amountController.text) ?? 0) *
                               coinInWallet.coin.priceUSD,
                           controller: amountController,
-                          coinAbbreviation: coinInWallet.coin.abbreviation,
+                          coin: coinInWallet.coin,
                         )
                       else
                         ItemLoadingState(itemHeight: 60.0.s),

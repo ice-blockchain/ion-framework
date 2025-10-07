@@ -15,7 +15,7 @@ import 'package:ion/app/features/wallets/model/transaction_crypto_asset.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_parser.dart';
+import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -439,7 +439,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
 
       cryptoAsset = TransactionCryptoAsset.coin(
         coin: transferredCoin,
-        amount: parseCryptoAmount(
+        amount: fromBlockchainUnits(
           transferredAmount,
           transferredCoin.decimals,
         ),

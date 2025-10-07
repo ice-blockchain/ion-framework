@@ -445,6 +445,7 @@
   "wallet_coin_amount": "{coin} amount",
   "wallet_coin_amount_insufficient_funds": "Insufficient funds",
   "wallet_coin_amount_must_be_positive": "Amount must be positive",
+  "wallet_coin_amount_too_low_for_sending": "Entered amount is too low for sending",
   "wallet_address_is_invalid": "Invalid address",
   "wallet_import_token_title": "Import token",
   "wallet_import_token_address_label": "Token address",

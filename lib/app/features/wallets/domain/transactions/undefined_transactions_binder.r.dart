@@ -9,7 +9,7 @@ import 'package:ion/app/features/wallets/data/repository/transactions_repository
 import 'package:ion/app/features/wallets/domain/wallet_views/wallet_views_service.r.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_parser.dart';
+import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -177,7 +177,7 @@ class UndefinedTransactionsBinder {
       if (rawTransferredAmount != null && rawTransferredAmount != '0') {
         final coin = await _coinsRepository.getCoinById(binding.coinId);
         if (coin != null) {
-          final amount = parseCryptoAmount(rawTransferredAmount, coin.decimals);
+          final amount = fromBlockchainUnits(rawTransferredAmount, coin.decimals);
           calculatedTransferredAmountUsd = amount * coin.priceUSD;
         } else {
           Logger.warning(
