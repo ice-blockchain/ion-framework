@@ -76,10 +76,11 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
 
       final entitiesData = [...files, data];
 
+      final trimmedDisplayName = data.trimmedDisplayName;
       final currentUserMetadata = await ref.read(currentUserMetadataProvider.future);
       final additionalEvents = <EventMessage>[];
       final usernameChanged = currentUserMetadata?.data.name != data.name;
-      final displayNameChanged = currentUserMetadata?.data.displayName != data.displayName;
+      final displayNameChanged = currentUserMetadata?.data.displayName != trimmedDisplayName;
       final bioChanged = currentUserMetadata?.data.about != data.about;
       final avatarChanged = currentUserMetadata?.data.picture != data.picture;
       if (currentUserMetadata != null &&
@@ -88,7 +89,7 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
           updateUserSocialProfileProvider(
             data: UserSocialProfileData(
               username: usernameChanged ? data.name : null,
-              displayName: displayNameChanged ? data.displayName : null,
+              displayName: displayNameChanged ? trimmedDisplayName: null,
               bio: bioChanged ? data.about : null,
               avatar: avatarChanged ? data.picture : null,
             ),

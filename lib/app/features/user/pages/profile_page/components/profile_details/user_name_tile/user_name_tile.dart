@@ -36,7 +36,7 @@ class UserNameTile extends ConsumerWidget {
             Flexible(
               child: Text(
                 textAlign: TextAlign.center,
-                userMetadataValue.data.displayName,
+                userMetadataValue.data.trimmedDisplayName,
                 style: context.theme.appTextThemes.subtitle.copyWith(
                   color: context.theme.appColors.primaryText,
                 ),

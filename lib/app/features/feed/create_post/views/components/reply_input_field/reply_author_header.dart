@@ -29,7 +29,7 @@ class ReplyAuthorHeader extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         BadgesUserListItem(
-          title: Text(currentUserMetadata.data.displayName),
+          title: Text(currentUserMetadata.data.trimmedDisplayName),
           subtitle: Text(prefixUsername(username: currentUserMetadata.data.name, context: context)),
           masterPubkey: currentUserMetadata.masterPubkey,
         ),

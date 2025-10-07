@@ -67,7 +67,7 @@ class NotificationInfo extends HookConsumerWidget {
           ..onTap = () => ProfileRoute(pubkey: pubkey).push<void>(context);
         newTapRecognizers.add(recognizer);
         return TextSpan(
-          text: userData.data.displayName.isEmpty ? userData.data.name : userData.data.displayName,
+          text: userData.data.trimmedDisplayName.isEmpty ? userData.data.name : userData.data.trimmedDisplayName,
           style: context.theme.appTextThemes.body.copyWith(
             color: context.theme.appColors.primaryText,
           ),

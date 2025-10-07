@@ -29,7 +29,7 @@ class BlockedUserListItem extends ConsumerWidget {
           return const SizedBox.shrink();
         }
         return BadgesUserListItem(
-          title: Text(userMetadata.data.displayName),
+          title: Text(userMetadata.data.trimmedDisplayName),
           trailing: BlockUserButton(masterPubkey: pubkey),
           subtitle: Text(
             prefixUsername(

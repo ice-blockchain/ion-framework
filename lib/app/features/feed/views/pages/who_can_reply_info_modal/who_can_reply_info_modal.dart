@@ -65,7 +65,7 @@ class WhoCanReplyInfoModal extends HookConsumerWidget {
 
     final userMetadata = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
     String commonDescription() => context.i18n.who_can_reply_info_modal_description(
-          userMetadata?.data.displayName ?? '',
+          userMetadata?.data.trimmedDisplayName ?? '',
           context.i18n.who_can_reply_info_modal_setting(whoCanReplySetting.tagValue),
         );
 

@@ -57,7 +57,7 @@ class ContactWalletErrorModal extends StatelessWidget {
                       ),
                       textSeparator,
                       TextSpan(
-                        text: user.data.displayName,
+                        text: user.data.trimmedDisplayName,
                         style: context.theme.appTextThemes.body,
                       ),
                       textSeparator,

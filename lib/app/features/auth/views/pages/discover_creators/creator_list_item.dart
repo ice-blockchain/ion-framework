@@ -29,7 +29,7 @@ class CreatorListItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ScreenSideOffset.small(
       child: BadgesUserListItem(
-        title: Text(userMetadataEntity.data.displayName),
+        title: Text(userMetadataEntity.data.trimmedDisplayName),
         subtitle: Text(prefixUsername(username: userMetadataEntity.data.name, context: context)),
         masterPubkey: userMetadataEntity.masterPubkey,
         backgroundColor: context.theme.appColors.tertiaryBackground,

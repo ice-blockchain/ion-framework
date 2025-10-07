@@ -50,7 +50,7 @@ class UserInfo extends HookConsumerWidget {
             title: GestureDetector(
               onTap: openProfile,
               child: Text(
-                userMetadataEntity.data.displayName,
+                userMetadataEntity.data.trimmedDisplayName,
                 style: textStyle,
               ),
             ),

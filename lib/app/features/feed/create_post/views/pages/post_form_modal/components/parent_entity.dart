@@ -41,7 +41,7 @@ class ParentEntity extends ConsumerWidget {
       children: [
         SizedBox(height: 6.0.s),
         BadgesUserListItem(
-          title: Text(userMetadata.data.displayName),
+          title: Text(userMetadata.data.trimmedDisplayName),
           subtitle: Text(prefixUsername(username: userMetadata.data.name, context: context)),
           masterPubkey: userMetadata.masterPubkey,
           trailing: UserInfoMenu(

@@ -27,7 +27,7 @@ class FeedSimpleSearchListItem extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 8.0.s),
         child: ScreenSideOffset.small(
           child: BadgesUserListItem(
-            title: Text(user.data.displayName),
+            title: Text(user.data.trimmedDisplayName),
             subtitle: Text(
               prefixUsername(username: user.data.name, context: context),
             ),
