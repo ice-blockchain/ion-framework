@@ -34,7 +34,8 @@ class PostPoll extends ConsumerWidget {
         .valueOrNull
         ?.userVotedOptionIndex;
 
-    final isOwnedByCurrentUser = ref.watch(isCurrentUserSelectorProvider(postReference.masterPubkey));
+    final isOwnedByCurrentUser =
+        ref.watch(isCurrentUserSelectorProvider(postReference.masterPubkey));
     final userHasVoted = userVotedOptionIndex != null || hasVoted || optimisticHasVoted != null;
     final shouldShowResults = pollData.isClosed || userHasVoted || isOwnedByCurrentUser;
 
