@@ -344,6 +344,7 @@
   "settings_blocked_users_title_with_counter": "Blocked users ({counter})",
   "settings_app_language": "dApp language",
   "settings_content_language": "Content language",
+  "settings_video_autoplay": "Video autoplay",
   "privacy_group_wallet_address_title": "Wallet address",
   "privacy_group_who_can_message_you_title": "Who can message you",
   "privacy_group_who_can_invite_you_title": "Who can invite you in groups",

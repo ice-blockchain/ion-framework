@@ -40,8 +40,8 @@ class VideoSettings extends _$VideoSettings {
     return savedState;
   }
 
-  set autoplay(bool value) {
-    state = state.copyWith(autoplay: value);
+  void toggleAutoplay() {
+    state = state.copyWith(autoplay: !state.autoplay);
   }
 
   void _listenChanges() {
