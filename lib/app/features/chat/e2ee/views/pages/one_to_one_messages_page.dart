@@ -62,7 +62,7 @@ class OneToOneMessagesPage extends HookConsumerWidget {
               receiverMasterPubkeys: [receiverMasterPubkey, currentUserMasterPubkey],
             );
         conversationId.value = conversationIdValue;
-        final localNotificationsService = await ref.read(localNotificationsServiceProvider.future);
+        final localNotificationsService = await ref.read(pushNotificationManagerProvider.future);
         unawaited(localNotificationsService.clearConversationNotifications(conversationIdValue));
 
         await ref.read(userMetadataProvider(receiverMasterPubkey, cache: false).future);
