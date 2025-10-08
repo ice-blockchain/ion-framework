@@ -114,14 +114,10 @@ Future<UserMetadataEntity?> currentUserMetadata(Ref ref) async {
   }
 }
 
-Future<void> invalidateCurrentUserMetadataProviders(
-  WidgetRef ref, {
-  ActionType? actionType,
-}) async {
-  final masterPubkey = ref.read(currentPubkeySelectorProvider);
-  if (masterPubkey == null) {
-    return;
-  }
+@riverpod
+class UserMetadataInvalidatorNotifier extends _$UserMetadataInvalidatorNotifier {
+  @override
+  FutureOr<void> build() async {}
 
   Future<void> invalidateCurrentUserMetadataProviders({
     ActionType? actionType,
