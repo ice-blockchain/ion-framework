@@ -92,7 +92,7 @@ class VideoPreview extends HookConsumerWidget {
           controller.pause();
         }
       },
-      [isFullyVisible.value, isRouteFocused.value, controller, videoSettings],
+      [isFullyVisible.value, isRouteFocused.value, controller, videoSettings.autoplay],
     );
 
     useEffect(
