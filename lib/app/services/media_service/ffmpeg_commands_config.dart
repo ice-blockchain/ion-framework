@@ -17,6 +17,7 @@ class FFmpegCommands {
     required String scaleResolution,
     required String movFlags,
     required String crf,
+    required String profile,
   }) {
     return [
       '-i',
@@ -31,6 +32,8 @@ class FFmpegCommands {
       maxRate,
       '-bufsize',
       bufSize,
+      '-profile:v',
+      profile,
       '-movflags',
       movFlags,
       '-codec:a',
