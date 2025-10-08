@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/polls/models/poll_data.f.dart';
 import 'package:ion/app/features/feed/polls/providers/poll_results_provider.r.dart';
 import 'package:ion/app/features/feed/polls/view/components/poll_vote.dart';
@@ -33,8 +34,9 @@ class PostPoll extends ConsumerWidget {
         .valueOrNull
         ?.userVotedOptionIndex;
 
+    final isOwnedByCurrentUser = ref.watch(isCurrentUserSelectorProvider(postReference.masterPubkey));
     final userHasVoted = userVotedOptionIndex != null || hasVoted || optimisticHasVoted != null;
-    final shouldShowResults = pollData.isClosed || userHasVoted;
+    final shouldShowResults = pollData.isClosed || userHasVoted || isOwnedByCurrentUser;
 
     if (shouldShowResults) {
       return PollVoteResult(
