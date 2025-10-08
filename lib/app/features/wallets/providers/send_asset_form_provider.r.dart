@@ -138,14 +138,7 @@ class SendAssetFormController extends _$SendAssetFormController {
           networkNativeToken: networkFeeInfo.networkNativeToken,
         );
 
-        final maxAmountToSend = _calculateMaxAmountToSend(updatedCoin);
-
-        state = state.copyWith(
-          assetData: updatedCoin.copyWith(
-            maxAmountToSend: maxAmountToSend,
-          ),
-        );
-        _checkIfUserCanCoverFee(updatedCoin);
+        _updateCoinAssetWithMaxAmount(updatedCoin);
       }
     }
   }
