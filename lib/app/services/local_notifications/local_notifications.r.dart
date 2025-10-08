@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -72,20 +71,6 @@ class LocalNotificationsService {
     final initialNotification = await _plugin.getNotificationAppLaunchDetails();
     final payload = initialNotification?.notificationResponse?.payload;
     return payload != null ? jsonDecode(payload) as Map<String, dynamic> : null;
-  }
-
-  ///
-  /// Clears notifications for a specific conversation
-  ///
-  Future<void> clearConversationNotifications(String conversationId) async {
-    const channel = MethodChannel('notification_channel');
-    try {
-      await channel.invokeMethod('clearConversationNotifications', {
-        'conversationId': conversationId,
-      });
-    } catch (e, stackTrace) {
-      Logger.error(e, stackTrace: stackTrace, message: 'Error clearing notifications');
-    }
   }
 
   InitializationSettings get _settings {

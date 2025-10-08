@@ -13,6 +13,7 @@ import 'package:ion/app/features/feed/data/models/bookmarks/bookmarks_set.f.dart
 import 'package:ion/app/features/feed/providers/bookmarks_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/services/ion_connect/encrypted_message_service.r.dart';
+import 'package:ion/app/services/local_notifications/push_notification_manager.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -35,6 +36,20 @@ class ToggleArchivedConversations extends _$ToggleArchivedConversations {
       initialBookmarkSet: bookmarkSet,
       conversations: conversations,
     );
+
+    final newlyArchivedConversations = conversations
+        .where((conversation) => !bookmarkSet.communitiesIds.contains(conversation.conversationId))
+        .toList();
+
+    if (newlyArchivedConversations.isNotEmpty) {
+      for (final conversationId in newlyArchivedConversations) {
+        unawaited(
+          ref
+              .read(pushNotificationManagerProvider)
+              .clearConversationNotifications(conversationId.conversationId),
+        );
+      }
+    }
 
     await _updateBookmarks(
       bookmarkSet: updatedBookmarkSet,
