@@ -43,13 +43,12 @@ class StoryItemFollowButton extends HookConsumerWidget {
     }
 
     return GestureDetector(
-      onTap: () {
-        if (followListState.isLoading) {
-          return;
-        }
-        isKeptVisible.value = true;
-        ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
-      },
+      onTap: followListState.isLoading
+          ? null
+          : () {
+              isKeptVisible.value = true;
+              ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
+            },
       child: Container(
         width: 24.0.s,
         height: 24.0.s,
