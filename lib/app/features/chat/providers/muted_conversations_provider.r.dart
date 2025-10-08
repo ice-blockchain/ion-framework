@@ -56,10 +56,6 @@ class MutedConversations extends _$MutedConversations {
       final List<String> newMutedMasterPubkeys;
       if (shouldBeMuted) {
         newMutedMasterPubkeys = [...existingMutedMasterPubkeys, masterPubkey];
-        final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
-        if (currentUserMasterPubkey == null) {
-          throw UserMasterPubkeyNotFoundException();
-        }
         unawaited(_cleanConversationNotifications(masterPubkey));
       } else {
         newMutedMasterPubkeys = existingMutedMasterPubkeys.where((p) => p != masterPubkey).toList();

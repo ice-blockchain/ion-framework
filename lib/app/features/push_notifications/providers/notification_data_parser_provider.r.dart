@@ -121,11 +121,9 @@ class NotificationDataParser {
       return null;
     }
 
-    if (event.tags.isNotEmpty) {
-      for (final tag in event.tags) {
-        if (tag.isNotEmpty && tag.first == ConversationIdentifier.tagName && tag.length >= 2) {
-          return tag[1];
-        }
+    for (final tag in event.tags) {
+      if (tag.isNotEmpty && tag.first == ConversationIdentifier.tagName && tag.length >= 2) {
+        return tag[1];
       }
     }
     return null;
