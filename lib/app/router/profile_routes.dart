@@ -37,7 +37,7 @@ class ProfileRoutes {
 class ProfileRoute extends BaseRouteData with _$ProfileRoute {
   ProfileRoute({required this.pubkey})
       : super(
-          child: ProfilePage(pubkey: pubkey),
+          child: ProfilePage(masterPubkey: pubkey),
         );
 
   final String pubkey;

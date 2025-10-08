@@ -14,16 +14,14 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_encrypted_event_message_handler.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
-import 'package:ion/app/features/user_profile/providers/user_profile_sync_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'encrypted_repost_handler.r.g.dart';
 
 class EncryptedRepostHandler extends GlobalSubscriptionEncryptedEventMessageHandler {
-  EncryptedRepostHandler(this.eventMessageDao, this.userProfileSync, this.currentUserMasterPubkey);
+  EncryptedRepostHandler(this.eventMessageDao, this.currentUserMasterPubkey);
 
   final EventMessageDao eventMessageDao;
-  final UserProfileSync userProfileSync;
   final String currentUserMasterPubkey;
 
   @override
@@ -59,8 +57,6 @@ class EncryptedRepostHandler extends GlobalSubscriptionEncryptedEventMessageHand
     if (repliedEventMasterPubkey != null && repliedEventMasterPubkey != currentUserMasterPubkey) {
       masterPubKeys.add(repliedEventMasterPubkey);
     }
-
-    unawaited(userProfileSync.syncUserProfile(masterPubkeys: masterPubKeys));
   }
 
   String? _getRepliedEventMasterPubkey(EventMessage rumor) {
@@ -85,7 +81,6 @@ EncryptedRepostHandler? encryptedRepostHandler(Ref ref) {
 
   return EncryptedRepostHandler(
     ref.watch(eventMessageDaoProvider),
-    ref.watch(userProfileSyncProvider.notifier),
     currentUserMasterPubkey,
   );
 }

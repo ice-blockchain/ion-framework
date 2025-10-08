@@ -26,6 +26,7 @@ abstract class IonConnectCacheService {
     String? keyword,
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
+    List<String> masterPubkeys = const [],
   });
 
   Future<int> clearDatabase();

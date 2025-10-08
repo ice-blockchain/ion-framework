@@ -8,6 +8,7 @@ import 'package:ion/app/components/skeleton/container_skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/messages_context_menu/one_to_one_messages_context_menu.dart';
+import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
@@ -33,18 +34,20 @@ class OneToOneMessagingHeader extends ConsumerWidget {
         ref.watch(isBlockedByNotifierProvider(receiverMasterPubkey)).valueOrNull ?? true;
     final isVerified = ref.watch(isUserVerifiedProvider(receiverMasterPubkey));
     final isNicknameProven = ref.watch(isNicknameProvenProvider(receiverMasterPubkey));
-    final isDeleted = ref.watch(isUserDeletedProvider(receiverMasterPubkey)).valueOrNull ?? false;
 
-    final userMetadata = ref.watch(userMetadataProvider(receiverMasterPubkey)).valueOrNull?.data;
-
+    final userMetadata = ref.watch(userMetadataProvider(receiverMasterPubkey));
     // Show skeleton while loading user data (unless deleted)
-    if ((userMetadata == null) && !isDeleted) {
+    if (userMetadata.isLoading) {
       return const _HeaderSkeleton();
     }
 
-    final receiverPicture = isDeleted ? null : userMetadata?.avatarUrl;
-    final receiverName = userMetadata?.name;
-    final receiverDisplayName = userMetadata?.displayName;
+    final metadata = userMetadata.valueOrNull;
+
+    final receiverPicture = !metadata.isDeleted && !isBlockedBy && metadata!.data.avatarUrl != null
+        ? metadata.data.avatarUrl
+        : Assets.svg.iconProfileNoimage;
+    final receiverName = metadata?.data.name;
+    final receiverDisplayName = metadata?.data.displayName;
 
     final subtitle = Text(
       prefixUsername(
@@ -80,7 +83,7 @@ class OneToOneMessagingHeader extends ConsumerWidget {
                       pubkey: receiverMasterPubkey,
                       size: 36.0.s,
                       useRandomGradient: true,
-                      imageUrl: (!isBlockedBy && !isDeleted) ? receiverPicture : null,
+                      imageUrl: receiverPicture,
                     ),
                   SizedBox(width: 10.0.s),
                   Expanded(
@@ -91,7 +94,7 @@ class OneToOneMessagingHeader extends ConsumerWidget {
                           children: [
                             Flexible(
                               child: Text(
-                                isDeleted
+                                metadata.isDeleted
                                     ? context.i18n.common_deleted_account
                                     : receiverDisplayName ?? '',
                                 maxLines: 1,

@@ -50,10 +50,11 @@ Future<bool> canSendMessage(Ref ref, String masterPubkey, {bool cache = true}) a
   if (oldTypeConversationId == null && !conversationIdExists) return false;
 
   // 4. Check if the conversation was deleted by the other user
-  final isDeleted = await ref.watch(conversationDaoProvider).checkAnotherUserDeletedConversation(
-        masterPubkey: masterPubkey,
-        conversationId: oldTypeConversationId ?? generatedConversationId,
-      );
+  final isConversationDeleted =
+      await ref.watch(conversationDaoProvider).checkAnotherUserDeletedConversation(
+            masterPubkey: masterPubkey,
+            conversationId: oldTypeConversationId ?? generatedConversationId,
+          );
 
-  return !isDeleted;
+  return !isConversationDeleted;
 }

@@ -18,18 +18,15 @@ import 'package:ion/app/features/chat/community/providers/community_metadata_pro
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
-import 'package:ion/app/features/chat/providers/conversations_provider.r.dart'
-    hide archivedConversationsProvider;
 import 'package:ion/app/features/chat/providers/unread_message_count_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/archived_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_skeleton/recent_chat_skeleton.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/archive_chat_tile.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_tile.dart';
+import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion/app/features/user_profile/providers/user_profile_sync_provider.r.dart';
-import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
@@ -54,10 +51,6 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     useScrollTopOnTabPress(context, scrollController: scrollController);
     final archivedConversations = ref.watch(archivedConversationsProvider);
     final isArchivedConversationsEmpty = archivedConversations.valueOrNull?.isEmpty ?? true;
-
-    useOnInit(() {
-      _forceSyncUserMetadata(ref);
-    });
 
     useEffect(
       () {
@@ -157,18 +150,6 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
           ),
         ],
         onRefresh: () async {
-          final conversations = ref.read(conversationsProvider).valueOrNull ?? [];
-          for (final c in conversations) {
-            final receiverMasterPubkey =
-                c.receiverMasterPubkey(ref.read(currentPubkeySelectorProvider));
-
-            if (receiverMasterPubkey != null) {
-              ref.invalidate(isUserDeletedProvider(receiverMasterPubkey));
-            }
-          }
-
-          ref.invalidate(conversationsProvider);
-
           await _forceSyncUserMetadata(ref);
         },
         builder: (context, slivers) => CustomScrollView(
@@ -182,21 +163,19 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
 
   Future<void> _forceSyncUserMetadata(WidgetRef ref) async {
     final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
-
     if (currentUserMasterPubkey == null) return;
 
     final participantsMasterPubkeys = conversations
         .where((c) => c.type == ConversationType.oneToOne)
         .map((c) => c.receiverMasterPubkey(currentUserMasterPubkey))
-        .nonNulls
-        .toSet();
+        .toSet()
+        .nonNulls;
 
     if (participantsMasterPubkeys.isEmpty) return;
 
-    await ref.read(userProfileSyncProvider.notifier).syncUserProfile(
-          forceSync: true,
-          masterPubkeys: participantsMasterPubkeys,
-        );
+    for (final masterPubkey in participantsMasterPubkeys) {
+      ref.read(userMetadataProvider(masterPubkey, cache: false));
+    }
   }
 }
 
@@ -317,8 +296,6 @@ class E2eeRecentChatTile extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final userMetadata = ref.watch(userMetadataProvider(receiverMasterPubkey)).valueOrNull;
-
     final unreadMessagesCount =
         ref.watch(getUnreadMessagesCountProvider(conversation.conversationId));
 
@@ -328,19 +305,20 @@ class E2eeRecentChatTile extends HookConsumerWidget {
 
     final isUserVerified = ref.watch(isUserVerifiedProvider(receiverMasterPubkey));
 
-    final isDeleted =
-        ref.watch(isUserDeletedProvider(receiverMasterPubkey)).valueOrNull.falseOrValue;
+    final userMetadata = ref.watch(userMetadataProvider(receiverMasterPubkey));
 
-    if (userMetadata == null && !isDeleted) {
+    if (userMetadata.isLoading) {
       return const RecentChatSkeletonItem();
     }
+
+    final metadata = userMetadata.valueOrNull;
 
     return RecentChatTile(
       defaultAvatar: null,
       conversation: conversation,
       messageType: entity.messageType,
-      name: isDeleted ? context.i18n.common_deleted_account : userMetadata?.data.displayName ?? '',
-      avatarUrl: isDeleted ? Assets.svg.iconProfileNoimage : userMetadata?.data.avatarUrl,
+      name: metadata.isDeleted ? context.i18n.common_deleted_account : metadata!.data.displayName,
+      avatarUrl: metadata.isDeleted ? Assets.svg.iconProfileNoimage : metadata!.data.avatarUrl,
       eventReference: eventReference,
       unreadMessagesCount: unreadMessagesCount.valueOrNull ?? 0,
       lastMessageContent: entity.messageType == MessageType.document

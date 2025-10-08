@@ -425,7 +425,7 @@ class IonConnectPushDataPayload: Decodable {
     }
 
     private func getLikeNotificationType(entity: ReactionEntity, keysStorage: KeysStorage) -> PushNotificationType {
-        let cacheKey = entity.data.eventReference.toString()
+        let eventReference = entity.data.eventReference.toString()
         
         let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
         guard cacheDB.openDatabase() else {
@@ -434,8 +434,8 @@ class IonConnectPushDataPayload: Decodable {
         }
         defer { cacheDB.closeDatabase() }
         
-        guard let relatedEntity = cacheDB.getRelatedEntity(eventReference: cacheKey) else {
-            NSLog("[NSE] No related entity found in cache for: \(cacheKey)")
+        guard let relatedEntity = cacheDB.getGenericEntity(for: eventReference) else {
+            NSLog("[NSE] No related entity found in cache for: \(eventReference)")
             return .like
         }
         
@@ -444,9 +444,11 @@ class IonConnectPushDataPayload: Decodable {
             if modifiablePost.data.expiration != nil {
                 return .likeStory
             }
+            
             if modifiablePost.data.parentEvent != nil {
                 return .likeComment
             }
+            
             return .like
         }
         
@@ -469,7 +471,7 @@ class IonConnectPushDataPayload: Decodable {
             return .repost
         }
         
-        let cacheKey = eventReference.toString()
+        let eventReferenceKey = eventReference.toString()
         
         let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
         guard cacheDB.openDatabase() else {
@@ -478,8 +480,8 @@ class IonConnectPushDataPayload: Decodable {
         }
         defer { cacheDB.closeDatabase() }
         
-        guard let repostedEntity = cacheDB.getRelatedEntity(eventReference: cacheKey) else {
-            NSLog("[NSE] No related entity found in cache for: \(cacheKey)")
+        guard let repostedEntity = cacheDB.getGenericEntity(for: eventReferenceKey) else {
+            NSLog("[NSE] No related entity found in cache for: \(eventReferenceKey)")
             return .repost
         }
         
@@ -517,7 +519,7 @@ class IonConnectPushDataPayload: Decodable {
             return .quote
         }
         
-        let cacheKey = eventReference.toString()
+        let eventReferenceKey = eventReference.toString()
         
         let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
         guard cacheDB.openDatabase() else {
@@ -526,8 +528,8 @@ class IonConnectPushDataPayload: Decodable {
         }
         defer { cacheDB.closeDatabase() }
         
-        guard let quotedEntity = cacheDB.getRelatedEntity(eventReference: cacheKey) else {
-            NSLog("[NSE] No related entity found in cache for: \(cacheKey)")
+        guard let quotedEntity = cacheDB.getGenericEntity(for: eventReferenceKey) else {
+            NSLog("[NSE] No related entity found in cache for: \(eventReferenceKey)")
             return .quote
         }
         
@@ -561,7 +563,7 @@ class IonConnectPushDataPayload: Decodable {
             return .reply
         }
         
-        guard let cacheKey = parentEventRefString else {
+        guard let eventReferenceKey = parentEventRefString else {
             return .reply
         }
         
@@ -572,8 +574,8 @@ class IonConnectPushDataPayload: Decodable {
         }
         defer { cacheDB.closeDatabase() }
         
-        guard let parentEntity = cacheDB.getRelatedEntity(eventReference: cacheKey) else {
-            NSLog("[NSE] No related entity found in cache for: \(cacheKey)")
+        guard let parentEntity = cacheDB.getGenericEntity(for: eventReferenceKey) else {
+            NSLog("[NSE] No related entity found in cache for: \(eventReferenceKey)")
             return .reply
         }
         

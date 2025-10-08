@@ -6,8 +6,9 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
-import 'package:ion/app/features/user_profile/database/dao/user_metadata_dao.m.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chat_messages_search_provider.r.g.dart';
@@ -36,7 +37,17 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) as
 
     if (receiverMasterPubkey == null) continue;
 
-    final userMetadata = await ref.watch(userMetadataDaoProvider).get(receiverMasterPubkey);
+    final metadataExpiration =
+        ref.read(envProvider.notifier).get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES);
+
+    final userMetadata = ref
+        .watch(
+          userMetadataProvider(
+            receiverMasterPubkey,
+            expirationDuration: Duration(minutes: metadataExpiration),
+          ),
+        )
+        .valueOrNull;
 
     if (userMetadata == null) continue;
 

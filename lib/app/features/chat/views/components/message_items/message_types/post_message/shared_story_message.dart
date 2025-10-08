@@ -23,6 +23,7 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -210,13 +211,13 @@ class _StoryOwnerUserInfo extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(masterPubkey)).valueOrNull;
+    final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
 
-    final isDeleted = ref.watch(isUserDeletedProvider(masterPubkey)).valueOrNull ?? false;
-
-    if (userMetadata == null && !isDeleted) {
+    if (userMetadata.isLoading) {
       return const SizedBox.shrink();
     }
+
+    final metadata = userMetadata.valueOrNull;
 
     return PositionedDirectional(
       top: 12.0.s,
@@ -229,9 +230,7 @@ class _StoryOwnerUserInfo extends ConsumerWidget {
           SizedBox(width: 4.0.s),
           Expanded(
             child: Text(
-              isDeleted
-                  ? context.i18n.common_deleted_account
-                  : userMetadata?.data.displayName ?? '',
+              metadata.isDeleted ? context.i18n.common_deleted_account : metadata!.data.displayName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: context.theme.appTextThemes.caption3.copyWith(

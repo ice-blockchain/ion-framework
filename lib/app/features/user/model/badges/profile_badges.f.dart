@@ -13,13 +13,14 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 
 part 'profile_badges.f.freezed.dart';
 
 @Freezed(equal: false)
 class ProfileBadgesEntity
     with IonConnectEntity, CacheableEntity, ReplaceableEntity, _$ProfileBadgesEntity
-    implements EntityEventSerializable {
+    implements EntityEventSerializable, DbCacheableEntity {
   const factory ProfileBadgesEntity({
     required String id,
     required String pubkey,

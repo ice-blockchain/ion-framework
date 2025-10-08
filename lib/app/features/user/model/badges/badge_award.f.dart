@@ -10,13 +10,14 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 
 part 'badge_award.f.freezed.dart';
 
 @Freezed(equal: false)
 class BadgeAwardEntity
     with IonConnectEntity, ImmutableEntity, CacheableEntity, _$BadgeAwardEntity
-    implements EntityEventSerializable {
+    implements EntityEventSerializable, DbCacheableEntity {
   const factory BadgeAwardEntity({
     required String id,
     required String pubkey,
