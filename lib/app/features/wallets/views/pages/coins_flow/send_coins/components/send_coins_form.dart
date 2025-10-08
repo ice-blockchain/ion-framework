@@ -82,7 +82,7 @@ class SendCoinsForm extends HookConsumerWidget {
 
         amountController.addListener(listener);
       },
-      [amountController],
+      [amountController, maxAmount],
     );
 
     final validAmount = formController.assetData.maybeMap(
