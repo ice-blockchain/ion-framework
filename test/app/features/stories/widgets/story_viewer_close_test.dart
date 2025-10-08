@@ -43,6 +43,7 @@ void main() {
   final mockStorage = MockLocalStorage();
   when(() => mockStorage.getStringList(any())).thenReturn(<String>[]);
   when(() => mockStorage.setStringList(any(), any<List<String>>())).thenAnswer((_) async => true);
+  when(() => mockStorage.setString(any(), any<String>())).thenAnswer((_) async {});
 
   testWidgets('StoryViewerPage pops after the very last story', (tester) async {
     final router = GoRouter(

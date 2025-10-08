@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cached_video_player_plus/cached_video_player_plus.dart';
@@ -13,9 +14,11 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/bool.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/ion_connect_media_url_fallback_provider.r.dart';
 import 'package:ion/app/features/core/providers/mute_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:video_player/video_player.dart';
 
@@ -94,6 +97,8 @@ class VideoController extends _$VideoController {
     });
 
     VoidCallback? onlyOneListener;
+    VoidCallback? pauseListener;
+    var isPlaying = false;
 
     try {
       final controller =
@@ -102,9 +107,14 @@ class VideoController extends _$VideoController {
                 cancelToken: cancelInit,
               );
 
+      await _seekToSavedPosition(controller, sourcePath);
+
       ref.onCancel(() async {
         if (onlyOneListener != null) {
           controller.removeListener(onlyOneListener);
+        }
+        if (pauseListener != null) {
+          controller.removeListener(pauseListener);
         }
         await Future.wait([
           () async {
@@ -187,6 +197,18 @@ class VideoController extends _$VideoController {
           };
           controller.addListener(onlyOneListener);
         }
+
+        pauseListener = () {
+          if (controller.value.isPlaying) {
+            if (!isPlaying) {
+              _seekToSavedPosition(controller, sourcePath);
+            }
+          } else {
+            _savePlayerPosition(controller, sourcePath);
+          }
+          isPlaying = controller.value.isPlaying;
+        };
+        controller.addListener(pauseListener);
       }
       return controller;
     } on FailedToInitVideoPlayer catch (error) {
@@ -197,6 +219,20 @@ class VideoController extends _$VideoController {
             .generateFallback(params.sourcePath, authorPubkey: authorPubkey);
       }
       rethrow;
+    }
+  }
+
+  void _savePlayerPosition(VideoPlayerController controller, String sourcePath) {
+    ref
+        .watch(videoPlayerPositionDataProvider.notifier)
+        .savePosition(sourcePath, controller.value.position.inMilliseconds);
+  }
+
+  Future<void> _seekToSavedPosition(VideoPlayerController controller, String sourcePath) async {
+    final savedPosition =
+        ref.watch(videoPlayerPositionDataProvider.notifier).getPosition(sourcePath);
+    if (savedPosition != null && savedPosition != controller.value.position.inMilliseconds) {
+      await controller.seekTo(Duration(milliseconds: savedPosition));
     }
   }
 }
@@ -322,7 +358,7 @@ class VideoPlayerControllerFactory {
     return !kIsWeb && File(path).existsSync();
   }
 
-  String _cacheKeyFor(String input) {
+  static String _cacheKeyFor(String input) {
     try {
       final u = Uri.parse(input);
       return u.path;
@@ -338,4 +374,77 @@ VideoPlayerControllerFactory videoPlayerControllerFactory(Ref ref, String source
   return VideoPlayerControllerFactory(
     sourcePath: sourcePath,
   );
+}
+
+@riverpod
+class VideoPlayerPositionData extends _$VideoPlayerPositionData {
+  static const _videoPositionPersistenceKey = 'video_position_data';
+  static const _maxStoredKeys = 50;
+
+  @override
+  Map<String, dynamic> build() {
+    ref.onCancel(() async {
+      await _saveState(state);
+    });
+
+    return _loadSavedPositions();
+  }
+
+  int? getPosition(String key) {
+    final position = state[_positionCacheKey(key)];
+
+    return position is int ? position : null;
+  }
+
+  void savePosition(String input, int position) {
+    final updatedState = Map.of(state);
+
+    updatedState[_positionCacheKey(input)] = position;
+
+    if (updatedState.length > _maxStoredKeys) {
+      updatedState.remove(updatedState.keys.first);
+    }
+
+    state = updatedState;
+  }
+
+  Map<String, dynamic> _loadSavedPositions() {
+    final identityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
+    if (identityKeyName == null) {
+      return {};
+    }
+    final userPreferencesService =
+        ref.read(userPreferencesServiceProvider(identityKeyName: identityKeyName));
+    final savedData = userPreferencesService.getValue<String>(_videoPositionPersistenceKey);
+
+    try {
+      return savedData != null ? (json.decode(savedData) as Map<String, dynamic>) : {};
+    } catch (e, stackTrace) {
+      Logger.log(
+        'Failed to load saved video positions, data might be corrupt.',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return {};
+    }
+  }
+
+  Future<void> _saveState(Map<String, dynamic> positionData) async {
+    try {
+      final identityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
+      if (identityKeyName == null) {
+        return;
+      }
+
+      await ref
+          .read(userPreferencesServiceProvider(identityKeyName: identityKeyName))
+          .setValue(_videoPositionPersistenceKey, json.encode(positionData));
+    } catch (e, stackTrace) {
+      Logger.log('Failed to save video positions', error: e, stackTrace: stackTrace);
+    }
+  }
+
+  String _positionCacheKey(String input) {
+    return VideoPlayerControllerFactory._cacheKeyFor(input).hashCode.toString();
+  }
 }
