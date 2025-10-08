@@ -92,8 +92,9 @@ class MutedConversations extends _$MutedConversations {
       return;
     }
 
+    final participantsMasterPubkeys = [masterPubkey, currentUserMasterPubkey];
     final conversationId = await ref.read(
-          existChatConversationIdProvider([masterPubkey, currentUserMasterPubkey]).future,
+          existChatConversationIdProvider(participantsMasterPubkeys).future,
         ) ??
         generateConversationId(
           conversationType: ConversationType.oneToOne,
