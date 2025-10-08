@@ -24,6 +24,7 @@ import 'package:ion/app/features/chat/views/components/message_items/replied_mes
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
+import 'package:ion/app/services/local_notifications/push_notification_clear_manager.r.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/uuid/generate_conversation_id.dart';
 
@@ -62,8 +63,8 @@ class OneToOneMessagesPage extends HookConsumerWidget {
               receiverMasterPubkeys: [receiverMasterPubkey, currentUserMasterPubkey],
             );
         conversationId.value = conversationIdValue;
-        final localNotificationsService = await ref.read(pushNotificationManagerProvider.future);
-        unawaited(localNotificationsService.clearConversationNotifications(conversationIdValue));
+
+        ref.read(pushNotificationCleanerProvider).cleanByGroupId(conversationIdValue);
 
         await ref.read(userMetadataProvider(receiverMasterPubkey, cache: false).future);
       },
