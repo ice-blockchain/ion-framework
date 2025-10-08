@@ -11,6 +11,7 @@ import 'package:ion/app/features/components/ion_connect_network_image/ion_connec
 import 'package:ion/app/features/core/providers/mute_provider.r.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/settings/providers/video_settings_provider.m.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_route_presence.dart';
 import 'package:ion/app/utils/date.dart';
@@ -23,14 +24,12 @@ class VideoPreview extends HookConsumerWidget {
     required this.videoUrl,
     required this.authorPubkey,
     this.thumbnailUrl,
-    this.autoplay = true,
     this.onlyOneShouldPlay = true,
     this.framedEventReference,
     this.visibilityThreshold = 1.0,
     super.key,
   });
 
-  final bool autoplay;
   final bool onlyOneShouldPlay;
   final String videoUrl;
   final String authorPubkey;
@@ -52,6 +51,7 @@ class VideoPreview extends HookConsumerWidget {
         ),
       ),
     );
+    final videoSettings = ref.watch(videoSettingsProvider);
     final controller = videoControllerProviderState.valueOrNull;
 
     final isFullyVisible = useState(false);
@@ -86,13 +86,13 @@ class VideoPreview extends HookConsumerWidget {
           return;
         }
         final shouldBeActive = isFullyVisible.value && isRouteFocused.value;
-        if (autoplay && shouldBeActive && !controller.value.isPlaying) {
+        if (videoSettings.autoplay && shouldBeActive && !controller.value.isPlaying) {
           controller.play();
         } else if (!shouldBeActive && controller.value.isPlaying) {
           controller.pause();
         }
       },
-      [isFullyVisible.value, isRouteFocused.value, controller],
+      [isFullyVisible.value, isRouteFocused.value, controller, videoSettings],
     );
 
     useEffect(

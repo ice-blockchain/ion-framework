@@ -32,7 +32,6 @@ class PostBody extends HookConsumerWidget {
     this.onVideoTap,
     this.sidePadding,
     this.framedEventReference,
-    this.videoAutoplay = true,
     super.key,
   });
 
@@ -43,7 +42,6 @@ class PostBody extends HookConsumerWidget {
   final int? maxLines;
   final double? sidePadding;
   final OnVideoTapCallback? onVideoTap;
-  final bool videoAutoplay;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -124,7 +122,6 @@ class PostBody extends HookConsumerWidget {
             media: media,
             onVideoTap: onVideoTap,
             sidePadding: sidePadding,
-            videoAutoplay: videoAutoplay,
             eventReference: entity.toEventReference(),
             framedEventReference: framedEventReference,
           ),
