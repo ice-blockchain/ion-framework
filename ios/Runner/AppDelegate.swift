@@ -273,18 +273,18 @@ class AudioFocusHandler: NSObject {
         )
 
         notificationChannel.setMethodCallHandler { [weak self] (call, result) in
-            guard call.method == "clearConversationNotifications" else {
+            guard call.method == "clearNotificationGroup" else {
                 result(FlutterMethodNotImplemented)
                 return
             }
 
             guard let args = call.arguments as? [String: Any],
-                  let conversationId = args["conversationId"] as? String else {
-                result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing conversationId", details: nil))
+                  let groupIdentifier = args["groupIdentifier"] as? String else {
+                result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing groupIdentifier", details: nil))
                 return
             }
 
-            self?.clearConversationNotifications(conversationId: conversationId) { success in
+            self?.clearNotificationGroup(groupIdentifier: groupIdentifier) { success in
                 if success {
                     result(nil)
                 } else {
@@ -294,10 +294,10 @@ class AudioFocusHandler: NSObject {
         }
     }
 
-    private func clearConversationNotifications(conversationId: String, completion: @escaping (Bool) -> Void) {
+    private func clearNotificationGroup(groupIdentifier: String, completion: @escaping (Bool) -> Void) {
         let center = UNUserNotificationCenter.current()
 
-        NSLog("[AppDelegate] Attempting to clear notifications for conversationId: %@", conversationId)
+        NSLog("[AppDelegate] Attempting to clear notifications for groupIdentifier: %@", groupIdentifier)
 
         // Get all delivered notifications
         center.getDeliveredNotifications { notifications in
@@ -309,7 +309,7 @@ class AudioFocusHandler: NSObject {
             }
 
             let identifiersToRemove = notifications
-                .filter { $0.request.content.threadIdentifier == conversationId }
+                .filter { $0.request.content.threadIdentifier == groupIdentifier }
                 .map { $0.request.identifier }
 
             NSLog("[AppDelegate] Found %d delivered notifications to remove", identifiersToRemove.count)
@@ -330,7 +330,7 @@ class AudioFocusHandler: NSObject {
                 }
 
                 let pendingIdentifiersToRemove = pendingNotifications
-                    .filter { $0.content.threadIdentifier == conversationId }
+                    .filter { $0.content.threadIdentifier == groupIdentifier }
                     .map { $0.identifier }
 
                 NSLog("[AppDelegate] Found %d pending notifications to remove", pendingIdentifiersToRemove.count)

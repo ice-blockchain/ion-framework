@@ -10,7 +10,7 @@ import 'package:ion/app/features/chat/providers/exist_chat_conversation_id_provi
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/mute_set.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
-import 'package:ion/app/services/local_notifications/push_notification_manager.r.dart';
+import 'package:ion/app/services/local_notifications/push_notification_clear_manager.r.dart';
 import 'package:ion/app/services/uuid/generate_conversation_id.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -60,17 +60,7 @@ class MutedConversations extends _$MutedConversations {
         if (currentUserMasterPubkey == null) {
           throw UserMasterPubkeyNotFoundException();
         }
-        final conversationId = await ref.read(
-              existChatConversationIdProvider([masterPubkey, currentUserMasterPubkey]).future,
-            ) ??
-            generateConversationId(
-              conversationType: ConversationType.oneToOne,
-              receiverMasterPubkeys: [masterPubkey, currentUserMasterPubkey],
-            );
-
-        unawaited(
-          ref.read(pushNotificationManagerProvider).clearConversationNotifications(conversationId),
-        );
+        unawaited(_cleanConversationNotifications(masterPubkey));
       } else {
         newMutedMasterPubkeys = existingMutedMasterPubkeys.where((p) => p != masterPubkey).toList();
       }
@@ -92,6 +82,25 @@ class MutedConversations extends _$MutedConversations {
 
       return muteSetEntity;
     });
+  }
+
+  Future<void> _cleanConversationNotifications(
+    String masterPubkey,
+  ) async {
+    final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
+    if (currentUserMasterPubkey == null) {
+      return;
+    }
+
+    final conversationId = await ref.read(
+          existChatConversationIdProvider([masterPubkey, currentUserMasterPubkey]).future,
+        ) ??
+        generateConversationId(
+          conversationType: ConversationType.oneToOne,
+          receiverMasterPubkeys: [masterPubkey, currentUserMasterPubkey],
+        );
+
+    ref.read(pushNotificationCleanerProvider).cleanByGroupId(conversationId);
   }
 }
 

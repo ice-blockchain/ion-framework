@@ -386,12 +386,12 @@ class MainActivity : FlutterFragmentActivity() {
             "notification_channel"
         ).setMethodCallHandler { call, result ->
             when (call.method) {
-                "clearConversationNotifications" -> {
-                    val conversationId = call.argument<String>("conversationId")
-                    if (conversationId == null) {
-                        result.error("INVALID_ARGUMENTS", "Missing conversationId", null)
+                "clearNotificationGroup" -> {
+                    val groupIdentifier = call.argument<String>("groupIdentifier")
+                    if (groupIdentifier == null) {
+                        result.error("INVALID_ARGUMENTS", "Missing groupIdentifier", null)
                     } else {
-                        clearConversationNotifications(conversationId)
+                        clearNotificationGroup(groupIdentifier)
                         result.success(null)
                     }
                 }
@@ -400,33 +400,26 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    private fun clearConversationNotifications(conversationId: String) {
+    private fun clearNotificationGroup(groupIdentifier: String) {
         try {
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-            Log.d("MainActivity", "Attempting to clear notifications for conversationId: $conversationId")
+            Log.d("MainActivity", "Attempting to clear notifications for groupIdentifier: $groupIdentifier")
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val activeNotifications: Array<StatusBarNotification> = notificationManager.activeNotifications
-                Log.d("MainActivity", "Total active notifications: ${activeNotifications.size}")
+            val activeNotifications: Array<StatusBarNotification> = notificationManager.activeNotifications
+            Log.d("MainActivity", "Total active notifications: ${activeNotifications.size}")
 
-                for (notification in activeNotifications) {
-                    val notificationGroup = notification.notification?.group
-                    val notificationTag = notification.tag
+            for (notification in activeNotifications) {
+                val notificationGroup = notification.notification?.group
+                val notificationTag = notification.tag
 
-                    Log.d("MainActivity", "Notification - ID: ${notification.id}, Tag: $notificationTag, Group: $notificationGroup")
+                Log.d("MainActivity", "Notification - ID: ${notification.id}, Tag: $notificationTag, Group: $notificationGroup")
 
-                    // Clear by group or tag that matches conversationId
-                    if (notificationGroup == conversationId || notificationTag == conversationId) {
-                        notificationManager.cancel(notificationTag, notification.id)
-                        Log.d("MainActivity", "Cancelled notification with ID: ${notification.id}")
-                    }
+                // Clear by group or tag that matches groupIdentifier
+                if (notificationGroup == groupIdentifier || notificationTag == groupIdentifier) {
+                    notificationManager.cancel(notificationTag, notification.id)
+                    Log.d("MainActivity", "Cancelled notification with ID: ${notification.id}")
                 }
-            } else {
-                // For older Android versions, we can't query active notifications
-                // We'll just try to cancel by tag
-                notificationManager.cancel(conversationId, 0)
-                Log.d("MainActivity", "Cancelled notification with tag: $conversationId")
             }
         } catch (e: Exception) {
             Log.e("MainActivity", "Error clearing notifications: ${e.message}", e)

@@ -103,20 +103,8 @@ class NotificationDataParser {
 
     final (avatar, media) = await data.getMediaPlaceholders();
 
-    // Extract conversationId from event tags (looking for "h" tag)
-    String? conversationId;
-
-    final decryptedEvent = data.decryptedEvent;
-
-    // Set conversationId from decrypted event tags
-    if (decryptedEvent != null && decryptedEvent.tags.isNotEmpty) {
-      for (final tag in decryptedEvent.tags) {
-        if (tag.isNotEmpty && tag.first == ConversationIdentifier.tagName && tag.length >= 2) {
-          conversationId = tag[1];
-          break;
-        }
-      }
-    }
+    final conversationId =
+        notificationType.isChat ? await _getConversationId(data.decryptedEvent) : null;
 
     return NotificationParsedData(
       title: result.title,
@@ -126,6 +114,21 @@ class NotificationDataParser {
       notificationType: notificationType,
       conversationId: conversationId,
     );
+  }
+
+  Future<String?> _getConversationId(EventMessage? event) async {
+    if (event == null || event.tags.isEmpty) {
+      return null;
+    }
+
+    if (event.tags.isNotEmpty) {
+      for (final tag in event.tags) {
+        if (tag.isNotEmpty && tag.first == ConversationIdentifier.tagName && tag.length >= 2) {
+          return tag[1];
+        }
+      }
+    }
+    return null;
   }
 
   Future<(String? title, String? body)> _getNotificationTranslation({
