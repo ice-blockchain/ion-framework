@@ -164,18 +164,13 @@ class SendAssetFormController extends _$SendAssetFormController {
   void setCoinsAmount(String amount) {
     if (state.assetData case final CoinAssetToSendData coin) {
       final parsedAmount = parseAmount(amount) ?? 0.0;
-      final maxAmountToSend = _calculateMaxAmountToSend(coin);
       final updatedCoin = coin.copyWith(
         amount: parsedAmount,
         amountUSD: parsedAmount * (coin.selectedOption?.coin.priceUSD ?? 0),
-        maxAmountToSend: maxAmountToSend,
       );
 
-      state = state.copyWith(
-        assetData: updatedCoin,
-        exceedsMaxAmount: false,
-      );
-      _checkIfUserCanCoverFee(updatedCoin);
+      state = state.copyWith(exceedsMaxAmount: false);
+      _updateCoinAssetWithMaxAmount(updatedCoin);
     }
   }
 
@@ -184,20 +179,10 @@ class SendAssetFormController extends _$SendAssetFormController {
   }
 
   void selectNetworkFeeOption(NetworkFeeOption selectedOption) {
-    state = state.copyWith(
-      selectedNetworkFeeOption: selectedOption,
-    );
+    state = state.copyWith(selectedNetworkFeeOption: selectedOption);
 
     if (state.assetData case final CoinAssetToSendData coin) {
-      final maxAmountToSend = _calculateMaxAmountToSend(coin);
-      final updatedCoin = coin.copyWith(
-        maxAmountToSend: maxAmountToSend,
-      );
-
-      state = state.copyWith(
-        assetData: updatedCoin,
-      );
-      _checkIfUserCanCoverFee(updatedCoin);
+      _updateCoinAssetWithMaxAmount(coin);
     }
   }
 
@@ -211,6 +196,14 @@ class SendAssetFormController extends _$SendAssetFormController {
 
   void setMemo(String memo) {
     state = state.copyWith(memo: memo);
+  }
+
+  void _updateCoinAssetWithMaxAmount(CoinAssetToSendData coin) {
+    final maxAmountToSend = _calculateMaxAmountToSend(coin);
+    final updatedCoin = coin.copyWith(maxAmountToSend: maxAmountToSend);
+
+    state = state.copyWith(assetData: updatedCoin);
+    _checkIfUserCanCoverFee(updatedCoin);
   }
 
   double _calculateMaxAmountToSend(CoinAssetToSendData coin) {
