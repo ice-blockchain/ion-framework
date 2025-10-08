@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter_quill/flutter_quill.dart' show Attribute;
 import 'package:flutter_quill/quill_delta.dart';
+import 'package:ion/app/components/text_editor/attributes.dart';
 
 class QuillTextUtils {
   static Delta truncateDelta(Delta original, int maxChars) {
@@ -26,5 +28,36 @@ class QuillTextUtils {
       }
     }
     return truncated;
+  }
+
+  static final blockedInlineAttributeKeys = {
+    MentionAttribute.attributeKey,
+    HashtagAttribute.attributeKey,
+    CashtagAttribute.attributeKey,
+    Attribute.link.key,
+  };
+
+  /// Returns true if the range [rangeStart, rangeStart + rangeLength) overlaps
+  /// any operation that carries at least one attribute whose key is in [attributeKeys].
+  static bool rangeOverlapsOpsWithAttributes(
+    List<Operation> ops,
+    int rangeStart,
+    int rangeLength,
+  ) {
+    var acc = 0;
+    for (final op in ops) {
+      final opLen = op.data is String ? (op.data! as String).length : 1;
+      final opStart = acc;
+      final opEnd = acc + opLen;
+      final overlap = rangeStart < opEnd && (rangeStart + rangeLength) > opStart;
+      if (overlap) {
+        final attrs = op.attributes;
+        if (attrs != null && attrs.keys.any(blockedInlineAttributeKeys.contains)) {
+          return true;
+        }
+      }
+      acc += opLen;
+    }
+    return false;
   }
 }

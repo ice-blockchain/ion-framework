@@ -29,14 +29,14 @@ void main() {
     });
 
     test('should parse mentions with dots correctly', () {
-      final results = parser.parse('Hello @user.1 and @user.2');
+      final results = parser.parse('Hello @bacchus.1 and @bacchus.ice');
 
       expect(results.length, equals(4));
       expect(results[0].text, equals('Hello '));
-      expect(results[1].text, equals('@user.1'));
+      expect(results[1].text, equals('@bacchus.1'));
       expect(results[1].matcher, isA<MentionMatcher>());
       expect(results[2].text, equals(' and '));
-      expect(results[3].text, equals('@user.2'));
+      expect(results[3].text, equals('@bacchus.ice'));
       expect(results[3].matcher, isA<MentionMatcher>());
 
       expect(results.length, 4);

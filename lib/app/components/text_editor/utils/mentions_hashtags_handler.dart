@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
+import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_typing_listener.dart';
 import 'package:ion/app/features/feed/providers/suggestions/suggestions_notifier_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -163,10 +164,23 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
       ..formatText(0, docLength, const HashtagAttribute.unset())
       ..formatText(0, docLength, const CashtagAttribute.unset());
 
+    final deltaOps = controller.document.toDelta().toList();
+
     for (final tag in tags) {
       final attribute = _getAttribute(tag.tagChar);
       if (attribute != null) {
-        controller.formatText(tag.start, tag.length, attribute);
+        final overlaps = QuillTextUtils.rangeOverlapsOpsWithAttributes(
+          deltaOps,
+          tag.start,
+          tag.length,
+        );
+        if (overlaps) {
+          continue;
+        }
+        // remove any link within the tag range to avoid overlapping attributes
+        controller
+          ..formatText(tag.start, tag.length, Attribute.clone(Attribute.link, null))
+          ..formatText(tag.start, tag.length, attribute);
       }
     }
   }
