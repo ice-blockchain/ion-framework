@@ -21,7 +21,7 @@ class StoryItemFollowButton extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isAlwaysShowButton = useState<bool>(false);
+    final isKeptVisible = useState<bool>(false);
     final followListState = ref.watch(currentUserFollowListProvider);
     final isFollowUser = ref.watch(
       isCurrentUserFollowingSelectorProvider(
@@ -38,15 +38,17 @@ class StoryItemFollowButton extends HookConsumerWidget {
       username,
     );
 
-    if (isFollowUser && !isAlwaysShowButton.value || followListState.isLoading) {
+    if (isFollowUser && !isKeptVisible.value || followListState.isRefreshing) {
       return const SizedBox.shrink();
     }
 
     return GestureDetector(
-      onTap: () {
-        isAlwaysShowButton.value = true;
-        ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
-      },
+      onTap: followListState.isLoading
+          ? null
+          : () {
+              isKeptVisible.value = true;
+              ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
+            },
       child: Container(
         width: 24.0.s,
         height: 24.0.s,
