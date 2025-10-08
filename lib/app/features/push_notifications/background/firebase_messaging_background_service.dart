@@ -204,7 +204,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
             await cacheService.attachedDatabase.close();
           }
         } catch (e) {
-          Logger.error('☁️ Background push notification close db error:');
+          Logger.error('☁️ Background push notification close db error: $e');
         }
         messageContainer.dispose();
       }
