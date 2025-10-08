@@ -42,6 +42,16 @@ class LocalNotificationsService {
     );
   }
 
+  Future<void> cancelByGroupKey(String groupKey) async {
+    return _plugin.cancelByGroupKey(groupKey);
+  }
+
+  Future<void> cancelByGroupKeys(List<String> groupKeys) async {
+    for (final groupKey in groupKeys) {
+      unawaited(cancelByGroupKey(groupKey));
+    }
+  }
+
   Future<void> showNotification({
     required String title,
     required String body,

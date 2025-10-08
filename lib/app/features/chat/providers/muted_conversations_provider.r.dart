@@ -10,7 +10,7 @@ import 'package:ion/app/features/chat/providers/exist_chat_conversation_id_provi
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/mute_set.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
-import 'package:ion/app/services/local_notifications/push_notification_clear_manager.r.dart';
+import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
 import 'package:ion/app/services/uuid/generate_conversation_id.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -100,8 +100,8 @@ class MutedConversations extends _$MutedConversations {
           conversationType: ConversationType.oneToOne,
           receiverMasterPubkeys: [masterPubkey, currentUserMasterPubkey],
         );
-
-    ref.read(pushNotificationCleanerProvider).cleanByGroupId(conversationId);
+    final localNotificationsService = await ref.read(localNotificationsServiceProvider.future);
+    unawaited(localNotificationsService.cancelByGroupKey(conversationId));
   }
 }
 

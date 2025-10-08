@@ -13,7 +13,7 @@ import 'package:ion/app/features/feed/data/models/bookmarks/bookmarks_set.f.dart
 import 'package:ion/app/features/feed/providers/bookmarks_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/services/ion_connect/encrypted_message_service.r.dart';
-import 'package:ion/app/services/local_notifications/push_notification_clear_manager.r.dart';
+import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -37,7 +37,7 @@ class ToggleArchivedConversations extends _$ToggleArchivedConversations {
       conversations: conversations,
     );
 
-    _cleanConversationNotifications(conversations, bookmarkSet);
+    unawaited(_cleanConversationNotifications(conversations, bookmarkSet));
 
     await _updateBookmarks(
       bookmarkSet: updatedBookmarkSet,
@@ -203,17 +203,18 @@ class ToggleArchivedConversations extends _$ToggleArchivedConversations {
         .sendEntityData(bookmarkSet..toReplaceableEventReference(masterPubkey));
   }
 
-  void _cleanConversationNotifications(
+  Future<void> _cleanConversationNotifications(
     List<ConversationListItem> conversations,
     BookmarksSetData bookmarkSet,
-  ) {
+  ) async {
     final newlyArchivedConversationIds = conversations
         .where((conversation) => !bookmarkSet.communitiesIds.contains(conversation.conversationId))
         .map((conversation) => conversation.conversationId)
         .toList();
 
     if (newlyArchivedConversationIds.isNotEmpty) {
-      ref.read(pushNotificationCleanerProvider).cleanByGroupIds(newlyArchivedConversationIds);
+      final localNotificationsService = await ref.read(localNotificationsServiceProvider.future);
+      unawaited(localNotificationsService.cancelByGroupKeys(newlyArchivedConversationIds));
     }
   }
 }

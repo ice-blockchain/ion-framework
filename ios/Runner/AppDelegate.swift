@@ -6,7 +6,6 @@ import BanubaAudioBrowserSDK
 import BanubaPhotoEditorSDK
 import AppsFlyerLib
 import app_links
-import UserNotifications
 
 // Audio Focus Handler implementation
 class AudioFocusHandler: NSObject {
@@ -154,13 +153,10 @@ class AudioFocusHandler: NSObject {
 
         if let controller = window?.rootViewController as? FlutterViewController,
            let binaryMessenger = controller as? FlutterBinaryMessenger {
-
+            
             let flutterEngine = controller.engine
             audioFocusHandler = AudioFocusHandler(flutterEngine: flutterEngine)
-
-            // Setup notification clearing channel
-            setupNotificationChannel(binaryMessenger: binaryMessenger)
-
+            
             let channel = FlutterMethodChannel(
                 name: "banubaSdkChannel",
                 binaryMessenger: binaryMessenger
@@ -263,94 +259,12 @@ class AudioFocusHandler: NSObject {
         return true
     }
 
-
-    // MARK: - Notification Clearing
-
-    private func setupNotificationChannel(binaryMessenger: FlutterBinaryMessenger) {
-        let notificationChannel = FlutterMethodChannel(
-            name: "notification_channel",
-            binaryMessenger: binaryMessenger
-        )
-
-        notificationChannel.setMethodCallHandler { [weak self] (call, result) in
-            guard call.method == "clearNotificationGroup" else {
-                result(FlutterMethodNotImplemented)
-                return
-            }
-
-            guard let args = call.arguments as? [String: Any],
-                  let groupIdentifier = args["groupIdentifier"] as? String else {
-                result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing groupIdentifier", details: nil))
-                return
-            }
-
-            self?.clearNotificationGroup(groupIdentifier: groupIdentifier) { success in
-                if success {
-                    result(nil)
-                } else {
-                    result(FlutterError(code: "CLEAR_FAILED", message: "Failed to clear notifications", details: nil))
-                }
-            }
-        }
-    }
-
-    private func clearNotificationGroup(groupIdentifier: String, completion: @escaping (Bool) -> Void) {
-        let center = UNUserNotificationCenter.current()
-
-        NSLog("[AppDelegate] Attempting to clear notifications for groupIdentifier: %@", groupIdentifier)
-
-        // Get all delivered notifications
-        center.getDeliveredNotifications { notifications in
-            NSLog("[AppDelegate] Total delivered notifications: %d", notifications.count)
-
-            // Log all threadIdentifiers for debugging
-            for notification in notifications {
-                NSLog("[AppDelegate] Notification threadIdentifier: %@", notification.request.content.threadIdentifier)
-            }
-
-            let identifiersToRemove = notifications
-                .filter { $0.request.content.threadIdentifier == groupIdentifier }
-                .map { $0.request.identifier }
-
-            NSLog("[AppDelegate] Found %d delivered notifications to remove", identifiersToRemove.count)
-
-            // Remove delivered notifications with matching threadIdentifier
-            if !identifiersToRemove.isEmpty {
-                center.removeDeliveredNotifications(withIdentifiers: identifiersToRemove)
-                NSLog("[AppDelegate] Removed %d delivered notifications", identifiersToRemove.count)
-            }
-
-            // Also check pending notifications
-            center.getPendingNotificationRequests { pendingNotifications in
-                NSLog("[AppDelegate] Total pending notifications: %d", pendingNotifications.count)
-
-                // Log all threadIdentifiers for debugging
-                for notification in pendingNotifications {
-                    NSLog("[AppDelegate] Pending notification threadIdentifier: %@", notification.content.threadIdentifier)
-                }
-
-                let pendingIdentifiersToRemove = pendingNotifications
-                    .filter { $0.content.threadIdentifier == groupIdentifier }
-                    .map { $0.identifier }
-
-                NSLog("[AppDelegate] Found %d pending notifications to remove", pendingIdentifiersToRemove.count)
-
-                // Remove pending notifications with matching threadIdentifier
-                if !pendingIdentifiersToRemove.isEmpty {
-                    center.removePendingNotificationRequests(withIdentifiers: pendingIdentifiersToRemove)
-                    NSLog("[AppDelegate] Removed %d pending notifications", pendingIdentifiersToRemove.count)
-                }
-
-                completion(true)
-            }
-        }
-    }
-
+    
     // Custom View Factory is used to provide you custom UI/UX experience in Video Editor SDK
         // i.e. custom audio browser
         func provideCustomViewFactory() -> FlutterCustomViewFactory? {
             let factory: FlutterCustomViewFactory?
-
+            
             if configEnableCustomAudioBrowser {
                 factory = FlutterCustomViewFactory()
             } else {
@@ -364,7 +278,7 @@ class AudioFocusHandler: NSObject {
                 )
                 factory = nil
             }
-
+            
             return factory
         }
 }
