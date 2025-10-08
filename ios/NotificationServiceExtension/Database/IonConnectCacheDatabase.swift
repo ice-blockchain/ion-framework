@@ -30,16 +30,20 @@ class IonConnectCacheDatabase: DatabaseManager {
         return true
     }
     
-    /// Gets the related entity from cache by event reference
-    /// - Parameter eventReference: The event reference string (cache key)
-    /// - Returns: The parsed IonConnectEntity or nil if not found
-    func getRelatedEntity(eventReference: String) -> IonConnectEntity? {
-        guard let eventMessage = getEventMessage(cacheKey: eventReference) else {
+    /// Retrieves a cached entity associated with a given event reference.
+    /// - Parameter eventReference: The event reference string (cache key).
+    /// - Returns: The parsed `IonConnectEntity` of type `T`, or `nil` if not found or invalid.
+    func getEntity<T: IonConnectEntity>(for eventReference: String) -> T? {
+        guard let eventMessage = getEventMessage(for: eventReference) else {
+            NSLog("[NSE] No event message found for \(eventReference)")
             return nil
         }
         
         do {
-            let entity = try EventParser.parse(eventMessage)
+            guard let entity = try EventParser.parse(eventMessage) as? T else {
+                NSLog("[NSE] Parsed entity type mismatch for \(T.self)")
+                return nil
+            }
             return entity
         } catch {
             NSLog("[NSE] Failed to parse entity from cache: \(error)")
@@ -47,10 +51,27 @@ class IonConnectCacheDatabase: DatabaseManager {
         }
     }
     
+    /// Retrieves a cached entity associated with a given event reference.
+    /// - Parameter eventReference: The event reference string (cache key).
+    /// - Returns: The parsed `IonConnectEntity` or `nil` if not found or invalid.
+    func getGenericEntity(for eventReference: String) -> IonConnectEntity? {
+        guard let eventMessage = getEventMessage(for: eventReference) else {
+            NSLog("[NSE] No event message found for \(eventReference)")
+            return nil
+        }
+        
+        do {
+            return try EventParser.parse(eventMessage)
+        } catch {
+            NSLog("[NSE] Failed to parse entity from cache: \(error)")
+            return nil
+        }
+    }
+        
     /// Gets an EventMessage from the cache by cache key
-    /// - Parameter cacheKey: The cache key (usually event reference string)
+    /// - Parameter eventReference: The event reference string
     /// - Returns: EventMessage if found, nil otherwise
-    private func getEventMessage(cacheKey: String) -> EventMessage? {
+    private func getEventMessage(for eventReference: String) -> EventMessage? {
         let query = """
             SELECT kind, created_at, master_pubkey, content, tags, sig, id, pubkey
             FROM event_messages_table
@@ -61,7 +82,7 @@ class IonConnectCacheDatabase: DatabaseManager {
         var statement: OpaquePointer?
         
         guard sqlite3_prepare_v2(database, query, -1, &statement, nil) == SQLITE_OK else {
-            NSLog("[NSE] \(logPrefix) Failed to prepare query for cache key: \(cacheKey)")
+            NSLog("[NSE] \(logPrefix) Failed to prepare query for event eference: \(eventReference)")
             return nil
         }
         
@@ -70,10 +91,10 @@ class IonConnectCacheDatabase: DatabaseManager {
         }
         
         // Bind the cache key parameter
-        sqlite3_bind_text(statement, 1, (cacheKey as NSString).utf8String, -1, nil)
+        sqlite3_bind_text(statement, 1, (eventReference as NSString).utf8String, -1, nil)
         
         guard sqlite3_step(statement) == SQLITE_ROW else {
-            NSLog("[NSE] \(logPrefix) No cached entity found for key: \(cacheKey)")
+            NSLog("[NSE] \(logPrefix) No cached entity found for event eference: \(eventReference)")
             return nil
         }
         
@@ -120,7 +141,7 @@ class IonConnectCacheDatabase: DatabaseManager {
             sig: sig
         )
     }
-    
+        
     /// Gets the database file path in the app group container
     private func getDatabasePath() -> String? {
         let appGroupIdentifier = keysStorage.storage.appGroupIdentifier

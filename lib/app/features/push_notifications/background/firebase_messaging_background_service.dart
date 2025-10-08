@@ -18,14 +18,16 @@ import 'package:ion/app/features/config/providers/config_repository.r.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/push_notifications/data/models/ion_connect_push_data_payload.f.dart';
 import 'package:ion/app/features/push_notifications/providers/app_translations_provider.m.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_data_parser_provider.r.dart';
-import 'package:ion/app/features/user_profile/database/dao/user_delegation_dao.m.dart';
-import 'package:ion/app/features/user_profile/database/dao/user_metadata_dao.m.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
@@ -36,7 +38,9 @@ import 'package:ion/app/services/ion_connect/ion_connect_seal_service.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/logger/logger_initializer.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
+import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -79,10 +83,12 @@ Override _backgroundIonIdentityOverrideSingleton() {
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  Logger.log('☁️ Background push notification received: ${message.toMap()}');
   final backgroundContainer = ProviderContainer(
     observers: [Logger.talkerRiverpodObserver],
   );
+  LoggerInitializer.initialize(backgroundContainer);
+
+  Logger.log('☁️ Background push notification received: ${message.toMap()}');
 
   final notificationsService =
       await backgroundContainer.read(localNotificationsServiceProvider.future);
@@ -94,6 +100,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       await backgroundContainer.read(sharedPreferencesFoundationProvider.future);
   final currentUserPubkeyFromStorage =
       await sharedPreferencesFoundation.getString(CurrentPubkeySelector.persistenceKey);
+
+  Logger.log(
+    '☁️ Background push notification currentUserPubkeyFromStorage: $currentUserPubkeyFromStorage',
+  );
 
   // Resolve saved identity key name for background containers that need it
   final savedIdentityKeyName =
@@ -154,22 +164,49 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           giftWrapService: giftWrapService,
           privateKey: eventSigner.privateKey,
           verifyDelegationCallback: (String pubkey) async {
-            return messageContainer.read(userDelegationDaoProvider).get(pubkey);
+            Logger.log('☁️ Background push notification verifyDelegation for pubkey: $pubkey');
+
+            final delegation = await messageContainer.read(
+              cachedUserDelegationProvider(pubkey).future,
+            );
+
+            Logger.log('☁️ Background push notification verifyDelegation result: $delegation');
+            return delegation;
           },
         );
 
         final event = await giftUnwrapService.unwrap(eventMassage, validate: false);
+        Logger.log('☁️ Background push notification unwrap event: $event');
 
-        final userMetadata =
-            await messageContainer.read(userMetadataDaoProvider).get(event.masterPubkey);
+        final cachedEntity = await messageContainer
+            .read(
+              ionConnectDatabaseCacheProvider.notifier,
+            )
+            .get(
+              ReplaceableEventReference(
+                masterPubkey: event.masterPubkey,
+                kind: UserMetadataEntity.kind,
+              ).toString(),
+            );
 
+        final userMetadata = cachedEntity as UserMetadataEntity?;
+
+        Logger.log('☁️ Background push notification userMetadata: $userMetadata');
         return (event, userMetadata);
       } catch (e) {
         Logger.error('☁️ Background push notification unwrapGift: $e');
         return (null, null);
       } finally {
-        // Close database connection which we use inside providers to prevent isolate leaks
-        //await messageContainer.read(userProfileDatabaseProvider).close();
+        // Close ion_cache_database connection to prevent isolate leaks
+        try {
+          final cacheService =
+              await messageContainer.read(ionConnectPersistentCacheServiceProvider.future);
+          if (cacheService is IonConnectCacheServiceDriftImpl) {
+            await cacheService.attachedDatabase.close();
+          }
+        } catch (e) {
+          Logger.error('☁️ Background push notification close db error:');
+        }
         messageContainer.dispose();
       }
     },
@@ -266,6 +303,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 // Reusable override for background containers that need the current master pubkey.
 Override _backgroundCurrentPubkeyOverride(String? storedPubkey) {
+  Logger.log('☁️ Background push notification storedPubkey: $storedPubkey');
   if (storedPubkey == null) {
     throw UserMasterPubkeyNotFoundException();
   }
@@ -276,6 +314,7 @@ Override _backgroundCurrentPubkeyOverride(String? storedPubkey) {
 
 // Reusable override for background containers that need the current identity key name (username)
 Override _backgroundIdentityKeyNameOverride(String? savedIdentityKeyName) {
+  Logger.log('☁️ Background push notification savedIdentityKeyName: $savedIdentityKeyName');
   if (savedIdentityKeyName == null) {
     throw const CurrentUserNotFoundException();
   }
