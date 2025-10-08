@@ -65,7 +65,6 @@ class OneToOneMessagesPage extends HookConsumerWidget {
         conversationId.value = conversationIdValue;
 
         ref.read(pushNotificationCleanerProvider).cleanByGroupId(conversationIdValue);
-
         await ref.read(userMetadataProvider(receiverMasterPubkey, cache: false).future);
       },
     );
