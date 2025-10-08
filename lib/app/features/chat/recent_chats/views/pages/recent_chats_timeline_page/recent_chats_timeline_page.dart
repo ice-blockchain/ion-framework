@@ -24,6 +24,7 @@ import 'package:ion/app/features/chat/recent_chats/providers/archived_conversati
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_skeleton/recent_chat_skeleton.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/archive_chat_tile.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_tile.dart';
+import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
@@ -312,14 +313,12 @@ class E2eeRecentChatTile extends HookConsumerWidget {
 
     final metadata = userMetadata.valueOrNull;
 
-    final isUserDeleted = metadata == null;
-
     return RecentChatTile(
       defaultAvatar: null,
       conversation: conversation,
       messageType: entity.messageType,
-      name: isUserDeleted ? context.i18n.common_deleted_account : metadata.data.displayName,
-      avatarUrl: isUserDeleted ? Assets.svg.iconProfileNoimage : metadata.data.avatarUrl,
+      name: metadata.isDeleted ? context.i18n.common_deleted_account : metadata!.data.displayName,
+      avatarUrl: metadata.isDeleted ? Assets.svg.iconProfileNoimage : metadata!.data.avatarUrl,
       eventReference: eventReference,
       unreadMessagesCount: unreadMessagesCount.valueOrNull ?? 0,
       lastMessageContent: entity.messageType == MessageType.document

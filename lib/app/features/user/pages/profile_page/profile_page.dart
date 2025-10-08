@@ -11,6 +11,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
+import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/model/tab_entity_type.dart';
 import 'package:ion/app/features/user/model/user_content_type.dart';
 import 'package:ion/app/features/user/pages/components/profile_avatar/profile_avatar.dart';
@@ -50,12 +51,11 @@ class ProfilePage extends HookConsumerWidget {
     }
 
     final metadata = userMetadata.valueOrNull;
-    final isUserDeleted = metadata == null;
 
     final isBlockedOrBlockedBy =
         ref.watch(isBlockedOrBlockedByNotifierProvider(masterPubkey)).valueOrNull.falseOrValue;
 
-    if (isUserDeleted || isBlockedOrBlockedBy) {
+    if (metadata.isDeleted || isBlockedOrBlockedBy) {
       return const CantFindProfilePage();
     }
 
