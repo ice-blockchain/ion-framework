@@ -71,7 +71,11 @@ Override _backgroundIonIdentityOverrideSingleton() {
       c.complete(client);
       return client;
     } catch (e, st) {
-      Logger.error('☁️ [BG] ionIdentity singleton: init FAILED: $e\n$st');
+      Logger.error(
+        e,
+        stackTrace: st,
+        message: '☁️ [BG] ionIdentity singleton: init FAILED',
+      );
       c.completeError(e, st);
       rethrow;
     } finally {
@@ -192,8 +196,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
         Logger.log('☁️ Background push notification userMetadata: $userMetadata');
         return (event, userMetadata);
-      } catch (e) {
-        Logger.error('☁️ Background push notification unwrapGift: $e');
+      } catch (e, st) {
+        Logger.error(
+          e,
+          stackTrace: st,
+          message: '☁️ Background push notification unwrapGift',
+        );
         return (null, null);
       } finally {
         // Close ion_cache_database connection to prevent isolate leaks
@@ -203,8 +211,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           if (cacheService is IonConnectCacheServiceDriftImpl) {
             await cacheService.attachedDatabase.close();
           }
-        } catch (e) {
-          Logger.error('☁️ Background push notification close db error: $e');
+        } catch (e, st) {
+          Logger.error(
+            e,
+            stackTrace: st,
+            message: '☁️ Background push notification close db error',
+          );
         }
         messageContainer.dispose();
       }
@@ -263,13 +275,21 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           final entity = parser.parse(result.eventMessage);
           return entity;
         } catch (e, st) {
-          Logger.error('☁️ Background getRelatedEntity failed: $e', stackTrace: st);
+          Logger.error(
+            e,
+            stackTrace: st,
+            message: '☁️ Background getRelatedEntity failed',
+          );
           return null;
         }
       },
     );
   } catch (e, st) {
-    Logger.error('☁️ Background parser.parse failed: $e\n$st');
+    Logger.error(
+      e,
+      stackTrace: st,
+      message: '☁️ Background parser.parse failed',
+    );
   } finally {
     // Close DBs opened through providers in this container to avoid isolate leaks.
     try {
