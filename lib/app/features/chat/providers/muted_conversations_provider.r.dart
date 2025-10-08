@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/chat/providers/exist_chat_conversation_id_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/mute_set.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/services/local_notifications/push_notification_manager.r.dart';
 import 'package:ion/app/services/uuid/generate_conversation_id.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -47,9 +51,29 @@ class MutedConversations extends _$MutedConversations {
     state = await AsyncValue.guard(() async {
       final existingMutedMasterPubkeys = state.value?.data.masterPubkeys ?? [];
 
-      final newMutedMasterPubkeys = existingMutedMasterPubkeys.contains(masterPubkey)
-          ? existingMutedMasterPubkeys.where((p) => p != masterPubkey).toList()
-          : [...existingMutedMasterPubkeys, masterPubkey];
+      final shouldBeMuted = !existingMutedMasterPubkeys.contains(masterPubkey);
+
+      final List<String> newMutedMasterPubkeys;
+      if (shouldBeMuted) {
+        newMutedMasterPubkeys = [...existingMutedMasterPubkeys, masterPubkey];
+        final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
+        if (currentUserMasterPubkey == null) {
+          throw UserMasterPubkeyNotFoundException();
+        }
+        final conversationId = await ref.read(
+              existChatConversationIdProvider([masterPubkey, currentUserMasterPubkey]).future,
+            ) ??
+            generateConversationId(
+              conversationType: ConversationType.oneToOne,
+              receiverMasterPubkeys: [masterPubkey, currentUserMasterPubkey],
+            );
+
+        unawaited(
+          ref.read(pushNotificationManagerProvider).clearConversationNotifications(conversationId),
+        );
+      } else {
+        newMutedMasterPubkeys = existingMutedMasterPubkeys.where((p) => p != masterPubkey).toList();
+      }
 
       final MuteSetData muteSetData;
       if (state.value != null) {
