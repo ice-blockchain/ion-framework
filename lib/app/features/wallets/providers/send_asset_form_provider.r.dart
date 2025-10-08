@@ -217,19 +217,16 @@ class SendAssetFormController extends _$SendAssetFormController {
     final selectedOption = coin.selectedOption;
     final selectedFee = state.selectedNetworkFeeOption;
 
-    if (selectedOption == null) return 0.0;
+    if (selectedOption == null) return 0;
 
     final availableBalance = selectedOption.amount;
-    final feeAmount = selectedFee?.amount ?? 0.0;
+    final feeAmount = selectedFee?.amount ?? 0;
     final isSendingNativeToken = selectedOption.coin.native;
 
     if (isSendingNativeToken) {
-      // When sending native token, we need to reserve fee from the same balance
       final maxAmount = availableBalance - feeAmount;
       return maxAmount > 0 ? maxAmount : availableBalance;
     } else {
-      // When sending non-native token, fee is paid with native token separately
-      // So max amount is just the token balance
       return availableBalance;
     }
   }
