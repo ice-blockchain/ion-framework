@@ -67,6 +67,7 @@ class MainActivity : FlutterFragmentActivity() {
     private var videoEditorModule: VideoEditorModule? = null
 
     private lateinit var audioFocusHandler: AudioFocusHandler
+    private var videoCompressionPlugin: VideoCompressionPlugin? = null
 
     // Bundle for enabling Editor V2
     private val extras = bundleOf(
@@ -77,6 +78,14 @@ class MainActivity : FlutterFragmentActivity() {
         super.configureFlutterEngine(flutterEngine)
 
         audioFocusHandler = AudioFocusHandler(applicationContext, flutterEngine)
+
+        // Set up Video Compression Plugin
+        val videoCompressionChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "ion/video_compression"
+        )
+        videoCompressionPlugin = VideoCompressionPlugin()
+        videoCompressionChannel.setMethodCallHandler(videoCompressionPlugin)
 
         // Set up your MethodChannel here after registration
         MethodChannel(
