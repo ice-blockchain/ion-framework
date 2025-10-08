@@ -17,6 +17,8 @@ import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/core/views/pages/error_page.dart';
 import 'package:ion/app/features/force_update/providers/force_update_provider.r.dart';
 import 'package:ion/app/features/force_update/view/pages/app_update_modal.dart';
+import 'package:ion/app/features/push_notifications/providers/initial_notification_provider.r.dart';
+import 'package:ion/app/features/push_notifications/providers/notification_response_service.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_router_listenable.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -56,6 +58,14 @@ GoRouter goRouter(Ref ref) {
       if (isInitInProgress || !isSplashAnimationCompleted) {
         // Redirect if app is not initialized yet, but avoid re-entering Splash when already there
         return SplashRoute().location;
+      }
+
+      final initialNotification = ref.read(initialNotificationProvider.notifier).consume();
+      if (initialNotification != null) {
+        await ref
+            .read(notificationResponseServiceProvider)
+            .handleNotificationResponse(initialNotification, isInitialNotification: true);
+        return null;
       }
 
       return _mainRedirect(location: state.matchedLocation, ref: ref);

@@ -70,7 +70,10 @@ class NotificationResponseService {
         : router.routerDelegate.currentConfiguration;
   }
 
-  Future<void> handleNotificationResponse(Map<String, dynamic> response) async {
+  Future<void> handleNotificationResponse(
+    Map<String, dynamic> response, {
+    required bool isInitialNotification,
+  }) async {
     try {
       final notificationPayload = await IonConnectPushDataPayload.fromEncoded(
         response,
@@ -91,19 +94,40 @@ class NotificationResponseService {
       switch (entity) {
         case ModifiablePostEntity():
         case PostEntity():
-          await _openPostDetail(entity.toEventReference());
+          await _openPostDetail(
+            entity.toEventReference(),
+            isInitialNotification: isInitialNotification,
+          );
         case GenericRepostEntity() when entity.data.kind == ArticleEntity.kind:
-          await _openArticleDetail(entity.data.eventReference);
+          await _openArticleDetail(
+            entity.data.eventReference,
+            isInitialNotification: isInitialNotification,
+          );
         case GenericRepostEntity() when entity.data.kind == ModifiablePostEntity.kind:
-          await _openPostDetail(entity.data.eventReference);
+          await _openPostDetail(
+            entity.data.eventReference,
+            isInitialNotification: isInitialNotification,
+          );
         case RepostEntity():
-          await _openPostDetail(entity.data.eventReference);
+          await _openPostDetail(
+            entity.data.eventReference,
+            isInitialNotification: isInitialNotification,
+          );
         case ReactionEntity():
-          await _openPostDetail(entity.data.eventReference);
+          await _openPostDetail(
+            entity.data.eventReference,
+            isInitialNotification: isInitialNotification,
+          );
         case FollowListEntity():
-          await _openProfileDetail(entity.masterPubkey);
+          await _openProfileDetail(
+            entity.masterPubkey,
+            isInitialNotification: isInitialNotification,
+          );
         case IonConnectGiftWrapEntity():
-          await _handleGiftWrap(notificationPayload.event);
+          await _handleGiftWrap(
+            notificationPayload.event,
+            isInitialNotification: isInitialNotification,
+          );
         default:
           throw UnsupportedEntityType(entity);
       }
@@ -112,7 +136,7 @@ class NotificationResponseService {
     }
   }
 
-  Future<void> _handleGiftWrap(EventMessage giftWrap) async {
+  Future<void> _handleGiftWrap(EventMessage giftWrap, {bool isInitialNotification = false}) async {
     final giftUnwrapService = await _getGiftUnwrapService();
 
     if (_currentPubkey == null) {
@@ -126,20 +150,29 @@ class NotificationResponseService {
       case PrivateMessageReactionEntity.kind:
       case FundsRequestEntity.kind:
       case WalletAssetEntity.kind:
-        await _openChat(rumor.masterPubkey);
+        await _openChat(rumor.masterPubkey, isInitialNotification: isInitialNotification);
       default:
         throw UnsupportedEntityType(rumor);
     }
   }
 
-  Future<void> _openPostDetail(EventReference eventReference) async {
+  Future<void> _openPostDetail(
+    EventReference eventReference, {
+    bool isInitialNotification = false,
+  }) async {
     final route = PostDetailsRoute(eventReference: eventReference.encode());
     // Get path without query parameters
     final routePath = route.location.split(IonConnectUriProtocolService.prefix).first;
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
+    if (isInitialNotification) {
+      route.pushReplacement(rootNavigatorKey.currentContext!);
+      return;
+    }
+
     if (routePath == currentPath) {
       final currentLocation = _currentRouteMatchList.uri.toString();
+
       if (route.location == currentLocation) {
         return;
       }
@@ -151,12 +184,20 @@ class NotificationResponseService {
     await route.push<void>(rootNavigatorKey.currentContext!);
   }
 
-  Future<void> _openArticleDetail(EventReference eventReference) async {
+  Future<void> _openArticleDetail(
+    EventReference eventReference, {
+    bool isInitialNotification = false,
+  }) async {
     final route = ArticleDetailsRoute(eventReference: eventReference.encode());
     // Get path without query parameters
     final routePath = route.location.split(IonConnectUriProtocolService.prefix).first;
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
+    if (isInitialNotification) {
+      route.pushReplacement(rootNavigatorKey.currentContext!);
+      return;
+    }
+
     if (routePath == currentPath) {
       final currentLocation = _currentRouteMatchList.uri.toString();
       if (route.location == currentLocation) {
@@ -170,11 +211,16 @@ class NotificationResponseService {
     await route.push<void>(rootNavigatorKey.currentContext!);
   }
 
-  Future<void> _openProfileDetail(String pubkey) async {
+  Future<void> _openProfileDetail(String pubkey, {bool isInitialNotification = false}) async {
     final route = ProfileRoute(pubkey: pubkey);
     final routePath = route.location.split('?').first;
     final currentPath = _currentRouteMatchList.fullPath;
 
+    if (isInitialNotification) {
+      route.pushReplacement(rootNavigatorKey.currentContext!);
+      return;
+    }
+
     if (routePath == currentPath) {
       final currentLocation = _currentRouteMatchList.uri.toString();
       if (route.location == currentLocation) {
@@ -188,10 +234,15 @@ class NotificationResponseService {
     await route.push<void>(rootNavigatorKey.currentContext!);
   }
 
-  Future<void> _openChat(String pubkey) async {
+  Future<void> _openChat(String pubkey, {bool isInitialNotification = false}) async {
     final route = ConversationRoute(receiverMasterPubkey: pubkey);
     final routePath = route.location.split('?').first;
     final currentPath = _currentRouteMatchList.fullPath;
+
+    if (isInitialNotification) {
+      route.pushReplacement(rootNavigatorKey.currentContext!);
+      return;
+    }
 
     if (routePath == currentPath) {
       final currentLocation = _currentRouteMatchList.uri.toString();
