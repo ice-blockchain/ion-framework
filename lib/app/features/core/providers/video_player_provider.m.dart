@@ -96,9 +96,7 @@ class VideoController extends _$VideoController {
       if (!cancelInit.isCompleted) cancelInit.complete();
     });
 
-    VoidCallback? onlyOneListener;
-    VoidCallback? pauseListener;
-    var isPlaying = false;
+    VoidCallback? playbackListener;
 
     try {
       final controller =
@@ -107,14 +105,12 @@ class VideoController extends _$VideoController {
                 cancelToken: cancelInit,
               );
 
+      var previousValue = controller.value;
       await _seekToSavedPosition(controller, sourcePath);
 
       ref.onCancel(() async {
-        if (onlyOneListener != null) {
-          controller.removeListener(onlyOneListener);
-        }
-        if (pauseListener != null) {
-          controller.removeListener(pauseListener);
+        if (playbackListener != null) {
+          controller.removeListener(playbackListener);
         }
         await Future.wait([
           () async {
@@ -185,30 +181,32 @@ class VideoController extends _$VideoController {
           }
         });
 
-        if (params.onlyOneShouldPlay) {
-          onlyOneListener = () {
-            if (controller.value.isPlaying) {
-              final prev = VideoController._currentlyPlayingController;
-              if (prev != null && prev != controller) {
-                prev.pause();
+        playbackListener = () {
+          final currentValue = controller.value;
+
+          // Check for a change in the playing state.
+          if (previousValue.isPlaying == currentValue.isPlaying) {
+            previousValue = currentValue;
+            return;
+          }
+
+          if (currentValue.isPlaying) {
+            // Restore position when playback resumes.
+            _seekToSavedPosition(controller, sourcePath);
+
+            if (params.onlyOneShouldPlay) {
+              final prevPlayer = VideoController._currentlyPlayingController;
+              if (prevPlayer != null && prevPlayer != controller) {
+                prevPlayer.pause();
               }
               VideoController._currentlyPlayingController = controller;
-            }
-          };
-          controller.addListener(onlyOneListener);
-        }
-
-        pauseListener = () {
-          if (controller.value.isPlaying) {
-            if (!isPlaying) {
-              _seekToSavedPosition(controller, sourcePath);
             }
           } else {
             _savePlayerPosition(controller, sourcePath);
           }
-          isPlaying = controller.value.isPlaying;
+          previousValue = controller.value;
         };
-        controller.addListener(pauseListener);
+        controller.addListener(playbackListener);
       }
       return controller;
     } on FailedToInitVideoPlayer catch (error) {
@@ -222,6 +220,7 @@ class VideoController extends _$VideoController {
     }
   }
 
+  /// Save the position when the video is paused or finishes.
   void _savePlayerPosition(VideoPlayerController controller, String sourcePath) {
     ref
         .watch(videoPlayerPositionDataProvider.notifier)
