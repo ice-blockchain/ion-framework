@@ -4,6 +4,7 @@ import 'package:ion/app/features/gallery/data/models/album_data.f.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/utils/filter_video_by_format.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class AlbumService {
@@ -15,10 +16,11 @@ class AlbumService {
     final pathEntity = _albumsCache[albumId];
     if (pathEntity == null) return null;
 
-    final assets = await pathEntity.getAssetListRange(start: 0, end: 1);
-    if (assets.isEmpty) return null;
+    final assets = await pathEntity.getAssetListRange(start: 0, end: 10);
+    final filteredAssets = _filterUnsupportedVideoFormats(assets);
+    if (filteredAssets.isEmpty) return null;
 
-    return assets.first;
+    return filteredAssets.first;
   }
 
   Future<List<AlbumData>> fetchAlbums({required MediaPickerType type}) async {
@@ -30,7 +32,7 @@ class AlbumService {
 
     final futures = assetPathList.map((ap) async {
       _albumsCache[ap.id] = ap;
-      final count = await ap.assetCountAsync;
+      final count = await _countAssets(ap);
       return AlbumData(
         id: ap.id,
         name: ap.name,
@@ -73,5 +75,28 @@ class AlbumService {
     }
 
     return mediaFiles;
+  }
+
+  List<AssetEntity> _filterUnsupportedVideoFormats(List<AssetEntity> mediaFiles) {
+    final filteredMediaFiles = <AssetEntity>[];
+    for (final mediaFile in mediaFiles) {
+      final mimeType = mediaFile.mimeType;
+      if (mimeType?.startsWith('video/') ?? false) {
+        if (!filterVideoByFormat(mimeType!)) {
+          continue;
+        }
+      }
+
+      filteredMediaFiles.add(mediaFile);
+    }
+
+    return filteredMediaFiles;
+  }
+
+  Future<int> _countAssets(AssetPathEntity ap) async {
+    final allCount = await ap.assetCountAsync;
+    final allAssets = await ap.getAssetListRange(start: 0, end: allCount);
+    final filteredAssets = _filterUnsupportedVideoFormats(allAssets);
+    return filteredAssets.length;
   }
 }

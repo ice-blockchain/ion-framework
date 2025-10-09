@@ -12,6 +12,7 @@ import 'package:ion/app/features/gallery/providers/providers.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/utils/filter_video_by_format.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -78,10 +79,11 @@ class GalleryNotifier extends _$GalleryNotifier {
       final existingMedia = currentState?.mediaData ?? [];
       final existingMediaPaths = existingMedia.map((m) => m.path).toSet();
       final newMedia = media.where((m) => !existingMediaPaths.contains(m.path)).toList();
+      final allData = [...existingMedia, ..._filterUnsupportedVideoFormats(newMedia)];
 
       state = AsyncValue.data(
         GalleryState(
-          mediaData: [...existingMedia, ...newMedia],
+          mediaData: allData,
           currentPage: currentState?.currentPage ?? 0,
           hasMore: media.isNotEmpty,
           type: type,
@@ -133,9 +135,10 @@ class GalleryNotifier extends _$GalleryNotifier {
       );
 
       final hasMore = newMedia.length == _pageSize;
+      final filteredMedia = _filterUnsupportedVideoFormats(newMedia);
 
       return currentState.copyWith(
-        mediaData: [...currentState.mediaData, ...newMedia],
+        mediaData: [...currentState.mediaData, ...filteredMedia],
         currentPage: currentState.currentPage + 1,
         hasMore: hasMore,
         isLoading: false,
@@ -185,8 +188,10 @@ class GalleryNotifier extends _$GalleryNotifier {
       type: type,
     );
 
+    final filteredMedia = _filterUnsupportedVideoFormats(newMedia);
+
     return oldState.copyWith(
-      mediaData: newMedia,
+      mediaData: filteredMedia,
       currentPage: page + 1,
       hasMore: newMedia.length == _pageSize,
       selectedAlbum: album,
@@ -224,5 +229,22 @@ class GalleryNotifier extends _$GalleryNotifier {
           .read(mediaSelectionNotifierProvider.notifier)
           .toggleSelection(mediaFile.path, type: updatedState.type);
     }
+  }
+
+  // Filter out unsupported video formats
+  List<MediaFile> _filterUnsupportedVideoFormats(List<MediaFile> mediaFiles) {
+    final filteredMediaFiles = <MediaFile>[];
+    for (final mediaFile in mediaFiles) {
+      final mimeType = mediaFile.mimeType;
+      if (mimeType?.startsWith('video/') ?? false) {
+        if (!filterVideoByFormat(mimeType!)) {
+          continue;
+        }
+      }
+
+      filteredMediaFiles.add(mediaFile);
+    }
+
+    return filteredMediaFiles;
   }
 }
