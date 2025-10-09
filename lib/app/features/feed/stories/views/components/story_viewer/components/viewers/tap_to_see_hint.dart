@@ -9,12 +9,14 @@ class TapToSeeHint extends HookWidget {
   const TapToSeeHint({
     required this.child,
     required this.onTap,
+    required this.text,
     this.onVisibilityChanged,
     super.key,
   });
 
   final Widget child;
   final VoidCallback onTap;
+  final String text;
   final ValueChanged<bool>? onVisibilityChanged;
 
   @override
@@ -79,7 +81,7 @@ class TapToSeeHint extends HookWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              context.i18n.story_see_post,
+                              text,
                               style: textStyles.subtitle3.copyWith(
                                 color: colors.primaryText,
                               ),
