@@ -18,13 +18,13 @@ class FeatureFlags extends _$FeatureFlags {
       FeedFeatureFlag.showSuggestions: true,
       ChatFeatureFlag.hideCommunity: true,
       ChatFeatureFlag.hideChatBookmark: true,
+      LoggerFeatureFlag.logApp: true,
+      LoggerFeatureFlag.logIonIdentityClient: true,
 
       /// Log flags
       if (ref.watch(envProvider.notifier).get(EnvVariable.SHOW_DEBUG_INFO)) ...{
-        LoggerFeatureFlag.logApp: true,
         LoggerFeatureFlag.logRouters: true,
         LoggerFeatureFlag.logIonConnect: true,
-        LoggerFeatureFlag.logIonIdentityClient: true,
       },
     };
   }
