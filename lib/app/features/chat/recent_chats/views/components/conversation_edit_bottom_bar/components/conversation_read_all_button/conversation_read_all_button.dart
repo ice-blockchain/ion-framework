@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_message_status_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
+import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ConversationReadAllButton extends ConsumerWidget {
@@ -25,6 +29,8 @@ class ConversationReadAllButton extends ConsumerWidget {
         final conversationsToManage = selectedConversations.isEmpty
             ? (ref.read(conversationsProvider).value ?? [])
             : selectedConversations;
+
+        unawaited(_cleanConversationNotifications(conversationsToManage, ref));
 
         await Future.wait(
           conversationsToManage.map((conversation) async {
@@ -61,5 +67,15 @@ class ConversationReadAllButton extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _cleanConversationNotifications(
+    List<ConversationListItem> conversations,
+    WidgetRef ref,
+  ) async {
+    final conversationIds = conversations.map((e) => e.conversationId).toList();
+
+    final localNotificationsService = await ref.read(localNotificationsServiceProvider.future);
+    unawaited(localNotificationsService.cancelByGroupKeys(conversationIds));
   }
 }

@@ -91,7 +91,7 @@ dependencies:
     git:
       url: https://github.com/ice-blockchain/flutter_local_notifications.git
       path: flutter_local_notifications
-      ref: feature/rich-push-notifications
+      ref: feature/clear-notifications
   flutter_localizations:
     sdk: flutter
   flutter_quill: ^11.4.2

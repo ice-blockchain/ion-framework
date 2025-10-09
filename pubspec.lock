@@ -1185,8 +1185,8 @@ packages:
     dependency: "direct main"
     description:
       path: flutter_local_notifications
-      ref: "feature/rich-push-notifications"
-      resolved-ref: "2ccdac25081f4f57c3bab348929da6f70228bd55"
+      ref: "feature/clear-notifications"
+      resolved-ref: "49a6a0e9a9da24be111bc21598c09aebcceb4c30"
       url: "https://github.com/ice-blockchain/flutter_local_notifications.git"
     source: git
     version: "19.4.0"

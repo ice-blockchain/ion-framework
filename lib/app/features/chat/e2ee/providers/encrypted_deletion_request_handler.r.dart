@@ -21,6 +21,7 @@ import 'package:ion/app/features/wallets/data/repository/transactions_repository
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
+import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'encrypted_deletion_request_handler.r.g.dart';
@@ -36,6 +37,7 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
     this.eventSigner,
     this.requestAssetsRepository,
     this.transactionsRepository,
+    this.localNotificationsService,
   );
 
   final ConversationMessageDao conversationMessageDao;
@@ -44,6 +46,7 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
   final EventMessageDao eventMessageDao;
   final RequestAssetsRepository requestAssetsRepository;
   final TransactionsRepository transactionsRepository;
+  final LocalNotificationsService localNotificationsService;
 
   final Env env;
   final String masterPubkey;
@@ -78,6 +81,8 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
         .toList();
 
     if (deleteConversationIds.isNotEmpty) {
+      unawaited(localNotificationsService.cancelByGroupKeys(deleteConversationIds));
+
       await eventMessageDao.add(rumor);
       await conversationDao.removeConversations(
         deleteRequest: rumor,
@@ -221,9 +226,12 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
 Future<EncryptedDeletionRequestHandler?> encryptedDeletionRequestHandler(Ref ref) async {
   final eventSigner = await ref.watch(currentUserIonConnectEventSignerProvider.future);
   final masterPubkey = ref.watch(currentPubkeySelectorProvider);
+
   if (eventSigner == null || masterPubkey == null) {
     return null;
   }
+
+  final localNotificationsService = await ref.watch(localNotificationsServiceProvider.future);
 
   return EncryptedDeletionRequestHandler(
     ref.watch(conversationMessageDaoProvider),
@@ -235,5 +243,6 @@ Future<EncryptedDeletionRequestHandler?> encryptedDeletionRequestHandler(Ref ref
     eventSigner,
     ref.watch(requestAssetsRepositoryProvider),
     await ref.watch(transactionsRepositoryProvider.future),
+    localNotificationsService,
   );
 }

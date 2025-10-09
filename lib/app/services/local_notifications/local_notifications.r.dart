@@ -42,18 +42,30 @@ class LocalNotificationsService {
     );
   }
 
+  Future<void> cancelByGroupKey(String groupKey) async {
+    return _plugin.cancelByGroupKey(groupKey);
+  }
+
+  Future<void> cancelByGroupKeys(List<String> groupKeys) async {
+    for (final groupKey in groupKeys) {
+      unawaited(cancelByGroupKey(groupKey));
+    }
+  }
+
   Future<void> showNotification({
     required String title,
     required String body,
     String? payload,
     String? icon,
     String? attachment,
+    String? conversationId,
   }) async {
     final notificationDetails = await _buildNotificationDetails(
       avatarUrl: icon,
       attachmentUrl: attachment,
       userName: title,
       textMessage: body,
+      conversationId: conversationId,
     );
 
     await _plugin.show(
@@ -71,7 +83,7 @@ class LocalNotificationsService {
     return payload != null ? jsonDecode(payload) as Map<String, dynamic> : null;
   }
 
-  static InitializationSettings get _settings {
+  InitializationSettings get _settings {
     const initializationSettingsAndroid = AndroidInitializationSettings('ic_stat_ic_notification');
     // Do not request permissions on iOS when the plugin is initialized
     // We do that manually either during the onboarding or in the app settings
@@ -95,6 +107,7 @@ class LocalNotificationsService {
     String? attachmentUrl,
     String? userName,
     String? textMessage,
+    String? conversationId,
   }) async {
     Person? messagePerson;
     String? avatarFilePath;
@@ -138,6 +151,8 @@ class LocalNotificationsService {
       largeIcon: attachmentFilePath != null ? FilePathAndroidBitmap(attachmentFilePath) : null,
       styleInformation: styleInformation,
       shortcutId: const Uuid().v4(),
+      groupKey: conversationId ?? userName,
+      tag: conversationId,
     );
 
     final iOSPerson = DarwinCommunicationPerson(
@@ -147,7 +162,7 @@ class LocalNotificationsService {
     );
 
     final iOSPlatformChannelSpecifics = DarwinCommunicationNotificationDetails(
-      conversationIdentifier: userName ?? 'ion_miscellaneous',
+      conversationIdentifier: conversationId ?? userName ?? 'ion_miscellaneous',
       messages: [
         DarwinCommunicationMessage(
           text: textMessage ?? '',

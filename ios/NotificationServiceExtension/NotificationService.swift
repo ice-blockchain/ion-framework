@@ -55,7 +55,8 @@ class NotificationService: UNNotificationServiceExtension {
                         title: result.title,
                         body: result.body,
                         avatarFilePath: result.avatarFilePath,
-                        attachmentFilePath: result.attachmentFilePaths
+                        attachmentFilePath: result.attachmentFilePaths,
+                        conversationId: result.conversationId
                     )
 
                 }
