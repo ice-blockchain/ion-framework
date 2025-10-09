@@ -12,6 +12,7 @@ import 'package:ion/app/features/core/providers/mute_provider.r.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/settings/providers/video_settings_provider.m.dart';
+import 'package:ion/app/features/video/views/components/video_button.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_route_presence.dart';
 import 'package:ion/app/utils/date.dart';
@@ -24,6 +25,7 @@ class VideoPreview extends HookConsumerWidget {
     required this.videoUrl,
     required this.authorPubkey,
     this.thumbnailUrl,
+    this.duration,
     this.onlyOneShouldPlay = true,
     this.framedEventReference,
     this.visibilityThreshold = 1.0,
@@ -34,24 +36,29 @@ class VideoPreview extends HookConsumerWidget {
   final String videoUrl;
   final String authorPubkey;
   final String? thumbnailUrl;
+  final Duration? duration;
   final EventReference? framedEventReference;
   final double visibilityThreshold;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final uniqueId = useRef(UniqueKey().toString());
-    final videoControllerProviderState = ref.watch(
-      videoControllerProvider(
-        VideoControllerParams(
-          sourcePath: videoUrl,
-          authorPubkey: authorPubkey,
-          looping: true,
-          uniqueId: framedEventReference?.encode() ?? '',
-          onlyOneShouldPlay: onlyOneShouldPlay,
-        ),
-      ),
-    );
     final videoSettings = ref.watch(videoSettingsProvider);
+
+    // If autoplay is disabled, we don't need to initialize the controller (to avoid the video downloading)
+    final videoControllerProviderState = videoSettings.autoplay
+        ? ref.watch(
+            videoControllerProvider(
+              VideoControllerParams(
+                sourcePath: videoUrl,
+                authorPubkey: authorPubkey,
+                looping: true,
+                uniqueId: framedEventReference?.encode() ?? '',
+                onlyOneShouldPlay: onlyOneShouldPlay,
+              ),
+            ),
+          )
+        : const AsyncValue.data(null);
     final controller = videoControllerProviderState.valueOrNull;
 
     final isFullyVisible = useState(false);
@@ -86,13 +93,13 @@ class VideoPreview extends HookConsumerWidget {
           return;
         }
         final shouldBeActive = isFullyVisible.value && isRouteFocused.value;
-        if (videoSettings.autoplay && shouldBeActive && !controller.value.isPlaying) {
+        if (shouldBeActive && !controller.value.isPlaying) {
           controller.play();
         } else if (!shouldBeActive && controller.value.isPlaying) {
           controller.pause();
         }
       },
-      [isFullyVisible.value, isRouteFocused.value, controller, videoSettings.autoplay],
+      [isFullyVisible.value, isRouteFocused.value, controller],
     );
 
     useEffect(
@@ -130,18 +137,16 @@ class VideoPreview extends HookConsumerWidget {
       child: Stack(
         children: [
           Positioned.fill(
-            child: ColoredBox(
-              color: context.theme.appColors.primaryBackground,
-            ),
+            child: ColoredBox(color: context.theme.appColors.primaryBackground),
           ),
-          if (thumbnailUrl != null && videoControllerProviderState.isLoading)
+          if (thumbnailUrl != null)
             Positioned.fill(
-              child: _BlurredThumbnail(
-                thumbnailUrl: thumbnailUrl!,
-                authorPubkey: authorPubkey,
-                isLoading: videoControllerProviderState.isLoading,
-              ),
-            ),
+              child: videoControllerProviderState.isLoading
+                  ? _LoadingThumbnail(url: thumbnailUrl!, authorPubkey: authorPubkey)
+                  : _Thumbnail(url: thumbnailUrl!, authorPubkey: authorPubkey),
+            )
+          else
+            const IonPlaceholder(),
           if (controller != null && controller.value.isInitialized && !hasError)
             Positioned.fill(
               child: FittedBox(
@@ -153,37 +158,51 @@ class VideoPreview extends HookConsumerWidget {
                 ),
               ),
             ),
-          if (hasError)
-            const Positioned.fill(
-              child: IonPlaceholder(),
-            ),
-          if (controller != null && controller.value.isInitialized)
-            PositionedDirectional(
-              bottom: 12.0.s,
-              start: 12.0.s,
-              end: 12.0.s,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _VideoDurationLabel(controller: controller),
-                  _MuteButton(
-                    isMuted: isMuted,
-                    onToggle: () async {
-                      await ref.read(globalMuteNotifierProvider.notifier).toggle();
-                    },
-                  ),
-                ],
-              ),
-            ),
+          if (hasError) const Positioned.fill(child: IonPlaceholder()),
+          if (!videoSettings.autoplay) const Center(child: _PlayButton()),
+          PositionedDirectional(
+            bottom: 12.0.s,
+            start: 12.0.s,
+            end: 12.0.s,
+            child: _VideoControls(controller: controller, duration: duration, isMuted: isMuted),
+          ),
         ],
       ),
     );
   }
 }
 
-class _VideoDurationLabel extends StatelessWidget {
-  const _VideoDurationLabel({required this.controller});
+class _VideoControls extends ConsumerWidget {
+  const _VideoControls({required this.controller, required this.duration, required this.isMuted});
+
+  final VideoPlayerController? controller;
+
+  final Duration? duration;
+
+  final bool isMuted;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        if (controller != null && controller!.value.isInitialized)
+          _VideoControllerDurationLabel(controller: controller!)
+        else if (duration != null && duration != Duration.zero)
+          _VideoDurationLabel(duration: duration!)
+        else
+          const SizedBox.shrink(),
+        _MuteButton(
+          isMuted: isMuted,
+          onToggle: ref.read(globalMuteNotifierProvider.notifier).toggle,
+        ),
+      ],
+    );
+  }
+}
+
+class _VideoControllerDurationLabel extends StatelessWidget {
+  const _VideoControllerDurationLabel({required this.controller});
 
   final VideoPlayerController controller;
 
@@ -193,21 +212,31 @@ class _VideoDurationLabel extends StatelessWidget {
       valueListenable: controller,
       builder: (context, value, child) {
         final remaining = controller.value.duration - value.position;
-
-        return Container(
-          padding: EdgeInsets.symmetric(horizontal: 4.0.s),
-          decoration: BoxDecoration(
-            color: context.theme.appColors.backgroundSheet.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(6.0.s),
-          ),
-          child: Text(
-            formatDuration(remaining),
-            style: context.theme.appTextThemes.caption.copyWith(
-              color: context.theme.appColors.secondaryBackground,
-            ),
-          ),
-        );
+        return _VideoDurationLabel(duration: remaining);
       },
+    );
+  }
+}
+
+class _VideoDurationLabel extends StatelessWidget {
+  const _VideoDurationLabel({required this.duration});
+
+  final Duration duration;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 4.0.s),
+      decoration: BoxDecoration(
+        color: context.theme.appColors.backgroundSheet.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(6.0.s),
+      ),
+      child: Text(
+        formatDuration(duration),
+        style: context.theme.appTextThemes.caption.copyWith(
+          color: context.theme.appColors.secondaryBackground,
+        ),
+      ),
     );
   }
 }
@@ -244,16 +273,14 @@ class _MuteButton extends StatelessWidget {
   }
 }
 
-class _BlurredThumbnail extends HookWidget {
-  const _BlurredThumbnail({
-    required this.thumbnailUrl,
+class _LoadingThumbnail extends StatelessWidget {
+  const _LoadingThumbnail({
+    required this.url,
     required this.authorPubkey,
-    required this.isLoading,
   });
 
-  final String thumbnailUrl;
+  final String url;
   final String authorPubkey;
-  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -262,25 +289,55 @@ class _BlurredThumbnail extends HookWidget {
         Positioned.fill(
           child: ImageFiltered(
             imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: IonConnectNetworkImage(
-              imageUrl: thumbnailUrl,
-              authorPubkey: authorPubkey,
-              fit: BoxFit.cover,
-              fadeInDuration: const Duration(milliseconds: 100),
-              fadeOutDuration: const Duration(milliseconds: 100),
+            child: _Thumbnail(url: url, authorPubkey: authorPubkey),
+          ),
+        ),
+        const Center(
+          child: RepaintBoundary(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white,
             ),
           ),
         ),
-        if (isLoading)
-          const Center(
-            child: RepaintBoundary(
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            ),
-          ),
       ],
+    );
+  }
+}
+
+class _Thumbnail extends StatelessWidget {
+  const _Thumbnail({
+    required this.url,
+    required this.authorPubkey,
+  });
+
+  final String url;
+  final String authorPubkey;
+
+  @override
+  Widget build(BuildContext context) {
+    return IonConnectNetworkImage(
+      imageUrl: url,
+      authorPubkey: authorPubkey,
+      fit: BoxFit.cover,
+      fadeInDuration: const Duration(milliseconds: 100),
+      fadeOutDuration: const Duration(milliseconds: 100),
+    );
+  }
+}
+
+class _PlayButton extends StatelessWidget {
+  const _PlayButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return VideoButton(
+      size: 48.0.s,
+      borderRadius: BorderRadius.circular(20.0.s),
+      icon: Assets.svg.iconVideoPlay.icon(
+        color: context.theme.appColors.secondaryBackground,
+        size: 30.0.s,
+      ),
     );
   }
 }

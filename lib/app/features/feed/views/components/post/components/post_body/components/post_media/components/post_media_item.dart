@@ -67,6 +67,8 @@ class PostMediaItem extends HookWidget {
               ),
             MediaType.video => VideoPreview(
                 videoUrl: mediaItem.url,
+                duration:
+                    mediaItem.duration != null ? Duration(seconds: mediaItem.duration!) : null,
                 authorPubkey: eventReference.masterPubkey,
                 thumbnailUrl: mediaItem.image,
                 framedEventReference: framedEventReference,

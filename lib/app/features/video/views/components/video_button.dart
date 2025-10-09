@@ -6,14 +6,14 @@ import 'package:ion/app/extensions/extensions.dart';
 class VideoButton extends StatelessWidget {
   const VideoButton({
     required this.icon,
-    required this.onPressed,
+    this.onPressed,
     this.size,
     this.borderRadius,
     super.key,
   });
 
   final Widget icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final double? size;
   final BorderRadius? borderRadius;
 
