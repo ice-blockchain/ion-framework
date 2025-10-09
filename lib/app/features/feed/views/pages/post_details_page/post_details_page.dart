@@ -46,30 +46,34 @@ class PostDetailsPage extends HookConsumerWidget {
           Flexible(
             child: Stack(
               children: [
-                ReplyList(
-                  eventReference: eventReference,
-                  scrollController: scrollController,
-                  onPullToRefresh: () {
-                    ref.read(ionConnectCacheProvider.notifier).remove(
-                          CacheableEntity.cacheKeyBuilder(
-                            eventReference: eventReference,
-                          ),
-                        );
-                  },
-                  headers: [
-                    SliverToBoxAdapter(
-                      child: Post(
-                        eventReference: eventReference,
-                        timeFormat: TimestampFormat.detailed,
-                        onDelete: context.pop,
-                        isTextSelectable: true,
-                        bodyMaxLines: null,
-                        displayParent: true,
-                        showNotInterested: false,
+                Padding(
+                  padding: EdgeInsetsDirectional.only(bottom: 60.0.s),
+                  //padding allows the space for scroll up button
+                  child: ReplyList(
+                    eventReference: eventReference,
+                    scrollController: scrollController,
+                    onPullToRefresh: () {
+                      ref.read(ionConnectCacheProvider.notifier).remove(
+                            CacheableEntity.cacheKeyBuilder(
+                              eventReference: eventReference,
+                            ),
+                          );
+                    },
+                    headers: [
+                      SliverToBoxAdapter(
+                        child: Post(
+                          eventReference: eventReference,
+                          timeFormat: TimestampFormat.detailed,
+                          onDelete: context.pop,
+                          isTextSelectable: true,
+                          bodyMaxLines: null,
+                          displayParent: true,
+                          showNotInterested: false,
+                        ),
                       ),
-                    ),
-                    const SliverToBoxAdapter(child: SectionSeparator()),
-                  ],
+                      const SliverToBoxAdapter(child: SectionSeparator()),
+                    ],
+                  ),
                 ),
                 PositionedDirectional(
                   bottom: 12.5.s,
