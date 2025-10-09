@@ -42,7 +42,6 @@ class Post extends ConsumerWidget {
     this.quotedEventFooter,
     this.onDelete,
     this.accentTheme = false,
-    this.videoAutoplay = true,
     this.isTextSelectable = false,
     this.showNotInterested = true,
     this.bodyMaxLines = 6,
@@ -65,7 +64,6 @@ class Post extends ConsumerWidget {
   final VoidCallback? onDelete;
   final bool isTextSelectable;
   final int? bodyMaxLines;
-  final bool videoAutoplay;
   final Widget Function(Widget content)? contentWrapper;
   final OnVideoTapCallback? onVideoTap;
   final bool showNotInterested;
@@ -111,7 +109,6 @@ class Post extends ConsumerWidget {
           maxLines: bodyMaxLines,
           onVideoTap: onVideoTap,
           accentTheme: accentTheme,
-          videoAutoplay: videoAutoplay,
           isTextSelectable: isTextSelectable,
           framedEventReference: repostEventReference ?? quotedEventReference,
         ),

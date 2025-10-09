@@ -14,6 +14,7 @@ class ModalActionButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    this.value,
     this.trailing,
     this.labelStyle,
     super.key,
@@ -21,6 +22,7 @@ class ModalActionButton extends StatelessWidget {
 
   final Widget icon;
   final String label;
+  final Widget? value;
   final Widget? trailing;
   final VoidCallback onTap;
   final TextStyle? labelStyle;
@@ -47,13 +49,14 @@ class ModalActionButton extends StatelessWidget {
               style: labelStyle ?? context.theme.appTextThemes.body,
             ),
           ),
-          if (trailing != null) ...[
+          if (value != null) ...[
             SizedBox(width: 16.0.s),
-            trailing!,
+            value!,
           ],
         ],
       ),
-      trailing: Assets.svg.iconArrowRight.icon(color: context.theme.appColors.primaryText),
+      trailing:
+          trailing ?? Assets.svg.iconArrowRight.icon(color: context.theme.appColors.primaryText),
       backgroundColor: context.theme.appColors.tertiaryBackground,
     );
   }

@@ -20,13 +20,11 @@ class PostMediaItem extends HookWidget {
     this.videoIndex = 0,
     this.onVideoTap,
     this.framedEventReference,
-    this.videoAutoplay = true,
     super.key,
   });
 
   final int mediaIndex;
   final int videoIndex;
-  final bool videoAutoplay;
   final double aspectRatio;
   final EventReference eventReference;
   final EventReference? framedEventReference;
@@ -68,8 +66,9 @@ class PostMediaItem extends HookWidget {
                 },
               ),
             MediaType.video => VideoPreview(
-                autoplay: videoAutoplay,
                 videoUrl: mediaItem.url,
+                duration:
+                    mediaItem.duration != null ? Duration(seconds: mediaItem.duration!) : null,
                 authorPubkey: eventReference.masterPubkey,
                 thumbnailUrl: mediaItem.image,
                 framedEventReference: framedEventReference,

@@ -41,6 +41,8 @@ class ImageBlockNetworkImage extends ConsumerWidget {
             borderRadius: BorderRadius.circular(12.s),
             child: VideoPreview(
               videoUrl: path,
+              duration:
+                  attachment.duration != null ? Duration(seconds: attachment.duration!) : null,
               authorPubkey: authorPubkey ?? '',
               thumbnailUrl: attachment.thumb,
               visibilityThreshold: 0.5,

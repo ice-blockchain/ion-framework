@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
-import 'package:ffmpeg_kit_flutter/ffprobe_kit.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -27,6 +26,7 @@ import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_video_codec_ar
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_video_profile.dart';
 import 'package:ion/app/services/media_service/ffmpeg_commands_config.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/services/media_service/video_info_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'video_compressor.r.g.dart';
@@ -84,11 +84,13 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
   VideoCompressor({
     required this.compressExecutor,
     required this.imageCompressor,
+    required this.videoInfoService,
     required this.iosNativeVideoCompressor,
   });
 
   final CompressExecutor compressExecutor;
   final ImageCompressor imageCompressor;
+  final VideoInfoService videoInfoService;
   final IosNativeVideoCompressor iosNativeVideoCompressor;
 
   String _formatBytes(int bytes) {
@@ -168,7 +170,8 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       Logger.log('Compressed video size: ${_formatBytes(compressedBytes)}');
       Logger.log('Compression time: ${_formatDuration(stopwatch.elapsed)}');
 
-      final (width: outWidth, height: outHeight) = await getVideoDimensions(output);
+      final (width: outWidth, height: outHeight, duration: outDuration, bitrate: outBitrate) =
+          await videoInfoService.getVideoInformation(output);
 
       // Return the final compressed video file info
       return MediaFile(
@@ -178,7 +181,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
         name: file.name,
         width: outWidth,
         height: outHeight,
-        duration: file.duration,
+        duration: outDuration.inSeconds,
       );
     } catch (error, stackTrace) {
       Logger.log('Error during video compression!', error: error, stackTrace: stackTrace);
@@ -231,65 +234,12 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       rethrow;
     }
   }
-
-  ///
-  /// Get width and height for a video file by probing it with FFprobeKit.
-  ///
-  Future<({int width, int height})> getVideoDimensions(String videoPath) async {
-    final infoSession = await FFprobeKit.getMediaInformation(videoPath);
-    final info = infoSession.getMediaInformation();
-    if (info == null) {
-      throw UnknownFileResolutionException(
-        'No media information found for: $videoPath',
-      );
-    }
-    final streams = info.getStreams();
-    if (streams.isEmpty) {
-      throw UnknownFileResolutionException(
-        'No streams found in media: $videoPath',
-      );
-    }
-
-    final videoStream = streams.firstWhere(
-      (s) => s.getType() == 'video',
-      orElse: () => throw UnknownFileResolutionException(
-        'No video stream found in file: $videoPath',
-      ),
-    );
-
-    final width = videoStream.getWidth();
-    final height = videoStream.getHeight();
-    if (width == null || height == null) {
-      throw UnknownFileResolutionException(
-        'Could not determine video resolution for: $videoPath',
-      );
-    }
-    return (width: width, height: height);
-  }
-
-  Future<Duration?> getVideoDuration(String filePath) async {
-    try {
-      final session = await FFprobeKit.getMediaInformation(filePath);
-      final mediaInformation = session.getMediaInformation();
-
-      if (mediaInformation != null) {
-        final durationString = mediaInformation.getDuration();
-        if (durationString != null) {
-          final durationSeconds = double.parse(durationString);
-          return Duration(milliseconds: (durationSeconds * 1000).round());
-        }
-      }
-    } catch (e, stackTrace) {
-      Logger.log('Error during video duration extraction!', error: e, stackTrace: stackTrace);
-      return null;
-    }
-    return null;
-  }
 }
 
 @Riverpod(keepAlive: true)
 VideoCompressor videoCompressor(Ref ref) => VideoCompressor(
       compressExecutor: ref.read(compressExecutorProvider),
       imageCompressor: ref.read(imageCompressorProvider),
+      videoInfoService: ref.read(videoInfoServiceProvider),
       iosNativeVideoCompressor: ref.read(iosNativeVideoCompressorProvider),
     );

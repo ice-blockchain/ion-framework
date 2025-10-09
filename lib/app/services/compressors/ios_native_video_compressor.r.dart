@@ -3,17 +3,14 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:ffmpeg_kit_flutter/ffprobe_kit.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/core/model/mime_type.dart';
-import 'package:ion/app/services/compressors/compress_executor.r.dart';
 import 'package:ion/app/services/compressors/compressor.r.dart';
-import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/compressors/output_path_generator.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/services/media_service/video_info_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ios_native_video_compressor.r.g.dart';
@@ -40,12 +37,10 @@ class IosNativeVideoCompressionSettings {
 
 class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSettings> {
   IosNativeVideoCompressor({
-    required this.imageCompressor,
-    required this.compressExecutor,
+    required this.videoInfoService,
   });
 
-  final ImageCompressor imageCompressor;
-  final CompressExecutor compressExecutor;
+  final VideoInfoService videoInfoService;
 
   static const MethodChannel _channel = MethodChannel('ion/video_compression');
 
@@ -63,8 +58,12 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
 
       final output = await generateOutputPath(extension: 'mp4');
 
-      final (width: originalWidth, height: originalHeight, bitrate: originalBitrate) =
-          await _getVideoDimensions(file.path);
+      final (
+        width: originalWidth,
+        height: originalHeight,
+        duration: originalDuration,
+        bitrate: originalBitrate
+      ) = await videoInfoService.getVideoInformation(file.path);
       Logger.log('Original dimensions: ${originalWidth}x$originalHeight');
       if (originalBitrate != null) {
         Logger.log('Original bitrate: ${(originalBitrate / 1000000).toStringAsFixed(2)} Mbps');
@@ -109,7 +108,7 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
         name: file.name,
         width: targetDimensions.width,
         height: targetDimensions.height,
-        duration: file.duration,
+        duration: originalDuration.inSeconds,
       );
     } catch (error, stackTrace) {
       Logger.error(
@@ -149,46 +148,9 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
 
     return (width: targetWidth, height: targetHeight);
   }
-
-  Future<({int width, int height, int? bitrate})> _getVideoDimensions(String videoPath) async {
-    final infoSession = await FFprobeKit.getMediaInformation(videoPath);
-    final info = infoSession.getMediaInformation();
-    if (info == null) {
-      throw UnknownFileResolutionException(
-        'No media information found for: $videoPath',
-      );
-    }
-    final streams = info.getStreams();
-    if (streams.isEmpty) {
-      throw UnknownFileResolutionException(
-        'No streams found in media: $videoPath',
-      );
-    }
-
-    final videoStream = streams.firstWhere(
-      (s) => s.getType() == 'video',
-      orElse: () => throw UnknownFileResolutionException(
-        'No video stream found in file: $videoPath',
-      ),
-    );
-
-    final width = videoStream.getWidth();
-    final height = videoStream.getHeight();
-    if (width == null || height == null) {
-      throw UnknownFileResolutionException(
-        'Could not determine video resolution for: $videoPath',
-      );
-    }
-
-    final bitrateString = videoStream.getBitrate();
-    final bitrate = bitrateString != null ? int.tryParse(bitrateString) : null;
-
-    return (width: width, height: height, bitrate: bitrate);
-  }
 }
 
 @Riverpod(keepAlive: true)
 IosNativeVideoCompressor iosNativeVideoCompressor(Ref ref) => IosNativeVideoCompressor(
-      imageCompressor: ref.read(imageCompressorProvider),
-      compressExecutor: ref.read(compressExecutorProvider),
+      videoInfoService: ref.read(videoInfoServiceProvider),
     );

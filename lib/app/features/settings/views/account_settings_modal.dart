@@ -13,6 +13,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/language.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
 import 'package:ion/app/features/optimistic_ui/features/language/language_sync_strategy_provider.r.dart';
+import 'package:ion/app/features/settings/providers/video_settings_provider.m.dart';
 import 'package:ion/app/features/settings/views/delete_confirm_modal.dart';
 import 'package:ion/app/hooks/use_pop_if_returned_null.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -28,6 +29,7 @@ class AccountSettingsModal extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final contentLangsAsync = ref.watch(contentLanguageWatchProvider);
+    final videoSettings = ref.watch(videoSettingsProvider);
 
     final contentLanguages = useMemoized(
       () => contentLangsAsync.valueOrNull?.hashtags ?? const <String>[],
@@ -64,9 +66,17 @@ class AccountSettingsModal extends HookConsumerWidget {
                     onTap: () => popIfNull(() => BlockedUsersRoute().push<bool>(context)),
                   ),
                   ModalActionButton(
+                    icon: Assets.svg.iconSettingsAutoplay.icon(color: primaryColor),
+                    label: context.i18n.settings_video_autoplay,
+                    onTap: ref.read(videoSettingsProvider.notifier).toggleAutoplay,
+                    trailing: videoSettings.autoplay
+                        ? Assets.svg.iconBlockCheckboxOn.icon()
+                        : Assets.svg.iconBlockCheckboxOff.icon(),
+                  ),
+                  ModalActionButton(
                     icon: Assets.svg.iconSelectLanguage.icon(color: primaryColor),
                     label: context.i18n.settings_app_language,
-                    trailing: Text(
+                    value: Text(
                       ref.watch(localePreferredLanguagesProvider).first.name,
                       style: context.theme.appTextThemes.caption.copyWith(color: primaryColor),
                     ),
@@ -77,7 +87,7 @@ class AccountSettingsModal extends HookConsumerWidget {
                     data: (_) => ModalActionButton(
                       icon: Assets.svg.iconSelectLanguage.icon(color: primaryColor),
                       label: context.i18n.settings_content_language,
-                      trailing: Row(
+                      value: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (contentLanguages.length > 1)

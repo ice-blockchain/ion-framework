@@ -19,11 +19,9 @@ class PostMedia extends HookConsumerWidget {
     this.onVideoTap,
     this.sidePadding,
     this.framedEventReference,
-    this.videoAutoplay = true,
     super.key,
   });
 
-  final bool videoAutoplay;
   final List<MediaAttachment> media;
   final EventReference eventReference;
   final EventReference? framedEventReference;
@@ -70,7 +68,6 @@ class PostMedia extends HookConsumerWidget {
         media: knownMedia,
         onVideoTap: onVideoTap,
         aspectRatio: aspectRatio,
-        videoAutoplay: videoAutoplay,
         eventReference: eventReference,
         framedEventReference: framedEventReference,
       ),

@@ -7,6 +7,7 @@ import 'package:ion/app/features/nsfw/nsfw_detector.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector_factory.r.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/services/media_service/video_info_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nsfw_validation_service.r.g.dart';
@@ -15,13 +16,19 @@ part 'nsfw_validation_service.r.g.dart';
 NsfwValidationService nsfwValidationService(Ref ref) => NsfwValidationService(
       detectorFactory: ref.read(nsfwDetectorFactoryProvider),
       videoCompressor: ref.read(videoCompressorProvider),
+      videoInfoService: ref.read(videoInfoServiceProvider),
     );
 
 class NsfwValidationService {
-  const NsfwValidationService({required this.detectorFactory, required this.videoCompressor});
+  const NsfwValidationService({
+    required this.detectorFactory,
+    required this.videoCompressor,
+    required this.videoInfoService,
+  });
 
   final NsfwDetectorFactory detectorFactory;
   final VideoCompressor videoCompressor;
+  final VideoInfoService videoInfoService;
 
   Future<bool> hasNsfwInMediaFiles(List<MediaFile> mediaFiles) async {
     final imagePaths = mediaFiles.where(_isImageMedia).map((m) => m.path).toList();
@@ -107,9 +114,9 @@ class NsfwValidationService {
   }
 
   Future<List<String>> _buildTimestamps(MediaFile video) async {
-    final durationMs =
-        video.duration ?? (await videoCompressor.getVideoDuration(video.path))?.inMilliseconds;
-    if (durationMs == null || durationMs <= 0) {
+    final durationMs = video.duration ??
+        (await videoInfoService.getVideoInformation(video.path)).duration.inMilliseconds;
+    if (durationMs <= 0) {
       return ['00:00:01.000', '00:00:03.000', '00:00:05.000'];
     }
 
