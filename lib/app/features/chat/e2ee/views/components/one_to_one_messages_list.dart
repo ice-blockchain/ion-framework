@@ -125,7 +125,7 @@ class OneToOneMessageList extends HookConsumerWidget {
                 controller: scrollController,
                 listController: listController,
                 key: const Key('one_to_one_messages_list'),
-                padding: EdgeInsets.only(bottom: 12.s),
+                padding: EdgeInsetsDirectional.only(bottom: 12.s),
                 physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                 findChildIndexCallback: (key) {
                   final valueKey = key as ValueKey<String>;
