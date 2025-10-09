@@ -15,7 +15,7 @@ part 'feed_trending_videos_provider.r.g.dart';
 @riverpod
 class FeedTrendingVideos extends _$FeedTrendingVideos with DelegatedPagedNotifier {
   @override
-  ({Iterable<IonConnectEntity>? items, bool hasMore, bool ready}) build() {
+  ({Iterable<IonConnectEntity>? items, bool hasMore}) build() {
     final filter = ref.watch(feedCurrentFilterProvider);
     final data = switch (filter.filter) {
       FeedFilter.following => ref.watch(
@@ -30,11 +30,7 @@ class FeedTrendingVideos extends _$FeedTrendingVideos with DelegatedPagedNotifie
           ),
         ),
     };
-    return (
-      items: data.items,
-      hasMore: data.hasMore,
-      ready: (data.items?.length ?? 0) >= 3 || !data.isLoading
-    );
+    return (items: data.items, hasMore: data.hasMore);
   }
 
   @override

@@ -2,7 +2,6 @@
 
 import 'dart:async';
 
-import 'package:ion/app/features/core/model/paged.f.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/followers_data_source_provider.r.dart';
@@ -17,7 +16,7 @@ class Followers extends _$Followers {
   List<EntitiesDataSource>? _dataSourcesKey;
 
   @override
-  FutureOr<({bool hasMore, List<UserMetadataEntity>? users, bool ready})?> build({
+  FutureOr<({bool hasMore, List<UserMetadataEntity>? users})?> build({
     required String pubkey,
     required String query,
   }) async {
@@ -34,7 +33,6 @@ class Followers extends _$Followers {
       return (
         hasMore: result?.hasMore ?? false,
         users: result?.users,
-        ready: true,
       );
     }
     // Capture the instance to preserve provider identity across loadMore().
@@ -46,12 +44,10 @@ class Followers extends _$Followers {
       ),
     );
     final users = entitiesPagedData?.data.items?.whereType<UserMetadataEntity>().toList();
-    final response = (
+    return (
       hasMore: entitiesPagedData?.hasMore ?? false,
       users: users,
-      ready: (users?.length ?? 0) >= 12 || entitiesPagedData?.data is! PagedLoading,
     );
-    return response;
   }
 
   Future<void> loadMore() async {
