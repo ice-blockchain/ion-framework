@@ -230,7 +230,9 @@ class _StoryOwnerUserInfo extends ConsumerWidget {
           SizedBox(width: 4.0.s),
           Expanded(
             child: Text(
-              metadata.isDeleted ? context.i18n.common_deleted_account : metadata!.data.trimmedDisplayName,
+              metadata.isDeleted
+                  ? context.i18n.common_deleted_account
+                  : metadata!.data.trimmedDisplayName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: context.theme.appTextThemes.caption3.copyWith(

@@ -318,7 +318,9 @@ class E2eeRecentChatTile extends HookConsumerWidget {
       defaultAvatar: null,
       conversation: conversation,
       messageType: entity.messageType,
-      name: metadata.isDeleted ? context.i18n.common_deleted_account : metadata!.data.trimmedDisplayName,
+      name: metadata.isDeleted
+          ? context.i18n.common_deleted_account
+          : metadata!.data.trimmedDisplayName,
       avatarUrl: metadata.isDeleted ? Assets.svg.iconProfileNoimage : metadata!.data.avatarUrl,
       eventReference: eventReference,
       unreadMessagesCount: unreadMessagesCount.valueOrNull ?? 0,
