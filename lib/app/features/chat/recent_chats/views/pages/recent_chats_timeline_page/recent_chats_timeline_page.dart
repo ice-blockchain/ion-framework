@@ -313,14 +313,15 @@ class E2eeRecentChatTile extends HookConsumerWidget {
     }
 
     final metadata = userMetadata.valueOrNull;
+    final trimmedDisplayName = metadata?.data.trimmedDisplayName;
 
     return RecentChatTile(
       defaultAvatar: null,
       conversation: conversation,
       messageType: entity.messageType,
-      name: metadata.isDeleted
+      name: metadata.isDeleted || trimmedDisplayName == null
           ? context.i18n.common_deleted_account
-          : metadata!.data.trimmedDisplayName,
+          : trimmedDisplayName,
       avatarUrl: metadata.isDeleted ? Assets.svg.iconProfileNoimage : metadata!.data.avatarUrl,
       eventReference: eventReference,
       unreadMessagesCount: unreadMessagesCount.valueOrNull ?? 0,

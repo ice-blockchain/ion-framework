@@ -218,6 +218,7 @@ class _StoryOwnerUserInfo extends ConsumerWidget {
     }
 
     final metadata = userMetadata.valueOrNull;
+    final trimmedDisplayName = metadata?.data.trimmedDisplayName;
 
     return PositionedDirectional(
       top: 12.0.s,
@@ -230,9 +231,9 @@ class _StoryOwnerUserInfo extends ConsumerWidget {
           SizedBox(width: 4.0.s),
           Expanded(
             child: Text(
-              metadata.isDeleted
+              metadata.isDeleted || trimmedDisplayName == null
                   ? context.i18n.common_deleted_account
-                  : metadata!.data.trimmedDisplayName,
+                  : trimmedDisplayName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: context.theme.appTextThemes.caption3.copyWith(
