@@ -70,6 +70,8 @@ class SendE2eeChatMessageService {
     List<MediaFile> mediaFiles = const [],
     Map<String, List<String>>? failedParticipantsMasterPubkeys,
   }) async {
+    final trimmedContent = content.trim();
+
     final preparedMediaFiles =
         mediaFiles.map((e) => e.copyWith(originalMimeType: e.mimeType)).toList();
 
@@ -115,7 +117,7 @@ class SendE2eeChatMessageService {
           _getTagValue(ReplaceablePrivateDirectMessageData.paymentSentTagName, tags);
 
       final localEventMessageData = ReplaceablePrivateDirectMessageData(
-        content: content,
+        content: trimmedContent,
         paymentRequested: paymentRequested,
         paymentSent: paymentSent,
         messageId: sharedId,
@@ -162,7 +164,7 @@ class SendE2eeChatMessageService {
         return a.compareTo(b);
       });
 
-      if (mediaAttachmentsUsersBased.isEmpty && content.isEmpty && quotedEvent == null) {
+      if (mediaAttachmentsUsersBased.isEmpty && trimmedContent.isEmpty && quotedEvent == null) {
         await ref.read(eventMessageDaoProvider).deleteByEventReference(eventReference);
         return sentMessage;
       }
@@ -186,7 +188,7 @@ class SendE2eeChatMessageService {
           for (final pubkey in pubkeyDevices) {
             try {
               final remoteEventMessage = await ReplaceablePrivateDirectMessageData(
-                content: content,
+                content: trimmedContent,
                 paymentRequested: paymentRequested,
                 paymentSent: paymentSent,
                 messageId: sharedId,
