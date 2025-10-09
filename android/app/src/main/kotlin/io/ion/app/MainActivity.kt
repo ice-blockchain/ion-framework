@@ -321,7 +321,6 @@ class MainActivity : FlutterFragmentActivity() {
         }
 
         currentEditingFile = null
-        releaseVideoEditorModule()
     }
 
     private fun releaseVideoEditorModule() {
