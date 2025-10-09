@@ -58,7 +58,7 @@ class SendCoinsForm extends HookConsumerWidget {
     final notifier = ref.watch(sendAssetFormControllerProvider.notifier);
     final selectedContactPubkey = formController.contactPubkey;
     final coin = formController.assetData.as<CoinAssetToSendData>();
-    final maxAmount = coin?.selectedOption?.amount ?? 0;
+    final maxAmount = coin?.maxAmountToSend ?? 0;
     final exceedsMaxAmount = formController.exceedsMaxAmount;
 
     final amount = coin?.amount ?? 0.0;
@@ -82,7 +82,7 @@ class SendCoinsForm extends HookConsumerWidget {
 
         amountController.addListener(listener);
       },
-      [amountController],
+      [amountController, maxAmount],
     );
 
     final validAmount = formController.assetData.maybeMap(
@@ -185,10 +185,10 @@ class SendCoinsForm extends HookConsumerWidget {
                       ],
                       SizedBox(height: 12.0.s),
                       CoinAmountInput(
-                        controller: amountController,
-                        maxValue: coin?.selectedOption?.amount ?? 0,
-                        coin: coin?.selectedOption?.coin,
+                        maxValue: maxAmount,
                         balanceUSD: usdAmount,
+                        controller: amountController,
+                        coin: coin?.selectedOption?.coin,
                         errorText:
                             exceedsMaxAmount ? locale.wallet_coin_amount_insufficient_funds : null,
                       ),

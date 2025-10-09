@@ -13,6 +13,7 @@ sealed class CryptoAssetToSendData with _$CryptoAssetToSendData {
   const factory CryptoAssetToSendData.coin({
     required CoinsGroup coinsGroup,
     @Default(0.0) double amount,
+    @Default(0.0) double maxAmountToSend,
     @Default(0.0) double amountUSD,
     @Default('0') String rawAmount,
     // Cache the selected option to avoid searching it each time

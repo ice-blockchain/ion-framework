@@ -17,6 +17,7 @@ class CoinTransactionsMapper {
       coin: (
         coinsGroup,
         amount,
+        maxAmountToSend,
         amountUSD,
         rawAmount,
         selectedOption,
