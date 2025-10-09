@@ -25,6 +25,9 @@ import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/services/compressors/audio_compressor.r.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/utils/main_tab.dart';
+
+const _navBarVerticalPadding = 8.0;
 
 class ChatInputBar extends HookConsumerWidget {
   const ChatInputBar({
@@ -162,8 +165,15 @@ class ChatInputBar extends HookConsumerWidget {
       return ChatBlockedUserBar(receiverMasterPubkey: receiverMasterPubkey);
     }
 
+    final bottomPadding = getBottomPadding(context, navBarVerticalPadding: _navBarVerticalPadding);
+
     return Padding(
-      padding: EdgeInsetsDirectional.all(8.s),
+      padding: EdgeInsetsDirectional.fromSTEB(
+        8.s,
+        8.s,
+        8.s,
+        bottomPadding.s + 8.s,
+      ),
       child: Column(
         children: [
           Stack(

@@ -125,6 +125,7 @@ class OneToOneMessageList extends HookConsumerWidget {
                 controller: scrollController,
                 listController: listController,
                 key: const Key('one_to_one_messages_list'),
+                padding: EdgeInsets.only(bottom: 12.s),
                 physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                 findChildIndexCallback: (key) {
                   final valueKey = key as ValueKey<String>;
@@ -150,10 +151,12 @@ class OneToOneMessageList extends HookConsumerWidget {
                   final hasNextMessageFromAnotherUser =
                       index > 0 && allMessages[index - 1].masterPubkey != message.masterPubkey;
 
-                  if (isLastMessageInConversation || hasNextMessageFromAnotherUser) {
-                    estimatedHeight += 20.0;
-                  } else {
-                    estimatedHeight += 8.0;
+                  if (!isLastMessageInConversation) {
+                    if (hasNextMessageFromAnotherUser) {
+                      estimatedHeight += 20.0;
+                    } else {
+                      estimatedHeight += 8.0;
+                    }
                   }
 
                   return estimatedHeight;
@@ -166,13 +169,16 @@ class OneToOneMessageList extends HookConsumerWidget {
                   final displayDate = dateHeaderLookup[message.id];
 
                   final isLastMessageInConversation = index == 0;
+
                   final hasNextMessageFromAnotherUser =
                       index > 0 && allMessages[index - 1].masterPubkey != message.masterPubkey;
 
                   final margin = EdgeInsetsDirectional.only(
-                    bottom: isLastMessageInConversation || hasNextMessageFromAnotherUser
-                        ? 20.0.s
-                        : 8.0.s,
+                    bottom: isLastMessageInConversation
+                        ? 0
+                        : hasNextMessageFromAnotherUser
+                            ? 20.0.s
+                            : 8.0.s,
                   );
 
                   return Column(
