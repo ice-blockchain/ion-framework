@@ -154,11 +154,6 @@ class ShareOptions extends HookConsumerWidget {
   Future<void> _onShareToStory(WidgetRef ref, ValueNotifier<bool> isCapturing) async {
     final context = ref.context;
     isCapturing.value = true;
-    final entity = ref.read(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
-    if (entity == null || (entity is! ModifiablePostEntity && entity is! ArticleEntity)) {
-      isCapturing.value = false;
-      return;
-    }
     final parentContainer = ProviderScope.containerOf(context);
     final childContainer = ProviderContainer(
       parent: parentContainer,
