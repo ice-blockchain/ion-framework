@@ -37,7 +37,7 @@ class ContactPickerModal extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Debounce mechanism to prevent multiple rapid user selections
-    final isProcessing = useState(false);
+    final isProcessing = useRef(false);
 
     final validator = useCallback(
       (
