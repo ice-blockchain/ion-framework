@@ -59,8 +59,11 @@ class ShareOptions extends HookConsumerWidget {
 
     final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
 
-    final canShareToStory =
-        (entity is ModifiablePostEntity && !entity.isStory) || entity is ArticleEntity;
+    final canShareToStory = switch (entity) {
+      ModifiablePostEntity() when !entity.isStory => true,
+      ArticleEntity() => true,
+      _ => false,
+    };
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
