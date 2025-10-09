@@ -18,8 +18,8 @@ import 'package:ion/app/features/core/permissions/views/components/permission_di
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
-import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/services/media_service/video_info_service.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:mime/mime.dart';
 
@@ -216,10 +216,10 @@ class _DocumentButton extends ConsumerWidget {
               }
             }
           } else if (mediaType == MediaType.video) {
-            final duration = await ref.read(videoCompressorProvider).getVideoDuration(file.path!);
-            if (duration != null &&
-                duration.inSeconds >
-                    ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds) {
+            final duration =
+                (await ref.read(videoInfoServiceProvider).getVideoInformation(file.path!)).duration;
+            if (duration.inSeconds >
+                ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds) {
               if (context.mounted) {
                 unawaited(
                   showModalBottomSheet(
@@ -232,11 +232,9 @@ class _DocumentButton extends ConsumerWidget {
                 return;
               }
             }
-            if (duration != null) {
-              mediaFile = mediaFile.copyWith(
-                duration: duration.inSeconds,
-              );
-            }
+            mediaFile = mediaFile.copyWith(
+              duration: duration.inSeconds,
+            );
           }
 
           unawaited(onSubmitted(mediaFiles: [mediaFile]));

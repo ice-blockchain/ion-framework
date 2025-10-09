@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -17,6 +18,7 @@ import 'package:ion/app/features/video/views/components/video_button.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_route_presence.dart';
 import 'package:ion/app/utils/date.dart';
+import 'package:ion/app/utils/url.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -26,7 +28,6 @@ class VideoPreview extends HookConsumerWidget {
     required this.videoUrl,
     required this.authorPubkey,
     this.thumbnailUrl,
-    this.thumbnailBytes,
     this.duration,
     this.onlyOneShouldPlay = true,
     this.framedEventReference,
@@ -38,7 +39,6 @@ class VideoPreview extends HookConsumerWidget {
   final String videoUrl;
   final String authorPubkey;
   final String? thumbnailUrl;
-  final Uint8List? thumbnailBytes;
   final Duration? duration;
   final EventReference? framedEventReference;
   final double visibilityThreshold;
@@ -142,19 +142,12 @@ class VideoPreview extends HookConsumerWidget {
           Positioned.fill(
             child: ColoredBox(color: context.theme.appColors.primaryBackground),
           ),
-          Positioned.fill(
-            child: videoControllerProviderState.isLoading
-                ? _LoadingThumbnail(
-                    url: thumbnailUrl,
-                    bytes: thumbnailBytes,
-                    authorPubkey: authorPubkey,
-                  )
-                : _Thumbnail(
-                    url: thumbnailUrl,
-                    bytes: thumbnailBytes,
-                    authorPubkey: authorPubkey,
-                  ),
-          ),
+          if (thumbnailUrl != null)
+            Positioned.fill(
+              child: videoControllerProviderState.isLoading
+                  ? _LoadingThumbnail(url: thumbnailUrl!, authorPubkey: authorPubkey)
+                  : _Thumbnail(url: thumbnailUrl!, authorPubkey: authorPubkey),
+            ),
           if (controller != null && controller.value.isInitialized && !hasError)
             Positioned.fill(
               child: FittedBox(
@@ -284,12 +277,10 @@ class _MuteButton extends StatelessWidget {
 class _LoadingThumbnail extends StatelessWidget {
   const _LoadingThumbnail({
     required this.url,
-    required this.bytes,
     required this.authorPubkey,
   });
 
-  final String? url;
-  final Uint8List? bytes;
+  final String url;
   final String authorPubkey;
 
   @override
@@ -299,7 +290,7 @@ class _LoadingThumbnail extends StatelessWidget {
         Positioned.fill(
           child: ImageFiltered(
             imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: _Thumbnail(url: url, bytes: bytes, authorPubkey: authorPubkey),
+            child: _Thumbnail(url: url, authorPubkey: authorPubkey),
           ),
         ),
         const Center(
@@ -318,31 +309,28 @@ class _LoadingThumbnail extends StatelessWidget {
 class _Thumbnail extends StatelessWidget {
   const _Thumbnail({
     required this.url,
-    required this.bytes,
     required this.authorPubkey,
   });
 
-  final String? url;
-  final Uint8List? bytes;
+  final String url;
   final String authorPubkey;
 
   @override
   Widget build(BuildContext context) {
-    if (url != null) {
+    if (isNetworkUrl(url)) {
       return IonConnectNetworkImage(
-        imageUrl: url!,
+        imageUrl: url,
         authorPubkey: authorPubkey,
         fit: BoxFit.cover,
         fadeInDuration: const Duration(milliseconds: 100),
         fadeOutDuration: const Duration(milliseconds: 100),
       );
+    } else {
+      return Image.file(
+        File(url),
+        fit: BoxFit.cover,
+      );
     }
-
-    if (bytes != null) {
-      return Image.memory(bytes!, fit: BoxFit.cover);
-    }
-
-    return const IonPlaceholder();
   }
 }
 

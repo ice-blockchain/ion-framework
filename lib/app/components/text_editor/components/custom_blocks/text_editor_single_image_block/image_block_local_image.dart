@@ -2,14 +2,15 @@
 
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/video_preview/video_preview.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
+import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/media_service/aspect_ratio.dart';
+import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class ImageBlockLocalImage extends HookConsumerWidget {
@@ -29,7 +30,7 @@ class ImageBlockLocalImage extends HookConsumerWidget {
     final isLoading = useState(true);
     final isVideo = useState(false);
     final duration = useState<Duration?>(null);
-    final thumbnailBytes = useState<Uint8List?>(null);
+    final thumbnailUrl = useState<String?>(null);
 
     useEffect(
       () {
@@ -43,8 +44,15 @@ class ImageBlockLocalImage extends HookConsumerWidget {
 
               isVideo.value = assetEntity.type == AssetType.video;
               duration.value = assetEntity.videoDuration;
-              file.value = await assetEntity.originFile;
-              thumbnailBytes.value = await assetEntity.thumbnailData;
+              final originFile = await assetEntity.originFile;
+              final thumbnail = await ref
+                  .read(videoCompressorProvider)
+                  .getThumbnail(MediaFile(path: originFile!.path));
+
+              if (context.mounted) {
+                file.value = originFile;
+                thumbnailUrl.value = thumbnail.path;
+              }
             }
           } finally {
             if (context.mounted) {
@@ -73,7 +81,7 @@ class ImageBlockLocalImage extends HookConsumerWidget {
             authorPubkey: authorPubkey ?? '',
             duration: duration.value,
             visibilityThreshold: 0.5,
-            thumbnailBytes: thumbnailBytes.value,
+            thumbnailUrl: thumbnailUrl.value,
           ),
         ),
       );
