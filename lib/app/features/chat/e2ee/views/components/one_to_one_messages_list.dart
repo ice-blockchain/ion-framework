@@ -17,6 +17,7 @@ import 'package:ion/app/features/chat/views/components/message_items/message_typ
 import 'package:ion/app/features/chat/views/components/message_items/message_types/visual_media_message/visual_media_message.dart';
 import 'package:ion/app/features/chat/views/components/scroll_to_bottom_button.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/future.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
@@ -153,7 +154,7 @@ class OneToOneMessageList extends HookConsumerWidget {
 
                   if (!isLastMessageInConversation) {
                     if (hasNextMessageFromAnotherUser) {
-                      estimatedHeight += 20.0;
+                      estimatedHeight += 16.0;
                     } else {
                       estimatedHeight += 8.0;
                     }
@@ -173,11 +174,17 @@ class OneToOneMessageList extends HookConsumerWidget {
                   final hasNextMessageFromAnotherUser =
                       index > 0 && allMessages[index - 1].masterPubkey != message.masterPubkey;
 
+                  final isPreviousMessageFromAnotherDay = index > 0 &&
+                      !isSameDay(
+                        allMessages[index - 1].publishedAt.toDateTime,
+                        message.publishedAt.toDateTime,
+                      );
+
                   final margin = EdgeInsetsDirectional.only(
-                    bottom: isLastMessageInConversation
+                    bottom: isLastMessageInConversation || isPreviousMessageFromAnotherDay
                         ? 0
                         : hasNextMessageFromAnotherUser
-                            ? 20.0.s
+                            ? 16.0.s
                             : 8.0.s,
                   );
 
