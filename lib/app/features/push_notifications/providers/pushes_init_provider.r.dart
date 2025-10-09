@@ -11,7 +11,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'pushes_init_provider.r.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 void pushesInit(Ref ref) {
   ref
     ..listen(configureFirebaseAppProvider, noop)

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:io';
 
-import 'package:ion/app/features/core/providers/init_provider.r.dart';
-import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/configure_firebase_app_provider.r.dart';
+import 'package:ion/app/features/push_notifications/providers/initial_notification_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_response_service.r.dart';
 import 'package:ion/app/services/firebase/firebase_messaging_service_provider.r.dart';
 import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
@@ -21,16 +21,27 @@ class NotificationResponseHandler extends _$NotificationResponseHandler {
 
   @override
   void build() {
-    final firebaseAppConfigured = ref.watch(configureFirebaseAppProvider).valueOrNull ?? false;
-    if (firebaseAppConfigured && !_isInitialized) {
-      _initialize();
-    }
+    _listenToFirebaseConfigChanges();
 
     ref.onDispose(() {
       _firebaseNotificationHandler?.cancel();
       _localNotificationHandler?.cancel();
       _isInitialized = false;
     });
+  }
+
+  void _listenToFirebaseConfigChanges() {
+    ref.listen(
+      configureFirebaseAppProvider,
+      (previous, next) {
+        final firebaseAppConfigured = next.valueOrNull ?? false;
+
+        if (firebaseAppConfigured && !_isInitialized) {
+          _initialize();
+        }
+      },
+      fireImmediately: true,
+    );
   }
 
   Future<void> _initialize() async {
@@ -40,20 +51,17 @@ class NotificationResponseHandler extends _$NotificationResponseHandler {
     final localNotificationsService = await ref.watch(localNotificationsServiceProvider.future);
 
     // When the app is opened from a terminated state by a notification.
-    // iOS only.
-    // Notifications are handled there with a Notification Service Extension then passed to FCM SDK.
-    final initialFcmNotificationData = await firebaseMessagingService.getInitialMessageData();
-    if (initialFcmNotificationData != null) {
-      _handleInitialPushData(initialFcmNotificationData);
+    Map<String, dynamic>? initialNotificationData;
+    if (Platform.isIOS) {
+      // Notifications are handled there with a Notification Service Extension then passed to FCM SDK.
+      initialNotificationData = await firebaseMessagingService.getInitialMessageData();
+    } else if (Platform.isAndroid) {
+      // Notifications are handled there with a background service and presented via local notifications.
+      initialNotificationData = await localNotificationsService.getInitialNotificationData();
     }
 
-    // When the app is opened from a terminated state by a notification.
-    // Android only.
-    // Notifications are handled there with a background service and presented via local notifications.
-    final initialLocalNotificationData =
-        await localNotificationsService.getInitialNotificationData();
-    if (initialLocalNotificationData != null) {
-      _handleInitialPushData(initialLocalNotificationData);
+    if (initialNotificationData != null) {
+      ref.read(initialNotificationProvider.notifier).notification = initialNotificationData;
     }
 
     // if the app is opened from a background state (not terminated) by pressing an FCM notification.
@@ -66,21 +74,8 @@ class NotificationResponseHandler extends _$NotificationResponseHandler {
   }
 
   void _handlePushData(Map<String, dynamic> data) {
-    ref.read(notificationResponseServiceProvider).handleNotificationResponse(data);
-  }
-
-  void _handleInitialPushData(Map<String, dynamic> data) {
-    // Wait for splash animation to complete before handling push notification
-    final subscription = ref.listen(splashProvider, (prev, animationCompleted) async {
-      if (animationCompleted) {
-        final isInitCompleted = ref.read(initAppProvider).hasValue;
-        if (!isInitCompleted) {
-          await ref.read(initAppProvider.future);
-        }
-
-        unawaited(ref.read(notificationResponseServiceProvider).handleNotificationResponse(data));
-      }
-    });
-    ref.onDispose(subscription.close);
+    ref
+        .read(notificationResponseServiceProvider)
+        .handleNotificationResponse(data, isInitialNotification: false);
   }
 }
