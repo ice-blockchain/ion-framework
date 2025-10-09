@@ -1230,10 +1230,11 @@ packages:
   flutter_quill:
     dependency: "direct main"
     description:
-      name: flutter_quill
-      sha256: "8e33ef670abad16405582a37ce63ac82b7531998682e8bd8348d0f3da998b8ce"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: "3714a5dee3fda49fcffeaf31e5993f50f651acd3"
+      resolved-ref: "3714a5dee3fda49fcffeaf31e5993f50f651acd3"
+      url: "https://github.com/ice-blockchain/flutter-quill.git"
+    source: git
     version: "11.4.2"
   flutter_quill_delta_from_html:
     dependency: transitive
