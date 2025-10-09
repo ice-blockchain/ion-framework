@@ -27,6 +27,7 @@ class ImageBlockLocalImage extends HookConsumerWidget {
     final aspectRatio = useState<double?>(null);
     final isLoading = useState(true);
     final isVideo = useState(false);
+    final duration = useState<int>(0);
 
     useEffect(
       () {
@@ -40,6 +41,7 @@ class ImageBlockLocalImage extends HookConsumerWidget {
 
               isVideo.value = assetEntity.type == AssetType.video;
               file.value = await assetEntity.originFile;
+              duration.value = assetEntity.duration;
             }
           } finally {
             if (context.mounted) {
@@ -66,6 +68,7 @@ class ImageBlockLocalImage extends HookConsumerWidget {
           child: VideoPreview(
             videoUrl: file.value!.path,
             authorPubkey: authorPubkey ?? '',
+            duration: Duration(seconds: duration.value),
             visibilityThreshold: 0.5,
           ),
         ),
