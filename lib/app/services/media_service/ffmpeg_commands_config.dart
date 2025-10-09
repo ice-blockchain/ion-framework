@@ -152,10 +152,10 @@ class FFmpegCommands {
     String timestamp = '00:00:01.000',
   }) =>
       [
-        '-i',
-        videoPath,
         '-ss',
         timestamp,
+        '-i',
+        videoPath,
         '-vframes',
         '1',
         outputPath,
