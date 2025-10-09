@@ -2,6 +2,7 @@
 
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -25,6 +26,7 @@ class VideoPreview extends HookConsumerWidget {
     required this.videoUrl,
     required this.authorPubkey,
     this.thumbnailUrl,
+    this.thumbnailBytes,
     this.duration,
     this.onlyOneShouldPlay = true,
     this.framedEventReference,
@@ -36,6 +38,7 @@ class VideoPreview extends HookConsumerWidget {
   final String videoUrl;
   final String authorPubkey;
   final String? thumbnailUrl;
+  final Uint8List? thumbnailBytes;
   final Duration? duration;
   final EventReference? framedEventReference;
   final double visibilityThreshold;
@@ -139,14 +142,19 @@ class VideoPreview extends HookConsumerWidget {
           Positioned.fill(
             child: ColoredBox(color: context.theme.appColors.primaryBackground),
           ),
-          if (thumbnailUrl != null)
-            Positioned.fill(
-              child: videoControllerProviderState.isLoading
-                  ? _LoadingThumbnail(url: thumbnailUrl!, authorPubkey: authorPubkey)
-                  : _Thumbnail(url: thumbnailUrl!, authorPubkey: authorPubkey),
-            )
-          else
-            const IonPlaceholder(),
+          Positioned.fill(
+            child: videoControllerProviderState.isLoading
+                ? _LoadingThumbnail(
+                    url: thumbnailUrl,
+                    bytes: thumbnailBytes,
+                    authorPubkey: authorPubkey,
+                  )
+                : _Thumbnail(
+                    url: thumbnailUrl,
+                    bytes: thumbnailBytes,
+                    authorPubkey: authorPubkey,
+                  ),
+          ),
           if (controller != null && controller.value.isInitialized && !hasError)
             Positioned.fill(
               child: FittedBox(
@@ -276,10 +284,12 @@ class _MuteButton extends StatelessWidget {
 class _LoadingThumbnail extends StatelessWidget {
   const _LoadingThumbnail({
     required this.url,
+    required this.bytes,
     required this.authorPubkey,
   });
 
-  final String url;
+  final String? url;
+  final Uint8List? bytes;
   final String authorPubkey;
 
   @override
@@ -289,7 +299,7 @@ class _LoadingThumbnail extends StatelessWidget {
         Positioned.fill(
           child: ImageFiltered(
             imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: _Thumbnail(url: url, authorPubkey: authorPubkey),
+            child: _Thumbnail(url: url, bytes: bytes, authorPubkey: authorPubkey),
           ),
         ),
         const Center(
@@ -308,21 +318,31 @@ class _LoadingThumbnail extends StatelessWidget {
 class _Thumbnail extends StatelessWidget {
   const _Thumbnail({
     required this.url,
+    required this.bytes,
     required this.authorPubkey,
   });
 
-  final String url;
+  final String? url;
+  final Uint8List? bytes;
   final String authorPubkey;
 
   @override
   Widget build(BuildContext context) {
-    return IonConnectNetworkImage(
-      imageUrl: url,
-      authorPubkey: authorPubkey,
-      fit: BoxFit.cover,
-      fadeInDuration: const Duration(milliseconds: 100),
-      fadeOutDuration: const Duration(milliseconds: 100),
-    );
+    if (url != null) {
+      return IonConnectNetworkImage(
+        imageUrl: url!,
+        authorPubkey: authorPubkey,
+        fit: BoxFit.cover,
+        fadeInDuration: const Duration(milliseconds: 100),
+        fadeOutDuration: const Duration(milliseconds: 100),
+      );
+    }
+
+    if (bytes != null) {
+      return Image.memory(bytes!, fit: BoxFit.cover);
+    }
+
+    return const IonPlaceholder();
   }
 }
 

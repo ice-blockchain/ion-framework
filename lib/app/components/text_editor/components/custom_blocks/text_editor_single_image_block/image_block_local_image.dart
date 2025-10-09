@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -27,21 +28,23 @@ class ImageBlockLocalImage extends HookConsumerWidget {
     final aspectRatio = useState<double?>(null);
     final isLoading = useState(true);
     final isVideo = useState(false);
-    final duration = useState<int>(0);
+    final duration = useState<Duration?>(null);
+    final thumbnailBytes = useState<Uint8List?>(null);
 
     useEffect(
       () {
         Future<void> loadMediaData() async {
           try {
-            final assetEntity = ref.read(assetEntityProvider(path)).valueOrNull;
+            final assetEntity = await ref.read(assetEntityProvider(path).future);
             if (assetEntity != null) {
               aspectRatio.value = attachedMediaAspectRatio(
                 [MediaAspectRatio.fromAssetEntity(assetEntity)],
               ).aspectRatio;
 
               isVideo.value = assetEntity.type == AssetType.video;
+              duration.value = assetEntity.videoDuration;
               file.value = await assetEntity.originFile;
-              duration.value = assetEntity.duration;
+              thumbnailBytes.value = await assetEntity.thumbnailData;
             }
           } finally {
             if (context.mounted) {
@@ -68,8 +71,9 @@ class ImageBlockLocalImage extends HookConsumerWidget {
           child: VideoPreview(
             videoUrl: file.value!.path,
             authorPubkey: authorPubkey ?? '',
-            duration: Duration(seconds: duration.value),
+            duration: duration.value,
             visibilityThreshold: 0.5,
+            thumbnailBytes: thumbnailBytes.value,
           ),
         ),
       );
