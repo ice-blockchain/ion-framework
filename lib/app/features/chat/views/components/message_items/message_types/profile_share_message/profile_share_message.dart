@@ -140,7 +140,7 @@ class _ProfileSummary extends StatelessWidget {
     return IntrinsicHeight(
       child: BadgesUserListItem(
         title: Text(
-          userMetadata.data.displayName,
+          userMetadata.data.trimmedDisplayName,
           style: context.theme.appTextThemes.subtitle3.copyWith(
             color: isMe
                 ? context.theme.appColors.onPrimaryAccent

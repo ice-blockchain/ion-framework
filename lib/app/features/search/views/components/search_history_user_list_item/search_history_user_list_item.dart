@@ -48,7 +48,7 @@ class _UserListItem extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                userMetadata.data.displayName,
+                userMetadata.data.trimmedDisplayName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: context.theme.appTextThemes.caption3.copyWith(

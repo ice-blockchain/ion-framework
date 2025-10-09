@@ -35,7 +35,7 @@ class SelectableUserListItem extends ConsumerWidget {
       canSendMessage: canSendMessage,
       child: BadgesUserListItem(
         masterPubkey: masterPubkey,
-        title: Text(userMetadata.data.displayName),
+        title: Text(userMetadata.data.trimmedDisplayName),
         subtitle: Text(prefixUsername(username: userMetadata.data.name, context: context)),
         contentPadding: EdgeInsets.symmetric(
           vertical: 8.0.s,

@@ -72,7 +72,7 @@ class StoryViewerHeader extends ConsumerWidget {
                   ),
                 ),
                 title: Text(
-                  userMetadata.data.displayName,
+                  userMetadata.data.trimmedDisplayName,
                   style: textThemes.subtitle3.copyWith(
                     color: onPrimaryAccent,
                     shadows: shadow,

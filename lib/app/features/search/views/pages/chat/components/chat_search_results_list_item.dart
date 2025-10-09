@@ -53,7 +53,7 @@ class ChatSearchResultListItem extends HookConsumerWidget {
           title: Padding(
             padding: EdgeInsetsDirectional.only(bottom: 2.38.s),
             child: Text(
-              userMetadata.data.displayName,
+              userMetadata.data.trimmedDisplayName,
               style: context.theme.appTextThemes.subtitle3.copyWith(
                 color: context.theme.appColors.primaryText,
               ),

@@ -112,6 +112,8 @@ class UserMetadata with _$UserMetadata implements EventSerializable, Replaceable
   String? get avatarUrl =>
       media.values.where((element) => picture == element.url).firstOrNull?.thumb ?? picture;
 
+  String get trimmedDisplayName => displayName.trim();
+
   @override
   FutureOr<EventMessage> toEventMessage(
     EventSigner signer, {

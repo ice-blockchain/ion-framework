@@ -28,7 +28,7 @@ class FollowListItem extends ConsumerWidget {
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
       child: userMetadata != null
           ? BadgesUserListItem(
-              title: Text(userMetadata.data.displayName),
+              title: Text(userMetadata.data.trimmedDisplayName),
               trailing: FollowUserButton(
                 pubkey: pubkey,
               ),

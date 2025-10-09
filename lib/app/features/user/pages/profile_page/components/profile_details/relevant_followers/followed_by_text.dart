@@ -66,7 +66,7 @@ class FollowedByText extends HookConsumerWidget {
               style: defaultStyle,
             ),
             TextSpan(
-              text: firstUserMetadata.data.displayName,
+              text: firstUserMetadata.data.trimmedDisplayName,
               style: actionableStyle,
               recognizer: userTapRecognizer,
             ),

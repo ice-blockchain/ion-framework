@@ -47,7 +47,7 @@ class OneToOneMessagingHeader extends ConsumerWidget {
         ? metadata.data.avatarUrl
         : Assets.svg.iconProfileNoimage;
     final receiverName = metadata?.data.name;
-    final receiverDisplayName = metadata?.data.displayName;
+    final receiverDisplayName = metadata?.data.trimmedDisplayName;
 
     final subtitle = Text(
       prefixUsername(

@@ -27,7 +27,7 @@ class UseListItem extends ConsumerWidget {
           return const SizedBox.shrink();
         }
         return BadgesUserListItem(
-          title: Text(userMetadata.data.displayName),
+          title: Text(userMetadata.data.trimmedDisplayName),
           subtitle: Text(
             prefixUsername(
               username: userMetadata.data.name,

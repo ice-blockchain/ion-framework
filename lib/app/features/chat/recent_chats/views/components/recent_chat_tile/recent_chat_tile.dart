@@ -338,7 +338,7 @@ class ChatPreview extends HookConsumerWidget {
               )
               .valueOrNull
               ?.data
-              .displayName ??
+              .trimmedDisplayName ??
           '',
     };
 

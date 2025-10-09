@@ -43,7 +43,7 @@ class AccountsTile extends ConsumerWidget {
           ref.read(authProvider.notifier).setCurrentUser(identityKeyName);
         }
       },
-      title: Text(userMetadataValue.data.displayName),
+      title: Text(userMetadataValue.data.trimmedDisplayName),
       subtitle: Text(prefixUsername(username: userMetadataValue.data.name, context: context)),
       masterPubkey: userMetadataValue.masterPubkey,
       trailing: isCurrentUser == true

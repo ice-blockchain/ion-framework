@@ -28,7 +28,7 @@ class ArticlesFromAuthorPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: NavigationAppBar.screen(
-        title: Text(userMetadata?.data.displayName ?? ''),
+        title: Text(userMetadata?.data.trimmedDisplayName ?? ''),
       ),
       body: LoadMoreBuilder(
         hasMore: entitiesPagedData?.hasMore ?? false,

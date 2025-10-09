@@ -24,7 +24,7 @@ class ContactItemName extends ConsumerWidget {
       children: [
         Flexible(
           child: Text(
-            userMetadata.data.displayName,
+            userMetadata.data.trimmedDisplayName,
             style: context.theme.appTextThemes.title,
           ),
         ),

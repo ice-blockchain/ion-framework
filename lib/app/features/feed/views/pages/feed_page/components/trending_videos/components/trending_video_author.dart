@@ -41,7 +41,7 @@ class TrendingVideoAuthor extends ConsumerWidget {
               child: Padding(
                 padding: EdgeInsetsDirectional.only(start: 4.0.s),
                 child: Text(
-                  userMetadata.data.displayName,
+                  userMetadata.data.trimmedDisplayName,
                   overflow: TextOverflow.ellipsis,
                   style: context.theme.appTextThemes.caption3.copyWith(
                     color: context.theme.appColors.secondaryBackground,

@@ -29,7 +29,7 @@ class GroupPariticipantsListItem extends ConsumerWidget {
         if (userMetadata == null) return const SizedBox.shrink();
 
         return BadgesUserListItem(
-          title: Text(userMetadata.data.displayName),
+          title: Text(userMetadata.data.trimmedDisplayName),
           subtitle: Text(
             prefixUsername(username: userMetadata.data.name, context: context),
             style: context.theme.appTextThemes.caption.copyWith(
