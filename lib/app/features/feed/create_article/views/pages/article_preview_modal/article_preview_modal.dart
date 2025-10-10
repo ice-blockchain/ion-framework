@@ -70,6 +70,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
     final whoCanReply = ref.watch(selectedWhoCanReplyOptionProvider);
     final selectedTopics = ref.watch(selectedInterestsNotifierProvider);
     final shownTooltip = useRef(false);
+    final isProcessing = useRef(false);
 
     usePreselectTopics(ref, eventReference: modifiedEvent);
 
@@ -113,73 +114,82 @@ class ArticlePreviewModal extends HookConsumerWidget {
                       color: context.theme.appColors.onPrimaryAccent,
                     ),
                     onPressed: () async {
+                      if (isProcessing.value) return;
+
                       if (!shownTooltip.value && selectedTopics.isEmpty) {
                         shownTooltip.value = true;
                         ref.read(topicTooltipVisibilityNotifierProvider.notifier).show();
                         return;
                       }
 
-                      // NSFW validation before publishing (cover image and embedded images if available)
-                      final imagesToCheck = <String>[
-                        if (image?.path != null) image!.path,
-                        ...mediaAttachments.values
-                            .where((m) => m.mimeType.startsWith('image/'))
-                            .map((m) => m.url),
-                      ];
-                      final isBlocked = await NsfwSubmitGuard.checkAndBlockImagePaths(
-                        ref,
-                        imagesToCheck,
-                      );
-                      if (isBlocked) return;
+                      try {
+                        isProcessing.value = true;
 
-                      final labeler = ref.read(ionContentLabelerProvider);
-                      final detectedLanguage = await labeler.detectLanguageLabels(
-                        Document.fromDelta(content).toPlainText(),
-                      );
-
-                      final type = modifiedEvent != null
-                          ? CreateArticleOption.modify
-                          : CreateArticleOption.plain;
-
-                      if (modifiedEvent != null) {
-                        unawaited(
-                          ref.read(createArticleProvider(type).notifier).modify(
-                                title: title,
-                                content: content,
-                                topics: selectedTopics,
-                                coverImagePath: image?.path,
-                                whoCanReply: whoCanReply,
-                                imageColor: imageColor,
-                                originalImageUrl: imageUrl,
-                                eventReference: modifiedEvent!,
-                                language: detectedLanguage,
-                                mediaAttachments: mediaAttachments,
-                              ),
+                        // NSFW validation before publishing (cover image and embedded images if available)
+                        final imagesToCheck = <String>[
+                          if (image?.path != null) image!.path,
+                          ...mediaAttachments.values
+                              .where((m) => m.mimeType.startsWith('image/'))
+                              .map((m) => m.url),
+                        ];
+                        final isBlocked = await NsfwSubmitGuard.checkAndBlockImagePaths(
+                          ref,
+                          imagesToCheck,
                         );
-                      } else {
-                        unawaited(
-                          ref.read(createArticleProvider(type).notifier).create(
-                                title: title,
-                                content: content,
-                                topics: selectedTopics,
-                                coverImagePath: image?.path,
-                                mediaIds: imageIds,
-                                whoCanReply: whoCanReply,
-                                imageColor: imageColor,
-                                language: detectedLanguage,
-                              ),
+                        if (isBlocked) return;
+
+                        final labeler = ref.read(ionContentLabelerProvider);
+                        final detectedLanguage = await labeler.detectLanguageLabels(
+                          Document.fromDelta(content).toPlainText(),
                         );
-                      }
 
-                      if (!ref.read(createArticleProvider(type)).hasError && ref.context.mounted) {
-                        context.pop();
+                        final type = modifiedEvent != null
+                            ? CreateArticleOption.modify
+                            : CreateArticleOption.plain;
 
-                        // We need also close ArticleFormModal after article is created or changed
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (context.mounted) {
-                            context.pop();
-                          }
-                        });
+                        if (modifiedEvent != null) {
+                          unawaited(
+                            ref.read(createArticleProvider(type).notifier).modify(
+                                  title: title,
+                                  content: content,
+                                  topics: selectedTopics,
+                                  coverImagePath: image?.path,
+                                  whoCanReply: whoCanReply,
+                                  imageColor: imageColor,
+                                  originalImageUrl: imageUrl,
+                                  eventReference: modifiedEvent!,
+                                  language: detectedLanguage,
+                                  mediaAttachments: mediaAttachments,
+                                ),
+                          );
+                        } else {
+                          unawaited(
+                            ref.read(createArticleProvider(type).notifier).create(
+                                  title: title,
+                                  content: content,
+                                  topics: selectedTopics,
+                                  coverImagePath: image?.path,
+                                  mediaIds: imageIds,
+                                  whoCanReply: whoCanReply,
+                                  imageColor: imageColor,
+                                  language: detectedLanguage,
+                                ),
+                          );
+                        }
+
+                        if (!ref.read(createArticleProvider(type)).hasError &&
+                            ref.context.mounted) {
+                          context.pop();
+
+                          // We need also close ArticleFormModal after article is created or changed
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (context.mounted) {
+                              context.pop();
+                            }
+                          });
+                        }
+                      } finally {
+                        isProcessing.value = false;
                       }
                     },
                     label: Text(context.i18n.button_publish),
