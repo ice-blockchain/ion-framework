@@ -87,6 +87,15 @@ class ProfileContextMenu extends ConsumerWidget {
         ),
         const ContextMenuItemDivider(),
         ContextMenuItem(
+          label: context.i18n.invite_friends_button,
+          iconAsset: Assets.svg.iconButtonInvite,
+          onPressed: () {
+            closeMenu();
+            InviteFriendsRoute().push<void>(context);
+          },
+        ),
+        const ContextMenuItemDivider(),
+        ContextMenuItem(
           label: context.i18n.settings_title,
           iconAsset: Assets.svg.iconProfileSettings,
           onPressed: () {
