@@ -32,12 +32,20 @@ class MediaSelectionNotifier extends _$MediaSelectionNotifier {
     state = state.copyWith(maxVideoDurationInSeconds: durationLimitInSeconds);
   }
 
-  void toggleSelection(String path, {MediaPickerType type = MediaPickerType.common}) {
+  void toggleSelection(
+    String path, {
+    required bool isNeedFilterVideoByFormat,
+    MediaPickerType type = MediaPickerType.common,
+  }) {
     final isSelected = state.selectedMedia.any((media) => media.path == path);
     if (isSelected) {
       _deselectMedia(path);
     } else if (state.selectedMedia.length < state.maxSelection) {
-      _selectMedia(path, type);
+      _selectMedia(
+        path,
+        type,
+        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      );
     }
   }
 
@@ -46,8 +54,19 @@ class MediaSelectionNotifier extends _$MediaSelectionNotifier {
     state = state.copyWith(selectedMedia: updatedMedia);
   }
 
-  void _selectMedia(String path, MediaPickerType type) {
-    final galleryState = ref.read(galleryNotifierProvider(type: type)).value;
+  void _selectMedia(
+    String path,
+    MediaPickerType type, {
+    required bool isNeedFilterVideoByFormat,
+  }) {
+    final galleryState = ref
+        .read(
+          galleryNotifierProvider(
+            type: type,
+            isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+          ),
+        )
+        .value;
     if (galleryState == null) return;
 
     final mediaData = galleryState.mediaData.firstWhereOrNull((media) => media.path == path);

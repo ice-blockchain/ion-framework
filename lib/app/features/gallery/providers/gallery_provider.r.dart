@@ -12,6 +12,7 @@ import 'package:ion/app/features/gallery/providers/providers.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/utils/filter_video_by_format.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -52,7 +53,10 @@ class GalleryNotifier extends _$GalleryNotifier {
   static const int _pageSize = 100;
 
   @override
-  Future<GalleryState> build({MediaPickerType type = MediaPickerType.common}) async {
+  Future<GalleryState> build({
+    MediaPickerType type = MediaPickerType.common,
+    bool isNeedFilterVideoByFormat = false,
+  }) async {
     final mediaService = ref.watch(mediaServiceProvider);
     final hasPermission = ref.watch(hasPermissionProvider(Permission.photos));
 
@@ -78,10 +82,18 @@ class GalleryNotifier extends _$GalleryNotifier {
       final existingMedia = currentState?.mediaData ?? [];
       final existingMediaPaths = existingMedia.map((m) => m.path).toSet();
       final newMedia = media.where((m) => !existingMediaPaths.contains(m.path)).toList();
+      final allData = [
+        ...existingMedia,
+        ...filterUnsupportedVideoFormats(
+          newMedia,
+          isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+          filterVideoMimeTypeExtractor: (mediaFile) => mediaFile.mimeType,
+        ),
+      ];
 
       state = AsyncValue.data(
         GalleryState(
-          mediaData: [...existingMedia, ...newMedia],
+          mediaData: allData,
           currentPage: currentState?.currentPage ?? 0,
           hasMore: media.isNotEmpty,
           type: type,
@@ -133,9 +145,14 @@ class GalleryNotifier extends _$GalleryNotifier {
       );
 
       final hasMore = newMedia.length == _pageSize;
+      final filteredMedia = filterUnsupportedVideoFormats(
+        newMedia,
+        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+        filterVideoMimeTypeExtractor: (mediaFile) => mediaFile.mimeType,
+      );
 
       return currentState.copyWith(
-        mediaData: [...currentState.mediaData, ...newMedia],
+        mediaData: [...currentState.mediaData, ...filteredMedia],
         currentPage: currentState.currentPage + 1,
         hasMore: hasMore,
         isLoading: false,
@@ -143,7 +160,9 @@ class GalleryNotifier extends _$GalleryNotifier {
     });
   }
 
-  Future<void> selectAlbum(AlbumData album) async {
+  Future<void> selectAlbum(
+    AlbumData album,
+  ) async {
     final currentState = state.valueOrNull;
     if (currentState == null) return;
 
@@ -165,7 +184,12 @@ class GalleryNotifier extends _$GalleryNotifier {
   }) async {
     var album = oldState.selectedAlbum;
     if (album == null) {
-      final albumList = await ref.read(albumsProvider(type: type).future);
+      final albumList = await ref.read(
+        albumsProvider(
+          type: type,
+          isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+        ).future,
+      );
       if (albumList.isEmpty) {
         return oldState.copyWith(
           mediaData: [],
@@ -185,8 +209,14 @@ class GalleryNotifier extends _$GalleryNotifier {
       type: type,
     );
 
+    final filteredMedia = filterUnsupportedVideoFormats(
+      newMedia,
+      isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      filterVideoMimeTypeExtractor: (mediaFile) => mediaFile.mimeType,
+    );
+
     return oldState.copyWith(
-      mediaData: newMedia,
+      mediaData: filteredMedia,
       currentPage: page + 1,
       hasMore: newMedia.length == _pageSize,
       selectedAlbum: album,
@@ -199,7 +229,11 @@ class GalleryNotifier extends _$GalleryNotifier {
     required int size,
     required MediaPickerType type,
   }) async {
-    final albumService = ref.read(albumServiceProvider);
+    final albumService = ref.read(
+      albumServiceProvider(
+        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      ),
+    );
     final mediaFiles = await albumService.fetchMediaFromAlbum(
       albumId: album.id,
       page: page,
@@ -220,9 +254,11 @@ class GalleryNotifier extends _$GalleryNotifier {
 
     final updatedState = state.valueOrNull;
     if (updatedState != null) {
-      ref
-          .read(mediaSelectionNotifierProvider.notifier)
-          .toggleSelection(mediaFile.path, type: updatedState.type);
+      ref.read(mediaSelectionNotifierProvider.notifier).toggleSelection(
+            mediaFile.path,
+            type: updatedState.type,
+            isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+          );
     }
   }
 }

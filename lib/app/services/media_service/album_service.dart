@@ -4,24 +4,40 @@ import 'package:ion/app/features/gallery/data/models/album_data.f.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/utils/filter_video_by_format.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class AlbumService {
+  AlbumService({
+    required this.isNeedFilterVideoByFormat,
+  });
+
   final Map<String, AssetPathEntity> _albumsCache = {};
+
+  final bool isNeedFilterVideoByFormat;
 
   AssetPathEntity? getAssetPathEntityById(String albumId) => _albumsCache[albumId];
 
-  Future<AssetEntity?> fetchFirstAssetOfAlbum(String albumId) async {
+  Future<AssetEntity?> fetchFirstAssetOfAlbum(
+    String albumId,
+  ) async {
     final pathEntity = _albumsCache[albumId];
     if (pathEntity == null) return null;
 
-    final assets = await pathEntity.getAssetListRange(start: 0, end: 1);
-    if (assets.isEmpty) return null;
+    final assets = await pathEntity.getAssetListRange(start: 0, end: 10);
+    final filteredAssets = filterUnsupportedVideoFormats(
+      assets,
+      isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      filterVideoMimeTypeExtractor: (asset) => asset.mimeType,
+    );
+    if (filteredAssets.isEmpty) return null;
 
-    return assets.first;
+    return filteredAssets.first;
   }
 
-  Future<List<AlbumData>> fetchAlbums({required MediaPickerType type}) async {
+  Future<List<AlbumData>> fetchAlbums({
+    required MediaPickerType type,
+  }) async {
     final assetPathList = await PhotoManager.getAssetPathList(
       type: type.toRequestType(),
     );
@@ -30,7 +46,10 @@ class AlbumService {
 
     final futures = assetPathList.map((ap) async {
       _albumsCache[ap.id] = ap;
-      final count = await ap.assetCountAsync;
+      final count = await _countAssets(
+        ap,
+      );
+
       return AlbumData(
         id: ap.id,
         name: ap.name,
@@ -73,5 +92,22 @@ class AlbumService {
     }
 
     return mediaFiles;
+  }
+
+  Future<int> _countAssets(
+    AssetPathEntity ap,
+  ) async {
+    final allCount = await ap.assetCountAsync;
+    if (!isNeedFilterVideoByFormat) {
+      return allCount;
+    }
+
+    final allAssets = await ap.getAssetListRange(start: 0, end: allCount);
+    final filteredAssets = filterUnsupportedVideoFormats(
+      allAssets,
+      isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      filterVideoMimeTypeExtractor: (asset) => asset.mimeType,
+    );
+    return filteredAssets.length;
   }
 }

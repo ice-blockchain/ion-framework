@@ -24,6 +24,7 @@ import 'package:ion/app/services/media_service/media_service.m.dart';
 class MediaPickerPage extends HookConsumerWidget {
   const MediaPickerPage({
     required this.maxSelection,
+    required this.isNeedFilterVideoByFormat,
     super.key,
     this.type = MediaPickerType.common,
     this.title,
@@ -42,10 +43,16 @@ class MediaPickerPage extends HookConsumerWidget {
   final bool showCameraCell;
   final void Function(List<MediaFile> media)? onSelectCallback;
   final List<String>? preselectedMedia;
+  final bool isNeedFilterVideoByFormat;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final galleryState = ref.watch(galleryNotifierProvider(type: type));
+    final galleryState = ref.watch(
+      galleryNotifierProvider(
+        type: type,
+        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      ),
+    );
     final selectedMedia = ref.watch(
       mediaSelectionNotifierProvider.select((state) => state.selectedMedia),
     );
@@ -98,6 +105,7 @@ class MediaPickerPage extends HookConsumerWidget {
                 child: AlbumSelectionPage(
                   type: type,
                   isBottomSheet: true,
+                  isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
                 ),
               );
             },
@@ -132,6 +140,7 @@ class MediaPickerPage extends HookConsumerWidget {
         type: type,
         showSelectionBadge: maxSelection > 1,
         showCameraCell: showCameraCell,
+        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
         galleryState: galleryState.valueOrNull ??
             GalleryState(
               mediaData: [],
@@ -146,7 +155,14 @@ class MediaPickerPage extends HookConsumerWidget {
     final loadMoreBuilder = LoadMoreBuilder(
       slivers: slivers,
       hasMore: galleryState.value?.hasMore ?? false,
-      onLoadMore: () => ref.read(galleryNotifierProvider(type: type).notifier).fetchNextPage(),
+      onLoadMore: () => ref
+          .read(
+            galleryNotifierProvider(
+              type: type,
+              isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+            ).notifier,
+          )
+          .fetchNextPage(),
     );
 
     return isBottomSheet

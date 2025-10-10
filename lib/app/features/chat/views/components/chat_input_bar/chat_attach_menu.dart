@@ -68,6 +68,7 @@ class _MediaButton extends ConsumerWidget {
       onGranted: () async {
         final mediaFiles = await MediaPickerRoute(
           maxSelection: 10,
+          isNeedFilterVideoByFormat: false,
           maxVideoDurationInSeconds:
               ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds,
         ).push<List<MediaFile>>(context);
@@ -103,6 +104,7 @@ class _CameraButton extends ConsumerWidget {
       onGranted: () async {
         final mediaFiles = await MediaPickerRoute(
           maxSelection: 10,
+          isNeedFilterVideoByFormat: false,
           maxVideoDurationInSeconds:
               ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds,
         ).push<List<MediaFile>>(context);

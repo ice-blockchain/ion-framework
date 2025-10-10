@@ -37,10 +37,15 @@ class BanubaService {
   static const argCoverSelectionEnabled = 'coverSelectionEnabled';
   static const argExportedVideoFile = 'argExportedVideoFilePath';
   static const argExportedVideoCoverPreview = 'argExportedVideoCoverPreviewPath';
+  static const methodReleaseVideoEditor = 'releaseVideoEditor';
 
   static const platformChannel = MethodChannel('banubaSdkChannel');
 
   Future<void> _initPhotoEditor() async {
+    if (Platform.isAndroid) {
+      await platformChannel.invokeMethod(methodReleaseVideoEditor);
+    }
+
     await platformChannel.invokeMethod(
       methodInitPhotoEditor,
       env.get<String>(EnvVariable.BANUBA_TOKEN),

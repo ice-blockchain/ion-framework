@@ -47,6 +47,7 @@ class MoreContentView extends ConsumerWidget {
                 permissionType: Permission.photos,
                 onGranted: () async {
                   final mediaFiles = await MediaPickerRoute(
+                    isNeedFilterVideoByFormat: false,
                     maxSelection: 10,
                     maxVideoDurationInSeconds:
                         ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds,
@@ -71,6 +72,7 @@ class MoreContentView extends ConsumerWidget {
                 permissionType: Permission.photos,
                 onGranted: () async {
                   final mediaFiles = await MediaPickerRoute(
+                    isNeedFilterVideoByFormat: false,
                     maxSelection: 10,
                     maxVideoDurationInSeconds:
                         ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds,

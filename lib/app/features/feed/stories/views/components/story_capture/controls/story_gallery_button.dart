@@ -22,8 +22,11 @@ class StoryGalleryButton extends HookConsumerWidget {
     return PermissionAwareWidget(
       permissionType: Permission.photos,
       onGranted: () async {
-        final files = await MediaPickerRoute(maxSelection: 1, showCameraCell: false)
-            .push<List<MediaFile>>(context);
+        final files = await MediaPickerRoute(
+          maxSelection: 1,
+          showCameraCell: false,
+          isNeedFilterVideoByFormat: true,
+        ).push<List<MediaFile>>(context);
         if (files == null || files.isEmpty) return;
         await onSelected(files.first);
       },

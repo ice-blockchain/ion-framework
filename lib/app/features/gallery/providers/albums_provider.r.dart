@@ -10,16 +10,42 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'albums_provider.r.g.dart';
 
 @Riverpod(keepAlive: true)
-AlbumService albumService(Ref ref) => AlbumService();
+AlbumService albumService(
+  Ref ref, {
+  required bool isNeedFilterVideoByFormat,
+}) =>
+    AlbumService(
+      isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+    );
 
 @riverpod
-Future<List<AlbumData>> albums(Ref ref, {required MediaPickerType type}) {
-  final albumService = ref.watch(albumServiceProvider);
-  return albumService.fetchAlbums(type: type);
+Future<List<AlbumData>> albums(
+  Ref ref, {
+  required MediaPickerType type,
+  bool isNeedFilterVideoByFormat = false,
+}) {
+  final albumService = ref.watch(
+    albumServiceProvider(
+      isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+    ),
+  );
+  return albumService.fetchAlbums(
+    type: type,
+  );
 }
 
 @riverpod
-Future<AssetEntity?> albumPreview(Ref ref, String albumId) async {
-  final albumService = ref.watch(albumServiceProvider);
-  return albumService.fetchFirstAssetOfAlbum(albumId);
+Future<AssetEntity?> albumPreview(
+  Ref ref,
+  String albumId, {
+  bool isNeedFilterVideoByFormat = false,
+}) async {
+  final albumService = ref.watch(
+    albumServiceProvider(
+      isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+    ),
+  );
+  return albumService.fetchFirstAssetOfAlbum(
+    albumId,
+  );
 }

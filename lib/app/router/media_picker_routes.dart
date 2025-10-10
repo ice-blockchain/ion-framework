@@ -9,6 +9,7 @@ class MediaPickerRoutes {
 @TypedGoRoute<MediaPickerRoute>(path: MediaPickerRoutes.routesPrefix)
 class MediaPickerRoute extends BaseRouteData with _$MediaPickerRoute {
   MediaPickerRoute({
+    required this.isNeedFilterVideoByFormat,
     this.maxSelection,
     this.mediaPickerType = MediaPickerType.common,
     this.maxVideoDurationInSeconds,
@@ -19,6 +20,7 @@ class MediaPickerRoute extends BaseRouteData with _$MediaPickerRoute {
             type: mediaPickerType,
             maxVideoDurationInSeconds: maxVideoDurationInSeconds,
             showCameraCell: showCameraCell,
+            isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
           ),
           type: IceRouteType.simpleModalSheet,
         );
@@ -27,18 +29,24 @@ class MediaPickerRoute extends BaseRouteData with _$MediaPickerRoute {
   final MediaPickerType mediaPickerType;
   final int? maxVideoDurationInSeconds;
   final bool showCameraCell;
+  final bool isNeedFilterVideoByFormat;
 }
 
 @TypedGoRoute<AlbumSelectionRoute>(path: '${MediaPickerRoutes.routesPrefix}/album-selection')
 class AlbumSelectionRoute extends BaseRouteData with _$AlbumSelectionRoute {
   AlbumSelectionRoute({
     required this.mediaPickerType,
+    required this.isNeedFilterVideoByFormat,
   }) : super(
-          child: AlbumSelectionPage(type: mediaPickerType),
+          child: AlbumSelectionPage(
+            type: mediaPickerType,
+            isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+          ),
           type: IceRouteType.simpleModalSheet,
         );
 
   final MediaPickerType mediaPickerType;
+  final bool isNeedFilterVideoByFormat;
 }
 
 @TypedGoRoute<GalleryCameraRoute>(path: '${MediaPickerRoutes.routesPrefix}/camera')
