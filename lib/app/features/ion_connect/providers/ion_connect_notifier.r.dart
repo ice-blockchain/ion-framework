@@ -282,7 +282,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
               // Note: The ion.requestEvents method automatically handles unsubscription for certain messages.
               // If the subscription needs to be retried or closed in response to a different message than those handled by ion.requestEvents,
               // then additional unsubscription logic should be implemented here.
-              if (event is NoticeMessage || event is ClosedMessage) {
+              if (_isErrorEvent(event)) {
                 throw RelayRequestFailedException(
                   relayUrl: relay.key.url,
                   event: event,
@@ -305,10 +305,13 @@ class IonConnectNotifier extends _$IonConnectNotifier {
           // This is to avoid retrying when there are no available relays left or they are not assigned (registration).
           final triedRelayUrl =
               error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
+          // `SubscriptionNotFoundException` might be thrown if a relay closed the subscription on its own right after sending the `EOSE`.
+          // App tries to send `CLOSE` message and get this exception. We should not retry in this case.
+          final shouldRetry = triedRelayUrl != null && error is! SubscriptionNotFoundException;
           Logger.log(
-            '[SESSION-RETRY] Session $sessionId - $triedRelayUrl retry: ${triedRelayUrl != null} for error: $error',
+            '[SESSION-RETRY] Session $sessionId - $triedRelayUrl retry: $shouldRetry for error: $error',
           );
-          return triedRelayUrl != null;
+          return shouldRetry;
         },
         onRetry: (error) {
           final triedRelayUrl =
@@ -544,5 +547,16 @@ class IonConnectNotifier extends _$IonConnectNotifier {
         );
       }
     }
+  }
+
+  bool _isErrorEvent(RelayMessage event) {
+    return switch (event) {
+      NoticeMessage() => true,
+      // In some cases the relay may close the subscription on its own,
+      // without waiting for a `CLOSE` message from the app.
+      // In such cases, if the message starts with `processed`, we should not treat this event as an error.
+      final ClosedMessage closedMessage => !closedMessage.message.startsWith('processed'),
+      _ => false,
+    };
   }
 }
