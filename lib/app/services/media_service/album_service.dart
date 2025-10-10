@@ -8,14 +8,19 @@ import 'package:ion/app/utils/filter_video_by_format.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class AlbumService {
+  AlbumService({
+    required this.isNeedFilterVideoByFormat,
+  });
+
   final Map<String, AssetPathEntity> _albumsCache = {};
+
+  final bool isNeedFilterVideoByFormat;
 
   AssetPathEntity? getAssetPathEntityById(String albumId) => _albumsCache[albumId];
 
   Future<AssetEntity?> fetchFirstAssetOfAlbum(
-    String albumId, {
-    required bool isNeedFilterVideoByFormat,
-  }) async {
+    String albumId,
+  ) async {
     final pathEntity = _albumsCache[albumId];
     if (pathEntity == null) return null;
 
@@ -32,7 +37,6 @@ class AlbumService {
 
   Future<List<AlbumData>> fetchAlbums({
     required MediaPickerType type,
-    required bool isNeedFilterVideoByFormat,
   }) async {
     final assetPathList = await PhotoManager.getAssetPathList(
       type: type.toRequestType(),
@@ -44,8 +48,8 @@ class AlbumService {
       _albumsCache[ap.id] = ap;
       final count = await _countAssets(
         ap,
-        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
       );
+
       return AlbumData(
         id: ap.id,
         name: ap.name,
@@ -91,9 +95,8 @@ class AlbumService {
   }
 
   Future<int> _countAssets(
-    AssetPathEntity ap, {
-    required bool isNeedFilterVideoByFormat,
-  }) async {
+    AssetPathEntity ap,
+  ) async {
     final allCount = await ap.assetCountAsync;
     if (!isNeedFilterVideoByFormat) {
       return allCount;

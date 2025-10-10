@@ -229,7 +229,11 @@ class GalleryNotifier extends _$GalleryNotifier {
     required int size,
     required MediaPickerType type,
   }) async {
-    final albumService = ref.read(albumServiceProvider);
+    final albumService = ref.read(
+      albumServiceProvider(
+        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      ),
+    );
     final mediaFiles = await albumService.fetchMediaFromAlbum(
       albumId: album.id,
       page: page,
