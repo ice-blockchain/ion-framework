@@ -10,78 +10,77 @@ class E2eeConversationLoadingView extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      color: context.theme.appColors.primaryBackground,
-      width: double.infinity,
-      padding: EdgeInsetsDirectional.only(start: 16.0.s, end: 16.0.s, top: 12.0.s),
-      child: SingleChildScrollView(
-        padding: EdgeInsets.zero,
-        physics: const NeverScrollableScrollPhysics(),
-        child: Skeleton(
-          baseColor: context.theme.appColors.onTertiaryFill,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const _DateSkeleton(),
-              SizedBox(height: 12.0.s),
-              const _MessageSkeleton(
-                width: 238,
-                isMe: false,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableHeight = constraints.maxHeight;
+
+        final dateSkeletonHeight = 18.0.s + 12.0.s;
+        final messageHeight = 42.0.s;
+        final smallSpacing = 8.0.s;
+        final mediumSpacing = 16.0.s;
+        final topPadding = 12.0.s;
+
+        var usedHeight = topPadding + dateSkeletonHeight;
+
+        final allMessages = [
+          (width: 238.0, isMe: false, spacing: smallSpacing),
+          (width: 172.0, isMe: false, spacing: mediumSpacing),
+          (width: 214.0, isMe: true, spacing: smallSpacing),
+          (width: 282.0, isMe: true, spacing: mediumSpacing),
+          (width: 86.0, isMe: false, spacing: smallSpacing),
+          (width: 150.0, isMe: false, spacing: mediumSpacing),
+          (width: 199.0, isMe: true, spacing: smallSpacing),
+          (width: 168.0, isMe: true, spacing: mediumSpacing),
+          (width: 86.0, isMe: false, spacing: smallSpacing),
+          (width: 154.0, isMe: false, spacing: mediumSpacing),
+          (width: 199.0, isMe: true, spacing: smallSpacing),
+          (width: 168.0, isMe: true, spacing: mediumSpacing),
+          (width: 86.0, isMe: false, spacing: smallSpacing),
+          (width: 154.0, isMe: false, spacing: mediumSpacing),
+          (width: 158.0, isMe: true, spacing: 0.0),
+        ];
+
+        // Calculate how many messages we can fit
+        final messagesToShow = <({double width, bool isMe, double spacing})>[];
+        for (final message in allMessages) {
+          final messageWithSpacing = messageHeight + message.spacing;
+          if (usedHeight + messageWithSpacing <= availableHeight) {
+            messagesToShow.add(message);
+            usedHeight += messageWithSpacing;
+          } else {
+            break;
+          }
+        }
+
+        return Container(
+          color: context.theme.appColors.primaryBackground,
+          width: double.infinity,
+          padding: EdgeInsetsDirectional.only(start: 16.0.s, end: 16.0.s, top: topPadding),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.zero,
+            physics: const NeverScrollableScrollPhysics(),
+            child: Skeleton(
+              baseColor: context.theme.appColors.onTertiaryFill,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const _DateSkeleton(),
+                  SizedBox(height: 12.0.s),
+                  ...messagesToShow.expand(
+                    (message) => [
+                      _MessageSkeleton(
+                        width: message.width,
+                        isMe: message.isMe,
+                      ),
+                      if (message.spacing > 0) SizedBox(height: message.spacing),
+                    ],
+                  ),
+                ],
               ),
-              SizedBox(height: 8.0.s),
-              const _MessageSkeleton(
-                width: 172,
-                isMe: false,
-              ),
-              SizedBox(height: 16.0.s),
-              const _MessageSkeleton(
-                width: 214,
-                isMe: true,
-              ),
-              SizedBox(height: 8.0.s),
-              const _MessageSkeleton(
-                width: 282,
-                isMe: true,
-              ),
-              SizedBox(height: 16.0.s),
-              const _MessageSkeleton(
-                width: 86,
-                isMe: false,
-              ),
-              SizedBox(height: 8.0.s),
-              const _MessageSkeleton(
-                width: 150,
-                isMe: false,
-              ),
-              SizedBox(height: 16.0.s),
-              const _MessageSkeleton(
-                width: 199,
-                isMe: true,
-              ),
-              SizedBox(height: 8.0.s),
-              const _MessageSkeleton(
-                width: 168,
-                isMe: true,
-              ),
-              SizedBox(height: 16.0.s),
-              const _MessageSkeleton(
-                width: 86,
-                isMe: false,
-              ),
-              SizedBox(height: 8.0.s),
-              const _MessageSkeleton(
-                width: 154,
-                isMe: false,
-              ),
-              SizedBox(height: 16.0.s),
-              const _MessageSkeleton(
-                width: 158,
-                isMe: true,
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

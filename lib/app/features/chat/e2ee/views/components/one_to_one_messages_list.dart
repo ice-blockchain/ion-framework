@@ -17,6 +17,7 @@ import 'package:ion/app/features/chat/views/components/message_items/message_typ
 import 'package:ion/app/features/chat/views/components/message_items/message_types/visual_media_message/visual_media_message.dart';
 import 'package:ion/app/features/chat/views/components/scroll_to_bottom_button.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/future.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
@@ -125,6 +126,7 @@ class OneToOneMessageList extends HookConsumerWidget {
                 controller: scrollController,
                 listController: listController,
                 key: const Key('one_to_one_messages_list'),
+                padding: EdgeInsetsDirectional.only(bottom: 12.s),
                 physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                 findChildIndexCallback: (key) {
                   final valueKey = key as ValueKey<String>;
@@ -150,10 +152,12 @@ class OneToOneMessageList extends HookConsumerWidget {
                   final hasNextMessageFromAnotherUser =
                       index > 0 && allMessages[index - 1].masterPubkey != message.masterPubkey;
 
-                  if (isLastMessageInConversation || hasNextMessageFromAnotherUser) {
-                    estimatedHeight += 20.0;
-                  } else {
-                    estimatedHeight += 8.0;
+                  if (!isLastMessageInConversation) {
+                    if (hasNextMessageFromAnotherUser) {
+                      estimatedHeight += 16.0;
+                    } else {
+                      estimatedHeight += 8.0;
+                    }
                   }
 
                   return estimatedHeight;
@@ -166,13 +170,22 @@ class OneToOneMessageList extends HookConsumerWidget {
                   final displayDate = dateHeaderLookup[message.id];
 
                   final isLastMessageInConversation = index == 0;
+
                   final hasNextMessageFromAnotherUser =
                       index > 0 && allMessages[index - 1].masterPubkey != message.masterPubkey;
 
+                  final isPreviousMessageFromAnotherDay = index > 0 &&
+                      !isSameDay(
+                        allMessages[index - 1].publishedAt.toDateTime,
+                        message.publishedAt.toDateTime,
+                      );
+
                   final margin = EdgeInsetsDirectional.only(
-                    bottom: isLastMessageInConversation || hasNextMessageFromAnotherUser
-                        ? 20.0.s
-                        : 8.0.s,
+                    bottom: isLastMessageInConversation || isPreviousMessageFromAnotherDay
+                        ? 0
+                        : hasNextMessageFromAnotherUser
+                            ? 16.0.s
+                            : 8.0.s,
                   );
 
                   return Column(

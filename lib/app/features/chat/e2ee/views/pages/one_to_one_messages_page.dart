@@ -99,6 +99,7 @@ class OneToOneMessagesPage extends HookConsumerWidget {
     return Scaffold(
       backgroundColor: context.theme.appColors.secondaryBackground,
       body: SafeArea(
+        bottom: false,
         child: ListCachedObjectsWrapper(
           child: Column(
             children: [
