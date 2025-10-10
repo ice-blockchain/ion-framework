@@ -63,7 +63,6 @@ class ConversationMessageReactionDao extends DatabaseAccessor<ChatDatabase>
           eventMessageTable,
           (table) => table.eventReference.isInValues(eventReferences),
         )
-
         // Remove message reaction statuses
         ..deleteWhere(
           messageStatusTable,
