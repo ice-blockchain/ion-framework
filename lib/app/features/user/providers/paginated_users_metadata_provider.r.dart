@@ -8,6 +8,7 @@ import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
+import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -41,6 +42,7 @@ class PaginatedUsersMetadata extends _$PaginatedUsersMetadata {
   Future<PaginatedUsersMetadataData> build(
     UserRelaysInfoFetcher fetcher, {
     Duration? expirationDuration,
+    DatabaseCacheStrategy? cacheStrategy,
   }) async {
     _fetcher = fetcher;
     if (!_initialized) {
@@ -77,6 +79,7 @@ class PaginatedUsersMetadata extends _$PaginatedUsersMetadata {
 
       final usersMetadataWithDependencies =
           await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
+                cacheStrategy: cacheStrategy,
                 expirationDuration: expirationDuration,
                 eventReferences: masterPubkeys
                     .map(

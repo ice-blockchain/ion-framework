@@ -16,6 +16,7 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_connect_cache/ion_connect_cache.dart';
 
 class NewChatModal extends HookConsumerWidget {
   const NewChatModal({super.key});
@@ -45,6 +46,7 @@ class NewChatModal extends HookConsumerWidget {
       body: UserPickerSheet(
         controlPrivacy: true,
         expirationDuration: expirationDuration,
+        cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
         navigationBar: NavigationAppBar.modal(
           showBackButton: false,
           title: Text(context.i18n.new_chat_modal_title),
