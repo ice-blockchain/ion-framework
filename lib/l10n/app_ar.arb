@@ -657,6 +657,7 @@
   "push_notifications_no_access_description": "لقد رفضت إذن الإشعارات سابقاً. يرجى الذهاب إلى الإعدادات لتمكين الإشعارات.",
   "story_preview_title": "معاينة القصة",
   "story_see_post": "عرض المنشور",
+  "story_see_article": "عرض المقال",
   "delete_story_title": "حذف القصة؟",
   "delete_video_title": "حذف الفيديو؟",
   "delete_post_title": "حذف المنشور؟",

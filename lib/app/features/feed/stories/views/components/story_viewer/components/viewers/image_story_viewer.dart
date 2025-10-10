@@ -8,6 +8,7 @@ import 'package:ion/app/features/components/ion_connect_network_image/ion_connec
 import 'package:ion/app/features/feed/stories/providers/story_image_loading_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/viewers/tap_to_see_hint.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
 import 'package:ion/app/features/ion_connect/model/source_post_reference.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -60,25 +61,37 @@ class ImageStoryViewer extends HookConsumerWidget {
     );
 
     if (hasQuotedPost) {
-      return ColoredBox(
-        color: context.theme.appColors.attentionBlock,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.0.s),
-          child: TapToSeeHint(
-            onTap: () {
-              final eventReference =
-                  quotedEvent?.eventReference ?? sourcePostReference!.eventReference;
-              PostDetailsRoute(
-                eventReference: eventReference.encode(),
-              ).push<void>(context);
-            },
-            onVisibilityChanged: (isVisible) {
-              ref.read(storyPauseControllerProvider.notifier).paused = isVisible;
-            },
-            child: imageWidget,
+      final eventReference = quotedEvent?.eventReference ?? sourcePostReference?.eventReference;
+      if (eventReference != null) {
+        final text = eventReference.isArticleReference
+            ? context.i18n.story_see_article
+            : context.i18n.story_see_post;
+
+        return ColoredBox(
+          color: context.theme.appColors.attentionBlock,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.0.s),
+            child: TapToSeeHint(
+              onTap: () {
+                if (eventReference.isArticleReference) {
+                  ArticleDetailsRoute(
+                    eventReference: eventReference.encode(),
+                  ).push<void>(context);
+                } else {
+                  PostDetailsRoute(
+                    eventReference: eventReference.encode(),
+                  ).push<void>(context);
+                }
+              },
+              text: text,
+              onVisibilityChanged: (isVisible) {
+                ref.read(storyPauseControllerProvider.notifier).paused = isVisible;
+              },
+              child: imageWidget,
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
 
     return imageWidget;

@@ -13,6 +13,7 @@ import 'package:ion/app/features/chat/providers/share_options_provider.r.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_copy_link_option.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_options_menu_item.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_post_to_story_content.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
@@ -58,7 +59,11 @@ class ShareOptions extends HookConsumerWidget {
 
     final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
 
-    final isPost = entity is ModifiablePostEntity && !entity.isStory;
+    final canShareToStory = switch (entity) {
+      ModifiablePostEntity() when !entity.isStory => true,
+      ArticleEntity() => true,
+      _ => false,
+    };
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -67,14 +72,14 @@ class ShareOptions extends HookConsumerWidget {
         child: SeparatedRow(
           separator: SizedBox(width: 12.0.s),
           children: [
-            if (isPost)
+            if (canShareToStory)
               ShareOptionsMenuItem(
                 buttonType: ButtonType.primary,
                 icon: isCapturing.value
                     ? const CenteredLoadingIndicator()
                     : Assets.svg.iconFeedStory.icon(size: iconSize),
                 label: context.i18n.feed_add_story,
-                onPressed: isCapturing.value ? () {} : () => _onSharePostToStory(ref, isCapturing),
+                onPressed: isCapturing.value ? () {} : () => _onShareToStory(ref, isCapturing),
               ),
             ShareCopyLinkOption(
               shareUrl: shareUrl,
@@ -146,30 +151,21 @@ class ShareOptions extends HookConsumerWidget {
     );
   }
 
-  Future<void> _onSharePostToStory(WidgetRef ref, ValueNotifier<bool> isCapturing) async {
+  Future<void> _onShareToStory(WidgetRef ref, ValueNotifier<bool> isCapturing) async {
     final context = ref.context;
     isCapturing.value = true;
-    final postItselfEntity =
-        ref.read(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
-    if (postItselfEntity == null || postItselfEntity is! ModifiablePostEntity) {
-      isCapturing.value = false;
-      return;
-    }
     final parentContainer = ProviderScope.containerOf(context);
     final childContainer = ProviderContainer(
       parent: parentContainer,
     );
 
     try {
-      final postWidget = UncontrolledProviderScope(
+      final contentWidget = UncontrolledProviderScope(
         container: childContainer,
-        child: SharePostToStoryContent(
-          eventReference: eventReference,
-          postItselfEntity: postItselfEntity,
-        ),
+        child: SharePostToStoryContent(eventReference: eventReference),
       );
 
-      final tempFile = await captureWidgetScreenshot(context: context, widget: postWidget);
+      final tempFile = await captureWidgetScreenshot(context: context, widget: contentWidget);
       if (tempFile != null && context.mounted) {
         context.pop();
         await StoryPreviewRoute(
