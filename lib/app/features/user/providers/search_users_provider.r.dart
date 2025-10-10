@@ -4,6 +4,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/paginated_users_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
+import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -15,13 +16,18 @@ class SearchUsers extends _$SearchUsers {
   FutureOr<({List<UserMetadataEntity>? users, bool hasMore})?> build({
     required String query,
     Duration? expirationDuration,
+    DatabaseCacheStrategy? cacheStrategy,
     String? followedByPubkey,
     String? followerOfPubkey,
     bool includeCurrentUser = false,
   }) async {
     final masterPubkey = ref.watch(currentPubkeySelectorProvider);
     final paginatedUsersMetadataData = await ref.watch(
-      paginatedUsersMetadataProvider(_fetcher, expirationDuration: expirationDuration).future,
+      paginatedUsersMetadataProvider(
+        _fetcher,
+        cacheStrategy: cacheStrategy,
+        expirationDuration: expirationDuration,
+      ).future,
     );
     final blockedUsersMasterPubkeys = ref
             .watch(currentUserBlockListNotifierProvider)
@@ -48,7 +54,11 @@ class SearchUsers extends _$SearchUsers {
   Future<void> loadMore() async {
     return ref
         .read(
-          paginatedUsersMetadataProvider(_fetcher, expirationDuration: expirationDuration).notifier,
+          paginatedUsersMetadataProvider(
+            _fetcher,
+            cacheStrategy: cacheStrategy,
+            expirationDuration: expirationDuration,
+          ).notifier,
         )
         .loadMore();
   }

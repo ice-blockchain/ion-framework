@@ -321,6 +321,7 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
     ActionType? actionType,
     ActionSource? actionSource,
     Duration? expirationDuration,
+    DatabaseCacheStrategy? cacheStrategy,
   }) async {
     final remainingEvents = eventReferences.toSet();
     final results = <IonConnectEntity>[];
@@ -349,6 +350,7 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
         final databaseEntities = await cacheService.getAllFiltered(
           expirationDuration: expirationDuration,
           cacheKeys: remainingEvents.map((e) => e.toString()).toList(),
+          cacheStrategy: cacheStrategy ?? DatabaseCacheStrategy.alwaysReturn,
         );
         results.addAll(databaseEntities);
         remainingEvents.removeAll(databaseEntities.map((e) => e.toEventReference()));
