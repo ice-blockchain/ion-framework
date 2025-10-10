@@ -84,9 +84,10 @@ class GalleryNotifier extends _$GalleryNotifier {
       final newMedia = media.where((m) => !existingMediaPaths.contains(m.path)).toList();
       final allData = [
         ...existingMedia,
-        ..._filterUnsupportedVideoFormats(
+        ...filterUnsupportedVideoFormats(
           newMedia,
           isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+          filterVideoMimeTypeExtractor: (mediaFile) => mediaFile.mimeType,
         ),
       ];
 
@@ -146,9 +147,10 @@ class GalleryNotifier extends _$GalleryNotifier {
       );
 
       final hasMore = newMedia.length == _pageSize;
-      final filteredMedia = _filterUnsupportedVideoFormats(
+      final filteredMedia = filterUnsupportedVideoFormats(
         newMedia,
         isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+        filterVideoMimeTypeExtractor: (mediaFile) => mediaFile.mimeType,
       );
 
       return currentState.copyWith(
@@ -212,9 +214,10 @@ class GalleryNotifier extends _$GalleryNotifier {
       type: type,
     );
 
-    final filteredMedia = _filterUnsupportedVideoFormats(
+    final filteredMedia = filterUnsupportedVideoFormats(
       newMedia,
       isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      filterVideoMimeTypeExtractor: (mediaFile) => mediaFile.mimeType,
     );
 
     return oldState.copyWith(
@@ -258,29 +261,5 @@ class GalleryNotifier extends _$GalleryNotifier {
             isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
           );
     }
-  }
-
-  // Filter out unsupported video formats
-  List<MediaFile> _filterUnsupportedVideoFormats(
-    List<MediaFile> mediaFiles, {
-    required bool isNeedFilterVideoByFormat,
-  }) {
-    if (!isNeedFilterVideoByFormat) {
-      return mediaFiles;
-    }
-
-    final filteredMediaFiles = <MediaFile>[];
-    for (final mediaFile in mediaFiles) {
-      final mimeType = mediaFile.mimeType;
-      if (mimeType?.startsWith('video/') ?? false) {
-        if (!filterVideoByFormat(mimeType!)) {
-          continue;
-        }
-      }
-
-      filteredMediaFiles.add(mediaFile);
-    }
-
-    return filteredMediaFiles;
   }
 }

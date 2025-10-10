@@ -20,9 +20,10 @@ class AlbumService {
     if (pathEntity == null) return null;
 
     final assets = await pathEntity.getAssetListRange(start: 0, end: 10);
-    final filteredAssets = _filterUnsupportedVideoFormats(
+    final filteredAssets = filterUnsupportedVideoFormats(
       assets,
       isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      filterVideoMimeTypeExtractor: (asset) => asset.mimeType,
     );
     if (filteredAssets.isEmpty) return null;
 
@@ -89,29 +90,6 @@ class AlbumService {
     return mediaFiles;
   }
 
-  List<AssetEntity> _filterUnsupportedVideoFormats(
-    List<AssetEntity> mediaFiles, {
-    required bool isNeedFilterVideoByFormat,
-  }) {
-    if (!isNeedFilterVideoByFormat) {
-      return mediaFiles;
-    }
-
-    final filteredMediaFiles = <AssetEntity>[];
-    for (final mediaFile in mediaFiles) {
-      final mimeType = mediaFile.mimeType;
-      if (mimeType?.startsWith('video/') ?? false) {
-        if (!filterVideoByFormat(mimeType!)) {
-          continue;
-        }
-      }
-
-      filteredMediaFiles.add(mediaFile);
-    }
-
-    return filteredMediaFiles;
-  }
-
   Future<int> _countAssets(
     AssetPathEntity ap, {
     required bool isNeedFilterVideoByFormat,
@@ -122,9 +100,10 @@ class AlbumService {
     }
 
     final allAssets = await ap.getAssetListRange(start: 0, end: allCount);
-    final filteredAssets = _filterUnsupportedVideoFormats(
+    final filteredAssets = filterUnsupportedVideoFormats(
       allAssets,
       isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      filterVideoMimeTypeExtractor: (asset) => asset.mimeType,
     );
     return filteredAssets.length;
   }
