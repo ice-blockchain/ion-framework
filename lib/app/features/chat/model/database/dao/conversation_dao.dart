@@ -6,7 +6,6 @@ part of '../chat_database.m.dart';
 ConversationDao conversationDao(Ref ref) => ConversationDao(
       ref.watch(chatDatabaseProvider),
       eventMessageDao: ref.watch(eventMessageDaoProvider),
-      conversationDao: ref.watch(conversationDaoProvider),
       fileCacheService: ref.watch(fileCacheServiceProvider),
     );
 
@@ -24,12 +23,10 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
   ConversationDao(
     super.db, {
     required this.eventMessageDao,
-    required this.conversationDao,
     required this.fileCacheService,
   });
 
   final EventMessageDao eventMessageDao;
-  final ConversationDao conversationDao;
   final FileCacheService fileCacheService;
 
   /// Adds events to database and creates conversations
@@ -419,7 +416,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
         );
     });
 
-    await conversationDao.unhideConversations(conversationIds);
+    await unhideConversations(conversationIds);
   }
 
   Future<void> hideConversations(List<String> conversationsId) async {
