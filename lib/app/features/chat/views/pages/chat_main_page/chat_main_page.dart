@@ -34,10 +34,8 @@ class ChatMainPage extends HookConsumerWidget {
         child: conversations.when(
           data: (data) {
             if (data.isEmpty) {
-              print('QQQ');
               return const RecentChatsEmptyPage();
             }
-            print('AAA');
             return RecentChatsTimelinePage(
               conversations: data,
               scrollController: scrollController,
