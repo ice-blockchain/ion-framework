@@ -67,6 +67,7 @@ class TransactionResultSheet extends ConsumerWidget {
           ),
           ScreenSideOffset.small(
             child: transactionData.when(
+              skipLoadingOnReload: true,
               loading: () => loadingContent,
               error: (_, __) {
                 return Column(
