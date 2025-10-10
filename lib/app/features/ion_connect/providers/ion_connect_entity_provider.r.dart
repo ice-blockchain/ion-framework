@@ -64,14 +64,6 @@ Future<IonConnectEntity?> ionConnectEntity(
   }
 
   if (network) {
-    final networkProvider = ionConnectNetworkEntityProvider(
-      search: search,
-      actionType: actionType,
-      eventReference: eventReference,
-    );
-
-    ref.invalidate(networkProvider);
-
     return ref.watch(
       ionConnectNetworkEntityProvider(
         search: search,
