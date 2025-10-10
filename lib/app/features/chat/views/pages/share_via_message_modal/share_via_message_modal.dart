@@ -13,6 +13,7 @@ import 'package:ion/app/hooks/use_selected_state.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion_connect_cache/ion_connect_cache.dart';
 
 class ShareViaMessageModal extends HookConsumerWidget {
   const ShareViaMessageModal({
@@ -43,6 +44,7 @@ class ShareViaMessageModal extends HookConsumerWidget {
               controlPrivacy: true,
               selectedPubkeys: selectedPubkeys,
               expirationDuration: expirationDuration,
+              cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
               navigationBar: NavigationAppBar.modal(
                 title: Text(context.i18n.feed_share_via),
                 actions: const [NavigationCloseButton()],
