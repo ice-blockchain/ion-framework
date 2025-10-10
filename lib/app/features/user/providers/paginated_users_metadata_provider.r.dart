@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
@@ -69,7 +70,11 @@ class PaginatedUsersMetadata extends _$PaginatedUsersMetadata {
       final ionIdentityClient = await ref.watch(ionIdentityClientProvider.future);
       final userRelaysInfo = await _fetcher(_limit, _offset, currentData, ionIdentityClient);
 
-      final masterPubkeys = userRelaysInfo.map((e) => e.masterPubKey).toSet();
+      // Remove duplicates while preserving order using LinkedHashSet
+      final masterPubkeys = LinkedHashSet<String>.from(
+        userRelaysInfo.map((e) => e.masterPubKey),
+      ).toList();
+
       final usersMetadataWithDependencies =
           await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
                 expirationDuration: expirationDuration,
@@ -84,9 +89,22 @@ class PaginatedUsersMetadata extends _$PaginatedUsersMetadata {
                 search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
               );
 
+      // Preserve the original order from userRelaysInfo
+      final entitiesById = <String, UserMetadataEntity>{};
+      for (final entity in usersMetadataWithDependencies.whereType<UserMetadataEntity>()) {
+        entitiesById[entity.masterPubkey] = entity;
+      }
+
+      // Create ordered list based on original masterPubkeys order
+      final orderedEntities = masterPubkeys
+          .map((pubkey) => entitiesById[pubkey])
+          .where((entity) => entity != null)
+          .cast<UserMetadataEntity>()
+          .toList();
+
       final merged = [
         ...currentData,
-        ...usersMetadataWithDependencies.whereType<UserMetadataEntity>(),
+        ...orderedEntities,
       ];
       return PaginatedUsersMetadataData(items: merged, hasMore: userRelaysInfo.length == _limit);
     });
