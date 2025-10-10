@@ -113,9 +113,7 @@ class GalleryNotifier extends _$GalleryNotifier {
     );
   }
 
-  Future<void> fetchNextPage({
-    required bool isNeedFilterVideoByFormat,
-  }) async {
+  Future<void> fetchNextPage() async {
     final currentState = state.valueOrNull;
 
     if (currentState == null || currentState.isLoading) return;
@@ -163,9 +161,8 @@ class GalleryNotifier extends _$GalleryNotifier {
   }
 
   Future<void> selectAlbum(
-    AlbumData album, {
-    required bool isNeedFilterVideoByFormat,
-  }) async {
+    AlbumData album,
+  ) async {
     final currentState = state.valueOrNull;
     if (currentState == null) return;
 
@@ -175,7 +172,6 @@ class GalleryNotifier extends _$GalleryNotifier {
         oldState: currentState.copyWith(selectedAlbum: album, mediaData: []),
         page: 0,
         type: currentState.type,
-        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
       );
       return newState;
     });
@@ -185,7 +181,6 @@ class GalleryNotifier extends _$GalleryNotifier {
     required GalleryState oldState,
     required int page,
     required MediaPickerType type,
-    required bool isNeedFilterVideoByFormat,
   }) async {
     var album = oldState.selectedAlbum;
     if (album == null) {

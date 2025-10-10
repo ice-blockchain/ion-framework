@@ -88,7 +88,6 @@ class AlbumSelectionPage extends ConsumerWidget {
                       )
                       .selectAlbum(
                         album,
-                        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
                       );
                   context.pop();
                 },

@@ -162,9 +162,7 @@ class MediaPickerPage extends HookConsumerWidget {
               isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
             ).notifier,
           )
-          .fetchNextPage(
-            isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
-          ),
+          .fetchNextPage(),
     );
 
     return isBottomSheet
