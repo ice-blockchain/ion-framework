@@ -208,7 +208,7 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
       ..where((t) => t.messageEventReference.isInValues(eventReferences));
     final medias = await mediaQuery.get();
     for (final media in medias) {
-      if (media.remoteUrl != null && media.remoteUrl.isNotEmpty) {
+      if (media.remoteUrl?.isNotEmpty ?? false) {
         unawaited(fileCacheService.removeFile(media.remoteUrl!));
       }
     }
