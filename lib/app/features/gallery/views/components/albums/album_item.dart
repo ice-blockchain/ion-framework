@@ -14,6 +14,7 @@ class AlbumItem extends StatelessWidget {
     required this.isAll,
     required this.isSelected,
     required this.onTap,
+    required this.isNeedFilterVideoByFormat,
     super.key,
   });
 
@@ -23,6 +24,7 @@ class AlbumItem extends StatelessWidget {
   final bool isAll;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool isNeedFilterVideoByFormat;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +36,10 @@ class AlbumItem extends StatelessWidget {
           padding: EdgeInsetsDirectional.only(bottom: 16.0.s),
           child: Row(
             children: [
-              AlbumThumbnail(albumId: albumId),
+              AlbumThumbnail(
+                albumId: albumId,
+                isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+              ),
               SizedBox(width: 12.0.s),
               Expanded(
                 child: Column(

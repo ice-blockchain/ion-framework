@@ -40,6 +40,7 @@ class GalleryPermissionButton extends ConsumerWidget {
           final mediaFiles = await MediaPickerRoute(
             maxSelection: maxSelection,
             mediaPickerType: mediaPickerType,
+            isNeedFilterVideoByFormat: false,
           ).push<List<MediaFile>>(context);
 
           onMediaSelected(mediaFiles);

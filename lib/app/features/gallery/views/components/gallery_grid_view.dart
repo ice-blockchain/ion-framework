@@ -14,6 +14,7 @@ class GalleryGridView extends ConsumerWidget {
   const GalleryGridView({
     required this.galleryState,
     required this.showSelectionBadge,
+    required this.isNeedFilterVideoByFormat,
     this.type = MediaPickerType.common,
     this.showCameraCell = true,
     super.key,
@@ -26,6 +27,7 @@ class GalleryGridView extends ConsumerWidget {
   final MediaPickerType type;
   final bool showSelectionBadge;
   final bool showCameraCell;
+  final bool isNeedFilterVideoByFormat;
 
   int _getIndexOffset(bool hasLimitedPermission) {
     var offset = 0;
@@ -52,7 +54,10 @@ class GalleryGridView extends ConsumerWidget {
           var currentIndex = index;
 
           if (showCameraCell && index == 0) {
-            return CameraCell(type: type);
+            return CameraCell(
+              type: type,
+              isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+            );
           } else if (showCameraCell) {
             currentIndex -= 1;
           }
@@ -67,6 +72,7 @@ class GalleryGridView extends ConsumerWidget {
           return GalleryGridCell(
             key: ValueKey(mediaData.path),
             mediaFile: mediaData,
+            isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
             type: type,
             showSelectionBadge: showSelectionBadge,
           );

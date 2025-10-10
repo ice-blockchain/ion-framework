@@ -14,17 +14,32 @@ import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 class AlbumSelectionPage extends ConsumerWidget {
   const AlbumSelectionPage({
     required this.type,
+    required this.isNeedFilterVideoByFormat,
     this.isBottomSheet = false,
     super.key,
   });
 
   final MediaPickerType type;
   final bool isBottomSheet;
+  final bool isNeedFilterVideoByFormat;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final albumsAsync = ref.watch(albumsProvider(type: type));
-    final currentAlbum = ref.watch(galleryNotifierProvider(type: type)).valueOrNull?.selectedAlbum;
+    final albumsAsync = ref.watch(
+      albumsProvider(
+        type: type,
+        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      ),
+    );
+    final currentAlbum = ref
+        .watch(
+          galleryNotifierProvider(
+            type: type,
+            isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+          ),
+        )
+        .valueOrNull
+        ?.selectedAlbum;
 
     final content = CustomScrollView(
       slivers: [
@@ -62,8 +77,19 @@ class AlbumSelectionPage extends ConsumerWidget {
                 assetCount: album.assetCount,
                 isAll: album.isAll,
                 isSelected: isSelected,
+                isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
                 onTap: () {
-                  ref.read(galleryNotifierProvider(type: type).notifier).selectAlbum(album);
+                  ref
+                      .read(
+                        galleryNotifierProvider(
+                          type: type,
+                          isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+                        ).notifier,
+                      )
+                      .selectAlbum(
+                        album,
+                        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+                      );
                   context.pop();
                 },
               );

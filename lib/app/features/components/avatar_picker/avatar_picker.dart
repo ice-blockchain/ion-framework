@@ -82,6 +82,7 @@ class AvatarPicker extends HookConsumerWidget {
                     isBottomSheet: true,
                     title: title,
                     type: MediaPickerType.image,
+                    isNeedFilterVideoByFormat: false,
                   ),
                 );
                 if (mediaFiles != null && context.mounted) {

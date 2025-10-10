@@ -20,6 +20,7 @@ import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 class GalleryGridCell extends ConsumerWidget {
   const GalleryGridCell({
     required this.mediaFile,
+    required this.isNeedFilterVideoByFormat,
     required this.showSelectionBadge,
     this.type = MediaPickerType.common,
     super.key,
@@ -28,6 +29,7 @@ class GalleryGridCell extends ConsumerWidget {
   final MediaFile mediaFile;
   final MediaPickerType type;
   final bool showSelectionBadge;
+  final bool isNeedFilterVideoByFormat;
 
   static double get cellHeight => 120.0.s;
 
@@ -66,9 +68,11 @@ class GalleryGridCell extends ConsumerWidget {
                       maxVideoDurationInSeconds: maxVideoDurationInSeconds,
                     );
                     if (isSelectedAssetValid) {
-                      ref
-                          .read(mediaSelectionNotifierProvider.notifier)
-                          .toggleSelection(mediaFile.path, type: type);
+                      ref.read(mediaSelectionNotifierProvider.notifier).toggleSelection(
+                            mediaFile.path,
+                            type: type,
+                            isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+                          );
                     }
                   },
             child: Image(

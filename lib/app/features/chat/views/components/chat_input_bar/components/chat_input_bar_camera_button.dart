@@ -26,6 +26,7 @@ class ChatInputBarCameraButton extends ConsumerWidget {
       onGranted: () async {
         final mediaFiles = await MediaPickerRoute(
           maxSelection: 10,
+          isNeedFilterVideoByFormat: false,
           maxVideoDurationInSeconds:
               ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds,
         ).push<List<MediaFile>>(context);

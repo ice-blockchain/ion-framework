@@ -9,13 +9,19 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 
 class AlbumThumbnail extends ConsumerWidget {
-  const AlbumThumbnail({required this.albumId, super.key});
+  const AlbumThumbnail({required this.albumId, required this.isNeedFilterVideoByFormat, super.key});
 
   final String albumId;
+  final bool isNeedFilterVideoByFormat;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final previewAsync = ref.watch(albumPreviewProvider(albumId));
+    final previewAsync = ref.watch(
+      albumPreviewProvider(
+        albumId,
+        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      ),
+    );
 
     return previewAsync.maybeWhen(
       data: (asset) {

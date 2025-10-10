@@ -165,6 +165,7 @@ class _ShareVideoButton extends HookConsumerWidget {
             child: MediaPickerPage(
               maxSelection: 1,
               isBottomSheet: true,
+              isNeedFilterVideoByFormat: true,
               type: MediaPickerType.video,
               onSelectCallback: (result) async {
                 if (context.mounted) {

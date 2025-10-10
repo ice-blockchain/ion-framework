@@ -13,13 +13,27 @@ part 'albums_provider.r.g.dart';
 AlbumService albumService(Ref ref) => AlbumService();
 
 @riverpod
-Future<List<AlbumData>> albums(Ref ref, {required MediaPickerType type}) {
+Future<List<AlbumData>> albums(
+  Ref ref, {
+  required MediaPickerType type,
+  bool isNeedFilterVideoByFormat = false,
+}) {
   final albumService = ref.watch(albumServiceProvider);
-  return albumService.fetchAlbums(type: type);
+  return albumService.fetchAlbums(
+    type: type,
+    isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+  );
 }
 
 @riverpod
-Future<AssetEntity?> albumPreview(Ref ref, String albumId) async {
+Future<AssetEntity?> albumPreview(
+  Ref ref,
+  String albumId, {
+  bool isNeedFilterVideoByFormat = false,
+}) async {
   final albumService = ref.watch(albumServiceProvider);
-  return albumService.fetchFirstAssetOfAlbum(albumId);
+  return albumService.fetchFirstAssetOfAlbum(
+    albumId,
+    isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+  );
 }

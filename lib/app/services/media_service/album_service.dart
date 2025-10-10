@@ -12,18 +12,27 @@ class AlbumService {
 
   AssetPathEntity? getAssetPathEntityById(String albumId) => _albumsCache[albumId];
 
-  Future<AssetEntity?> fetchFirstAssetOfAlbum(String albumId) async {
+  Future<AssetEntity?> fetchFirstAssetOfAlbum(
+    String albumId, {
+    required bool isNeedFilterVideoByFormat,
+  }) async {
     final pathEntity = _albumsCache[albumId];
     if (pathEntity == null) return null;
 
     final assets = await pathEntity.getAssetListRange(start: 0, end: 10);
-    final filteredAssets = _filterUnsupportedVideoFormats(assets);
+    final filteredAssets = _filterUnsupportedVideoFormats(
+      assets,
+      isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+    );
     if (filteredAssets.isEmpty) return null;
 
     return filteredAssets.first;
   }
 
-  Future<List<AlbumData>> fetchAlbums({required MediaPickerType type}) async {
+  Future<List<AlbumData>> fetchAlbums({
+    required MediaPickerType type,
+    required bool isNeedFilterVideoByFormat,
+  }) async {
     final assetPathList = await PhotoManager.getAssetPathList(
       type: type.toRequestType(),
     );
@@ -32,7 +41,10 @@ class AlbumService {
 
     final futures = assetPathList.map((ap) async {
       _albumsCache[ap.id] = ap;
-      final count = await _countAssets(ap);
+      final count = await _countAssets(
+        ap,
+        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      );
       return AlbumData(
         id: ap.id,
         name: ap.name,
@@ -77,7 +89,14 @@ class AlbumService {
     return mediaFiles;
   }
 
-  List<AssetEntity> _filterUnsupportedVideoFormats(List<AssetEntity> mediaFiles) {
+  List<AssetEntity> _filterUnsupportedVideoFormats(
+    List<AssetEntity> mediaFiles, {
+    required bool isNeedFilterVideoByFormat,
+  }) {
+    if (!isNeedFilterVideoByFormat) {
+      return mediaFiles;
+    }
+
     final filteredMediaFiles = <AssetEntity>[];
     for (final mediaFile in mediaFiles) {
       final mimeType = mediaFile.mimeType;
@@ -93,10 +112,20 @@ class AlbumService {
     return filteredMediaFiles;
   }
 
-  Future<int> _countAssets(AssetPathEntity ap) async {
+  Future<int> _countAssets(
+    AssetPathEntity ap, {
+    required bool isNeedFilterVideoByFormat,
+  }) async {
     final allCount = await ap.assetCountAsync;
+    if (!isNeedFilterVideoByFormat) {
+      return allCount;
+    }
+
     final allAssets = await ap.getAssetListRange(start: 0, end: allCount);
-    final filteredAssets = _filterUnsupportedVideoFormats(allAssets);
+    final filteredAssets = _filterUnsupportedVideoFormats(
+      allAssets,
+      isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+    );
     return filteredAssets.length;
   }
 }

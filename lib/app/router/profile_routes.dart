@@ -286,7 +286,10 @@ class AlbumSelectionProfileRoute extends BaseRouteData {
   AlbumSelectionProfileRoute({
     required this.mediaPickerType,
   }) : super(
-          child: AlbumSelectionPage(type: mediaPickerType),
+          child: AlbumSelectionPage(
+            type: mediaPickerType,
+            isNeedFilterVideoByFormat: false,
+          ),
           type: IceRouteType.bottomSheet,
         );
 

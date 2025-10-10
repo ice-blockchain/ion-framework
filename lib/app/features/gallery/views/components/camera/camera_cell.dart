@@ -17,9 +17,14 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
 class CameraCell extends HookConsumerWidget {
-  const CameraCell({required this.type, super.key});
+  const CameraCell({
+    required this.type,
+    required this.isNeedFilterVideoByFormat,
+    super.key,
+  });
 
   final MediaPickerType type;
+  final bool isNeedFilterVideoByFormat;
 
   static double get cellHeight => 120.0.s;
   static double get cellWidth => 122.0.s;
@@ -69,7 +74,12 @@ class CameraCell extends HookConsumerWidget {
 
                 await _openCamera(
                   context,
-                  ref.read(galleryNotifierProvider(type: type).notifier),
+                  ref.read(
+                    galleryNotifierProvider(
+                      type: type,
+                      isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+                    ).notifier,
+                  ),
                 );
               }
             },
@@ -83,7 +93,12 @@ class CameraCell extends HookConsumerWidget {
         await ref.read(cameraControllerNotifierProvider).maybeWhen(
               ready: (_, __, ___) => _openCamera(
                 context,
-                ref.read(galleryNotifierProvider(type: type).notifier),
+                ref.read(
+                  galleryNotifierProvider(
+                    type: type,
+                    isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+                  ).notifier,
+                ),
               ),
               orElse: () {
                 shouldOpenCamera.value = true;

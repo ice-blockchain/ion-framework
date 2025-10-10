@@ -38,6 +38,7 @@ class ArticleFormAddImage extends HookConsumerWidget {
       onGranted: () async {
         if (context.mounted) {
           final mediaFiles = await MediaPickerRoute(
+            isNeedFilterVideoByFormat: false,
             maxSelection: 1,
             mediaPickerType: MediaPickerType.image,
           ).push<List<MediaFile>>(context);

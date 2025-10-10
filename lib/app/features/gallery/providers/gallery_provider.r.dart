@@ -53,7 +53,10 @@ class GalleryNotifier extends _$GalleryNotifier {
   static const int _pageSize = 100;
 
   @override
-  Future<GalleryState> build({MediaPickerType type = MediaPickerType.common}) async {
+  Future<GalleryState> build({
+    MediaPickerType type = MediaPickerType.common,
+    bool isNeedFilterVideoByFormat = false,
+  }) async {
     final mediaService = ref.watch(mediaServiceProvider);
     final hasPermission = ref.watch(hasPermissionProvider(Permission.photos));
 
@@ -79,7 +82,13 @@ class GalleryNotifier extends _$GalleryNotifier {
       final existingMedia = currentState?.mediaData ?? [];
       final existingMediaPaths = existingMedia.map((m) => m.path).toSet();
       final newMedia = media.where((m) => !existingMediaPaths.contains(m.path)).toList();
-      final allData = [...existingMedia, ..._filterUnsupportedVideoFormats(newMedia)];
+      final allData = [
+        ...existingMedia,
+        ..._filterUnsupportedVideoFormats(
+          newMedia,
+          isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+        ),
+      ];
 
       state = AsyncValue.data(
         GalleryState(
@@ -103,7 +112,9 @@ class GalleryNotifier extends _$GalleryNotifier {
     );
   }
 
-  Future<void> fetchNextPage() async {
+  Future<void> fetchNextPage({
+    required bool isNeedFilterVideoByFormat,
+  }) async {
     final currentState = state.valueOrNull;
 
     if (currentState == null || currentState.isLoading) return;
@@ -135,7 +146,10 @@ class GalleryNotifier extends _$GalleryNotifier {
       );
 
       final hasMore = newMedia.length == _pageSize;
-      final filteredMedia = _filterUnsupportedVideoFormats(newMedia);
+      final filteredMedia = _filterUnsupportedVideoFormats(
+        newMedia,
+        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+      );
 
       return currentState.copyWith(
         mediaData: [...currentState.mediaData, ...filteredMedia],
@@ -146,7 +160,10 @@ class GalleryNotifier extends _$GalleryNotifier {
     });
   }
 
-  Future<void> selectAlbum(AlbumData album) async {
+  Future<void> selectAlbum(
+    AlbumData album, {
+    required bool isNeedFilterVideoByFormat,
+  }) async {
     final currentState = state.valueOrNull;
     if (currentState == null) return;
 
@@ -156,6 +173,7 @@ class GalleryNotifier extends _$GalleryNotifier {
         oldState: currentState.copyWith(selectedAlbum: album, mediaData: []),
         page: 0,
         type: currentState.type,
+        isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
       );
       return newState;
     });
@@ -165,10 +183,16 @@ class GalleryNotifier extends _$GalleryNotifier {
     required GalleryState oldState,
     required int page,
     required MediaPickerType type,
+    required bool isNeedFilterVideoByFormat,
   }) async {
     var album = oldState.selectedAlbum;
     if (album == null) {
-      final albumList = await ref.read(albumsProvider(type: type).future);
+      final albumList = await ref.read(
+        albumsProvider(
+          type: type,
+          isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+        ).future,
+      );
       if (albumList.isEmpty) {
         return oldState.copyWith(
           mediaData: [],
@@ -188,7 +212,10 @@ class GalleryNotifier extends _$GalleryNotifier {
       type: type,
     );
 
-    final filteredMedia = _filterUnsupportedVideoFormats(newMedia);
+    final filteredMedia = _filterUnsupportedVideoFormats(
+      newMedia,
+      isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+    );
 
     return oldState.copyWith(
       mediaData: filteredMedia,
@@ -225,14 +252,23 @@ class GalleryNotifier extends _$GalleryNotifier {
 
     final updatedState = state.valueOrNull;
     if (updatedState != null) {
-      ref
-          .read(mediaSelectionNotifierProvider.notifier)
-          .toggleSelection(mediaFile.path, type: updatedState.type);
+      ref.read(mediaSelectionNotifierProvider.notifier).toggleSelection(
+            mediaFile.path,
+            type: updatedState.type,
+            isNeedFilterVideoByFormat: isNeedFilterVideoByFormat,
+          );
     }
   }
 
   // Filter out unsupported video formats
-  List<MediaFile> _filterUnsupportedVideoFormats(List<MediaFile> mediaFiles) {
+  List<MediaFile> _filterUnsupportedVideoFormats(
+    List<MediaFile> mediaFiles, {
+    required bool isNeedFilterVideoByFormat,
+  }) {
+    if (!isNeedFilterVideoByFormat) {
+      return mediaFiles;
+    }
+
     final filteredMediaFiles = <MediaFile>[];
     for (final mediaFile in mediaFiles) {
       final mimeType = mediaFile.mimeType;
