@@ -36,6 +36,9 @@ class ContactPickerModal extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Debounce mechanism to prevent multiple rapid user selections
+    final isProcessing = useRef(false);
+
     final validator = useCallback(
       (
         WidgetRef ref,
@@ -81,8 +84,17 @@ class ContactPickerModal extends HookConsumerWidget {
           actions: const [NavigationCloseButton()],
         ),
         onUserSelected: (user) async {
-          if (await validator(ref, context, user) && context.mounted) {
-            context.pop(user.masterPubkey);
+          // Prevent multiple rapid user selections
+          if (isProcessing.value) return;
+          isProcessing.value = true;
+          try {
+            if (await validator(ref, context, user) && context.mounted) {
+              context.pop(user.masterPubkey);
+            }
+          } finally {
+            if (context.mounted) {
+              isProcessing.value = false;
+            }
           }
         },
       ),
