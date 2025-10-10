@@ -6,6 +6,7 @@ part of '../chat_database.m.dart';
 ConversationDao conversationDao(Ref ref) => ConversationDao(
       ref.watch(chatDatabaseProvider),
       eventMessageDao: ref.watch(eventMessageDaoProvider),
+      conversationDao: ref.watch(conversationDaoProvider),
       fileCacheService: ref.watch(fileCacheServiceProvider),
     );
 
@@ -23,10 +24,12 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
   ConversationDao(
     super.db, {
     required this.eventMessageDao,
+    required this.conversationDao,
     required this.fileCacheService,
   });
 
   final EventMessageDao eventMessageDao;
+  final ConversationDao conversationDao;
   final FileCacheService fileCacheService;
 
   /// Adds events to database and creates conversations
@@ -366,7 +369,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
       ..where((t) => t.messageEventReference.isInValues(messageEventReferences));
     final medias = await mediaQuery.get();
     for (final media in medias) {
-      if (media.remoteUrl.isNotEmpty) {
+      if (media.remoteUrl != null && media.remoteUrl!.isNotEmpty) {
         unawaited(fileCacheService.removeFile(media.remoteUrl!));
       }
     }
@@ -415,6 +418,8 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
           (table) => table.messageEventReference.isInValues(messageEventReferences),
         );
     });
+
+    await conversationDao.unhideConversations(conversationIds);
   }
 
   Future<void> hideConversations(List<String> conversationsId) async {
