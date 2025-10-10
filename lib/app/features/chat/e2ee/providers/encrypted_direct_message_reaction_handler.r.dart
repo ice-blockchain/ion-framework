@@ -15,13 +15,17 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'encrypted_direct_message_reaction_handler.r.g.dart';
 
 class EncryptedDirectMessageReactionHandler extends GlobalSubscriptionEncryptedEventMessageHandler {
-  EncryptedDirectMessageReactionHandler(
-    this.conversationMessageReactionDao,
-    this.eventMessageDao,
-  );
+  EncryptedDirectMessageReactionHandler({
+    required this.eventMessageDao,
+    required this.conversationDao,
+    required this.conversationMessageDao,
+    required this.conversationMessageReactionDao,
+  });
 
-  final ConversationMessageReactionDao conversationMessageReactionDao;
   final EventMessageDao eventMessageDao;
+  final ConversationDao conversationDao;
+  final ConversationMessageDao conversationMessageDao;
+  final ConversationMessageReactionDao conversationMessageReactionDao;
 
   @override
   bool canHandle({
@@ -36,10 +40,13 @@ class EncryptedDirectMessageReactionHandler extends GlobalSubscriptionEncryptedE
   @override
   Future<EventReference> handle(EventMessage rumor) async {
     final entity = PrivateMessageReactionEntity.fromEventMessage(rumor);
-    await conversationMessageReactionDao.add(
-      reactionEvent: rumor,
-      eventMessageDao: eventMessageDao,
-    );
+    if (await conversationMessageReactionDao.reactionIsNotDeleted(entity) &&
+        await conversationMessageDao.messageIsNotDeleted(entity.data.reference)) {
+      await conversationMessageReactionDao.add(
+        reactionEvent: rumor,
+        eventMessageDao: eventMessageDao,
+      );
+    }
     return entity.toEventReference();
   }
 }
@@ -47,6 +54,8 @@ class EncryptedDirectMessageReactionHandler extends GlobalSubscriptionEncryptedE
 @riverpod
 EncryptedDirectMessageReactionHandler encryptedDirectMessageReactionHandler(Ref ref) =>
     EncryptedDirectMessageReactionHandler(
-      ref.watch(conversationMessageReactionDaoProvider),
-      ref.watch(eventMessageDaoProvider),
+      conversationDao: ref.watch(conversationDaoProvider),
+      eventMessageDao: ref.watch(eventMessageDaoProvider),
+      conversationMessageDao: ref.watch(conversationMessageDaoProvider),
+      conversationMessageReactionDao: ref.watch(conversationMessageReactionDaoProvider),
     );

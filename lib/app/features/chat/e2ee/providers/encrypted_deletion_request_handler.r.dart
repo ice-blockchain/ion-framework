@@ -27,76 +27,82 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'encrypted_deletion_request_handler.r.g.dart';
 
 class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMessageHandler {
-  EncryptedDeletionRequestHandler(
-    this.conversationMessageDao,
-    this.conversationMessageReactionDao,
-    this.conversationDao,
-    this.eventMessageDao,
-    this.env,
-    this.masterPubkey,
-    this.eventSigner,
-    this.requestAssetsRepository,
-    this.transactionsRepository,
-    this.localNotificationsService,
-  );
-
-  final ConversationMessageDao conversationMessageDao;
-  final ConversationMessageReactionDao conversationMessageReactionDao;
-  final ConversationDao conversationDao;
-  final EventMessageDao eventMessageDao;
-  final RequestAssetsRepository requestAssetsRepository;
-  final TransactionsRepository transactionsRepository;
-  final LocalNotificationsService localNotificationsService;
+  EncryptedDeletionRequestHandler({
+    required this.env,
+    required this.eventSigner,
+    required this.masterPubkey,
+    required this.conversationDao,
+    required this.eventMessageDao,
+    required this.transactionsRepository,
+    required this.requestAssetsRepository,
+    required this.conversationMessageDao,
+    required this.conversationMessageReactionDao,
+  });
 
   final Env env;
   final String masterPubkey;
   final EventSigner eventSigner;
+  final EventMessageDao eventMessageDao;
+  final ConversationDao conversationDao;
+  final ConversationMessageDao conversationMessageDao;
+  final TransactionsRepository transactionsRepository;
+  final RequestAssetsRepository requestAssetsRepository;
+  final ConversationMessageReactionDao conversationMessageReactionDao;
 
   @override
-  bool canHandle({
-    required IonConnectGiftWrapEntity entity,
-  }) {
-    return entity.data.kinds.containsDeep([DeletionRequestEntity.kind.toString()]);
-  }
+  bool canHandle({required IonConnectGiftWrapEntity entity}) =>
+      entity.data.kinds.containsDeep([DeletionRequestEntity.kind.toString()]);
 
   @override
   Future<EventReference> handle(EventMessage rumor) async {
+    await eventMessageDao.add(rumor);
     final deletionRequest = DeletionRequestEntity.fromEventMessage(rumor);
-    final eventsToDelete = deletionRequest.data.events.whereType<EventToDelete>().toList();
 
-    unawaited(_deleteConversation(rumor));
-    unawaited(deleteConversationMessages(eventsToDelete));
-    unawaited(_deleteMessageReaction(rumor));
+    unawaited(_removeMessageReactionFromDatabase(rumor));
+    unawaited(_removeMessagesFromDatabase(rumor));
+    unawaited(_removeConversationsFromDatabase(rumor));
     unawaited(_deleteFundsRequest(rumor));
     unawaited(_deleteWalletAsset(rumor));
 
     return deletionRequest.toEventReference();
   }
 
-  Future<void> _deleteConversation(EventMessage rumor) async {
-    final deleteConversationIds = rumor.tags
+  Future<void> _removeConversationsFromDatabase(EventMessage rumor) async {
+    final conversationIds = rumor.tags
         .where((tags) => tags[0] == ConversationIdentifier.tagName)
         .map((tag) => tag.elementAtOrNull(1))
         .nonNulls
         .toList();
 
-    if (deleteConversationIds.isNotEmpty) {
-      unawaited(localNotificationsService.cancelByGroupKeys(deleteConversationIds));
+    if (conversationIds.isNotEmpty) {
+      unawaited(localNotificationsService.cancelByGroupKeys(conversationIds));
 
-      await eventMessageDao.add(rumor);
-      await conversationDao.removeConversations(
-        deleteRequest: rumor,
-        conversationIds: deleteConversationIds,
-        eventMessageDao: eventMessageDao,
+      await conversationDao.removeConversationsFromDatabase(
+        startingFrom: rumor.createdAt,
+        conversationIds: conversationIds,
       );
     }
   }
 
-  Future<void> _deleteMessageReaction(EventMessage rumor) async {
-    final deletionRequest = DeletionRequest.fromEventMessage(rumor);
+  Future<void> _removeMessagesFromDatabase(EventMessage rumor) async {
+    final eventsToDelete =
+        DeletionRequest.fromEventMessage(rumor).events.whereType<EventToDelete>().toList();
 
-    final reactionsToDelete = deletionRequest.events
-        .whereType<EventToDelete>()
+    final messageEventReferences = eventsToDelete
+        .where((event) => event.eventReference is ReplaceableEventReference)
+        .map((event) => event.eventReference)
+        .toList();
+
+    if (messageEventReferences.isEmpty) return;
+
+    await conversationMessageDao.removeMessagesFromDatabase(messageEventReferences);
+  }
+
+  Future<void> _removeMessageReactionFromDatabase(EventMessage rumor) async {
+    final eventsToDelete =
+        DeletionRequest.fromEventMessage(rumor).events.whereType<EventToDelete>().toList();
+
+    final reactionsEventReferences = eventsToDelete
         .where(
           (event) =>
               event.eventReference is ImmutableEventReference &&
@@ -105,69 +111,9 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
         .map((event) => event.eventReference as ImmutableEventReference)
         .toList();
 
-    if (reactionsToDelete.isEmpty) return;
+    if (reactionsEventReferences.isEmpty) return;
 
-    await Future.wait(
-      reactionsToDelete.map((reactionEventReference) async {
-        await conversationMessageReactionDao.remove(
-          reactionEventReference: reactionEventReference,
-        );
-      }),
-    );
-  }
-
-  Future<void> deleteConversationMessages(List<EventToDelete> eventsToDelete) async {
-    if (eventsToDelete.isEmpty) return;
-
-    for (final event in eventsToDelete) {
-      final eventReference = event.eventReference;
-      if (eventReference is ReplaceableEventReference) {
-        await conversationMessageDao.removeMessages(
-          env: env,
-          masterPubkey: masterPubkey,
-          eventReferences: [eventReference],
-          eventSignerPubkey: eventSigner.publicKey,
-        );
-      } else if (eventReference is ImmutableEventReference) {
-        await conversationMessageDao.removeMessages(
-          env: env,
-          masterPubkey: masterPubkey,
-          eventReferences: [eventReference],
-          eventSignerPubkey: eventSigner.publicKey,
-        );
-        await conversationMessageReactionDao.remove(reactionEventReference: eventReference);
-      }
-    }
-  }
-
-  Future<void> revertDeletedConversationMessages(EventMessage rumor) async {
-    final eventsToDelete =
-        DeletionRequest.fromEventMessage(rumor).events.whereType<EventToDelete>().toList();
-
-    if (eventsToDelete.isEmpty) return;
-
-    for (final event in eventsToDelete) {
-      final eventReference = event.eventReference;
-      if (eventReference is ReplaceableEventReference) {
-        await conversationMessageDao.revertDeletedMessages(
-          env: env,
-          masterPubkey: masterPubkey,
-          eventReferences: [eventReference],
-          eventSignerPubkey: eventSigner.publicKey,
-        );
-      } else if (eventReference is ImmutableEventReference) {
-        await conversationMessageDao.revertDeletedMessages(
-          env: env,
-          masterPubkey: masterPubkey,
-          eventReferences: [eventReference],
-          eventSignerPubkey: eventSigner.publicKey,
-        );
-
-        await conversationMessageReactionDao.revertDeletedReaction(
-          reactionEventReference: eventReference,
-        );
-      }
-    }
+    await conversationMessageReactionDao.removeReactionsFromDatabase(reactionsEventReferences);
   }
 
   Future<void> _deleteFundsRequest(EventMessage rumor) async {
@@ -234,15 +180,14 @@ Future<EncryptedDeletionRequestHandler?> encryptedDeletionRequestHandler(Ref ref
   final localNotificationsService = await ref.watch(localNotificationsServiceProvider.future);
 
   return EncryptedDeletionRequestHandler(
-    ref.watch(conversationMessageDaoProvider),
-    ref.watch(conversationMessageReactionDaoProvider),
-    ref.watch(conversationDaoProvider),
-    ref.watch(eventMessageDaoProvider),
-    ref.watch(envProvider.notifier),
-    masterPubkey,
-    eventSigner,
-    ref.watch(requestAssetsRepositoryProvider),
-    await ref.watch(transactionsRepositoryProvider.future),
-    localNotificationsService,
+    eventSigner: eventSigner,
+    masterPubkey: masterPubkey,
+    env: ref.watch(envProvider.notifier),
+    conversationDao: ref.watch(conversationDaoProvider),
+    eventMessageDao: ref.watch(eventMessageDaoProvider),
+    conversationMessageDao: ref.watch(conversationMessageDaoProvider),
+    requestAssetsRepository: ref.watch(requestAssetsRepositoryProvider),
+    transactionsRepository: await ref.watch(transactionsRepositoryProvider.future),
+    conversationMessageReactionDao: ref.watch(conversationMessageReactionDaoProvider),
   );
 }

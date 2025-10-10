@@ -8,7 +8,6 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/conversation_to_delete.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_message_reaction_data.f.dart';
-import 'package:ion/app/features/chat/e2ee/providers/encrypted_deletion_request_handler.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/conversation_pubkeys_provider.r.dart';
@@ -149,6 +148,7 @@ Future<void> _deleteMessages({
   required bool forEveryone,
   required List<EventMessage> messageEvents,
 }) async {
+  final conversationMessageDao = ref.watch(conversationMessageDaoProvider);
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
   final eventSigner = await ref.watch(currentUserIonConnectEventSignerProvider.future);
 
@@ -191,10 +191,10 @@ Future<void> _deleteMessages({
     masterPubkey: currentUserMasterPubkey,
   );
 
-  // Mark message as deleted in the database
-  final deletionHandler = await ref.read(encryptedDeletionRequestHandlerProvider.future);
-  await deletionHandler
-      ?.deleteConversationMessages(deleteRequest.events.whereType<EventToDelete>().toList());
+  final eventReferences =
+      deleteRequest.events.whereType<EventToDelete>().map((e) => e.eventReference).toList();
+
+  await conversationMessageDao.hideConversationMessages(eventReferences);
 
   try {
     final participantsKeysMap =
@@ -222,9 +222,7 @@ Future<void> _deleteMessages({
       }),
     );
   } catch (e) {
-    // Revert the deletion in the database if sending fails
-    final deletionHandler = await ref.read(encryptedDeletionRequestHandlerProvider.future);
-    unawaited(deletionHandler?.revertDeletedConversationMessages(eventMessage));
+    unawaited(conversationMessageDao.unhideConversationMessages(eventReferences));
   }
 }
 

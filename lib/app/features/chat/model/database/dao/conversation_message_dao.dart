@@ -3,21 +3,51 @@
 part of '../chat_database.m.dart';
 
 @Riverpod(keepAlive: true)
-ConversationMessageDao conversationMessageDao(Ref ref) =>
-    ConversationMessageDao(ref.watch(chatDatabaseProvider));
+ConversationMessageDao conversationMessageDao(Ref ref) => ConversationMessageDao(
+      ref.watch(chatDatabaseProvider),
+      masterPubkey: ref.watch(currentPubkeySelectorProvider),
+      fileCacheService: ref.watch(fileCacheServiceProvider),
+      eventSigner: ref.watch(currentUserIonConnectEventSignerProvider).valueOrNull,
+    );
 
 @DriftAccessor(
   tables: [
-    ConversationMessageTable,
+    ReactionTable,
+    MessageMediaTable,
+    ConversationTable,
     EventMessageTable,
     MessageStatusTable,
-    ConversationTable,
-    ReactionTable,
+    ConversationMessageTable,
   ],
 )
 class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
     with _$ConversationMessageDaoMixin {
-  ConversationMessageDao(super.db);
+  ConversationMessageDao(
+    super.db, {
+    required this.eventSigner,
+    required this.masterPubkey,
+    required this.fileCacheService,
+  });
+
+  final String? masterPubkey;
+  final EventSigner? eventSigner;
+  final FileCacheService fileCacheService;
+
+  /// Returns `true` if there is a kind 5 (deletion request) event newer than the given [entity]'s createdAt for the message,
+  /// otherwise returns `false`.
+  Future<bool> messageIsNotDeleted(EventReference eventReference) async {
+    final query = select(eventMessageTable)
+      ..where(
+        (t) =>
+            t.kind.equals(DeletionRequestEntity.kind) &
+            t.tags.like('%["${ReplaceableEventReference.tagName}","$eventReference"%'),
+      )
+      ..limit(1);
+
+    final deleteEvent = await query.getSingleOrNull();
+
+    return deleteEvent == null;
+  }
 
   Stream<int> getUnreadMessagesCount({
     required String conversationId,
@@ -172,14 +202,90 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
     });
   }
 
-  Future<void> removeMessages({
-    required Env env,
+  Future<void> removeMessagesFromDatabase(List<EventReference> eventReferences) async {
+    // Find all medias that belong to these event messages and delete the files from storage
+    final mediaQuery = select(messageMediaTable)
+      ..where((t) => t.messageEventReference.isInValues(eventReferences));
+    final medias = await mediaQuery.get();
+    for (final media in medias) {
+      if (media.remoteUrl != null && media.remoteUrl.isNotEmpty) {
+        unawaited(fileCacheService.removeFile(media.remoteUrl!));
+      }
+    }
+
+    final reactionEventReferences = await (select(reactionTable)
+          ..where((t) => t.messageEventReference.isInValues(eventReferences)))
+        .get()
+        .then((value) => value.map((e) => e.reactionEventReference).toList());
+
+    await batch((b) {
+      // Remove event messages
+      b
+        ..deleteWhere(
+          eventMessageTable,
+          (table) => table.eventReference.isInValues(eventReferences),
+        )
+        // Remove reaction events
+        ..deleteWhere(
+          eventMessageTable,
+          (table) => table.eventReference.isInValues(reactionEventReferences),
+        )
+        // Remove message media entries
+        ..deleteWhere(
+          messageMediaTable,
+          (table) => table.messageEventReference.isInValues(eventReferences),
+        )
+        // Remove conversation messages
+        ..deleteWhere(
+          conversationMessageTable,
+          (table) => table.messageEventReference.isInValues(eventReferences),
+        )
+        // Remove message statuses
+        ..deleteWhere(
+          messageStatusTable,
+          (table) => table.messageEventReference.isInValues(eventReferences),
+        )
+        // Remove message reaction statuses
+        ..deleteWhere(
+          messageStatusTable,
+          (table) => table.messageEventReference.isInValues(reactionEventReferences),
+        )
+        // Remove reactions
+        ..deleteWhere(
+          reactionTable,
+          (table) => table.messageEventReference.isInValues(eventReferences),
+        );
+    });
+  }
+
+  Future<void> hideConversationMessages(List<EventReference> eventReferences) async {
+    if (eventSigner == null || masterPubkey == null) {
+      return;
+    }
+
+    await hideMessages(
+      masterPubkey: masterPubkey!,
+      eventReferences: eventReferences,
+      eventSignerPubkey: eventSigner!.publicKey,
+    );
+  }
+
+  Future<void> unhideConversationMessages(List<EventReference> eventReferences) async {
+    if (eventSigner == null || masterPubkey == null) {
+      return;
+    }
+    await unhideMessages(
+      masterPubkey: masterPubkey!,
+      eventReferences: eventReferences,
+      eventSignerPubkey: eventSigner!.publicKey,
+    );
+  }
+
+  Future<void> hideMessages({
     required String masterPubkey,
     required String eventSignerPubkey,
     required List<EventReference> eventReferences,
   }) async {
-    await _removeExpiredMessages(eventReferences, env);
-
     for (final eventReference in eventReferences) {
       final existingStatusRow = await (select(messageStatusTable)
             ..where((table) => table.masterPubkey.equals(masterPubkey))
@@ -210,8 +316,7 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
     }
   }
 
-  Future<void> revertDeletedMessages({
-    required Env env,
+  Future<void> unhideMessages({
     required String masterPubkey,
     required String eventSignerPubkey,
     required List<EventReference> eventReferences,
@@ -244,39 +349,5 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
         const MessageStatusTableCompanion(status: Value(MessageDeliveryStatus.read)),
       );
     }
-  }
-
-  Future<void> _removeExpiredMessages(List<EventReference> eventReferences, Env env) async {
-    final expiration = env.get<int>(EnvVariable.GIFT_WRAP_EXPIRATION_HOURS);
-
-    final expiredMessageEventReferences = await (select(eventMessageTable)
-          ..where(
-            (table) => table.createdAt.isSmallerThanValue(
-              DateTime.now().subtract(Duration(hours: expiration)).microsecondsSinceEpoch,
-            ),
-          )
-          ..where((table) => table.eventReference.isInValues(eventReferences)))
-        .map((e) => e.eventReference)
-        .get();
-
-    await batch((b) {
-      b
-        ..deleteWhere(
-          eventMessageTable,
-          (table) => table.eventReference.isInValues(expiredMessageEventReferences),
-        )
-        ..deleteWhere(
-          messageStatusTable,
-          (table) => table.messageEventReference.isInValues(expiredMessageEventReferences),
-        )
-        ..deleteWhere(
-          conversationMessageTable,
-          (table) => table.messageEventReference.isInValues(expiredMessageEventReferences),
-        )
-        ..deleteWhere(
-          reactionTable,
-          (table) => table.messageEventReference.isInValues(expiredMessageEventReferences),
-        );
-    });
   }
 }
