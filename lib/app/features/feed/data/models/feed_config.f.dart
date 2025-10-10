@@ -27,6 +27,7 @@ class FeedConfig with _$FeedConfig implements AppConfigWithVersion {
     @Default(true) bool allowNewRegistrations,
     @Default(false) bool enableEarlyAccessRegistrations,
     @Default(true) bool forceSecurityEnabled,
+    @Default(1.0) double overflowMultiplier, //TODO: remove default value
   }) = _FeedConfig;
 
   const FeedConfig._();

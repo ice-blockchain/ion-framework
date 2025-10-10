@@ -40,8 +40,6 @@ part 'feed_for_you_content_provider.m.freezed.dart';
 
 part 'feed_for_you_content_provider.m.g.dart';
 
-const overflowMultiplier = 1;
-
 @riverpod
 class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   @override
@@ -94,9 +92,12 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     Logger.info('$_logTag Requesting events');
 
     var fetchedEvents = 0;
-    final followingLimit = _getFeedFollowingDistribution(limit: limit);
-    final globalAccountsLimit = _getFeedGlobalAccountsDistribution(limit: limit);
+
+    final followingLimit = _getFeedFollowingDistribution(totalLimit: limit);
+    final globalAccountsLimit = _getFeedGlobalAccountsDistribution(totalLimit: limit);
     final forYouLimit = limit - followingLimit - globalAccountsLimit;
+    final forYouOverflowedLimit =
+        await _getFeedForYouOverflowedDistribution(forYouLimit: forYouLimit);
 
     // Concurrently fetching followed users, global accounts and interested events.
     // The "for you" (interested) events have an overflow multiplier to fetch more events
@@ -104,7 +105,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     final initialFetchStream = StreamGroup.merge([
       _fetchUnseenFollowing(limit: followingLimit),
       _fetchUnseenGlobalAccounts(limit: globalAccountsLimit),
-      _fetchForYou(limit: forYouLimit + forYouLimit * overflowMultiplier),
+      _fetchForYou(limit: forYouOverflowedLimit),
     ]);
 
     await for (final entity in initialFetchStream) {
@@ -113,7 +114,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
 
     Logger.info(
-      '$_logTag Initial request with [$overflowMultiplier] overflow multiplier is done, found [$fetchedEvents] events',
+      '$_logTag Initial request is done, found [$fetchedEvents] events',
     );
 
     // Fetching more "for you" events to fill the viewport if we didn't manage to fetch enough
@@ -197,12 +198,17 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     return RetryCounter(limit: maxRetries);
   }
 
-  int _getFeedFollowingDistribution({required int limit}) {
-    return (0.65 * limit).ceil();
+  int _getFeedFollowingDistribution({required int totalLimit}) {
+    return (0.65 * totalLimit).ceil();
   }
 
-  int _getFeedGlobalAccountsDistribution({required int limit}) {
-    return (0.05 * limit).ceil();
+  int _getFeedGlobalAccountsDistribution({required int totalLimit}) {
+    return (0.05 * totalLimit).ceil();
+  }
+
+  Future<int> _getFeedForYouOverflowedDistribution({required int forYouLimit}) async {
+    final feedConfig = await ref.read(feedConfigProvider.future);
+    return (forYouLimit + forYouLimit * feedConfig.overflowMultiplier).ceil();
   }
 
   Future<Map<FeedModifier, int>> _getFeedModifiersDistribution({required int limit}) async {
