@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:async/async.dart';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -38,6 +39,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'feed_for_you_content_provider.m.freezed.dart';
 
 part 'feed_for_you_content_provider.m.g.dart';
+
+const overflowMultiplier = 1;
 
 @riverpod
 class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
@@ -91,19 +94,29 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     Logger.info('$_logTag Requesting events');
 
     var fetchedEvents = 0;
+    final followingLimit = _getFeedFollowingDistribution(limit: limit);
+    final globalAccountsLimit = _getFeedGlobalAccountsDistribution(limit: limit);
+    final forYouLimit = limit - followingLimit - globalAccountsLimit;
 
-    await for (final entity in _fetchUnseenFollowing(limit: limit)) {
+    // Concurrently fetching followed users, global accounts and interested events.
+    // The "for you" (interested) events have an overflow multiplier to fetch more events
+    // in the initial request, so that we have more chances to fill the viewport.
+    final initialFetchStream = StreamGroup.merge([
+      _fetchUnseenFollowing(limit: followingLimit),
+      _fetchUnseenGlobalAccounts(limit: globalAccountsLimit),
+      _fetchForYou(limit: forYouLimit + forYouLimit * overflowMultiplier),
+    ]);
+
+    await for (final entity in initialFetchStream) {
       yield entity;
       fetchedEvents++;
     }
 
-    if (fetchedEvents < limit) {
-      await for (final entity in _fetchUnseenGlobalAccounts(limit: limit - fetchedEvents)) {
-        yield entity;
-        fetchedEvents++;
-      }
-    }
+    Logger.info(
+      '$_logTag Initial request with [$overflowMultiplier] overflow multiplier is done, found [$fetchedEvents] events',
+    );
 
+    // Fetching more "for you" events to fill the viewport if we didn't manage to fetch enough
     if (fetchedEvents < limit) {
       yield* _fetchForYou(limit: limit - fetchedEvents);
     }
@@ -114,11 +127,9 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   Stream<IonConnectEntity> _fetchUnseenFollowing({required int limit}) async* {
     try {
       var fetched = 0;
-      final distribution = _getFeedFollowingDistribution(limit: limit);
+      Logger.info('$_logTag Requesting [$limit] unseen following events');
 
-      Logger.info('$_logTag Requesting [$distribution] unseen following events');
-
-      await for (final entity in _fetchFollowing(limit: distribution)) {
+      await for (final entity in _fetchFollowing(limit: limit)) {
         yield entity;
         fetched++;
       }
@@ -136,11 +147,9 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   Stream<IonConnectEntity> _fetchUnseenGlobalAccounts({required int limit}) async* {
     try {
       var fetched = 0;
-      final distribution = _getFeedGlobalAccountsDistribution(limit: limit);
+      Logger.info('$_logTag Requesting [$limit] unseen global accounts events');
 
-      Logger.info('$_logTag Requesting [$distribution] unseen global accounts events');
-
-      await for (final entity in _fetchFollowing(limit: distribution, global: true)) {
+      await for (final entity in _fetchFollowing(limit: limit, global: true)) {
         yield entity;
         fetched++;
       }
@@ -163,6 +172,9 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     final retryCounter = await _buildRetryCounter();
     final modifiersDistribution = await _getFeedModifiersDistribution(limit: limit);
 
+    // Do not fetch interested events for modifiers concurrently here,
+    // because the number of concurrent feed requests is limited, so
+    // querying the explore modifier first is more likely to yield some events.
     for (final MapEntry(key: modifier, value: modifierLimit) in modifiersDistribution.entries) {
       if (modifierLimit > 0) {
         yield* _fetchInterestsEntities(
@@ -186,10 +198,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }
 
   int _getFeedFollowingDistribution({required int limit}) {
-    return switch (feedType) {
-      FeedType.post || FeedType.video || FeedType.article => (0.65 * limit).ceil(),
-      FeedType.story => limit,
-    };
+    return (0.65 * limit).ceil();
   }
 
   int _getFeedGlobalAccountsDistribution({required int limit}) {
