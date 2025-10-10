@@ -41,12 +41,10 @@ class Article extends ConsumerWidget {
 
   factory Article.quoted({
     required EventReference eventReference,
-    Widget? header,
     bool accentTheme = false,
     Widget? footer,
   }) {
     return Article(
-      header: header,
       showActionButtons: false,
       addTrailingPadding: false,
       accentTheme: accentTheme,
@@ -123,6 +121,7 @@ class Article extends ConsumerWidget {
               pubkey: eventReference.masterPubkey,
               createdAt: entity.data.publishedAt.value,
               timeFormat: timeFormat,
+              accentTheme: accentTheme,
               trailing: showActionButtons
                   ? Row(
                       mainAxisSize: MainAxisSize.min,
@@ -178,6 +177,7 @@ class Article extends ConsumerWidget {
                                 pubkey: eventReference.masterPubkey,
                                 createdAt: entity.data.publishedAt.value,
                                 timeFormat: timeFormat,
+                                accentTheme: accentTheme,
                                 trailing: showActionButtons
                                     ? Row(
                                         mainAxisSize: MainAxisSize.min,

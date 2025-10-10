@@ -39,6 +39,11 @@ class UserInfo extends HookConsumerWidget {
     final userMetadata = ref.watch(userMetadataProvider(pubkey));
     void openProfile() => ProfileNavigationUtils.navigateToProfile(context, pubkey);
 
+    final tStyle = textStyle ??
+        context.theme.appTextThemes.caption.copyWith(
+          color: accentTheme ? context.theme.appColors.onPrimaryAccent : null,
+        );
+
     return userMetadata.maybeWhen(
       data: (userMetadataEntity) {
         if (userMetadataEntity == null) {
@@ -51,7 +56,7 @@ class UserInfo extends HookConsumerWidget {
               onTap: openProfile,
               child: Text(
                 userMetadataEntity.data.trimmedDisplayName,
-                style: textStyle,
+                style: tStyle,
               ),
             ),
             subtitle: GestureDetector(
@@ -64,16 +69,16 @@ class UserInfo extends HookConsumerWidget {
                       username: userMetadataEntity.data.name,
                       context: context,
                     ),
-                    style: textStyle,
+                    style: tStyle,
                   ),
                   if (createdAt != null) ...[
                     SizedBox(width: 4.0.s),
-                    Text('•', style: textStyle),
+                    Text('•', style: tStyle),
                     SizedBox(width: 4.0.s),
                     TimeAgo(
                       time: createdAt!.toDateTime,
                       timeFormat: timeFormat,
-                      style: textStyle,
+                      style: tStyle,
                     ),
                   ],
                 ],

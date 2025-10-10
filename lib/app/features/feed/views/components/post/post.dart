@@ -117,7 +117,6 @@ class Post extends ConsumerWidget {
             child: _QuotedEvent(
               accentTheme: accentTheme,
               eventReference: quotedEventReference,
-              header: accentTheme && header != null ? header : null,
               footer: quotedEventFooter,
             ),
           ),
@@ -194,12 +193,10 @@ class Post extends ConsumerWidget {
 class _QuotedEvent extends StatelessWidget {
   const _QuotedEvent({
     required this.eventReference,
-    this.header,
     this.accentTheme = false,
     this.footer,
   });
 
-  final Widget? header;
   final bool accentTheme;
   final EventReference eventReference;
   final Widget? footer;
@@ -211,12 +208,10 @@ class _QuotedEvent extends StatelessWidget {
       child: _FramedEvent(
         eventReference: eventReference,
         postWidget: _QuotedPost(
-          header: header,
           accentTheme: accentTheme,
           eventReference: eventReference,
         ),
         articleWidget: _QuotedArticle(
-          header: header,
           accentTheme: accentTheme,
           eventReference: eventReference,
           footer: footer,
@@ -341,11 +336,9 @@ final class _FramedEvent extends HookConsumerWidget {
 final class _QuotedPost extends ConsumerWidget {
   const _QuotedPost({
     required this.eventReference,
-    this.header,
     this.accentTheme = false,
   });
 
-  final Widget? header;
   final bool accentTheme;
   final EventReference eventReference;
 
@@ -372,17 +365,17 @@ final class _QuotedPost extends ConsumerWidget {
             accentTheme: accentTheme,
             eventReference: eventReference,
             displayQuote: false,
-            header: header ??
-                UserInfo(
-                  pubkey: eventReference.masterPubkey,
-                  padding: EdgeInsetsDirectional.only(
-                    start: 16.0.s,
-                    top: 12.0.s,
-                  ),
-                  createdAt: postEntity is ModifiablePostEntity
-                      ? postEntity.data.publishedAt.value
-                      : postEntity?.createdAt,
-                ),
+            header: UserInfo(
+              accentTheme: accentTheme,
+              pubkey: eventReference.masterPubkey,
+              padding: EdgeInsetsDirectional.only(
+                start: 16.0.s,
+                top: 12.0.s,
+              ),
+              createdAt: postEntity is ModifiablePostEntity
+                  ? postEntity.data.publishedAt.value
+                  : postEntity?.createdAt,
+            ),
             footer: const SizedBox.shrink(),
           ),
         ),
@@ -394,12 +387,10 @@ final class _QuotedPost extends ConsumerWidget {
 final class _QuotedArticle extends StatelessWidget {
   const _QuotedArticle({
     required this.eventReference,
-    this.header,
     this.accentTheme = false,
     this.footer,
   });
 
-  final Widget? header;
   final bool accentTheme;
   final EventReference eventReference;
   final Widget? footer;
@@ -413,7 +404,6 @@ final class _QuotedArticle extends StatelessWidget {
         },
         child: AbsorbPointer(
           child: Article.quoted(
-            header: header,
             accentTheme: accentTheme,
             eventReference: eventReference,
             footer: footer,
