@@ -177,7 +177,7 @@ class PasskeysSigner {
     final timeoutMs = localCredsOnly == true ? options.timeout : options.otherDeviceTimeout;
     try {
       final fido2Assertion = await _withWatchdog(
-        future: PasskeyAuthenticator(debugMode: true).authenticate(
+        future: PasskeyAuthenticator().authenticate(
           AuthenticateRequestType(
             preferImmediatelyAvailableCredentials: localCredsOnly,
             relyingPartyId: challenge.rp.id,
