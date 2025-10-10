@@ -36,6 +36,7 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
     required this.transactionsRepository,
     required this.requestAssetsRepository,
     required this.conversationMessageDao,
+    required this.localNotificationsService,
     required this.conversationMessageReactionDao,
   });
 
@@ -47,6 +48,7 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
   final ConversationMessageDao conversationMessageDao;
   final TransactionsRepository transactionsRepository;
   final RequestAssetsRepository requestAssetsRepository;
+  final LocalNotificationsService localNotificationsService;
   final ConversationMessageReactionDao conversationMessageReactionDao;
 
   @override
@@ -177,8 +179,6 @@ Future<EncryptedDeletionRequestHandler?> encryptedDeletionRequestHandler(Ref ref
     return null;
   }
 
-  final localNotificationsService = await ref.watch(localNotificationsServiceProvider.future);
-
   return EncryptedDeletionRequestHandler(
     eventSigner: eventSigner,
     masterPubkey: masterPubkey,
@@ -189,5 +189,6 @@ Future<EncryptedDeletionRequestHandler?> encryptedDeletionRequestHandler(Ref ref
     requestAssetsRepository: ref.watch(requestAssetsRepositoryProvider),
     transactionsRepository: await ref.watch(transactionsRepositoryProvider.future),
     conversationMessageReactionDao: ref.watch(conversationMessageReactionDaoProvider),
+    localNotificationsService: await ref.watch(localNotificationsServiceProvider.future),
   );
 }
