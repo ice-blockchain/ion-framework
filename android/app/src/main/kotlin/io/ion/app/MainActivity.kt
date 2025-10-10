@@ -7,6 +7,7 @@ import android.net.Uri
 import android.util.Log
 import android.util.Size
 import androidx.core.os.bundleOf
+import androidx.lifecycle.lifecycleScope
 import com.banuba.sdk.core.EditorUtilityManager
 import com.banuba.sdk.core.license.BanubaVideoEditor
 import com.banuba.sdk.core.license.LicenseStateCallback
@@ -21,6 +22,9 @@ import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.GeneratedPluginRegistrant
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.context.stopKoin
 import org.koin.core.error.InstanceCreationException
 import java.io.File
@@ -122,7 +126,9 @@ class MainActivity : FlutterFragmentActivity() {
                                             coverSelectionEnabled,
                                         )
                                     }
-                                    startVideoEditorModeTrimmer(trimmerVideoUri)
+                                    lifecycleScope.launch {
+                                        startVideoEditorModeTrimmer(trimmerVideoUri)
+                                    }
                                 } else {
                                     // ❌ Use of SDK is restricted: the license is revoked or expired
                                     result.error(ERR_CODE_SDK_LICENSE_REVOKED, "", null)
@@ -254,7 +260,7 @@ class MainActivity : FlutterFragmentActivity() {
         return data
     }
 
-    private fun startVideoEditorModeTrimmer(trimmerVideo: Uri) {
+    private suspend fun startVideoEditorModeTrimmer(trimmerVideo: Uri) {
         // Create a safe copy of the video for editing
         val safeEditingUri = copyVideoToSafeLocation(trimmerVideo)
         val finalUri = safeEditingUri ?: trimmerVideo
@@ -273,30 +279,33 @@ class MainActivity : FlutterFragmentActivity() {
         )
     }
 
-    private fun copyVideoToSafeLocation(originalUri: Uri): Uri? {
-        try {
-            val originalPath = originalUri.path
-            if (originalPath == null) {
-                return null
+    private suspend fun copyVideoToSafeLocation(originalUri: Uri): Uri? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val originalPath = originalUri.path
+                if (originalPath == null) {
+                    return@withContext null
+                }
+
+                val originalFile = File(originalPath)
+                if (!originalFile.exists()) {
+                    return@withContext null
+                }
+
+                val editingFileName = "editing_${System.currentTimeMillis()}.mp4"
+                val editingFile = File(filesDir, editingFileName)
+
+                if (editingFile.exists()) {
+                    editingFile.delete()
+                }
+
+                originalFile.copyTo(editingFile, overwrite = true)
+                currentEditingFile = editingFile
+                Uri.fromFile(editingFile)
+            } catch (e: Exception) {
+                Log.e("EDIT_VIDEO", "Failed to copy video to safe location", e)
+                null
             }
-
-            val originalFile = File(originalPath)
-            if (!originalFile.exists()) {
-                return null
-            }
-
-            val editingFileName = "editing_${System.currentTimeMillis()}.mp4"
-            val editingFile = File(filesDir, editingFileName)
-
-            if (editingFile.exists()) {
-                editingFile.delete()
-            }
-
-            originalFile.copyTo(editingFile, overwrite = true)
-            currentEditingFile = editingFile
-            return Uri.fromFile(editingFile)
-        } catch (e: Exception) {
-            return null
         }
     }
 
