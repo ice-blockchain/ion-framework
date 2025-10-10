@@ -92,7 +92,9 @@ class ContactPickerModal extends HookConsumerWidget {
               context.pop(user.masterPubkey);
             }
           } finally {
-            isProcessing.value = false;
+            if (context.mounted) {
+              isProcessing.value = false;
+            }
           }
         },
       ),
