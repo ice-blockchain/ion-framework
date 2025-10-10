@@ -12,6 +12,7 @@ import 'package:ion/app/features/chat/e2ee/providers/encrypted_repost_handler.r.
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_encrypted_event_message_handler.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_event_handler.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
@@ -53,7 +54,8 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
         .where((handler) => handler.canHandle(entity: entity))
         .map((handler) async {
       final eventReference = await handler.handle(rumor);
-      if (eventReference != null) {
+      // Always re-process DeletionRequests
+      if (eventReference != null && rumor.kind != DeletionRequestEntity.kind) {
         unawaited(
           processedGiftWrapDao.add(eventReference: eventReference, giftWrapId: eventMessage.id),
         );

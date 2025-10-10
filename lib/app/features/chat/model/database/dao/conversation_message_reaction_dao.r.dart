@@ -7,11 +7,35 @@ ConversationMessageReactionDao conversationMessageReactionDao(Ref ref) =>
     ConversationMessageReactionDao(ref.watch(chatDatabaseProvider));
 
 @DriftAccessor(
-  tables: [ReactionTable, ConversationMessageTable, EventMessageTable],
+  tables: [
+    ReactionTable,
+    EventMessageTable,
+    MessageStatusTable,
+    ConversationMessageTable,
+  ],
 )
 class ConversationMessageReactionDao extends DatabaseAccessor<ChatDatabase>
     with _$ConversationMessageReactionDaoMixin {
   ConversationMessageReactionDao(super.db);
+
+  /// Returns `true` if there is a kind 5 (deletion request) event newer than the given [reactionEntity]'s createdAt for the reaction,
+  /// otherwise returns `false`.
+  Future<bool> reactionIsNotDeleted(PrivateMessageReactionEntity reactionEntity) async {
+    final query = select(eventMessageTable)
+      ..where(
+        (t) =>
+            t.kind.equals(DeletionRequestEntity.kind) &
+            t.tags.like(
+              '%["${ImmutableEventReference.tagName}","${reactionEntity.toEventReference()}"%',
+            ) &
+            t.tags.like('%["k","${PrivateMessageReactionEntity.kind}"%'),
+      )
+      ..limit(1);
+
+    final deleteEvent = await query.getSingleOrNull();
+
+    return deleteEvent == null;
+  }
 
   Future<void> add({
     required EventMessage reactionEvent,
@@ -31,24 +55,25 @@ class ConversationMessageReactionDao extends DatabaseAccessor<ChatDatabase>
     );
   }
 
-  Future<void> remove({
-    required ImmutableEventReference reactionEventReference,
-  }) async {
-    await (update(reactionTable)
-          ..where((table) => table.reactionEventReference.equalsValue(reactionEventReference)))
-        .write(
-      const ReactionTableCompanion(isDeleted: Value(true)),
-    );
-  }
-
-  Future<void> revertDeletedReaction({
-    required ImmutableEventReference reactionEventReference,
-  }) async {
-    await (update(reactionTable)
-          ..where((table) => table.reactionEventReference.equalsValue(reactionEventReference)))
-        .write(
-      const ReactionTableCompanion(isDeleted: Value(false)),
-    );
+  Future<void> removeReactionsFromDatabase(List<ImmutableEventReference> eventReferences) async {
+    await batch((b) {
+      // Remove reactions from event messages table
+      b
+        ..deleteWhere(
+          eventMessageTable,
+          (table) => table.eventReference.isInValues(eventReferences),
+        )
+        // Remove message reaction statuses
+        ..deleteWhere(
+          messageStatusTable,
+          (table) => table.messageEventReference.isInValues(eventReferences),
+        )
+        // Remove reactions
+        ..deleteWhere(
+          reactionTable,
+          (table) => table.messageEventReference.isInValues(eventReferences),
+        );
+    });
   }
 
   Stream<List<MessageReaction>> messageReactions(EventReference eventReference) async* {

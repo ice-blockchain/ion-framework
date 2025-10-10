@@ -18,23 +18,25 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'encrypted_direct_message_handler.r.g.dart';
 
 class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMessageHandler {
-  EncryptedDirectMessageHandler(
-    this.masterPubkey,
-    this.conversationDao,
-    this.conversationEventMessageDao,
-    this.conversationMessageDataDao,
-    this.messageMediaDao,
-    this.sendE2eeMessageStatusService,
-    this.mediaEncryptionService,
-  );
+  EncryptedDirectMessageHandler({
+    required this.masterPubkey,
+    required this.conversationDao,
+    required this.messageMediaDao,
+    required this.conversationMessageDao,
+    required this.mediaEncryptionService,
+    required this.conversationMessageDataDao,
+    required this.conversationEventMessageDao,
+    required this.sendE2eeMessageStatusService,
+  });
 
   final String masterPubkey;
   final ConversationDao conversationDao;
-  final ConversationEventMessageDao conversationEventMessageDao;
-  final ConversationMessageDataDao conversationMessageDataDao;
   final MessageMediaDao messageMediaDao;
-  final SendE2eeMessageStatusService sendE2eeMessageStatusService;
   final MediaEncryptionService mediaEncryptionService;
+  final ConversationMessageDao conversationMessageDao;
+  final ConversationMessageDataDao conversationMessageDataDao;
+  final ConversationEventMessageDao conversationEventMessageDao;
+  final SendE2eeMessageStatusService sendE2eeMessageStatusService;
 
   @override
   bool canHandle({
@@ -48,15 +50,21 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
   @override
   Future<EventReference> handle(EventMessage rumor) async {
     final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
-    await _addDirectMessageToDatabase(rumor);
-    unawaited(_sendReceivedStatus(rumor));
+    final eventReference = entity.toEventReference();
+    // Check if the conversation was deleted earlier (needed only for recovery)
+    if (await conversationDao.conversationIsNotDeleted(
+          entity.data.conversationId,
+          entity.createdAt,
+        ) &&
+        await conversationMessageDao.messageIsNotDeleted(eventReference)) {
+      await _addDirectMessageToDatabase(rumor);
+      unawaited(_sendReceivedStatus(rumor));
+    }
 
     return entity.toEventReference();
   }
 
-  Future<void> _addDirectMessageToDatabase(
-    EventMessage rumor,
-  ) async {
+  Future<void> _addDirectMessageToDatabase(EventMessage rumor) async {
     await conversationDao.add([rumor]);
     await conversationEventMessageDao.add(rumor);
     await _addMediaToDatabase(rumor);
@@ -129,12 +137,13 @@ Future<EncryptedDirectMessageHandler?> encryptedDirectMessageHandler(Ref ref) as
   }
 
   return EncryptedDirectMessageHandler(
-    masterPubkey,
-    ref.watch(conversationDaoProvider),
-    ref.watch(conversationEventMessageDaoProvider),
-    ref.watch(conversationMessageDataDaoProvider),
-    ref.watch(messageMediaDaoProvider),
-    await ref.watch(sendE2eeMessageStatusServiceProvider.future),
-    ref.watch(mediaEncryptionServiceProvider),
+    masterPubkey: masterPubkey,
+    messageMediaDao: ref.watch(messageMediaDaoProvider),
+    conversationDao: ref.watch(conversationDaoProvider),
+    conversationMessageDao: ref.watch(conversationMessageDaoProvider),
+    mediaEncryptionService: ref.watch(mediaEncryptionServiceProvider),
+    conversationEventMessageDao: ref.watch(conversationEventMessageDaoProvider),
+    conversationMessageDataDao: ref.watch(conversationMessageDataDaoProvider),
+    sendE2eeMessageStatusService: await ref.watch(sendE2eeMessageStatusServiceProvider.future),
   );
 }

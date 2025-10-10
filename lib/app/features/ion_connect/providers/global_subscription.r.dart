@@ -16,6 +16,7 @@ import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
 import 'package:ion/app/features/ion_connect/providers/event_backfill_service.r.dart';
@@ -73,26 +74,33 @@ class GlobalSubscription {
 
   static const List<int> _encryptedEventKinds = [IonConnectGiftWrapEntity.kind];
 
-  void init() {
+  Future<void> init() async {
     Logger.log('[GLOBAL_SUBSCRIPTION] init');
+
+    Logger.log('[GLOBAL_SUBSCRIPTION] init subscribing to encrypted delete events)');
+
+    // As we get events from relays in reversed chronological order, we first
+    // subscribe to encrypted delete events to ensure we process them before
+    // any other encrypted events that might arrive later but were created earlier.
+    // This prevents processing events that were deleted later on.
+    await _subscribeToEncryptedDeleteEvents();
+
+    Logger.log('[GLOBAL_SUBSCRIPTION] init fetched encrypted delete events)');
+
     final now = DateTime.now().microsecondsSinceEpoch;
 
     if (latestEventTimestampService.hasNoRegularTimestamps()) {
       // All filter timestamps are null, update them with now and start subscription
-      latestEventTimestampService.updateAllRegularTimestamps(now);
+      await latestEventTimestampService.updateAllRegularTimestamps(now);
       _startSubscription();
     } else {
       // All timestamps exist, proceed with reconnection
-      _reConnectToGlobalSubscription(
-        now: now,
-      );
+      await _reConnectToGlobalSubscription(now: now);
     }
   }
 
   void _startSubscription() {
-    _subscribe(
-      eventLimit: 1,
-    );
+    _subscribe(eventLimit: 1);
   }
 
   Future<void> _reConnectToGlobalSubscription({
@@ -317,6 +325,48 @@ class GlobalSubscription {
         },
         onEvent: (event) => _handleEvent(event, eventSource: EventSource.subscription),
       );
+    } catch (e) {
+      throw GlobalSubscriptionSubscribeException(e);
+    }
+  }
+
+  Future<void> _subscribeToEncryptedDeleteEvents() async {
+    final completer = Completer<void>();
+
+    // If we have an encrypted timestamp in storage, we subtract 2 days to account
+    // for the potential random timestamp range of encrypted events. This ensures
+    // that we refetch any encrypted events that might have been created with a
+    // random timestamp up to 2 days before the last fetch time.
+    final encryptedLatestTimestampFromStorage =
+        latestEventTimestampService.getEncryptedTimestamp() != null
+            ? latestEventTimestampService.getEncryptedTimestamp()! -
+                const Duration(days: 2).inMicroseconds
+            : null;
+
+    try {
+      final requestMessage = RequestMessage(
+        filters: [
+          RequestFilter(
+            kinds: _encryptedEventKinds,
+            tags: {
+              '#p': [
+                [currentUserMasterPubkey, '', devicePubkey],
+              ],
+              '#k': [
+                [DeletionRequestEntity.kind.toString()],
+              ],
+            },
+            since: encryptedLatestTimestampFromStorage,
+          ),
+        ],
+      );
+
+      globalSubscriptionNotifier.subscribe(
+        requestMessage,
+        onEndOfStoredEvents: completer.complete,
+        onEvent: (event) => _handleEvent(event, eventSource: EventSource.subscription),
+      );
+      await completer.future;
     } catch (e) {
       throw GlobalSubscriptionSubscribeException(e);
     }
