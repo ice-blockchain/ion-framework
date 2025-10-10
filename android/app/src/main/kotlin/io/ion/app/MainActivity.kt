@@ -79,7 +79,6 @@ class MainActivity : FlutterFragmentActivity() {
 
         audioFocusHandler = AudioFocusHandler(applicationContext, flutterEngine)
 
-        // Set up Video Compression Plugin
         val videoCompressionChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             "ion/video_compression"

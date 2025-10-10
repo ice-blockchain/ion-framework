@@ -178,29 +178,20 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                     }
                 }
                 outputFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, bitrateMode)
-
-                try {
-                    outputFormat.setInteger(MediaFormat.KEY_COMPLEXITY, 2)
-                } catch (e: Exception) {
-                    // KEY_COMPLEXITY not supported on this device
-                }
             }
 
             videoEncoder.configure(outputFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
             val encoderSurface = videoEncoder.createInputSurface()
             videoEncoder.start()
 
-            // Setup video decoder to output to encoder's input surface
             val videoMime = videoFormat.getString(MediaFormat.KEY_MIME)!!
             videoDecoder = MediaCodec.createDecoderByType(videoMime)
             videoDecoder.configure(videoFormat, encoderSurface, null, 0)
             videoDecoder.start()
 
-            // We'll copy audio directly without transcoding for better performance and quality
             var audioOutputTrackIndex = -1
-            var videoOutputTrackIndex: Int
+            val videoOutputTrackIndex: Int
 
-            // Process video track with surface encoding
             extractor.selectTrack(videoTrackIndex)
             val videoResult = processVideoTrackWithSurface(
                 extractor,
@@ -225,17 +216,13 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                     muxer.start()
                     Log.d(TAG, "Muxer started (video + audio)")
 
-                    // Write buffered video samples now that muxer is started
                     writePendingVideoSamples(muxer, videoOutputTrackIndex, videoResult.pendingSamples)
                 }
 
                 copyAudioTrack(extractor, muxer, audioOutputTrackIndex)
             }
-
             muxer.stop()
 
-            // Validate output file
-            val outputFile = File(outputPath)
             if (!outputFile.exists()) {
                 throw RuntimeException("Output file was not created")
             }
@@ -278,7 +265,6 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         val pendingVideoSamples = mutableListOf<Pair<ByteBuffer, MediaCodec.BufferInfo>>()
 
         while (!videoOutputDone) {
-            // Feed input to video decoder
             if (!videoInputDone) {
                 val inputBufferIndex = videoDecoder.dequeueInputBuffer(0)
                 if (inputBufferIndex >= 0) {
@@ -302,15 +288,8 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                 }
             }
 
-            // Process video decoder output
             val videoDecoderStatus = videoDecoder.dequeueOutputBuffer(videoBufferInfo, 0)
             when {
-                videoDecoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER -> {
-                    // No output available
-                }
-                videoDecoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
-                    // Decoder format changed
-                }
                 videoDecoderStatus >= 0 -> {
                     val doRender = videoBufferInfo.size != 0
                     videoDecoder.releaseOutputBuffer(videoDecoderStatus, doRender)
@@ -321,12 +300,8 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                 }
             }
 
-            // Process video encoder output
             val videoEncoderStatus = videoEncoder.dequeueOutputBuffer(videoBufferInfo, 0)
             when {
-                videoEncoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER -> {
-                    // No output available
-                }
                 videoEncoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
                     val newFormat = videoEncoder.outputFormat
                     videoOutputTrackIndex = muxer.addTrack(newFormat)
@@ -402,7 +377,7 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
     ) {
         Log.d(TAG, "Copying audio track directly")
         val bufferInfo = MediaCodec.BufferInfo()
-        val buffer = ByteBuffer.allocate(1024 * 1024) // 1MB buffer
+        val buffer = ByteBuffer.allocate(1024 * 1024)
 
         while (true) {
             bufferInfo.size = extractor.readSampleData(buffer, 0)
