@@ -35,13 +35,9 @@ class ArticleRepliesPage extends HookConsumerWidget {
           Flexible(
             child: Stack(
               children: [
-                Padding(
-                  padding: EdgeInsetsDirectional.only(bottom: 60.0.s),
-                  //padding allows the space for scroll up button
-                  child: ReplyList(
-                    eventReference: eventReference,
-                    scrollController: scrollController,
-                  ),
+                ReplyList(
+                  eventReference: eventReference,
+                  scrollController: scrollController,
                 ),
                 PositionedDirectional(
                   bottom: 12.5.s,

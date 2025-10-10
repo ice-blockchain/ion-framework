@@ -70,6 +70,9 @@ class ReplyList extends ConsumerWidget {
               framedEventReference: framedEventReference,
             ).push<void>(context),
           ),
+        SliverToBoxAdapter(
+          child: SizedBox(height: 60.0.s),
+        ),
       ],
       builder: (context, slivers) => PullToRefreshBuilder(
         slivers: slivers,
