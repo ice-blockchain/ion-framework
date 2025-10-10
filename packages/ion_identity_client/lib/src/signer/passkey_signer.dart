@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -46,6 +47,24 @@ class PasskeysSigner {
   /// The configuration options for passkey operations.
   final PasskeysOptions options;
   final LocalPasskeyCredsStateStorage localPasskeyCredsStateStorage;
+
+  /// Races the platform authentication against a Dart-side watchdog timer.
+  ///
+  /// Some Android devices (notably with Samsung Pass / Credential Manager)
+  /// occasionally never resolve the native "authenticate" call when the
+  /// provider UI gets stuck enumerating credentials. The platform timeout
+  /// passed to the API is not always honored; this watchdog ensures we regain
+  /// control in the Dart layer and can surface a predictable error.
+  Future<T> _withWatchdog<T>({
+    required Future<T> future,
+    required Duration timeout,
+  }) async {
+    try {
+      return await future.timeout(timeout);
+    } on TimeoutException {
+      throw const PasskeyValidationException();
+    }
+  }
 
   /// Registers a user based on the provided [challenge], returning a
   /// [CredentialRequestData] containing the attestation data.
@@ -155,24 +174,30 @@ class PasskeysSigner {
     UserActionChallenge challenge, {
     bool localCredsOnly = false,
   }) async {
+    final timeoutMs = localCredsOnly == true ? options.timeout : options.otherDeviceTimeout;
     try {
-      final fido2Assertion = await PasskeyAuthenticator().authenticate(
-        AuthenticateRequestType(
-          preferImmediatelyAvailableCredentials: localCredsOnly,
-          relyingPartyId: challenge.rp.id,
-          challenge: challenge.challenge,
-          timeout: localCredsOnly == true ? options.timeout : options.otherDeviceTimeout,
-          userVerification: challenge.userVerification,
-          allowCredentials: List<CredentialType>.from(
-            challenge.allowCredentials.webauthn.map(
-              (e) => CredentialType(
-                type: e.type,
-                id: e.id,
-                transports: [],
+      final fido2Assertion = await _withWatchdog(
+        future: PasskeyAuthenticator(debugMode: true).authenticate(
+          AuthenticateRequestType(
+            preferImmediatelyAvailableCredentials: localCredsOnly,
+            relyingPartyId: challenge.rp.id,
+            challenge: challenge.challenge,
+            timeout: timeoutMs,
+            userVerification: challenge.userVerification,
+            allowCredentials: List<CredentialType>.from(
+              challenge.allowCredentials.webauthn.map(
+                (e) => CredentialType(
+                  type: e.type,
+                  id: e.id,
+                  transports: [],
+                ),
               ),
             ),
+            mediation: MediationType.Required,
           ),
-          mediation: MediationType.Required,
+        ),
+        timeout: Duration(
+          milliseconds: timeoutMs,
         ),
       );
       return AssertionRequestData(
