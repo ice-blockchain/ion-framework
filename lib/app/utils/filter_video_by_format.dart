@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'dart:io';
 
 /// Only these formats are supported by Banuba SDK
