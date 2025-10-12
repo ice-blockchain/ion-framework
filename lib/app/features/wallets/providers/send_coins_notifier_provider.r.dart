@@ -12,6 +12,8 @@ import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart'
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/coins/coins_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/send_transaction_to_relay_service.r.dart';
+import 'package:ion/app/features/wallets/domain/transactions/transfer_exception_factory.dart';
+import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
@@ -64,7 +66,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
 
       result = await _waitForTransactionCompletion(senderWallet.id, result);
 
-      Logger.info('Transaction was successful. Hash: ${result.txHash}');
+      _validateTransactionResult(result, coinAssetData.selectedOption!.coin);
 
       final coinsService = await ref.read(coinsServiceProvider.future);
       final nativeCoin = await coinsService.getNativeCoin(form.network!);
@@ -111,8 +113,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
         ),
       );
 
-      // Validate transaction status to display issue, if we have unsuccessful one
-      _validateTransactionResult(result, coinAssetData);
+      Logger.info('Transaction was successful. Hash: ${result.txHash}');
 
       return details;
     });
@@ -207,25 +208,10 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
   bool _isRetryableStatus(TransactionStatus status) =>
       status == TransactionStatus.pending || status == TransactionStatus.executing;
 
-  void _validateTransactionResult(TransferResult result, CoinAssetToSendData coinAssetData) {
+  void _validateTransactionResult(TransferResult result, CoinData coin) {
     if (result.status == TransactionStatus.rejected || result.status == TransactionStatus.failed) {
-      throw _createTransactionException(result.reason, coinAssetData);
+      throw TransferExceptionFactory.create(result.reason, coin);
     }
-  }
-
-  Exception _createTransactionException(String? reason, CoinAssetToSendData coinAssetData) {
-    return switch (reason) {
-      'paymentNoDestination' => PaymentNoDestinationException(
-          abbreviation: coinAssetData.coinsGroup.abbreviation,
-        ),
-      // As for now this type of issue is only for Polkadot
-      'Token: BelowMinimum' when coinAssetData.selectedOption?.coin.network.isPolkadot ?? false =>
-        TokenBelowMinimumException(
-          abbreviation: coinAssetData.coinsGroup.abbreviation,
-          minAmount: 0.2,
-        ),
-      _ => FailedToSendCryptoAssetsException(reason),
-    };
   }
 
   Future<void> _saveTransaction({

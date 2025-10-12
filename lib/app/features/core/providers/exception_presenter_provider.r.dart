@@ -50,6 +50,7 @@ class ExceptionPresenter {
     return switch (error) {
       PaymentNoDestinationException() => locale.error_payment_no_destination_title,
       TokenBelowMinimumException() => locale.error_token_below_minimum_title,
+      InsufficientAmountException() => locale.error_token_below_minimum_title,
       final IONIdentityException identityException => identityException.title(context),
       SendEventException => locale.error_network_sync_failed_title,
       _ => locale.error_general_title,
@@ -59,6 +60,7 @@ class ExceptionPresenter {
   String _getDescription(BuildContext context, Object error) {
     final locale = context.i18n;
     return switch (error) {
+      InsufficientAmountException() => locale.error_insufficient_amount_description,
       final PaymentNoDestinationException ex =>
         locale.error_payment_no_destination_description(ex.abbreviation),
       final TokenBelowMinimumException ex =>

@@ -676,3 +676,7 @@ class TokenBelowMinimumException extends IONException {
 class UnknownFileDurationException extends IONException {
   UnknownFileDurationException(String reason) : super(10129, 'Unknown file duration: $reason');
 }
+
+class InsufficientAmountException extends IONException {
+  InsufficientAmountException() : super(10130, 'Insufficient amount');
+}
