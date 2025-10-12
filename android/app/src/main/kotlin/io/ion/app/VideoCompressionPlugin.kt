@@ -29,7 +29,8 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                 val quality = call.argument<Double>("quality") ?: 0.75
 
                 if (inputPath == null || outputPath == null || destWidth == null ||
-                    destHeight == null || codec == null) {
+                    destHeight == null || codec == null
+                ) {
                     result.error("INVALID_ARGUMENTS", "Missing required arguments", null)
                     return
                 }
@@ -44,6 +45,7 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                     }
                 }.start()
             }
+
             else -> result.notImplemented()
         }
     }
@@ -65,7 +67,11 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         transcodeVideo(inputPath, outputPath, metadata, codec, quality)
     }
 
-    private fun extractVideoMetadata(inputPath: String, destWidth: Int, destHeight: Int): VideoMetadata {
+    private fun extractVideoMetadata(
+        inputPath: String,
+        destWidth: Int,
+        destHeight: Int
+    ): VideoMetadata {
         val extractor = MediaExtractor()
         try {
             extractor.setDataSource(inputPath)
@@ -159,7 +165,11 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                 if (!videoResult.muxerStarted) {
                     muxer.start()
                     Log.d(TAG, "Muxer started (video + audio)")
-                    writePendingVideoSamples(muxer, videoResult.trackIndex, videoResult.pendingSamples)
+                    writePendingVideoSamples(
+                        muxer,
+                        videoResult.trackIndex,
+                        videoResult.pendingSamples
+                    )
                 }
 
                 copyAudioTrack(extractor, muxer, audioOutputTrackIndex)
@@ -172,7 +182,10 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                 throw RuntimeException("Output file was not created or is empty")
             }
 
-            Log.d(TAG, "Compression completed successfully. Output size: ${outputFile.length() / (1024 * 1024)} MB")
+            Log.d(
+                TAG,
+                "Compression completed successfully. Output size: ${outputFile.length() / (1024 * 1024)} MB"
+            )
         } finally {
             extractor.release()
             muxer?.release()
@@ -183,7 +196,11 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         }
     }
 
-    private fun createEncoderConfig(metadata: VideoMetadata, codec: String, quality: Double): EncoderConfig {
+    private fun createEncoderConfig(
+        metadata: VideoMetadata,
+        codec: String,
+        quality: Double
+    ): EncoderConfig {
         val isRotated = metadata.rotation == 90 || metadata.rotation == 270
         val width = if (isRotated) metadata.height else metadata.width
         val height = if (isRotated) metadata.width else metadata.height
@@ -215,6 +232,7 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                 MediaFormat.KEY_PROFILE,
                 MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
             )
+
             "hevc" -> format.setInteger(
                 MediaFormat.KEY_PROFILE,
                 MediaCodecInfo.CodecProfileLevel.HEVCProfileMain
@@ -232,14 +250,13 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
             MediaCodec.createEncoderByType(config.mime)
         }
 
-        applyEncoderCapabilities(encoder, encoderName, config.mime, format)
+        applyEncoderCapabilities(encoderName, config.mime, format)
         encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
 
         return encoder
     }
 
     private fun applyEncoderCapabilities(
-        encoder: MediaCodec,
         encoderName: String?,
         mime: String,
         format: MediaFormat
@@ -255,6 +272,7 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                 Log.d(TAG, "Using Variable Bitrate (VBR) mode")
                 MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR
             }
+
             else -> {
                 Log.d(TAG, "Using Constant Bitrate (CBR) mode")
                 MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR
@@ -327,6 +345,7 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                         Log.d(TAG, "Video track added, waiting for audio")
                     }
                 }
+
                 encoderStatus >= 0 -> {
                     val encodedData = videoEncoder.getOutputBuffer(encoderStatus)!!
 
@@ -348,7 +367,12 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                             bufferCopy.flip()
 
                             val infoCopy = MediaCodec.BufferInfo()
-                            infoCopy.set(0, bufferInfo.size, bufferInfo.presentationTimeUs, bufferInfo.flags)
+                            infoCopy.set(
+                                0,
+                                bufferInfo.size,
+                                bufferInfo.presentationTimeUs,
+                                bufferInfo.flags
+                            )
                             pendingSamples.add(Pair(bufferCopy, infoCopy))
                         }
                     }

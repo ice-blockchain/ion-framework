@@ -81,25 +81,14 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
       final originalFile = File(file.path);
       final originalSize = await originalFile.length();
 
-      Logger.log(
-        'Original video size: ${(originalSize / 1024 / 1024).toStringAsFixed(2)} MB',
-      );
+      Logger.log('Original video size: ${(originalSize / 1024 / 1024).toStringAsFixed(2)} MB');
 
       final output = await generateOutputPath(extension: 'mp4');
 
-      final (
-        width: originalWidth,
-        height: originalHeight,
-        duration: originalDuration,
-        bitrate: originalBitrate
-      ) = await videoInfoService.getVideoInformation(file.path);
+      final (width: originalWidth, height: originalHeight, duration: originalDuration, bitrate: _) =
+          await videoInfoService.getVideoInformation(file.path);
 
       Logger.log('Original dimensions: ${originalWidth}x$originalHeight');
-      if (originalBitrate != null) {
-        Logger.log(
-          'Original bitrate: ${(originalBitrate / 1000000).toStringAsFixed(2)} Mbps',
-        );
-      }
 
       final targetDimensions = _calculateTargetDimensions(
         originalWidth: originalWidth,
@@ -120,7 +109,6 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
         'destHeight': targetDimensions.height,
         'codec': settings?.codec,
         'quality': settings?.quality ?? 0.75,
-        if (Platform.isAndroid) 'originalBitrate': originalBitrate,
       });
 
       final compressedFile = File(output);

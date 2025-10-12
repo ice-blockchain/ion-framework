@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
