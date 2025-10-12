@@ -57,11 +57,66 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         quality: Double,
     ) {
         val outputFile = File(outputPath)
-
         if (outputFile.exists()) {
             outputFile.delete()
         }
 
+        val metadata = extractVideoMetadata(inputPath, destWidth, destHeight)
+
+        // Skip compression if dimensions match
+        if (shouldSkipCompression(metadata, destWidth, destHeight)) {
+            Log.d(TAG, "Dimensions match, copying file instead of re-encoding")
+            File(inputPath).copyTo(outputFile, overwrite = true)
+            Log.d(TAG, "File copied successfully")
+            return
+        }
+
+        transcodeVideo(inputPath, outputPath, metadata, codec, quality)
+    }
+
+    private fun shouldSkipCompression(metadata: VideoMetadata, destWidth: Int, destHeight: Int): Boolean {
+        val isRotated = metadata.rotation == 90 || metadata.rotation == 270
+        val adjustedWidth = if (isRotated) destHeight else destWidth
+        val adjustedHeight = if (isRotated) destWidth else destHeight
+
+        return metadata.width == adjustedWidth && metadata.height == adjustedHeight
+    }
+
+    private fun extractVideoMetadata(inputPath: String, destWidth: Int, destHeight: Int): VideoMetadata {
+        val extractor = MediaExtractor()
+        try {
+            extractor.setDataSource(inputPath)
+
+            for (i in 0 until extractor.trackCount) {
+                val format = extractor.getTrackFormat(i)
+                val mime = format.getString(MediaFormat.KEY_MIME) ?: continue
+
+                if (mime.startsWith("video/")) {
+                    val width = format.getInteger(MediaFormat.KEY_WIDTH)
+                    val height = format.getInteger(MediaFormat.KEY_HEIGHT)
+                    val rotation = try {
+                        format.getInteger(MediaFormat.KEY_ROTATION)
+                    } catch (e: Exception) {
+                        0
+                    }
+
+                    return VideoMetadata(width, height, rotation, format, mime)
+                }
+            }
+
+            throw IllegalArgumentException("No video track found")
+        } finally {
+            extractor.release()
+        }
+    }
+
+    private fun transcodeVideo(
+        inputPath: String,
+        outputPath: String,
+        metadata: VideoMetadata,
+        codec: String,
+        quality: Double
+    ) {
         val extractor = MediaExtractor()
         var muxer: MediaMuxer? = null
         var videoDecoder: MediaCodec? = null
@@ -72,7 +127,6 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
 
             var videoTrackIndex = -1
             var audioTrackIndex = -1
-            var videoFormat: MediaFormat? = null
             var audioFormat: MediaFormat? = null
 
             for (i in 0 until extractor.trackCount) {
@@ -80,10 +134,7 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                 val mime = format.getString(MediaFormat.KEY_MIME) ?: continue
 
                 when {
-                    mime.startsWith("video/") -> {
-                        videoTrackIndex = i
-                        videoFormat = format
-                    }
+                    mime.startsWith("video/") -> videoTrackIndex = i
                     mime.startsWith("audio/") -> {
                         audioTrackIndex = i
                         audioFormat = format
@@ -91,148 +142,54 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                 }
             }
 
-            if (videoTrackIndex == -1 || videoFormat == null) {
-                throw IllegalArgumentException("No video track found")
-            }
-
-            val originalWidth = videoFormat.getInteger(MediaFormat.KEY_WIDTH)
-            val originalHeight = videoFormat.getInteger(MediaFormat.KEY_HEIGHT)
-
-            val rotation = try {
-                videoFormat.getInteger(MediaFormat.KEY_ROTATION)
-            } catch (e: Exception) {
-                0
-            }
-
-            val isRotated = rotation == 90 || rotation == 270
-            val adjustedWidth = if (isRotated) destHeight else destWidth
-            val adjustedHeight = if (isRotated) destWidth else destHeight
-
-            Log.d(TAG, "Original: ${originalWidth}x${originalHeight}, Target: ${adjustedWidth}x${adjustedHeight}")
-
             muxer = MediaMuxer(outputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
 
-            val outputMime = when (codec) {
-                "h264" -> MediaFormat.MIMETYPE_VIDEO_AVC
-                "hevc" -> MediaFormat.MIMETYPE_VIDEO_HEVC
-                else -> MediaFormat.MIMETYPE_VIDEO_AVC
-            }
+            val encoderConfig = createEncoderConfig(metadata, codec, quality)
+            videoEncoder = createVideoEncoder(encoderConfig)
 
-            val outputFormat = MediaFormat.createVideoFormat(outputMime, adjustedWidth, adjustedHeight)
-            val targetBitrate = calculateTargetBitrate(quality)
-
-            outputFormat.setInteger(MediaFormat.KEY_BIT_RATE, targetBitrate)
-
-            outputFormat.setInteger(MediaFormat.KEY_FRAME_RATE, DEFAULT_FRAME_RATE)
-            outputFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, DEFAULT_I_FRAME_INTERVAL)
-            outputFormat.setInteger(
-                MediaFormat.KEY_COLOR_FORMAT,
-                MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible
-            )
-
-            if (codec == "h264") {
-                outputFormat.setInteger(
-                    MediaFormat.KEY_PROFILE,
-                    MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
-                )
-            } else if (codec == "hevc") {
-                outputFormat.setInteger(
-                    MediaFormat.KEY_PROFILE,
-                    MediaCodecInfo.CodecProfileLevel.HEVCProfileMain
-                )
-            }
-
-            val codecList = android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
-            val encoderName = try {
-                codecList.findEncoderForFormat(outputFormat)
-            } catch (e: Exception) {
-                null
-            }
-
-            videoEncoder = if (encoderName != null) {
-                Log.d(TAG, "Using hardware encoder: $encoderName")
-                MediaCodec.createByCodecName(encoderName)
-            } else {
-                Log.d(TAG, "Using default encoder")
-                MediaCodec.createEncoderByType(outputMime)
-            }
-
-            val codecInfo = if (encoderName != null) {
-                codecList.codecInfos.find { it.name == encoderName }
-            } else {
-                null
-            }
-
-            val capabilities = codecInfo?.getCapabilitiesForType(outputMime)
-            val encoderCapabilities = capabilities?.encoderCapabilities
-
-            if (encoderCapabilities != null) {
-                val bitrateMode = when {
-                    encoderCapabilities.isBitrateModeSupported(MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR) -> {
-                        Log.d(TAG, "Using Variable Bitrate (VBR) mode")
-                        MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR
-                    }
-                    else -> {
-                        Log.d(TAG, "Using Constant Bitrate (CBR) mode (fallback)")
-                        MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR
-                    }
-                }
-                outputFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, bitrateMode)
-            }
-
-            videoEncoder.configure(outputFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
             val encoderSurface = videoEncoder.createInputSurface()
             videoEncoder.start()
 
-            val videoMime = videoFormat.getString(MediaFormat.KEY_MIME)!!
-            videoDecoder = MediaCodec.createDecoderByType(videoMime)
-            videoDecoder.configure(videoFormat, encoderSurface, null, 0)
+            videoDecoder = MediaCodec.createDecoderByType(metadata.mime)
+            videoDecoder.configure(metadata.format, encoderSurface, null, 0)
             videoDecoder.start()
 
-            var audioOutputTrackIndex = -1
-            val videoOutputTrackIndex: Int
-
             extractor.selectTrack(videoTrackIndex)
-            val videoResult = processVideoTrackWithSurface(
+            val videoResult = processVideoTrack(
                 extractor,
                 videoDecoder,
                 videoEncoder,
                 muxer,
                 audioTrackIndex != -1 && audioFormat != null
             )
-            videoOutputTrackIndex = videoResult.trackIndex
 
             encoderSurface.release()
 
-            // Copy audio track directly without transcoding (faster, no quality loss)
+            // Copy audio track directly without transcoding
             if (audioTrackIndex != -1 && audioFormat != null) {
                 extractor.unselectTrack(videoTrackIndex)
                 extractor.selectTrack(audioTrackIndex)
                 extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
 
-                audioOutputTrackIndex = muxer.addTrack(audioFormat)
+                val audioOutputTrackIndex = muxer.addTrack(audioFormat)
 
                 if (!videoResult.muxerStarted) {
                     muxer.start()
                     Log.d(TAG, "Muxer started (video + audio)")
-
-                    writePendingVideoSamples(muxer, videoOutputTrackIndex, videoResult.pendingSamples)
+                    writePendingVideoSamples(muxer, videoResult.trackIndex, videoResult.pendingSamples)
                 }
 
                 copyAudioTrack(extractor, muxer, audioOutputTrackIndex)
             }
+
             muxer.stop()
 
-            if (!outputFile.exists()) {
-                throw RuntimeException("Output file was not created")
-            }
-            val outputSize = outputFile.length()
-            Log.d(TAG, "Output file size: ${outputSize / (1024 * 1024)} MB")
-            if (outputSize == 0L) {
-                throw RuntimeException("Output file is empty")
+            val outputFile = File(outputPath)
+            if (!outputFile.exists() || outputFile.length() == 0L) {
+                throw RuntimeException("Output file was not created or is empty")
             }
 
-            Log.d(TAG, "Compression completed successfully")
+            Log.d(TAG, "Compression completed successfully. Output size: ${outputFile.length() / (1024 * 1024)} MB")
         } finally {
             extractor.release()
             muxer?.release()
@@ -243,29 +200,105 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         }
     }
 
-    private data class VideoProcessingResult(
-        val trackIndex: Int,
-        val muxerStarted: Boolean,
-        val pendingSamples: List<Pair<ByteBuffer, MediaCodec.BufferInfo>>
-    )
+    private fun createEncoderConfig(metadata: VideoMetadata, codec: String, quality: Double): EncoderConfig {
+        val isRotated = metadata.rotation == 90 || metadata.rotation == 270
+        val width = if (isRotated) metadata.height else metadata.width
+        val height = if (isRotated) metadata.width else metadata.height
 
-    private fun processVideoTrackWithSurface(
+        val outputMime = when (codec) {
+            "h264" -> MediaFormat.MIMETYPE_VIDEO_AVC
+            "hevc" -> MediaFormat.MIMETYPE_VIDEO_HEVC
+            else -> MediaFormat.MIMETYPE_VIDEO_AVC
+        }
+
+        Log.d(TAG, "Encoder config: ${width}x${height}, codec=$codec, quality=$quality")
+
+        return EncoderConfig(width, height, outputMime, codec, quality)
+    }
+
+    private fun createVideoEncoder(config: EncoderConfig): MediaCodec {
+        val format = MediaFormat.createVideoFormat(config.mime, config.width, config.height)
+
+        format.setInteger(MediaFormat.KEY_BIT_RATE, calculateTargetBitrate(config.quality))
+        format.setInteger(MediaFormat.KEY_FRAME_RATE, DEFAULT_FRAME_RATE)
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, DEFAULT_I_FRAME_INTERVAL)
+        format.setInteger(
+            MediaFormat.KEY_COLOR_FORMAT,
+            MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible
+        )
+
+        when (config.codec) {
+            "h264" -> format.setInteger(
+                MediaFormat.KEY_PROFILE,
+                MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
+            )
+            "hevc" -> format.setInteger(
+                MediaFormat.KEY_PROFILE,
+                MediaCodecInfo.CodecProfileLevel.HEVCProfileMain
+            )
+        }
+
+        val codecList = android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
+        val encoderName = codecList.findEncoderForFormat(format)
+
+        val encoder = if (encoderName != null) {
+            Log.d(TAG, "Using hardware encoder: $encoderName")
+            MediaCodec.createByCodecName(encoderName)
+        } else {
+            Log.d(TAG, "Using default encoder")
+            MediaCodec.createEncoderByType(config.mime)
+        }
+
+        applyEncoderCapabilities(encoder, encoderName, config.mime, format)
+        encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+
+        return encoder
+    }
+
+    private fun applyEncoderCapabilities(
+        encoder: MediaCodec,
+        encoderName: String?,
+        mime: String,
+        format: MediaFormat
+    ) {
+        if (encoderName == null) return
+
+        val codecList = android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
+        val codecInfo = codecList.codecInfos.find { it.name == encoderName } ?: return
+        val capabilities = codecInfo.getCapabilitiesForType(mime)?.encoderCapabilities ?: return
+
+        val bitrateMode = when {
+            capabilities.isBitrateModeSupported(MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR) -> {
+                Log.d(TAG, "Using Variable Bitrate (VBR) mode")
+                MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR
+            }
+            else -> {
+                Log.d(TAG, "Using Constant Bitrate (CBR) mode")
+                MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR
+            }
+        }
+        format.setInteger(MediaFormat.KEY_BITRATE_MODE, bitrateMode)
+    }
+
+    private fun processVideoTrack(
         extractor: MediaExtractor,
         videoDecoder: MediaCodec,
         videoEncoder: MediaCodec,
         muxer: MediaMuxer,
         hasAudioTrack: Boolean
     ): VideoProcessingResult {
-        Log.d(TAG, "Starting processVideoTrackWithSurface, hasAudioTrack=$hasAudioTrack")
-        val videoBufferInfo = MediaCodec.BufferInfo()
-        var videoOutputTrackIndex = -1
-        var videoInputDone = false
-        var videoOutputDone = false
-        var muxerStarted = false
-        val pendingVideoSamples = mutableListOf<Pair<ByteBuffer, MediaCodec.BufferInfo>>()
+        Log.d(TAG, "Processing video track, hasAudioTrack=$hasAudioTrack")
 
-        while (!videoOutputDone) {
-            if (!videoInputDone) {
+        val bufferInfo = MediaCodec.BufferInfo()
+        var videoOutputTrackIndex = -1
+        var inputDone = false
+        var outputDone = false
+        var muxerStarted = false
+        val pendingSamples = mutableListOf<Pair<ByteBuffer, MediaCodec.BufferInfo>>()
+
+        while (!outputDone) {
+            // Feed input to decoder
+            if (!inputDone) {
                 val inputBufferIndex = videoDecoder.dequeueInputBuffer(0)
                 if (inputBufferIndex >= 0) {
                     val inputBuffer = videoDecoder.getInputBuffer(inputBufferIndex)!!
@@ -276,85 +309,78 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                             inputBufferIndex, 0, 0, 0,
                             MediaCodec.BUFFER_FLAG_END_OF_STREAM
                         )
-                        videoInputDone = true
+                        inputDone = true
                     } else {
-                        val presentationTimeUs = extractor.sampleTime
                         videoDecoder.queueInputBuffer(
                             inputBufferIndex, 0, sampleSize,
-                            presentationTimeUs, 0
+                            extractor.sampleTime, 0
                         )
                         extractor.advance()
                     }
                 }
             }
 
-            val videoDecoderStatus = videoDecoder.dequeueOutputBuffer(videoBufferInfo, 0)
-            when {
-                videoDecoderStatus >= 0 -> {
-                    val doRender = videoBufferInfo.size != 0
-                    videoDecoder.releaseOutputBuffer(videoDecoderStatus, doRender)
+            // Process decoder output (renders to encoder surface)
+            val decoderStatus = videoDecoder.dequeueOutputBuffer(bufferInfo, 0)
+            if (decoderStatus >= 0) {
+                val doRender = bufferInfo.size != 0
+                videoDecoder.releaseOutputBuffer(decoderStatus, doRender)
 
-                    if (videoBufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
-                        videoEncoder.signalEndOfInputStream()
-                    }
+                if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
+                    videoEncoder.signalEndOfInputStream()
                 }
             }
 
-            val videoEncoderStatus = videoEncoder.dequeueOutputBuffer(videoBufferInfo, 0)
+            // Process encoder output
+            val encoderStatus = videoEncoder.dequeueOutputBuffer(bufferInfo, 0)
             when {
-                videoEncoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
-                    val newFormat = videoEncoder.outputFormat
-                    videoOutputTrackIndex = muxer.addTrack(newFormat)
+                encoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
+                    videoOutputTrackIndex = muxer.addTrack(videoEncoder.outputFormat)
                     if (!hasAudioTrack) {
-                        // No audio track, start muxer immediately
                         muxer.start()
                         muxerStarted = true
                         Log.d(TAG, "Muxer started (video only)")
                     } else {
-                        Log.d(TAG, "Video track added, waiting for audio track before starting muxer")
+                        Log.d(TAG, "Video track added, waiting for audio")
                     }
                 }
-                videoEncoderStatus >= 0 -> {
-                    val encodedData = videoEncoder.getOutputBuffer(videoEncoderStatus)!!
+                encoderStatus >= 0 -> {
+                    val encodedData = videoEncoder.getOutputBuffer(encoderStatus)!!
 
-                    if (videoBufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG != 0) {
-                        videoBufferInfo.size = 0
+                    if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG != 0) {
+                        bufferInfo.size = 0
                     }
 
-                    if (videoBufferInfo.size != 0) {
+                    if (bufferInfo.size != 0) {
                         if (muxerStarted) {
-                            encodedData.position(videoBufferInfo.offset)
-                            encodedData.limit(videoBufferInfo.offset + videoBufferInfo.size)
-                            muxer.writeSampleData(videoOutputTrackIndex, encodedData, videoBufferInfo)
+                            encodedData.position(bufferInfo.offset)
+                            encodedData.limit(bufferInfo.offset + bufferInfo.size)
+                            muxer.writeSampleData(videoOutputTrackIndex, encodedData, bufferInfo)
                         } else {
-                            // Buffer video samples until muxer is started
-                            val bufferCopy = ByteBuffer.allocate(videoBufferInfo.size)
-                            encodedData.position(videoBufferInfo.offset)
-                            encodedData.limit(videoBufferInfo.offset + videoBufferInfo.size)
+                            // Buffer samples until muxer starts
+                            val bufferCopy = ByteBuffer.allocate(bufferInfo.size)
+                            encodedData.position(bufferInfo.offset)
+                            encodedData.limit(bufferInfo.offset + bufferInfo.size)
                             bufferCopy.put(encodedData)
                             bufferCopy.flip()
 
                             val infoCopy = MediaCodec.BufferInfo()
-                            infoCopy.set(0, videoBufferInfo.size, videoBufferInfo.presentationTimeUs, videoBufferInfo.flags)
-                            pendingVideoSamples.add(Pair(bufferCopy, infoCopy))
-
-                            if (pendingVideoSamples.size % 100 == 0) {
-                                Log.d(TAG, "Buffered ${pendingVideoSamples.size} video samples")
-                            }
+                            infoCopy.set(0, bufferInfo.size, bufferInfo.presentationTimeUs, bufferInfo.flags)
+                            pendingSamples.add(Pair(bufferCopy, infoCopy))
                         }
                     }
 
-                    videoEncoder.releaseOutputBuffer(videoEncoderStatus, false)
+                    videoEncoder.releaseOutputBuffer(encoderStatus, false)
 
-                    if (videoBufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
-                        videoOutputDone = true
+                    if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
+                        outputDone = true
                     }
                 }
             }
         }
 
-        Log.d(TAG, "Finished processVideoTrackWithSurface, buffered ${pendingVideoSamples.size} samples")
-        return VideoProcessingResult(videoOutputTrackIndex, muxerStarted, pendingVideoSamples)
+        Log.d(TAG, "Video processing complete, buffered ${pendingSamples.size} samples")
+        return VideoProcessingResult(videoOutputTrackIndex, muxerStarted, pendingSamples)
     }
 
     private fun writePendingVideoSamples(
@@ -367,7 +393,6 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
             buffer.rewind()
             muxer.writeSampleData(videoTrackIndex, buffer, bufferInfo)
         }
-        Log.d(TAG, "Finished writing buffered video samples")
     }
 
     private fun copyAudioTrack(
@@ -375,29 +400,47 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         muxer: MediaMuxer,
         audioTrackIndex: Int
     ) {
-        Log.d(TAG, "Copying audio track directly")
+        Log.d(TAG, "Copying audio track")
         val bufferInfo = MediaCodec.BufferInfo()
         val buffer = ByteBuffer.allocate(1024 * 1024)
 
         while (true) {
             bufferInfo.size = extractor.readSampleData(buffer, 0)
-            if (bufferInfo.size < 0) {
-                break
-            }
+            if (bufferInfo.size < 0) break
 
             bufferInfo.presentationTimeUs = extractor.sampleTime
-
             muxer.writeSampleData(audioTrackIndex, buffer, bufferInfo)
             extractor.advance()
         }
 
-        Log.d(TAG, "Finished copying audio track")
+        Log.d(TAG, "Audio track copied")
     }
 
     private fun calculateTargetBitrate(quality: Double): Int {
         val baseBitrate = 1_000_000
         val qualityFactor = quality.coerceIn(0.5, 1.0)
-
         return (baseBitrate * qualityFactor).toInt()
     }
+
+    private data class VideoMetadata(
+        val width: Int,
+        val height: Int,
+        val rotation: Int,
+        val format: MediaFormat,
+        val mime: String
+    )
+
+    private data class EncoderConfig(
+        val width: Int,
+        val height: Int,
+        val mime: String,
+        val codec: String,
+        val quality: Double
+    )
+
+    private data class VideoProcessingResult(
+        val trackIndex: Int,
+        val muxerStarted: Boolean,
+        val pendingSamples: List<Pair<ByteBuffer, MediaCodec.BufferInfo>>
+    )
 }
