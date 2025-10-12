@@ -115,11 +115,8 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     Completer<FFmpegSession>? sessionIdCompleter,
     VideoCompressionSettings? settings,
   }) async {
-    var duration = file.duration;
-    if (duration == null) {
-      final videoInfo = await videoInfoService.getVideoInformation(file.path);
-      duration = videoInfo.duration.inSeconds;
-    }
+    final videoInfo = await videoInfoService.getVideoInformation(file.path);
+    final duration = videoInfo.duration.inSeconds;
 
     if (duration > hardwareCompressionThreshold.inSeconds) {
       final nativeSettings = Platform.isAndroid
@@ -176,7 +173,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       final compressedBytes = await File(output).length();
       stopwatch.stop();
       Logger.log('Compressed video size: ${_formatBytes(compressedBytes)}');
-      log('Compression time: ${_formatDuration(stopwatch.elapsed)}');
+      Logger.log('Compression time: ${_formatDuration(stopwatch.elapsed)}');
 
       final (width: outWidth, height: outHeight, duration: outDuration, bitrate: outBitrate) =
           await videoInfoService.getVideoInformation(output);

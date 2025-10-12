@@ -62,24 +62,7 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         }
 
         val metadata = extractVideoMetadata(inputPath, destWidth, destHeight)
-
-        // Skip compression if dimensions match
-        if (shouldSkipCompression(metadata, destWidth, destHeight)) {
-            Log.d(TAG, "Dimensions match, copying file instead of re-encoding")
-            File(inputPath).copyTo(outputFile, overwrite = true)
-            Log.d(TAG, "File copied successfully")
-            return
-        }
-
         transcodeVideo(inputPath, outputPath, metadata, codec, quality)
-    }
-
-    private fun shouldSkipCompression(metadata: VideoMetadata, destWidth: Int, destHeight: Int): Boolean {
-        val isRotated = metadata.rotation == 90 || metadata.rotation == 270
-        val adjustedWidth = if (isRotated) destHeight else destWidth
-        val adjustedHeight = if (isRotated) destWidth else destHeight
-
-        return metadata.width == adjustedWidth && metadata.height == adjustedHeight
     }
 
     private fun extractVideoMetadata(inputPath: String, destWidth: Int, destHeight: Int): VideoMetadata {
