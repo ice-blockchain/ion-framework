@@ -22,7 +22,7 @@ class Stories extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final (items: stories, :hasMore) = ref.watch(feedStoriesProvider);
+    final (items: stories, :hasMore, :ready) = ref.watch(feedStoriesProvider);
 
     final viewedStories = ref.watch(viewedStoriesProvider);
     final viewedStoriesReferences = useRef<Set<EventReference>>({});
@@ -50,7 +50,7 @@ class Stories extends HookConsumerWidget {
     return Column(
       children: [
         SizedBox(height: 8.0.s),
-        if (stories.isEmpty && hasMore)
+        if (!ready)
           const StoryListSkeleton()
         else
           LoadMoreBuilder(

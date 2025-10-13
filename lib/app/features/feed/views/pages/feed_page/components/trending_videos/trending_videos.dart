@@ -23,9 +23,11 @@ class TrendingVideos extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // TODO: Determine the actual overlay type.
+    // final listOverlay = ref.watch(trendingVideosOverlayNotifierProvider);
     const listOverlay = TrendingVideosOverlay.vertical;
 
-    final (:items, :hasMore) = ref.watch(feedTrendingVideosProvider);
+    final (:items, :hasMore, :ready) = ref.watch(feedTrendingVideosProvider);
 
     final postItems = useMemoized(
       () {
@@ -34,7 +36,7 @@ class TrendingVideos extends HookConsumerWidget {
       [items],
     );
 
-    if (postItems == null) {
+    if (postItems == null || !ready) {
       return Column(
         children: [
           SizedBox(height: 10.0.s),

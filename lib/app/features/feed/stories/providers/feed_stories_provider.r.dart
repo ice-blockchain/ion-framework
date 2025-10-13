@@ -18,7 +18,7 @@ part 'feed_stories_provider.r.g.dart';
 @riverpod
 class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
   @override
-  ({Iterable<ModifiablePostEntity> items, bool hasMore}) build() {
+  ({Iterable<ModifiablePostEntity> items, bool hasMore, bool ready}) build() {
     final filter = ref.watch(feedCurrentFilterProvider);
     final currentUserStory = ref.watch(currentUserFeedStoryProvider);
     final data = switch (filter.filter) {
@@ -43,7 +43,12 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
       if (userStories != null) ...userStories,
     };
 
-    return (items: stories, hasMore: data.hasMore);
+    return (
+      items: stories,
+      hasMore: data.hasMore,
+      // Approx number of items needed to fill the viewport
+      ready: stories.length >= (filteredCurrentUserStory != null ? 5 : 4) || !data.isLoading
+    );
   }
 
   @override
