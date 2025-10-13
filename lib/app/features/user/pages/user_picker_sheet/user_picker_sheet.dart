@@ -12,18 +12,20 @@ import 'package:ion/app/features/user/pages/user_picker_sheet/components/followi
 import 'package:ion/app/features/user/pages/user_picker_sheet/components/searched_users.dart';
 import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
+import 'package:ion_connect_cache/ion_connect_cache.dart';
 
 class UserPickerSheet extends HookConsumerWidget {
   const UserPickerSheet({
     required this.navigationBar,
     required this.onUserSelected,
     super.key,
-    this.selectedPubkeys = const [],
-    this.selectable = false,
-    this.controlPrivacy = false,
     this.header,
     this.footer,
+    this.cacheStrategy,
     this.expirationDuration,
+    this.selectable = false,
+    this.controlPrivacy = false,
+    this.selectedPubkeys = const [],
   });
 
   final NavigationAppBar navigationBar;
@@ -31,6 +33,7 @@ class UserPickerSheet extends HookConsumerWidget {
   final bool selectable;
   final bool controlPrivacy;
   final Duration? expirationDuration;
+  final DatabaseCacheStrategy? cacheStrategy;
   final void Function(UserMetadataEntity user) onUserSelected;
 
   final Widget? header;
@@ -44,6 +47,7 @@ class UserPickerSheet extends HookConsumerWidget {
     final searchResults = ref.watch(
       searchUsersProvider(
         query: debouncedQuery,
+        cacheStrategy: cacheStrategy,
         expirationDuration: expirationDuration,
       ),
     );
