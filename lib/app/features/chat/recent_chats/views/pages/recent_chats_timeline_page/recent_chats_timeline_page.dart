@@ -174,7 +174,7 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     if (participantsMasterPubkeys.isEmpty) return;
 
     for (final masterPubkey in participantsMasterPubkeys) {
-      ref.read(userMetadataProvider(masterPubkey, cache: false));
+      unawaited(ref.read(userMetadataProvider(masterPubkey, cache: false).future));
     }
   }
 }
