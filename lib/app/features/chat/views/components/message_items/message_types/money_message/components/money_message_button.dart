@@ -129,6 +129,9 @@ class _SendMoneyButton extends ConsumerWidget {
       type: disabled ? ButtonType.disabled : ButtonType.outlined,
       backgroundColor:
           disabled ? context.theme.appColors.sheetLine : context.theme.appColors.darkBlue,
+      style: ButtonStyle(
+        side: WidgetStateProperty.all(BorderSide.none),
+      ),
       minimumSize: RequestedMoneyMessageButton._defaultMinimumSize,
       label: Text(
         context.i18n.button_send,
