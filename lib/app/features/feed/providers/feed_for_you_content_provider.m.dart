@@ -205,7 +205,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   Future<int> _getFeedForYouOverflowedDistribution({required int forYouLimit}) async {
     final feedConfig = await ref.read(feedConfigProvider.future);
-    return (forYouLimit + forYouLimit * feedConfig.overflowMultiplier).ceil();
+    return (forYouLimit + forYouLimit * feedConfig.forYouOverflowMultiplier).ceil();
   }
 
   Future<Map<FeedModifier, int>> _getFeedModifiersDistribution({required int limit}) async {
