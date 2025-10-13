@@ -7,6 +7,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
+import 'package:ion/app/services/logger/logger.dart';
 
 part 'ion_connect_auth.f.freezed.dart';
 
@@ -52,9 +53,42 @@ class IonConnectAuth with _$IonConnectAuth implements EventSerializable {
 
   String toAuthorizationHeader(EventMessage event) {
     final eventPayload = event.toJson().last;
-    final headerValue = base64Encode(utf8.encode(jsonEncode(eventPayload)));
+
+    // Safe cast only for logging purposes
+    final payloadMap = (eventPayload as Map).cast<String, dynamic>();
+    _logNip98HeaderReady(payloadMap);
+
+    final payloadJson = jsonEncode(eventPayload);
+    final headerValue = base64Encode(utf8.encode(payloadJson));
+
     return 'Bearer $headerValue';
   }
 
   static const int kind = 27235;
+}
+
+// Logs the header of the NIP-98 event
+void _logNip98HeaderReady(Map<String, dynamic> eventPayload) {
+  final payloadJson = jsonEncode(eventPayload);
+  final tags = (eventPayload['tags'] as List<dynamic>?)?.cast<List<dynamic>>() ?? const [];
+
+  String? absoluteUrl;
+  String? requestMethod;
+  String? payloadSha256First8;
+
+  for (final tag in tags) {
+    if (tag.isEmpty) continue;
+    if (tag[0] == 'u' && tag.length > 1 && tag[1] is String) {
+      absoluteUrl = tag[1] as String;
+    } else if (tag[0] == 'method' && tag.length > 1 && tag[1] is String) {
+      requestMethod = tag[1] as String;
+    } else if (tag[0] == 'payload' && tag.length > 1 && tag[1] is String) {
+      final hexStr = tag[1] as String;
+      payloadSha256First8 = hexStr.length >= 8 ? hexStr.substring(0, 8) : hexStr;
+    }
+  }
+
+  Logger.info(
+    'NOSTR.NIP98 header_ready nip98.u=${absoluteUrl ?? 'null'} nip98.method=${requestMethod ?? 'null'} nip98.payload_sha256_first8=${payloadSha256First8 ?? 'null'} event_size_bytes=${payloadJson.length}',
+  );
 }
