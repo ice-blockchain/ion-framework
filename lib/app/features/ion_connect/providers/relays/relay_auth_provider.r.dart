@@ -154,7 +154,7 @@ class RelayAuthService {
       );
 
       // Log AUTH send
-      final socketId = WebSocketTracker.getSocketId(relay);
+      final socketId = WebSocketTracker.getSocketId(relay) ?? -1;
       final host = WebSocketTracker.getHost(relay.url);
       final pubkey = signedAuthEvent.pubkey;
       Logger.info('NOSTR.WS.AUTH.SEND host=$host socket_id=$socketId ws_auth_pubkey=$pubkey');
@@ -177,7 +177,11 @@ class RelayAuthService {
       }
 
       // Log AUTH success
-      Logger.info('NOSTR.WS.AUTH.OK host=$host socket_id=$socketId auth_result=ok');
+      final okHost = WebSocketTracker.getHost(relay.url);
+      final okSocketId = WebSocketTracker.getSocketId(relay) ?? -1;
+      final okPubkey = signedAuthEvent.pubkey; // the pubkey that signed AUTH
+      WebSocketTracker.setAuthOk(host: okHost, pubkey: okPubkey, socketId: okSocketId);
+      Logger.info('NOSTR.WS.AUTH.OK host=$okHost socket_id=$okSocketId auth_result=ok');
 
       completer?.complete();
     } catch (error) {

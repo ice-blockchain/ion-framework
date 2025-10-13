@@ -19,6 +19,7 @@ mixin RelayClosedMixin {
 
       // Cleanup socket tracking
       WebSocketTracker.unregister(relay);
+      WebSocketTracker.clearOnClose(host: host, socketId: socketId ?? -1);
 
       ref.invalidateSelf();
     });
