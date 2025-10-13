@@ -26,6 +26,7 @@ import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.da
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -119,8 +120,19 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
     });
 
     if (state.hasError) {
-      // Log to get the error stack trace
-      Logger.error(state.error!, stackTrace: state.stackTrace);
+      final error = state.error!;
+
+      // Capture to Sentry the next exceptions
+      // - Unexpected ones (not IONException)
+      // - Unexpected blockchain errors with reason (FailedToSendCryptoAssetsException)
+      if (error is! IONException || error is FailedToSendCryptoAssetsException) {
+        await SentryService.logException(
+          error,
+          stackTrace: state.stackTrace,
+          tag: 'send_coins_failure',
+        );
+      }
+      Logger.error(error, stackTrace: state.stackTrace);
     }
   }
 
