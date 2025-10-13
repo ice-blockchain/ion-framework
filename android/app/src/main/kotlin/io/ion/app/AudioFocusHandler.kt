@@ -5,6 +5,7 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Build
+import android.util.Log
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
@@ -99,5 +100,25 @@ class AudioFocusHandler(private val context: Context, flutterEngine: FlutterEngi
                 channel.invokeMethod("onAudioFocusChange", false)
             }
         }
+    }
+
+    fun cleanup() {
+        Log.d(TAG, "cleanup() called - starting cleanup process")
+        
+        // Abandon audio focus before cleanup
+        if (hasFocus) {
+            abandonAudioFocus()
+        }
+        
+        // Remove method call handler to prevent memory leaks
+        channel.setMethodCallHandler(null)
+        
+        // Clear references
+        audioManager = null
+        focusRequest = null
+    }
+
+    companion object {
+        private const val TAG = "AudioFocusHandler"
     }
 } 
