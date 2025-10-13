@@ -54,7 +54,7 @@ jobs:
       - name: Setup Flutter
         uses: flutter-actions/setup-flutter@v4
         with:
-          flutter-version: ${{ steps.flutter-version.outputs.version }}
+          version: ${{ steps.flutter-version.outputs.version }}
           channel: 'stable'
           cache: true
           cache-pub: true
