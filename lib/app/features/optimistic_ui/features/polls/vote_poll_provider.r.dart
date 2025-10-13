@@ -69,7 +69,7 @@ Stream<PollVoteState?> pollVoteWatch(Ref ref, String ttlOfVote) {
 @riverpod
 class TogglePollVoteNotifier extends _$TogglePollVoteNotifier {
   @override
-  void build() {}
+  FutureOr<void> build() {}
 
   Future<void> vote(
     EventReference eventReference,
@@ -77,8 +77,13 @@ class TogglePollVoteNotifier extends _$TogglePollVoteNotifier {
     int optionIndex,
     List<int> voteCounts,
   ) async {
-    final key = eventReference.toString();
+    if (state.isLoading) {
+      return;
+    }
 
+    state = const AsyncValue.loading();
+
+    final key = eventReference.toString();
     try {
       final service = ref.read(pollVoteServiceProvider);
 
@@ -93,7 +98,8 @@ class TogglePollVoteNotifier extends _$TogglePollVoteNotifier {
       );
 
       await service.dispatch(VotePollIntent(optionIndex), current);
-      await Future<void>.delayed(const Duration(milliseconds: 300));
-    } finally {}
+    } finally {
+      state = const AsyncValue.data(null);
+    }
   }
 }
