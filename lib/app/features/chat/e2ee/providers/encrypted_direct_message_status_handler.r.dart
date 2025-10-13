@@ -15,10 +15,14 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'encrypted_direct_message_status_handler.r.g.dart';
 
 class EncryptedDirectMessageStatusHandler extends GlobalSubscriptionEncryptedEventMessageHandler {
-  EncryptedDirectMessageStatusHandler(
-    this.conversationMessageDataDao,
-  );
+  EncryptedDirectMessageStatusHandler({
+    required this.conversationDao,
+    required this.conversationMessageDao,
+    required this.conversationMessageDataDao,
+  });
 
+  final ConversationDao conversationDao;
+  final ConversationMessageDao conversationMessageDao;
   final ConversationMessageDataDao conversationMessageDataDao;
 
   @override
@@ -33,13 +37,16 @@ class EncryptedDirectMessageStatusHandler extends GlobalSubscriptionEncryptedEve
   @override
   Future<EventReference> handle(EventMessage rumor) async {
     final entity = PrivateMessageReactionEntity.fromEventMessage(rumor);
-    await conversationMessageDataDao.addOrUpdateStatus(
-      messageEventReference: entity.data.reference,
-      pubkey: rumor.pubkey,
-      masterPubkey: rumor.masterPubkey,
-      updateAllBefore: rumor.createdAt.toDateTime,
-      status: MessageDeliveryStatus.values.byName(entity.data.content),
-    );
+
+    if (await conversationMessageDao.messageIsNotDeleted(entity.data.reference)) {
+      await conversationMessageDataDao.addOrUpdateStatus(
+        messageEventReference: entity.data.reference,
+        pubkey: rumor.pubkey,
+        masterPubkey: rumor.masterPubkey,
+        updateAllBefore: rumor.createdAt.toDateTime,
+        status: MessageDeliveryStatus.values.byName(entity.data.content),
+      );
+    }
     return entity.toEventReference();
   }
 }
@@ -47,5 +54,7 @@ class EncryptedDirectMessageStatusHandler extends GlobalSubscriptionEncryptedEve
 @riverpod
 EncryptedDirectMessageStatusHandler encryptedDirectMessageStatusHandler(Ref ref) =>
     EncryptedDirectMessageStatusHandler(
-      ref.watch(conversationMessageDataDaoProvider),
+      conversationDao: ref.watch(conversationDaoProvider),
+      conversationMessageDao: ref.watch(conversationMessageDaoProvider),
+      conversationMessageDataDao: ref.watch(conversationMessageDataDaoProvider),
     );
