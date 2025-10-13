@@ -1,6 +1,7 @@
 source 'https://github.com/CocoaPods/Specs.git'
 source 'https://github.com/Banuba/specs.git'
 source 'https://github.com/sdk-banuba/banuba-sdk-podspecs.git'
+source 'https://github.com/tensorflow/tensorflow.git'
 
 # Uncomment this line to define a global platform for your project
 platform :ios, '15.0'
@@ -48,7 +49,8 @@ target 'Runner' do
   pod 'GoogleUtilities'
   pod 'AppsFlyerFramework'
   
-  pod 'TensorFlowLiteC', '~> 2.14.0'
+  pod 'TensorFlowLiteC', '2.12.0'
+  pod 'TensorFlowLiteSwift', '2.12.0'
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
