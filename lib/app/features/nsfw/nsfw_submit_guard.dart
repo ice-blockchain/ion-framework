@@ -42,8 +42,8 @@ class NsfwSubmitGuard {
         }
         return true;
       }
-    } catch (e) {
-      Logger.error(e, message: 'NSFW validation failed');
+    } catch (e, st) {
+      Logger.error(e, message: 'NSFW validation failed', stackTrace: st);
     }
     return false;
   }

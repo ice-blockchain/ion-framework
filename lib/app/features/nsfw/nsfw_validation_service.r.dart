@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector_factory.r.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/media_service/video_info_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -76,7 +77,9 @@ class NsfwValidationService {
           if (result.decision != NsfwDecision.allow) {
             return true;
           }
-        } catch (_) {}
+        } catch (e, st) {
+          Logger.error(e, message: 'NSFW image validation failed', stackTrace: st);
+        }
       }
       return false;
     } finally {
@@ -104,7 +107,9 @@ class NsfwValidationService {
             if (result.decision != NsfwDecision.allow) {
               return true;
             }
-          } catch (_) {}
+          } catch (e, st) {
+            Logger.error(e, message: 'NSFW video thumbnail validation failed', stackTrace: st);
+          }
         }
       }
       return false;
