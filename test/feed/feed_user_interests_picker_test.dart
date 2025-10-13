@@ -33,6 +33,7 @@ void main() {
         excludeUnclassifiedFromExplore: false,
         forYouMaxRetriesMultiplier: 5,
         followingMaxRetriesMultiplier: 5,
+        forYouOverflowMultiplier: 2,
       );
       interests = FeedInterests.fromJson({
         'music': {
