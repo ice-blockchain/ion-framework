@@ -26,7 +26,7 @@ List<EntitiesDataSource>? topicArticlesDataSource(Ref ref, String topic) {
       _buildArticlesDataSource(
         actionSource: ActionSourceOptimalRelays(
           masterPubkeys: filterMasterPubkeys,
-          strategy: OptimalRelaysStrategy.mostUsers,
+          strategy: OptimalRelaysStrategy.bestLatency,
         ),
         authors: filter == FeedFilter.following ? filterMasterPubkeys : null,
         currentPubkey: currentPubkey,

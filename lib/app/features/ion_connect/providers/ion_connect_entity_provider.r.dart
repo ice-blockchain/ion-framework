@@ -368,7 +368,7 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
             eventReferences: notCachedEvents,
             actionSource: actionSource ??
                 ActionSource.optimalRelays(
-                  strategy: OptimalRelaysStrategy.mostUsers,
+                  strategy: OptimalRelaysStrategy.bestLatency,
                   masterPubkeys: notCachedEvents.map((e) => e.masterPubkey).toSet().toList(),
                 ),
           )
