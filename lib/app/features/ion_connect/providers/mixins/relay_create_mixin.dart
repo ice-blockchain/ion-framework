@@ -10,6 +10,7 @@ import 'package:ion/app/features/core/providers/internet_status_stream_provider.
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/user/providers/relays/relays_reachability_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/logger/websocket_tracker.dart';
 
 mixin RelayCreateMixin {
   Future<IonConnectRelay> createRelay(Ref ref, String url) async {
@@ -34,6 +35,12 @@ mixin RelayCreateMixin {
     }
 
     await ref.read(relayReachabilityProvider.notifier).clear(url);
+
+    // Register and log successful WebSocket connection
+    final socketId = WebSocketTracker.register(relay);
+    final host = WebSocketTracker.getHost(url);
+    Logger.info('NOSTR.WS.OPEN host=$host socket_id=$socketId');
+
     return relay;
   }
 
