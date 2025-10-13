@@ -47,6 +47,8 @@ target 'Runner' do
 
   pod 'GoogleUtilities'
   pod 'AppsFlyerFramework'
+  
+  pod 'TensorFlowLiteC', '~> 2.14.0'
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
