@@ -40,7 +40,7 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
       final avatarThumb = avatar != null
           ? await ref
               .read(imageCompressorProvider)
-              .scaleImage(avatar, scaleResolution: FfmpegScaleArg.p120)
+              .scaleImage(avatar, scaleResolution: FfmpegScaleArg.p480)
           : null;
 
       final (uploadedAvatar, uploadedBanner, uploadedAvatarThumb) = await (
