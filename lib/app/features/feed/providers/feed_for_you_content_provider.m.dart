@@ -173,18 +173,15 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     final retryCounter = await _buildRetryCounter();
     final modifiersDistribution = await _getFeedModifiersDistribution(limit: limit);
 
-    // Do not fetch interested events for modifiers concurrently here,
-    // because the number of concurrent feed requests is limited, so
-    // querying the explore modifier first is more likely to yield some events.
-    for (final MapEntry(key: modifier, value: modifierLimit) in modifiersDistribution.entries) {
-      if (modifierLimit > 0) {
-        yield* _fetchInterestsEntities(
-          modifier: modifier,
-          limit: modifierLimit,
-          retryCounter: retryCounter,
-        );
-      }
-    }
+    yield* StreamGroup.merge([
+      for (final MapEntry(key: modifier, value: modifierLimit) in modifiersDistribution.entries)
+        if (modifierLimit > 0)
+          _fetchInterestsEntities(
+            modifier: modifier,
+            limit: modifierLimit,
+            retryCounter: retryCounter,
+          ),
+    ]);
 
     if (retryCounter.isReached) {
       state = state.copyWith(forYouRetryLimitReached: true);
