@@ -9,6 +9,7 @@ import 'package:ion/app/features/user/providers/relays/ranked_user_relays_provid
 import 'package:ion/app/services/ion_connect/ion_connect_relays_ranker.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/pauseable_periodic_runner/pauseable_periodic_runner.r.dart';
+import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'relevant_user_relays_provider.r.g.dart';
@@ -37,12 +38,21 @@ Future<List<String>> relevantRelays(Ref ref, String relayUrl) async {
 
 @Riverpod(keepAlive: true)
 class RankedRelevantCurrentUserRelaysUrls extends _$RankedRelevantCurrentUserRelaysUrls {
+  static const _cacheKey = '_RankedRelevantCurrentUserRelaysCache';
+  static const _cacheCreatedAtKey = '_RankedRelevantCurrentUserRelaysCacheCreatedAt';
+
   @override
   Stream<List<String>> build() async* {
-    final relevantRelaysUrls = await ref.watch(relevantCurrentUserRelaysProvider.future);
+    // If cache is available, always yield it first to speed up the feed loading, even tho it is expired
+    final cached = _loadSavedState();
+    if (cached != null) {
+      yield cached;
+    }
 
-    final pingIntervalSeconds =
-        ref.watch(envProvider.notifier).get<int>(EnvVariable.RELAY_PING_INTERVAL_SECONDS);
+    final pingIntervalDuration =
+        ref.watch(envProvider.notifier).get<Duration>(EnvVariable.RELAY_PING_INTERVAL_DURATION);
+
+    final runImmediately = !_isCacheValid(cacheValidityDuration: pingIntervalDuration);
 
     final controller = StreamController<List<String>>();
     ref
@@ -50,15 +60,19 @@ class RankedRelevantCurrentUserRelaysUrls extends _$RankedRelevantCurrentUserRel
           pauseablePeriodicRunnerProvider('rankedRelevantCurrentUserRelays'),
         )
         .start(
-          interval: Duration(seconds: pingIntervalSeconds),
-          onTick: (cancelToken) =>
-              controller.addStream(_rank(relevantRelaysUrls, cancelToken: cancelToken)),
-          runImmediately: true,
+          interval: pingIntervalDuration,
+          onTick: (cancelToken) => ref.read(relevantCurrentUserRelaysProvider.future).then(
+                (relevantRelaysUrls) =>
+                    controller.addStream(_rank(relevantRelaysUrls, cancelToken: cancelToken)),
+              ),
+          runImmediately: runImmediately,
         );
 
     ref.onDispose(() async {
       await controller.close();
     });
+
+    listenSelf((_, next) => _saveState(next.valueOrNull));
 
     yield* controller.stream;
   }
@@ -88,5 +102,23 @@ class RankedRelevantCurrentUserRelaysUrls extends _$RankedRelevantCurrentUserRel
     if (rankedRelaysUrls.isEmpty) {
       yield rankedRelaysUrls;
     }
+  }
+
+  void _saveState(List<String>? state) {
+    if (state != null) {
+      ref.read(localStorageProvider)
+        ..setStringList(_cacheKey, state)
+        ..setInt(_cacheCreatedAtKey, DateTime.now().millisecondsSinceEpoch);
+    }
+  }
+
+  List<String>? _loadSavedState() {
+    return ref.read(localStorageProvider).getStringList(_cacheKey);
+  }
+
+  bool _isCacheValid({required Duration cacheValidityDuration}) {
+    final createdAt = ref.read(localStorageProvider).getInt(_cacheCreatedAtKey);
+    if (createdAt == null) return false;
+    return DateTime.now().millisecondsSinceEpoch - createdAt < cacheValidityDuration.inMilliseconds;
   }
 }

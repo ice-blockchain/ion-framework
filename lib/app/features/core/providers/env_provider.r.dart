@@ -27,7 +27,7 @@ enum EnvVariable {
   SENTRY_DSN,
   FOUNDATION_APP_GROUP,
   FIREBASE_CONFIG,
-  RELAY_PING_INTERVAL_SECONDS,
+  RELAY_PING_INTERVAL_DURATION,
   CHECKSUM,
   FEED_MIN_VISIBLE_ARTICLE_CATEGORIES_NUMBER,
   ACCOUNT_NOTIFICATION_SETTINGS_SYNC_INTERVAL_MINUTES,
@@ -86,9 +86,11 @@ class Env extends _$Env {
           TargetPlatform.iOS => const String.fromEnvironment('FIREBASE_CONFIG_IOS') as T,
           _ => throw UnsupportedError('Unsupported platform'),
         },
-      EnvVariable.RELAY_PING_INTERVAL_SECONDS => const int.fromEnvironment(
-          'RELAY_PING_INTERVAL_SECONDS',
-          defaultValue: 3600,
+      EnvVariable.RELAY_PING_INTERVAL_DURATION => const Duration(
+          seconds: int.fromEnvironment(
+            'RELAY_PING_INTERVAL_SECONDS',
+            defaultValue: 3600,
+          ),
         ) as T,
       EnvVariable.CHECKSUM => const String.fromEnvironment('CHECKSUM') as T,
       EnvVariable.FEED_MIN_VISIBLE_ARTICLE_CATEGORIES_NUMBER => const int.fromEnvironment(
