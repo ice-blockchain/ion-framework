@@ -9,7 +9,7 @@ class FakeFeedStories extends FeedStories {
   final Iterable<ModifiablePostEntity> _stories;
 
   @override
-  ({Iterable<ModifiablePostEntity> items, bool hasMore}) build() {
-    return (items: _stories, hasMore: false);
+  ({Iterable<ModifiablePostEntity> items, bool hasMore, bool ready}) build() {
+    return (items: _stories, hasMore: false, ready: true);
   }
 }
