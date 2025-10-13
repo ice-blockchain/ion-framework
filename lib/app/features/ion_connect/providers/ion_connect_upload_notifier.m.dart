@@ -18,7 +18,9 @@ import 'package:ion/app/features/ion_connect/utils/file_storage_utils.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/large_media_upload_service.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/services/logger/websocket_tracker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 
 part 'ion_connect_upload_notifier.m.freezed.dart';
 part 'ion_connect_upload_notifier.m.g.dart';
@@ -157,6 +159,25 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     });
 
     try {
+      // Prepare HTTP logging. For log purposes only
+      final uri = Uri.parse(url);
+      final host = uri.authority.isNotEmpty ? uri.authority : uri.host;
+      final deviceSigner = await ref.read(currentUserIonConnectEventSignerProvider.future);
+      final nip98Pubkey = deviceSigner?.publicKey ?? 'null';
+      final contentLen = fileBytes.length;
+      final wsAuthPubkey = WebSocketTracker.getAuthPubkey(host);
+      final dio = ref.read(dioProvider);
+      final followRedirects = dio.options.followRedirects;
+
+      _logHttpUploadPrep(
+        host: host,
+        url: url,
+        wsAuthPubkey: wsAuthPubkey,
+        nip98Pubkey: nip98Pubkey,
+        contentLen: contentLen,
+        followRedirects: followRedirects,
+      );
+
       final response = await ref.read(dioProvider).post<dynamic>(
             url,
             data: formData,
@@ -170,13 +191,66 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
           UploadResponse.fromJson(json.decode(response.data as String) as Map<String, dynamic>);
 
       if (uploadResponse.status != 'success') {
+        // This data needed for logging purposes only
+        _logHttpUploadResultErr(host: host, response: response, msg: uploadResponse.message);
+
         throw Exception(uploadResponse.message);
       }
+      // Success log
+      _logHttpUploadResultOk(host: host, response: response);
+
       return uploadResponse;
     } catch (error) {
+      _logHttpUploadResultErrGeneric(url: url, error: error);
       throw FileUploadException(error, url: url);
     }
   }
+}
+
+void _logHttpUploadResultErr(
+    {required String host, required Response<dynamic> response, required String msg}) {
+  final instanceHeader = response.headers.value('via') ??
+      response.headers.value('x-instance') ??
+      response.headers.value('cf-ray');
+  final code = response.statusCode ?? 0;
+  Logger.warning(
+    'NOSTR.HTTP upload_result_err host=$host code=$code msg="$msg" server_instance=${instanceHeader ?? 'null'}',
+  );
+}
+
+// For log purposes only
+void _logHttpUploadResultOk({required String host, required Response<dynamic> response}) {
+  final instanceHeader = response.headers.value('via') ??
+      response.headers.value('x-instance') ??
+      response.headers.value('cf-ray');
+  final code = response.statusCode ?? 0;
+  Logger.info(
+    'NOSTR.HTTP upload_result_ok host=$host code=$code server_instance=${instanceHeader ?? 'null'}',
+  );
+}
+
+// For log purposes only
+void _logHttpUploadPrep({
+  required String host,
+  required String url,
+  required String nip98Pubkey,
+  required int contentLen,
+  String? wsAuthPubkey,
+  required bool followRedirects,
+}) {
+  Logger.info(
+    'NOSTR.HTTP upload_prep host=$host url=$url ws_auth_pubkey=${wsAuthPubkey ?? 'null'} nip98.pubkey=$nip98Pubkey content_len=$contentLen follow_redirects=$followRedirects',
+  );
+}
+
+void _logHttpUploadResultErrGeneric({required String url, required Object error}) {
+  final uri = Uri.parse(url);
+  final host = uri.authority.isNotEmpty ? uri.authority : uri.host;
+  final rawMsg = error.toString();
+  final msg = rawMsg.length > 80 ? '${rawMsg.substring(0, 80)}...' : rawMsg;
+  Logger.warning(
+    'NOSTR.HTTP upload_result_err host=$host code=0 msg="$msg" server_instance=null',
+  );
 }
 
 @freezed
