@@ -44,13 +44,21 @@ jobs:
           do
             node -pe 'Object.entries(JSON.parse(process.argv[1])).forEach(([_, val])=>(typeof val === "string" && val.split("\n").forEach((row) => row && console.log("::add-mask::"+row))))' "$(cat $file)"
           done
-      - name: Set Flutter
-        id: set-flutter
-        uses: subosito/flutter-action@v2
+      - name: Extract Flutter version from pubspec.yaml
+        id: flutter-version
+        run: |
+          cd main-repo
+          FLUTTER_VERSION=$(grep -E '^\s*flutter:\s*"[^"]*"' pubspec.yaml | sed 's/.*"\([^"]*\)".*/\1/')
+          echo "Flutter version: $FLUTTER_VERSION"
+          echo "version=$FLUTTER_VERSION" >> $GITHUB_OUTPUT
+      - name: Setup Flutter
+        uses: actions/setup-flutter@v1
         with:
-          channel: "stable"
-          flutter-version-file: main-repo/pubspec.yaml
-          cache: false
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
+          channel: 'stable'
+          cache: true
+          cache-pub: true
+          cache-sdk: true
       - run: flutter --version
       - name: Bootstrap
         id: bootstrap
