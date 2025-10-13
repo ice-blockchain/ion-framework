@@ -64,7 +64,7 @@ Future<IonConnectEntity?> ionConnectEntity(
   }
 
   if (network) {
-    // ref.read is used to get fresh request if [network] is true, with 
+    // ref.read is used to get fresh request if [network] is true, with
     // re.watch it would return previous watched in the memory response
     return ref.read(
       ionConnectNetworkEntityProvider(
