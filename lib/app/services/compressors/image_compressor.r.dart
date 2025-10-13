@@ -34,9 +34,9 @@ enum ImageCompressionType {
 
 class ImageCompressionSettings {
   const ImageCompressionSettings({
-    this.quality = 70,
+    this.quality = 90,
     this.shouldCompressGif = false,
-    this.scaleResolution = FfmpegScaleArg.p1080,
+    this.scaleResolution = FfmpegScaleArg.p1080Width,
   });
 
   final int quality;

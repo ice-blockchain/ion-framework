@@ -42,6 +42,10 @@ enum FfmpegScaleArg {
   p2160(
     name: '2160p',
     resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(2160\,iw)):h=if(gt(ih\,iw)\,min(2160\,ih)\,-2)',
+  ),
+  p1080Width(
+    name: 'p1080Width',
+    resolution: r'scale=w=min(1080\,iw):h=-2',
   );
 
   const FfmpegScaleArg({
