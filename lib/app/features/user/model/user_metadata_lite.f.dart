@@ -75,6 +75,8 @@ class UserMetadataLite
     );
   }
 
+  const UserMetadataLite._();
+
   @override
   FutureOr<EventMessage> toEventMessage(
     EventSigner signer, {
