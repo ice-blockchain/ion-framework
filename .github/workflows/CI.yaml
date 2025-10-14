@@ -57,7 +57,6 @@ jobs:
           version: ${{ steps.flutter-version.outputs.version }}
           channel: 'stable'
           cache: true
-          cache-pub: true
           cache-sdk: true
       - run: flutter --version
       - name: Bootstrap
