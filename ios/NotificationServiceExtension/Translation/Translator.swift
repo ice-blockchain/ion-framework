@@ -74,12 +74,16 @@ class TranslationsRepository<T: TranslationWithVersion & Decodable> {
 
         let cacheFile = cacheDirectory.appendingPathComponent("\(translationsPath).\(languageCode).json")
 
-        if let cachedTranslations = readValidCache(at: cacheFile) {
+        // Try to read valid cache first
+        let cachedResult = readValidCache(at: cacheFile)
+        if let cachedTranslations = cachedResult.translations {
             return cachedTranslations
         }
 
         do {
-            let translations = try await fetchTranslations(locale: locale)
+            // If cache parse failed, force fetch latest version (version=0)
+            let forceLatest = !cachedResult.parsed
+            let translations = try await fetchTranslations(locale: locale, forceLatest: forceLatest)
 
             if translations == nil {
                 if !FileManager.default.fileExists(atPath: cacheFile.path) {
@@ -99,6 +103,11 @@ class TranslationsRepository<T: TranslationWithVersion & Decodable> {
                     return try readCache(at: cacheFile)
                 } catch {
                     NSLog("[NSE] [Repository] Error reading fallback cache: \(error)")
+                    // Last resort: try force fetching latest version
+                    if let latestTranslations = try? await fetchTranslations(locale: locale, forceLatest: true) {
+                        try? saveToCache(data: latestTranslations, at: cacheFile)
+                        return try JSONDecoder().decode(T.self, from: latestTranslations)
+                    }
                     throw error
                 }
             }
@@ -106,21 +115,23 @@ class TranslationsRepository<T: TranslationWithVersion & Decodable> {
         }
     }
 
-    private func readValidCache(at cacheFile: URL) -> T? {
-        guard FileManager.default.fileExists(atPath: cacheFile.path) else { return nil }
+    private func readValidCache(at cacheFile: URL) -> (translations: T?, parsed: Bool) {
+        guard FileManager.default.fileExists(atPath: cacheFile.path) else { return (nil, true) }
 
         let attributes = try? FileManager.default.attributesOfItem(atPath: cacheFile.path)
         if let modificationDate = attributes?[.modificationDate] as? Date {
             let cacheDuration = Date().timeIntervalSince(modificationDate)
             if cacheDuration < cacheMaxAge {
                 do {
-                    return try readCache(at: cacheFile)
+                    let translations = try readCache(at: cacheFile)
+                    return (translations, true)
                 } catch {
-                    NSLog("[NSE] [Repository] Error reading cache: \(error)")
+                    NSLog("[NSE] [Repository] Error parsing cache (model may have changed): \(error)")
+                    return (nil, false)
                 }
             }
         }
-        return nil
+        return (nil, true)
     }
 
     private func readCache(at cacheFile: URL) throws -> T {
@@ -134,12 +145,13 @@ class TranslationsRepository<T: TranslationWithVersion & Decodable> {
         try FileManager.default.setAttributes([.modificationDate: Date()], ofItemAtPath: cacheFile.path)
     }
 
-    private func fetchTranslations(locale: Locale) async throws -> Data? {
+    private func fetchTranslations(locale: Locale, forceLatest: Bool = false) async throws -> Data? {
         guard let languageCode = locale.languageCode ?? fallbackLocale.languageCode else {
             throw TranslationError.notFound(locale: locale)
         }
 
-        let cacheVersion = appLocaleStorage.getCacheVersionKey(languageCode: languageCode)
+        // If forceLatest is true, use version=0 to get latest config (similar to Dart implementation)
+        let cacheVersion = forceLatest ? 0 : appLocaleStorage.getCacheVersionKey(languageCode: languageCode)
 
         let urlString = "\(ionOrigin)/v1/config/\(translationsPath)_\(languageCode)"
         guard var urlComponents = URLComponents(string: urlString) else {
