@@ -17,6 +17,8 @@ import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/model/user_metadata_lite.f.dart';
+import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -138,4 +140,42 @@ class UserMetadataInvalidatorNotifier extends _$UserMetadataInvalidatorNotifier 
       ).future,
     );
   }
+}
+
+@riverpod
+Future<UserMetadataLiteEntity?> userMetadataLite(
+  Ref ref,
+  String masterPubkey, {
+  bool cache = true,
+  bool network = true,
+}) async {
+  final userMetadataLite = await ref.watch(
+    ionConnectEntityProvider(
+      network: false,
+      eventReference: ReplaceableEventReference(
+        masterPubkey: masterPubkey,
+        kind: UserMetadataLiteEntity.kind,
+      ),
+    ).future,
+  ) as UserMetadataLiteEntity?;
+  return userMetadataLite;
+}
+
+@riverpod
+Future<UserPreviewData?> userPreviewData(
+  Ref ref, {
+  required String masterPubkey,
+  bool cache = true,
+  bool network = true,
+}) async {
+  final cachedUserMetadata =
+      await ref.watch(userMetadataProvider(masterPubkey, cache: cache, network: network).future);
+  if (cachedUserMetadata != null) {
+    return cachedUserMetadata.data;
+  }
+
+  final cachedUserMetadataLite = await ref
+      .watch(userMetadataLiteProvider(masterPubkey, cache: cache, network: network).future);
+
+  return cachedUserMetadataLite?.data;
 }
