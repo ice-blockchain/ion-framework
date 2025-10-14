@@ -131,6 +131,8 @@ dependencies:
     path: packages/ion_swap_client
   ion_token_analytics:
     path: packages/ion_token_analytics
+  ion_ads:
+    path: packages/ion_ads
   isolate_manager: ^6.1.0
   json_annotation: ^4.8.1
   lottie: ^3.1.0
