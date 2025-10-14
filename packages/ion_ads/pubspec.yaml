@@ -1,0 +1,26 @@
+name: ion_ads
+description: Ads SDK wrapper and UI components (Appodeal native ads) for ION.
+version: 0.1.0
+
+publish_to: none
+
+environment:
+  sdk: ">=3.5.4 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  collection: ^1.18.0
+  meta: ^1.15.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  very_good_analysis: ^6.0.0
+  custom_lint: ^0.7.2
+  lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
