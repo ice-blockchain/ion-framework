@@ -682,3 +682,8 @@ class UnknownFileDurationException extends IONException {
 class InsufficientAmountException extends IONException {
   InsufficientAmountException() : super(10130, 'Insufficient amount');
 }
+
+class PicturePreloadingException extends IONException {
+  PicturePreloadingException(String url, dynamic error)
+      : super(10131, 'Failed to preload picture: $url - $error');
+}
