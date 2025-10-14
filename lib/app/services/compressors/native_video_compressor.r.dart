@@ -13,33 +13,60 @@ import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/media_service/video_info_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'ios_native_video_compressor.r.g.dart';
+part 'native_video_compressor.r.g.dart';
 
-class IosNativeVideoCompressionSettings {
-  const IosNativeVideoCompressionSettings({
+class NativeVideoCompressionSettings {
+  const NativeVideoCompressionSettings({
     required this.height,
     required this.quality,
-    required this.realtime,
+    required this.codec,
   });
 
   static const int defaultMaxDimension = 1080;
 
-  static const balanced = IosNativeVideoCompressionSettings(
+  static const balanced = NativeVideoCompressionSettings(
     quality: 0.75,
     height: defaultMaxDimension,
-    realtime: true,
+    codec: 'h264',
   );
 
+  final String codec;
   final int height;
-  final double quality; // 0.0 - 1.0, where 1.0 is highest quality (VBR encoding)
-  final bool realtime; // expectsMediaDataInRealTime parameter
+  final double quality; // 0.0 - 1.0, where 1.0 is highest quality
 }
 
-class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSettings> {
-  IosNativeVideoCompressor({
-    required this.videoInfoService,
+class AndroidNativeVideoCompressionSettings extends NativeVideoCompressionSettings {
+  const AndroidNativeVideoCompressionSettings({
+    required super.height,
+    required super.quality,
+    required super.codec,
   });
 
+  static const balanced = AndroidNativeVideoCompressionSettings(
+    quality: 0.75,
+    height: NativeVideoCompressionSettings.defaultMaxDimension,
+    codec: 'h264',
+  );
+}
+
+class IosNativeVideoCompressionSettings extends NativeVideoCompressionSettings {
+  const IosNativeVideoCompressionSettings({
+    required super.height,
+    required super.quality,
+    required super.codec,
+  });
+
+  static const balanced = IosNativeVideoCompressionSettings(
+    quality: 0.75,
+    height: NativeVideoCompressionSettings.defaultMaxDimension,
+    codec: 'hevc',
+  );
+}
+
+class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings> {
+  NativeVideoCompressor({
+    required this.videoInfoService,
+  });
   final VideoInfoService videoInfoService;
 
   static const MethodChannel _channel = MethodChannel('ion/video_compression');
@@ -47,7 +74,7 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
   @override
   Future<MediaFile> compress(
     MediaFile file, {
-    IosNativeVideoCompressionSettings? settings,
+    NativeVideoCompressionSettings? settings,
   }) async {
     final stopwatch = Stopwatch()..start();
     try {
@@ -58,21 +85,15 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
 
       final output = await generateOutputPath(extension: 'mp4');
 
-      final (
-        width: originalWidth,
-        height: originalHeight,
-        duration: originalDuration,
-        bitrate: originalBitrate
-      ) = await videoInfoService.getVideoInformation(file.path);
+      final (width: originalWidth, height: originalHeight, duration: originalDuration, bitrate: _) =
+          await videoInfoService.getVideoInformation(file.path);
+
       Logger.log('Original dimensions: ${originalWidth}x$originalHeight');
-      if (originalBitrate != null) {
-        Logger.log('Original bitrate: ${(originalBitrate / 1000000).toStringAsFixed(2)} Mbps');
-      }
 
       final targetDimensions = _calculateTargetDimensions(
         originalWidth: originalWidth,
         originalHeight: originalHeight,
-        maxDimension: settings?.height ?? IosNativeVideoCompressionSettings.defaultMaxDimension,
+        maxDimension: settings?.height ?? NativeVideoCompressionSettings.defaultMaxDimension,
       );
 
       Logger.log('Target dimensions: ${targetDimensions.width}x${targetDimensions.height}');
@@ -86,9 +107,8 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
         'outputPath': output,
         'destWidth': targetDimensions.width,
         'destHeight': targetDimensions.height,
-        'codec': 'hevc',
-        'quality': settings?.quality,
-        'realtime': false,
+        'codec': settings?.codec,
+        'quality': settings?.quality ?? 0.75,
       });
 
       final compressedFile = File(output);
@@ -143,6 +163,7 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
       targetWidth = (maxDimension * aspectRatio).round();
     }
 
+    // Ensure dimensions are even (required for most video codecs)
     targetWidth = (targetWidth ~/ 2) * 2;
     targetHeight = (targetHeight ~/ 2) * 2;
 
@@ -151,6 +172,6 @@ class IosNativeVideoCompressor implements Compressor<IosNativeVideoCompressionSe
 }
 
 @Riverpod(keepAlive: true)
-IosNativeVideoCompressor iosNativeVideoCompressor(Ref ref) => IosNativeVideoCompressor(
+NativeVideoCompressor nativeVideoCompressor(Ref ref) => NativeVideoCompressor(
       videoInfoService: ref.read(videoInfoServiceProvider),
     );

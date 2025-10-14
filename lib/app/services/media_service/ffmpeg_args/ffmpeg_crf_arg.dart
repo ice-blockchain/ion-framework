@@ -4,7 +4,7 @@ enum FfmpegCrfArg {
   lossless(name: 'Lossless', value: '0'),
   visuallyLossless(name: 'Visually Lossless', value: '18'),
   standard(name: 'Standard', value: '23'),
-  balanced(name: 'Balanced', value: '28'),
+  balanced(name: 'Balanced', value: '25'),
   max(name: 'Max', value: '51');
 
   const FfmpegCrfArg({

@@ -11,7 +11,7 @@ import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/services/compressors/compress_executor.r.dart';
 import 'package:ion/app/services/compressors/compressor.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
-import 'package:ion/app/services/compressors/ios_native_video_compressor.r.dart';
+import 'package:ion/app/services/compressors/native_video_compressor.r.dart';
 import 'package:ion/app/services/compressors/output_path_generator.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_audio_bitrate_arg.dart';
@@ -78,20 +78,20 @@ class VideoCompressionSettings {
 // Video duration threshold for using hardware compression
 // Based on testing, the time difference between hardware and software compression is not significant
 // until the video is longer than 25 seconds, but the file size is smaller with libx264
-const hardwareCompressionThreshold = Duration(seconds: 25);
+const hardwareCompressionThreshold = Duration(seconds: 20);
 
 class VideoCompressor implements Compressor<VideoCompressionSettings> {
   VideoCompressor({
     required this.compressExecutor,
     required this.imageCompressor,
     required this.videoInfoService,
-    required this.iosNativeVideoCompressor,
+    required this.nativeVideoCompressor,
   });
 
   final CompressExecutor compressExecutor;
   final ImageCompressor imageCompressor;
   final VideoInfoService videoInfoService;
-  final IosNativeVideoCompressor iosNativeVideoCompressor;
+  final NativeVideoCompressor nativeVideoCompressor;
 
   String _formatBytes(int bytes) {
     final megabytes = bytes / (1024 * 1024);
@@ -114,14 +114,18 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     Completer<FFmpegSession>? sessionIdCompleter,
     VideoCompressionSettings? settings,
   }) async {
-    if (Platform.isIOS) {
-      final duration = file.duration;
-      if (duration != null && duration > hardwareCompressionThreshold.inSeconds) {
-        return iosNativeVideoCompressor.compress(
-          file,
-          settings: IosNativeVideoCompressionSettings.balanced,
-        );
-      }
+    final videoInfo = await videoInfoService.getVideoInformation(file.path);
+    final duration = videoInfo.duration.inSeconds;
+
+    if (duration > hardwareCompressionThreshold.inSeconds) {
+      final nativeSettings = Platform.isAndroid
+          ? AndroidNativeVideoCompressionSettings.balanced
+          : IosNativeVideoCompressionSettings.balanced;
+
+      return nativeVideoCompressor.compress(
+        file,
+        settings: nativeSettings,
+      );
     }
 
     settings ??= VideoCompressionSettings.balanced;
@@ -241,5 +245,5 @@ VideoCompressor videoCompressor(Ref ref) => VideoCompressor(
       compressExecutor: ref.read(compressExecutorProvider),
       imageCompressor: ref.read(imageCompressorProvider),
       videoInfoService: ref.read(videoInfoServiceProvider),
-      iosNativeVideoCompressor: ref.read(iosNativeVideoCompressorProvider),
+      nativeVideoCompressor: ref.read(nativeVideoCompressorProvider),
     );
