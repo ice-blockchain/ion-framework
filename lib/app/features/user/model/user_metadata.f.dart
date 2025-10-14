@@ -13,6 +13,7 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
+import 'package:ion/app/features/user/model/user_preview_data.dart';
 
 part 'user_metadata.f.freezed.dart';
 part 'user_metadata.f.g.dart';
@@ -58,7 +59,9 @@ class UserMetadataEntity
 }
 
 @freezed
-class UserMetadata with _$UserMetadata implements EventSerializable, ReplaceableEntityData {
+class UserMetadata
+    with _$UserMetadata
+    implements EventSerializable, ReplaceableEntityData, UserPreviewData {
   const factory UserMetadata({
     @Default('') String name,
     @Default('') String displayName,
