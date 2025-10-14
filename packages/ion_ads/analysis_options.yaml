@@ -1,0 +1,20 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  errors:
+    avoid_dynamic_calls: ignore
+    avoid_positional_boolean_parameters: ignore
+    flutter_style_todos: ignore
+    lines_longer_than_80_chars: ignore
+    public_member_api_docs: ignore
+    unnecessary_library_directive: ignore
+    invalid_annotation_target: ignore
+    comment_references: ignore
+    one_member_abstracts: ignore
+  plugins:
+    - custom_lint
+  exclude:
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
+    - 'example/**'
+
