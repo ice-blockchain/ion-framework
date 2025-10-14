@@ -56,7 +56,7 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
 
     final entity = IonConnectGiftWrapEntity.fromEventMessage(eventMessage);
     final rumor = await giftUnwrapService.unwrap(eventMessage);
-    // We have to check if received status was sent previously cause it could fail
+    // We have to check if received status was sent previously because it could fail
     // to be sent previous time, if we received it for current user most likely
     // it was sent to everyone
     unawaited(_checkReceivedStatus(rumor));
