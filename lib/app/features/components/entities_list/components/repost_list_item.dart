@@ -24,12 +24,14 @@ class RepostListItem extends ConsumerWidget {
     required this.eventReference,
     this.onVideoTap,
     this.showNotInterested = true,
+    this.showPinOption = false,
     super.key,
   });
 
   final EventReference eventReference;
   final OnVideoTapCallback? onVideoTap;
   final bool showNotInterested;
+  final bool showPinOption;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -18,6 +18,7 @@ import 'package:ion/app/features/feed/views/pages/entity_delete_confirmation_mod
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_pinned_content_provider.m.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -28,6 +29,7 @@ class OwnEntityMenu extends ConsumerWidget {
     this.iconColor,
     this.onDelete,
     this.padding = EdgeInsets.zero,
+    this.showPinOption = false,
     super.key,
   });
 
@@ -37,6 +39,7 @@ class OwnEntityMenu extends ConsumerWidget {
   final Color? iconColor;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onDelete;
+  final bool showPinOption;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -104,6 +107,10 @@ class OwnEntityMenu extends ConsumerWidget {
                   ),
                   const OverlayMenuItemSeparator(),
                 ],
+                if (showPinOption) ...[
+                  _PinMenuItem(eventReference, closeMenu),
+                  const OverlayMenuItemSeparator(),
+                ],
                 OverlayMenuItem(
                   minWidth: 75.0.s,
                   label: context.i18n.post_menu_delete,
@@ -158,5 +165,32 @@ class OwnEntityMenu extends ConsumerWidget {
         article.data.editingEndedAt?.value.toDateTime.isAfter(DateTime.now()) ?? false,
       _ => false,
     };
+  }
+}
+
+class _PinMenuItem extends ConsumerWidget {
+  const _PinMenuItem(this.eventReference, this.onPressed);
+
+  final EventReference eventReference;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pinnedState = ref.watch(togglePinnedNotifierProvider(eventReference: eventReference));
+    final isPinned = pinnedState.value ?? false;
+
+    return OverlayMenuItem(
+      minWidth: 75.0.s,
+      label: isPinned ? context.i18n.post_menu_unpin : context.i18n.post_menu_pin,
+      icon: isPinned
+          ? Assets.svg.iconChatUnpinStroke.icon(size: OwnEntityMenu.iconSize)
+          : Assets.svg.iconChatPinStroke.icon(size: OwnEntityMenu.iconSize),
+      onPressed: () => _togglePin(ref),
+    );
+  }
+
+  void _togglePin(WidgetRef ref) {
+    ref.read(togglePinnedNotifierProvider(eventReference: eventReference).notifier).toggle();
+    onPressed();
   }
 }

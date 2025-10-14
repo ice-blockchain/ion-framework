@@ -2,6 +2,7 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/components/pinned_content_header.dart';
 import 'package:ion/app/features/feed/views/components/post/post.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -12,6 +13,7 @@ class PostListItem extends StatelessWidget {
     required this.eventReference,
     this.displayParent = false,
     this.showNotInterested = true,
+    this.showPinOption = false,
     this.onVideoTap,
     super.key,
   });
@@ -24,6 +26,8 @@ class PostListItem extends StatelessWidget {
 
   final bool showNotInterested;
 
+  final bool showPinOption;
+
   @override
   Widget build(BuildContext context) {
     // TODO: process 20002 in the feed provider to fetch 10002
@@ -31,12 +35,18 @@ class PostListItem extends StatelessWidget {
     return GestureDetector(
       onTap: () => PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context),
       behavior: HitTestBehavior.opaque,
-      child: Post(
-        showNotInterested: showNotInterested,
-        eventReference: eventReference,
-        displayParent: displayParent,
-        onVideoTap: onVideoTap,
-        headerOffset: 12.0.s,
+      child: Column(
+        children: [
+          PinnedContentHeader(eventReference: eventReference),
+          Post(
+            showNotInterested: showNotInterested,
+            eventReference: eventReference,
+            displayParent: displayParent,
+            onVideoTap: onVideoTap,
+            headerOffset: 12.0.s,
+            showPinOption: showPinOption,
+          ),
+        ],
       ),
     );
   }

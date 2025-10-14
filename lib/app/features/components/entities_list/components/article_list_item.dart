@@ -11,11 +11,13 @@ class ArticleListItem extends ConsumerWidget {
   const ArticleListItem({
     required this.article,
     this.showNotInterested = true,
+    this.showPinOption = false,
     super.key,
   });
 
   final ArticleEntity article;
   final bool showNotInterested;
+  final bool showPinOption;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
