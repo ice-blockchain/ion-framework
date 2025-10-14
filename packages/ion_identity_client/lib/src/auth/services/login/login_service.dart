@@ -46,7 +46,8 @@ class LoginService {
           false) {
         final credentialDescriptor = challenge.allowCredentials.passwordProtectedKey?.firstOrNull;
         final encryptedPrivateKey = credentialDescriptor?.encryptedPrivateKey;
-        if (encryptedPrivateKey != null) {
+        if (encryptedPrivateKey != null &&
+            privateKeyStorage.getPrivateKey(username: username) == null) {
           await privateKeyStorage.setPrivateKey(
             username: username,
             privateKeyData: PrivateKeyData(),
@@ -62,10 +63,12 @@ class LoginService {
       if (dioException?.response?.statusCode == 403 &&
           dioException?.response?.data['error']['message'] == '2FA_REQUIRED') {
         final twoFAOptionsCount = dioException?.response?.data['data']['n'] as int;
-        await privateKeyStorage.setPrivateKey(
-          username: username,
-          privateKeyData: PrivateKeyData(),
-        );
+        if (privateKeyStorage.getPrivateKey(username: username) == null) {
+          await privateKeyStorage.setPrivateKey(
+            username: username,
+            privateKeyData: PrivateKeyData(),
+          );
+        }
         throw TwoFARequiredException(twoFAOptionsCount);
       }
       rethrow;
