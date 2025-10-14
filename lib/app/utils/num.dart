@@ -28,3 +28,11 @@ String formatUSD(double usdAmount) => NumberFormat.currency(
       symbol: '',
       decimalDigits: 2,
     ).format(usdAmount);
+
+String formatCount(int number) {
+  if (number >= 10000) {
+    return NumberFormat.compact(locale: 'en_US').format(number);
+  } else {
+    return NumberFormat('#,##0', 'en_US').format(number);
+  }
+}
