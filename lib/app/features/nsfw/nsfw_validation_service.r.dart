@@ -74,6 +74,7 @@ class NsfwValidationService {
         try {
           final bytes = await File(path).readAsBytes();
           final result = await detector.classifyBytes(bytes);
+          Logger.log('NSFW image validation rate: ${result.nsfw}');
           if (result.decision != NsfwDecision.allow) {
             return true;
           }
@@ -104,6 +105,7 @@ class NsfwValidationService {
             final thumbMediaFile = await videoCompressor.getThumbnail(video, timestamp: ts);
             final bytes = await File(thumbMediaFile.path).readAsBytes();
             final result = await detector.classifyBytes(bytes);
+            Logger.log('NSFW video thumbnail validation rate: ${result.nsfw}');
             if (result.decision != NsfwDecision.allow) {
               return true;
             }
