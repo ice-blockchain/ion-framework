@@ -68,7 +68,7 @@ List<EntitiesDataSource>? feedSearchPostsDataSource(
       _buildSearchDataSource(
         actionSource: ActionSourceOptimalRelays(
           masterPubkeys: filterRelayMasterPubkeys,
-          strategy: OptimalRelaysStrategy.mostUsers,
+          strategy: OptimalRelaysStrategy.bestLatency,
         ),
         authors: filters.source == FeedSearchSource.following ? filterRelayMasterPubkeys : null,
         filter: _buildFilter(

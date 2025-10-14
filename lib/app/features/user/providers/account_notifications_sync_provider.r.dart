@@ -268,7 +268,7 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
       },
       actionSource: ActionSourceOptimalRelays(
         masterPubkeys: users,
-        strategy: OptimalRelaysStrategy.mostUsers,
+        strategy: OptimalRelaysStrategy.bestLatency,
       ),
     );
 

@@ -55,8 +55,8 @@ class ConfigRepository {
         cacheMaxAge,
         (data) => _tryParse(parser, data),
       );
-      if (cachedData != null) {
-        return cachedData;
+      if (cachedData != null && cachedData.result != null) {
+        return cachedData.result as T;
       }
 
       final networkData = await _fetchAndProcess(
@@ -64,6 +64,8 @@ class ConfigRepository {
         parser,
         checkVersion,
         cacheStrategy,
+        // if failed to parse the cache, force fetch latest version
+        version: cachedData != null && !cachedData.parsed ? 0 : null,
       );
       if (networkData != null) {
         return networkData;
@@ -285,11 +287,11 @@ class ConfigRepository {
     }
   }
 
-  T? _tryParse<T>(T Function(String) parser, String data) {
+  ({T? result, bool parsed}) _tryParse<T>(T Function(String) parser, String data) {
     try {
-      return parser(data);
+      return (result: parser(data), parsed: true);
     } catch (error) {
-      return null;
+      return (result: null, parsed: false);
     }
   }
 
