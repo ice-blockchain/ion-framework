@@ -639,6 +639,7 @@
   "error_payment_no_destination_description": "To receive this coin, the receiver must have an existing {abbreviation} balance",
   "error_token_below_minimum_title": "Unable to Transfer",
   "error_token_below_minimum_description": "This transfer would drop one of the accounts under {minAmount} {abbreviation} minimum required by the network to stay active",
+  "error_insufficient_amount_description": "The amount you're sending is below the network's minimum limit",
   "error_network_sync_failed_title": "Network sync failed",
   "error_network_sync_failed_description": "Please retry or reopen the app.",
   "error_nickname_reserved_title": "Nickname is reserved",

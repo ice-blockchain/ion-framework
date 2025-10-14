@@ -12,6 +12,8 @@ import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart'
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/coins/coins_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/send_transaction_to_relay_service.r.dart';
+import 'package:ion/app/features/wallets/domain/transactions/transfer_exception_factory.dart';
+import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
@@ -24,6 +26,7 @@ import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.da
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -64,7 +67,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
 
       result = await _waitForTransactionCompletion(senderWallet.id, result);
 
-      Logger.info('Transaction was successful. Hash: ${result.txHash}');
+      _validateTransactionResult(result, coinAssetData.selectedOption!.coin);
 
       final coinsService = await ref.read(coinsServiceProvider.future);
       final nativeCoin = await coinsService.getNativeCoin(form.network!);
@@ -111,15 +114,25 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
         ),
       );
 
-      // Validate transaction status to display issue, if we have unsuccessful one
-      _validateTransactionResult(result, coinAssetData);
+      Logger.info('Transaction was successful. Hash: ${result.txHash}');
 
       return details;
     });
 
     if (state.hasError) {
-      // Log to get the error stack trace
-      Logger.error(state.error!, stackTrace: state.stackTrace);
+      final error = state.error!;
+
+      // Capture to Sentry the next exceptions
+      // - Unexpected ones (not IONException)
+      // - Unexpected blockchain errors with reason (FailedToSendCryptoAssetsException)
+      if (error is! IONException || error is FailedToSendCryptoAssetsException) {
+        await SentryService.logException(
+          error,
+          stackTrace: state.stackTrace,
+          tag: 'send_coins_failure',
+        );
+      }
+      Logger.error(error, stackTrace: state.stackTrace);
     }
   }
 
@@ -207,25 +220,10 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
   bool _isRetryableStatus(TransactionStatus status) =>
       status == TransactionStatus.pending || status == TransactionStatus.executing;
 
-  void _validateTransactionResult(TransferResult result, CoinAssetToSendData coinAssetData) {
+  void _validateTransactionResult(TransferResult result, CoinData coin) {
     if (result.status == TransactionStatus.rejected || result.status == TransactionStatus.failed) {
-      throw _createTransactionException(result.reason, coinAssetData);
+      throw TransferExceptionFactory.create(result.reason, coin);
     }
-  }
-
-  Exception _createTransactionException(String? reason, CoinAssetToSendData coinAssetData) {
-    return switch (reason) {
-      'paymentNoDestination' => PaymentNoDestinationException(
-          abbreviation: coinAssetData.coinsGroup.abbreviation,
-        ),
-      // As for now this type of issue is only for Polkadot
-      'Token: BelowMinimum' when coinAssetData.selectedOption?.coin.network.isPolkadot ?? false =>
-        TokenBelowMinimumException(
-          abbreviation: coinAssetData.coinsGroup.abbreviation,
-          minAmount: 0.2,
-        ),
-      _ => FailedToSendCryptoAssetsException(reason),
-    };
   }
 
   Future<void> _saveTransaction({
