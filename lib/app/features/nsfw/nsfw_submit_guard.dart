@@ -16,7 +16,10 @@ class NsfwSubmitGuard {
   ) async {
     return _checkAndBlock(
       ref.context,
-      () => ref.read(nsfwValidationServiceProvider).hasNsfwInMediaFiles(mediaFiles),
+      () async {
+        final nsfwValidationService = await ref.read(nsfwValidationServiceProvider.future);
+        return nsfwValidationService.hasNsfwInMediaFiles(mediaFiles);
+      },
     );
   }
 
@@ -26,7 +29,10 @@ class NsfwSubmitGuard {
   ) async {
     return _checkAndBlock(
       ref.context,
-      () => ref.read(nsfwValidationServiceProvider).hasNsfwInImagePaths(imagePaths),
+      () async {
+        final nsfwValidationService = await ref.read(nsfwValidationServiceProvider.future);
+        return nsfwValidationService.hasNsfwInImagePaths(imagePaths);
+      },
     );
   }
 

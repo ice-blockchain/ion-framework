@@ -34,6 +34,7 @@ void main() {
         forYouMaxRetriesMultiplier: 5,
         followingMaxRetriesMultiplier: 5,
         forYouOverflowMultiplier: 2,
+        nsfwBlockThreshold: 0.5,
       );
       interests = FeedInterests.fromJson({
         'music': {

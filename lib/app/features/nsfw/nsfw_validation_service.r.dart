@@ -14,8 +14,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'nsfw_validation_service.r.g.dart';
 
 @riverpod
-NsfwValidationService nsfwValidationService(Ref ref) => NsfwValidationService(
-      detectorFactory: ref.read(nsfwDetectorFactoryProvider),
+Future<NsfwValidationService> nsfwValidationService(Ref ref) async => NsfwValidationService(
+      detectorFactory: await ref.read(nsfwDetectorFactoryProvider.future),
       videoCompressor: ref.read(videoCompressorProvider),
       videoInfoService: ref.read(videoInfoServiceProvider),
     );
