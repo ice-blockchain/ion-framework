@@ -68,7 +68,7 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
       ..where(messageStatusTable.masterPubkey.equals(currentUserMasterPubkey))
       ..where(messageStatusTable.status.equals(MessageDeliveryStatus.received.index));
 
-    return query.watchSingle().map((row) => row.read(countExp) ?? 0);
+    return query.watchSingle().map((row) => row.read(countExp) ?? 0).distinct();
   }
 
   Stream<int> getAllUnreadMessagesCountInArchive(

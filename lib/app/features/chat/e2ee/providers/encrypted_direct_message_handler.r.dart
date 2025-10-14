@@ -58,7 +58,6 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
         ) &&
         await conversationMessageDao.messageIsNotDeleted(eventReference)) {
       await _addDirectMessageToDatabase(rumor);
-      unawaited(_sendReceivedStatus(rumor));
     }
 
     return entity.toEventReference();
@@ -92,38 +91,6 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
           remoteUrl: media.url,
         );
       }
-    }
-  }
-
-  Future<void> _sendReceivedStatus(
-    EventMessage rumor,
-  ) async {
-    final eventReference =
-        ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor).toEventReference();
-
-    final currentStatus = await conversationMessageDataDao.checkMessageStatus(
-      eventReference: eventReference,
-      masterPubkey: masterPubkey,
-    );
-
-    if (currentStatus == null || currentStatus.index < MessageDeliveryStatus.received.index) {
-      // Notify rest of the participants that the message was received
-      // by the current user
-      await sendE2eeMessageStatusService.sendMessageStatus(
-        messageEventMessage: rumor,
-        status: MessageDeliveryStatus.received,
-      );
-    }
-
-    // If we recovered keypair, current user will not have "read" message status
-    // as we don't send it
-    if (rumor.masterPubkey == masterPubkey) {
-      await conversationMessageDataDao.addOrUpdateStatus(
-        pubkey: rumor.pubkey,
-        masterPubkey: rumor.masterPubkey,
-        status: MessageDeliveryStatus.read,
-        messageEventReference: eventReference,
-      );
     }
   }
 }
