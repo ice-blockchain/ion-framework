@@ -14,8 +14,8 @@ abstract class IonConnectCacheService {
     List<String> cacheKeys = const [],
   });
 
-  Stream<EventMessage?> watch(String cacheKey);
-  Stream<List<EventMessage>> watchAll({
+  Stream<DatabaseCacheEntry?> watch(String cacheKey);
+  Stream<List<DatabaseCacheEntry>> watchAll({
     String? keyword,
     List<int> kinds = const [],
     List<String> cacheKeys = const [],

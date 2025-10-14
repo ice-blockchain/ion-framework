@@ -134,16 +134,23 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
   }
 
   @override
-  Stream<EventMessage?> watch(String cacheKey) {
+  Stream<DatabaseCacheEntry?> watch(String cacheKey) {
     return (select(eventMessagesTable)
           ..where((tbl) => tbl.cacheKey.equals(cacheKey))
           ..limit(1))
         .watchSingleOrNull()
-        .map((row) => row?.toEventMessage());
+        .map(
+          (row) => row != null
+              ? DatabaseCacheEntry(
+                  eventMessage: row.toEventMessage(),
+                  insertedAt: DateTime.fromMillisecondsSinceEpoch(row.insertedAt),
+                )
+              : null,
+        );
   }
 
   @override
-  Stream<List<EventMessage>> watchAll({
+  Stream<List<DatabaseCacheEntry>> watchAll({
     String? keyword,
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
@@ -155,7 +162,16 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
       cacheKeys: cacheKeys,
       masterPubkeys: masterPubkeys,
     );
-    return query.watch().map((rows) => rows.map((row) => row.toEventMessage()).toList());
+    return query.watch().map(
+      (rows) => rows
+          .map(
+            (row) => DatabaseCacheEntry(
+              eventMessage: row.toEventMessage(),
+              insertedAt: DateTime.fromMillisecondsSinceEpoch(row.insertedAt),
+            ),
+          )
+          .toList(),
+    );
   }
 
   @override
