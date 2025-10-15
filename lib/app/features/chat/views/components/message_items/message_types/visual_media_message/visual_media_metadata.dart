@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -8,7 +9,7 @@ import 'package:ion/app/features/chat/views/components/message_items/message_met
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 
-class VisualMediaMetadata extends ConsumerWidget {
+class VisualMediaMetadata extends HookConsumerWidget {
   const VisualMediaMetadata({
     required this.eventMessage,
     super.key,
@@ -18,7 +19,12 @@ class VisualMediaMetadata extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
+
+    final isMe = useMemoized(
+      () => ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey)),
+      [eventMessage.masterPubkey],
+    );
+    
     final messageContent = eventMessage.content;
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -50,7 +56,7 @@ class VisualMediaMetadata extends ConsumerWidget {
         ),
         Padding(
           padding: EdgeInsetsDirectional.only(top: 8.0.s),
-          child: MessageMetaData(eventMessage: eventMessage),
+          child: MessageMetadata(eventMessage: eventMessage),
         ),
       ],
     );

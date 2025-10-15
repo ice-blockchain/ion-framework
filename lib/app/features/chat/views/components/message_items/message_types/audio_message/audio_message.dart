@@ -9,9 +9,10 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/chat_medias_provider.r.dart';
-import 'package:ion/app/features/chat/e2ee/providers/chat_message_load_media_provider.r.dart';
+import 'package:ion/app/features/chat/e2ee/providers/chat_message_media_path_provider.r.dart';
 import 'package:ion/app/features/chat/hooks/use_audio_playback_controller.dart';
 import 'package:ion/app/features/chat/hooks/use_has_reaction.dart';
+import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
 import 'package:ion/app/features/chat/providers/active_audio_message_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/replied_message_list_item_provider.r.dart';
@@ -19,10 +20,10 @@ import 'package:ion/app/features/chat/views/components/message_items/message_ite
 import 'package:ion/app/features/chat/views/components/message_items/message_metadata/message_metadata.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/reply_message/reply_message.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/services/audio_wave_playback_service/audio_wave_playback_service.r.dart';
-import 'package:ion/app/services/compressors/audio_compressor.r.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -43,75 +44,86 @@ class AudioMessage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useAutomaticKeepAlive();
+    final isMe = useMemoized(
+      () => ref.read(isCurrentUserSelectorProvider(eventMessage.masterPubkey)),
+      [eventMessage.masterPubkey],
+    );
 
-    final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
     final entity = useMemoized(
       () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
       [eventMessage],
     );
 
-    final audioUrl = useState<String?>(null);
+    final eventReference = entity.toEventReference();
+    final hasReactions = useHasReaction(eventReference, ref);
 
-    final hasReactions = useHasReaction(entity.toEventReference(), ref);
+    final messageMedia = ref.watch(
+          chatMediasProvider(eventReference: eventReference).select((value) {
+            final media = value.valueOrNull;
 
-    final messageMedia = ref
-        .watch(chatMediasProvider(eventReference: entity.toEventReference()))
-        .valueOrNull
-        ?.firstOrNull;
+            if (media != null && media.isNotEmpty) {
+              ListCachedObjects.updateObject<MessageMediaTableData>(
+                context,
+                media.first,
+              );
+
+              return media.first;
+            }
+            return null;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<MessageMediaTableData>(context, eventReference);
 
     final mediaAttachment =
         messageMedia?.remoteUrl == null ? null : entity.data.media[messageMedia?.remoteUrl!];
 
-    useEffect(
-      () {
-        if (audioUrl.value != null) return null;
-        ref
-            .read(
-          chatMessageLoadMediaProvider(
-            entity: entity,
-            mediaAttachment: mediaAttachment,
-            loadThumbnail: false,
-            cacheKey: messageMedia?.cacheKey,
-          ),
-        )
-            .then((value) {
-          if (value != null && context.mounted) {
-            ref.read(audioCompressorProvider).compressAudioToWav(value.path).then((value) {
-              audioUrl.value = value;
-            });
-          }
-        });
-        return null;
-      },
-      [messageMedia, mediaAttachment?.url, audioUrl.value],
-    );
+    final localMediaPath = ref
+            .watch(
+              chatMessageMediaPathProvider(
+                entity: entity,
+                loadThumbnail: false,
+                convertAudioToWav: true,
+                cacheKey: messageMedia?.cacheKey,
+                mediaAttachment: mediaAttachment,
+              ).select((value) {
+                final audioPath = value.valueOrNull;
+                if (audioPath != null) {
+                  ListCachedObjects.updateObject<PathWithKey>(
+                    context,
+                    (key: eventReference.toString(), filePath: audioPath),
+                  );
+                }
+                return value;
+              }),
+            )
+            .valueOrNull ??
+        ListCachedObjects.maybeObjectOf<PathWithKey>(context, eventReference.toString())?.filePath;
 
-    if (audioUrl.value == null) {
-      return const SizedBox.shrink();
+    if (localMediaPath == null) {
+      return const SizedBox();
     }
 
     final audioPlaybackState = useState<PlayerState?>(null);
     final audioPlaybackController = useAudioWavePlaybackController()
       ..setFinishMode(finishMode: FinishMode.pause);
+
     final playerWaveStyle = useMemoized(
       () => PlayerWaveStyle(
+        spacing: 2.0.s,
+        waveThickness: 1.0.s,
+        seekLineColor: Colors.transparent,
+        fixedWaveColor: context.theme.appColors.sheetLine,
         liveWaveColor:
             isMe ? context.theme.appColors.onPrimaryAccent : context.theme.appColors.primaryText,
-        fixedWaveColor: context.theme.appColors.sheetLine,
-        seekLineColor: Colors.transparent,
-        waveThickness: 1.0.s,
-        spacing: 2.0.s,
       ),
       [isMe],
     );
 
     useEffect(
       () {
-        if (audioUrl.value == null) return null;
         ref.read(audioWavePlaybackServiceProvider).initializePlayer(
               eventMessage.id,
-              audioUrl.value!,
+              localMediaPath,
               audioPlaybackController,
               playerWaveStyle,
             );
@@ -135,8 +147,40 @@ class AudioMessage extends HookConsumerWidget {
           completionSubscription.cancel();
         };
       },
-      [audioUrl.value],
+      [localMediaPath],
     );
+
+    useEffect(
+      () {
+        final stateSubscription = audioPlaybackController.onPlayerStateChanged.listen((event) {
+          if (context.mounted) {
+            if (event != PlayerState.stopped) {
+              audioPlaybackState.value = event;
+            }
+          }
+        });
+
+        final completionSubscription = audioPlaybackController.onCompletion.listen((event) {
+          if (context.mounted) {
+            ref.read(activeAudioMessageProvider.notifier).activeAudioMessage = null;
+          }
+        });
+
+        return () {
+          stateSubscription.cancel();
+          completionSubscription.cancel();
+        };
+      },
+      [localMediaPath],
+    );
+
+    ref.listen(activeAudioMessageProvider, (previous, next) {
+      if (next == eventMessage.id) {
+        audioPlaybackController.startPlayer();
+      } else {
+        audioPlaybackController.pausePlayer();
+      }
+    });
 
     final metadataWidth = useState<double>(0);
     final metadataKey = useMemoized(GlobalKey.new);
@@ -149,33 +193,38 @@ class AudioMessage extends HookConsumerWidget {
       }
     });
 
-    ref.listen(activeAudioMessageProvider, (previous, next) {
-      if (next == eventMessage.id) {
-        audioPlaybackController.startPlayer();
-      } else {
-        audioPlaybackController.pausePlayer();
-      }
-    });
-
-    final messageItem = AudioItem(
-      eventMessage: eventMessage,
-      contentDescription: context.i18n.common_voice_message,
+    final messageItem = useMemoized(
+      () => AudioItem(
+        eventMessage: eventMessage,
+        contentDescription: context.i18n.common_voice_message,
+      ),
+      [eventMessage],
     );
 
-    final repliedEventMessage = ref.watch(repliedMessageListItemProvider(messageItem));
+    final repliedEventMessage = ref.watch(
+          repliedMessageListItemProvider(messageItem).select((value) {
+            final repliedEvent = value.valueOrNull;
+
+            if (repliedEvent != null) {
+              ListCachedObjects.updateObject<EventMessage>(context, repliedEvent);
+            }
+            return repliedEvent;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<EventMessage>(
+          context,
+          entity.data.parentEvent?.eventReference.dTag,
+        );
 
     final repliedMessageItem = getRepliedMessageListItem(
       ref: ref,
-      repliedEventMessage: repliedEventMessage.valueOrNull,
+      repliedEventMessage: repliedEventMessage,
     );
 
     return MessageItemWrapper(
       isMe: isMe,
       margin: margin,
-      messageItem: AudioItem(
-        eventMessage: eventMessage,
-        contentDescription: context.i18n.common_voice_message,
-      ),
+      messageItem: messageItem,
       contentPadding: contentPadding,
       child: Column(
         children: [
@@ -191,16 +240,16 @@ class AudioMessage extends HookConsumerWidget {
                     Row(
                       children: [
                         _PlayPauseButton(
-                          audioPlaybackController: audioPlaybackController,
-                          audioPlaybackState: audioPlaybackState,
                           eventMessageId: eventMessage.id,
+                          audioPlaybackState: audioPlaybackState,
+                          audioPlaybackController: audioPlaybackController,
                         ),
                         SizedBox(width: 8.0.s),
                         _AudioWaveformDisplay(
-                          audioPlaybackController: audioPlaybackController,
-                          audioPlaybackState: audioPlaybackState,
-                          playerWaveStyle: playerWaveStyle,
                           isMe: isMe,
+                          playerWaveStyle: playerWaveStyle,
+                          audioPlaybackState: audioPlaybackState,
+                          audioPlaybackController: audioPlaybackController,
                         ),
                       ],
                     ),
@@ -211,7 +260,7 @@ class AudioMessage extends HookConsumerWidget {
                   ],
                 ),
               ),
-              MessageMetaData(
+              MessageMetadata(
                 eventMessage: eventMessage,
                 startPadding: hasReactions ? 0.0.s : 8.0.s,
               ),

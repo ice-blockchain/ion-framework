@@ -44,14 +44,15 @@ class TextMessage extends HookConsumerWidget {
     //  });
     //});
 
-    final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
+    final isMe = useMemoized(
+      () => ref.read(isCurrentUserSelectorProvider(eventMessage.masterPubkey)),
+      [eventMessage.masterPubkey],
+    );
 
     final entity = useMemoized(
       () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
       [eventMessage],
     );
-
-    final entityData = entity.data;
 
     final textStyle = context.theme.appTextThemes.body2.copyWith(
       color: isMe ? context.theme.appColors.onPrimaryAccent : context.theme.appColors.primaryText,
@@ -63,10 +64,13 @@ class TextMessage extends HookConsumerWidget {
     final hasReactionsOrMetadata =
         useHasReaction(entity.toEventReference(), ref) || metadata != null;
 
-    final messageItem = TextItem(
-      eventMessage: eventMessage,
-      contentDescription: eventMessage.content,
-      isStoryReply: entityData.quotedEvent != null,
+    final messageItem = useMemoized(
+      () => TextItem(
+        eventMessage: eventMessage,
+        contentDescription: eventMessage.content,
+        isStoryReply: entity.data.quotedEvent != null,
+      ),
+      [eventMessage, entity.data.quotedEvent],
     );
 
     final repliedEventMessage = ref.watch(repliedMessageListItemProvider(messageItem));
@@ -80,10 +84,7 @@ class TextMessage extends HookConsumerWidget {
       isMe: isMe,
       margin: margin,
       messageItem: messageItem,
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: 12.0.s,
-        vertical: 12.0.s,
-      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 12.0.s),
       child: IntrinsicWidth(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,21 +98,15 @@ class TextMessage extends HookConsumerWidget {
               hasRepliedMessage: repliedMessageItem != null,
               hasUrlInText: firstUrl.value != null,
             ),
-            if (metadata != null)
-              UrlPreviewBlock(
-                url: firstUrl.value!,
-                isMe: isMe,
-              ),
+            if (metadata != null) UrlPreviewBlock(url: firstUrl.value!, isMe: isMe),
             if (hasReactionsOrMetadata)
               Row(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: MessageReactions(isMe: isMe, eventMessage: eventMessage),
-                  ),
-                  MessageMetaData(eventMessage: eventMessage, startPadding: 0.0.s),
+                  Expanded(child: MessageReactions(isMe: isMe, eventMessage: eventMessage)),
+                  MessageMetadata(eventMessage: eventMessage, startPadding: 0.0.s),
                 ],
               ),
           ],
@@ -190,7 +185,7 @@ class _TextMessageContent extends HookWidget {
           if (hasRepliedMessage) const Spacer(),
           Offstage(
             offstage: metadataWidth.value.s <= 0,
-            child: MessageMetaData(eventMessage: eventMessage, key: metadataRef.value),
+            child: MessageMetadata(eventMessage: eventMessage, key: metadataRef.value),
           ),
         ],
       );
@@ -217,7 +212,7 @@ class _TextMessageContent extends HookWidget {
           ),
           Offstage(
             offstage: metadataWidth.value.s <= 0,
-            child: MessageMetaData(
+            child: MessageMetadata(
               eventMessage: eventMessage,
               key: metadataRef.value,
             ),
@@ -257,8 +252,6 @@ class _TextRichContent extends HookConsumerWidget {
       TextParser(matchers: {const UrlMatcher()}).parse(text),
       onTap: (match) => TextSpanBuilder.defaultOnTap(ref, match: match),
     );
-    return Text.rich(
-      textSpan,
-    );
+    return Text.rich(textSpan);
   }
 }

@@ -34,8 +34,7 @@ Future<IonConnectEntity?> ionConnectEntity(
     throw const CurrentUserNotFoundException();
   }
 
-  // Try to get from in-memory cache, then database cache, if found in database cache
-  // put it also in in-memory cache
+  // Try to get from in-memory cache, then database cache
   if (cache) {
     final inMemoryEntity = ref.watch(
       ionConnectCacheProvider.select(

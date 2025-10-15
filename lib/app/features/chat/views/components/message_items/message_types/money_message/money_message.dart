@@ -273,7 +273,7 @@ class _MoneyMessageContent extends HookConsumerWidget {
               ],
             ),
           ),
-          MessageMetaData(eventMessage: eventMessage),
+          MessageMetadata(eventMessage: eventMessage),
         ],
       ),
     );

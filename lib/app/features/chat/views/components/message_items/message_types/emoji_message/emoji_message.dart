@@ -71,7 +71,7 @@ class EmojiMessage extends HookConsumerWidget {
                   entity.data.content,
                   style: context.theme.appTextThemes.headline1.platformEmojiAware(),
                 ),
-                if (!hasReaction) MessageMetaData(eventMessage: eventMessage),
+                if (!hasReaction) MessageMetadata(eventMessage: eventMessage),
               ],
             ),
             if (hasReaction)
@@ -82,7 +82,7 @@ class EmojiMessage extends HookConsumerWidget {
                   Expanded(
                     child: MessageReactions(eventMessage: eventMessage, isMe: isMe),
                   ),
-                  MessageMetaData(eventMessage: eventMessage, startPadding: 0.0.s),
+                  MessageMetadata(eventMessage: eventMessage, startPadding: 0.0.s),
                 ],
               ),
           ],

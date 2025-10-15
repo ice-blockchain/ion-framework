@@ -12,8 +12,8 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class MessageMetaData extends HookConsumerWidget {
-  const MessageMetaData({
+class MessageMetadata extends HookConsumerWidget {
+  const MessageMetadata({
     required this.eventMessage,
     this.displayTime = true,
     this.displayEdited = true,
