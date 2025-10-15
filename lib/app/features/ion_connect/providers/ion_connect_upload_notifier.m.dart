@@ -296,27 +296,29 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     );
   }
 
-  /// Minimal helper to detect on-behalf/attestation HTTP errors
+  /// Minimal helper to check if the error is related to on-behalf/attestation errors
   /// Later move to a more generic helper!!!
-  static bool _isOnBehalfAttestationError(Object e) {
-    if (e is DioException) {
-      final code = e.response?.statusCode ?? 0;
-      final body = e.response?.data?.toString().toLowerCase() ?? e.message?.toLowerCase() ?? '';
+  static bool _isOnBehalfAttestationError(Object error) {
+    if (error is DioException) {
+      final code = error.response?.statusCode ?? 0;
+      final body =
+          error.response?.data?.toString().toLowerCase() ?? error.message?.toLowerCase() ?? '';
       return (code == 403 || code == 401) &&
           (body.contains('on-behalf') || body.contains('attestation'));
     }
 
-    if (e is IONException) {
-      final m = e.message.toLowerCase();
-      final has403 = m.contains('status code of 403') || m.contains(' 403 ');
+    if (error is IONException) {
+      final message = error.message.toLowerCase();
+      // not '403' to avoid false positives like 4031
+      final has403 = message.contains('status code of 403') || message.contains(' 403 ');
 
-      return (has403 || m.contains(' 401 ')) &&
-          (m.contains('on-behalf') || m.contains('attestation'));
+      return (has403 || message.contains(' 401 ')) &&
+          (message.contains('on-behalf') || message.contains('attestation'));
     }
 
     // If none of the above, check the string representation
-    final s = e.toString().toLowerCase();
-    return s.contains('on-behalf');
+    final errorString = error.toString().toLowerCase();
+    return errorString.contains('on-behalf');
   }
 }
 
