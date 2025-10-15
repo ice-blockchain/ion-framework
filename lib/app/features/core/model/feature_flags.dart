@@ -35,3 +35,10 @@ final class ChatFeatureFlag extends FeatureFlag {
   static const hideCommunity = ChatFeatureFlag._(key: 'hideCommunity');
   static const hideChatBookmark = ChatFeatureFlag._(key: 'hideChatBookmark');
 }
+
+final class TokenizedCommunitiesFeatureFlag extends FeatureFlag {
+  const TokenizedCommunitiesFeatureFlag._({required super.key});
+
+  static const tokenizedCommunitiesEnabled =
+      TokenizedCommunitiesFeatureFlag._(key: 'tokenizedCommunitiesEnabled');
+}
