@@ -20,24 +20,18 @@ class MentionItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewData = ref.watch(userPreviewDataProvider(pubkey));
+    final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
 
-    return userPreviewData.maybeWhen(
-      data: (userMetadata) {
-        if (userMetadata == null) {
-          return const SizedBox.shrink();
-        }
-        final username = prefixUsername(username: userMetadata.data.name, context: context);
-        return IntrinsicHeight(
-          child: BadgesUserListItem(
-            onTap: () => onPress((pubkey: pubkey, username: username)),
-            title: Text(userMetadata.data.displayName),
-            subtitle: Text(username),
-            masterPubkey: pubkey,
-          ),
-        );
-      },
-      orElse: () => const Skeleton(child: ListItemUserShape()),
+    if (userPreviewData == null) {
+      return const Skeleton(child: ListItemUserShape());
+    }
+
+    final username = prefixUsername(username: userPreviewData.data.name, context: context);
+    return BadgesUserListItem(
+      onTap: () => onPress((pubkey: pubkey, username: username)),
+      title: Text(userPreviewData.data.displayName),
+      subtitle: Text(username),
+      masterPubkey: pubkey,
     );
   }
 }
