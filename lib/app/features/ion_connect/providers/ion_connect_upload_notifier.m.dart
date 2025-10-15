@@ -141,8 +141,24 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
       return result;
     } catch (error) {
       if (RelayAuthService.isRelayNotAuthoritativeError(error)) {
+        // Set delay and retry once, token will include 10100 attestation
+        ref.read(relaysReplicaDelayProvider.notifier).setDelay();
+        Logger.info('NOSTR.HTTP retrying upload with 10100 attestation - relay-auth-err-retry');
+        final uploadResponse = await uploader(
+          url: url,
+          file: file,
+          fileBytes: fileBytes,
+          alt: alt,
+          cancelToken: cancelToken,
+          customEventSigner: customEventSigner,
+        );
+        return uploadResponse;
+      } else {
         Logger.warning(
-          'NOSTR.HTTP upload failed with relay auth error, setting delay and retrying - relay-auth-err',
+          'err type=${error.runtimeType} code=${(error is DioException) ? (error.response?.statusCode ?? 0) : -1} msg="${(error is DioException) ? (error.response?.data is Map ? (error.response!.data['message']?.toString() ?? '') : error.response?.data?.toString() ?? (error.message ?? '')) : error.toString()}"',
+        );
+        Logger.warning(
+          'HARD CALL ON CATCH',
         );
         // Set delay and retry once, token will include 10100 attestation
         ref.read(relaysReplicaDelayProvider.notifier).setDelay();
@@ -155,10 +171,9 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
           cancelToken: cancelToken,
           customEventSigner: customEventSigner,
         );
-        Logger.info('NOSTR.HTTP retry successful');
+        Logger.info('HARD CALL DONE retry successful');
         return uploadResponse;
       }
-      rethrow;
     }
   }
 
