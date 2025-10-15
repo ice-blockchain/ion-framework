@@ -436,14 +436,26 @@ final class DeepLinkService {
     }
 
     // AppsFlyer requires a non-null or empty description because otherwise all og params will be not set at all
-    final description = ogDescription.isEmpty ? ' ' : ogDescription!;
+    final description = ogDescription.isEmpty ? ' ' : _truncateText(ogDescription!);
     final image = ogImageUrl.isEmpty ? ' ' : ogImageUrl!;
 
-    return {
-      'af_og_title': ogTitle!,
-      'af_og_description': description,
-      'af_og_image': image,
-    };
+    if (ogTitle case final title?) {
+      return {
+        'af_og_title': _truncateText(title),
+        'af_og_description': description,
+        'af_og_image': image,
+      };
+    }
+
+    return null;
+  }
+
+  String _truncateText(String text) {
+    const maxOpenGraphTextLength = 1080;
+    if (text.length > maxOpenGraphTextLength) {
+      return text.substring(0, maxOpenGraphTextLength - 1);
+    }
+    return text;
   }
 
   void _handleInviteLinkSuccess(dynamic data, Completer<String> completer) {
