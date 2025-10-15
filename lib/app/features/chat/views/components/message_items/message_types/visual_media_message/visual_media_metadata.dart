@@ -19,12 +19,11 @@ class VisualMediaMetadata extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     final isMe = useMemoized(
       () => ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey)),
       [eventMessage.masterPubkey],
     );
-    
+
     final messageContent = eventMessage.content;
     return Row(
       mainAxisSize: MainAxisSize.min,

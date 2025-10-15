@@ -25,7 +25,7 @@ class ReplyMessage extends HookConsumerWidget {
     }
 
     final messageIconPath = _getMessageIcon();
-    
+
     final isMyMessage =
         messageItem.eventMessage.masterPubkey == ref.watch(currentPubkeySelectorProvider);
 
