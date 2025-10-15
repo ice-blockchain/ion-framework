@@ -140,7 +140,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
       Logger.info('NOSTR.HTTP upload successful on first try - first-try-ok');
       return result;
     } catch (error) {
-      if (RelayAuthService.isRelayNotAuthoritativeError(error)) {
+      if (_isOnBehalfAttestationError(error)) {
         // Set delay and retry once, token will include 10100 attestation
         ref.read(relaysReplicaDelayProvider.notifier).setDelay();
         Logger.info('NOSTR.HTTP retrying upload with 10100 attestation - relay-auth-err-retry');
@@ -152,6 +152,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
           cancelToken: cancelToken,
           customEventSigner: customEventSigner,
         );
+
         return uploadResponse;
       } else {
         Logger.warning(
@@ -172,6 +173,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
           customEventSigner: customEventSigner,
         );
         Logger.info('HARD CALL DONE retry successful');
+
         return uploadResponse;
       }
     }
@@ -292,6 +294,29 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
       fileBytes: fileBytes,
       cancelToken: cancelToken,
     );
+  }
+
+  /// Minimal helper to detect on-behalf/attestation HTTP errors
+  /// Later move to a more generic helper!!!
+  static bool _isOnBehalfAttestationError(Object e) {
+    if (e is DioException) {
+      final code = e.response?.statusCode ?? 0;
+      final body = e.response?.data?.toString().toLowerCase() ?? e.message?.toLowerCase() ?? '';
+      return (code == 403 || code == 401) &&
+          (body.contains('on-behalf') || body.contains('attestation'));
+    }
+
+    if (e is IONException) {
+      final m = e.message.toLowerCase();
+      final has403 = m.contains('status code of 403') || m.contains(' 403 ');
+
+      return (has403 || m.contains(' 401 ')) &&
+          (m.contains('on-behalf') || m.contains('attestation'));
+    }
+
+    // If none of the above, check the string representation
+    final s = e.toString().toLowerCase();
+    return s.contains('on-behalf');
   }
 }
 
