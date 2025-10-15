@@ -15,6 +15,8 @@ import 'package:ion/app/features/user/providers/relays/ranked_user_relays_provid
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
+import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
+import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 
 Future<String> generateAuthorizationToken({
   required Ref ref,
@@ -23,8 +25,6 @@ Future<String> generateAuthorizationToken({
   List<int>? fileBytes,
   EventSigner? customEventSigner,
 }) async {
-  final ionConnectAuth = IonConnectAuth(url: url, method: method, payload: fileBytes);
-
   // Resolve signer pubkey (device) and master pubkey for logging
   final resolvedSigner =
       customEventSigner ?? await ref.read(currentUserIonConnectEventSignerProvider.future);
@@ -35,8 +35,21 @@ Future<String> generateAuthorizationToken({
   Logger.info(
       'NOSTR.NIP98 build_start nip98.pubkey=${devicePubkey ?? 'null'} nip98.master=${masterPubkey ?? 'null'} nip98.u=$url nip98.method=$method');
 
+  // Attach 10100 attestation inline when replica delay is active
+  final isDelayed = ref.read(relaysReplicaDelayProvider).isDelayed;
+  final userDelegation =
+      isDelayed ? await ref.read(currentUserCachedDelegationProvider.future) : null;
+
+  final ionConnectAuth = IonConnectAuth(
+    url: url,
+    method: method,
+    payload: fileBytes,
+    userDelegation: userDelegation,
+  );
+
   if (customEventSigner != null) {
     final authEvent = await ionConnectAuth.toEventMessage(customEventSigner);
+
     // NOSTR.NIP98 sign_ok
     Logger.info('NOSTR.NIP98 sign_ok nip98.pubkey=${customEventSigner.publicKey}');
     return ionConnectAuth.toAuthorizationHeader(authEvent);
