@@ -14,14 +14,14 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/file_storage_url_provider.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_auth_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
 import 'package:ion/app/features/ion_connect/utils/file_storage_utils.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/logger/websocket_tracker.dart';
 import 'package:ion/app/services/media_service/large_media_upload_service.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
-import 'package:ion/app/services/logger/websocket_tracker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ion_connect_upload_notifier.m.freezed.dart';
@@ -142,7 +142,8 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     } catch (error) {
       if (RelayAuthService.isRelayNotAuthoritativeError(error)) {
         Logger.warning(
-            'NOSTR.HTTP upload failed with relay auth error, setting delay and retrying - relay-auth-err');
+          'NOSTR.HTTP upload failed with relay auth error, setting delay and retrying - relay-auth-err',
+        );
         // Set delay and retry once, token will include 10100 attestation
         ref.read(relaysReplicaDelayProvider.notifier).setDelay();
         Logger.info('NOSTR.HTTP retrying upload with 10100 attestation - relay-auth-err-retry');
@@ -302,8 +303,11 @@ class UploadResponseNip94Event with _$UploadResponseNip94Event {
 }
 
 // TODO: Remove loggers
-void _logHttpUploadResultErr(
-    {required String host, required Response<dynamic> response, required String msg}) {
+void _logHttpUploadResultErr({
+  required String host,
+  required Response<dynamic> response,
+  required String msg,
+}) {
   final instanceHeader = response.headers.value('via') ??
       response.headers.value('x-instance') ??
       response.headers.value('cf-ray');
@@ -330,8 +334,8 @@ void _logHttpUploadPrep({
   required String url,
   required String? nip98Pubkey,
   required int contentLen,
-  String? wsAuthPubkey,
   required bool followRedirects,
+  String? wsAuthPubkey,
 }) {
   Logger.info(
     'NOSTR.HTTP upload_prep host=$host url=$url ws_auth_pubkey=${wsAuthPubkey ?? 'null'} nip98.pubkey=$nip98Pubkey content_len=$contentLen follow_redirects=$followRedirects',

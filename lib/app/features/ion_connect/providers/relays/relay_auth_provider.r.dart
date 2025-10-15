@@ -172,7 +172,8 @@ class RelayAuthService {
             ? '${okMessages.message.substring(0, 80)}...'
             : okMessages.message;
         Logger.warning(
-            'NOSTR.WS.AUTH.ERR host=$host socket_id=$socketId auth_result=err:$errorMessage');
+          'NOSTR.WS.AUTH.ERR host=$host socket_id=$socketId auth_result=err:$errorMessage',
+        );
         throw SendEventException(okMessages.message);
       }
 
@@ -192,7 +193,8 @@ class RelayAuthService {
         final errorStr = error.toString();
         final errorMessage = errorStr.length > 80 ? '${errorStr.substring(0, 80)}...' : errorStr;
         Logger.warning(
-            'NOSTR.WS.AUTH.ERR host=$host socket_id=$socketId auth_result=err:$errorMessage');
+          'NOSTR.WS.AUTH.ERR host=$host socket_id=$socketId auth_result=err:$errorMessage',
+        );
       }
       final shouldRetry = await onError(error);
       if (shouldRetry && !isRetry) {

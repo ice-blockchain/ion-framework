@@ -7,8 +7,8 @@ import 'package:cryptography/cryptography.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
+import 'package:ion/app/services/logger/logger.dart';
 
 part 'ion_connect_auth.f.freezed.dart';
 
