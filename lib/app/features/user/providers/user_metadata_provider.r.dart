@@ -147,8 +147,6 @@ class UserMetadataInvalidatorNotifier extends _$UserMetadataInvalidatorNotifier 
 Future<UserMetadataLiteEntity?> userMetadataLite(
   Ref ref,
   String masterPubkey, {
-  bool cache = true,
-  bool network = true,
   Duration? expirationDuration,
 }) async {
   final userMetadataLite = await ref.watch(
@@ -183,28 +181,39 @@ Future<UserPreviewEntity?> userPreviewData(
   //   ),
   // );
 
-  //TODO:watch both, return the one that is not null, prefer UserMetadataEntity
+  if (cache) {
+    final cachedUserMetadata = await ref.watch(
+      userMetadataProvider(
+        masterPubkey,
+        network: false,
+        expirationDuration: expirationDuration,
+      ).future,
+    );
+    if (cachedUserMetadata != null) {
+      return cachedUserMetadata;
+    }
 
-  final userMetadata = await ref.watch(
-    userMetadataProvider(
-      masterPubkey,
-      cache: cache,
-      network: network,
-      expirationDuration: expirationDuration,
-    ).future,
-  );
-  if (userMetadata != null) {
-    return userMetadata;
+    final cachedUserMetadataLite = await ref.watch(
+      userMetadataLiteProvider(
+        masterPubkey,
+        expirationDuration: expirationDuration,
+      ).future,
+    );
+
+    if (cachedUserMetadataLite != null) {
+      return cachedUserMetadataLite;
+    }
   }
 
-  final userMetadataLite = await ref.watch(
-    userMetadataLiteProvider(
-      masterPubkey,
-      cache: cache,
-      network: network,
-      expirationDuration: expirationDuration,
-    ).future,
-  );
-
-  return userMetadataLite;
+  if (network) {
+    return await ref.watch(
+      userMetadataProvider(
+        masterPubkey,
+        cache: cache,
+        network: network,
+        expirationDuration: expirationDuration,
+      ).future,
+    );
+  }
+  return null;
 }
