@@ -38,8 +38,7 @@ class UserInfo extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewData =
-        ref.watch(userPreviewDataProvider(pubkey, network: network)).valueOrNull;
+    final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
     void openProfile() => ProfileNavigationUtils.navigateToProfile(context, pubkey);
 
     final tStyle = textStyle ??
@@ -53,7 +52,14 @@ class UserInfo extends HookConsumerWidget {
         title: userPreviewData != null
             ? GestureDetector(
                 onTap: openProfile,
-                child: Text(userPreviewData.data.trimmedDisplayName, style: tStyle),
+                child: Text(
+                  userPreviewData.data.trimmedDisplayName,
+                  style: tStyle,
+                  strutStyle: const StrutStyle(
+                    forceStrutHeight:
+                        true, // for consistent height w/ and w/o emoji in the display name
+                  ),
+                ),
               )
             : const SizedBox.shrink(),
         subtitle: userPreviewData != null

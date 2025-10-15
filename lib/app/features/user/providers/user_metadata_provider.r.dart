@@ -149,17 +149,26 @@ Future<UserMetadataLiteEntity?> userMetadataLite(
   String masterPubkey, {
   Duration? expirationDuration,
 }) async {
-  final userMetadataLite = await ref.watch(
-    ionConnectEntityProvider(
-      network: false,
-      eventReference: ReplaceableEventReference(
-        masterPubkey: masterPubkey,
-        kind: UserMetadataLiteEntity.kind,
-      ),
-      expirationDuration: expirationDuration,
-    ).future,
-  ) as UserMetadataLiteEntity?;
-  return userMetadataLite;
+  return UserMetadataLiteEntity(
+    masterPubkey: masterPubkey,
+    data: UserMetadataLite(
+      name: 'user_${masterPubkey.substring(0, 6)}',
+      displayName: 'User ${masterPubkey.substring(0, 6)}',
+      picture: 'https://picsum.photos/200',
+    ),
+  );
+
+  // final userMetadataLite = await ref.watch(
+  //   ionConnectEntityProvider(
+  //     network: false,
+  //     eventReference: ReplaceableEventReference(
+  //       masterPubkey: masterPubkey,
+  //       kind: UserMetadataLiteEntity.kind,
+  //     ),
+  //     expirationDuration: expirationDuration,
+  //   ).future,
+  // ) as UserMetadataLiteEntity?;
+  // return userMetadataLite;
 }
 
 @riverpod
@@ -170,17 +179,6 @@ Future<UserPreviewEntity?> userPreviewData(
   bool network = true,
   Duration? expirationDuration,
 }) async {
-  await Future<void>.delayed(Duration(milliseconds: Random().nextInt(3000)));
-
-  // return UserMetadataLiteEntity(
-  //   masterPubkey: masterPubkey,
-  //   data: UserMetadataLite(
-  //     name: 'user_${masterPubkey.substring(0, 6)}',
-  //     displayName: 'User ${masterPubkey.substring(0, 6)}',
-  //     picture: 'https://picsum.photos/200',
-  //   ),
-  // );
-
   if (cache) {
     final cachedUserMetadata = await ref.watch(
       userMetadataProvider(
