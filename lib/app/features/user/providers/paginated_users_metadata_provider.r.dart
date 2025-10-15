@@ -30,6 +30,7 @@ class PaginatedUsersMetadataData {
   final bool hasMore;
 }
 
+//TODO: rename (no metadata)
 @Riverpod(keepAlive: true)
 class PaginatedUsersMetadata extends _$PaginatedUsersMetadata {
   static const int _limit = 20;

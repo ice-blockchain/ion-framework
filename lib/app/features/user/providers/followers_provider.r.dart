@@ -42,11 +42,11 @@ class Followers extends _$Followers {
     final entitiesPagedData = ref.watch(
       entitiesPagedDataProvider(
         _dataSourcesKey,
-        awaitMissingEvents: true,
+        awaitMissingEvents: true, //TODO: don't
       ),
     );
     final masterPubkeys = entitiesPagedData?.data.items
-        ?.whereType<UserMetadataEntity>()
+        ?.whereType<UserMetadataEntity>() //TODO: also 21750
         .map((e) => e.masterPubkey)
         .toList();
     final response = (
@@ -76,7 +76,7 @@ class Followers extends _$Followers {
           .read(
             entitiesPagedDataProvider(
               _dataSourcesKey,
-              awaitMissingEvents: true,
+              awaitMissingEvents: true, //TODO: don't
             ).notifier,
           )
           .fetchEntities();
