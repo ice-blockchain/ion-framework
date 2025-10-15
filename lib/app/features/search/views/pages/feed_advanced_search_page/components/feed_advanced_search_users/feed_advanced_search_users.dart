@@ -24,9 +24,9 @@ class FeedAdvancedSearchUsers extends HookConsumerWidget {
     final searchResults =
         ref.watch(searchUsersProvider(query: query, includeCurrentUser: true)).valueOrNull;
 
-    final searchUsers = searchResults?.users ?? [];
+    final masterPubkeys = searchResults?.masterPubkeys ?? [];
     final hasMore = searchResults?.hasMore ?? true;
-    final loading = hasMore && searchUsers.isEmpty;
+    final loading = hasMore && masterPubkeys.isEmpty;
 
     return PullToRefreshBuilder(
       slivers: [
@@ -34,14 +34,14 @@ class FeedAdvancedSearchUsers extends HookConsumerWidget {
           const ListItemsLoadingState(
             listItemsLoadingStateType: ListItemsLoadingStateType.scrollView,
           )
-        else if (searchUsers.isEmpty)
+        else if (masterPubkeys.isEmpty)
           NothingIsFound(title: context.i18n.search_nothing_found)
         else
           SliverList.separated(
-            itemCount: searchUsers.length,
+            itemCount: masterPubkeys.length,
             separatorBuilder: (_, __) => const SectionSeparator(),
             itemBuilder: (context, index) =>
-                FeedAdvancedSearchUserListItem(user: searchUsers[index]),
+                FeedAdvancedSearchUserListItem(masterPubkey: masterPubkeys[index]),
           ),
       ],
       onRefresh:

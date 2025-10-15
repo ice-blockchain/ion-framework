@@ -36,21 +36,21 @@ class FollowersList extends HookConsumerWidget {
         )
         .valueOrNull;
     final hasMore = result?.hasMore ?? false;
-    final entities = result?.users;
+    final masterPubkeys = result?.masterPubkeys;
     final isReady = result?.ready ?? false;
 
     final slivers = [
       FollowAppBar(title: FollowType.followers.getTitleWithCounter(context, followersCount ?? 0)),
       FollowSearchBar(onTextChanged: (query) => searchQuery.value = query),
-      if (entities == null || !isReady)
+      if (masterPubkeys == null || !isReady)
         const FollowListLoading()
-      else if (entities.isEmpty)
+      else if (masterPubkeys.isEmpty)
         const NothingIsFound()
       else
         SliverList.builder(
-          itemCount: entities.length,
+          itemCount: masterPubkeys.length,
           itemBuilder: (context, index) => ScreenSideOffset.small(
-            child: FollowListItem(pubkey: entities[index].masterPubkey),
+            child: FollowListItem(pubkey: masterPubkeys[index]),
           ),
         ),
       SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 32.0.s)),

@@ -17,7 +17,7 @@ class Followers extends _$Followers {
   List<EntitiesDataSource>? _dataSourcesKey;
 
   @override
-  FutureOr<({bool hasMore, List<UserMetadataEntity>? users, bool ready})?> build({
+  FutureOr<({bool hasMore, List<String>? masterPubkeys, bool ready})?> build({
     required String pubkey,
     required String query,
   }) async {
@@ -33,7 +33,7 @@ class Followers extends _$Followers {
           .valueOrNull;
       return (
         hasMore: result?.hasMore ?? false,
-        users: result?.users,
+        masterPubkeys: result?.masterPubkeys,
         ready: true,
       );
     }
@@ -45,11 +45,14 @@ class Followers extends _$Followers {
         awaitMissingEvents: true,
       ),
     );
-    final users = entitiesPagedData?.data.items?.whereType<UserMetadataEntity>().toList();
+    final masterPubkeys = entitiesPagedData?.data.items
+        ?.whereType<UserMetadataEntity>()
+        .map((e) => e.masterPubkey)
+        .toList();
     final response = (
       hasMore: entitiesPagedData?.hasMore ?? false,
-      users: users,
-      ready: (users?.length ?? 0) >= 12 || entitiesPagedData?.data is! PagedLoading,
+      masterPubkeys: masterPubkeys,
+      ready: (masterPubkeys?.length ?? 0) >= 12 || entitiesPagedData?.data is! PagedLoading,
     );
     return response;
   }

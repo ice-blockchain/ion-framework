@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/user_picker_sheet.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
@@ -22,7 +21,7 @@ class SendProfileModal extends StatelessWidget {
           title: Text(context.i18n.chat_profile_share_modal_title),
           actions: [NavigationCloseButton(onPressed: () => context.pop())],
         ),
-        onUserSelected: (UserMetadataEntity user) => context.pop<String>(user.masterPubkey),
+        onUserSelected: (userPreviewData) => context.pop<String>(userPreviewData.masterPubkey),
       ),
     );
   }

@@ -63,7 +63,7 @@ Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) a
 
     result.add(
       ChatSearchResultItem(
-        userPreviewData: userPreviewData,
+        masterPubkey: userPreviewData.masterPubkey,
         lastMessageContent: message.data.content,
       ),
     );
