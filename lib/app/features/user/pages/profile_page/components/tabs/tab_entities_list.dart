@@ -45,7 +45,7 @@ class TabEntitiesList extends HookConsumerWidget {
             .toList(),
         displayParent: true,
         showNotInterested: false,
-        showPinOption: true,
+        entityTypeName: TabEntityType.replies.name,
       ),
     );
   }
@@ -101,7 +101,7 @@ class TabEntitiesList extends HookConsumerWidget {
                       .toList(),
                   showMuted: true,
                   showNotInterested: false,
-                  showPinOption: true,
+                  entityTypeName: type.name,
                   onVideoTap: ({
                     required String eventReference,
                     required int initialMediaIndex,

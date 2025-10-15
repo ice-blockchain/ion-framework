@@ -29,7 +29,7 @@ class OwnEntityMenu extends ConsumerWidget {
     this.iconColor,
     this.onDelete,
     this.padding = EdgeInsets.zero,
-    this.showPinOption = false,
+    this.entityTypeName,
     super.key,
   });
 
@@ -39,7 +39,7 @@ class OwnEntityMenu extends ConsumerWidget {
   final Color? iconColor;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onDelete;
-  final bool showPinOption;
+  final String? entityTypeName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -107,8 +107,8 @@ class OwnEntityMenu extends ConsumerWidget {
                   ),
                   const OverlayMenuItemSeparator(),
                 ],
-                if (showPinOption) ...[
-                  _PinMenuItem(eventReference, closeMenu),
+                if (entityTypeName != null) ...[
+                  _PinMenuItem(eventReference, closeMenu, entityTypeName),
                   const OverlayMenuItemSeparator(),
                 ],
                 OverlayMenuItem(
@@ -169,14 +169,15 @@ class OwnEntityMenu extends ConsumerWidget {
 }
 
 class _PinMenuItem extends ConsumerWidget {
-  const _PinMenuItem(this.eventReference, this.onPressed);
+  const _PinMenuItem(this.eventReference, this.onPressed, this.entityTypeName);
 
   final EventReference eventReference;
   final VoidCallback onPressed;
+  final String? entityTypeName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pinnedState = ref.watch(togglePinnedNotifierProvider(eventReference: eventReference));
+    final pinnedState = ref.watch(togglePinnedNotifierProvider(eventReference, entityTypeName));
     final isPinned = pinnedState.value ?? false;
 
     return OverlayMenuItem(
@@ -190,7 +191,7 @@ class _PinMenuItem extends ConsumerWidget {
   }
 
   void _togglePin(WidgetRef ref) {
-    ref.read(togglePinnedNotifierProvider(eventReference: eventReference).notifier).toggle();
+    ref.read(togglePinnedNotifierProvider(eventReference, entityTypeName).notifier).toggle();
     onPressed();
   }
 }

@@ -9,19 +9,20 @@ import 'package:ion/app/features/user/providers/user_pinned_content_provider.m.d
 import 'package:ion/generated/assets.gen.dart';
 
 class PinnedContentHeader extends ConsumerWidget {
-  const PinnedContentHeader({required this.eventReference, super.key});
+  const PinnedContentHeader(this.eventReference, {this.tabEntityType, super.key});
 
   final EventReference eventReference;
+  final String? tabEntityType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isOwnedByCurrentUser =
         ref.watch(isCurrentUserSelectorProvider(eventReference.masterPubkey));
-    if (!isOwnedByCurrentUser) {
+    if (!isOwnedByCurrentUser || tabEntityType == null) {
       return const SizedBox.shrink();
     }
 
-    final pinnedState = ref.watch(togglePinnedNotifierProvider(eventReference: eventReference));
+    final pinnedState = ref.watch(togglePinnedNotifierProvider(eventReference, tabEntityType));
     final isPinned = pinnedState.value ?? false;
 
     return AnimatedSwitcher(

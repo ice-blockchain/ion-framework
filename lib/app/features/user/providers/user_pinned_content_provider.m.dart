@@ -28,51 +28,34 @@ class PinnedContentState with _$PinnedContentState {
       _$PinnedContentStateFromJson(json);
 }
 
-enum PinnedContentType {
-  post,
-  replies,
-  article,
-  video,
-}
-
 @riverpod
-String? pinnedContentKey(Ref ref, PinnedContentType type) {
+String? pinnedContentKey(Ref ref, String contentType) {
   final pinnedContentData = ref.watch(pinnedContentProvider).data;
 
-  return pinnedContentData[type.name];
+  return pinnedContentData[contentType];
 }
 
 @riverpod
 class TogglePinnedNotifier extends _$TogglePinnedNotifier {
   @override
-  Future<bool> build({
-    required EventReference eventReference,
-  }) async {
+  Future<bool> build(EventReference eventReference, String? contentType) async {
     final pinnedContentData = ref.watch(pinnedContentProvider).data;
+    final isPinned = pinnedContentData[contentType] == eventReference.toString();
 
-    final contentTypeKey = pinnedContentData.entries
-        .firstWhereOrNull((element) => element.value == eventReference.toString())
-        ?.key;
-
-    return contentTypeKey != null;
+    return isPinned;
   }
 
   Future<void> toggle() async {
     final pinnedContentNotifier = ref.read(pinnedContentProvider.notifier);
-
-    final contentType = switch (eventReference) {
-      final ref when ref.isPostReference => PinnedContentType.post,
-      final ref when ref.isArticleReference => PinnedContentType.article,
-      _ => PinnedContentType.replies,
-    };
+    final contentTypeName = contentType ?? 'post';
 
     final isPinned =
-        pinnedContentNotifier.pinnedContentKey(contentType.name) == eventReference.toString();
+        pinnedContentNotifier.pinnedContentKey(contentTypeName) == eventReference.toString();
     Logger.log(
-      'toggle contentType:${contentType.name}, isPinned:$isPinned, masterPubkey:${eventReference.toString()}',
+      'toggle contentType:$contentTypeName, isPinned:$isPinned, masterPubkey:$eventReference',
     );
     pinnedContentNotifier.updatePinnedContent(
-      contentType.name,
+      contentTypeName,
       isPinned ? null : eventReference.toString(),
     );
   }

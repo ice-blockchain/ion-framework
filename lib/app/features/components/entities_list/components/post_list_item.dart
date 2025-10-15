@@ -13,7 +13,7 @@ class PostListItem extends StatelessWidget {
     required this.eventReference,
     this.displayParent = false,
     this.showNotInterested = true,
-    this.showPinOption = false,
+    this.entityTypeName,
     this.onVideoTap,
     super.key,
   });
@@ -26,7 +26,7 @@ class PostListItem extends StatelessWidget {
 
   final bool showNotInterested;
 
-  final bool showPinOption;
+  final String? entityTypeName;
 
   @override
   Widget build(BuildContext context) {
@@ -37,14 +37,14 @@ class PostListItem extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Column(
         children: [
-          PinnedContentHeader(eventReference: eventReference),
+          PinnedContentHeader(eventReference, tabEntityType: entityTypeName),
           Post(
             showNotInterested: showNotInterested,
             eventReference: eventReference,
             displayParent: displayParent,
             onVideoTap: onVideoTap,
             headerOffset: 12.0.s,
-            showPinOption: showPinOption,
+            entityTypeName: entityTypeName,
           ),
         ],
       ),

@@ -44,7 +44,7 @@ class Post extends ConsumerWidget {
     this.accentTheme = false,
     this.isTextSelectable = false,
     this.showNotInterested = true,
-    this.showPinOption = false,
+    this.entityTypeName,
     this.bodyMaxLines = 6,
     this.contentWrapper,
     this.onVideoTap,
@@ -68,7 +68,7 @@ class Post extends ConsumerWidget {
   final Widget Function(Widget content)? contentWrapper;
   final OnVideoTapCallback? onVideoTap;
   final bool showNotInterested;
-  final bool showPinOption;
+  final String? entityTypeName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -152,7 +152,7 @@ class Post extends ConsumerWidget {
                   ? OwnEntityMenu(
                       eventReference: eventReference,
                       onDelete: onDelete,
-                      showPinOption: showPinOption,
+                      entityTypeName: entityTypeName,
                       padding: EdgeInsetsGeometry.symmetric(
                         horizontal: ScreenSideOffset.defaultSmallMargin,
                         vertical: 5.0.s,
