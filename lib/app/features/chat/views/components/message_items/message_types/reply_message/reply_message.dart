@@ -25,16 +25,14 @@ class ReplyMessage extends HookConsumerWidget {
     }
 
     final messageIconPath = _getMessageIcon();
-    
+
     final isMe = useMemoized(
       () => messageItem.eventMessage.masterPubkey == ref.watch(currentPubkeySelectorProvider),
       [messageItem.eventMessage.masterPubkey, ref.watch(currentPubkeySelectorProvider)],
     );
 
     final bgColor = useMemoized(
-      () => isMe
-          ? context.theme.appColors.darkBlue
-          : context.theme.appColors.primaryBackground,
+      () => isMe ? context.theme.appColors.darkBlue : context.theme.appColors.primaryBackground,
       [isMe],
     );
 
