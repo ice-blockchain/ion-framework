@@ -30,9 +30,9 @@ class FeedSimpleSearchPage extends HookConsumerWidget {
     final debouncedQuery = useDebounced(query, const Duration(milliseconds: 300)) ?? '';
     final searchProvider = searchUsersProvider(query: debouncedQuery, includeCurrentUser: true);
     final searchResults = ref.watch(searchProvider).valueOrNull;
-    final searchUsers = searchResults?.users ?? [];
+    final masterPubkeys = searchResults?.masterPubkeys ?? [];
     final hasMore = searchResults?.hasMore ?? true;
-    final loading = (hasMore && searchUsers.isEmpty) || query != debouncedQuery;
+    final loading = (hasMore && masterPubkeys.isEmpty) || query != debouncedQuery;
 
     return Scaffold(
       body: ScreenTopOffset(
@@ -76,15 +76,15 @@ class FeedSimpleSearchPage extends HookConsumerWidget {
                         padding: EdgeInsets.symmetric(vertical: 20.0.s),
                         listItemsLoadingStateType: ListItemsLoadingStateType.scrollView,
                       )
-                    else if (searchUsers.isEmpty)
+                    else if (masterPubkeys.isEmpty)
                       NothingIsFound(title: context.i18n.search_nothing_found)
                     else
                       SliverPadding(
                         padding: EdgeInsets.symmetric(vertical: 12.0.s),
                         sliver: SliverList.builder(
-                          itemCount: searchUsers.length,
+                          itemCount: masterPubkeys.length,
                           itemBuilder: (context, index) =>
-                              FeedSimpleSearchListItem(user: searchUsers[index]),
+                              FeedSimpleSearchListItem(masterPubkey: masterPubkeys[index]),
                         ),
                       ),
                   ],

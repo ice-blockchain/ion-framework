@@ -13,22 +13,28 @@ import 'package:ion/app/utils/username.dart';
 class FollowListItem extends ConsumerWidget {
   const FollowListItem({
     required this.pubkey,
+    this.network = false,
     super.key,
   });
 
   final String pubkey;
 
+  final bool network;
+
   static double get itemHeight => 35.0.s;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
+    final userMetadata = ref.watch(userPreviewDataProvider(pubkey, network: network)).valueOrNull;
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
       child: userMetadata != null
           ? BadgesUserListItem(
-              title: Text(userMetadata.data.trimmedDisplayName),
+              title: Text(
+                userMetadata.data.trimmedDisplayName,
+                strutStyle: const StrutStyle(forceStrutHeight: true),
+              ),
               trailing: FollowUserButton(
                 pubkey: pubkey,
               ),

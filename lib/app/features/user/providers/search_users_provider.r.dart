@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/paginated_users_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion_connect_cache/ion_connect_cache.dart';
@@ -13,7 +12,7 @@ part 'search_users_provider.r.g.dart';
 @riverpod
 class SearchUsers extends _$SearchUsers {
   @override
-  FutureOr<({List<UserMetadataEntity>? users, bool hasMore})?> build({
+  FutureOr<({List<String>? masterPubkeys, bool hasMore})?> build({
     required String query,
     Duration? expirationDuration,
     DatabaseCacheStrategy? cacheStrategy,
@@ -21,7 +20,7 @@ class SearchUsers extends _$SearchUsers {
     String? followerOfPubkey,
     bool includeCurrentUser = false,
   }) async {
-    final masterPubkey = ref.watch(currentPubkeySelectorProvider);
+    final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
     final paginatedUsersMetadataData = await ref.watch(
       paginatedUsersMetadataProvider(
         _fetcher,
@@ -37,16 +36,16 @@ class SearchUsers extends _$SearchUsers {
             .toList() ??
         [];
 
-    final filteredUsers = paginatedUsersMetadataData.items
+    final filteredMasterPubkeys = paginatedUsersMetadataData.items
         .where(
-          (user) =>
-              (includeCurrentUser || user.masterPubkey != masterPubkey) &&
-              !blockedUsersMasterPubkeys.contains(user.masterPubkey),
+          (masterPubkey) =>
+              (includeCurrentUser || masterPubkey != currentUserMasterPubkey) &&
+              !blockedUsersMasterPubkeys.contains(masterPubkey),
         )
         .toList();
 
     return (
-      users: filteredUsers,
+      masterPubkeys: filteredMasterPubkeys,
       hasMore: paginatedUsersMetadataData.hasMore,
     );
   }
@@ -72,7 +71,7 @@ class SearchUsers extends _$SearchUsers {
   Future<List<UserRelaysInfo>> _fetcher(
     int limit,
     int offset,
-    List<UserMetadataEntity> current,
+    List<String> current,
     IONIdentityClient ionIdentityClient,
   ) {
     if (query.trim().isEmpty) {

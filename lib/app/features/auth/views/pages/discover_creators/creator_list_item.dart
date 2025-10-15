@@ -8,18 +8,18 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 
 class CreatorListItem extends ConsumerWidget {
   const CreatorListItem({
-    required this.userMetadataEntity,
+    required this.masterPubkey,
     required this.onPressed,
     required this.selected,
     super.key,
   });
 
-  final UserMetadataEntity userMetadataEntity;
+  final String masterPubkey;
 
   final VoidCallback onPressed;
 
@@ -27,11 +27,18 @@ class CreatorListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userPreviewData =
+        ref.watch(userPreviewDataProvider(masterPubkey, network: false)).valueOrNull;
+
+    if (userPreviewData == null) {
+      return const SizedBox.shrink();
+    }
+
     return ScreenSideOffset.small(
       child: BadgesUserListItem(
-        title: Text(userMetadataEntity.data.trimmedDisplayName),
-        subtitle: Text(prefixUsername(username: userMetadataEntity.data.name, context: context)),
-        masterPubkey: userMetadataEntity.masterPubkey,
+        title: Text(userPreviewData.data.trimmedDisplayName),
+        subtitle: Text(prefixUsername(username: userPreviewData.data.name, context: context)),
+        masterPubkey: userPreviewData.masterPubkey,
         backgroundColor: context.theme.appColors.tertiaryBackground,
         contentPadding: EdgeInsets.all(12.0.s),
         borderRadius: BorderRadius.circular(16.0.s),

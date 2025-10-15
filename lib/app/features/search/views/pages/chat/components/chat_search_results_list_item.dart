@@ -10,6 +10,7 @@ import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dar
 import 'package:ion/app/features/chat/views/components/chat_privacy_tooltip.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_search_history_provider.m.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -26,7 +27,12 @@ class ChatSearchResultListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewData = item.userPreviewData;
+    final userPreviewData = ref.watch(userPreviewDataProvider(item.masterPubkey)).valueOrNull;
+
+    if (userPreviewData == null) {
+      return const SizedBox.shrink();
+    }
+
     final canSendMessage =
         ref.watch(canSendMessageProvider(userPreviewData.masterPubkey)).valueOrNull ?? false;
 
@@ -38,7 +44,7 @@ class ChatSearchResultListItem extends HookConsumerWidget {
                   .read(chatSearchHistoryProvider.notifier)
                   .addUserIdToTheHistory(userPreviewData.masterPubkey);
               context.pushReplacement(
-                ConversationRoute(receiverMasterPubkey: item.userPreviewData.masterPubkey).location,
+                ConversationRoute(receiverMasterPubkey: item.masterPubkey).location,
               );
             }
           : null,

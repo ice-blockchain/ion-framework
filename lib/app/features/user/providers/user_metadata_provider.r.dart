@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -190,7 +189,20 @@ Future<UserPreviewEntity?> userPreviewData(
     if (cachedUserMetadata != null) {
       return cachedUserMetadata;
     }
+  }
 
+  Future<UserMetadataEntity?>? networkFuture;
+  if (network) {
+    networkFuture = ref.watch(
+      userMetadataProvider(
+        masterPubkey,
+        cache: cache,
+        expirationDuration: expirationDuration,
+      ).future,
+    );
+  }
+
+  if (cache) {
     final cachedUserMetadataLite = await ref.watch(
       userMetadataLiteProvider(
         masterPubkey,
@@ -203,15 +215,8 @@ Future<UserPreviewEntity?> userPreviewData(
     }
   }
 
-  if (network) {
-    return await ref.watch(
-      userMetadataProvider(
-        masterPubkey,
-        cache: cache,
-        network: network,
-        expirationDuration: expirationDuration,
-      ).future,
-    );
+  if (networkFuture != null) {
+    return networkFuture;
   }
   return null;
 }

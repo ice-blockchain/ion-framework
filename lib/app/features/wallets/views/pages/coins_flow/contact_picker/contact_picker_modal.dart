@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/user_picker_sheet.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
@@ -43,17 +44,21 @@ class ContactPickerModal extends HookConsumerWidget {
       (
         WidgetRef ref,
         BuildContext context,
-        UserMetadataEntity user,
+        UserPreviewEntity userPreviewData,
       ) async {
         if (validatorType == ContactPickerValidatorType.none || networkId == null) return true;
 
         final network = await ref.read(networkByIdProvider(networkId!).future);
         if (network == null) return false;
 
-        final isPrivateWallets = user.data.wallets == null;
-        final walletAddress = _getWalletAddress(user, network.id) ??
+        final userMetadata =
+            await ref.read(userMetadataProvider(userPreviewData.masterPubkey).future);
+        if (userMetadata == null) return false;
+
+        final isPrivateWallets = userMetadata.data.wallets == null;
+        final walletAddress = _getWalletAddress(userMetadata, network.id) ??
             _getWalletAddress(
-              await ref.read(userMetadataProvider(user.masterPubkey, cache: false).future),
+              await ref.read(userMetadataProvider(userMetadata.masterPubkey, cache: false).future),
               network.id,
             );
 
@@ -63,7 +68,7 @@ class ContactPickerModal extends HookConsumerWidget {
           unawaited(
             showContactWalletError(
               ref.context,
-              user: user,
+              user: userMetadata,
               network: network,
               isPrivate: isPrivateWallets,
             ),

@@ -17,7 +17,6 @@ import 'package:ion/app/features/auth/providers/onboarding_data_provider.m.dart'
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
 import 'package:ion/app/features/auth/views/pages/discover_creators/creator_list_item.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/paginated_users_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_selected_state.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
@@ -32,13 +31,13 @@ class DiscoverCreators extends HookConsumerWidget {
     final contentCreatorsPaginatedProvider =
         paginatedUsersMetadataProvider(contentCreatorsPaginatedFetcher);
     final creatorsState = ref.watch(contentCreatorsPaginatedProvider);
-    final contentCreators = creatorsState.valueOrNull?.items ?? <UserMetadataEntity>[];
+    final contentCreators = creatorsState.valueOrNull?.items ?? <String>[];
     final hasMore = creatorsState.valueOrNull?.hasMore ?? true;
     ref
       ..displayErrors(onboardingCompleteNotifierProvider)
       ..displayErrors(contentCreatorsPaginatedProvider);
 
-    final (selectedCreators, toggleCreatorSelection) = useSelectedState(<UserMetadataEntity>[]);
+    final (selectedCreators, toggleCreatorSelection) = useSelectedState(<String>[]);
 
     final slivers = [
       if (contentCreators.isEmpty)
@@ -57,11 +56,11 @@ class DiscoverCreators extends HookConsumerWidget {
           separatorBuilder: (BuildContext _, int __) => SizedBox(height: 8.0.s),
           itemCount: contentCreators.length,
           itemBuilder: (BuildContext context, int index) {
-            final creator = contentCreators.elementAt(index);
+            final masterPubkey = contentCreators.elementAt(index);
             return CreatorListItem(
-              userMetadataEntity: creator,
-              selected: selectedCreators.contains(creator),
-              onPressed: () => toggleCreatorSelection(creator),
+              masterPubkey: masterPubkey,
+              selected: selectedCreators.contains(masterPubkey),
+              onPressed: () => toggleCreatorSelection(masterPubkey),
             );
           },
         ),
@@ -100,8 +99,7 @@ class DiscoverCreators extends HookConsumerWidget {
                   label: Text(context.i18n.button_continue),
                   mainAxisSize: MainAxisSize.max,
                   onPressed: () {
-                    ref.read(onboardingDataProvider.notifier).followees =
-                        selectedCreators.map((creator) => creator.masterPubkey).toList();
+                    ref.read(onboardingDataProvider.notifier).followees = selectedCreators;
                     guardPasskeyDialog(
                       context,
                       (child) => RiverpodVerifyIdentityRequestBuilder(
