@@ -155,7 +155,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
         return uploadResponse;
       } else {
         Logger.warning(
-          'err type=${error.runtimeType} code=${(error is DioException) ? (error.response?.statusCode ?? 0) : -1} msg="${(error is DioException) ? (error.response?.data is Map ? (error.response!.data['message']?.toString() ?? '') : error.response?.data?.toString() ?? (error.message ?? '')) : error.toString()}"',
+          'err type=${error.runtimeType} code=${(error is DioException) ? (error.response?.statusCode ?? 0) : -1} msg="${(error is DioException) ? (error.response?.data is Map ? (error.toString()) : error.response?.data?.toString() ?? (error.message ?? '')) : error.toString()}"',
         );
         Logger.warning(
           'HARD CALL ON CATCH',
