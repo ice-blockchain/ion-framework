@@ -20,7 +20,7 @@ part 'user_metadata_lite.f.g.dart';
 @Freezed(equal: false)
 class UserMetadataLiteEntity
     with IonConnectEntity, CacheableEntity, ReplaceableEntity, _$UserMetadataLiteEntity
-    implements EntityEventSerializable, DbCacheableEntity {
+    implements EntityEventSerializable, DbCacheableEntity, UserPreviewEntity {
   const factory UserMetadataLiteEntity({
     required String masterPubkey,
     required UserMetadataLite data,
@@ -107,6 +107,12 @@ class UserMetadataLite
       masterPubkey: pubkey,
     );
   }
+
+  @override
+  String? get avatarUrl => picture;
+
+  @override
+  String get trimmedDisplayName => displayName.trim();
 }
 
 @JsonSerializable(createToJson: true, includeIfNull: false)

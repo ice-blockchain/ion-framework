@@ -97,6 +97,7 @@ class SharedPostMessage extends HookConsumerWidget {
       accentTheme: isMe,
       createdAt: createdAt,
       pubkey: postEntity.masterPubkey,
+      network: true,
       textStyle: isMe
           ? context.theme.appTextThemes.caption.copyWith(
               color: context.theme.appColors.onPrimaryAccent,

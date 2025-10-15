@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/search/views/components/search_history/search_list_item_loading.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 
@@ -17,12 +17,12 @@ class SearchHistoryUserListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(pubkey));
-    return userMetadata.maybeWhen(
-      data: (userMetadata) => userMetadata != null
+    final userPreviewData = ref.watch(userPreviewDataProvider(pubkey));
+    return userPreviewData.maybeWhen(
+      data: (userPreviewData) => userPreviewData != null
           ? GestureDetector(
               onTap: onTap,
-              child: _UserListItem(userMetadata: userMetadata),
+              child: _UserListItem(userPreviewData: userPreviewData),
             )
           : const SizedBox.shrink(),
       orElse: ListItemLoading.new,
@@ -31,9 +31,9 @@ class SearchHistoryUserListItem extends ConsumerWidget {
 }
 
 class _UserListItem extends StatelessWidget {
-  const _UserListItem({required this.userMetadata});
+  const _UserListItem({required this.userPreviewData});
 
-  final UserMetadataEntity userMetadata;
+  final UserPreviewEntity userPreviewData;
 
   @override
   Widget build(BuildContext context) {
@@ -43,12 +43,12 @@ class _UserListItem extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IonConnectAvatar(size: 65.0.s, masterPubkey: userMetadata.masterPubkey),
+          IonConnectAvatar(size: 65.0.s, masterPubkey: userPreviewData.masterPubkey),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                userMetadata.data.trimmedDisplayName,
+                userPreviewData.data.trimmedDisplayName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: context.theme.appTextThemes.caption3.copyWith(
@@ -56,7 +56,7 @@ class _UserListItem extends StatelessWidget {
                 ),
               ),
               Text(
-                prefixUsername(username: userMetadata.data.name, context: context),
+                prefixUsername(username: userPreviewData.data.name, context: context),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: context.theme.appTextThemes.caption3.copyWith(

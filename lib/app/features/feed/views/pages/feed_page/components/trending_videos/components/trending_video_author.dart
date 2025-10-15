@@ -19,9 +19,11 @@ class TrendingVideoAuthor extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+    final authorDisplayName = ref.watch(
+      userPreviewDataProvider(pubkey).select((value) => value.valueOrNull?.data.trimmedDisplayName),
+    );
 
-    if (userMetadata == null) {
+    if (authorDisplayName == null) {
       return const SizedBox.shrink();
     }
 
@@ -41,7 +43,7 @@ class TrendingVideoAuthor extends ConsumerWidget {
               child: Padding(
                 padding: EdgeInsetsDirectional.only(start: 4.0.s),
                 child: Text(
-                  userMetadata.data.trimmedDisplayName,
+                  authorDisplayName,
                   overflow: TextOverflow.ellipsis,
                   style: context.theme.appTextThemes.caption3.copyWith(
                     color: context.theme.appColors.secondaryBackground,

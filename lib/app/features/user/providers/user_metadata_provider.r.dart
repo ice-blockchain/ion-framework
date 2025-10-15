@@ -162,20 +162,20 @@ Future<UserMetadataLiteEntity?> userMetadataLite(
 }
 
 @riverpod
-Future<UserPreviewData?> userPreviewData(
-  Ref ref, {
-  required String masterPubkey,
+Future<UserPreviewEntity?> userPreviewData(
+  Ref ref,
+  String masterPubkey, {
   bool cache = true,
   bool network = true,
 }) async {
-  final cachedUserMetadata =
+  final userMetadata =
       await ref.watch(userMetadataProvider(masterPubkey, cache: cache, network: network).future);
-  if (cachedUserMetadata != null) {
-    return cachedUserMetadata.data;
+  if (userMetadata != null) {
+    return userMetadata;
   }
 
-  final cachedUserMetadataLite = await ref
+  final userMetadataLite = await ref
       .watch(userMetadataLiteProvider(masterPubkey, cache: cache, network: network).future);
 
-  return cachedUserMetadataLite?.data;
+  return userMetadataLite;
 }

@@ -20,9 +20,9 @@ class MentionItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(pubkey));
+    final userPreviewData = ref.watch(userPreviewDataProvider(pubkey));
 
-    return userMetadata.maybeWhen(
+    return userPreviewData.maybeWhen(
       data: (userMetadata) {
         if (userMetadata == null) {
           return const SizedBox.shrink();

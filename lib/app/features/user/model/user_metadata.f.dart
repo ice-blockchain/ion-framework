@@ -21,7 +21,7 @@ part 'user_metadata.f.g.dart';
 @Freezed(equal: false)
 class UserMetadataEntity
     with IonConnectEntity, CacheableEntity, ReplaceableEntity, _$UserMetadataEntity
-    implements EntityEventSerializable, DbCacheableEntity {
+    implements EntityEventSerializable, DbCacheableEntity, UserPreviewEntity {
   const factory UserMetadataEntity({
     required String id,
     required String pubkey,
@@ -112,9 +112,11 @@ class UserMetadata
 
   const UserMetadata._();
 
+  @override
   String? get avatarUrl =>
       media.values.where((element) => picture == element.url).firstOrNull?.thumb ?? picture;
 
+  @override
   String get trimmedDisplayName => displayName.trim();
 
   @override
