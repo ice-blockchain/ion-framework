@@ -6,17 +6,17 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/dio_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_storage_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_auth.f.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
-import 'package:ion/app/features/user/providers/relays/ranked_user_relays_provider.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
+import 'package:ion/app/features/user/providers/relays/ranked_user_relays_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 
 Future<String> generateAuthorizationToken({
   required Ref ref,
@@ -33,7 +33,8 @@ Future<String> generateAuthorizationToken({
 
   // NOSTR.NIP98 build_start
   Logger.info(
-      'NOSTR.NIP98 build_start nip98.pubkey=${devicePubkey ?? 'null'} nip98.master=${masterPubkey ?? 'null'} nip98.u=$url nip98.method=$method');
+    'NOSTR.NIP98 build_start nip98.pubkey=${devicePubkey ?? 'null'} nip98.master=${masterPubkey ?? 'null'} nip98.u=$url nip98.method=$method',
+  );
 
   // Attach 10100 attestation inline when replica delay is active
   final isDelayed = ref.read(relaysReplicaDelayProvider).isDelayed;
@@ -100,7 +101,8 @@ Future<String> getFileStorageApiUrl(
 
     // NOSTR.NIP96 get_ok
     Logger.info(
-        'NOSTR.NIP96 get_ok host=$discoveryHost upload_url=$uploadUrl is_nip98_required=$isNip98Required');
+      'NOSTR.NIP96 get_ok host=$discoveryHost upload_url=$uploadUrl is_nip98_required=$isNip98Required',
+    );
 
     return uploadUrl;
   } catch (error) {
