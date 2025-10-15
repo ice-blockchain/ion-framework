@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector_factory.r.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/media_service/video_info_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,8 +14,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'nsfw_validation_service.r.g.dart';
 
 @riverpod
-NsfwValidationService nsfwValidationService(Ref ref) => NsfwValidationService(
-      detectorFactory: ref.read(nsfwDetectorFactoryProvider),
+Future<NsfwValidationService> nsfwValidationService(Ref ref) async => NsfwValidationService(
+      detectorFactory: await ref.read(nsfwDetectorFactoryProvider.future),
       videoCompressor: ref.read(videoCompressorProvider),
       videoInfoService: ref.read(videoInfoServiceProvider),
     );
@@ -73,10 +74,13 @@ class NsfwValidationService {
         try {
           final bytes = await File(path).readAsBytes();
           final result = await detector.classifyBytes(bytes);
+          Logger.log('NSFW image validation rate: ${result.nsfw}');
           if (result.decision != NsfwDecision.allow) {
             return true;
           }
-        } catch (_) {}
+        } catch (e, st) {
+          Logger.error(e, message: 'NSFW image validation failed', stackTrace: st);
+        }
       }
       return false;
     } finally {
@@ -101,10 +105,13 @@ class NsfwValidationService {
             final thumbMediaFile = await videoCompressor.getThumbnail(video, timestamp: ts);
             final bytes = await File(thumbMediaFile.path).readAsBytes();
             final result = await detector.classifyBytes(bytes);
+            Logger.log('NSFW video thumbnail validation rate: ${result.nsfw}');
             if (result.decision != NsfwDecision.allow) {
               return true;
             }
-          } catch (_) {}
+          } catch (e, st) {
+            Logger.error(e, message: 'NSFW video thumbnail validation failed', stackTrace: st);
+          }
         }
       }
       return false;

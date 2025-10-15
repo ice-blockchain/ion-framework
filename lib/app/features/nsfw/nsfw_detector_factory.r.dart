@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/feed/providers/feed_config_provider.r.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -11,9 +12,19 @@ abstract class NsfwDetectorFactory {
 }
 
 class DefaultNsfwDetectorFactory implements NsfwDetectorFactory {
+  DefaultNsfwDetectorFactory({
+    required this.blockThreshold,
+  });
+
+  final double blockThreshold;
+
   @override
-  Future<NsfwDetector> create() => NsfwDetector.create();
+  Future<NsfwDetector> create() => NsfwDetector.create(blockThreshold: blockThreshold);
 }
 
 @riverpod
-NsfwDetectorFactory nsfwDetectorFactory(Ref ref) => DefaultNsfwDetectorFactory();
+Future<NsfwDetectorFactory> nsfwDetectorFactory(Ref ref) async {
+  final feedConfig = await ref.watch(feedConfigProvider.future);
+
+  return DefaultNsfwDetectorFactory(blockThreshold: feedConfig.nsfwBlockThreshold);
+}

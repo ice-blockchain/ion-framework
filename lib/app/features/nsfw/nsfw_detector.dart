@@ -8,7 +8,7 @@ import 'package:ion/app/services/logger/logger.dart';
 import 'package:meta/meta.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
-enum NsfwDecision { allow, warn, block }
+enum NsfwDecision { allow, block }
 
 @immutable
 class NsfwResult {
@@ -24,13 +24,19 @@ class NsfwResult {
 }
 
 class NsfwDetector {
-  NsfwDetector._(this._interpreter);
+  NsfwDetector._(
+    this._interpreter, {
+    double blockThreshold = 0.60,
+  }) : _blockThreshold = blockThreshold;
 
   final Interpreter _interpreter;
+  final double _blockThreshold;
 
   static const _size = 224;
 
-  static Future<NsfwDetector> create() async {
+  static Future<NsfwDetector> create({
+    double blockThreshold = 0.50,
+  }) async {
     final options = InterpreterOptions()
       ..threads = Platform.numberOfProcessors
       ..useNnApiForAndroid = false;
@@ -44,7 +50,7 @@ class NsfwDetector {
       // Safe fallback: continue without the delegate
     }
     final interpreter = await Interpreter.fromAsset('assets/ml/nsfw_int8.tflite', options: options);
-    return NsfwDetector._(interpreter);
+    return NsfwDetector._(interpreter, blockThreshold: blockThreshold);
   }
 
   void dispose() => _interpreter.close();
@@ -67,8 +73,7 @@ class NsfwDetector {
 
   /// Threshold strategy for turning a probability into a decision.
   NsfwDecision _decide(double nsfw) {
-    if (nsfw >= 0.60) return NsfwDecision.block;
-    if (nsfw >= 0.30) return NsfwDecision.warn;
+    if (nsfw >= _blockThreshold) return NsfwDecision.block;
     return NsfwDecision.allow;
   }
 
