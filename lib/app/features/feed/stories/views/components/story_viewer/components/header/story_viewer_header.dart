@@ -24,7 +24,7 @@ class StoryViewerHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadataEntity = ref.watch(userMetadataProvider(currentPost.masterPubkey));
+    final userPreviewData = ref.watch(userPreviewDataProvider(currentPost.masterPubkey));
 
     final appColors = context.theme.appColors;
     final textThemes = context.theme.appTextThemes;
@@ -42,9 +42,9 @@ class StoryViewerHeader extends ConsumerWidget {
       ),
     ];
 
-    return userMetadataEntity.maybeWhen(
-      data: (userMetadata) {
-        if (userMetadata == null) return const SizedBox.shrink();
+    return userPreviewData.maybeWhen(
+      data: (userPreview) {
+        if (userPreview == null) return const SizedBox.shrink();
 
         return PositionedDirectional(
           top: 14.0.s,
@@ -54,7 +54,7 @@ class StoryViewerHeader extends ConsumerWidget {
             child: GestureDetector(
               onTap: () => ProfileRoute(pubkey: currentPost.masterPubkey).push<void>(context),
               child: BadgesUserListItem(
-                masterPubkey: userMetadata.masterPubkey,
+                masterPubkey: userPreview.masterPubkey,
                 leading: DecoratedBox(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10.s),
@@ -72,7 +72,7 @@ class StoryViewerHeader extends ConsumerWidget {
                   ),
                 ),
                 title: Text(
-                  userMetadata.data.trimmedDisplayName,
+                  userPreview.data.trimmedDisplayName,
                   style: textThemes.subtitle3.copyWith(
                     color: onPrimaryAccent,
                     shadows: shadow,
@@ -83,7 +83,7 @@ class StoryViewerHeader extends ConsumerWidget {
                   children: [
                     Text(
                       prefixUsername(
-                        username: userMetadata.data.name,
+                        username: userPreview.data.name,
                         context: context,
                       ),
                       style: textThemes.caption.copyWith(

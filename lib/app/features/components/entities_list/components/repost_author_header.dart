@@ -17,7 +17,7 @@ class RepostAuthorHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final name = ref.watch(isCurrentUserSelectorProvider(pubkey))
         ? context.i18n.common_you
-        : ref.watch(userMetadataProvider(pubkey)).valueOrNull?.data.trimmedDisplayName;
+        : ref.watch(userPreviewDataProvider(pubkey)).valueOrNull?.data.trimmedDisplayName;
 
     if (name == null) {
       return const SizedBox.shrink();

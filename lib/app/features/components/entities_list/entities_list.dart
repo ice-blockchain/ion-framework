@@ -105,7 +105,7 @@ class _EntityListItem extends ConsumerWidget {
         ListEntityHelper.isUserMuted(ref, entity.masterPubkey, showMuted: showMuted) ||
         ListEntityHelper.isUserBlockedOrBlocking(context, ref, entity) ||
         ListEntityHelper.isEntityOrRepostedEntityDeleted(context, ref, entity) ||
-        !ListEntityHelper.hasMetadata(context, ref, entity)) {
+        !ListEntityHelper.hasUserPreviewData(context, ref, entity)) {
       return const SizedBox.shrink();
     }
 

@@ -23,11 +23,11 @@ class ProfileAvatar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadataValue = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+    final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
 
     return showAvatarPicker
         ? AvatarPicker(
-            avatarUrl: userMetadataValue?.data.avatarUrl,
+            avatarUrl: userPreviewData?.data.avatarUrl,
             avatarSize: pictureSize,
             borderRadius: borderRadius,
             iconSize: 20.0.s,
@@ -38,7 +38,7 @@ class ProfileAvatar extends ConsumerWidget {
             size: pictureSize,
             borderRadius: borderRadius,
             fit: BoxFit.cover,
-            imageUrl: userMetadataValue?.data.avatarUrl,
+            imageUrl: userPreviewData?.data.avatarUrl,
           );
   }
 }

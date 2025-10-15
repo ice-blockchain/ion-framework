@@ -48,7 +48,8 @@ class UserInfoMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
+    final userMetadata =
+        ref.watch(userPreviewDataProvider(eventReference.masterPubkey)).valueOrNull;
     final isArticle = eventReference is ReplaceableEventReference &&
         (eventReference as ReplaceableEventReference).kind == ArticleEntity.kind;
 

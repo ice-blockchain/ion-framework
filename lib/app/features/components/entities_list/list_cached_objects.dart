@@ -7,6 +7,7 @@ import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';
 import 'package:ion/app/services/logger/logger.dart';
 
@@ -48,6 +49,7 @@ class ListCachedObjects extends InheritedWidget {
       final EventMessage event => event.sharedId ?? event.id,
       final MessageMediaTableData media => media.messageEventReference,
       final UserMetadataEntity user => user.masterPubkey,
+      final UserPreviewEntity userPreviewEntity => userPreviewEntity.masterPubkey,
       final IonConnectEntity entity => entity.toEventReference(),
       final BlockedUser blocked => blocked.masterPubkey,
       _ => throw ArgumentError('Unknown type for identifierSelector: ${object.runtimeType}'),

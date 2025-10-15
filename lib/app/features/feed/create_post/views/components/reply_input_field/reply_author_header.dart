@@ -19,9 +19,11 @@ class ReplyAuthorHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserMetadata = ref.watch(currentUserMetadataProvider).valueOrNull;
-    final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+    final name = ref.watch(
+      userPreviewDataProvider(pubkey).select((value) => value.valueOrNull?.data.name),
+    );
 
-    if (currentUserMetadata == null || userMetadata == null) {
+    if (currentUserMetadata == null || name == null) {
       return const SizedBox.shrink();
     }
 
@@ -34,7 +36,7 @@ class ReplyAuthorHeader extends ConsumerWidget {
           masterPubkey: currentUserMetadata.masterPubkey,
         ),
         SizedBox(height: 6.0.s),
-        ReplyingTo(name: userMetadata.data.name),
+        ReplyingTo(name: name),
       ],
     );
   }

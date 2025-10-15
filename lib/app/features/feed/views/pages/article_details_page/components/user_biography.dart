@@ -32,6 +32,7 @@ class UserBiography extends ConsumerWidget {
         children: [
           UserInfo(
             pubkey: eventReference.masterPubkey,
+            network: true,
           ),
           SizedBox(height: 12.0.s),
           UserAbout(
