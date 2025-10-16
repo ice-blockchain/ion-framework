@@ -11,6 +11,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
@@ -50,21 +51,27 @@ Future<BadgeAwardEntity?> networkBadgeAward(
     return null;
   }
 
-  // Try to fetch the award from the network for each service pubkey, stop on first success.
-  for (final servicePubkey in servicePubkeys) {
-    final fetched = await ref.watch(
-      ionConnectNetworkEntityProvider(
-        eventReference: ImmutableEventReference(
-          masterPubkey: servicePubkey,
-          eventId: eventId,
-        ),
-        actionSource: ActionSourceUser(pubkey),
-      ).future,
-    ) as BadgeAwardEntity?;
+  final requestMessage = RequestMessage()
+    ..addFilter(
+      RequestFilter(
+        ids: [eventId],
+        limit: 1,
+      ),
+    );
 
-    if (fetched != null) {
-      return fetched;
-    }
+  final entity =
+      await ref.read(ionConnectNotifierProvider.notifier).requestEntity<BadgeAwardEntity>(
+            requestMessage,
+            actionSource: ActionSourceUser(pubkey),
+          );
+  if (entity == null) {
+    return null;
+  }
+
+  final refFromEntity = entity.toEventReference();
+  final master = refFromEntity.masterPubkey;
+  if (servicePubkeys.contains(master)) {
+    return entity;
   }
 
   return null;
