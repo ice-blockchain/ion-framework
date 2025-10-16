@@ -136,11 +136,11 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
 
   Stream<List<ConversationListItem>> watch() {
     final query = select(conversationTable).join([
-      leftOuterJoin(
+      innerJoin(
         conversationMessageTable,
         conversationMessageTable.conversationId.equalsExp(conversationTable.id),
       ),
-      leftOuterJoin(
+      innerJoin(
         eventMessageTable,
         eventMessageTable.eventReference.equalsExp(conversationMessageTable.messageEventReference),
       ),

@@ -31,16 +31,20 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
   EncryptedMessageEventHandler({
     required this.handlers,
     required this.masterPubkey,
+    required this.conversationDao,
     required this.giftUnwrapService,
     required this.processedGiftWrapDao,
+    required this.conversationMessageDao,
     required this.conversationMessageDataDao,
     required this.sendE2eeMessageStatusService,
   });
 
   final List<GlobalSubscriptionEncryptedEventMessageHandler?> handlers;
   final String masterPubkey;
+  final ConversationDao conversationDao;
   final GiftUnwrapService giftUnwrapService;
   final ProcessedGiftWrapDao processedGiftWrapDao;
+  final ConversationMessageDao conversationMessageDao;
   final ConversationMessageDataDao conversationMessageDataDao;
   final SendE2eeMessageStatusService sendE2eeMessageStatusService;
 
@@ -51,40 +55,59 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
 
   @override
   Future<void> handle(EventMessage eventMessage) async {
+    final wrapEntity = IonConnectGiftWrapEntity.fromEventMessage(eventMessage);
+
+    // Unwrap the gift only if it contains a direct message kind
+    final containsDirectMessageKind = wrapEntity.data.kinds
+        .any((kinds) => kinds.contains(ReplaceablePrivateDirectMessageEntity.kind.toString()));
+
+    EventMessage? rumor;
+    
+    if (containsDirectMessageKind) {
+      rumor = await giftUnwrapService.unwrap(eventMessage);
+      await _checkReceivedStatusForDirectMessage(rumor);
+    }
+
+    // Check if the gift wrap has already been processed
     final isAlreadyProcessed =
         await processedGiftWrapDao.isGiftWrapAlreadyProcessed(giftWrapId: eventMessage.id);
-
-    final entity = IonConnectGiftWrapEntity.fromEventMessage(eventMessage);
-    final rumor = await giftUnwrapService.unwrap(eventMessage);
-    // We have to check if received status was sent previously because it could fail
-    // to be sent previous time, if we received it for current user most likely
-    // it was sent to everyone
-    unawaited(_checkReceivedStatus(rumor));
 
     if (isAlreadyProcessed) {
       return;
     }
 
+    // Unwrap the gift if not already done
+    rumor ??= await giftUnwrapService.unwrap(eventMessage);
+
+    // Process with all handlers that can handle this entity
     final futures = handlers.nonNulls
-        .where((handler) => handler.canHandle(entity: entity))
+        .where((handler) => handler.canHandle(entity: wrapEntity))
         .map((handler) async {
-      final eventReference = await handler.handle(rumor);
-      // Always re-process DeletionRequests
+      final eventReference = await handler.handle(rumor!);
+      // Always re-process Deletion Requests, otherwise mark as processed
       if (eventReference != null && rumor.kind != DeletionRequestEntity.kind) {
-        unawaited(
-          processedGiftWrapDao.add(eventReference: eventReference, giftWrapId: eventMessage.id),
+        await processedGiftWrapDao.add(
+          eventReference: eventReference,
+          giftWrapId: eventMessage.id,
         );
       }
     });
 
-    unawaited(Future.wait(futures));
+    await Future.wait(futures);
   }
 
-  Future<void> _checkReceivedStatus(EventMessage rumor) async {
-    if (rumor.kind != ReplaceablePrivateDirectMessageEntity.kind) return;
+  Future<void> _checkReceivedStatusForDirectMessage(EventMessage rumor) async {
+    final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
+    final eventReference = entity.toEventReference();
 
-    final eventReference =
-        ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor).toEventReference();
+    // Make sure conversation and message are not deleted before sending "received" status
+    if (!await conversationDao.conversationIsNotDeleted(
+          entity.data.conversationId,
+          entity.createdAt,
+        ) ||
+        !await conversationMessageDao.messageIsNotDeleted(eventReference)) {
+      return;
+    }
 
     final currentStatus = await conversationMessageDataDao.checkMessageStatus(
       masterPubkey: masterPubkey,
@@ -94,9 +117,11 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
     if (currentStatus == null || currentStatus.index < MessageDeliveryStatus.received.index) {
       // Notify rest of the participants that the message was received
       // by the current user
-      await sendE2eeMessageStatusService.sendMessageStatus(
-        messageEventMessage: rumor,
-        status: MessageDeliveryStatus.received,
+      unawaited(
+        sendE2eeMessageStatusService.sendMessageStatus(
+          messageEventMessage: rumor,
+          status: MessageDeliveryStatus.received,
+        ),
       );
     }
 
@@ -136,7 +161,9 @@ Future<EncryptedMessageEventHandler> encryptedMessageEventHandler(Ref ref) async
   return EncryptedMessageEventHandler(
     handlers: handlers,
     masterPubkey: masterPubkey,
+    conversationDao: ref.watch(conversationDaoProvider),
     processedGiftWrapDao: ref.watch(processedGiftWrapDaoProvider),
+    conversationMessageDao: ref.watch(conversationMessageDaoProvider),
     giftUnwrapService: await ref.watch(giftUnwrapServiceProvider.future),
     conversationMessageDataDao: ref.watch(conversationMessageDataDaoProvider),
     sendE2eeMessageStatusService: await ref.watch(sendE2eeMessageStatusServiceProvider.future),
