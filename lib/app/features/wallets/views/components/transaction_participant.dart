@@ -24,17 +24,17 @@ class TransactionParticipant extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = context.i18n;
-    final userMetadata =
-        pubkey != null ? ref.watch(userMetadataProvider(pubkey!)).valueOrNull : null;
+    final userPreviewData =
+        pubkey != null ? ref.watch(userPreviewDataProvider(pubkey!)).valueOrNull : null;
 
-    if (userMetadata != null) {
+    if (userPreviewData != null) {
       return RoundedCard.filled(
         child: Column(
           children: [
             BadgesUserListItem(
-              title: Text(userMetadata.data.trimmedDisplayName),
-              subtitle: Text(userMetadata.data.name),
-              masterPubkey: userMetadata.masterPubkey,
+              title: Text(userPreviewData.data.trimmedDisplayName),
+              subtitle: Text(userPreviewData.data.name),
+              masterPubkey: userPreviewData.masterPubkey,
             ),
             if (address != null) ...[
               SizedBox(height: 12.0.s),

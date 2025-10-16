@@ -29,10 +29,10 @@ class AccountsTile extends ConsumerWidget {
       return Skeleton(child: ListItem());
     }
 
-    final userMetadataValue = ref.watch(userMetadataProvider(eventSigner.publicKey)).valueOrNull;
+    final userPreviewData = ref.watch(userPreviewDataProvider(eventSigner.publicKey)).valueOrNull;
     final isCurrentUser = identityKeyName == currentIdentityKeyName;
 
-    if (userMetadataValue == null) {
+    if (userPreviewData == null) {
       return Skeleton(child: ListItem());
     }
 
@@ -43,9 +43,9 @@ class AccountsTile extends ConsumerWidget {
           ref.read(authProvider.notifier).setCurrentUser(identityKeyName);
         }
       },
-      title: Text(userMetadataValue.data.trimmedDisplayName),
-      subtitle: Text(prefixUsername(username: userMetadataValue.data.name, context: context)),
-      masterPubkey: userMetadataValue.masterPubkey,
+      title: Text(userPreviewData.data.trimmedDisplayName),
+      subtitle: Text(prefixUsername(username: userPreviewData.data.name, context: context)),
+      masterPubkey: userPreviewData.masterPubkey,
       trailing: isCurrentUser == true
           ? Assets.svg.iconBlockCheckboxOnblue.icon(color: context.theme.appColors.onPrimaryAccent)
           : null,

@@ -22,17 +22,17 @@ class UserPaymentFlowCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadataResult = ref.watch(userMetadataProvider(pubkey));
+    final userPreviewResult = ref.watch(userPreviewDataProvider(pubkey));
 
-    return userMetadataResult.maybeWhen(
-      data: (userMetadata) {
-        if (userMetadata == null) {
+    return userPreviewResult.maybeWhen(
+      data: (userPreviewData) {
+        if (userPreviewData == null) {
           return const SizedBox.shrink();
         }
         return BadgesUserListItem(
           onTap: onTap,
-          title: Text(userMetadata.data.trimmedDisplayName),
-          subtitle: Text(prefixUsername(username: userMetadata.data.name, context: context)),
+          title: Text(userPreviewData.data.trimmedDisplayName),
+          subtitle: Text(prefixUsername(username: userPreviewData.data.name, context: context)),
           masterPubkey: pubkey,
           contentPadding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 8.0.s),
           border: Border.all(

@@ -21,19 +21,19 @@ class BlockedUserListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadataResult = ref.watch(userMetadataProvider(pubkey));
+    final userPreviewResult = ref.watch(userPreviewDataProvider(pubkey));
 
-    return userMetadataResult.maybeWhen(
-      data: (userMetadata) {
-        if (userMetadata == null) {
+    return userPreviewResult.maybeWhen(
+      data: (userPreviewData) {
+        if (userPreviewData == null) {
           return const SizedBox.shrink();
         }
         return BadgesUserListItem(
-          title: Text(userMetadata.data.trimmedDisplayName),
+          title: Text(userPreviewData.data.trimmedDisplayName),
           trailing: BlockUserButton(masterPubkey: pubkey),
           subtitle: Text(
             prefixUsername(
-              username: userMetadata.data.name,
+              username: userPreviewData.data.name,
               context: context,
             ),
           ),

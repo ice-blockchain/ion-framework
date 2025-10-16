@@ -19,9 +19,9 @@ class ContactPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+    final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
 
-    if (userMetadata == null) {
+    if (userPreviewData == null) {
       return const SizedBox.shrink();
     }
 
@@ -33,7 +33,7 @@ class ContactPage extends ConsumerWidget {
             children: [
               Padding(
                 padding: EdgeInsetsDirectional.only(top: 20.0.s),
-                child: ContactItem(userMetadata: userMetadata),
+                child: ContactItem(userPreviewData: userPreviewData),
               ),
             ],
           ),

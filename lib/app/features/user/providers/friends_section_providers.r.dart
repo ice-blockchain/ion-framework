@@ -53,7 +53,7 @@ bool isAnyFriendMetadataLoaded(Ref ref) {
   if (pubkeys.isEmpty) return false;
 
   for (final pk in pubkeys.take(4)) {
-    final metadata = ref.watch(userMetadataProvider(pk));
+    final metadata = ref.watch(userPreviewDataProvider(pk));
     if (metadata.hasValue) {
       return true;
     }

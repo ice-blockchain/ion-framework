@@ -33,9 +33,9 @@ class FriendsListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadataState = ref.watch(userMetadataProvider(pubkey));
+    final userPreviewState = ref.watch(userPreviewDataProvider(pubkey));
 
-    return userMetadataState.maybeWhen(
+    return userPreviewState.maybeWhen(
       orElse: () {
         final size = 54.0.s;
         return ContainerSkeleton(
@@ -47,8 +47,8 @@ class FriendsListItem extends ConsumerWidget {
           ),
         );
       },
-      data: (userMetadata) {
-        if (userMetadata == null) {
+      data: (userPreviewData) {
+        if (userPreviewData == null) {
           return const SizedBox.shrink();
         }
 
@@ -68,7 +68,7 @@ class FriendsListItem extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(14.0.s),
                   ),
                   Text(
-                    prefixUsername(username: userMetadata.data.name, context: context),
+                    prefixUsername(username: userPreviewData.data.name, context: context),
                     style: context.theme.appTextThemes.caption.copyWith(
                       color: context.theme.appColors.secondaryText,
                     ),

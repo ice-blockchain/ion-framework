@@ -8,7 +8,6 @@ import 'package:ion/app/components/skeleton/container_skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/messages_context_menu/one_to_one_messages_context_menu.dart';
-import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
@@ -35,15 +34,15 @@ class OneToOneMessagingHeader extends ConsumerWidget {
     final isVerified = ref.watch(isUserVerifiedProvider(receiverMasterPubkey));
     final isNicknameProven = ref.watch(isNicknameProvenProvider(receiverMasterPubkey));
 
-    final userMetadata = ref.watch(userMetadataProvider(receiverMasterPubkey));
+    final userPreviewData = ref.watch(userPreviewDataProvider(receiverMasterPubkey));
     // Show skeleton while loading user data (unless deleted)
-    if (userMetadata.isLoading) {
+    if (userPreviewData.isLoading) {
       return const _HeaderSkeleton();
     }
 
-    final metadata = userMetadata.valueOrNull;
+    final metadata = userPreviewData.valueOrNull;
 
-    final receiverPicture = !metadata.isDeleted && !isBlockedBy && metadata!.data.avatarUrl != null
+    final receiverPicture = metadata == null && !isBlockedBy && metadata!.data.avatarUrl != null
         ? metadata.data.avatarUrl
         : Assets.svg.iconProfileNoimage;
     final receiverName = metadata?.data.name;
@@ -94,7 +93,7 @@ class OneToOneMessagingHeader extends ConsumerWidget {
                           children: [
                             Flexible(
                               child: Text(
-                                metadata.isDeleted
+                                metadata == null
                                     ? context.i18n.common_deleted_account
                                     : receiverDisplayName ?? '',
                                 maxLines: 1,
