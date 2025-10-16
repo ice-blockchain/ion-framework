@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:ion/app/features/core/model/paged.f.dart';
+import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/followers_data_source_provider.r.dart';
@@ -40,15 +41,25 @@ class Followers extends _$Followers {
     // Capture the instance to preserve provider identity across loadMore().
     _dataSourcesKey = ref.watch(followersDataSourceProvider(pubkey));
     final entitiesPagedData = ref.watch(
-      entitiesPagedDataProvider(
-        _dataSourcesKey,
-        awaitMissingEvents: true, //TODO: don't
-      ),
+      entitiesPagedDataProvider(_dataSourcesKey),
     );
+
+    // Collecting master pubkeys of returned metadatas and master pubkeys of
+    // event metadatas that are stored on another relays to show the items right away
+    // the light metadata becomes available.
     final masterPubkeys = entitiesPagedData?.data.items
-        ?.whereType<UserMetadataEntity>() //TODO: also 21750
-        .map((e) => e.masterPubkey)
+        ?.map((item) {
+          return switch (item) {
+            final UserMetadataEntity userMetadata => userMetadata.masterPubkey,
+            final EventsMetadataEntity eventMetadata
+                when eventMetadata.data.metadataEventReference?.kind == UserMetadataEntity.kind =>
+              eventMetadata.data.metadataEventReference?.masterPubkey,
+            _ => null
+          };
+        })
+        .nonNulls
         .toList();
+
     final response = (
       hasMore: entitiesPagedData?.hasMore ?? false,
       masterPubkeys: masterPubkeys,
