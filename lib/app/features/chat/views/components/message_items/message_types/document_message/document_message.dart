@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -10,7 +8,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/chat_medias_provider.r.dart';
-import 'package:ion/app/features/chat/e2ee/providers/chat_message_load_media_provider.r.dart';
+import 'package:ion/app/features/chat/e2ee/providers/chat_message_media_path_provider.r.dart';
 import 'package:ion/app/features/chat/hooks/use_has_reaction.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
@@ -19,6 +17,7 @@ import 'package:ion/app/features/chat/views/components/message_items/message_ite
 import 'package:ion/app/features/chat/views/components/message_items/message_metadata/message_metadata.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/reply_message/reply_message.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/services/share/share.dart';
 import 'package:ion/app/utils/filesize.dart';
@@ -38,11 +37,11 @@ class DocumentMessage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useAutomaticKeepAlive();
-    final fileSizeInFormat = useState<String?>(null);
-    final localFile = useState<File?>(null);
+    final isMe = useMemoized(
+      () => ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey)),
+      [eventMessage.masterPubkey],
+    );
 
-    final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
     final entity = useMemoized(
       () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
       [eventMessage],
@@ -50,45 +49,76 @@ class DocumentMessage extends HookConsumerWidget {
 
     final eventReference = entity.toEventReference();
 
-    final messageMedia =
-        ref.watch(chatMediasProvider(eventReference: eventReference)).valueOrNull?.firstOrNull;
+    final messageMedia = ref.watch(
+          chatMediasProvider(eventReference: eventReference).select((value) {
+            final media = value.valueOrNull;
+
+            if (media != null && media.isNotEmpty) {
+              ListCachedObjects.updateObject<MessageMediaTableData>(
+                context,
+                media.first,
+              );
+
+              return media.first;
+            }
+            return null;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<MessageMediaTableData>(context, eventReference);
 
     final mediaAttachment = entity.data.primaryMedia;
 
-    useEffect(
-      () {
-        ref
-            .read(
-          chatMessageLoadMediaProvider(
-            entity: entity,
-            mediaAttachment: mediaAttachment,
-            cacheKey: messageMedia?.cacheKey,
-            loadThumbnail: false,
-          ),
-        )
-            .then((value) {
-          if (context.mounted) {
-            localFile.value = value;
-            fileSizeInFormat.value = formattedFileSize(localFile.value?.path ?? '');
-          }
-        });
-        return null;
-      },
-      [messageMedia?.cacheKey, mediaAttachment?.url],
-    );
+    final localMediaPath = ref
+            .watch(
+              chatMessageMediaPathProvider(
+                entity: entity,
+                loadThumbnail: false,
+                cacheKey: messageMedia?.cacheKey,
+                mediaAttachment: mediaAttachment,
+              ).select((value) {
+                final documentPath = value.valueOrNull;
+                if (documentPath != null) {
+                  ListCachedObjects.updateObject<PathWithKey>(
+                    context,
+                    (key: eventReference.toString(), filePath: documentPath),
+                  );
+                }
+                return value;
+              }),
+            )
+            .valueOrNull ??
+        ListCachedObjects.maybeObjectOf<PathWithKey>(context, eventReference.toString())?.filePath;
+
+    final fileSizeInFormat = localMediaPath != null ? formattedFileSize(localMediaPath) : '';
 
     final hasReactions = useHasReaction(eventReference, ref);
 
-    final messageItem = DocumentItem(
-      eventMessage: eventMessage,
-      contentDescription: mediaAttachment?.alt ?? '',
+    final messageItem = useMemoized(
+      () => DocumentItem(
+        eventMessage: eventMessage,
+        contentDescription: mediaAttachment?.alt ?? '',
+      ),
+      [eventMessage, mediaAttachment?.alt],
     );
 
-    final repliedEventMessage = ref.watch(repliedMessageListItemProvider(messageItem));
+    final repliedEventMessage = ref.watch(
+          repliedMessageListItemProvider(messageItem).select((value) {
+            final repliedEvent = value.valueOrNull;
+
+            if (repliedEvent != null) {
+              ListCachedObjects.updateObject<EventMessage>(context, repliedEvent);
+            }
+            return repliedEvent;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<EventMessage>(
+          context,
+          entity.data.parentEvent?.eventReference.dTag,
+        );
 
     final repliedMessageItem = getRepliedMessageListItem(
       ref: ref,
-      repliedEventMessage: repliedEventMessage.valueOrNull,
+      repliedEventMessage: repliedEventMessage,
     );
 
     if (messageMedia == null) {
@@ -109,11 +139,10 @@ class DocumentMessage extends HookConsumerWidget {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              final filePath = localFile.value?.path;
               final fileName = mediaAttachment?.alt ?? '';
 
-              if (filePath != null) {
-                shareFile(filePath, name: fileName);
+              if (localMediaPath != null) {
+                shareFile(localMediaPath, name: fileName);
               }
             },
             child: Row(
@@ -148,7 +177,7 @@ class DocumentMessage extends HookConsumerWidget {
                                   maxLines: 1,
                                 ),
                                 Text(
-                                  fileSizeInFormat.value ?? '',
+                                  fileSizeInFormat ?? '',
                                   style: context.theme.appTextThemes.caption2.copyWith(
                                     color: isMe
                                         ? context.theme.appColors.onPrimaryAccent
