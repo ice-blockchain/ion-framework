@@ -48,6 +48,9 @@ class ContactPage extends ConsumerWidget {
                 SelectCoinWalletRoute().push<void>(context);
               },
               onNeedToEnable2FA: () => Navigator.of(context).pop(true),
+              onBuy: () {},
+              onSwap: () {},
+              onMore: () {},
             ),
           ),
           ScreenBottomOffset(margin: 32.0.s),

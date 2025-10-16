@@ -23,7 +23,7 @@ class Balance extends ConsumerWidget {
 
   final WalletTabType tab;
 
-  static double get height => 140.0.s;
+  static double get height => 146.0.s;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,7 +40,6 @@ class Balance extends ConsumerWidget {
 
     return ScreenSideOffset.small(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: EdgeInsetsDirectional.only(
@@ -63,8 +62,7 @@ class Balance extends ConsumerWidget {
             ),
           Padding(
             padding: EdgeInsetsDirectional.only(
-              top: 12.0.s,
-              bottom: 16.0.s,
+              top: 6.0.s,
             ),
             child: BalanceActions(
               isLoading: shouldShowLoader,
@@ -80,6 +78,15 @@ class Balance extends ConsumerWidget {
                 ref.invalidate(sendAssetFormControllerProvider);
                 SelectCoinWalletRoute().push<void>(context);
               },
+              onBuy: () {
+                // TODO: Implement buy functionality
+                debugPrint('Buy button pressed');
+              },
+              onSwap: () {
+                // TODO: Implement swap functionality
+                debugPrint('Swap button pressed');
+              },
+              onMore: () => WalletMainModalRoute().push<void>(context),
               onNeedToEnable2FA: () => SecureAccountModalRoute().push<void>(context),
             ),
           ),
