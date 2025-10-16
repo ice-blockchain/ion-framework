@@ -22,7 +22,7 @@ class FollowListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+    final userMetadata = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0.s),

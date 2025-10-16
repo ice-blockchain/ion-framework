@@ -26,9 +26,9 @@ class ChatSearchResultListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = item.userMetadata;
+    final userPreviewData = item.userPreviewData;
     final canSendMessage =
-        ref.watch(canSendMessageProvider(userMetadata.masterPubkey)).valueOrNull ?? false;
+        ref.watch(canSendMessageProvider(userPreviewData.masterPubkey)).valueOrNull ?? false;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -36,9 +36,9 @@ class ChatSearchResultListItem extends HookConsumerWidget {
           ? () {
               ref
                   .read(chatSearchHistoryProvider.notifier)
-                  .addUserIdToTheHistory(userMetadata.masterPubkey);
+                  .addUserIdToTheHistory(userPreviewData.masterPubkey);
               context.pushReplacement(
-                ConversationRoute(receiverMasterPubkey: item.userMetadata.masterPubkey).location,
+                ConversationRoute(receiverMasterPubkey: item.userPreviewData.masterPubkey).location,
               );
             }
           : null,
@@ -49,11 +49,11 @@ class ChatSearchResultListItem extends HookConsumerWidget {
             vertical: 8.0.s,
             horizontal: ScreenSideOffset.defaultSmallMargin,
           ),
-          masterPubkey: userMetadata.masterPubkey,
+          masterPubkey: userPreviewData.masterPubkey,
           title: Padding(
             padding: EdgeInsetsDirectional.only(bottom: 2.38.s),
             child: Text(
-              userMetadata.data.trimmedDisplayName,
+              userPreviewData.data.trimmedDisplayName,
               style: context.theme.appTextThemes.subtitle3.copyWith(
                 color: context.theme.appColors.primaryText,
               ),
@@ -70,7 +70,7 @@ class ChatSearchResultListItem extends HookConsumerWidget {
                   ),
                 )
               : Text(
-                  prefixUsername(username: userMetadata.data.name, context: context),
+                  prefixUsername(username: userPreviewData.data.name, context: context),
                   style: context.theme.appTextThemes.body2.copyWith(
                     color: context.theme.appColors.onTertiaryBackground,
                   ),

@@ -280,7 +280,7 @@ bool isUserVerified(
 @riverpod
 bool isNicknameProven(Ref ref, String pubkey) {
   var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(pubkey))?.data;
-  final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+  final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
 
   if (profileBadgesData == null) {
     final res = ref.watch(profileBadgesDataProvider(pubkey));
@@ -291,7 +291,7 @@ bool isNicknameProven(Ref ref, String pubkey) {
   }
 
   final pubkeys = ref.watch(servicePubkeysProvider).valueOrNull ?? [];
-  if (profileBadgesData == null || userMetadata == null) {
+  if (profileBadgesData == null || userPreviewData == null) {
     return true;
   }
 
@@ -299,7 +299,7 @@ bool isNicknameProven(Ref ref, String pubkey) {
   final candidate = profileBadgesData.entries.firstWhereOrNull((entry) {
     final isBadgeDefinitionValid =
         ref.watch(isValidNicknameProofBadgeDefinitionProvider(entry.definitionRef, pubkeys));
-    final matchesName = entry.definitionRef.dTag.endsWith('~${userMetadata.data.name}');
+    final matchesName = entry.definitionRef.dTag.endsWith('~${userPreviewData.data.name}');
 
     return isBadgeDefinitionValid && matchesName;
   });

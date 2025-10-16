@@ -16,7 +16,7 @@ import 'package:ion/app/features/chat/views/components/message_items/message_rea
 import 'package:ion/app/features/chat/views/components/message_items/message_types/reply_message/reply_message.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
@@ -43,7 +43,7 @@ class ProfileShareMessage extends HookConsumerWidget {
 
     final profilePubkey = EventReference.fromEncoded(entity.data.content).masterPubkey;
 
-    final userMetadata = ref.watch(userMetadataProvider(profilePubkey)).valueOrNull;
+    final userMetadata = ref.watch(userPreviewDataProvider(profilePubkey)).valueOrNull;
 
     final messageItem = ShareProfileItem(
       eventMessage: eventMessage,
@@ -133,7 +133,7 @@ class _ProfileSummary extends StatelessWidget {
   });
 
   final bool isMe;
-  final UserMetadataEntity userMetadata;
+  final UserPreviewEntity userMetadata;
 
   @override
   Widget build(BuildContext context) {

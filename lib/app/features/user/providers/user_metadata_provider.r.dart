@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -148,6 +149,7 @@ Future<UserMetadataLiteEntity?> userMetadataLite(
   String masterPubkey, {
   bool cache = true,
   bool network = true,
+  Duration? expirationDuration,
 }) async {
   final userMetadataLite = await ref.watch(
     ionConnectEntityProvider(
@@ -156,6 +158,7 @@ Future<UserMetadataLiteEntity?> userMetadataLite(
         masterPubkey: masterPubkey,
         kind: UserMetadataLiteEntity.kind,
       ),
+      expirationDuration: expirationDuration,
     ).future,
   ) as UserMetadataLiteEntity?;
   return userMetadataLite;
@@ -167,15 +170,41 @@ Future<UserPreviewEntity?> userPreviewData(
   String masterPubkey, {
   bool cache = true,
   bool network = true,
+  Duration? expirationDuration,
 }) async {
-  final userMetadata =
-      await ref.watch(userMetadataProvider(masterPubkey, cache: cache, network: network).future);
+  await Future<void>.delayed(Duration(milliseconds: Random().nextInt(3000)));
+
+  // return UserMetadataLiteEntity(
+  //   masterPubkey: masterPubkey,
+  //   data: UserMetadataLite(
+  //     name: 'user_${masterPubkey.substring(0, 6)}',
+  //     displayName: 'User ${masterPubkey.substring(0, 6)}',
+  //     picture: 'https://picsum.photos/200',
+  //   ),
+  // );
+
+  //TODO:watch both, return the one that is not null, prefer UserMetadataEntity
+
+  final userMetadata = await ref.watch(
+    userMetadataProvider(
+      masterPubkey,
+      cache: cache,
+      network: network,
+      expirationDuration: expirationDuration,
+    ).future,
+  );
   if (userMetadata != null) {
     return userMetadata;
   }
 
-  final userMetadataLite = await ref
-      .watch(userMetadataLiteProvider(masterPubkey, cache: cache, network: network).future);
+  final userMetadataLite = await ref.watch(
+    userMetadataLiteProvider(
+      masterPubkey,
+      cache: cache,
+      network: network,
+      expirationDuration: expirationDuration,
+    ).future,
+  );
 
   return userMetadataLite;
 }

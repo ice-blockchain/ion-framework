@@ -175,7 +175,7 @@ class _MediaBottomOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(messageEntity.masterPubkey)).valueOrNull;
+    final userMetadata = ref.watch(userPreviewDataProvider(messageEntity.masterPubkey)).valueOrNull;
 
     if (userMetadata == null) {
       return const SizedBox.shrink();

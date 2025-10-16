@@ -61,7 +61,7 @@ class TabEntitiesList extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     useAutomaticKeepAlive();
 
-    final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+    final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
     final isBlockedOrBlockedBy =
         ref.watch(isBlockedOrBlockedByNotifierProvider(pubkey)).valueOrNull ?? false;
     final tabData = ref.watch(tabEntitiesDataProvider(type: type, pubkey: pubkey));
@@ -86,7 +86,7 @@ class TabEntitiesList extends HookConsumerWidget {
           EmptyState(
             type: type,
             isCurrentUserProfile: pubkey == ref.watch(currentPubkeySelectorProvider),
-            username: prefixUsername(username: userMetadata?.data.name, context: context),
+            username: prefixUsername(username: userPreviewData?.data.name, context: context),
           )
         else
           builder != null

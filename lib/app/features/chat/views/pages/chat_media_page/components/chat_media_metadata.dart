@@ -19,8 +19,11 @@ class ChatMediaMetaData extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final senderName =
-        ref.watch(userMetadataProvider(eventMessage.masterPubkey)).valueOrNull?.data.displayName;
+    final senderName = ref.watch(
+      userPreviewDataProvider(eventMessage.masterPubkey).select(
+        (value) => value.valueOrNull?.data.trimmedDisplayName ?? '',
+      ),
+    );
 
     final messageData =
         useMemoized(() => ReplaceablePrivateDirectMessageData.fromEventMessage(eventMessage));
@@ -29,7 +32,7 @@ class ChatMediaMetaData extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          senderName ?? '',
+          senderName,
           style: context.theme.appTextThemes.caption2.copyWith(
             color: context.theme.appColors.onPrimaryAccent,
           ),
