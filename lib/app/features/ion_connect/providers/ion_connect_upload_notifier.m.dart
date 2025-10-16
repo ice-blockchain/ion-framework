@@ -15,11 +15,10 @@ import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/file_storage_url_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
-import 'package:ion/app/features/ion_connect/providers/relays/relay_auth_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
 import 'package:ion/app/features/ion_connect/utils/file_storage_utils.dart';
 import 'package:ion/app/services/logger/logger.dart';
-import 'package:ion/app/services/logger/websocket_tracker.dart';
+import 'package:ion/app/utils/retry.dart';
 import 'package:ion/app/services/media_service/large_media_upload_service.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -72,14 +71,27 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     try {
       final uploader = isLargeFile ? _uploadLargeMultipart : _uploadSimpleMultipart;
 
-      response = await _postWithRetry(
-        uploader: uploader,
-        url: uploadUrl,
-        file: file,
-        fileBytes: fileBytes,
-        alt: alt,
-        cancelToken: cancelToken,
-        customEventSigner: customEventSigner,
+      response = await withRetry<UploadResponse>(
+        ({error}) async {
+          return uploader(
+            url: uploadUrl,
+            file: file,
+            fileBytes: fileBytes,
+            alt: alt,
+            cancelToken: cancelToken,
+            customEventSigner: customEventSigner,
+          );
+        },
+        maxRetries: 3,
+        initialDelay: Duration.zero,
+        retryWhen: _isOnBehalfAttestationError,
+        onRetry: (error) {
+          Logger.warning(
+            'err type=${error.runtimeType} code=${(error is DioException) ? (error.response?.statusCode ?? 0) : -1} msg="${(error is DioException) ? (error.response?.data is Map ? (error.toString()) : error.response?.data?.toString() ?? (error.message ?? '')) : error.toString()}"',
+          );
+          ref.read(relaysReplicaDelayProvider.notifier).setDelay();
+          Logger.info('NOSTR.HTTP retrying upload with 10100 attestation - relay-auth-err-retry');
+        },
       );
     } catch (error, stackTrace) {
       Logger.error(
@@ -108,75 +120,6 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     );
 
     return (fileMetadata: fileMetadata, mediaAttachment: mediaAttachment);
-  }
-
-  /// Generic retry wrapper that accepts any uploader function
-  /// Handles one-shot retry with delay setting for relay auth errors
-  Future<UploadResponse> _postWithRetry({
-    required Future<UploadResponse> Function({
-      required String url,
-      required MediaFile file,
-      required Uint8List fileBytes,
-      String? alt,
-      CancelToken? cancelToken,
-      EventSigner? customEventSigner,
-    }) uploader,
-    required String url,
-    required MediaFile file,
-    required Uint8List fileBytes,
-    String? alt,
-    CancelToken? cancelToken,
-    EventSigner? customEventSigner,
-  }) async {
-    try {
-      final result = await uploader(
-        url: url,
-        file: file,
-        fileBytes: fileBytes,
-        alt: alt,
-        cancelToken: cancelToken,
-        customEventSigner: customEventSigner,
-      );
-      Logger.info('NOSTR.HTTP upload successful on first try - first-try-ok');
-      return result;
-    } catch (error) {
-      if (_isOnBehalfAttestationError(error)) {
-        // Set delay and retry once, token will include 10100 attestation
-        ref.read(relaysReplicaDelayProvider.notifier).setDelay();
-        Logger.info('NOSTR.HTTP retrying upload with 10100 attestation - relay-auth-err-retry');
-        final uploadResponse = await uploader(
-          url: url,
-          file: file,
-          fileBytes: fileBytes,
-          alt: alt,
-          cancelToken: cancelToken,
-          customEventSigner: customEventSigner,
-        );
-
-        return uploadResponse;
-      } else {
-        Logger.warning(
-          'err type=${error.runtimeType} code=${(error is DioException) ? (error.response?.statusCode ?? 0) : -1} msg="${(error is DioException) ? (error.response?.data is Map ? (error.toString()) : error.response?.data?.toString() ?? (error.message ?? '')) : error.toString()}"',
-        );
-        Logger.warning(
-          'HARD CALL ON CATCH',
-        );
-        // Set delay and retry once, token will include 10100 attestation
-        ref.read(relaysReplicaDelayProvider.notifier).setDelay();
-        Logger.info('NOSTR.HTTP retrying upload with 10100 attestation - relay-auth-err-retry');
-        final uploadResponse = await uploader(
-          url: url,
-          file: file,
-          fileBytes: fileBytes,
-          alt: alt,
-          cancelToken: cancelToken,
-          customEventSigner: customEventSigner,
-        );
-        Logger.info('HARD CALL DONE retry successful');
-
-        return uploadResponse;
-      }
-    }
   }
 
   // Simple multipart uploader that generates its own token
@@ -213,7 +156,6 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     final host = uri.authority.isNotEmpty ? uri.authority : uri.host;
     final nip98Pubkey = customEventSigner?.publicKey ??
         (await ref.read(currentUserIonConnectEventSignerProvider.future))?.publicKey;
-    final wsAuthPubkey = WebSocketTracker.getAuthPubkey(host);
     final followRedirects = ref.read(dioProvider).options.followRedirects;
 
     try {
@@ -223,7 +165,6 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
         url: url,
         nip98Pubkey: nip98Pubkey,
         contentLen: fileBytes.length,
-        wsAuthPubkey: wsAuthPubkey,
         followRedirects: followRedirects,
       );
 
@@ -299,26 +240,18 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
   /// Minimal helper to check if the error is related to on-behalf/attestation errors
   /// Later move to a more generic helper!!!
   static bool _isOnBehalfAttestationError(Object error) {
-    if (error is DioException) {
-      final code = error.response?.statusCode ?? 0;
-      final body =
-          error.response?.data?.toString().toLowerCase() ?? error.message?.toLowerCase() ?? '';
-      return (code == 403 || code == 401) &&
-          (body.contains('on-behalf') || body.contains('attestation'));
-    }
-
-    if (error is IONException) {
+    if (error is FileUploadException) {
       final message = error.message.toLowerCase();
-      // not '403' to avoid false positives like 4031
-      final has403 = message.contains('status code of 403') || message.contains(' 403 ');
 
-      return (has403 || message.contains(' 401 ')) &&
-          (message.contains('on-behalf') || message.contains('attestation'));
+      final hasAuthCode = message.contains('status code of 403') ||
+          message.contains(' 403 ') ||
+          message.contains(' 401 ');
+      final hasPhrase = message.contains('on-behalf') || message.contains('attestation');
+
+      return hasAuthCode && hasPhrase;
     }
 
-    // If none of the above, check the string representation
-    final errorString = error.toString().toLowerCase();
-    return errorString.contains('on-behalf');
+    return false;
   }
 }
 
@@ -377,9 +310,8 @@ void _logHttpUploadPrep({
   required String? nip98Pubkey,
   required int contentLen,
   required bool followRedirects,
-  String? wsAuthPubkey,
 }) {
   Logger.info(
-    'NOSTR.HTTP upload_prep host=$host url=$url ws_auth_pubkey=${wsAuthPubkey ?? 'null'} nip98.pubkey=$nip98Pubkey content_len=$contentLen follow_redirects=$followRedirects',
+    'NOSTR.HTTP upload_prep host=$host url=$url nip98.pubkey=$nip98Pubkey content_len=$contentLen follow_redirects=$followRedirects',
   );
 }
