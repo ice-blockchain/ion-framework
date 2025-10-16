@@ -13,6 +13,7 @@ import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/relays_reachability_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
+import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_relays_manager.r.g.dart';
@@ -175,6 +176,25 @@ class UserRelaysManager extends _$UserRelaysManager {
     return userRelays;
   }
 
+  Future<void> cacheRelaysFromIdentity(List<IdentityUserInfo> usersInfo) async {
+    await Future.wait(
+      [
+        for (final relay in usersInfo)
+          if (relay.ionConnectRelays.isNotEmpty)
+            UserRelaysEntity(
+              id: '',
+              signature: '',
+              masterPubkey: relay.masterPubKey,
+              pubkey: relay.masterPubKey,
+              createdAt: DateTime.now().microsecondsSinceEpoch,
+              data: UserRelaysData(
+                list: relay.ionConnectRelays.map((relay) => relay.toUserRelay()).toList(),
+              ),
+            ),
+      ].map(ref.read(ionConnectCacheProvider.notifier).cache),
+    );
+  }
+
   Future<UserRelaysEntity?> _getCurrentUserReachableRelaysIfRequested(List<String> pubkeys) async {
     final currentUserPubkey = ref.read(currentPubkeySelectorProvider);
 
@@ -245,4 +265,14 @@ Future<UserRelaysEntity?> currentUserRelays(Ref ref) async {
       await ref.read(ionConnectNotifierProvider.notifier).sign(updatedUserRelays);
 
   return UserRelaysEntity.fromEventMessage(userRelaysEvent);
+}
+
+extension IonConnectRelayInfoToUserRelay on IonConnectRelayInfo {
+  UserRelay toUserRelay() {
+    return UserRelay(
+      url: url,
+      write: type == null || type == IonConnectRelayType.write,
+      read: type == null || type == IonConnectRelayType.read,
+    );
+  }
 }
