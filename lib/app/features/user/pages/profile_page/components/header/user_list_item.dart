@@ -28,17 +28,18 @@ class UseListItem extends ConsumerWidget {
         if (userMetadata == null) {
           return const SizedBox.shrink();
         }
+        final textStyle = textColor != null ? TextStyle(color: textColor) : null;
         return BadgesUserListItem(
           title: Text(
             userMetadata.data.trimmedDisplayName,
-            style: textColor != null ? TextStyle(color: textColor) : null,
+            style: textStyle,
           ),
           subtitle: Text(
             prefixUsername(
               username: userMetadata.data.name,
               context: context,
             ),
-            style: textColor != null ? TextStyle(color: textColor) : null,
+            style: textStyle,
           ),
           masterPubkey: pubkey,
           constraints: BoxConstraints(maxHeight: minHeight, minHeight: minHeight),

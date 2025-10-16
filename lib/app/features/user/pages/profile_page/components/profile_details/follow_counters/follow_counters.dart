@@ -19,7 +19,7 @@ class FollowCounters extends ConsumerWidget {
   final String pubkey;
   final ProfileMode profileMode;
 
-  Decoration _containerDecoration(BuildContext context) {
+  Decoration _decoration(BuildContext context) {
     if (profileMode == ProfileMode.dark) {
       return ShapeDecoration(
         color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
@@ -97,7 +97,7 @@ class FollowCounters extends ConsumerWidget {
     return Container(
       height: 36.0.s,
       padding: _padding,
-      decoration: _containerDecoration(context),
+      decoration: _decoration(context),
       child: Row(
         mainAxisSize: _mainAxisSize,
         mainAxisAlignment: MainAxisAlignment.center,

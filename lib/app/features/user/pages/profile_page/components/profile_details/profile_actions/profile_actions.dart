@@ -46,28 +46,26 @@ class ProfileActions extends ConsumerWidget {
       spacing: 8.0.s,
       children: [
         if (profileMode != ProfileMode.dark) FollowUserButton(pubkey: pubkey),
-        ...[
-          if (!hasPrivateWallets && canSendMessage)
-            ProfileAction(
-              onPressed: () async {
-                final needToEnable2FA =
-                    await PaymentSelectionProfileRoute(pubkey: pubkey).push<bool>(context);
-                if (needToEnable2FA != null && needToEnable2FA && context.mounted) {
-                  await SecureAccountModalRoute().push<void>(context);
-                }
-              },
-              assetName: Assets.svg.iconProfileTips,
-              profileMode: profileMode,
-            ),
-          if (canSendMessage)
-            ProfileAction(
-              onPressed: () {
-                ConversationRoute(receiverMasterPubkey: pubkey).push<void>(context);
-              },
-              assetName: Assets.svg.iconChatOff,
-              profileMode: profileMode,
-            ),
-        ],
+        if (!hasPrivateWallets && canSendMessage)
+          ProfileAction(
+            onPressed: () async {
+              final needToEnable2FA =
+                  await PaymentSelectionProfileRoute(pubkey: pubkey).push<bool>(context);
+              if (needToEnable2FA != null && needToEnable2FA && context.mounted) {
+                await SecureAccountModalRoute().push<void>(context);
+              }
+            },
+            assetName: Assets.svg.iconProfileTips,
+            profileMode: profileMode,
+          ),
+        if (canSendMessage)
+          ProfileAction(
+            onPressed: () {
+              ConversationRoute(receiverMasterPubkey: pubkey).push<void>(context);
+            },
+            assetName: Assets.svg.iconChatOff,
+            profileMode: profileMode,
+          ),
         if (following && profileMode != ProfileMode.dark)
           ProfileAction(
             onPressed: () {
