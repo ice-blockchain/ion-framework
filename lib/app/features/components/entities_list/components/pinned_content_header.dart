@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/model/feature_flags.dart';
+import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/providers/user_pinned_content_provider.m.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -18,7 +20,10 @@ class PinnedContentHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isOwnedByCurrentUser =
         ref.watch(isCurrentUserSelectorProvider(eventReference.masterPubkey));
-    if (!isOwnedByCurrentUser || tabEntityType == null) {
+    final isPinnedEnabled =
+        ref.watch(featureFlagsProvider.notifier).get(PinnedContentFeatureFlag.pinnedContentEnabled);
+
+    if (!isPinnedEnabled || !isOwnedByCurrentUser || tabEntityType == null) {
       return const SizedBox.shrink();
     }
 
