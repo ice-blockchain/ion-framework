@@ -124,6 +124,11 @@ class PasskeysSigner {
       );
     } on PasskeyAuthCancelledException {
       throw const PasskeyCancelledException();
+    } catch (e) {
+      if (PasskeyCancelledException.isMatch(e)) {
+        throw const PasskeyCancelledException();
+      }
+      rethrow;
     }
   }
 
@@ -215,8 +220,7 @@ class PasskeysSigner {
     } on PasskeyAuthCancelledException {
       throw const PasskeyCancelledException();
     } on UnhandledAuthenticatorException catch (e) {
-      final msg = (e.message ?? '').toLowerCase();
-      if (msg.contains('cancel') && msg.contains('user')) {
+      if (PasskeyCancelledException.isMatch(e)) {
         throw const PasskeyCancelledException();
       }
       throw const PasskeyValidationException();
