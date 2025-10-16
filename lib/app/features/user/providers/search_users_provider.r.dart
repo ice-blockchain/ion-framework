@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/user/providers/paginated_users_metadata_provider.r.dart';
+import 'package:ion/app/features/user/providers/paginated_master_pubkeys_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -21,8 +21,8 @@ class SearchUsers extends _$SearchUsers {
     bool includeCurrentUser = false,
   }) async {
     final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
-    final paginatedUsersMetadataData = await ref.watch(
-      paginatedUsersMetadataProvider(
+    final paginatedMasterPubkeys = await ref.watch(
+      paginatedMasterPubkeysProvider(
         _fetcher,
         cacheStrategy: cacheStrategy,
         expirationDuration: expirationDuration,
@@ -36,7 +36,7 @@ class SearchUsers extends _$SearchUsers {
             .toList() ??
         [];
 
-    final filteredMasterPubkeys = paginatedUsersMetadataData.items
+    final filteredMasterPubkeys = paginatedMasterPubkeys.items
         .where(
           (masterPubkey) =>
               (includeCurrentUser || masterPubkey != currentUserMasterPubkey) &&
@@ -46,14 +46,14 @@ class SearchUsers extends _$SearchUsers {
 
     return (
       masterPubkeys: filteredMasterPubkeys,
-      hasMore: paginatedUsersMetadataData.hasMore,
+      hasMore: paginatedMasterPubkeys.hasMore,
     );
   }
 
   Future<void> loadMore() async {
     return ref
         .read(
-          paginatedUsersMetadataProvider(
+          paginatedMasterPubkeysProvider(
             _fetcher,
             cacheStrategy: cacheStrategy,
             expirationDuration: expirationDuration,
@@ -64,7 +64,7 @@ class SearchUsers extends _$SearchUsers {
 
   Future<void> refresh() async {
     return ref.invalidate(
-      paginatedUsersMetadataProvider(_fetcher, expirationDuration: expirationDuration),
+      paginatedMasterPubkeysProvider(_fetcher, expirationDuration: expirationDuration),
     );
   }
 
