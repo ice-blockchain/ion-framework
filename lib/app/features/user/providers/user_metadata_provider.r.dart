@@ -20,6 +20,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_metadata_lite.f.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion_connect_cache/ion_connect_cache.dart';
+import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_metadata_provider.r.g.dart';
@@ -148,26 +149,39 @@ Future<UserMetadataLiteEntity?> userMetadataLite(
   String masterPubkey, {
   Duration? expirationDuration,
 }) async {
-  return UserMetadataLiteEntity(
-    masterPubkey: masterPubkey,
-    data: UserMetadataLite(
-      name: 'user_${masterPubkey.substring(0, 6)}',
-      displayName: 'User ${masterPubkey.substring(0, 6)}',
-      picture: 'https://picsum.photos/200',
-    ),
-  );
+  final userMetadataLite = await ref.watch(
+    ionConnectEntityProvider(
+      network: false,
+      eventReference: ReplaceableEventReference(
+        masterPubkey: masterPubkey,
+        kind: UserMetadataLiteEntity.kind,
+      ),
+      expirationDuration: expirationDuration,
+    ).future,
+  ) as UserMetadataLiteEntity?;
+  return userMetadataLite;
+}
 
-  // final userMetadataLite = await ref.watch(
-  //   ionConnectEntityProvider(
-  //     network: false,
-  //     eventReference: ReplaceableEventReference(
-  //       masterPubkey: masterPubkey,
-  //       kind: UserMetadataLiteEntity.kind,
-  //     ),
-  //     expirationDuration: expirationDuration,
-  //   ).future,
-  // ) as UserMetadataLiteEntity?;
-  // return userMetadataLite;
+@riverpod
+class UserMetadataLiteManager extends _$UserMetadataLiteManager {
+  @override
+  FutureOr<void> build() async {}
+
+  Future<void> cacheFromIdentity(List<IdentityUserInfo> usersInfo) async {
+    await Future.wait(
+      [
+        for (final userInfo in usersInfo)
+          UserMetadataLiteEntity(
+            masterPubkey: userInfo.masterPubKey,
+            data: UserMetadataLite(
+              name: userInfo.username,
+              displayName: userInfo.displayName,
+              picture: userInfo.picture,
+            ),
+          ),
+      ].map(ref.read(ionConnectCacheProvider.notifier).cache),
+    );
+  }
 }
 
 @riverpod
