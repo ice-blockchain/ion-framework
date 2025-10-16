@@ -21,11 +21,9 @@ class ProfileTokenStats extends StatelessWidget {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildBuyHint(context),
-          SizedBox(
-            width: 8.0.s,
-          ),
-          _buildBuyButton(context, iconAsset: Assets.svg.iconWorkBuycoin),
+          const _BuyHint(),
+          SizedBox(width: 8.0.s),
+          const _BuyButton(),
         ],
       );
     }
@@ -33,31 +31,35 @@ class ProfileTokenStats extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildStatItem(
-          context,
+        _StatItem(
           icon: Assets.svg.iconMemeMarketcap,
           text: data!.marketCap,
         ),
-        _buildStatItem(
-          context,
+        _StatItem(
           icon: Assets.svg.iconMemeMarkers,
           text: data!.price,
         ),
-        _buildStatItem(
-          context,
+        _StatItem(
           icon: Assets.svg.iconSearchGroups,
           text: data!.volume,
         ),
-        _buildBuyButton(context, iconAsset: Assets.svg.iconWorkBuycoin),
+        const _BuyButton(),
       ],
     );
   }
+}
 
-  Widget _buildStatItem(
-    BuildContext context, {
-    required String icon,
-    required String text,
-  }) {
+class _StatItem extends StatelessWidget {
+  const _StatItem({
+    required this.icon,
+    required this.text,
+  });
+
+  final String icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -90,8 +92,13 @@ class ProfileTokenStats extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _buildBuyHint(BuildContext context) {
+class _BuyHint extends StatelessWidget {
+  const _BuyHint();
+
+  @override
+  Widget build(BuildContext context) {
     return SpeechBubble(
       height: 24.0.s,
       child: Container(
@@ -120,8 +127,13 @@ class ProfileTokenStats extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildBuyButton(BuildContext context, {required String iconAsset}) {
+class _BuyButton extends StatelessWidget {
+  const _BuyButton();
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       height: 23.0.s,
       padding: EdgeInsets.symmetric(horizontal: 10.0.s),
@@ -141,7 +153,7 @@ class ProfileTokenStats extends StatelessWidget {
             decoration: const BoxDecoration(),
             child: Center(
               child: SvgPicture.asset(
-                iconAsset,
+                Assets.svg.iconWorkBuycoin,
                 width: 14.s,
                 height: 14.s,
                 colorFilter: ColorFilter.mode(

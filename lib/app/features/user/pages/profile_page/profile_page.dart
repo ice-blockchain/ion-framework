@@ -53,11 +53,11 @@ class ProfilePage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
     final isVerifiedUser = ref.watch(isUserVerifiedProvider(masterPubkey));
-    final tokenisedCommunityEnabled = ref
+    final tokenizedCommunitiesEnabled = ref
         .watch(featureFlagsProvider.notifier)
         .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
     final profileMode =
-        isVerifiedUser && tokenisedCommunityEnabled ? ProfileMode.dark : ProfileMode.light;
+        isVerifiedUser && tokenizedCommunitiesEnabled ? ProfileMode.dark : ProfileMode.light;
     final statusBarHeight = MediaQuery.paddingOf(context).top;
 
     if (userMetadata.isLoading && !userMetadata.hasValue) {

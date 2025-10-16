@@ -22,3 +22,10 @@ extension WidgetRebuildTrackingExtension on Widget {
     WidgetRebuildTracker.instance.trackRebuild(widgetName);
   }
 }
+
+extension ConditionalDecoration on Widget {
+  Widget withDecoration(BoxDecoration? decoration) {
+    if (decoration != null) return DecoratedBox(decoration: decoration, child: this);
+    return this;
+  }
+}

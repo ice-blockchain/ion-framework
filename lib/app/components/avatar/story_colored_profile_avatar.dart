@@ -7,6 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/extensions/widget.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
@@ -76,8 +77,15 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
     Widget avatarWidget;
     if (!hasStories) {
       if (imageUrl != null || imageWidget != null || defaultAvatar != null) {
-        avatarWidget = Container(
-          decoration: profileMode == ProfileMode.dark
+        avatarWidget = Avatar(
+          size: size,
+          imageUrl: imageUrl,
+          imageWidget: imageWidget,
+          defaultAvatar: defaultAvatar,
+          borderRadius: borderRadius,
+          fit: fit,
+        ).withDecoration(
+          profileMode == ProfileMode.dark
               ? BoxDecoration(
                   borderRadius: borderRadius == null
                       ? null
@@ -94,14 +102,6 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
                         ),
                 )
               : null,
-          child: Avatar(
-            size: size,
-            imageUrl: imageUrl,
-            imageWidget: imageWidget,
-            defaultAvatar: defaultAvatar,
-            borderRadius: borderRadius,
-            fit: fit,
-          ),
         );
       } else {
         avatarWidget = IonConnectAvatar(
@@ -114,9 +114,7 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
     } else {
       avatarWidget = StoryColoredBorder(
         size: size,
-        color: profileMode == ProfileMode.dark
-            ? context.theme.appColors.strokeElements
-            : context.theme.appColors.strokeElements,
+        color: context.theme.appColors.strokeElements,
         gradient: gradient,
         isViewed: allStoriesViewed,
         child: StoryColoredBorder(
