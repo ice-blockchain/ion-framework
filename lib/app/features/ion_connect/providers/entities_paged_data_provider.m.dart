@@ -141,15 +141,11 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
     );
     final paginationEntries = fetchResults.map((result) => result.entry).toList();
     final missingEvents = fetchResults.expand((result) => result.missingEvents).toSet();
-    // TODO:remove pendingInserts logic since we don't need it
-    final pendingInserts = <EventReference, int>{
-      for (final result in fetchResults) ...result.pendingInserts,
-    };
 
     if (awaitMissingEvents) {
-      await _handleMissingEvents(missingEvents, pendingInserts);
+      await _handleMissingEvents(missingEvents);
     } else {
-      unawaited(_handleMissingEvents(missingEvents, pendingInserts));
+      unawaited(_handleMissingEvents(missingEvents));
     }
 
     state = state?.copyWith(
@@ -269,49 +265,12 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
 
   Future<void> _handleMissingEvents(
     Set<EventsMetadataEntity> missingEvents,
-    Map<EventReference, int> pendingInserts,
   ) async {
     if (missingEvents.isEmpty) return;
 
     final refs = missingEvents.map((event) => event.data.metadataEventReference).nonNulls.toList();
-    final fetched = await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
+    await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
           eventReferences: refs,
         );
-
-    final fetchedByRef = <EventReference, IonConnectEntity>{};
-    for (final entity in fetched) {
-      final ref = entity.toEventReference();
-      fetchedByRef[ref] = entity;
-    }
-
-    final list = (state?.data.items ?? {}).toList();
-    final inserts = <MapEntry<int, IonConnectEntity>>[];
-    pendingInserts.forEach((ref, index) {
-      final entity = fetchedByRef[ref];
-      if (entity != null) inserts.add(MapEntry(index, entity));
-    });
-    inserts.sort((a, b) => a.key.compareTo(b.key));
-
-    var shift = 0;
-    for (final entry in inserts) {
-      final i = entry.key + shift;
-      if (i <= list.length) {
-        list.insert(i, entry.value);
-        shift++;
-      } else {
-        list.add(entry.value);
-      }
-    }
-
-    final filtered = list.where((entity) {
-      return dataSources!.any((dataSource) => dataSource.entityFilter(entity));
-    });
-
-    state = state!.copyWith(
-      data: Paged.data(
-        filtered.toSet(),
-        pagination: state!.data.pagination,
-      ),
-    );
   }
 }
