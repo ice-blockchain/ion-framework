@@ -62,7 +62,7 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
         .any((kinds) => kinds.contains(ReplaceablePrivateDirectMessageEntity.kind.toString()));
 
     EventMessage? rumor;
-    
+
     if (containsDirectMessageKind) {
       rumor = await giftUnwrapService.unwrap(eventMessage);
       await _checkReceivedStatusForDirectMessage(rumor);
