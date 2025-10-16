@@ -141,6 +141,7 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
     );
     final paginationEntries = fetchResults.map((result) => result.entry).toList();
     final missingEvents = fetchResults.expand((result) => result.missingEvents).toSet();
+    // TODO:remove pendingInserts logic since we don't need it
     final pendingInserts = <EventReference, int>{
       for (final result in fetchResults) ...result.pendingInserts,
     };
