@@ -14,7 +14,7 @@ class _SearchUsersByKeyword {
 
   final String keyword;
 
-  Future<List<UserRelaysInfo>> call(
+  Future<List<IdentityUserInfo>> call(
     int limit,
     int offset,
     List<String> current,

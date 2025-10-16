@@ -4,6 +4,7 @@ import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/core/network/network_client.dart';
 import 'package:ion_identity_client/src/core/storage/token_storage.dart';
 import 'package:ion_identity_client/src/core/types/request_headers.dart';
+import 'package:ion_identity_client/src/users/models/identity_user_info.f.dart';
 
 class SearchUsersSocialProfileDataSource {
   SearchUsersSocialProfileDataSource(
@@ -16,7 +17,7 @@ class SearchUsersSocialProfileDataSource {
 
   static const basePath = '/v1';
 
-  Future<List<UserRelaysInfo>> searchForUsersByKeyword({
+  Future<List<IdentityUserInfo>> searchForUsersByKeyword({
     required String keyword,
     required SearchUsersSocialProfileType searchType,
     required int limit,
@@ -45,7 +46,7 @@ class SearchUsersSocialProfileDataSource {
         token: token.token,
       ),
       decoder: (result, _) => (result as List<dynamic>)
-          .map((e) => UserRelaysInfo.fromJson(e as Map<String, dynamic>))
+          .map((e) => IdentityUserInfo.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 

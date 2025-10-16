@@ -68,7 +68,7 @@ class SearchUsers extends _$SearchUsers {
     );
   }
 
-  Future<List<UserRelaysInfo>> _fetcher(
+  Future<List<IdentityUserInfo>> _fetcher(
     int limit,
     int offset,
     List<String> current,
