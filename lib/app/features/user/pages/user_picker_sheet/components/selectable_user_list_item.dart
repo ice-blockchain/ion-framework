@@ -6,8 +6,8 @@ import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/views/components/chat_privacy_tooltip.dart';
+import 'package:ion/app/features/components/entities_list/list_entity_helper.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -29,8 +29,7 @@ class SelectableUserListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewData =
-        ref.watch(userPreviewDataProvider(masterPubkey, network: false)).valueOrNull;
+    final userPreviewData = ListEntityHelper.userPreviewData(ref, masterPubkey);
     final isSelected = selectedPubkeys.contains(masterPubkey);
 
     if (userPreviewData == null) {

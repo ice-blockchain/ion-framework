@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_entity_helper.dart';
 import 'package:ion/app/features/components/user/follow_user_button/follow_user_button.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 
 class FollowListItem extends ConsumerWidget {
@@ -24,9 +24,9 @@ class FollowListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userPreviewDataProvider(pubkey, network: network)).valueOrNull;
+    final userPreviewData = ListEntityHelper.userPreviewData(ref, pubkey, network: network);
 
-    if (userMetadata == null) {
+    if (userPreviewData == null) {
       return const SizedBox.shrink();
     }
 
@@ -34,7 +34,7 @@ class FollowListItem extends ConsumerWidget {
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
       child: BadgesUserListItem(
         title: Text(
-          userMetadata.data.trimmedDisplayName,
+          userPreviewData.data.trimmedDisplayName,
           strutStyle: const StrutStyle(forceStrutHeight: true),
         ),
         trailing: FollowUserButton(
@@ -42,7 +42,7 @@ class FollowListItem extends ConsumerWidget {
         ),
         subtitle: Text(
           prefixUsername(
-            username: userMetadata.data.name,
+            username: userPreviewData.data.name,
             context: context,
           ),
         ),

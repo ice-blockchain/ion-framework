@@ -10,9 +10,9 @@ part 'identity_user_info.f.g.dart';
 class IdentityUserInfo with _$IdentityUserInfo {
   const factory IdentityUserInfo({
     required String masterPubKey,
-    required String username,
-    required String displayName,
     required List<IonConnectRelayInfo> ionConnectRelays,
+    @Default('') String username,
+    @Default('') String displayName,
     String? avatar,
   }) = _IdentityUserInfo;
 

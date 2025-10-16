@@ -133,24 +133,25 @@ class ListEntityHelper {
     return false;
   }
 
-  static bool hasUserPreviewData(BuildContext context, WidgetRef ref, IonConnectEntity entity) {
+  static UserPreviewEntity? userPreviewData(
+    WidgetRef ref,
+    String masterPubkey, {
+    bool network = false,
+  }) {
     final userPreviewData = ref.watch(
           // We don't request the events individually - we just wait for them to appear in cache
-          // from either search ext OR from fetching missing events if relay returns 21750
+          // from either identity OR search ext OR from fetching missing events if relay returns 21750
           // for the metadata and we fetch those in batches.
-          userPreviewDataProvider(entity.masterPubkey, network: false).select((value) {
+          userPreviewDataProvider(masterPubkey, network: network).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
-              ListCachedObjects.updateObject<UserPreviewEntity>(context, entity);
+              ListCachedObjects.updateObject<UserPreviewEntity>(ref.context, entity);
             }
             return entity;
           }),
         ) ??
-        ListCachedObjects.maybeObjectOf<UserPreviewEntity>(
-          context,
-          entity.masterPubkey,
-        );
+        ListCachedObjects.maybeObjectOf<UserPreviewEntity>(ref.context, masterPubkey);
 
-    return userPreviewData != null;
+    return userPreviewData;
   }
 }

@@ -7,6 +7,7 @@ import 'package:ion/app/components/nothing_is_found/nothing_is_found.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/user/model/follow_type.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal/components/follow_app_bar.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal/components/follow_list_item.dart';
@@ -38,45 +39,47 @@ class FollowingList extends HookConsumerWidget {
 
     final searchMasterPubkeys = searchPagedData?.masterPubkeys;
 
-    return LoadMoreBuilder(
-      hasMore: searchPagedData?.hasMore ?? false,
-      onLoadMore: () => ref
-          .read(
-            searchUsersProvider(
-              query: debouncedQuery,
-              followedByPubkey: pubkey,
-              includeCurrentUser: true,
-            ).notifier,
-          )
-          .loadMore(),
-      slivers: [
-        FollowAppBar(
-          title: FollowType.following.getTitleWithCounter(context, followeePubkeys?.length ?? 0),
-        ),
-        FollowSearchBar(onTextChanged: (query) => searchQuery.value = query),
-        if (searchQuery.value.isNotEmpty)
-          if (searchMasterPubkeys == null)
-            const FollowListLoading()
-          else if (searchMasterPubkeys.isEmpty)
-            const NothingIsFound()
-          else
+    return ListCachedObjectsWrapper(
+      child: LoadMoreBuilder(
+        hasMore: searchPagedData?.hasMore ?? false,
+        onLoadMore: () => ref
+            .read(
+              searchUsersProvider(
+                query: debouncedQuery,
+                followedByPubkey: pubkey,
+                includeCurrentUser: true,
+              ).notifier,
+            )
+            .loadMore(),
+        slivers: [
+          FollowAppBar(
+            title: FollowType.following.getTitleWithCounter(context, followeePubkeys?.length ?? 0),
+          ),
+          FollowSearchBar(onTextChanged: (query) => searchQuery.value = query),
+          if (searchQuery.value.isNotEmpty)
+            if (searchMasterPubkeys == null)
+              const FollowListLoading()
+            else if (searchMasterPubkeys.isEmpty)
+              const NothingIsFound()
+            else
+              SliverList.builder(
+                itemCount: searchMasterPubkeys.length,
+                itemBuilder: (context, index) => ScreenSideOffset.small(
+                  child: FollowListItem(pubkey: searchMasterPubkeys[index]),
+                ),
+              )
+          else if (followeePubkeys != null)
             SliverList.builder(
-              itemCount: searchMasterPubkeys.length,
+              itemCount: followeePubkeys.length,
               itemBuilder: (context, index) => ScreenSideOffset.small(
-                child: FollowListItem(pubkey: searchMasterPubkeys[index]),
+                child: FollowListItem(pubkey: followeePubkeys[index], network: true),
               ),
             )
-        else if (followeePubkeys != null)
-          SliverList.builder(
-            itemCount: followeePubkeys.length,
-            itemBuilder: (context, index) => ScreenSideOffset.small(
-              child: FollowListItem(pubkey: followeePubkeys[index], network: true),
-            ),
-          )
-        else
-          const FollowListLoading(),
-        SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 32.0.s)),
-      ],
+          else
+            const FollowListLoading(),
+          SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 32.0.s)),
+        ],
+      ),
     );
   }
 }
