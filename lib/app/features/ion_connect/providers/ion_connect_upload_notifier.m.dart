@@ -147,7 +147,6 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     });
 
     try {
-      // Make HTTP POST
       final response = await ref.read(dioProvider).post<dynamic>(
             url,
             data: formData,
@@ -204,16 +203,12 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     );
   }
 
-  /// Minimal helper to check if the error is related to on-behalf/attestation errors
-  /// Later move to a more generic helper!!!
   static bool _isOnBehalfAttestationError(Object error) {
-    // NEW LOGIC START
     if (error is FileUploadException && error.originalError is DioException) {
       final dioError = error.originalError! as DioException;
       final statusCode = dioError.response?.statusCode;
 
       if (statusCode == HttpStatus.unauthorized || statusCode == HttpStatus.forbidden) {
-        // Status check is okay, now checking if it contains on-behalf & attestation phrases
         final message = _getErrorMessageFromDioException(dioError);
 
         if (message.contains('on-behalf') && message.contains('attestation')) {
