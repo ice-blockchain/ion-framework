@@ -18,9 +18,9 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_
 import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
 import 'package:ion/app/features/ion_connect/utils/file_storage_utils.dart';
 import 'package:ion/app/services/logger/logger.dart';
-import 'package:ion/app/utils/retry.dart';
 import 'package:ion/app/services/media_service/large_media_upload_service.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/utils/retry.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ion_connect_upload_notifier.m.freezed.dart';
@@ -277,7 +277,7 @@ class UploadResponseNip94Event with _$UploadResponseNip94Event {
       _$UploadResponseNip94EventFromJson(json);
 }
 
-// TODO: Remove loggers
+// Logger for upload result error
 void _logHttpUploadResultErr({
   required String host,
   required Response<dynamic> response,
@@ -292,7 +292,7 @@ void _logHttpUploadResultErr({
   );
 }
 
-// For log purposes only
+// Logger for upload result success
 void _logHttpUploadResultOk({required String host, required Response<dynamic> response}) {
   final instanceHeader = response.headers.value('via') ??
       response.headers.value('x-instance') ??
@@ -303,7 +303,7 @@ void _logHttpUploadResultOk({required String host, required Response<dynamic> re
   );
 }
 
-// For log purposes only
+// Logger for upload preparation before making the HTTP request
 void _logHttpUploadPrep({
   required String host,
   required String url,

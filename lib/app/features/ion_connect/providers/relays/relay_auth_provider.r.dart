@@ -14,8 +14,6 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.da
 import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
-import 'package:ion/app/services/logger/websocket_tracker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'relay_auth_provider.r.g.dart';
@@ -153,12 +151,6 @@ class RelayAuthService {
         challenge: jsonEncode(signedAuthEvent.toJson().last),
       );
 
-      // Log AUTH send
-      final socketId = WebSocketTracker.getSocketId(relay) ?? -1;
-      final host = WebSocketTracker.getHost(relay.url);
-      final pubkey = signedAuthEvent.pubkey;
-      Logger.info('NOSTR.WS.AUTH.SEND host=$host socket_id=$socketId ws_auth_pubkey=$pubkey');
-
       relay.sendMessage(authMessage);
 
       final okMessages = await relay.messages
@@ -167,35 +159,11 @@ class RelayAuthService {
           .firstWhere((message) => signedAuthEvent.id == message.eventId);
 
       if (!okMessages.accepted) {
-        // Log AUTH failure
-        final errorMessage = okMessages.message.length > 80
-            ? '${okMessages.message.substring(0, 80)}...'
-            : okMessages.message;
-        Logger.warning(
-          'NOSTR.WS.AUTH.ERR host=$host socket_id=$socketId auth_result=err:$errorMessage',
-        );
         throw SendEventException(okMessages.message);
       }
 
-      // Log AUTH success
-      final okHost = WebSocketTracker.getHost(relay.url);
-      final okSocketId = WebSocketTracker.getSocketId(relay) ?? -1;
-      final okPubkey = signedAuthEvent.pubkey; // the pubkey that signed AUTH
-      WebSocketTracker.setAuthOk(host: okHost, pubkey: okPubkey, socketId: okSocketId);
-      Logger.info('NOSTR.WS.AUTH.OK host=$okHost socket_id=$okSocketId auth_result=ok');
-
       completer?.complete();
     } catch (error) {
-      // Log AUTH error if not already logged
-      if (error is! SendEventException) {
-        final socketId = WebSocketTracker.getSocketId(relay);
-        final host = WebSocketTracker.getHost(relay.url);
-        final errorStr = error.toString();
-        final errorMessage = errorStr.length > 80 ? '${errorStr.substring(0, 80)}...' : errorStr;
-        Logger.warning(
-          'NOSTR.WS.AUTH.ERR host=$host socket_id=$socketId auth_result=err:$errorMessage',
-        );
-      }
       final shouldRetry = await onError(error);
       if (shouldRetry && !isRetry) {
         return authenticateRelay(isRetry: true);
