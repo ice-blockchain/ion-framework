@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/wallets/domain/transactions/transfer_exception_handlers/bitcoin_exception_handler.dart';
 import 'package:ion/app/features/wallets/domain/transactions/transfer_exception_handlers/cardano_exception_handler.dart';
 import 'package:ion/app/features/wallets/domain/transactions/transfer_exception_handlers/general_exception_handler.dart';
 import 'package:ion/app/features/wallets/domain/transactions/transfer_exception_handlers/polkadot_exception_handler.dart';
@@ -13,6 +14,8 @@ class TransferExceptionFactory {
     'Westends': PolkadotExceptionHandler(), // Polkadot testnet
     'Cardano': CardanoExceptionHandler(),
     'CardanoPreprod': CardanoExceptionHandler(), // Cardano testnet
+    'Bitcoin': BitcoinExceptionHandler(),
+    'BitcoinSignet': BitcoinExceptionHandler(), // Bitcoin testnet
   };
 
   static final GeneralExceptionHandler _generalHandler = GeneralExceptionHandler();
