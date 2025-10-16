@@ -16,6 +16,7 @@ import 'package:ion/app/features/auth/providers/onboarding_complete_notifier.r.d
 import 'package:ion/app/features/auth/providers/onboarding_data_provider.m.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
 import 'package:ion/app/features/auth/views/pages/discover_creators/creator_list_item.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/user/providers/paginated_master_pubkeys_provider.r.dart';
 import 'package:ion/app/hooks/use_selected_state.dart';
@@ -68,59 +69,61 @@ class DiscoverCreators extends HookConsumerWidget {
     ];
 
     return SheetContent(
-      body: Column(
-        children: [
-          Expanded(
-            child: LoadMoreBuilder(
-              slivers: slivers,
-              onLoadMore: ref.read(contentCreatorsPaginatedProvider.notifier).loadMore,
-              hasMore: hasMore,
-              builder: (context, slivers) {
-                return AuthScrollContainer(
-                  title: context.i18n.discover_creators_title,
-                  description: context.i18n.discover_creators_description,
-                  slivers: [
-                    SliverPadding(padding: EdgeInsetsDirectional.only(top: 34.0.s)),
-                    ...slivers,
-                    SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 16.0.s)),
-                  ],
-                );
-              },
-            ),
-          ),
-          Column(
-            children: [
-              const HorizontalSeparator(),
-              SizedBox(height: 16.0.s),
-              ScreenSideOffset.small(
-                child: Button(
-                  disabled: finishNotifier.isLoading,
-                  trailingIcon: finishNotifier.isLoading ? const IONLoadingIndicator() : null,
-                  label: Text(context.i18n.button_continue),
-                  mainAxisSize: MainAxisSize.max,
-                  onPressed: () {
-                    ref.read(onboardingDataProvider.notifier).followees = selectedCreators;
-                    guardPasskeyDialog(
-                      context,
-                      (child) => RiverpodVerifyIdentityRequestBuilder(
-                        requestWithVerifyIdentity: (
-                          OnVerifyIdentity<GenerateSignatureResponse> onVerifyIdentity,
-                        ) {
-                          ref
-                              .read(onboardingCompleteNotifierProvider.notifier)
-                              .finish(onVerifyIdentity);
-                        },
-                        provider: onboardingCompleteNotifierProvider,
-                        child: child,
-                      ),
-                    );
-                  },
-                ),
+      body: ListCachedObjectsWrapper(
+        child: Column(
+          children: [
+            Expanded(
+              child: LoadMoreBuilder(
+                slivers: slivers,
+                onLoadMore: ref.read(contentCreatorsPaginatedProvider.notifier).loadMore,
+                hasMore: hasMore,
+                builder: (context, slivers) {
+                  return AuthScrollContainer(
+                    title: context.i18n.discover_creators_title,
+                    description: context.i18n.discover_creators_description,
+                    slivers: [
+                      SliverPadding(padding: EdgeInsetsDirectional.only(top: 34.0.s)),
+                      ...slivers,
+                      SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 16.0.s)),
+                    ],
+                  );
+                },
               ),
-              SizedBox(height: 16.0.s),
-            ],
-          ),
-        ],
+            ),
+            Column(
+              children: [
+                const HorizontalSeparator(),
+                SizedBox(height: 16.0.s),
+                ScreenSideOffset.small(
+                  child: Button(
+                    disabled: finishNotifier.isLoading,
+                    trailingIcon: finishNotifier.isLoading ? const IONLoadingIndicator() : null,
+                    label: Text(context.i18n.button_continue),
+                    mainAxisSize: MainAxisSize.max,
+                    onPressed: () {
+                      ref.read(onboardingDataProvider.notifier).followees = selectedCreators;
+                      guardPasskeyDialog(
+                        context,
+                        (child) => RiverpodVerifyIdentityRequestBuilder(
+                          requestWithVerifyIdentity: (
+                            OnVerifyIdentity<GenerateSignatureResponse> onVerifyIdentity,
+                          ) {
+                            ref
+                                .read(onboardingCompleteNotifierProvider.notifier)
+                                .finish(onVerifyIdentity);
+                          },
+                          provider: onboardingCompleteNotifierProvider,
+                          child: child,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: 16.0.s),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -21,10 +21,10 @@ IdentityUserInfo _$IdentityUserInfoFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$IdentityUserInfo {
   String get masterPubKey => throw _privateConstructorUsedError;
-  String get username => throw _privateConstructorUsedError;
-  String get displayName => throw _privateConstructorUsedError;
   List<IonConnectRelayInfo> get ionConnectRelays =>
       throw _privateConstructorUsedError;
+  String get username => throw _privateConstructorUsedError;
+  String get displayName => throw _privateConstructorUsedError;
   String? get avatar => throw _privateConstructorUsedError;
 
   /// Serializes this IdentityUserInfo to a JSON map.
@@ -45,9 +45,9 @@ abstract class $IdentityUserInfoCopyWith<$Res> {
   @useResult
   $Res call(
       {String masterPubKey,
+      List<IonConnectRelayInfo> ionConnectRelays,
       String username,
       String displayName,
-      List<IonConnectRelayInfo> ionConnectRelays,
       String? avatar});
 }
 
@@ -67,9 +67,9 @@ class _$IdentityUserInfoCopyWithImpl<$Res, $Val extends IdentityUserInfo>
   @override
   $Res call({
     Object? masterPubKey = null,
+    Object? ionConnectRelays = null,
     Object? username = null,
     Object? displayName = null,
-    Object? ionConnectRelays = null,
     Object? avatar = freezed,
   }) {
     return _then(_value.copyWith(
@@ -77,6 +77,10 @@ class _$IdentityUserInfoCopyWithImpl<$Res, $Val extends IdentityUserInfo>
           ? _value.masterPubKey
           : masterPubKey // ignore: cast_nullable_to_non_nullable
               as String,
+      ionConnectRelays: null == ionConnectRelays
+          ? _value.ionConnectRelays
+          : ionConnectRelays // ignore: cast_nullable_to_non_nullable
+              as List<IonConnectRelayInfo>,
       username: null == username
           ? _value.username
           : username // ignore: cast_nullable_to_non_nullable
@@ -85,10 +89,6 @@ class _$IdentityUserInfoCopyWithImpl<$Res, $Val extends IdentityUserInfo>
           ? _value.displayName
           : displayName // ignore: cast_nullable_to_non_nullable
               as String,
-      ionConnectRelays: null == ionConnectRelays
-          ? _value.ionConnectRelays
-          : ionConnectRelays // ignore: cast_nullable_to_non_nullable
-              as List<IonConnectRelayInfo>,
       avatar: freezed == avatar
           ? _value.avatar
           : avatar // ignore: cast_nullable_to_non_nullable
@@ -107,9 +107,9 @@ abstract class _$$IdentityUserInfoImplCopyWith<$Res>
   @useResult
   $Res call(
       {String masterPubKey,
+      List<IonConnectRelayInfo> ionConnectRelays,
       String username,
       String displayName,
-      List<IonConnectRelayInfo> ionConnectRelays,
       String? avatar});
 }
 
@@ -127,9 +127,9 @@ class __$$IdentityUserInfoImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? masterPubKey = null,
+    Object? ionConnectRelays = null,
     Object? username = null,
     Object? displayName = null,
-    Object? ionConnectRelays = null,
     Object? avatar = freezed,
   }) {
     return _then(_$IdentityUserInfoImpl(
@@ -137,6 +137,10 @@ class __$$IdentityUserInfoImplCopyWithImpl<$Res>
           ? _value.masterPubKey
           : masterPubKey // ignore: cast_nullable_to_non_nullable
               as String,
+      ionConnectRelays: null == ionConnectRelays
+          ? _value._ionConnectRelays
+          : ionConnectRelays // ignore: cast_nullable_to_non_nullable
+              as List<IonConnectRelayInfo>,
       username: null == username
           ? _value.username
           : username // ignore: cast_nullable_to_non_nullable
@@ -145,10 +149,6 @@ class __$$IdentityUserInfoImplCopyWithImpl<$Res>
           ? _value.displayName
           : displayName // ignore: cast_nullable_to_non_nullable
               as String,
-      ionConnectRelays: null == ionConnectRelays
-          ? _value._ionConnectRelays
-          : ionConnectRelays // ignore: cast_nullable_to_non_nullable
-              as List<IonConnectRelayInfo>,
       avatar: freezed == avatar
           ? _value.avatar
           : avatar // ignore: cast_nullable_to_non_nullable
@@ -162,9 +162,9 @@ class __$$IdentityUserInfoImplCopyWithImpl<$Res>
 class _$IdentityUserInfoImpl extends _IdentityUserInfo {
   const _$IdentityUserInfoImpl(
       {required this.masterPubKey,
-      required this.username,
-      required this.displayName,
       required final List<IonConnectRelayInfo> ionConnectRelays,
+      this.username = '',
+      this.displayName = '',
       this.avatar})
       : _ionConnectRelays = ionConnectRelays,
         super._();
@@ -174,10 +174,6 @@ class _$IdentityUserInfoImpl extends _IdentityUserInfo {
 
   @override
   final String masterPubKey;
-  @override
-  final String username;
-  @override
-  final String displayName;
   final List<IonConnectRelayInfo> _ionConnectRelays;
   @override
   List<IonConnectRelayInfo> get ionConnectRelays {
@@ -188,11 +184,17 @@ class _$IdentityUserInfoImpl extends _IdentityUserInfo {
   }
 
   @override
+  @JsonKey()
+  final String username;
+  @override
+  @JsonKey()
+  final String displayName;
+  @override
   final String? avatar;
 
   @override
   String toString() {
-    return 'IdentityUserInfo(masterPubKey: $masterPubKey, username: $username, displayName: $displayName, ionConnectRelays: $ionConnectRelays, avatar: $avatar)';
+    return 'IdentityUserInfo(masterPubKey: $masterPubKey, ionConnectRelays: $ionConnectRelays, username: $username, displayName: $displayName, avatar: $avatar)';
   }
 
   @override
@@ -202,12 +204,12 @@ class _$IdentityUserInfoImpl extends _IdentityUserInfo {
             other is _$IdentityUserInfoImpl &&
             (identical(other.masterPubKey, masterPubKey) ||
                 other.masterPubKey == masterPubKey) &&
+            const DeepCollectionEquality()
+                .equals(other._ionConnectRelays, _ionConnectRelays) &&
             (identical(other.username, username) ||
                 other.username == username) &&
             (identical(other.displayName, displayName) ||
                 other.displayName == displayName) &&
-            const DeepCollectionEquality()
-                .equals(other._ionConnectRelays, _ionConnectRelays) &&
             (identical(other.avatar, avatar) || other.avatar == avatar));
   }
 
@@ -216,9 +218,9 @@ class _$IdentityUserInfoImpl extends _IdentityUserInfo {
   int get hashCode => Object.hash(
       runtimeType,
       masterPubKey,
+      const DeepCollectionEquality().hash(_ionConnectRelays),
       username,
       displayName,
-      const DeepCollectionEquality().hash(_ionConnectRelays),
       avatar);
 
   /// Create a copy of IdentityUserInfo
@@ -241,9 +243,9 @@ class _$IdentityUserInfoImpl extends _IdentityUserInfo {
 abstract class _IdentityUserInfo extends IdentityUserInfo {
   const factory _IdentityUserInfo(
       {required final String masterPubKey,
-      required final String username,
-      required final String displayName,
       required final List<IonConnectRelayInfo> ionConnectRelays,
+      final String username,
+      final String displayName,
       final String? avatar}) = _$IdentityUserInfoImpl;
   const _IdentityUserInfo._() : super._();
 
@@ -253,11 +255,11 @@ abstract class _IdentityUserInfo extends IdentityUserInfo {
   @override
   String get masterPubKey;
   @override
+  List<IonConnectRelayInfo> get ionConnectRelays;
+  @override
   String get username;
   @override
   String get displayName;
-  @override
-  List<IonConnectRelayInfo> get ionConnectRelays;
   @override
   String? get avatar;
 

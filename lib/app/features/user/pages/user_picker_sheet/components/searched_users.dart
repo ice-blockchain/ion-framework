@@ -6,6 +6,7 @@ import 'package:ion/app/components/list_items_loading_state/list_items_loading_s
 import 'package:ion/app/components/nothing_is_found/nothing_is_found.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/components/selectable_user_list_item.dart';
 
@@ -40,24 +41,26 @@ class SearchedUsers extends ConsumerWidget {
       return const NothingIsFound();
     }
 
-    return SliverList.builder(
-      itemCount: searchedMasterPubkeys.length,
-      itemBuilder: (BuildContext context, int index) {
-        final masterPubkey = searchedMasterPubkeys.elementAt(index);
-        final bool canSendMessage;
-        if (controlChatPrivacy) {
-          canSendMessage = ref.watch(canSendMessageProvider(masterPubkey)).valueOrNull ?? false;
-        } else {
-          canSendMessage = true;
-        }
-        return SelectableUserListItem(
-          selectable: selectable,
-          masterPubkey: masterPubkey,
-          canSendMessage: canSendMessage,
-          onUserSelected: onUserSelected,
-          selectedPubkeys: selectedPubkeys,
-        );
-      },
+    return ListCachedObjectsWrapper(
+      child: SliverList.builder(
+        itemCount: searchedMasterPubkeys.length,
+        itemBuilder: (BuildContext context, int index) {
+          final masterPubkey = searchedMasterPubkeys.elementAt(index);
+          final bool canSendMessage;
+          if (controlChatPrivacy) {
+            canSendMessage = ref.watch(canSendMessageProvider(masterPubkey)).valueOrNull ?? false;
+          } else {
+            canSendMessage = true;
+          }
+          return SelectableUserListItem(
+            selectable: selectable,
+            masterPubkey: masterPubkey,
+            canSendMessage: canSendMessage,
+            onUserSelected: onUserSelected,
+            selectedPubkeys: selectedPubkeys,
+          );
+        },
+      ),
     );
   }
 }

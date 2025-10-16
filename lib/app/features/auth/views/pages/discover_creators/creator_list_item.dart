@@ -8,7 +8,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/features/components/entities_list/list_entity_helper.dart';
 import 'package:ion/app/utils/username.dart';
 
 class CreatorListItem extends ConsumerWidget {
@@ -27,8 +27,7 @@ class CreatorListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewData =
-        ref.watch(userPreviewDataProvider(masterPubkey, network: false)).valueOrNull;
+    final userPreviewData = ListEntityHelper.userPreviewData(ref, masterPubkey);
 
     if (userPreviewData == null) {
       return const SizedBox.shrink();

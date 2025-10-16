@@ -8,8 +8,9 @@ import 'package:ion/app/components/text_editor/hooks/use_text_delta.dart';
 import 'package:ion/app/components/text_editor/text_editor_preview.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_styles.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_entity_helper.dart';
 import 'package:ion/app/features/components/user/follow_user_button/follow_user_button.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 
@@ -23,14 +24,9 @@ class FeedAdvancedSearchUserListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewData =
-        ref.watch(userPreviewDataProvider(masterPubkey, network: false)).valueOrNull;
+    final userPreviewData = ListEntityHelper.userPreviewData(ref, masterPubkey);
 
-    final about = ref.watch(
-      userMetadataProvider(masterPubkey, network: false).select(
-        (value) => value.valueOrNull?.data.about,
-      ),
-    );
+    final about = userPreviewData is UserMetadataEntity ? userPreviewData.data.about : null;
 
     final displayName = userPreviewData?.data.trimmedDisplayName ?? '';
     final name = userPreviewData?.data.name ?? '';
