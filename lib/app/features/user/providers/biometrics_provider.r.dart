@@ -32,12 +32,17 @@ class RejectToUseBiometricsNotifier extends _$RejectToUseBiometricsNotifier {
   FutureOr<void> build() {}
 
   Future<void> rejectToUseBiometrics({required String username, required String password}) async {
+    // Keep provider alive during the async operation
+    final keepAlive = ref.keepAlive();
+
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await _performPasswordDelegation(ref, password);
       final ionIdentity = await ref.read(ionIdentityProvider.future);
       await ionIdentity(username: username).auth.rejectToUseBiometrics();
     });
+    // Dispose the keepAlive token after operation completes
+    keepAlive.close();
   }
 }
 
