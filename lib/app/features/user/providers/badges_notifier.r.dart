@@ -11,6 +11,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
@@ -37,6 +38,101 @@ BadgeAwardEntity? cachedBadgeAward(
   }).toList();
 
   return badgeAwardEntityList.firstOrNull;
+}
+
+@riverpod
+Future<BadgeAwardEntity?> networkBadgeAward(
+  Ref ref,
+  String eventId,
+  String pubkey,
+  List<String> servicePubkeys,
+) async {
+  if (servicePubkeys.isEmpty) {
+    return null;
+  }
+
+  final requestMessage = RequestMessage()
+    ..addFilter(
+      RequestFilter(
+        ids: [eventId],
+        limit: 1,
+      ),
+    );
+
+  final entity =
+      await ref.read(ionConnectNotifierProvider.notifier).requestEntity<BadgeAwardEntity>(
+            requestMessage,
+            actionSource: ActionSourceUser(pubkey),
+          );
+  if (entity == null) {
+    return null;
+  }
+
+  final refFromEntity = entity.toEventReference();
+  final master = refFromEntity.masterPubkey;
+  if (servicePubkeys.contains(master)) {
+    return entity;
+  }
+
+  return null;
+}
+
+bool _awardExistsImpl(
+  Ref ref,
+  String awardId,
+  String pubkey,
+  List<String> servicePubkeys, {
+  required bool optimisticOnLoading,
+}) {
+  // If service pubkeys are not yet available, keep permissive behavior.
+  if (servicePubkeys.isEmpty) {
+    return true;
+  }
+
+  // Cache check first.
+  final cached = ref.watch(cachedBadgeAwardProvider(awardId, servicePubkeys));
+  if (cached != null) {
+    return true;
+  }
+
+  // Network check via dedicated provider.
+  final asyncNetwork = ref.watch(networkBadgeAwardProvider(awardId, pubkey, servicePubkeys));
+  if (asyncNetwork.isLoading) {
+    return optimisticOnLoading;
+  }
+  return asyncNetwork.valueOrNull != null;
+}
+
+@riverpod
+bool awardExistsStrict(
+  Ref ref,
+  String awardId,
+  String pubkey,
+  List<String> servicePubkeys,
+) {
+  return _awardExistsImpl(
+    ref,
+    awardId,
+    pubkey,
+    servicePubkeys,
+    optimisticOnLoading: false,
+  );
+}
+
+@riverpod
+bool awardExistsOptimistic(
+  Ref ref,
+  String awardId,
+  String pubkey,
+  List<String> servicePubkeys,
+) {
+  return _awardExistsImpl(
+    ref,
+    awardId,
+    pubkey,
+    servicePubkeys,
+    optimisticOnLoading: true,
+  );
 }
 
 @riverpod
@@ -151,6 +247,7 @@ bool isUserVerified(
 ) {
   var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(pubkey))?.data;
 
+  // Attempt network fetch if cache is empty; while loading, treat as not verified.
   if (profileBadgesData == null) {
     final res = ref.watch(profileBadgesDataProvider(pubkey));
     if (res.isLoading) {
@@ -161,14 +258,23 @@ bool isUserVerified(
 
   final pubkeys = ref.watch(servicePubkeysProvider).valueOrNull ?? [];
 
-  return profileBadgesData?.entries.any((entry) {
-        final isBadgeAwardValid =
-            pubkeys.isEmpty || ref.watch(cachedBadgeAwardProvider(entry.awardId, pubkeys)) != null;
-        final isBadgeDefinitionValid =
-            ref.watch(isValidVerifiedBadgeDefinitionProvider(entry.definitionRef, pubkeys));
-        return isBadgeDefinitionValid && isBadgeAwardValid;
-      }) ??
-      false;
+  // If still no data, we cannot prove verification.
+  if (profileBadgesData == null) {
+    return false;
+  }
+
+  // 1) Find the first candidate entry that matches the verified badge definition.
+  final candidate = profileBadgesData.entries.firstWhereOrNull((entry) {
+    final isBadgeDefinitionValid =
+        ref.watch(isValidVerifiedBadgeDefinitionProvider(entry.definitionRef, pubkeys));
+    return isBadgeDefinitionValid;
+  });
+
+  if (candidate == null) {
+    return false;
+  }
+
+  return ref.watch(awardExistsStrictProvider(candidate.awardId, pubkey, pubkeys));
 }
 
 @riverpod
@@ -185,18 +291,26 @@ bool isNicknameProven(Ref ref, String pubkey) {
   }
 
   final pubkeys = ref.watch(servicePubkeysProvider).valueOrNull ?? [];
+  if (profileBadgesData == null || userMetadata == null) {
+    return true;
+  }
 
-  return profileBadgesData?.entries.any((entry) {
-        final isBadgeAwardValid =
-            pubkeys.isEmpty || ref.watch(cachedBadgeAwardProvider(entry.awardId, pubkeys)) != null;
-        final isBadgeDefinitionValid =
-            ref.watch(isValidNicknameProofBadgeDefinitionProvider(entry.definitionRef, pubkeys));
-        return userMetadata != null &&
-            isBadgeDefinitionValid &&
-            isBadgeAwardValid &&
-            entry.definitionRef.dTag.endsWith('~${userMetadata.data.name}');
-      }) ??
-      false;
+  // 1) Find the first entry that passes definition + username checks.
+  final candidate = profileBadgesData.entries.firstWhereOrNull((entry) {
+    final isBadgeDefinitionValid =
+        ref.watch(isValidNicknameProofBadgeDefinitionProvider(entry.definitionRef, pubkeys));
+    final matchesName = entry.definitionRef.dTag.endsWith('~${userMetadata.data.name}');
+
+    return isBadgeDefinitionValid && matchesName;
+  });
+
+  // No candidate entry satisfies the non-award checks -> not proven.
+  if (candidate == null) {
+    return false;
+  }
+
+  // Use optimistic behaviour during loading for nickname proofs.
+  return ref.watch(awardExistsOptimisticProvider(candidate.awardId, pubkey, pubkeys));
 }
 
 @Riverpod(keepAlive: true)
