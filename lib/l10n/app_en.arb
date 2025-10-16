@@ -397,6 +397,8 @@
   "wallet_manage_coins": "Manage coins",
   "wallet_manage_nfts": "Select network",
   "wallet_buy_nfts": "Buy NFTs",
+  "profile_token_buy": "Buy",
+  "profile_token_be_first_to_buy": "Be the first to buy",
   "wallet_receive_nft": "Receive NFT",
   "wallet_coin_address": "{coin} address",
   "wallet_network": "Network",

@@ -12,6 +12,7 @@ import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_colored_border.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
+import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
 final _storyStatusProvider =
@@ -39,6 +40,7 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
     this.imageWidget,
     this.defaultAvatar,
     this.useRandomGradient = false,
+    this.profileMode = ProfileMode.light,
     super.key,
   });
 
@@ -50,6 +52,7 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
   final Widget? imageWidget;
   final Widget? defaultAvatar;
   final bool useRandomGradient;
+  final ProfileMode profileMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,16 +74,34 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
     );
 
     Widget avatarWidget;
-
     if (!hasStories) {
       if (imageUrl != null || imageWidget != null || defaultAvatar != null) {
-        avatarWidget = Avatar(
-          size: size,
-          imageUrl: imageUrl,
-          imageWidget: imageWidget,
-          defaultAvatar: defaultAvatar,
-          borderRadius: borderRadius,
-          fit: fit,
+        avatarWidget = Container(
+          decoration: profileMode == ProfileMode.dark
+              ? BoxDecoration(
+                  borderRadius: borderRadius == null
+                      ? null
+                      : BorderRadius.all(
+                          Radius.circular((borderRadius! as BorderRadius).topRight.x + 2),
+                        ),
+                  border: borderRadius == null
+                      ? null
+                      : Border.all(
+                          color: profileMode == ProfileMode.dark
+                              ? context.theme.appColors.sheetLine
+                              : context.theme.appColors.secondaryBackground,
+                          width: 2,
+                        ),
+                )
+              : null,
+          child: Avatar(
+            size: size,
+            imageUrl: imageUrl,
+            imageWidget: imageWidget,
+            defaultAvatar: defaultAvatar,
+            borderRadius: borderRadius,
+            fit: fit,
+          ),
         );
       } else {
         avatarWidget = IonConnectAvatar(
@@ -93,7 +114,9 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
     } else {
       avatarWidget = StoryColoredBorder(
         size: size,
-        color: context.theme.appColors.strokeElements,
+        color: profileMode == ProfileMode.dark
+            ? context.theme.appColors.strokeElements
+            : context.theme.appColors.strokeElements,
         gradient: gradient,
         isViewed: allStoriesViewed,
         child: StoryColoredBorder(
