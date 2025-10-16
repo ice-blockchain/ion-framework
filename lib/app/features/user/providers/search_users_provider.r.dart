@@ -64,7 +64,11 @@ class SearchUsers extends _$SearchUsers {
 
   Future<void> refresh() async {
     return ref.invalidate(
-      paginatedMasterPubkeysProvider(_fetcher, expirationDuration: expirationDuration),
+      paginatedMasterPubkeysProvider(
+        _fetcher,
+        cacheStrategy: cacheStrategy,
+        expirationDuration: expirationDuration,
+      ),
     );
   }
 
