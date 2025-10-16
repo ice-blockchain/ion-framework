@@ -189,7 +189,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     );
 
     final dio = ref.read(dioHttp2Provider);
-    final feedConfig = await ref.watch(feedConfigProvider.future);
+    final feedConfig = await ref.read(feedConfigProvider.future);
 
     return LargeMediaUploadService(
       dio: dio,
@@ -207,18 +207,34 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
   /// Minimal helper to check if the error is related to on-behalf/attestation errors
   /// Later move to a more generic helper!!!
   static bool _isOnBehalfAttestationError(Object error) {
-    if (error is FileUploadException) {
-      final message = error.message.toLowerCase();
+    // NEW LOGIC START
+    if (error is FileUploadException && error.originalError is DioException) {
+      final dioError = error.originalError! as DioException;
+      final statusCode = dioError.response?.statusCode;
 
-      final hasAuthCode = message.contains('status code of 403') ||
-          message.contains(' 403 ') ||
-          message.contains(' 401 ');
-      final hasPhrase = message.contains('on-behalf') || message.contains('attestation');
+      if (statusCode == HttpStatus.unauthorized || statusCode == HttpStatus.forbidden) {
+        // Status check is okay, now checking if it contains on-behalf & attestation phrases
+        final message = _getErrorMessageFromDioException(dioError);
 
-      return hasAuthCode && hasPhrase;
+        if (message.contains('on-behalf') && message.contains('attestation')) {
+          return true;
+        }
+      }
     }
 
     return false;
+  }
+
+  static String _getErrorMessageFromDioException(DioException dioError) {
+    final data = dioError.response?.data;
+
+    if (data is Map && data['message'] != null) {
+      return data['message'].toString();
+    } else if (data is String) {
+      return data;
+    } else {
+      return dioError.message ?? '';
+    }
   }
 }
 
