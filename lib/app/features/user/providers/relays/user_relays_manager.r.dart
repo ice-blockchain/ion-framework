@@ -157,42 +157,26 @@ class UserRelaysManager extends _$UserRelaysManager {
   Future<List<UserRelaysEntity>> fetchRelaysFromIdentity(List<String> pubkeys) async {
     final ionIdentity = await ref.read(ionIdentityClientProvider.future);
     final usersIdentityRelays = await ionIdentity.users.ionConnectRelays(masterPubkeys: pubkeys);
+    return ref.read(userRelaysManagerProvider.notifier).cacheFromIdentity(usersIdentityRelays);
+  }
 
-    final userRelays = [
-      for (final relay in usersIdentityRelays)
-        if (relay.ionConnectRelays.isNotEmpty)
+  Future<List<UserRelaysEntity>> cacheFromIdentity(List<IdentityUserInfo> usersInfo) async {
+    final cachedEntities = [
+      for (final userInfo in usersInfo)
+        if (userInfo.ionConnectRelays.isNotEmpty)
           UserRelaysEntity(
             id: '',
             signature: '',
-            masterPubkey: relay.masterPubKey,
-            pubkey: relay.masterPubKey,
+            masterPubkey: userInfo.masterPubKey,
+            pubkey: userInfo.masterPubKey,
             createdAt: DateTime.now().microsecondsSinceEpoch,
             data: UserRelaysData(
-              list: relay.ionConnectRelays.map((relay) => relay.toUserRelay()).toList(),
+              list: userInfo.ionConnectRelays.map((relay) => relay.toUserRelay()).toList(),
             ),
           ),
-    ]..forEach(ref.read(ionConnectCacheProvider.notifier).cache);
-
-    return userRelays;
-  }
-
-  Future<void> cacheFromIdentity(List<IdentityUserInfo> usersInfo) async {
-    await Future.wait(
-      [
-        for (final userInfo in usersInfo)
-          if (userInfo.ionConnectRelays.isNotEmpty)
-            UserRelaysEntity(
-              id: '',
-              signature: '',
-              masterPubkey: userInfo.masterPubKey,
-              pubkey: userInfo.masterPubKey,
-              createdAt: DateTime.now().microsecondsSinceEpoch,
-              data: UserRelaysData(
-                list: userInfo.ionConnectRelays.map((relay) => relay.toUserRelay()).toList(),
-              ),
-            ),
-      ].map(ref.read(ionConnectCacheProvider.notifier).cache),
-    );
+    ];
+    await Future.wait(cachedEntities.map(ref.read(ionConnectCacheProvider.notifier).cache));
+    return cachedEntities;
   }
 
   Future<UserRelaysEntity?> _getCurrentUserReachableRelaysIfRequested(List<String> pubkeys) async {

@@ -167,20 +167,20 @@ class UserMetadataLiteManager extends _$UserMetadataLiteManager {
   @override
   FutureOr<void> build() async {}
 
-  Future<void> cacheFromIdentity(List<IdentityUserInfo> usersInfo) async {
-    await Future.wait(
-      [
-        for (final userInfo in usersInfo)
-          UserMetadataLiteEntity(
-            masterPubkey: userInfo.masterPubKey,
-            data: UserMetadataLite(
-              name: userInfo.username,
-              displayName: userInfo.displayName,
-              picture: userInfo.picture,
-            ),
+  Future<List<UserMetadataLiteEntity>> cacheFromIdentity(List<IdentityUserInfo> usersInfo) async {
+    final cachedEntities = [
+      for (final userInfo in usersInfo)
+        UserMetadataLiteEntity(
+          masterPubkey: userInfo.masterPubKey,
+          data: UserMetadataLite(
+            name: userInfo.username,
+            displayName: userInfo.displayName,
+            picture: userInfo.picture,
           ),
-      ].map(ref.read(ionConnectCacheProvider.notifier).cache),
-    );
+        ),
+    ];
+    await Future.wait(cachedEntities.map(ref.read(ionConnectCacheProvider.notifier).cache));
+    return cachedEntities;
   }
 }
 
