@@ -14,7 +14,6 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/file_storage_url_provider.r.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
 import 'package:ion/app/features/ion_connect/utils/file_storage_utils.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -87,7 +86,6 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
         retryWhen: _isOnBehalfAttestationError,
         onRetry: (error) {
           ref.read(relaysReplicaDelayProvider.notifier).setDelay();
-          Logger.info('NOSTR.HTTP retrying upload with 10100 attestation - relay-auth-err-retry');
         },
       );
     } catch (error, stackTrace) {
@@ -148,23 +146,7 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
       'content_type': file.mimeType,
     });
 
-    //LOGGER: Extract values for logging
-    final uri = Uri.parse(url);
-    final host = uri.authority.isNotEmpty ? uri.authority : uri.host;
-    final nip98Pubkey = customEventSigner?.publicKey ??
-        (await ref.read(currentUserIonConnectEventSignerProvider.future))?.publicKey;
-    final followRedirects = ref.read(dioProvider).options.followRedirects;
-
     try {
-      // LOGGER: HTTP logging - upload_prep
-      _logHttpUploadPrep(
-        host: host,
-        url: url,
-        nip98Pubkey: nip98Pubkey,
-        contentLen: fileBytes.length,
-        followRedirects: followRedirects,
-      );
-
       // Make HTTP POST
       final response = await ref.read(dioProvider).post<dynamic>(
             url,
@@ -179,20 +161,8 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
           UploadResponse.fromJson(json.decode(response.data as String) as Map<String, dynamic>);
 
       if (uploadResponse.status != 'success') {
-        // LOGGER: HTTP logging - upload_result_err
-        _logHttpUploadResultErr(
-          host: host,
-          response: response,
-          msg: uploadResponse.message,
-        );
         throw Exception(uploadResponse.message);
       }
-
-      // LOGGER: HTTP logging - upload_result_ok
-      _logHttpUploadResultOk(
-        host: host,
-        response: response,
-      );
 
       return uploadResponse;
     } catch (error) {
@@ -272,43 +242,4 @@ class UploadResponseNip94Event with _$UploadResponseNip94Event {
 
   factory UploadResponseNip94Event.fromJson(Map<String, dynamic> json) =>
       _$UploadResponseNip94EventFromJson(json);
-}
-
-// Logger for upload result error
-void _logHttpUploadResultErr({
-  required String host,
-  required Response<dynamic> response,
-  required String msg,
-}) {
-  final instanceHeader = response.headers.value('via') ??
-      response.headers.value('x-instance') ??
-      response.headers.value('cf-ray');
-  final code = response.statusCode ?? 0;
-  Logger.warning(
-    'NOSTR.HTTP upload_result_err host=$host code=$code msg="$msg" server_instance=${instanceHeader ?? 'null'}',
-  );
-}
-
-// Logger for upload result success
-void _logHttpUploadResultOk({required String host, required Response<dynamic> response}) {
-  final instanceHeader = response.headers.value('via') ??
-      response.headers.value('x-instance') ??
-      response.headers.value('cf-ray');
-  final code = response.statusCode ?? 0;
-  Logger.info(
-    'NOSTR.HTTP upload_result_ok host=$host code=$code server_instance=${instanceHeader ?? 'null'}',
-  );
-}
-
-// Logger for upload preparation before making the HTTP request
-void _logHttpUploadPrep({
-  required String host,
-  required String url,
-  required String? nip98Pubkey,
-  required int contentLen,
-  required bool followRedirects,
-}) {
-  Logger.info(
-    'NOSTR.HTTP upload_prep host=$host url=$url nip98.pubkey=$nip98Pubkey content_len=$contentLen follow_redirects=$followRedirects',
-  );
 }
