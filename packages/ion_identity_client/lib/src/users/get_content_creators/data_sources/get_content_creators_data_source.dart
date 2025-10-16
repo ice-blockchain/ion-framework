@@ -5,6 +5,7 @@ import 'package:ion_identity_client/src/core/network/network_client.dart';
 import 'package:ion_identity_client/src/core/storage/token_storage.dart';
 import 'package:ion_identity_client/src/core/types/request_headers.dart';
 import 'package:ion_identity_client/src/users/get_content_creators/models/get_content_creators_request.f.dart';
+import 'package:ion_identity_client/src/users/models/identity_user_info.f.dart';
 
 class IONContentCreatorsDataSource {
   IONContentCreatorsDataSource(
@@ -17,7 +18,7 @@ class IONContentCreatorsDataSource {
 
   static const basePath = '/v1/users';
 
-  Future<List<UserRelaysInfo>> fetchIONContentCreators({
+  Future<List<IdentityUserInfo>> fetchIONContentCreators({
     required int limit,
     required String username,
     required List<String> excludeMasterPubKeys,
@@ -36,7 +37,7 @@ class IONContentCreatorsDataSource {
         token: token.token,
       ),
       decoder: (result, _) => (result as List<dynamic>)
-          .map((e) => UserRelaysInfo.fromJson(e as Map<String, dynamic>))
+          .map((e) => IdentityUserInfo.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 

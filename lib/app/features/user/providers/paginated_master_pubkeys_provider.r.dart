@@ -13,7 +13,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'paginated_master_pubkeys_provider.r.g.dart';
 
-typedef UserRelaysInfoFetcher = Future<List<UserRelaysInfo>> Function(
+typedef UserInfoFetcher = Future<List<IdentityUserInfo>> Function(
   int limit,
   int offset,
   List<String> current,
@@ -33,13 +33,13 @@ class PaginatedMasterPubkeysData {
 @Riverpod(keepAlive: true)
 class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
   static const int _limit = 20;
-  late UserRelaysInfoFetcher _fetcher;
+  late UserInfoFetcher _fetcher;
   bool _initialized = false;
   int _offset = 0;
 
   @override
   Future<PaginatedMasterPubkeysData> build(
-    UserRelaysInfoFetcher fetcher, {
+    UserInfoFetcher fetcher, {
     Duration? expirationDuration,
     DatabaseCacheStrategy? cacheStrategy,
   }) async {
@@ -69,10 +69,10 @@ class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
     final currentData = state.valueOrNull?.items ?? <String>[];
     state = await AsyncValue.guard(() async {
       final ionIdentityClient = await ref.watch(ionIdentityClientProvider.future);
-      final userRelaysInfo = await _fetcher(_limit, _offset, currentData, ionIdentityClient);
+      final usersInfo = await _fetcher(_limit, _offset, currentData, ionIdentityClient);
 
       // TODO: cache relays and light user metadata
-      final masterPubkeys = userRelaysInfo.map((info) => info.masterPubKey);
+      final masterPubkeys = usersInfo.map((info) => info.masterPubKey);
 
       unawaited(
         ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
@@ -94,13 +94,13 @@ class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
         ...currentData,
         ...masterPubkeys,
       ];
-      return PaginatedMasterPubkeysData(items: merged, hasMore: userRelaysInfo.length == _limit);
+      return PaginatedMasterPubkeysData(items: merged, hasMore: usersInfo.length == _limit);
     });
     _offset += _limit;
   }
 }
 
-Future<List<UserRelaysInfo>> contentCreatorsPaginatedFetcher(
+Future<List<IdentityUserInfo>> contentCreatorsPaginatedFetcher(
   int limit,
   _,
   List<String> current,
