@@ -384,6 +384,8 @@
   "wallet_manage_coins": "Coins verwalten",
   "wallet_manage_nfts": "Netzwerk wählen",
   "wallet_buy_nfts": "NFTs kaufen",
+  "profile_token_buy": "Kaufen",
+  "profile_token_be_first_to_buy": "Sei der Erste, der kauft",
   "wallet_coin_address": "{coin}-Adresse",
   "wallet_network": "Netzwerk",
   "wallet_change": "ändern",

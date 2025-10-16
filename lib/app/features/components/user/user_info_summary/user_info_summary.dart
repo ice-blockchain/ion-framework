@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/user/user_info_summary/user_info_tile.dart';
+import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_categories_provider.r.dart';
@@ -15,10 +16,12 @@ import 'package:ion/generated/assets.gen.dart';
 class UserInfoSummary extends HookConsumerWidget {
   const UserInfoSummary({
     required this.pubkey,
+    this.profileMode = ProfileMode.light,
     super.key,
   });
 
   final String pubkey;
+  final ProfileMode profileMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,7 +37,7 @@ class UserInfoSummary extends HookConsumerWidget {
     final tiles = <Widget>[];
 
     if (category != null) {
-      tiles.add(_CategoryTile(category: category));
+      tiles.add(_CategoryTile(category: category, profileMode: profileMode));
     }
 
     if (website != null && website.isNotEmpty) {
@@ -43,6 +46,7 @@ class UserInfoSummary extends HookConsumerWidget {
           title: website,
           assetName: Assets.svg.iconArticleLink,
           isLink: true,
+          profileMode: profileMode,
         ),
       );
     }
@@ -52,6 +56,7 @@ class UserInfoSummary extends HookConsumerWidget {
         UserInfoTile(
           title: formatDateToMonthYear(registeredAt.toDateTime),
           assetName: Assets.svg.iconFieldCalendar,
+          profileMode: profileMode,
         ),
       );
     }
@@ -61,6 +66,7 @@ class UserInfoSummary extends HookConsumerWidget {
         UserInfoTile(
           title: location,
           assetName: Assets.svg.iconProfileLocation,
+          profileMode: profileMode,
         ),
       );
     }
@@ -70,6 +76,7 @@ class UserInfoSummary extends HookConsumerWidget {
         UserInfoTile(
           title: context.i18n.profile_follows_you,
           assetName: Assets.svg.iconSearchFollow,
+          profileMode: profileMode,
         ),
       );
     }
@@ -113,9 +120,10 @@ class UserInfoSummary extends HookConsumerWidget {
 }
 
 class _CategoryTile extends ConsumerWidget {
-  const _CategoryTile({required this.category});
+  const _CategoryTile({required this.category, required this.profileMode});
 
   final String category;
+  final ProfileMode profileMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -127,6 +135,7 @@ class _CategoryTile extends ConsumerWidget {
     return UserInfoTile(
       title: label,
       assetName: Assets.svg.iconBlockchain,
+      profileMode: profileMode,
     );
   }
 }

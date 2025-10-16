@@ -15,6 +15,8 @@ class HeaderAction extends StatelessWidget {
     this.loading = false,
     this.opacity = 0,
     this.flipForRtl = false,
+    this.backgroundColor,
+    this.iconColor,
     super.key,
   });
 
@@ -24,6 +26,8 @@ class HeaderAction extends StatelessWidget {
   final bool loading;
   final double opacity;
   final bool flipForRtl;
+  final Color? backgroundColor;
+  final Color? iconColor;
 
   static double get buttonSize => 60.0.s;
 
@@ -32,28 +36,30 @@ class HeaderAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final interpolatedButtonSize = lerpDouble(buttonSize, iconSize, opacity)!;
-    final interpolatedBackgroundColor = Color.lerp(
-      context.theme.appColors.tertiaryBackground,
-      context.theme.appColors.secondaryBackground,
-      opacity,
-    )!;
-    final interpolatedBorderColor = Color.lerp(
-      context.theme.appColors.onTertiaryFill,
-      context.theme.appColors.secondaryBackground,
-      opacity,
-    )!;
+    final backgroundColor = this.backgroundColor ??
+        Color.lerp(
+          context.theme.appColors.tertiaryBackground,
+          context.theme.appColors.secondaryBackground,
+          opacity,
+        )!;
+    final borderColor = this.backgroundColor ??
+        Color.lerp(
+          context.theme.appColors.onTertiaryFill,
+          context.theme.appColors.secondaryBackground,
+          opacity,
+        )!;
 
     return Button.icon(
       disabled: disabled,
       size: interpolatedButtonSize,
-      borderColor: interpolatedBorderColor,
-      backgroundColor: interpolatedBackgroundColor,
-      tintColor: context.theme.appColors.primaryText,
+      borderColor: borderColor,
+      backgroundColor: backgroundColor,
+      tintColor: iconColor ?? context.theme.appColors.primaryText,
       icon: loading
           ? const IONLoadingIndicator(type: IndicatorType.dark)
           : assetName.icon(
               size: iconSize,
-              color: context.theme.appColors.primaryText,
+              color: iconColor ?? context.theme.appColors.primaryText,
               flipForRtl: flipForRtl,
             ),
       onPressed: onPressed,
