@@ -11,7 +11,7 @@ import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'paginated_users_metadata_provider.r.g.dart';
+part 'paginated_master_pubkeys_provider.r.g.dart';
 
 typedef UserRelaysInfoFetcher = Future<List<UserRelaysInfo>> Function(
   int limit,
@@ -20,8 +20,8 @@ typedef UserRelaysInfoFetcher = Future<List<UserRelaysInfo>> Function(
   IONIdentityClient ionIdentityClient,
 );
 
-class PaginatedUsersMetadataData {
-  const PaginatedUsersMetadataData({
+class PaginatedMasterPubkeysData {
+  const PaginatedMasterPubkeysData({
     this.items = const [],
     this.hasMore = true,
   });
@@ -30,16 +30,15 @@ class PaginatedUsersMetadataData {
   final bool hasMore;
 }
 
-//TODO: rename (no metadata)
 @Riverpod(keepAlive: true)
-class PaginatedUsersMetadata extends _$PaginatedUsersMetadata {
+class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
   static const int _limit = 20;
   late UserRelaysInfoFetcher _fetcher;
   bool _initialized = false;
   int _offset = 0;
 
   @override
-  Future<PaginatedUsersMetadataData> build(
+  Future<PaginatedMasterPubkeysData> build(
     UserRelaysInfoFetcher fetcher, {
     Duration? expirationDuration,
     DatabaseCacheStrategy? cacheStrategy,
@@ -47,9 +46,9 @@ class PaginatedUsersMetadata extends _$PaginatedUsersMetadata {
     _fetcher = fetcher;
     if (!_initialized) {
       await _init();
-      return state.value ?? const PaginatedUsersMetadataData();
+      return state.value ?? const PaginatedMasterPubkeysData();
     }
-    return const PaginatedUsersMetadataData();
+    return const PaginatedMasterPubkeysData();
   }
 
   Future<void> loadMore() async {
@@ -95,7 +94,7 @@ class PaginatedUsersMetadata extends _$PaginatedUsersMetadata {
         ...currentData,
         ...masterPubkeys,
       ];
-      return PaginatedUsersMetadataData(items: merged, hasMore: userRelaysInfo.length == _limit);
+      return PaginatedMasterPubkeysData(items: merged, hasMore: userRelaysInfo.length == _limit);
     });
     _offset += _limit;
   }
