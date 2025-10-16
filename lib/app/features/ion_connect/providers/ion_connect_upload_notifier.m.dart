@@ -86,9 +86,6 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
         initialDelay: Duration.zero,
         retryWhen: _isOnBehalfAttestationError,
         onRetry: (error) {
-          Logger.warning(
-            'err type=${error.runtimeType} code=${(error is DioException) ? (error.response?.statusCode ?? 0) : -1} msg="${(error is DioException) ? (error.response?.data is Map ? (error.toString()) : error.response?.data?.toString() ?? (error.message ?? '')) : error.toString()}"',
-          );
           ref.read(relaysReplicaDelayProvider.notifier).setDelay();
           Logger.info('NOSTR.HTTP retrying upload with 10100 attestation - relay-auth-err-retry');
         },
