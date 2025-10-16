@@ -6,7 +6,6 @@ import 'package:ion_identity_client/src/users/available_ion_connect_relays/avail
 import 'package:ion_identity_client/src/users/get_content_creators/content_creators_service.dart';
 import 'package:ion_identity_client/src/users/ion_connect_indexers/get_user_connect_indexers_service.dart';
 import 'package:ion_identity_client/src/users/ion_connect_relays/ion_connect_relays_service.dart';
-import 'package:ion_identity_client/src/users/models/identity_user_info.f.dart';
 import 'package:ion_identity_client/src/users/search_users_social_profile/search_users_social_profile_service.dart';
 import 'package:ion_identity_client/src/users/set_ion_connect_relays/set_ion_connect_relays_service.dart';
 import 'package:ion_identity_client/src/users/update_user_social_profile/update_user_social_profile_service.dart';

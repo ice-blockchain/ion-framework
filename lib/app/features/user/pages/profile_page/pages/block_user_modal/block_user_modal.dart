@@ -23,7 +23,8 @@ class BlockUserModal extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final name = ref.watch(
-        userPreviewDataProvider(pubkey).select((value) => value.valueOrNull?.data.name ?? ''));
+      userPreviewDataProvider(pubkey).select((value) => value.valueOrNull?.data.name ?? ''),
+    );
     final minSize = Size(56.0.s, 56.0.s);
 
     return Column(

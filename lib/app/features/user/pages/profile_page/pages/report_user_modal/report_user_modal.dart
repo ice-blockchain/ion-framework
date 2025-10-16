@@ -27,7 +27,8 @@ class ReportUserModal extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final name = ref.watch(
-        userPreviewDataProvider(pubkey).select((value) => value.valueOrNull?.data.name ?? ''));
+      userPreviewDataProvider(pubkey).select((value) => value.valueOrNull?.data.name ?? ''),
+    );
     final formKey = useRef(GlobalKey<FormState>());
     final reportReason = useState<ReportReasonType?>(null);
 

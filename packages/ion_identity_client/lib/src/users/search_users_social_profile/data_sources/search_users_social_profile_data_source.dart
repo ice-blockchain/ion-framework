@@ -4,7 +4,6 @@ import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/core/network/network_client.dart';
 import 'package:ion_identity_client/src/core/storage/token_storage.dart';
 import 'package:ion_identity_client/src/core/types/request_headers.dart';
-import 'package:ion_identity_client/src/users/models/identity_user_info.f.dart';
 
 class SearchUsersSocialProfileDataSource {
   SearchUsersSocialProfileDataSource(
