@@ -20,5 +20,5 @@ class IdentityUserInfo with _$IdentityUserInfo {
 
   factory IdentityUserInfo.fromJson(Map<String, dynamic> json) => _$IdentityUserInfoFromJson(json);
 
-  String? get avatarUrl => avatar != null && avatar!.isNotEmpty ? avatar : null;
+  String? get picture => avatar != null && avatar!.isNotEmpty ? avatar : null;
 }

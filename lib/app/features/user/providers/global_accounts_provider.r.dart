@@ -21,7 +21,7 @@ class GlobalAccounts extends _$GlobalAccounts {
       parser: (data) => GlobalAccountsData.fromJson(jsonDecode(data) as List<dynamic>),
       checkVersion: true,
     );
-    await ref.read(userRelaysManagerProvider.notifier).cacheRelaysFromIdentity(result.list);
+    await ref.read(userRelaysManagerProvider.notifier).cacheFromIdentity(result.list);
     return result;
   }
 }

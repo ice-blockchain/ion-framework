@@ -176,19 +176,19 @@ class UserRelaysManager extends _$UserRelaysManager {
     return userRelays;
   }
 
-  Future<void> cacheRelaysFromIdentity(List<IdentityUserInfo> usersInfo) async {
+  Future<void> cacheFromIdentity(List<IdentityUserInfo> usersInfo) async {
     await Future.wait(
       [
-        for (final relay in usersInfo)
-          if (relay.ionConnectRelays.isNotEmpty)
+        for (final userInfo in usersInfo)
+          if (userInfo.ionConnectRelays.isNotEmpty)
             UserRelaysEntity(
               id: '',
               signature: '',
-              masterPubkey: relay.masterPubKey,
-              pubkey: relay.masterPubKey,
+              masterPubkey: userInfo.masterPubKey,
+              pubkey: userInfo.masterPubKey,
               createdAt: DateTime.now().microsecondsSinceEpoch,
               data: UserRelaysData(
-                list: relay.ionConnectRelays.map((relay) => relay.toUserRelay()).toList(),
+                list: userInfo.ionConnectRelays.map((relay) => relay.toUserRelay()).toList(),
               ),
             ),
       ].map(ref.read(ionConnectCacheProvider.notifier).cache),
