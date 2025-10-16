@@ -6,6 +6,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -68,10 +69,11 @@ class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
     state = const AsyncValue.loading();
     final currentData = state.valueOrNull?.items ?? <String>[];
     state = await AsyncValue.guard(() async {
-      final ionIdentityClient = await ref.watch(ionIdentityClientProvider.future);
+      final ionIdentityClient = await ref.read(ionIdentityClientProvider.future);
       final usersInfo = await _fetcher(_limit, _offset, currentData, ionIdentityClient);
+      await ref.read(userRelaysManagerProvider.notifier).cacheRelaysFromIdentity(usersInfo);
 
-      // TODO: cache relays and light user metadata
+      // TODO: cache light user metadata
       final masterPubkeys = usersInfo.map((info) => info.masterPubKey);
 
       unawaited(

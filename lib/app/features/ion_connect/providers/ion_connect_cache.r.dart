@@ -40,7 +40,7 @@ class IonConnectCache extends _$IonConnectCache {
     return {};
   }
 
-  void cache(IonConnectEntity entity) {
+  Future<void> cache(IonConnectEntity entity) async {
     if (entity is CacheableEntity) {
       final entry = CacheEntry(
         entity: entity,
@@ -53,9 +53,9 @@ class IonConnectCache extends _$IonConnectCache {
     }
 
     if (entity is DbCacheableEntity) {
-      unawaited(
-        ref.read(ionConnectDatabaseCacheProvider.notifier).saveEntity(entity as DbCacheableEntity),
-      );
+      return ref
+          .read(ionConnectDatabaseCacheProvider.notifier)
+          .saveEntity(entity as DbCacheableEntity);
     }
   }
 
