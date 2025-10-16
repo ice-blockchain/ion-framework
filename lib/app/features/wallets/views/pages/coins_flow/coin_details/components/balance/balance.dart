@@ -41,6 +41,9 @@ class Balance extends ConsumerWidget {
                 ref.read(sendAssetFormControllerProvider.notifier).setCoin(coinsGroup);
                 SelectNetworkWalletRoute().push<void>(context);
               },
+              onBuy: () {},
+              onSwap: () {},
+              onMore: () {},
             ),
           ),
         ],

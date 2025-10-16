@@ -13,12 +13,18 @@ class BalanceActions extends HookConsumerWidget {
     required this.onReceive,
     required this.onSend,
     required this.onNeedToEnable2FA,
+    required this.onBuy,
+    required this.onSwap,
+    required this.onMore,
     this.isLoading = false,
     super.key,
   });
 
   final VoidCallback onReceive;
   final VoidCallback onSend;
+  final VoidCallback onBuy;
+  final VoidCallback onSwap;
+  final VoidCallback onMore;
   final bool isLoading;
   final void Function() onNeedToEnable2FA;
 
@@ -34,34 +40,41 @@ class BalanceActions extends HookConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: Button.compact(
-            leadingIcon: Assets.svg.iconButtonSend.icon(),
-            label: Text(
-              context.i18n.wallet_send,
-            ),
-            onPressed: isLoading ? () {} : onSend,
+          child: TextIconButton(
+            icon: Assets.svg.iconButtonSend.icon(),
+            label: 'Buy', // TODO: Add wallet_buy to i18n
+            onPressed: onBuy,
+            disabled: isLoading,
           ),
         ),
-        SizedBox(
-          width: 12.0.s,
-        ),
+        SizedBox(width: 12.0.s),
         Expanded(
-          child: Button.compact(
-            type: isLoading ? ButtonType.primary : ButtonType.outlined,
-            leadingIcon: Assets.svg.iconButtonReceive.icon(),
-            label: Text(
-              context.i18n.wallet_receive,
-            ),
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.all(context.theme.appColors.tertiaryBackground),
-              side: WidgetStateProperty.all(
-                BorderSide(
-                  color: context.theme.appColors.onTertiaryFill,
-                  width: 1.0.s,
-                ),
-              ),
-            ),
-            onPressed: isLoading ? () {} : onReceiveFlow,
+          child: TextIconButton(
+            icon: Assets.svg.iconButtonQrcode.icon(color: context.theme.appColors.primaryAccent),
+            label: context.i18n.wallet_receive,
+            onPressed: onReceiveFlow,
+            type: ButtonType.outlined,
+            disabled: isLoading,
+          ),
+        ),
+        SizedBox(width: 12.0.s),
+        Expanded(
+          child: TextIconButton(
+            icon: Assets.svg.iconamoonSwap.icon(color: context.theme.appColors.primaryAccent),
+            label: 'Swap', // TODO: Add wallet_swap to i18n
+            onPressed: onSwap,
+            disabled: isLoading,
+            type: ButtonType.outlined,
+          ),
+        ),
+        SizedBox(width: 12.0.s),
+        Expanded(
+          child: TextIconButton(
+            icon: Assets.svg.iconButtonMore.icon(color: context.theme.appColors.primaryAccent),
+            label: 'More', // TODO: Add wallet_more to i18n
+            onPressed: onMore,
+            disabled: isLoading,
+            type: ButtonType.outlined,
           ),
         ),
       ],
