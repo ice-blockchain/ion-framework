@@ -47,6 +47,7 @@ class OptimisticOperationManager<T extends OptimisticModel> {
 
   Future<void> initialize(FutureOr<List<T>> initial) async {
     final initialState = await initial;
+    if (_controller.isClosed) return;
     _state
       ..clear()
       ..addAll(initialState);
