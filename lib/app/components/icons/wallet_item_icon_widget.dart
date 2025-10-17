@@ -51,6 +51,7 @@ class WalletItemIconWidget extends StatelessWidget {
             height: iconSize,
             errorWidget: (_, __, ___) => Assets.svg.walletEmptyicon.icon(size: iconSize),
             borderRadius: borderRadius,
+            isPrecached: true,
             imageBuilder: colorFilter != null
                 ? (context, imageProvider) => Container(
                       width: iconSize,
