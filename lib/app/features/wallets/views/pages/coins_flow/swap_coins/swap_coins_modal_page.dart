@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -446,9 +447,17 @@ class _ContinueButton extends StatelessWidget {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
-        onPressed: () {
+        onPressed: () async {
           if (isEnabled) {
-            SwapCoinsConfirmationRoute().push<void>(context);
+            final result = await SwapCoinsConfirmationRoute().push<bool?>(context);
+            if (result != null && result == true) {
+              /// Waiting until confirmation page is closed
+              Future.delayed(const Duration(milliseconds: 50), () {
+                if (context.mounted) {
+                  context.pop();
+                }
+              });
+            }
           }
         },
         label: Text(
