@@ -11,11 +11,15 @@ class SelectCoinModalPage extends ConsumerWidget {
   const SelectCoinModalPage({
     required this.title,
     required this.onCoinSelected,
+    this.showBackButton = false,
+    this.showCloseButton = true,
     super.key,
   });
 
   final String title;
   final ValueChanged<CoinsGroup> onCoinSelected;
+  final bool showBackButton;
+  final bool showCloseButton;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,6 +27,8 @@ class SelectCoinModalPage extends ConsumerWidget {
 
     return SheetContent(
       body: CoinsListView(
+        showBackButton: showBackButton,
+        showCloseButton: showCloseButton,
         coinsResult: coinsResult,
         onItemTap: onCoinSelected,
         title: title,

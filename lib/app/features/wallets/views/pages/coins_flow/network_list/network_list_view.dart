@@ -20,13 +20,14 @@ import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.da
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/network_list/network_item.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/receive_coins_form_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/utils/network_validator.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 
-enum NetworkListViewType { send, receive, request }
+enum NetworkListViewType { send, receive, request, swapSell, swapBuy }
 
 class NetworkListView extends HookConsumerWidget {
   const NetworkListView({
@@ -51,6 +52,8 @@ class NetworkListView extends HookConsumerWidget {
           .assetData
           .as<CoinAssetToSendData>()
           ?.coinsGroup,
+      NetworkListViewType.swapSell => ref.watch(swapCoinsControllerProvider).sellCoin,
+      NetworkListViewType.swapBuy => ref.watch(swapCoinsControllerProvider).buyCoin,
     };
 
     final isProcessing = useRef(false);
@@ -154,6 +157,12 @@ class NetworkListView extends HookConsumerWidget {
           unawaited(ref.read(requestCoinsFormControllerProvider.notifier).setNetwork(network));
           unawaited(context.push(sendFormRouteLocationBuilder!()));
         }
+      case NetworkListViewType.swapSell:
+        ref.read(swapCoinsControllerProvider.notifier).setSellNetwork(network);
+        context.pop();
+      case NetworkListViewType.swapBuy:
+        ref.read(swapCoinsControllerProvider.notifier).setBuyNetwork(network);
+        context.pop();
     }
   }
 }
