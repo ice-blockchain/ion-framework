@@ -75,9 +75,16 @@ class SwapCoinsModalPage extends ConsumerWidget {
               ),
             ],
           ),
-          SizedBox(
-            height: 16.0.s,
-          ),
+          if (sellCoins != null && buyCoins != null)
+            _ConversionInfoRow(
+              providerName: 'CEX + DEX',
+              sellCoin: sellCoins,
+              buyCoin: buyCoins,
+            )
+          else
+            SizedBox(
+              height: 32.0.s,
+            ),
           const _ContinueButton(),
           SizedBox(
             height: 16.0.s,
@@ -424,6 +431,7 @@ class _SwapButton extends ConsumerWidget {
   }
 }
 
+// TODO(ice-erebus): add high impact and not enough states
 class _ContinueButton extends StatelessWidget {
   const _ContinueButton();
 
@@ -457,6 +465,54 @@ class _ContinueButton extends StatelessWidget {
             vertical: 16.0.s,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ConversionInfoRow extends StatelessWidget {
+  const _ConversionInfoRow({
+    required this.providerName,
+    required this.sellCoin,
+    required this.buyCoin,
+  });
+
+  final String providerName;
+  final CoinsGroup sellCoin;
+  final CoinsGroup buyCoin;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.appColors;
+    final textStyles = context.theme.appTextThemes;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: 16.0.s,
+        vertical: 25.0.s,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // TODO(ice-erebus): implement conversion info
+          Text(
+            '1 ${sellCoin.name} = X ${buyCoin.name}',
+            style: textStyles.body2.copyWith(),
+          ),
+          Row(
+            spacing: 4.0.s,
+            children: [
+              Text(
+                providerName,
+                style: textStyles.body2.copyWith(),
+              ),
+              Assets.svg.iconBlockInformation.icon(
+                color: colors.tertiaryText,
+                size: 16.0.s,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
