@@ -3,6 +3,8 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
+import 'package:passkeys/exceptions.dart';
 
 abstract class IONIdentityException implements Exception {
   const IONIdentityException([this.message]);
@@ -249,6 +251,20 @@ class InvalidSignatureException extends IONIdentityException {
 
 class PasskeyCancelledException extends IONIdentityException {
   const PasskeyCancelledException() : super('Passkey cancelled by user');
+
+  static bool isMatch(Object exception) {
+    String? message;
+    if (exception is PlatformException) {
+      message = exception.message;
+    } else if (exception is UnhandledAuthenticatorException) {
+      message = exception.message;
+    } else {
+      return false;
+    }
+
+    final msg = (message ?? '').toLowerCase();
+    return msg.contains('cancel') && msg.contains('user');
+  }
 }
 
 class InvalidEmailException extends IONIdentityException {
