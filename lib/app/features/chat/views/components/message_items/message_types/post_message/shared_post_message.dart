@@ -9,6 +9,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_item_wrapper/message_item_wrapper.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
@@ -38,9 +39,10 @@ class SharedPostMessage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useAutomaticKeepAlive();
-
-    final isMe = ref.watch(isCurrentUserSelectorProvider(sharedEventMessage.masterPubkey));
+    final isMe = useMemoized(
+      () => ref.read(isCurrentUserSelectorProvider(sharedEventMessage.masterPubkey)),
+      [sharedEventMessage.masterPubkey],
+    );
 
     final postData = useMemoized(
       () => switch (postEntity) {
@@ -60,14 +62,21 @@ class SharedPostMessage extends HookConsumerWidget {
       },
     );
 
-    final postFromNetwork = ref
-        .watch(
+    final postEntityEventReference = postEntity.toEventReference();
+
+    final postFromNetwork = ref.watch(
           ionConnectEntityProvider(
-            eventReference: postEntity.toEventReference(),
             cache: false,
-          ),
-        )
-        .valueOrNull;
+            eventReference: postEntityEventReference,
+          ).select((value) {
+            final entity = value.valueOrNull;
+            if (entity != null) {
+              ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
+            }
+            return entity;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, postEntityEventReference);
 
     final isPostDeleted = useMemoized(
       () => switch (postFromNetwork) {
@@ -84,13 +93,19 @@ class SharedPostMessage extends HookConsumerWidget {
 
     final (:content, :media) = ref.watch(cachedParsedMediaProvider(postData));
 
-    final contentAsPlainText = useMemoized(() => Document.fromDelta(content).toPlainText().trim());
+    final contentAsPlainText = useMemoized(
+      () => Document.fromDelta(content).toPlainText().trim(),
+      [content],
+    );
 
-    final messageItem = PostItem(
-      medias: media,
-      eventMessage: sharedEventMessage,
-      contentDescription:
-          contentAsPlainText.isEmpty ? context.i18n.post_page_title : contentAsPlainText,
+    final messageItem = useMemoized(
+      () => PostItem(
+        medias: media,
+        eventMessage: sharedEventMessage,
+        contentDescription:
+            contentAsPlainText.isEmpty ? context.i18n.post_page_title : contentAsPlainText,
+      ),
+      [media, sharedEventMessage, contentAsPlainText],
     );
 
     final userInfo = UserInfo(
@@ -103,6 +118,7 @@ class SharedPostMessage extends HookConsumerWidget {
             )
           : null,
     );
+
     return MessageItemWrapper(
       isMe: isMe,
       margin: margin,

@@ -12,11 +12,8 @@ import 'package:stream_transform/stream_transform.dart';
 
 part 'message_status_provider.r.g.dart';
 
-@Riverpod(keepAlive: true, dependencies: [])
-Stream<MessageDeliveryStatus> messageStatus(
-  Ref ref,
-  EventReference eventReference,
-) async* {
+@riverpod
+Stream<MessageDeliveryStatus> messageStatus(Ref ref, EventReference eventReference) async* {
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
 
   if (currentUserMasterPubkey == null) {

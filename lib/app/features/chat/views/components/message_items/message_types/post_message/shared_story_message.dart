@@ -12,6 +12,7 @@ import 'package:ion/app/features/chat/hooks/use_has_reaction.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_item_wrapper/message_item_wrapper.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/text_message/text_message.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/components/ion_connect_network_image/ion_connect_network_image.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
@@ -44,7 +45,10 @@ class SharedStoryMessage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
 
-    final isMe = ref.watch(isCurrentUserSelectorProvider(replyEventMessage.masterPubkey));
+    final isMe = useMemoized(
+      () => ref.watch(isCurrentUserSelectorProvider(replyEventMessage.masterPubkey)),
+      [replyEventMessage.masterPubkey],
+    );
 
     final storyEntityData = useMemoized(
       () => switch (storyEntity) {
@@ -80,14 +84,21 @@ class SharedStoryMessage extends HookConsumerWidget {
 
     final storyBelongsToCurrentUser = storyEntity.masterPubkey == currentUserMasterPubkey;
 
-    final storyFromNetwork = ref
-        .watch(
+    final storyEntityEventReference = storyEntity.toEventReference();
+
+    final storyFromNetwork = ref.watch(
           ionConnectEntityProvider(
-            eventReference: storyEntity.toEventReference(),
+            eventReference: storyEntityEventReference,
             cache: false,
-          ),
-        )
-        .valueOrNull;
+          ).select((value) {
+            final entity = value.valueOrNull;
+            if (entity != null) {
+              ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
+            }
+            return entity;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, storyEntityEventReference);
 
     final storyDeleted = useMemoized(
       () => switch (storyFromNetwork) {
