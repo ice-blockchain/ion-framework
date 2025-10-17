@@ -18,6 +18,7 @@ class WalletRoutes {
         ...coinSendRoutes,
         ...coinReceiveRoutes,
         ...nftSendRoutes,
+        ...swapCoinsRoutes,
       ],
     ),
     ...walletManagementRoutes,
@@ -104,6 +105,10 @@ class WalletRoutes {
         TypedGoRoute<DeleteWalletRoute>(path: 'delete-wallet'),
       ],
     ),
+  ];
+
+  static const swapCoinsRoutes = <TypedRoute<RouteData>>[
+    TypedGoRoute<SwapCoinsRoute>(path: 'swap-coins'),
   ];
 }
 
@@ -227,8 +232,7 @@ class SendCoinsFormWalletRoute extends BaseRouteData with _$SendCoinsFormWalletR
           child: SendCoinsForm(
             selectCoinRouteLocationBuilder: () => SelectCoinWalletRoute().location,
             selectNetworkRouteLocationBuilder: () => SelectNetworkWalletRoute().location,
-            selectContactRouteLocationBuilder: (networkId) =>
-                SelectContactWalletRoute(networkId: networkId).location,
+            selectContactRouteLocationBuilder: (networkId) => SelectContactWalletRoute(networkId: networkId).location,
             scanAddressRouteLocationBuilder: () => CoinSendScanRoute().location,
             confirmRouteLocationBuilder: () => SendCoinsConfirmationWalletRoute().location,
           ),
@@ -270,21 +274,18 @@ class NftSelectContactRoute extends BaseRouteData with _$NftSelectContactRoute {
   final String networkId;
 }
 
-class SendCoinsConfirmationWalletRoute extends BaseRouteData
-    with _$SendCoinsConfirmationWalletRoute {
+class SendCoinsConfirmationWalletRoute extends BaseRouteData with _$SendCoinsConfirmationWalletRoute {
   SendCoinsConfirmationWalletRoute()
       : super(
           child: ConfirmationSheet(
             successRouteLocationBuilder: (walletViewId, txHash) =>
-                CoinTransactionResultWalletRoute(walletViewId: walletViewId, txHash: txHash)
-                    .location,
+                CoinTransactionResultWalletRoute(walletViewId: walletViewId, txHash: txHash).location,
           ),
           type: IceRouteType.bottomSheet,
         );
 }
 
-class CoinTransactionResultWalletRoute extends BaseRouteData
-    with _$CoinTransactionResultWalletRoute {
+class CoinTransactionResultWalletRoute extends BaseRouteData with _$CoinTransactionResultWalletRoute {
   CoinTransactionResultWalletRoute({
     required this.walletViewId,
     required this.txHash,
@@ -423,8 +424,7 @@ class AddressNotFoundRoute extends BaseRouteData with _$AddressNotFoundRoute {
         );
 }
 
-class AddressNotFoundReceiveCoinsRoute extends BaseRouteData
-    with _$AddressNotFoundReceiveCoinsRoute {
+class AddressNotFoundReceiveCoinsRoute extends BaseRouteData with _$AddressNotFoundReceiveCoinsRoute {
   AddressNotFoundReceiveCoinsRoute()
       : super(
           child: AddressNotFoundWalletModal(
@@ -519,4 +519,14 @@ class ShareTokenCreatorRoute extends BaseRouteData with _$ShareTokenCreatorRoute
         );
 
   final String masterPubkey;
+}
+
+class SwapCoinsRoute extends BaseRouteData with _$SwapCoinsRoute {
+  SwapCoinsRoute({required this.initialCoinsGroupSymbol})
+      : super(
+          child: SwapCoinsModalPage(initialCoinsGroupSymbol: initialCoinsGroupSymbol),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String initialCoinsGroupSymbol;
 }
