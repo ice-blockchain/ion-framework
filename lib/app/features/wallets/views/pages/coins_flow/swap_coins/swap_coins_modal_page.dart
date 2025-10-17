@@ -30,6 +30,7 @@ class SwapCoinsModalPage extends ConsumerWidget {
     final sellNetwork = ref.watch(swapCoinsControllerProvider).sellNetwork;
     final buyCoins = ref.watch(swapCoinsControllerProvider).buyCoin;
     final buyNetwork = ref.watch(swapCoinsControllerProvider).buyNetwork;
+    final isContinueButtonEnabled = sellCoins != null && buyCoins != null && sellNetwork != null && buyNetwork != null;
 
     return SheetContent(
       body: Column(
@@ -82,7 +83,9 @@ class SwapCoinsModalPage extends ConsumerWidget {
             SizedBox(
               height: 32.0.s,
             ),
-          const _ContinueButton(),
+          _ContinueButton(
+            isEnabled: isContinueButtonEnabled,
+          ),
           SizedBox(
             height: 16.0.s,
           ),
@@ -428,9 +431,12 @@ class _SwapButton extends ConsumerWidget {
   }
 }
 
-// TODO(ice-erebus): add high impact and not enough states
 class _ContinueButton extends StatelessWidget {
-  const _ContinueButton();
+  const _ContinueButton({
+    required this.isEnabled,
+  });
+
+  final bool isEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -441,7 +447,9 @@ class _ContinueButton extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
         onPressed: () {
-          // TODO(ice-erebus): implement continue action
+          if (isEnabled) {
+            SwapCoinsConfirmationRoute().push<void>(context);
+          }
         },
         label: Text(
           context.i18n.wallet_swap_coins_continue,
@@ -449,7 +457,7 @@ class _ContinueButton extends StatelessWidget {
             color: colors.secondaryBackground,
           ),
         ),
-        backgroundColor: colors.sheetLine,
+        backgroundColor: isEnabled ? colors.primaryAccent : colors.sheetLine.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16.0.s),
         trailingIcon: Assets.svg.iconButtonNext.icon(
           color: colors.secondaryBackground,
@@ -467,6 +475,7 @@ class _ContinueButton extends StatelessWidget {
   }
 }
 
+// TODO(ice-erebus): add high impact and not enough states
 class _ConversionInfoRow extends StatelessWidget {
   const _ConversionInfoRow({
     required this.providerName,

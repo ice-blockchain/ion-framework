@@ -47,8 +47,11 @@ class NetworkListView extends HookConsumerWidget {
       NetworkListViewType.send =>
         ref.watch(sendAssetFormControllerProvider).assetData.as<CoinAssetToSendData>()?.coinsGroup,
       NetworkListViewType.receive => ref.watch(receiveCoinsFormControllerProvider).selectedCoin!,
-      NetworkListViewType.request =>
-        ref.watch(requestCoinsFormControllerProvider).assetData.as<CoinAssetToSendData>()?.coinsGroup,
+      NetworkListViewType.request => ref
+          .watch(requestCoinsFormControllerProvider)
+          .assetData
+          .as<CoinAssetToSendData>()
+          ?.coinsGroup,
       NetworkListViewType.swapSell => ref.watch(swapCoinsControllerProvider).sellCoin,
       NetworkListViewType.swapBuy => ref.watch(swapCoinsControllerProvider).buyCoin,
     };
