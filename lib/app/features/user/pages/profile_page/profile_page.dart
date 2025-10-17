@@ -52,8 +52,10 @@ class ProfilePage extends HookConsumerWidget {
 
     final metadata = userMetadata.valueOrNull;
 
-    final isBlockedOrBlockedBy =
-        ref.watch(isBlockedOrBlockedByNotifierProvider(masterPubkey)).valueOrNull.falseOrValue;
+    final isBlockedOrBlockedBy = ref.watch(
+      isBlockedOrBlockedByNotifierProvider(masterPubkey)
+          .select((value) => value.valueOrNull.falseOrValue),
+    );
 
     if (metadata.isDeleted || isBlockedOrBlockedBy) {
       return const CantFindProfilePage();
