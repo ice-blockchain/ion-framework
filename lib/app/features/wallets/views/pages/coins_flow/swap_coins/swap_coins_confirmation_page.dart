@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
+import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
@@ -388,17 +391,57 @@ class _Divider extends StatelessWidget {
   }
 }
 
-class _SwapButton extends StatelessWidget {
+class _SwapButton extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
+    final sellCoins = ref.watch(swapCoinsControllerProvider).sellCoin;
+    final buyCoins = ref.watch(swapCoinsControllerProvider).buyCoin;
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
         onPressed: () {
           // TODO(ice-erebus): implement swap action
+          ref.read(messageNotificationNotifierProvider.notifier).show(
+                MessageNotification(
+                  message: context.i18n.wallet_swapping_coins,
+                  icon: Assets.svg.iconSwap.icon(
+                    size: 16.0.s,
+                    color: colors.primaryAccent,
+                  ),
+                  suffixWidget: Row(
+                    spacing: 4.0.s,
+                    children: [
+                      Text(
+                        sellCoins?.name ?? '',
+                        style: textStyles.body.copyWith(
+                          color: colors.onPrimaryAccent,
+                        ),
+                      ),
+                      RotatedBox(
+                        quarterTurns: 2,
+                        child: Assets.svg.iconBackArrow.icon(
+                          color: colors.onTertiaryFill,
+                          size: 16.0.s,
+                        ),
+                      ),
+                      Text(
+                        buyCoins?.name ?? '',
+                        style: textStyles.body.copyWith(
+                          color: colors.onPrimaryAccent,
+                        ),
+                      ),
+                      SizedBox(width: 4.0.s),
+                    ],
+                  ),
+                ),
+              );
+
+          if (context.mounted) {
+            context.pop(true);
+          }
         },
         label: Text(
           context.i18n.wallet_swap_confirmation_swap_button,
