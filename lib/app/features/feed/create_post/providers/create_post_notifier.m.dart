@@ -323,6 +323,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
     metadataBuilders.add(userEventsMetadataBuilder);
 
+    pubkeysToPublish.remove(postEvent.masterPubkey);
     await Future.wait([
       ionNotifier.sendEvents([...fileEvents, postEvent]),
       for (final pubkey in pubkeysToPublish)
