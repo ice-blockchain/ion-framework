@@ -103,9 +103,9 @@ class _SwapTokensSection extends StatelessWidget {
       padding: EdgeInsets.all(16.0.s),
       child: Stack(
         children: [
-          Positioned(
+          PositionedDirectional(
             top: 38.0.s,
-            left: 0.0.s,
+            start: 0.0.s,
             child: Assets.svg.iconSwapArrows.iconWithDimensions(
               color: colors.sheetLine,
               height: 66.0.s,
