@@ -10,6 +10,7 @@ import 'package:ion/app/features/chat/views/components/message_items/message_typ
     as shared_post_ui;
 import 'package:ion/app/features/chat/views/components/message_items/message_types/post_message/shared_post_wrapper.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/post_message/shared_story_message.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
@@ -30,24 +31,36 @@ class PostMessage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sharedEntity =
         useMemoized(() => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage));
-
-    final postEntity = sharedEntity.data.quotedEvent != null
-        ? ref
-            .watch(
-              sharedPostMessageProvider(sharedEntity.data.quotedEvent!.eventReference),
-            )
-            .valueOrNull
-        : null;
+    final kind16EventReference = sharedEntity.data.quotedEvent!.eventReference;
+    final postEntity = ref.watch(
+          sharedPostMessageProvider(kind16EventReference).select((value) {
+            final entity = value.valueOrNull;
+            if (entity != null) {
+              ListCachedObjects.updateObject<EntityWithKey>(
+                context,
+                (key: kind16EventReference.toString(), entity: entity),
+              );
+            }
+            return entity;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<EntityWithKey>(context, kind16EventReference.toString())
+            ?.entity;
 
     if (postEntity == null) {
       return const SizedBox.shrink();
     }
 
-    final isStory = switch (postEntity) {
-      final ModifiablePostEntity post => post.data.expiration != null,
-      final PostEntity post => post.data.expiration != null,
-      _ => false,
-    };
+    final isStory = useMemoized<bool>(
+      () {
+        return switch (postEntity) {
+          final ModifiablePostEntity post => post.data.expiration != null,
+          final PostEntity post => post.data.expiration != null,
+          _ => false,
+        };
+      },
+      [postEntity],
+    );
 
     return isStory
         ? SharedStoryWrapper(
