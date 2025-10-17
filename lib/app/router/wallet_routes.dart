@@ -5,7 +5,10 @@ part of 'app_routes.gr.dart';
 class WalletRoutes {
   static const routes = <TypedRoute<RouteData>>[
     TypedShellRoute<ModalShellRouteData>(
-      routes: [TypedGoRoute<ManageNftsRoute>(path: 'manage-nfts')],
+      routes: [
+        TypedGoRoute<ManageNftsRoute>(path: 'manage-nfts'),
+        TypedGoRoute<ComingSoonModalRoute>(path: 'coming-soon-modal'),
+      ],
     ),
     TypedShellRoute<ModalShellRouteData>(
       routes: [
@@ -506,4 +509,12 @@ class ExploreTransactionDetailsRoute extends BaseRouteData with _$ExploreTransac
         );
 
   final String url;
+}
+
+class ComingSoonModalRoute extends BaseRouteData with _$ComingSoonModalRoute {
+  ComingSoonModalRoute()
+      : super(
+          child: const ComingSoonModal(),
+          type: IceRouteType.bottomSheet,
+        );
 }
