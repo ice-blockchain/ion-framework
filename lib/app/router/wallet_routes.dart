@@ -106,6 +106,9 @@ class WalletRoutes {
 
   static const swapCoinsRoutes = <TypedRoute<RouteData>>[
     TypedGoRoute<SwapCoinsRoute>(path: 'swap-coins'),
+    TypedGoRoute<SwapSelectCoinRoute>(path: 'swap-select-coin'),
+    TypedGoRoute<SwapSellSelectNetworkRoute>(path: 'swap-sell-select-network'),
+    TypedGoRoute<SwapBuySelectNetworkRoute>(path: 'swap-buy-select-network'),
   ];
 }
 
@@ -509,11 +512,48 @@ class ExploreTransactionDetailsRoute extends BaseRouteData with _$ExploreTransac
 }
 
 class SwapCoinsRoute extends BaseRouteData with _$SwapCoinsRoute {
-  SwapCoinsRoute({required this.initialCoinsGroupSymbol})
+  SwapCoinsRoute()
       : super(
-          child: SwapCoinsModalPage(initialCoinsGroupSymbol: initialCoinsGroupSymbol),
+          child: const SwapCoinsModalPage(),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class SwapSelectCoinRoute extends BaseRouteData with _$SwapSelectCoinRoute {
+  SwapSelectCoinRoute({
+    required this.coinType,
+  }) : super(
+          child: SwapSelectCoinPage(
+            selectNetworkRouteLocationBuilder: () => switch (coinType) {
+              CoinSwapType.sell => SwapSellSelectNetworkRoute().location,
+              CoinSwapType.buy => SwapBuySelectNetworkRoute().location,
+            },
+            type: coinType,
+          ),
           type: IceRouteType.bottomSheet,
         );
 
-  final String initialCoinsGroupSymbol;
+  final CoinSwapType coinType;
+}
+
+class SwapSellSelectNetworkRoute extends BaseRouteData with _$SwapSellSelectNetworkRoute {
+  SwapSellSelectNetworkRoute()
+      : super(
+          child: const NetworkListView(
+            type: NetworkListViewType.swapSell,
+            onSelectReturnType: true,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class SwapBuySelectNetworkRoute extends BaseRouteData with _$SwapBuySelectNetworkRoute {
+  SwapBuySelectNetworkRoute()
+      : super(
+          child: const NetworkListView(
+            type: NetworkListViewType.swapBuy,
+            onSelectReturnType: true,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
 }

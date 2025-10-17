@@ -4,28 +4,32 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
-import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
+import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/utils/text_input_formatters.dart';
 import 'package:ion/generated/assets.gen.dart';
 
+enum CoinSwapType {
+  sell,
+  buy;
+}
+
 class SwapCoinsModalPage extends ConsumerWidget {
   const SwapCoinsModalPage({
-    required this.initialCoinsGroupSymbol,
     super.key,
   });
 
-  final String initialCoinsGroupSymbol;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final walletView = ref.watch(currentWalletViewDataProvider).requireValue;
-    final initialCoins = walletView.coinGroups.firstWhere((e) => e.symbolGroup == initialCoinsGroupSymbol);
-    final initialCoin = initialCoins.coins.first;
+    final sellCoins = ref.watch(swapCoinsControllerProvider).sellCoin;
+    final sellNetwork = ref.watch(swapCoinsControllerProvider).sellNetwork;
+    final buyCoins = ref.watch(swapCoinsControllerProvider).buyCoin;
+    final buyNetwork = ref.watch(swapCoinsControllerProvider).buyNetwork;
 
     return SheetContent(
       body: Column(
@@ -48,17 +52,17 @@ class SwapCoinsModalPage extends ConsumerWidget {
               Column(
                 children: [
                   _TokenCard(
-                    type: _TokenCardType.from,
-                    coinsGroup: initialCoins,
-                    coin: initialCoin,
+                    type: CoinSwapType.sell,
+                    coinsGroup: sellNetwork != null ? sellCoins : null,
+                    network: sellNetwork,
                   ),
                   SizedBox(
                     height: 10.0.s,
                   ),
-                  const _TokenCard(
-                    type: _TokenCardType.to,
-                    coinsGroup: null,
-                    coin: null,
+                  _TokenCard(
+                    type: CoinSwapType.buy,
+                    coinsGroup: buyNetwork != null ? buyCoins : null,
+                    network: buyNetwork,
                   ),
                 ],
               ),
@@ -120,21 +124,16 @@ class _SlippageAction extends StatelessWidget {
   }
 }
 
-enum _TokenCardType {
-  from,
-  to;
-}
-
 class _TokenCard extends ConsumerWidget {
   const _TokenCard({
     required this.type,
-    required this.coin,
     required this.coinsGroup,
+    required this.network,
   });
 
-  final _TokenCardType type;
-  final CoinInWalletData? coin;
+  final CoinSwapType type;
   final CoinsGroup? coinsGroup;
+  final NetworkData? network;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -152,8 +151,8 @@ class _TokenCard extends ConsumerWidget {
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16.0.s),
-        color: type == _TokenCardType.to ? colors.tertiaryBackground : Colors.transparent,
-        border: type == _TokenCardType.from
+        color: type == CoinSwapType.buy ? colors.tertiaryBackground : Colors.transparent,
+        border: type == CoinSwapType.sell
             ? Border.all(
                 color: colors.onTertiaryFill,
               )
@@ -166,12 +165,12 @@ class _TokenCard extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                type == _TokenCardType.from ? context.i18n.wallet_swap_coins_sell : context.i18n.wallet_swap_coins_buy,
+                type == CoinSwapType.sell ? context.i18n.wallet_swap_coins_sell : context.i18n.wallet_swap_coins_buy,
                 style: textStyles.subtitle3.copyWith(
                   color: colors.onTertiaryBackground,
                 ),
               ),
-              if (type == _TokenCardType.from)
+              if (type == CoinSwapType.sell)
                 Row(
                   spacing: 5.0.s,
                   children: [
@@ -206,96 +205,114 @@ class _TokenCard extends ConsumerWidget {
           SizedBox(
             height: 16.0.s,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              if (iconUrl != null && coinsGroup != null)
-                Row(
-                  spacing: 10.0.s,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (coin != null)
-                      CoinIconWithNetwork.small(
-                        iconUrl,
-                        network: coin!.coin.network,
-                      ),
-                    Column(
-                      spacing: 2.0.s,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          coinsGroup!.name,
-                          style: textStyles.body.copyWith(
-                            color: colors.primaryText,
-                          ),
+          GestureDetector(
+            onTap: () {
+              SwapSelectCoinRoute(
+                coinType: type,
+              ).push<void>(context);
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (iconUrl != null && coinsGroup != null)
+                  Row(
+                    spacing: 10.0.s,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (network != null)
+                        CoinIconWithNetwork.small(
+                          iconUrl,
+                          network: network!,
                         ),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
-                          decoration: BoxDecoration(
-                            color: colors.attentionBlock,
-                            borderRadius: BorderRadius.circular(16.0.s),
+                      Column(
+                        spacing: 2.0.s,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                coinsGroup!.name,
+                                style: textStyles.body.copyWith(
+                                  color: colors.primaryText,
+                                ),
+                              ),
+                              SizedBox(width: 4.0.s),
+                              Assets.svg.iconArrowDown.icon(
+                                color: colors.primaryText,
+                                size: 6.0.s,
+                              ),
+                            ],
                           ),
-                          child: Text(
-                            coin?.coin.network.displayName ?? '',
-                            style: textStyles.caption3.copyWith(
-                              color: colors.quaternaryText,
-                              fontSize: 11.0.s,
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
+                            decoration: BoxDecoration(
+                              color: colors.attentionBlock,
+                              borderRadius: BorderRadius.circular(16.0.s),
+                            ),
+                            child: Text(
+                              network?.displayName ?? '',
+                              style: textStyles.caption3.copyWith(
+                                color: colors.quaternaryText,
+                                fontSize: 11.0.s,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                    ],
+                  )
+                else
+                  Button(
+                    onPressed: () {
+                      SwapSelectCoinRoute(
+                        coinType: type,
+                      ).push<void>(context);
+                    },
+                    type: ButtonType.outlined,
+                    label: Text(
+                      context.i18n.wallet_swap_coins_select_coin,
+                      style: textStyles.body.copyWith(
+                        color: colors.secondaryBackground,
+                      ),
                     ),
-                  ],
-                )
-              else
-                Button(
-                  onPressed: () {
-                    // TODO(ice-erebus): implement select coin action
-                  },
-                  type: ButtonType.outlined,
-                  label: Text(
-                    context.i18n.wallet_swap_coins_select_coin,
-                    style: textStyles.body.copyWith(
+                    tintColor: colors.primaryAccent,
+                    backgroundColor: colors.primaryAccent,
+                    borderRadius: BorderRadius.circular(12.0.s),
+                    leadingIcon: Assets.svg.iconCreatecoinNewcoin.icon(
                       color: colors.secondaryBackground,
+                      size: 20.0.s,
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: Size(128.0.s, 36.0.s),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.0.s,
+                        vertical: 6.0.s,
+                      ),
                     ),
                   ),
-                  tintColor: colors.primaryAccent,
-                  backgroundColor: colors.primaryAccent,
-                  borderRadius: BorderRadius.circular(12.0.s),
-                  leadingIcon: Assets.svg.iconCreatecoinNewcoin.icon(
-                    color: colors.secondaryBackground,
-                    size: 20.0.s,
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: Size(128.0.s, 36.0.s),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 10.0.s,
-                      vertical: 6.0.s,
+                SizedBox(
+                  width: 150.0.s,
+                  child: TextField(
+                    readOnly: coinsGroup == null,
+                    keyboardType: TextInputType.number,
+                    style: textStyles.headline2.copyWith(
+                      color: colors.primaryText,
                     ),
-                  ),
-                ),
-              SizedBox(
-                width: 150.0.s,
-                child: TextField(
-                  readOnly: coinsGroup == null,
-                  keyboardType: TextInputType.number,
-                  style: textStyles.headline2.copyWith(
-                    color: colors.primaryText,
-                  ),
-                  inputFormatters: [
-                    CoinInputFormatter(),
-                  ],
-                  textAlign: TextAlign.end,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: '0.00',
-                    hintStyle: textStyles.headline2.copyWith(
-                      color: colors.tertiaryText,
+                    inputFormatters: [
+                      CoinInputFormatter(),
+                    ],
+                    textAlign: TextAlign.end,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: '0.00',
+                      hintStyle: textStyles.headline2.copyWith(
+                        color: colors.tertiaryText,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           SizedBox(
             height: 8.0.s,
@@ -369,31 +386,36 @@ class _SumPercentageAction extends StatelessWidget {
   }
 }
 
-class _SwapButton extends StatelessWidget {
+class _SwapButton extends ConsumerWidget {
   const _SwapButton();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.appColors;
 
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.0.s),
-      child: Center(
-        child: Container(
-          width: 34.0.s,
-          height: 34.0.s,
-          decoration: BoxDecoration(
-            color: colors.tertiaryBackground,
-            borderRadius: BorderRadius.circular(12.0.s),
-            border: Border.all(
-              color: colors.secondaryBackground,
-              width: 3,
+    return GestureDetector(
+      onTap: () {
+        ref.read(swapCoinsControllerProvider.notifier).switchCoins();
+      },
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 16.0.s),
+        child: Center(
+          child: Container(
+            width: 34.0.s,
+            height: 34.0.s,
+            decoration: BoxDecoration(
+              color: colors.tertiaryBackground,
+              borderRadius: BorderRadius.circular(12.0.s),
+              border: Border.all(
+                color: colors.secondaryBackground,
+                width: 3,
+              ),
             ),
-          ),
-          child: Center(
-            child: Assets.svg.iconamoonSwap.icon(
-              color: colors.primaryText,
-              size: 24.0.s,
+            child: Center(
+              child: Assets.svg.iconamoonSwap.icon(
+                color: colors.primaryText,
+                size: 24.0.s,
+              ),
             ),
           ),
         ),
