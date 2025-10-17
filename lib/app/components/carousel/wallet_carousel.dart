@@ -68,6 +68,7 @@ class WalletCarousel extends StatelessWidget {
       padding: EdgeInsets.all(16.0.s),
       child: CarouselWithDots(
         items: [
+          // The items are currently as mockups and will be replaced with the actual content later
           WalletCarouselItem(
             title: 'Portfolio',
             description: 'Track your balance, profits and transactions',
