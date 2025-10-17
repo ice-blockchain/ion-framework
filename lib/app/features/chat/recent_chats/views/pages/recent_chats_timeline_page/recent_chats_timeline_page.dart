@@ -307,7 +307,7 @@ class E2eeRecentChatTile extends HookConsumerWidget {
 
     final userPreviewData = ref.watch(userPreviewDataProvider(receiverMasterPubkey));
 
-    if (userPreviewData.isLoading) {
+    if (userPreviewData.isLoading && !userPreviewData.hasValue) {
       return const RecentChatSkeletonItem();
     }
 
