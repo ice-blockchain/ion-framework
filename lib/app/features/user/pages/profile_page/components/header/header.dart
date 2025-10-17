@@ -11,12 +11,14 @@ class Header extends ConsumerWidget {
     required this.pubkey,
     required this.opacity,
     required this.showBackButton,
+    this.textColor,
     super.key,
   });
 
   final String pubkey;
   final double opacity;
   final bool showBackButton;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,6 +29,7 @@ class Header extends ConsumerWidget {
           child: UseListItem(
             pubkey: pubkey,
             minHeight: HeaderAction.buttonSize,
+            textColor: textColor,
           ),
         ),
       ],

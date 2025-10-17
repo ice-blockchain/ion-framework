@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
+import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/relevant_followers/followed_by_avatars.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/relevant_followers/followed_by_text.dart';
 import 'package:ion/app/features/user/providers/relevant_followers_data_source_provider.r.dart';
@@ -11,10 +12,12 @@ import 'package:ion/app/features/user/providers/relevant_followers_data_source_p
 class RelevantFollowers extends ConsumerWidget {
   const RelevantFollowers({
     required this.pubkey,
+    this.profileMode = ProfileMode.light,
     super.key,
   });
 
   final String pubkey;
+  final ProfileMode profileMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -36,6 +39,7 @@ class RelevantFollowers extends ConsumerWidget {
           pubkey: pubkey,
           firstFollowerPubkey: pubkeys.first,
           isMoreFollowers: pubkeys.length > 1,
+          profileMode: profileMode,
         ),
       ],
     );

@@ -24,6 +24,8 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
     this.scrollController,
     this.backgroundColor,
     this.backButtonIcon,
+    this.extendBehindStatusBar = false,
+    this.backgroundBuilder,
     super.key,
   });
 
@@ -105,6 +107,8 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
   final Color? backgroundColor;
   final ScrollController? scrollController;
   final Widget? backButtonIcon;
+  final bool extendBehindStatusBar;
+  final Widget Function()? backgroundBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -152,40 +156,55 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
       middle: titleWidget,
       trailing: effectiveTrailing,
     );
+    final baseHeight = useScreenTopOffset ? screenHeaderHeight : modalHeaderHeight;
+    final statusBarHeight = MediaQuery.paddingOf(context).top;
+    final topPadding = extendBehindStatusBar ? statusBarHeight : 0.0;
+    final totalHeight = extendBehindStatusBar ? baseHeight + statusBarHeight : baseHeight;
 
-    final Widget appBar = Container(
-      height: useScreenTopOffset ? screenHeaderHeight : modalHeaderHeight,
-      decoration: BoxDecoration(
-        color: backgroundColor ?? context.theme.appColors.secondaryBackground,
-        boxShadow: hasScrolled.value
-            ? [
-                BoxShadow(
-                  color: context.theme.appColors.shadow.withValues(alpha: 0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ]
-            : [],
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal:
-              horizontalPadding ?? ScreenSideOffset.defaultSmallMargin - UiConstants.hitSlop,
+    final Widget appBar = Stack(
+      children: [
+        if (backgroundBuilder != null) Positioned.fill(child: backgroundBuilder!()),
+        Container(
+          height: totalHeight,
+          decoration: BoxDecoration(
+            color: backgroundBuilder != null
+                ? null
+                : (backgroundColor ?? context.theme.appColors.secondaryBackground),
+            boxShadow: hasScrolled.value
+                ? [
+                    BoxShadow(
+                      color: context.theme.appColors.shadow.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : [],
+          ),
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(
+              top: topPadding,
+              start: horizontalPadding ?? ScreenSideOffset.defaultSmallMargin - UiConstants.hitSlop,
+              end: horizontalPadding ?? ScreenSideOffset.defaultSmallMargin - UiConstants.hitSlop,
+            ),
+            child: appBarContent,
+          ),
         ),
-        child: appBarContent,
-      ),
+      ],
     );
 
-    return useScreenTopOffset
-        ? ScreenTopOffset(
-            margin: 0,
-            child: appBar,
-          )
-        : appBar;
+    if (extendBehindStatusBar || !useScreenTopOffset) {
+      return appBar;
+    }
+
+    return ScreenTopOffset(
+      margin: 0,
+      child: appBar,
+    );
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(
-        useScreenTopOffset ? screenHeaderHeight : modalHeaderHeight,
-      );
+  Size get preferredSize {
+    final baseHeight = useScreenTopOffset ? screenHeaderHeight : modalHeaderHeight;
+    return Size.fromHeight(baseHeight);
+  }
 }
