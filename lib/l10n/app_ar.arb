@@ -868,5 +868,7 @@
   "wallet_swap": "تبديل",
   "wallet_swap_option_desc": "التبديل أسهل مما يبدو",
   "wallet_more": "المزيد",
-  "coming_soon_description": "هذه الميزة قيد التطوير حالياً وستكون متاحة قريباً."
+  "wallet_swap_coming_soon": "تبديل العملة سيكون متاحاً قريباً",
+  "wallet_buy_coming_soon": "شراء العملة سيكون متاحاً قريباً",
+  "wallet_sell_coming_soon": "بيع العملة سيكون متاحاً قريباً"
 }
