@@ -181,12 +181,12 @@ ChatMessageInfoItem? getRepliedMessageListItem({
     final profilePubkey = EventReference.fromEncoded(repliedEntity.data.content).masterPubkey;
 
     final userName = ref.watch(
-      userPreviewDataProvider(profilePubkey).select((value) => value.valueOrNull?.data.name),
+      userPreviewDataProvider(profilePubkey).select(userPreviewNameSelector),
     );
 
     return ShareProfileItem(
       eventMessage: repliedEventMessage,
-      contentDescription: userName ?? repliedEntity.data.content,
+      contentDescription: userName.isEmpty ? repliedEntity.data.content : userName,
     );
   } else if (repliedEntity.data.messageType == MessageType.visualMedia) {
     final messageMedias = ref

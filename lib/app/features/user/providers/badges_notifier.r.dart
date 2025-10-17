@@ -280,11 +280,8 @@ bool isUserVerified(
 @riverpod
 bool isNicknameProven(Ref ref, String pubkey) {
   var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(pubkey))?.data;
-  final userName = ref.watch(
-    userPreviewDataProvider(pubkey).select(
-      (value) => value.valueOrNull?.data.name,
-    ),
-  );
+  final userName =
+      ref.watch(userPreviewDataProvider(pubkey).select((value) => value.valueOrNull?.data.name));
 
   if (profileBadgesData == null) {
     final res = ref.watch(profileBadgesDataProvider(pubkey));
