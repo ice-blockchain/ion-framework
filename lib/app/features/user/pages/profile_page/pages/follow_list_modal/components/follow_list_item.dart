@@ -13,12 +13,15 @@ class FollowListItem extends ConsumerWidget {
   const FollowListItem({
     required this.pubkey,
     this.network = false,
+    this.follower,
     super.key,
   });
 
   final String pubkey;
 
   final bool network;
+
+  final bool? follower;
 
   static double get itemHeight => 35.0.s;
 
@@ -35,14 +38,9 @@ class FollowListItem extends ConsumerWidget {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
       child: BadgesUserListItem(
-        title: Text(
-          displayName,
-          strutStyle: const StrutStyle(forceStrutHeight: true),
-        ),
-        trailing: FollowUserButton(pubkey: pubkey),
-        subtitle: Text(
-          prefixUsername(username: username, context: context),
-        ),
+        title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+        trailing: FollowUserButton(pubkey: pubkey, follower: follower),
+        subtitle: Text(prefixUsername(username: username, context: context)),
         masterPubkey: pubkey,
         onTap: () => context.pop(pubkey),
       ),

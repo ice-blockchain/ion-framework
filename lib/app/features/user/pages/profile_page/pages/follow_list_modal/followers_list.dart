@@ -50,7 +50,7 @@ class FollowersList extends HookConsumerWidget {
         SliverList.builder(
           itemCount: masterPubkeys.length,
           itemBuilder: (context, index) => ScreenSideOffset.small(
-            child: FollowListItem(pubkey: masterPubkeys[index]),
+            child: FollowListItem(pubkey: masterPubkeys[index], follower: true),
           ),
         ),
       SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 32.0.s)),
