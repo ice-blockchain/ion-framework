@@ -51,7 +51,10 @@ class NftDetails extends HookConsumerWidget {
     );
 
     final buttonKey = useRef(GlobalKey());
-    final showTooltipOverlay = useShowTooltipOverlay(targetKey: buttonKey.value);
+    final showTooltipOverlay = useShowTooltipOverlay(
+      targetKey: buttonKey.value,
+      text: context.i18n.send_nft_sending_nft_will_be_available_later,
+    );
 
     return Column(
       mainAxisSize: MainAxisSize.min,

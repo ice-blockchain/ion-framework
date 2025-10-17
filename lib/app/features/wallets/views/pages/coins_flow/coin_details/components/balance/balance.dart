@@ -35,8 +35,6 @@ class Balance extends ConsumerWidget {
                 NetworkSelectReceiveRoute().push<void>(context);
               },
               onNeedToEnable2FA: () => SecureAccountModalRoute().push<void>(context),
-              onBuy: () => ComingSoonModalRoute().push<void>(context),
-              onSwap: () => ComingSoonModalRoute().push<void>(context),
               onMore: () => WalletMainModalRoute().push<void>(context),
             ),
           ),

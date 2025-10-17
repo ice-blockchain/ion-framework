@@ -7,7 +7,6 @@ class WalletRoutes {
     TypedShellRoute<ModalShellRouteData>(
       routes: [
         TypedGoRoute<ManageNftsRoute>(path: 'manage-nfts'),
-        TypedGoRoute<ComingSoonModalRoute>(path: 'coming-soon-modal'),
       ],
     ),
     TypedShellRoute<ModalShellRouteData>(
@@ -509,12 +508,4 @@ class ExploreTransactionDetailsRoute extends BaseRouteData with _$ExploreTransac
         );
 
   final String url;
-}
-
-class ComingSoonModalRoute extends BaseRouteData with _$ComingSoonModalRoute {
-  ComingSoonModalRoute()
-      : super(
-          child: const ComingSoonModal(),
-          type: IceRouteType.bottomSheet,
-        );
 }
