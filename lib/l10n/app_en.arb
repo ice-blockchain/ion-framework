@@ -966,5 +966,11 @@
   "follow_user_message": "You followed @{userDisplayName}",
   "nsfw_blocked_dialog_title": "Inappropriate Content",
   "nsfw_blocked_dialog_body_ios": "This media cannot be published because it contains material considered inappropriate under App Store guidelines.",
-  "nsfw_blocked_dialog_body_android": "This media cannot be published because it contains material considered inappropriate under Play Store guidelines."
+  "nsfw_blocked_dialog_body_android": "This media cannot be published because it contains material considered inappropriate under Play Store guidelines.",
+  "wallet_buy": "Buy",
+  "wallet_sell": "Sell",
+  "wallet_swap": "Swap",
+  "wallet_swap_option_desc": "Swapping is even easier than it seems",
+  "wallet_more": "More",
+  "coming_soon_description": "This feature is currently under development and will be available soon."
 }

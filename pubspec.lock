@@ -380,6 +380,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.5"
+  carousel_slider:
+    dependency: "direct main"
+    description:
+      name: carousel_slider
+      sha256: bcc61735345c9ab5cb81073896579e735f81e35fd588907a393143ea986be8ff
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.1.1"
   characters:
     dependency: transitive
     description:
@@ -702,6 +710,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.45"
+  dots_indicator:
+    dependency: "direct main"
+    description:
+      name: dots_indicator
+      sha256: "2a53e0321a3f0d87e38ef30f6e9ff1deb5d6c0e2c5708e057d26cdaa94a95f10"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   dotted_border:
     dependency: "direct main"
     description:

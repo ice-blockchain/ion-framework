@@ -11,7 +11,6 @@ import 'package:ion/generated/assets.gen.dart';
 class BalanceActions extends HookConsumerWidget {
   const BalanceActions({
     required this.onReceive,
-    required this.onSend,
     required this.onNeedToEnable2FA,
     required this.onBuy,
     required this.onSwap,
@@ -21,7 +20,6 @@ class BalanceActions extends HookConsumerWidget {
   });
 
   final VoidCallback onReceive;
-  final VoidCallback onSend;
   final VoidCallback onBuy;
   final VoidCallback onSwap;
   final VoidCallback onMore;
@@ -41,8 +39,8 @@ class BalanceActions extends HookConsumerWidget {
       children: [
         Expanded(
           child: TextIconButton(
-            icon: Assets.svg.iconButtonSend.icon(),
-            label: 'Buy', // TODO: Add wallet_buy to i18n
+            icon: Assets.svg.iconWalletBuy.icon(),
+            label: context.i18n.wallet_buy,
             onPressed: onBuy,
             disabled: isLoading,
           ),
@@ -61,7 +59,7 @@ class BalanceActions extends HookConsumerWidget {
         Expanded(
           child: TextIconButton(
             icon: Assets.svg.iconamoonSwap.icon(color: context.theme.appColors.primaryAccent),
-            label: 'Swap', // TODO: Add wallet_swap to i18n
+            label: context.i18n.wallet_swap,
             onPressed: onSwap,
             disabled: isLoading,
             type: ButtonType.outlined,
@@ -71,7 +69,7 @@ class BalanceActions extends HookConsumerWidget {
         Expanded(
           child: TextIconButton(
             icon: Assets.svg.iconButtonMore.icon(color: context.theme.appColors.primaryAccent),
-            label: 'More', // TODO: Add wallet_more to i18n
+            label: context.i18n.wallet_more,
             onPressed: onMore,
             disabled: isLoading,
             type: ButtonType.outlined,

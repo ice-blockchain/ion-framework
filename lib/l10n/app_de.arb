@@ -926,5 +926,11 @@
   "report_content_description": "Dies ist ein Bericht für den Inhalt",
   "share_user_on_app": "{userDisplayName} auf {shareAppName}",
   "share_story_watch_message": "Schauen Sie sich diese Story von {userDisplayName} an, bevor sie verschwindet.",
-  "follow_user_message": "Sie haben @{userDisplayName} gefolgt"
+  "follow_user_message": "Sie haben @{userDisplayName} gefolgt",
+  "wallet_buy": "Kaufen",
+  "wallet_sell": "Verkaufen",
+  "wallet_swap": "Tauschen",
+  "wallet_swap_option_desc": "Tauschen ist einfacher als es scheint",
+  "wallet_more": "Mehr",
+  "coming_soon_description": "Diese Funktion befindet sich derzeit in der Entwicklung und wird bald verfügbar sein."
 }

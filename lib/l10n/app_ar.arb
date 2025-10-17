@@ -862,5 +862,11 @@
   "share_story_watch_message": "شاهد هذه القصة من {userDisplayName} قبل أن تختفي.",
   "follow_user_message": "أنت تتابع @{userDisplayName}",
   "error_token_below_minimum_title": "غير قادر على التحويل",
-  "error_token_below_minimum_description": "سيؤدي هذا التحويل إلى خفض أحد الحسابات إلى أقل من الحد الأدنى المطلوب {minAmount} {abbreviation} للبقاء نشطًا في الشبكة"
+  "error_token_below_minimum_description": "سيؤدي هذا التحويل إلى خفض أحد الحسابات إلى أقل من الحد الأدنى المطلوب {minAmount} {abbreviation} للبقاء نشطًا في الشبكة",
+  "wallet_buy": "شراء",
+  "wallet_sell": "بيع",
+  "wallet_swap": "تبديل",
+  "wallet_swap_option_desc": "التبديل أسهل مما يبدو",
+  "wallet_more": "المزيد",
+  "coming_soon_description": "هذه الميزة قيد التطوير حالياً وستكون متاحة قريباً."
 }
