@@ -14,10 +14,12 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/file_storage_url_provider.r.dart';
+import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
 import 'package:ion/app/features/ion_connect/utils/file_storage_utils.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/large_media_upload_service.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/utils/retry.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ion_connect_upload_notifier.m.freezed.dart';
@@ -64,25 +66,27 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     // replace files with xfiles in the url for large files
     final uploadUrl = isLargeFile ? Uri.parse(url).replace(path: '/xfiles/').toString() : url;
 
-    final authToken = await generateAuthorizationToken(
-      ref: ref,
-      url: uploadUrl,
-      fileBytes: fileBytes,
-      customEventSigner: customEventSigner,
-      method: 'POST',
-    );
-
     UploadResponse response;
     try {
       final uploader = isLargeFile ? _uploadLargeMultipart : _uploadSimpleMultipart;
 
-      response = await uploader(
-        url: uploadUrl,
-        file: file,
-        fileBytes: fileBytes,
-        authToken: authToken,
-        alt: alt,
-        cancelToken: cancelToken,
+      response = await withRetry<UploadResponse>(
+        ({error}) async {
+          return uploader(
+            url: uploadUrl,
+            file: file,
+            fileBytes: fileBytes,
+            alt: alt,
+            cancelToken: cancelToken,
+            customEventSigner: customEventSigner,
+          );
+        },
+        maxRetries: 3,
+        initialDelay: Duration.zero,
+        retryWhen: _isOnBehalfAttestationError,
+        onRetry: (error) {
+          ref.read(relaysReplicaDelayProvider.notifier).setDelay();
+        },
       );
     } catch (error, stackTrace) {
       Logger.error(
@@ -113,38 +117,24 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
     return (fileMetadata: fileMetadata, mediaAttachment: mediaAttachment);
   }
 
-  Future<UploadResponse> _uploadLargeMultipart({
-    required String url,
-    required MediaFile file,
-    required Uint8List fileBytes,
-    required String authToken,
-    CancelToken? cancelToken,
-    String? alt,
-  }) async {
-    final dio = ref.read(dioHttp2Provider);
-    final feedConfig = await ref.watch(feedConfigProvider.future);
-
-    return LargeMediaUploadService(
-      dio: dio,
-      maxConcurrentPartials: feedConfig.concurrentBigFileUploadChunks,
-    ).upload(
-      url: url,
-      file: file,
-      authToken: authToken,
-      alt: alt,
-      fileBytes: fileBytes,
-      cancelToken: cancelToken,
-    );
-  }
-
+  // Simple multipart uploader that generates its own token
   Future<UploadResponse> _uploadSimpleMultipart({
     required String url,
     required MediaFile file,
     required Uint8List fileBytes,
-    required String authToken,
     String? alt,
     CancelToken? cancelToken,
+    EventSigner? customEventSigner,
   }) async {
+    // Generate auth token with conditional 10100 attestation
+    final authToken = await generateAuthorizationToken(
+      ref: ref,
+      url: url,
+      method: 'POST',
+      fileBytes: fileBytes,
+      customEventSigner: customEventSigner,
+    );
+
     final fileName = file.name ?? file.basename;
     final multipartFile = MultipartFile.fromBytes(fileBytes, filename: fileName);
 
@@ -172,9 +162,73 @@ class IonConnectUploadNotifier extends _$IonConnectUploadNotifier {
       if (uploadResponse.status != 'success') {
         throw Exception(uploadResponse.message);
       }
+
       return uploadResponse;
     } catch (error) {
       throw FileUploadException(error, url: url);
+    }
+  }
+
+  // Large multipart uploader that generates its own token
+  Future<UploadResponse> _uploadLargeMultipart({
+    required String url,
+    required MediaFile file,
+    required Uint8List fileBytes,
+    String? alt,
+    CancelToken? cancelToken,
+    EventSigner? customEventSigner,
+  }) async {
+    // Generate auth token with conditional 10100 attestation
+    final authToken = await generateAuthorizationToken(
+      ref: ref,
+      url: url,
+      method: 'POST',
+      fileBytes: fileBytes,
+      customEventSigner: customEventSigner,
+    );
+
+    final dio = ref.read(dioHttp2Provider);
+    final feedConfig = await ref.read(feedConfigProvider.future);
+
+    return LargeMediaUploadService(
+      dio: dio,
+      maxConcurrentPartials: feedConfig.concurrentBigFileUploadChunks,
+    ).upload(
+      url: url,
+      file: file,
+      authToken: authToken,
+      alt: alt,
+      fileBytes: fileBytes,
+      cancelToken: cancelToken,
+    );
+  }
+
+  static bool _isOnBehalfAttestationError(Object error) {
+    if (error is FileUploadException && error.originalError is DioException) {
+      final dioError = error.originalError! as DioException;
+      final statusCode = dioError.response?.statusCode;
+
+      if (statusCode == HttpStatus.unauthorized || statusCode == HttpStatus.forbidden) {
+        final message = _getErrorMessageFromDioException(dioError);
+
+        if (message.contains('on-behalf') && message.contains('attestation')) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  static String _getErrorMessageFromDioException(DioException dioError) {
+    final data = dioError.response?.data;
+
+    if (data is Map && data['message'] != null) {
+      return data['message'].toString();
+    } else if (data is String) {
+      return data;
+    } else {
+      return dioError.message ?? '';
     }
   }
 }

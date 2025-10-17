@@ -130,8 +130,10 @@ class RequiredFieldIsEmptyException extends IONException {
 }
 
 class FileUploadException extends IONException {
-  FileUploadException(dynamic error, {required String url})
-      : super(10025, 'Failed to upload file to $url: $error');
+  FileUploadException(dynamic this.originalError, {required String url})
+      : super(10025, 'Failed to upload file to $url: $originalError');
+
+  final Object? originalError;
 }
 
 class UnknownFileResolutionException extends IONException {
