@@ -20,7 +20,7 @@ class TrendingVideoAuthor extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authorDisplayName = ref.watch(
-      userPreviewDataProvider(pubkey).select(userPreviewDisplayNameSelector),
+      userPreviewDataProvider(pubkey, network: false).select(userPreviewDisplayNameSelector),
     );
 
     return TextButton(

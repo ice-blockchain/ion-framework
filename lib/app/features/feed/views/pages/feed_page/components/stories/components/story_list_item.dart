@@ -29,7 +29,7 @@ class StoryListItem extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userPreviewData = ref.watch(
-          userPreviewDataProvider(pubkey).select((value) {
+          userPreviewDataProvider(pubkey, network: false).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
               ListCachedObjects.updateObject<UserPreviewEntity>(context, entity);

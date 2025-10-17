@@ -17,11 +17,13 @@ class FeedSimpleSearchListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final displayName =
-        ref.watch(userPreviewDataProvider(masterPubkey).select(userPreviewDisplayNameSelector));
+    final displayName = ref.watch(
+      userPreviewDataProvider(masterPubkey, network: false).select(userPreviewDisplayNameSelector),
+    );
 
-    final username =
-        ref.watch(userPreviewDataProvider(masterPubkey).select(userPreviewNameSelector));
+    final username = ref.watch(
+      userPreviewDataProvider(masterPubkey, network: false).select(userPreviewNameSelector),
+    );
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
