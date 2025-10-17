@@ -82,14 +82,7 @@ class Followers extends _$Followers {
           .loadMore();
     }
     if (_dataSourcesKey != null) {
-      await ref
-          .read(
-            entitiesPagedDataProvider(
-              _dataSourcesKey,
-              awaitMissingEvents: true, //TODO: don't
-            ).notifier,
-          )
-          .fetchEntities();
+      await ref.read(entitiesPagedDataProvider(_dataSourcesKey).notifier).fetchEntities();
     }
   }
 }
