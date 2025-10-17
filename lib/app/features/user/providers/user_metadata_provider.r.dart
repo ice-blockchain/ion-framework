@@ -239,4 +239,4 @@ String userPreviewNameSelector(AsyncValue<UserPreviewEntity?> state) =>
     state.valueOrNull?.data.name ?? '';
 
 String userPreviewDisplayNameSelector(AsyncValue<UserPreviewEntity?> state) =>
-    state.valueOrNull?.data.displayName ?? '';
+    state.valueOrNull?.data.trimmedDisplayName ?? '';

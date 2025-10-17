@@ -64,8 +64,7 @@ class WhoCanReplyInfoModal extends HookConsumerWidget {
     if (whoCanReplySetting == null) return '';
 
     final userDisplayName = ref.watch(
-      userPreviewDataProvider(eventReference.masterPubkey)
-          .select((value) => value.valueOrNull?.data.trimmedDisplayName ?? ''),
+      userPreviewDataProvider(eventReference.masterPubkey).select(userPreviewDisplayNameSelector),
     );
     String commonDescription() => context.i18n.who_can_reply_info_modal_description(
           userDisplayName,

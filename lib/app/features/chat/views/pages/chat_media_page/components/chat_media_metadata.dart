@@ -20,9 +20,7 @@ class ChatMediaMetaData extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final senderName = ref.watch(
-      userPreviewDataProvider(eventMessage.masterPubkey).select(
-        (value) => value.valueOrNull?.data.trimmedDisplayName ?? '',
-      ),
+      userPreviewDataProvider(eventMessage.masterPubkey).select(userPreviewDisplayNameSelector),
     );
 
     final messageData =

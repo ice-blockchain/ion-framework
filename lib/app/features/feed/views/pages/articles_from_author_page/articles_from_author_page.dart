@@ -22,8 +22,7 @@ class ArticlesFromAuthorPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authorDisplayName = ref.watch(
-      userPreviewDataProvider(pubkey)
-          .select((value) => value.valueOrNull?.data.trimmedDisplayName ?? ''),
+      userPreviewDataProvider(pubkey).select(userPreviewDisplayNameSelector),
     );
     final dataSource = ref.watch(userArticlesDataSourceProvider(pubkey));
     final entitiesPagedData = ref.watch(entitiesPagedDataProvider(dataSource));
