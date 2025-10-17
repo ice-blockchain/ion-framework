@@ -10,6 +10,7 @@ class DatabaseCacheEntry {
   final EventMessage eventMessage;
   final DateTime insertedAt;
 
+  // Defining equality to avoid `.watch` trigger on unchanged data (using Stream.distinct)
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
