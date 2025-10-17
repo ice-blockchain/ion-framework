@@ -13,6 +13,7 @@ dependencies:
     sdk: flutter
   collection: ^1.18.0
   meta: ^1.15.0
+  appodeal_flutter: ^1.1.2
 
 dev_dependencies:
   flutter_test:

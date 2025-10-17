@@ -4,7 +4,12 @@ import '../models/ad_types.dart';
 import '../models/native_ad_asset.dart';
 
 abstract class IonAdsPlatform {
-  Future<void> initialize({required String appKey});
+  Future<void> initialize(
+      {required String androidAppKey,
+      required String iosAppKey,
+      required bool hasConsent,
+      bool testMode = false,
+      bool verbose = false});
 
   Future<bool> isAvailable(IonNativeAdPlacement placement);
 

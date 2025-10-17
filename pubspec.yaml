@@ -194,6 +194,7 @@ dependencies:
   wakelock_plus: ^1.2.11
   web3dart: ^2.7.3
   window_manager: ^0.4.2
+  appodeal_flutter: ^1.1.2
 
 dev_dependencies:
   build_runner: ^2.4.15
