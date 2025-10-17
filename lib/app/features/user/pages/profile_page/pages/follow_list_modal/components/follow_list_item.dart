@@ -8,15 +8,18 @@ import 'package:ion/app/components/list_items_loading_state/item_loading_state.d
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/user/follow_user_button/follow_user_button.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 
 class FollowListItem extends ConsumerWidget {
   const FollowListItem({
     required this.pubkey,
+    this.popOnTap = false,
     super.key,
   });
 
   final String pubkey;
+  final bool popOnTap;
 
   static double get itemHeight => 35.0.s;
 
@@ -39,7 +42,13 @@ class FollowListItem extends ConsumerWidget {
                 ),
               ),
               masterPubkey: pubkey,
-              onTap: () => context.pop(pubkey),
+              onTap: () async {
+                if (popOnTap) {
+                  context.pop(pubkey);
+                } else {
+                  await ProfileRoute(pubkey: pubkey).push<void>(context);
+                }
+              },
             )
           : ItemLoadingState(itemHeight: itemHeight),
     );
