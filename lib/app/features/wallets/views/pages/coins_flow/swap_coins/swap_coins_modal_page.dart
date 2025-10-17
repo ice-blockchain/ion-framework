@@ -44,9 +44,6 @@ class SwapCoinsModalPage extends ConsumerWidget {
               ],
             ),
           ),
-          SizedBox(
-            height: 12.0.s,
-          ),
           Stack(
             children: [
               Column(
