@@ -253,7 +253,7 @@ class SenderSummary extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userPreviewData = ref.watch(userPreviewDataProvider(masterPubkey));
 
-    if (userPreviewData.isLoading) {
+    if (userPreviewData.isLoading && !userPreviewData.hasValue) {
       return const SizedBox.shrink();
     }
 
