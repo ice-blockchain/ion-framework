@@ -334,7 +334,7 @@ class ChatPreview extends HookConsumerWidget {
       MessageType.moneySent => getMoneySentTitle(ref, lastMessage) ?? lastMessageContent,
       MessageType.profile => ref.watch(
           userPreviewDataProvider(EventReference.fromEncoded(lastMessageContent).masterPubkey)
-              .select((value) => value.valueOrNull?.data.trimmedDisplayName ?? ''),
+              .select(userPreviewDisplayNameSelector),
         ),
     };
 
