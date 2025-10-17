@@ -8,7 +8,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
-import 'package:ion/app/features/components/entities_list/list_entity_helper.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 
 class CreatorListItem extends ConsumerWidget {
@@ -27,17 +27,17 @@ class CreatorListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewData = ListEntityHelper.userPreviewData(ref, masterPubkey);
+    final displayName =
+        ref.watch(userPreviewDataProvider(masterPubkey).select(userPreviewDisplayNameSelector));
 
-    if (userPreviewData == null) {
-      return const SizedBox.shrink();
-    }
+    final username =
+        ref.watch(userPreviewDataProvider(masterPubkey).select(userPreviewNameSelector));
 
     return ScreenSideOffset.small(
       child: BadgesUserListItem(
-        title: Text(userPreviewData.data.trimmedDisplayName),
-        subtitle: Text(prefixUsername(username: userPreviewData.data.name, context: context)),
-        masterPubkey: userPreviewData.masterPubkey,
+        title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+        subtitle: Text(prefixUsername(username: username, context: context)),
+        masterPubkey: masterPubkey,
         backgroundColor: context.theme.appColors.tertiaryBackground,
         contentPadding: EdgeInsets.all(12.0.s),
         borderRadius: BorderRadius.circular(16.0.s),

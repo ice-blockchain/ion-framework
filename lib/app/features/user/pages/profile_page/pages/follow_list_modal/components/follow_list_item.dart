@@ -25,13 +25,11 @@ class FollowListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final displayName = ref.watch(
-      userPreviewDataProvider(pubkey, network: network)
-          .select((value) => value.valueOrNull?.data.trimmedDisplayName ?? ''),
+      userPreviewDataProvider(pubkey, network: network).select(userPreviewDisplayNameSelector),
     );
 
     final username = ref.watch(
-      userPreviewDataProvider(pubkey, network: network)
-          .select((value) => value.valueOrNull?.data.name ?? ''),
+      userPreviewDataProvider(pubkey, network: network).select(userPreviewNameSelector),
     );
 
     return Padding(
@@ -41,14 +39,9 @@ class FollowListItem extends ConsumerWidget {
           displayName,
           strutStyle: const StrutStyle(forceStrutHeight: true),
         ),
-        trailing: FollowUserButton(
-          pubkey: pubkey,
-        ),
+        trailing: FollowUserButton(pubkey: pubkey),
         subtitle: Text(
-          prefixUsername(
-            username: username,
-            context: context,
-          ),
+          prefixUsername(username: username, context: context),
         ),
         masterPubkey: pubkey,
         onTap: () => context.pop(pubkey),

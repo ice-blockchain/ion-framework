@@ -5,8 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/components/entities_list/list_entity_helper.dart';
 import 'package:ion/app/features/search/providers/feed_search_history_provider.m.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 
@@ -17,11 +17,11 @@ class FeedSimpleSearchListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewData = ListEntityHelper.userPreviewData(ref, masterPubkey);
+    final displayName =
+        ref.watch(userPreviewDataProvider(masterPubkey).select(userPreviewDisplayNameSelector));
 
-    if (userPreviewData == null) {
-      return const SizedBox.shrink();
-    }
+    final username =
+        ref.watch(userPreviewDataProvider(masterPubkey).select(userPreviewNameSelector));
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -33,10 +33,8 @@ class FeedSimpleSearchListItem extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 8.0.s),
         child: ScreenSideOffset.small(
           child: BadgesUserListItem(
-            title: Text(userPreviewData.data.trimmedDisplayName),
-            subtitle: Text(
-              prefixUsername(username: userPreviewData.data.name, context: context),
-            ),
+            title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+            subtitle: Text(prefixUsername(username: username, context: context)),
             masterPubkey: masterPubkey,
           ),
         ),

@@ -6,8 +6,7 @@ import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/views/components/chat_privacy_tooltip.dart';
-import 'package:ion/app/features/components/entities_list/list_entity_helper.dart';
-import 'package:ion/app/features/user/model/user_preview_data.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -25,23 +24,24 @@ class SelectableUserListItem extends ConsumerWidget {
   final bool canSendMessage;
   final List<String> selectedPubkeys;
   final String masterPubkey;
-  final void Function(UserPreviewEntity user) onUserSelected;
+  final void Function(String masterPubkey) onUserSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewData = ListEntityHelper.userPreviewData(ref, masterPubkey);
-    final isSelected = selectedPubkeys.contains(masterPubkey);
+    final displayName =
+        ref.watch(userPreviewDataProvider(masterPubkey).select(userPreviewDisplayNameSelector));
 
-    if (userPreviewData == null) {
-      return const SizedBox.shrink();
-    }
+    final username =
+        ref.watch(userPreviewDataProvider(masterPubkey).select(userPreviewNameSelector));
+
+    final isSelected = selectedPubkeys.contains(masterPubkey);
 
     return ChatPrivacyTooltip(
       canSendMessage: canSendMessage,
       child: BadgesUserListItem(
         masterPubkey: masterPubkey,
-        title: Text(userPreviewData.data.trimmedDisplayName),
-        subtitle: Text(prefixUsername(username: userPreviewData.data.name, context: context)),
+        title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+        subtitle: Text(prefixUsername(username: username, context: context)),
         contentPadding: EdgeInsets.symmetric(
           vertical: 8.0.s,
           horizontal: ScreenSideOffset.defaultSmallMargin,
@@ -55,7 +55,7 @@ class SelectableUserListItem extends ConsumerWidget {
                     color: context.theme.appColors.onTertiaryFill,
                   )
             : null,
-        onTap: canSendMessage ? () => onUserSelected(userPreviewData) : null,
+        onTap: canSendMessage ? () => onUserSelected(masterPubkey) : null,
       ),
     );
   }

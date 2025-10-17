@@ -21,7 +21,7 @@ class SendProfileModal extends StatelessWidget {
           title: Text(context.i18n.chat_profile_share_modal_title),
           actions: [NavigationCloseButton(onPressed: () => context.pop())],
         ),
-        onUserSelected: (userPreviewData) => context.pop<String>(userPreviewData.masterPubkey),
+        onUserSelected: (masterPubkey) => context.pop<String>(masterPubkey),
       ),
     );
   }

@@ -29,7 +29,7 @@ class AddAdminModal extends HookConsumerWidget {
     return SizedBox(
       height: MediaQuery.sizeOf(context).height * 0.8,
       child: UserPickerSheet(
-        onUserSelected: (userPreviewData) => selectedPubkey.value = userPreviewData.masterPubkey,
+        onUserSelected: (masterPubkey) => selectedPubkey.value = masterPubkey,
         selectedPubkeys: selectedPubkey.value != null ? [selectedPubkey.value!] : [],
         selectable: true,
         navigationBar: NavigationAppBar.modal(

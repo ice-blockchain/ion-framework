@@ -24,6 +24,8 @@ class FeedAdvancedSearchUserListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Using ListEntityObjects here to prevent scroll up issue,
+    // because the item height is not fixed for this case ("about" part hight is not constant).
     final userPreviewData = ListEntityHelper.userPreviewData(ref, masterPubkey);
 
     final about = userPreviewData is UserMetadataEntity ? userPreviewData.data.about : null;
@@ -45,7 +47,10 @@ class FeedAdvancedSearchUserListItem extends HookConsumerWidget {
           children: [
             SizedBox(height: 12.0.s),
             BadgesUserListItem(
-              title: Text(displayName),
+              title: Text(
+                displayName,
+                strutStyle: const StrutStyle(forceStrutHeight: true),
+              ),
               subtitle: Text(
                 prefixUsername(username: name, context: context),
               ),

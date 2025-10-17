@@ -50,7 +50,7 @@ class ShareViaMessageModal extends HookConsumerWidget {
                 actions: const [NavigationCloseButton()],
                 showBackButton: false,
               ),
-              onUserSelected: (user) => togglePubkeySelection(user.masterPubkey),
+              onUserSelected: togglePubkeySelection,
             ),
           ),
           const HorizontalSeparator(),

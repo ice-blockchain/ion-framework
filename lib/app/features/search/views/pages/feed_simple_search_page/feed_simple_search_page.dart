@@ -9,7 +9,6 @@ import 'package:ion/app/components/screen_offset/screen_top_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/search/providers/feed_search_history_provider.m.dart'
     show feedSearchHistoryProvider;
 import 'package:ion/app/features/search/views/components/search_history/search_history.dart';
@@ -37,70 +36,68 @@ class FeedSimpleSearchPage extends HookConsumerWidget {
 
     return Scaffold(
       body: ScreenTopOffset(
-        child: ListCachedObjectsWrapper(
-          child: Column(
-            children: [
-              SearchNavigation(
-                query: query,
-                loading: loading,
-                onSubmitted: (String query) {
-                  FeedAdvancedSearchRoute(query: query).go(context);
-                  ref.read(feedSearchHistoryProvider.notifier).addQueryToTheHistory(query);
-                },
-                onTextChanged: (String text) {
-                  FeedSimpleSearchRoute(query: text).replace(context);
-                },
-              ),
-              if (query.isEmpty)
-                history.pubKeys.isEmpty && history.queries.isEmpty
-                    ? SearchHistoryEmpty(title: context.i18n.feed_search_empty)
-                    : SearchHistory(
-                        itemCount: history.pubKeys.length,
-                        queries: history.queries,
-                        onSelectQuery: (String query) {
-                          FeedSimpleSearchRoute(query: query).replace(context);
-                        },
-                        onClearHistory: ref.read(feedSearchHistoryProvider.notifier).clear,
-                        itemBuilder: (context, index) {
-                          final pubkey = history.pubKeys[index];
-                          return SearchHistoryUserListItem(
-                            pubkey: pubkey,
-                            onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
-                          );
-                        },
+        child: Column(
+          children: [
+            SearchNavigation(
+              query: query,
+              loading: loading,
+              onSubmitted: (String query) {
+                FeedAdvancedSearchRoute(query: query).go(context);
+                ref.read(feedSearchHistoryProvider.notifier).addQueryToTheHistory(query);
+              },
+              onTextChanged: (String text) {
+                FeedSimpleSearchRoute(query: text).replace(context);
+              },
+            ),
+            if (query.isEmpty)
+              history.pubKeys.isEmpty && history.queries.isEmpty
+                  ? SearchHistoryEmpty(title: context.i18n.feed_search_empty)
+                  : SearchHistory(
+                      itemCount: history.pubKeys.length,
+                      queries: history.queries,
+                      onSelectQuery: (String query) {
+                        FeedSimpleSearchRoute(query: query).replace(context);
+                      },
+                      onClearHistory: ref.read(feedSearchHistoryProvider.notifier).clear,
+                      itemBuilder: (context, index) {
+                        final pubkey = history.pubKeys[index];
+                        return SearchHistoryUserListItem(
+                          pubkey: pubkey,
+                          onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
+                        );
+                      },
+                    )
+            else
+              Expanded(
+                child: PullToRefreshBuilder(
+                  slivers: [
+                    if (loading)
+                      ListItemsLoadingState(
+                        padding: EdgeInsets.symmetric(vertical: 20.0.s),
+                        listItemsLoadingStateType: ListItemsLoadingStateType.scrollView,
                       )
-              else
-                Expanded(
-                  child: PullToRefreshBuilder(
-                    slivers: [
-                      if (loading)
-                        ListItemsLoadingState(
-                          padding: EdgeInsets.symmetric(vertical: 20.0.s),
-                          listItemsLoadingStateType: ListItemsLoadingStateType.scrollView,
-                        )
-                      else if (masterPubkeys.isEmpty)
-                        NothingIsFound(title: context.i18n.search_nothing_found)
-                      else
-                        SliverPadding(
-                          padding: EdgeInsets.symmetric(vertical: 12.0.s),
-                          sliver: SliverList.builder(
-                            itemCount: masterPubkeys.length,
-                            itemBuilder: (context, index) => FeedSimpleSearchListItem(
-                              masterPubkey: masterPubkeys[index],
-                            ),
+                    else if (masterPubkeys.isEmpty)
+                      NothingIsFound(title: context.i18n.search_nothing_found)
+                    else
+                      SliverPadding(
+                        padding: EdgeInsets.symmetric(vertical: 12.0.s),
+                        sliver: SliverList.builder(
+                          itemCount: masterPubkeys.length,
+                          itemBuilder: (context, index) => FeedSimpleSearchListItem(
+                            masterPubkey: masterPubkeys[index],
                           ),
                         ),
-                    ],
-                    onRefresh: () => ref.read(searchProvider.notifier).refresh(),
-                    builder: (context, slivers) => LoadMoreBuilder(
-                      slivers: slivers,
-                      onLoadMore: () => ref.read(searchProvider.notifier).loadMore(),
-                      hasMore: searchResults?.hasMore ?? false,
-                    ),
+                      ),
+                  ],
+                  onRefresh: () => ref.read(searchProvider.notifier).refresh(),
+                  builder: (context, slivers) => LoadMoreBuilder(
+                    slivers: slivers,
+                    onLoadMore: () => ref.read(searchProvider.notifier).loadMore(),
+                    hasMore: searchResults?.hasMore ?? false,
                   ),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );

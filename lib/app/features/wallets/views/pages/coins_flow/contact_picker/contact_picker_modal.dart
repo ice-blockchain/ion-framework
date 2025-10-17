@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
-import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/user_picker_sheet.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
@@ -44,15 +43,14 @@ class ContactPickerModal extends HookConsumerWidget {
       (
         WidgetRef ref,
         BuildContext context,
-        UserPreviewEntity userPreviewData,
+        String masterPubkey,
       ) async {
         if (validatorType == ContactPickerValidatorType.none || networkId == null) return true;
 
         final network = await ref.read(networkByIdProvider(networkId!).future);
         if (network == null) return false;
 
-        final userMetadata =
-            await ref.read(userMetadataProvider(userPreviewData.masterPubkey).future);
+        final userMetadata = await ref.read(userMetadataProvider(masterPubkey).future);
         if (userMetadata == null) return false;
 
         final isPrivateWallets = userMetadata.data.wallets == null;
@@ -88,13 +86,13 @@ class ContactPickerModal extends HookConsumerWidget {
           title: Text(context.i18n.friends_modal_title),
           actions: const [NavigationCloseButton()],
         ),
-        onUserSelected: (user) async {
+        onUserSelected: (masterPubkey) async {
           // Prevent multiple rapid user selections
           if (isProcessing.value) return;
           isProcessing.value = true;
           try {
-            if (await validator(ref, context, user) && context.mounted) {
-              context.pop(user.masterPubkey);
+            if (await validator(ref, context, masterPubkey) && context.mounted) {
+              context.pop(masterPubkey);
             }
           } finally {
             if (context.mounted) {
