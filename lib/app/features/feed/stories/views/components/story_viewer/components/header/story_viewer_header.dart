@@ -24,7 +24,13 @@ class StoryViewerHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewData = ref.watch(userPreviewDataProvider(currentPost.masterPubkey));
+    final displayName = ref.watch(
+      userPreviewDataProvider(currentPost.masterPubkey).select(userPreviewDisplayNameSelector),
+    );
+
+    final username = ref.watch(
+      userPreviewDataProvider(currentPost.masterPubkey).select(userPreviewNameSelector),
+    );
 
     final appColors = context.theme.appColors;
     final textThemes = context.theme.appTextThemes;
@@ -42,85 +48,76 @@ class StoryViewerHeader extends ConsumerWidget {
       ),
     ];
 
-    return userPreviewData.maybeWhen(
-      data: (userPreview) {
-        if (userPreview == null) return const SizedBox.shrink();
-
-        return PositionedDirectional(
-          top: 14.0.s,
-          start: 16.0.s,
-          end: 22.0.s,
-          child: StoryOverlayContentVisibilityWrapper(
-            child: GestureDetector(
-              onTap: () => ProfileRoute(pubkey: currentPost.masterPubkey).push<void>(context),
-              child: BadgesUserListItem(
-                masterPubkey: userPreview.masterPubkey,
-                leading: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10.s),
-                    boxShadow: [
-                      BoxShadow(
-                        offset: shadow.first.offset,
-                        blurRadius: shadow.first.blurRadius,
-                        color: shadow.first.color,
-                      ),
-                    ],
+    return PositionedDirectional(
+      top: 14.0.s,
+      start: 16.0.s,
+      end: 22.0.s,
+      child: StoryOverlayContentVisibilityWrapper(
+        child: GestureDetector(
+          onTap: () => ProfileRoute(pubkey: currentPost.masterPubkey).push<void>(context),
+          child: BadgesUserListItem(
+            masterPubkey: currentPost.masterPubkey,
+            leading: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.s),
+                boxShadow: [
+                  BoxShadow(
+                    offset: shadow.first.offset,
+                    blurRadius: shadow.first.blurRadius,
+                    color: shadow.first.color,
                   ),
-                  child: IonConnectAvatar(
-                    size: ListItem.defaultAvatarSize,
-                    masterPubkey: currentPost.masterPubkey,
-                  ),
-                ),
-                title: Text(
-                  userPreview.data.trimmedDisplayName,
-                  style: textThemes.subtitle3.copyWith(
+                ],
+              ),
+              child: IonConnectAvatar(
+                size: ListItem.defaultAvatarSize,
+                masterPubkey: currentPost.masterPubkey,
+              ),
+            ),
+            title: Text(
+              displayName,
+              style: textThemes.subtitle3.copyWith(
+                color: onPrimaryAccent,
+                shadows: shadow,
+              ),
+              strutStyle: const StrutStyle(forceStrutHeight: true),
+            ),
+            subtitle: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  prefixUsername(username: username, context: context),
+                  style: textThemes.caption.copyWith(
                     color: onPrimaryAccent,
                     shadows: shadow,
                   ),
                 ),
-                subtitle: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      prefixUsername(
-                        username: userPreview.data.name,
-                        context: context,
-                      ),
-                      style: textThemes.caption.copyWith(
-                        color: onPrimaryAccent,
-                        shadows: shadow,
-                      ),
+                if (!currentPost.isDeleted) ...[
+                  SizedBox(width: 4.0.s),
+                  Text(
+                    '•',
+                    style: textThemes.caption.copyWith(
+                      color: onPrimaryAccent,
+                      shadows: shadow,
                     ),
-                    if (!currentPost.isDeleted) ...[
-                      SizedBox(width: 4.0.s),
-                      Text(
-                        '•',
-                        style: textThemes.caption.copyWith(
-                          color: onPrimaryAccent,
-                          shadows: shadow,
-                        ),
-                      ),
-                      SizedBox(width: 4.0.s),
-                      TimeAgo(
-                        time: currentPost.data.publishedAt.value.toDateTime,
-                        style: textThemes.caption.copyWith(
-                          color: onPrimaryAccent,
-                          shadows: shadow,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                trailing: HeaderActions(post: currentPost),
-                backgroundColor: Colors.transparent,
-                contentPadding: EdgeInsets.zero,
-                constraints: BoxConstraints(minHeight: 30.0.s),
-              ),
+                  ),
+                  SizedBox(width: 4.0.s),
+                  TimeAgo(
+                    time: currentPost.data.publishedAt.value.toDateTime,
+                    style: textThemes.caption.copyWith(
+                      color: onPrimaryAccent,
+                      shadows: shadow,
+                    ),
+                  ),
+                ],
+              ],
             ),
+            trailing: HeaderActions(post: currentPost),
+            backgroundColor: Colors.transparent,
+            contentPadding: EdgeInsets.zero,
+            constraints: BoxConstraints(minHeight: 30.0.s),
           ),
-        );
-      },
-      orElse: () => const SizedBox.shrink(),
+        ),
+      ),
     );
   }
 }
