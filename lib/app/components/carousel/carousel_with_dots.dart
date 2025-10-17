@@ -122,7 +122,7 @@ class CarouselWithDots extends HookWidget {
           items: items,
         ),
         if (effectiveDotsCount > 1)
-          Positioned(
+          PositionedDirectional(
             bottom: 8.s,
             child: DotsIndicator(
               dotsCount: effectiveDotsCount,
