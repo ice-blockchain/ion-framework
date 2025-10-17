@@ -8,7 +8,6 @@ import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
-import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/balance/balance_actions.dart';
@@ -23,7 +22,7 @@ class Balance extends ConsumerWidget {
 
   final WalletTabType tab;
 
-  static double get height => 140.0.s;
+  static double get height => 154.0.s;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,7 +39,6 @@ class Balance extends ConsumerWidget {
 
     return ScreenSideOffset.small(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: EdgeInsetsDirectional.only(
@@ -63,8 +61,7 @@ class Balance extends ConsumerWidget {
             ),
           Padding(
             padding: EdgeInsetsDirectional.only(
-              top: 12.0.s,
-              bottom: 16.0.s,
+              top: 6.0.s,
             ),
             child: BalanceActions(
               isLoading: shouldShowLoader,
@@ -76,10 +73,7 @@ class Balance extends ConsumerWidget {
                     ReceiveCoinRoute().push<void>(context);
                 }
               },
-              onSend: () {
-                ref.invalidate(sendAssetFormControllerProvider);
-                SelectCoinWalletRoute().push<void>(context);
-              },
+              onMore: () => WalletMainModalRoute().push<void>(context),
               onNeedToEnable2FA: () => SecureAccountModalRoute().push<void>(context),
             ),
           ),

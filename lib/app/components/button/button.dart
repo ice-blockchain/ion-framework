@@ -9,6 +9,8 @@ import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/generated/assets.gen.dart';
 
+export 'variants/text_icon_button.dart';
+
 part 'variants/button_compact.dart';
 part 'variants/button_dropdown.dart';
 part 'variants/button_icon.dart';
@@ -47,7 +49,7 @@ class Button extends StatelessWidget {
         trailingIconOffset = trailingIconOffset ?? 8.0.s;
 
   factory Button.icon({
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
     required Widget icon,
     Key? key,
     ButtonType type,
@@ -110,7 +112,7 @@ class Button extends StatelessWidget {
     VoidCallback? onClearTap,
   }) = _ButtonDropdown;
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Widget? leadingIcon;
   final Widget? trailingIcon;
   final Widget? label;

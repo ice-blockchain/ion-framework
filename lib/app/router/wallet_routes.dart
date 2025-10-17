@@ -5,7 +5,9 @@ part of 'app_routes.gr.dart';
 class WalletRoutes {
   static const routes = <TypedRoute<RouteData>>[
     TypedShellRoute<ModalShellRouteData>(
-      routes: [TypedGoRoute<ManageNftsRoute>(path: 'manage-nfts')],
+      routes: [
+        TypedGoRoute<ManageNftsRoute>(path: 'manage-nfts'),
+      ],
     ),
     TypedShellRoute<ModalShellRouteData>(
       routes: [
