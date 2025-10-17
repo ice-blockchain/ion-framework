@@ -36,7 +36,7 @@ class OneToOneMessagingHeader extends ConsumerWidget {
 
     final userPreviewData = ref.watch(userPreviewDataProvider(receiverMasterPubkey));
     // Show skeleton while loading user data (unless deleted)
-    if (userPreviewData.isLoading) {
+    if (userPreviewData.isLoading && !userPreviewData.hasValue) {
       return const _HeaderSkeleton();
     }
 
