@@ -53,7 +53,7 @@ class UnavailableTooltipOverlay extends StatelessWidget {
                     alignment: Alignment.topCenter,
                     children: [
                       Container(
-                        margin: const EdgeInsets.only(bottom: 10),
+                        margin: const EdgeInsetsDirectional.only(bottom: 10),
                         padding: EdgeInsets.symmetric(horizontal: 32.s, vertical: 11.s),
                         decoration: BoxDecoration(
                           color: context.theme.appColors.onPrimaryAccent,
@@ -73,9 +73,9 @@ class UnavailableTooltipOverlay extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Positioned(
+                      PositionedDirectional(
                         bottom: 0,
-                        left: clampedPointerPosition - (pointerWidth / 2),
+                        start: clampedPointerPosition - (pointerWidth / 2),
                         child: _TrianglePointer(
                           color: context.theme.appColors.onPrimaryAccent,
                           height: 10.s,
