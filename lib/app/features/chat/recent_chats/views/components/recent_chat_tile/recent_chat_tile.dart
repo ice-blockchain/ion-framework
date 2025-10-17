@@ -207,7 +207,7 @@ class RecentChatTile extends HookConsumerWidget {
                                 ),
                               ),
                               if (isMe)
-                                MessageMetaData(
+                                MessageMetadata(
                                   displayTime: false,
                                   displayEdited: false,
                                   deliveryStatusIconSize: 16.0.s,

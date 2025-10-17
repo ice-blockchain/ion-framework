@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
+import 'package:ion/app/services/compressors/audio_compressor.r.dart';
 import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -17,11 +18,17 @@ Future<String?> chatMessageMediaPath(
   String? cacheKey,
   MediaAttachment? mediaAttachment,
   bool loadThumbnail = true,
+  bool convertAudioToWav = false,
 }) async {
   if (cacheKey != null) {
     final cachedFile = await ref.watch(mediaServiceProvider).getFileFromAppDirectory(cacheKey);
 
     if (cachedFile != null) {
+      if (convertAudioToWav && !cachedFile.path.endsWith('.wav')) {
+        final wavFilePath =
+            await ref.watch(audioCompressorProvider).compressAudioToWav(cachedFile.path);
+        return wavFilePath;
+      }
       return cachedFile.path;
     }
   }
@@ -47,6 +54,12 @@ Future<String?> chatMessageMediaPath(
   final encryptedMedia = await ref
       .watch(mediaEncryptionServiceProvider)
       .retrieveEncryptedMedia(mediaAttachmentToLoad, authorPubkey: entity.masterPubkey);
+
+  if (convertAudioToWav && !encryptedMedia.path.endsWith('.wav')) {
+    final wavFilePath =
+        await ref.watch(audioCompressorProvider).compressAudioToWav(encryptedMedia.path);
+    return wavFilePath;
+  }
 
   return encryptedMedia.path;
 }

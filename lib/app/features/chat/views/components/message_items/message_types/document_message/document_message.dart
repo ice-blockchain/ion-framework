@@ -167,7 +167,7 @@ class DocumentMessage extends HookConsumerWidget {
                     ],
                   ),
                 ),
-                MessageMetaData(
+                MessageMetadata(
                   eventMessage: eventMessage,
                   startPadding: hasReactions ? 0.0.s : 8.0.s,
                 ),

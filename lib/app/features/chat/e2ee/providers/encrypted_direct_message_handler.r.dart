@@ -69,9 +69,7 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
     await _addMediaToDatabase(rumor);
   }
 
-  Future<void> _addMediaToDatabase(
-    EventMessage rumor,
-  ) async {
+  Future<void> _addMediaToDatabase(EventMessage rumor) async {
     final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
     if (entity.data.media.isNotEmpty) {
       for (final media in entity.data.media.values) {

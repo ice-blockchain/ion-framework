@@ -33,11 +33,17 @@ class VisualMediaMessage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage);
+    final entity = useMemoized(
+      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
+      [eventMessage],
+    );
 
     final eventReference = entity.toEventReference();
 
-    final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
+    final isMe = useMemoized(
+      () => ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey)),
+      [eventMessage.masterPubkey],
+    );
 
     final messageMedias = ref.watch(
           chatMediasProvider(eventReference: eventReference).select((value) {
