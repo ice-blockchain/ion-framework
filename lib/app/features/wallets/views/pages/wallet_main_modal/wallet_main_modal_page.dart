@@ -47,53 +47,13 @@ class WalletMainModalPage extends HookConsumerWidget {
       ref: ref,
     );
 
-    final showBuySellButtons = ref
-        .read(featureFlagsProvider.notifier)
-        .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
-
     return SheetContent(
       topPadding: 0.0.s,
       body: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (showBuySellButtons) ...[
-              SizedBox(height: 24.s),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0.s),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Button.compact(
-                        leadingIconOffset: 4.s,
-                        leadingIcon: Assets.svg.iconWalletBuy.icon(),
-                        label: Text(context.i18n.wallet_buy),
-                        // TODO: implement buy currency flow
-                        onPressed: () {},
-                      ),
-                    ),
-                    SizedBox(width: 12.0.s),
-                    Expanded(
-                      child: Button.compact(
-                        leadingIconOffset: 4.s,
-                        leadingIcon: Assets.svg.iconMemeCoins.icon(),
-                        label: Text(context.i18n.wallet_sell),
-                        // TODO: implement sell currency flow
-                        onPressed: () {},
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 20.s),
-              const HorizontalSeparator(),
-              SizedBox(height: 8.s),
-            ] else ...[
-              NavigationAppBar.modal(
-                title: Text(context.i18n.wallet_modal_title),
-                showBackButton: false,
-              ),
-            ],
+            const _Header(),
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -128,5 +88,58 @@ class WalletMainModalPage extends HookConsumerWidget {
       WalletMainModalListItem.receive => ReceiveCoinRoute().location,
       WalletMainModalListItem.swap => '', // TODO: add swap route when the feature is implemented
     };
+  }
+}
+
+class _Header extends ConsumerWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showBuySellButtons = ref
+        .read(featureFlagsProvider.notifier)
+        .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
+
+    if (!showBuySellButtons) {
+      return NavigationAppBar.modal(
+        title: Text(context.i18n.wallet_modal_title),
+        showBackButton: false,
+      );
+    }
+
+    return Column(
+      children: [
+        SizedBox(height: 24.s),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0.s),
+          child: Row(
+            children: [
+              Expanded(
+                child: Button.compact(
+                  leadingIconOffset: 4.s,
+                  leadingIcon: Assets.svg.iconWalletBuy.icon(),
+                  label: Text(context.i18n.wallet_buy),
+                  // TODO: implement buy currency flow
+                  onPressed: () {},
+                ),
+              ),
+              SizedBox(width: 12.0.s),
+              Expanded(
+                child: Button.compact(
+                  leadingIconOffset: 4.s,
+                  leadingIcon: Assets.svg.iconMemeCoins.icon(),
+                  label: Text(context.i18n.wallet_sell),
+                  // TODO: implement sell currency flow
+                  onPressed: () {},
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 20.s),
+        const HorizontalSeparator(),
+        SizedBox(height: 8.s),
+      ],
+    );
   }
 }
