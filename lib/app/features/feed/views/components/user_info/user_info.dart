@@ -73,7 +73,7 @@ class UserInfo extends HookConsumerWidget {
                 prefixUsername(username: username, context: context),
                 style: tStyle,
               ),
-              if (createdAt != null) ...[
+              if (createdAt != null && username.isNotEmpty) ...[
                 SizedBox(width: 4.0.s),
                 Text('•', style: tStyle),
                 SizedBox(width: 4.0.s),
