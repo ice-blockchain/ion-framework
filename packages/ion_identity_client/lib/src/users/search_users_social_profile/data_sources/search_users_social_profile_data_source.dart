@@ -16,7 +16,7 @@ class SearchUsersSocialProfileDataSource {
 
   static const basePath = '/v1';
 
-  Future<List<UserRelaysInfo>> searchForUsersByKeyword({
+  Future<List<IdentityUserInfo>> searchForUsersByKeyword({
     required String keyword,
     required SearchUsersSocialProfileType searchType,
     required int limit,
@@ -45,7 +45,7 @@ class SearchUsersSocialProfileDataSource {
         token: token.token,
       ),
       decoder: (result, _) => (result as List<dynamic>)
-          .map((e) => UserRelaysInfo.fromJson(e as Map<String, dynamic>))
+          .map((e) => IdentityUserInfo.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 

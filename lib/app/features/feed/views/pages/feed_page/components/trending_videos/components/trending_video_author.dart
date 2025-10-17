@@ -19,11 +19,9 @@ class TrendingVideoAuthor extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
-
-    if (userMetadata == null) {
-      return const SizedBox.shrink();
-    }
+    final authorDisplayName = ref.watch(
+      userPreviewDataProvider(pubkey, network: false).select(userPreviewDisplayNameSelector),
+    );
 
     return TextButton(
       onPressed: () {
@@ -41,7 +39,7 @@ class TrendingVideoAuthor extends ConsumerWidget {
               child: Padding(
                 padding: EdgeInsetsDirectional.only(start: 4.0.s),
                 child: Text(
-                  userMetadata.data.trimmedDisplayName,
+                  authorDisplayName,
                   overflow: TextOverflow.ellipsis,
                   style: context.theme.appTextThemes.caption3.copyWith(
                     color: context.theme.appColors.secondaryBackground,

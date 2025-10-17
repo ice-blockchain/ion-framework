@@ -22,21 +22,21 @@ class GroupPariticipantsListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadataResult = ref.watch(userMetadataProvider(participantMasterkey));
+    final userPreviewResult = ref.watch(userPreviewDataProvider(participantMasterkey));
 
-    return userMetadataResult.maybeWhen(
-      data: (userMetadata) {
-        if (userMetadata == null) return const SizedBox.shrink();
+    return userPreviewResult.maybeWhen(
+      data: (userPreviewData) {
+        if (userPreviewData == null) return const SizedBox.shrink();
 
         return BadgesUserListItem(
-          title: Text(userMetadata.data.trimmedDisplayName),
+          title: Text(userPreviewData.data.trimmedDisplayName),
           subtitle: Text(
-            prefixUsername(username: userMetadata.data.name, context: context),
+            prefixUsername(username: userPreviewData.data.name, context: context),
             style: context.theme.appTextThemes.caption.copyWith(
               color: context.theme.appColors.sheetLine,
             ),
           ),
-          masterPubkey: userMetadata.masterPubkey,
+          masterPubkey: userPreviewData.masterPubkey,
           contentPadding: EdgeInsets.zero,
           constraints: BoxConstraints(maxHeight: 39.0.s),
           trailing: isCurrentUser

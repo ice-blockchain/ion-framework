@@ -114,7 +114,7 @@ class Count extends _$Count {
           throw EventCountException('Unexpected error content type');
         }
       } else if (responseEntity is EventCountResultEntity) {
-        ref.read(ionConnectCacheProvider.notifier).cache(responseEntity);
+        await ref.read(ionConnectCacheProvider.notifier).cache(responseEntity);
         return responseEntity.data.content;
       }
     } finally {

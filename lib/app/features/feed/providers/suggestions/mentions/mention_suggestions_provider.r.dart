@@ -2,8 +2,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
-import 'package:ion/app/features/user/providers/paginated_users_metadata_provider.r.dart';
+import 'package:ion/app/features/user/providers/paginated_master_pubkeys_provider.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -15,10 +14,10 @@ class _SearchUsersByKeyword {
 
   final String keyword;
 
-  Future<List<UserRelaysInfo>> call(
+  Future<List<IdentityUserInfo>> call(
     int limit,
     int offset,
-    List<UserMetadataEntity> current,
+    List<String> current,
     IONIdentityClient ionIdentityClient,
   ) {
     return ionIdentityClient.users.searchForUsersByKeyword(
@@ -46,11 +45,11 @@ Future<List<String>> mentionSuggestions(Ref ref, String query) async {
   }
 
   final searchQuery = trimmedQuery.substring(1).toLowerCase();
-  final paginatedUsersMetadataData = await ref.watch(
-    paginatedUsersMetadataProvider(
+  final paginatedMasterPubkeys = await ref.watch(
+    paginatedMasterPubkeysProvider(
       _SearchUsersByKeyword(searchQuery).call,
     ).future,
   );
 
-  return paginatedUsersMetadataData.items.map((metadata) => metadata.masterPubkey).toList();
+  return paginatedMasterPubkeys.items;
 }

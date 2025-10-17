@@ -43,17 +43,20 @@ class ContactPickerModal extends HookConsumerWidget {
       (
         WidgetRef ref,
         BuildContext context,
-        UserMetadataEntity user,
+        String masterPubkey,
       ) async {
         if (validatorType == ContactPickerValidatorType.none || networkId == null) return true;
 
         final network = await ref.read(networkByIdProvider(networkId!).future);
         if (network == null) return false;
 
-        final isPrivateWallets = user.data.wallets == null;
-        final walletAddress = _getWalletAddress(user, network.id) ??
+        final userMetadata = await ref.read(userMetadataProvider(masterPubkey).future);
+        if (userMetadata == null) return false;
+
+        final isPrivateWallets = userMetadata.data.wallets == null;
+        final walletAddress = _getWalletAddress(userMetadata, network.id) ??
             _getWalletAddress(
-              await ref.read(userMetadataProvider(user.masterPubkey, cache: false).future),
+              await ref.read(userMetadataProvider(userMetadata.masterPubkey, cache: false).future),
               network.id,
             );
 
@@ -63,7 +66,7 @@ class ContactPickerModal extends HookConsumerWidget {
           unawaited(
             showContactWalletError(
               ref.context,
-              user: user,
+              user: userMetadata,
               network: network,
               isPrivate: isPrivateWallets,
             ),
@@ -83,13 +86,13 @@ class ContactPickerModal extends HookConsumerWidget {
           title: Text(context.i18n.friends_modal_title),
           actions: const [NavigationCloseButton()],
         ),
-        onUserSelected: (user) async {
+        onUserSelected: (masterPubkey) async {
           // Prevent multiple rapid user selections
           if (isProcessing.value) return;
           isProcessing.value = true;
           try {
-            if (await validator(ref, context, user) && context.mounted) {
-              context.pop(user.masterPubkey);
+            if (await validator(ref, context, masterPubkey) && context.mounted) {
+              context.pop(masterPubkey);
             }
           } finally {
             if (context.mounted) {

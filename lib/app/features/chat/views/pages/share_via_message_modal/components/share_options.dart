@@ -37,15 +37,16 @@ class ShareOptions extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isCapturing = useState(false);
 
-    final userMetadata = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
-    if (userMetadata == null) {
+    final userPreviewData =
+        ref.watch(userPreviewDataProvider(eventReference.masterPubkey)).valueOrNull;
+    if (userPreviewData == null) {
       return const SizedBox.shrink();
     }
     final shareOptionsData = ref.watch(
       shareOptionsDataProvider(
         eventReference,
-        userMetadata.data,
-        prefixUsername(username: userMetadata.data.name, context: context),
+        userPreviewData.data,
+        prefixUsername(username: userPreviewData.data.name, context: context),
       ),
     );
 

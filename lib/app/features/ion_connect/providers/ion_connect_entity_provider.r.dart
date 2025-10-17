@@ -34,15 +34,11 @@ Future<IonConnectEntity?> ionConnectEntity(
     throw const CurrentUserNotFoundException();
   }
 
-  // Try to get from in-memory cache, then database cache, if found in database cache
-  // put it also in in-memory cache
   if (cache) {
     final inMemoryEntity = ref.watch(
-      ionConnectCacheProvider.select(
-        cacheSelector(
-          CacheableEntity.cacheKeyBuilder(eventReference: eventReference),
-          expirationDuration: expirationDuration,
-        ),
+      ionConnectInMemoryEntityProvider(
+        eventReference: eventReference,
+        expirationDuration: expirationDuration,
       ),
     );
 
@@ -50,12 +46,12 @@ Future<IonConnectEntity?> ionConnectEntity(
       return inMemoryEntity;
     }
 
-    final cacheService = ref.read(ionConnectDatabaseCacheProvider.notifier);
-
-    final databaseEntity = await cacheService.get(
-      eventReference.toString(),
-      expirationDuration: expirationDuration,
-      cacheStrategy: cacheStrategy ?? DatabaseCacheStrategy.alwaysReturn,
+    final databaseEntity = await ref.watch(
+      ionConnectDatabaseEntityProvider(
+        eventReference: eventReference,
+        expirationDuration: expirationDuration,
+        cacheStrategy: cacheStrategy ?? DatabaseCacheStrategy.alwaysReturn,
+      ).future,
     );
 
     if (databaseEntity != null) {
@@ -92,15 +88,18 @@ IonConnectEntity? ionConnectInMemoryEntity(
       ),
     );
 
-// We have to keep this provider in order to not break existing sync entity provider
-// logic
-//TODO: remove in future refactor
 @riverpod
-Future<IonConnectEntity?> ionConnectDatabaseEntity(
+Stream<IonConnectEntity?> ionConnectDatabaseEntity(
   Ref ref, {
   required EventReference eventReference,
-}) async {
-  return ref.read(ionConnectDatabaseCacheProvider.notifier).get(eventReference.toString());
+  Duration? expirationDuration,
+  DatabaseCacheStrategy cacheStrategy = DatabaseCacheStrategy.alwaysReturn,
+}) {
+  return ref.watch(ionConnectDatabaseCacheProvider.notifier).watch(
+        eventReference.toString(),
+        expirationDuration: expirationDuration,
+        cacheStrategy: cacheStrategy,
+      );
 }
 
 @riverpod
@@ -268,6 +267,7 @@ class IonConnectNetworkEntitiesManager extends _$IonConnectNetworkEntitiesManage
   }
 }
 
+//TODO: remove in future refactor
 @riverpod
 IonConnectEntity? ionConnectSyncEntity(
   Ref ref, {

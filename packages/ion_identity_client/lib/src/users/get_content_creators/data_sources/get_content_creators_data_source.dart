@@ -17,7 +17,7 @@ class IONContentCreatorsDataSource {
 
   static const basePath = '/v1/users';
 
-  Future<List<UserRelaysInfo>> fetchIONContentCreators({
+  Future<List<IdentityUserInfo>> fetchIONContentCreators({
     required int limit,
     required String username,
     required List<String> excludeMasterPubKeys,
@@ -36,7 +36,7 @@ class IONContentCreatorsDataSource {
         token: token.token,
       ),
       decoder: (result, _) => (result as List<dynamic>)
-          .map((e) => UserRelaysInfo.fromJson(e as Map<String, dynamic>))
+          .map((e) => IdentityUserInfo.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 

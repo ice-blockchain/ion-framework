@@ -48,13 +48,12 @@ class UserInfoMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
+    final username = ref.watch(
+      userPreviewDataProvider(eventReference.masterPubkey, network: false)
+          .select(userPreviewNameSelector),
+    );
     final isArticle = eventReference is ReplaceableEventReference &&
         (eventReference as ReplaceableEventReference).kind == ArticleEntity.kind;
-
-    if (userMetadata == null) {
-      return const SizedBox.shrink();
-    }
 
     ref.displayErrors(reportNotifierProvider);
 
@@ -82,12 +81,12 @@ class UserInfoMenu extends ConsumerWidget {
                 children: [
                   _FollowUserMenuItem(
                     pubkey: eventReference.masterPubkey,
-                    username: userMetadata.data.name,
+                    username: username,
                     closeMenu: closeMenu,
                   ),
                   _BlockUserMenuItem(
                     pubkey: eventReference.masterPubkey,
-                    username: userMetadata.data.name,
+                    username: username,
                     closeMenu: closeMenu,
                     onBlocked: context.canPop() ? context.pop : null,
                   ),

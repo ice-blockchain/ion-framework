@@ -32,7 +32,7 @@ class NotificationInfo extends HookConsumerWidget {
     final locale = ref.watch(appLocaleProvider);
     final userDatas =
         notification.pubkeys.take(notification.pubkeys.length == 2 ? 2 : 1).map((pubkey) {
-      return ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+      return ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
     }).toList();
 
     final eventTypeLabel = _getEventTypeLabel(ref, notification: notification);

@@ -49,7 +49,7 @@ class IONIdentityUsers {
   }) async =>
       _getUserDetailsService.details(userId: userId);
 
-  Future<List<UserRelaysInfo>> ionConnectRelays({
+  Future<List<IdentityUserInfo>> ionConnectRelays({
     required List<String> masterPubkeys,
   }) async =>
       _ionConnectRelaysService.relays(masterPubkeys: masterPubkeys);
@@ -69,7 +69,7 @@ class IONIdentityUsers {
     );
   }
 
-  Future<List<UserRelaysInfo>> getContentCreators({
+  Future<List<IdentityUserInfo>> getContentCreators({
     required int limit,
     required List<String> excludeMasterPubKeys,
   }) async {
@@ -106,7 +106,7 @@ class IONIdentityUsers {
     );
   }
 
-  Future<List<UserRelaysInfo>> searchForUsersByKeyword({
+  Future<List<IdentityUserInfo>> searchForUsersByKeyword({
     required String keyword,
     required SearchUsersSocialProfileType searchType,
     required int limit,

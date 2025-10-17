@@ -12,6 +12,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/services/deep_link/deep_link_service.r.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -40,7 +41,7 @@ class ShareOptionsData {
 ShareOptionsData? shareOptionsData(
   Ref ref,
   EventReference eventReference,
-  UserMetadata userMetadata,
+  UserPreviewData userPreviewData,
   String prefixUsername,
 ) {
   final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
@@ -50,16 +51,16 @@ ShareOptionsData? shareOptionsData(
   }
 
   final shareAppName = ref.read(envProvider.notifier).get<String>(EnvVariable.SHARE_APP_NAME);
-  return _getShareOptionsData(entity, userMetadata, shareAppName, prefixUsername);
+  return _getShareOptionsData(entity, userPreviewData, shareAppName, prefixUsername);
 }
 
 ShareOptionsData? _getShareOptionsData(
   IonConnectEntity entity,
-  UserMetadata userMetadata,
+  UserPreviewData userPreviewData,
   String shareAppName,
   String prefixUsername,
 ) {
-  final userDisplayName = '${userMetadata.displayName} ($prefixUsername)';
+  final userDisplayName = '${userPreviewData.displayName} ($prefixUsername)';
 
   switch (entity) {
     case ModifiablePostEntity():
@@ -69,7 +70,7 @@ ShareOptionsData? _getShareOptionsData(
         final firstMedia = entity.data.media.values.firstOrNull;
         imageUrl = firstMedia?.image ?? firstMedia?.url;
       } else {
-        imageUrl = userMetadata.picture;
+        imageUrl = userPreviewData.avatarUrl;
       }
 
       final plainTextContent = _convertDeltaToPlainText(content);
@@ -93,7 +94,7 @@ ShareOptionsData? _getShareOptionsData(
       );
     case UserMetadataEntity():
       return ShareOptionsData(
-        imageUrl: userMetadata.picture,
+        imageUrl: userPreviewData.avatarUrl,
         userDisplayName: userDisplayName,
         shareAppName: shareAppName,
         contentType: SharedContentType.profile,

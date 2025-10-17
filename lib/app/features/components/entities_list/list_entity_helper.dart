@@ -9,9 +9,7 @@ import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/block_user_provider.r.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';
@@ -131,26 +129,5 @@ class ListEntityHelper {
     }
 
     return false;
-  }
-
-  static bool hasMetadata(BuildContext context, WidgetRef ref, IonConnectEntity entity) {
-    final userMetadata = ref.watch(
-          // We don't request the events individually - we just wait for them to appear in cache
-          // from either search ext OR from fetching missing events if relay returns 21750
-          // for the metadata and we fetch those in batches.
-          userMetadataProvider(entity.masterPubkey, network: false).select((value) {
-            final entity = value.valueOrNull;
-            if (entity != null) {
-              ListCachedObjects.updateObject<UserMetadataEntity>(context, entity);
-            }
-            return entity;
-          }),
-        ) ??
-        ListCachedObjects.maybeObjectOf<UserMetadataEntity>(
-          context,
-          entity.masterPubkey,
-        );
-
-    return userMetadata != null;
   }
 }

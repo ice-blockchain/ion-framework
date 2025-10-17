@@ -36,7 +36,7 @@ class FollowingList extends HookConsumerWidget {
         )
         .valueOrNull;
 
-    final searchFollowees = searchPagedData?.users;
+    final searchMasterPubkeys = searchPagedData?.masterPubkeys;
 
     return LoadMoreBuilder(
       hasMore: searchPagedData?.hasMore ?? false,
@@ -55,22 +55,22 @@ class FollowingList extends HookConsumerWidget {
         ),
         FollowSearchBar(onTextChanged: (query) => searchQuery.value = query),
         if (searchQuery.value.isNotEmpty)
-          if (searchFollowees == null)
+          if (searchMasterPubkeys == null)
             const FollowListLoading()
-          else if (searchFollowees.isEmpty)
+          else if (searchMasterPubkeys.isEmpty)
             const NothingIsFound()
           else
             SliverList.builder(
-              itemCount: searchFollowees.length,
+              itemCount: searchMasterPubkeys.length,
               itemBuilder: (context, index) => ScreenSideOffset.small(
-                child: FollowListItem(pubkey: searchFollowees[index].masterPubkey),
+                child: FollowListItem(pubkey: searchMasterPubkeys[index]),
               ),
             )
         else if (followeePubkeys != null)
           SliverList.builder(
             itemCount: followeePubkeys.length,
             itemBuilder: (context, index) => ScreenSideOffset.small(
-              child: FollowListItem(pubkey: followeePubkeys[index]),
+              child: FollowListItem(pubkey: followeePubkeys[index], network: true),
             ),
           )
         else

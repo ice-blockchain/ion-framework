@@ -47,23 +47,23 @@ Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) a
     final metadataExpiration =
         ref.read(envProvider.notifier).get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES);
 
-    final userMetadata = await ref.watch(
-      userMetadataProvider(
+    final userPreviewData = await ref.watch(
+      userPreviewDataProvider(
         receiverMasterPubkey,
         expirationDuration: Duration(minutes: metadataExpiration),
       ).future,
     );
 
-    if (userMetadata == null) continue;
+    if (userPreviewData == null) continue;
 
-    final nameMatches = userMetadata.data.name.toLowerCase().contains(caseInsensitiveQuery);
+    final nameMatches = userPreviewData.data.name.toLowerCase().contains(caseInsensitiveQuery);
     final displayNameMatches =
-        userMetadata.data.displayName.toLowerCase().contains(caseInsensitiveQuery);
+        userPreviewData.data.displayName.toLowerCase().contains(caseInsensitiveQuery);
     if (!nameMatches && !displayNameMatches) continue;
 
     result.add(
       ChatSearchResultItem(
-        userMetadata: userMetadata,
+        masterPubkey: userPreviewData.masterPubkey,
         lastMessageContent: message.data.content,
       ),
     );

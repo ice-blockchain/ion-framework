@@ -24,7 +24,8 @@ class FollowedByText extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final firstUserMetadata = ref.watch(userMetadataProvider(firstFollowerPubkey)).valueOrNull;
+    final firstUserPreviewData =
+        ref.watch(userPreviewDataProvider(firstFollowerPubkey)).valueOrNull;
 
     final userTapRecognizer = useTapGestureRecognizer(
       onTap: () => ProfileRoute(pubkey: firstFollowerPubkey).push<void>(context),
@@ -45,7 +46,7 @@ class FollowedByText extends HookConsumerWidget {
       },
     );
 
-    if (firstUserMetadata == null) {
+    if (firstUserPreviewData == null) {
       return const SizedBox.shrink();
     }
 
@@ -66,7 +67,7 @@ class FollowedByText extends HookConsumerWidget {
               style: defaultStyle,
             ),
             TextSpan(
-              text: firstUserMetadata.data.trimmedDisplayName,
+              text: firstUserPreviewData.data.trimmedDisplayName,
               style: actionableStyle,
               recognizer: userTapRecognizer,
             ),

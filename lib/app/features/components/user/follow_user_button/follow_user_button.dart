@@ -14,10 +14,17 @@ import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 class FollowUserButton extends ConsumerWidget {
   const FollowUserButton({
     required this.pubkey,
+
+    /// Whether the user is a follower
+    ///
+    /// We pass this if the know that the user is a follower to avoid extra kind3 requests.
+    /// TODO: remove after kind3 rework and removing the hack with 21750->kind3 in followersProvider
+    this.follower,
     super.key,
   });
 
   final String pubkey;
+  final bool? follower;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,7 +40,8 @@ class FollowUserButton extends ConsumerWidget {
     );
 
     final following = ref.watch(isCurrentUserFollowingSelectorProvider(pubkey));
-    final isCurrentUserFollowed = ref.watch(isCurrentUserFollowedProvider(pubkey));
+    final isCurrentUserFollowed =
+        follower != null ? follower! : ref.watch(isCurrentUserFollowedProvider(pubkey));
 
     return FollowButton(
       onPressed: () {

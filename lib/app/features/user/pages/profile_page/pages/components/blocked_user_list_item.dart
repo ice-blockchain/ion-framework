@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
-import 'package:ion/app/components/list_items_loading_state/item_loading_state.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/components/block_user_button.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -21,26 +20,19 @@ class BlockedUserListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadataResult = ref.watch(userMetadataProvider(pubkey));
+    final displayName = ref.watch(
+      userPreviewDataProvider(pubkey, network: false).select(userPreviewDisplayNameSelector),
+    );
 
-    return userMetadataResult.maybeWhen(
-      data: (userMetadata) {
-        if (userMetadata == null) {
-          return const SizedBox.shrink();
-        }
-        return BadgesUserListItem(
-          title: Text(userMetadata.data.trimmedDisplayName),
-          trailing: BlockUserButton(masterPubkey: pubkey),
-          subtitle: Text(
-            prefixUsername(
-              username: userMetadata.data.name,
-              context: context,
-            ),
-          ),
-          masterPubkey: pubkey,
-        );
-      },
-      orElse: () => ItemLoadingState(itemHeight: itemHeight),
+    final username = ref.watch(
+      userPreviewDataProvider(pubkey, network: false).select(userPreviewNameSelector),
+    );
+
+    return BadgesUserListItem(
+      title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+      trailing: BlockUserButton(masterPubkey: pubkey),
+      subtitle: Text(prefixUsername(username: username, context: context)),
+      masterPubkey: pubkey,
     );
   }
 }

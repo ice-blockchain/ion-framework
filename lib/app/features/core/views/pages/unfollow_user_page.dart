@@ -22,7 +22,7 @@ class UnfollowUserModal extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final name = ref.watch(userMetadataProvider(pubkey)).valueOrNull?.data.name ?? '';
+    final name = ref.watch(userPreviewDataProvider(pubkey).select(userPreviewNameSelector));
 
     ref.displayErrors(toggleFollowNotifierProvider);
 

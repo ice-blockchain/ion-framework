@@ -24,7 +24,6 @@ import 'package:ion/app/features/chat/recent_chats/providers/archived_conversati
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_skeleton/recent_chat_skeleton.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/archive_chat_tile.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_tile.dart';
-import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
@@ -306,23 +305,23 @@ class E2eeRecentChatTile extends HookConsumerWidget {
 
     final isUserVerified = ref.watch(isUserVerifiedProvider(receiverMasterPubkey));
 
-    final userMetadata = ref.watch(userMetadataProvider(receiverMasterPubkey));
+    final userPreviewData = ref.watch(userPreviewDataProvider(receiverMasterPubkey));
 
-    if (userMetadata.isLoading) {
+    if (userPreviewData.isLoading && !userPreviewData.hasValue) {
       return const RecentChatSkeletonItem();
     }
 
-    final metadata = userMetadata.valueOrNull;
-    final trimmedDisplayName = metadata?.data.trimmedDisplayName;
+    final previewData = userPreviewData.valueOrNull;
+    final trimmedDisplayName = previewData?.data.trimmedDisplayName;
 
     return RecentChatTile(
       defaultAvatar: null,
       conversation: conversation,
       messageType: entity.messageType,
-      name: metadata.isDeleted || trimmedDisplayName == null
+      name: previewData == null || trimmedDisplayName == null
           ? context.i18n.common_deleted_account
           : trimmedDisplayName,
-      avatarUrl: metadata.isDeleted ? Assets.svg.iconProfileNoimage : metadata!.data.avatarUrl,
+      avatarUrl: previewData == null ? Assets.svg.iconProfileNoimage : previewData.data.avatarUrl,
       eventReference: eventReference,
       unreadMessagesCount: unreadMessagesCount.valueOrNull ?? 0,
       lastMessageContent: entity.messageType == MessageType.document

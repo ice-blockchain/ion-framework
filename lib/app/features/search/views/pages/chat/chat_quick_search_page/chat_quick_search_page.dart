@@ -49,11 +49,11 @@ class ChatQuickSearchPage extends HookConsumerWidget {
 
     final searchResults = [
       ...?localUserSearch.valueOrNull,
-      if (remoteUserSearch.valueOrNull?.users != null)
-        ...remoteUserSearch.value!.users!.map(
-          (a) => ChatSearchResultItem(userMetadata: a),
+      if (remoteUserSearch.valueOrNull?.masterPubkeys != null)
+        ...remoteUserSearch.value!.masterPubkeys!.map(
+          (masterPubkey) => ChatSearchResultItem(masterPubkey: masterPubkey),
         ),
-    ].distinctBy((item) => item.userMetadata).toList();
+    ].distinctBy((item) => item.masterPubkey).toList();
 
     return Scaffold(
       body: ScreenTopOffset(

@@ -39,14 +39,14 @@ class ContactInputSwitcher extends ConsumerWidget {
       );
     }
 
-    final userMetadata = ref.watch(userMetadataProvider(pubkey!)).valueOrNull;
+    final userPreviewData = ref.watch(userPreviewDataProvider(pubkey!)).valueOrNull;
 
-    if (userMetadata == null) {
+    if (userPreviewData == null) {
       return const SizedBox.shrink();
     }
 
     return ContactButton(
-      userMetadata: userMetadata,
+      userPreviewData: userPreviewData,
       onContactTap: onContactTap,
       onClearTap: () => onClearTap(null),
     );

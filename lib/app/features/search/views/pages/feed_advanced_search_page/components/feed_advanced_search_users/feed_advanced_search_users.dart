@@ -9,6 +9,7 @@ import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/search/views/pages/feed_advanced_search_page/components/feed_advanced_search_users/feed_advanced_search_user_list_item.dart';
 import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
 
@@ -24,33 +25,36 @@ class FeedAdvancedSearchUsers extends HookConsumerWidget {
     final searchResults =
         ref.watch(searchUsersProvider(query: query, includeCurrentUser: true)).valueOrNull;
 
-    final searchUsers = searchResults?.users ?? [];
+    final masterPubkeys = searchResults?.masterPubkeys ?? [];
     final hasMore = searchResults?.hasMore ?? true;
-    final loading = hasMore && searchUsers.isEmpty;
+    final loading = hasMore && masterPubkeys.isEmpty;
 
-    return PullToRefreshBuilder(
-      slivers: [
-        if (loading)
-          const ListItemsLoadingState(
-            listItemsLoadingStateType: ListItemsLoadingStateType.scrollView,
-          )
-        else if (searchUsers.isEmpty)
-          NothingIsFound(title: context.i18n.search_nothing_found)
-        else
-          SliverList.separated(
-            itemCount: searchUsers.length,
-            separatorBuilder: (_, __) => const SectionSeparator(),
-            itemBuilder: (context, index) =>
-                FeedAdvancedSearchUserListItem(user: searchUsers[index]),
-          ),
-      ],
-      onRefresh:
-          ref.read(searchUsersProvider(query: query, includeCurrentUser: true).notifier).refresh,
-      builder: (context, slivers) => LoadMoreBuilder(
-        slivers: slivers,
-        onLoadMore:
-            ref.read(searchUsersProvider(query: query, includeCurrentUser: true).notifier).loadMore,
-        hasMore: searchResults?.hasMore ?? false,
+    return ListCachedObjectsWrapper(
+      child: PullToRefreshBuilder(
+        slivers: [
+          if (loading)
+            const ListItemsLoadingState(
+              listItemsLoadingStateType: ListItemsLoadingStateType.scrollView,
+            )
+          else if (masterPubkeys.isEmpty)
+            NothingIsFound(title: context.i18n.search_nothing_found)
+          else
+            SliverList.separated(
+              itemCount: masterPubkeys.length,
+              separatorBuilder: (_, __) => const SectionSeparator(),
+              itemBuilder: (context, index) =>
+                  FeedAdvancedSearchUserListItem(masterPubkey: masterPubkeys[index]),
+            ),
+        ],
+        onRefresh:
+            ref.read(searchUsersProvider(query: query, includeCurrentUser: true).notifier).refresh,
+        builder: (context, slivers) => LoadMoreBuilder(
+          slivers: slivers,
+          onLoadMore: ref
+              .read(searchUsersProvider(query: query, includeCurrentUser: true).notifier)
+              .loadMore,
+          hasMore: searchResults?.hasMore ?? false,
+        ),
       ),
     );
   }

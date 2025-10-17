@@ -43,18 +43,18 @@ class ChatAdvancedSearchAll extends HookConsumerWidget {
 
     final hasMore = remoteUserSearch.valueOrNull?.hasMore ?? true;
 
-    final isLoading = (hasMore && (remoteUserSearch.valueOrNull?.users ?? []).isEmpty) ||
+    final isLoading = (hasMore && (remoteUserSearch.valueOrNull?.masterPubkeys ?? []).isEmpty) ||
         localUserSearch.isLoading ||
         localMessageSearch.isLoading;
 
     final searchResults = [
       ...?localMessageSearch.valueOrNull,
       ...?localUserSearch.valueOrNull,
-      if (remoteUserSearch.valueOrNull?.users != null)
-        ...remoteUserSearch.value!.users!.map(
-          (a) => ChatSearchResultItem(userMetadata: a),
+      if (remoteUserSearch.valueOrNull?.masterPubkeys != null)
+        ...remoteUserSearch.value!.masterPubkeys!.map(
+          (masterPubkey) => ChatSearchResultItem(masterPubkey: masterPubkey),
         ),
-    ].distinctBy((item) => item.userMetadata).toList();
+    ].distinctBy((item) => item.masterPubkey).toList();
 
     return PullToRefreshBuilder(
       slivers: [

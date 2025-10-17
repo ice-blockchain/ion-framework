@@ -19,10 +19,10 @@ class ConfirmLogoutModal extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadataValue = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+    final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
     final username = prefixUsername(
       context: context,
-      username: userMetadataValue!.data.name,
+      username: userPreviewData!.data.name,
     );
 
     final buttonMinimalSize = Size(56.0.s, 56.0.s);
