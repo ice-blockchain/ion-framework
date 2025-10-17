@@ -89,6 +89,7 @@ class CardButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NavigationButton(
+      // currently hidden under feature flag till the card functionality is implemented
       onPressed: () {},
       icon: Assets.svg.walletIconCard.icon(
         color: context.theme.appColors.primaryAccent,
