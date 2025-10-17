@@ -49,7 +49,8 @@ class UserInfoMenu extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final username = ref.watch(
-      userPreviewDataProvider(eventReference.masterPubkey).select(userPreviewNameSelector),
+      userPreviewDataProvider(eventReference.masterPubkey, network: false)
+          .select(userPreviewNameSelector),
     );
     final isArticle = eventReference is ReplaceableEventReference &&
         (eventReference as ReplaceableEventReference).kind == ArticleEntity.kind;

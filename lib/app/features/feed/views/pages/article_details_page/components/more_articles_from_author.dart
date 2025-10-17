@@ -34,7 +34,8 @@ class MoreArticlesFromAuthor extends ConsumerWidget {
         .toList();
 
     final authorDisplayName = ref.watch(
-      userPreviewDataProvider(eventReference.masterPubkey).select(userPreviewDisplayNameSelector),
+      userPreviewDataProvider(eventReference.masterPubkey, network: false)
+          .select(userPreviewDisplayNameSelector),
     );
 
     if (articlesReferences == null || articlesReferences.isEmpty) {
