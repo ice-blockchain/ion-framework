@@ -7,7 +7,6 @@ import 'package:ion/app/components/inputs/search_input/search_input.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/components/following_users.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/components/searched_users.dart';
 import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
@@ -34,7 +33,7 @@ class UserPickerSheet extends HookConsumerWidget {
   final bool controlPrivacy;
   final Duration? expirationDuration;
   final DatabaseCacheStrategy? cacheStrategy;
-  final void Function(UserPreviewEntity user) onUserSelected;
+  final void Function(String masterPubkey) onUserSelected;
 
   final Widget? header;
   final Widget? footer;

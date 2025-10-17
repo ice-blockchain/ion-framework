@@ -16,7 +16,6 @@ import 'package:ion/app/features/auth/providers/onboarding_complete_notifier.r.d
 import 'package:ion/app/features/auth/providers/onboarding_data_provider.m.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
 import 'package:ion/app/features/auth/views/pages/discover_creators/creator_list_item.dart';
-import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/user/providers/paginated_master_pubkeys_provider.r.dart';
 import 'package:ion/app/hooks/use_selected_state.dart';
@@ -72,23 +71,21 @@ class DiscoverCreators extends HookConsumerWidget {
       body: Column(
         children: [
           Expanded(
-            child: ListCachedObjectsWrapper(
-              child: LoadMoreBuilder(
-                slivers: slivers,
-                onLoadMore: ref.read(contentCreatorsPaginatedProvider.notifier).loadMore,
-                hasMore: hasMore,
-                builder: (context, slivers) {
-                  return AuthScrollContainer(
-                    title: context.i18n.discover_creators_title,
-                    description: context.i18n.discover_creators_description,
-                    slivers: [
-                      SliverPadding(padding: EdgeInsetsDirectional.only(top: 34.0.s)),
-                      ...slivers,
-                      SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 16.0.s)),
-                    ],
-                  );
-                },
-              ),
+            child: LoadMoreBuilder(
+              slivers: slivers,
+              onLoadMore: ref.read(contentCreatorsPaginatedProvider.notifier).loadMore,
+              hasMore: hasMore,
+              builder: (context, slivers) {
+                return AuthScrollContainer(
+                  title: context.i18n.discover_creators_title,
+                  description: context.i18n.discover_creators_description,
+                  slivers: [
+                    SliverPadding(padding: EdgeInsetsDirectional.only(top: 34.0.s)),
+                    ...slivers,
+                    SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 16.0.s)),
+                  ],
+                );
+              },
             ),
           ),
           Column(

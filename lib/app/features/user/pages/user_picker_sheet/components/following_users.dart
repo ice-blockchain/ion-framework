@@ -6,8 +6,6 @@ import 'package:ion/app/components/list_items_loading_state/list_items_loading_s
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dart';
-import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
-import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/components/selectable_user_list_item.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -24,7 +22,7 @@ class FollowingUsers extends ConsumerWidget {
   final bool selectable;
   final bool controlChatPrivacy;
   final List<String> selectedPubkeys;
-  final void Function(UserPreviewEntity user) onUserSelected;
+  final void Function(String masterPubkey) onUserSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,31 +32,28 @@ class FollowingUsers extends ConsumerWidget {
       data: (masterPubkeys) {
         if (masterPubkeys.isEmpty) return const _NoUserView();
 
-        return ListCachedObjectsWrapper(
-          child: SliverList.builder(
-            itemBuilder: (context, index) {
-              final masterPubkey = masterPubkeys[index];
+        return SliverList.builder(
+          itemBuilder: (context, index) {
+            final masterPubkey = masterPubkeys[index];
 
-              final bool canSendMessage;
-              if (controlChatPrivacy) {
-                canSendMessage =
-                    ref.watch(canSendMessageProvider(masterPubkey)).valueOrNull ?? false;
-              } else {
-                canSendMessage = true;
-              }
+            final bool canSendMessage;
+            if (controlChatPrivacy) {
+              canSendMessage = ref.watch(canSendMessageProvider(masterPubkey)).valueOrNull ?? false;
+            } else {
+              canSendMessage = true;
+            }
 
-              return canSendMessage
-                  ? SelectableUserListItem(
-                      masterPubkey: masterPubkey,
-                      selectable: selectable,
-                      onUserSelected: onUserSelected,
-                      selectedPubkeys: selectedPubkeys,
-                      canSendMessage: canSendMessage,
-                    )
-                  : const SizedBox.shrink();
-            },
-            itemCount: masterPubkeys.length,
-          ),
+            return canSendMessage
+                ? SelectableUserListItem(
+                    masterPubkey: masterPubkey,
+                    selectable: selectable,
+                    onUserSelected: onUserSelected,
+                    selectedPubkeys: selectedPubkeys,
+                    canSendMessage: canSendMessage,
+                  )
+                : const SizedBox.shrink();
+          },
+          itemCount: masterPubkeys.length,
         );
       },
       loading: () => ListItemsLoadingState(

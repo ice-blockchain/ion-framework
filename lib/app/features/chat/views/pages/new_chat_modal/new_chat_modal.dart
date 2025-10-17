@@ -9,7 +9,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
-import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/user_picker_sheet.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -24,10 +23,10 @@ class NewChatModal extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final onUserSelected = useCallback(
-      (UserPreviewEntity userPreviewData) async {
+      (String masterPubkey) async {
         if (context.mounted) {
           context.replace(
-            ConversationRoute(receiverMasterPubkey: userPreviewData.masterPubkey).location,
+            ConversationRoute(receiverMasterPubkey: masterPubkey).location,
           );
         }
       },

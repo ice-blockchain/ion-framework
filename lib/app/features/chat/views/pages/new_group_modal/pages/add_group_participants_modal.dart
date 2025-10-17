@@ -29,9 +29,7 @@ class AddGroupParticipantsModal extends HookConsumerWidget {
         selectable: true,
         key: const Key('add-group-participants-modal'),
         selectedPubkeys: createGroupForm.participantsMasterkeys.toList(),
-        onUserSelected: (user) {
-          createGroupFormNotifier.toggleMember(user.masterPubkey);
-        },
+        onUserSelected: createGroupFormNotifier.toggleMember,
         navigationBar: NavigationAppBar.modal(
           title: Text(context.i18n.group_create_title),
           showBackButton: false,
