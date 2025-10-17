@@ -132,7 +132,6 @@ import 'package:ion/app/features/video/views/pages/feed_videos_page.dart';
 import 'package:ion/app/features/video/views/pages/profile_videos_page.dart';
 import 'package:ion/app/features/video/views/pages/reply_list_videos_page.dart';
 import 'package:ion/app/features/video/views/pages/trending_videos_page.dart';
-import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_type.dart';
 import 'package:ion/app/features/wallets/views/pages/address_not_found_wallet_modal.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/coin_details_page.dart';
@@ -147,6 +146,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/compo
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/send_coins_form.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/send_coin_modal_page.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/swap_coins_modal_page.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/swap_select_coin_page.dart';
 import 'package:ion/app/features/wallets/views/pages/contact_modal_page/contact_modal_page.dart';
 import 'package:ion/app/features/wallets/views/pages/create_new_wallet_modal.dart';
 import 'package:ion/app/features/wallets/views/pages/delete_wallet_modal.dart';
