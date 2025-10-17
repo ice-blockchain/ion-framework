@@ -27,22 +27,22 @@ class ChatSearchResultListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewData = ref.watch(userPreviewDataProvider(item.masterPubkey)).valueOrNull;
+    final displayName = ref.watch(
+      userPreviewDataProvider(item.masterPubkey).select(userPreviewDisplayNameSelector),
+    );
 
-    if (userPreviewData == null) {
-      return const SizedBox.shrink();
-    }
+    final username = ref.watch(
+      userPreviewDataProvider(item.masterPubkey).select(userPreviewNameSelector),
+    );
 
     final canSendMessage =
-        ref.watch(canSendMessageProvider(userPreviewData.masterPubkey)).valueOrNull ?? false;
+        ref.watch(canSendMessageProvider(item.masterPubkey)).valueOrNull ?? false;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: canSendMessage
           ? () {
-              ref
-                  .read(chatSearchHistoryProvider.notifier)
-                  .addUserIdToTheHistory(userPreviewData.masterPubkey);
+              ref.read(chatSearchHistoryProvider.notifier).addUserIdToTheHistory(item.masterPubkey);
               context.pushReplacement(
                 ConversationRoute(receiverMasterPubkey: item.masterPubkey).location,
               );
@@ -55,14 +55,15 @@ class ChatSearchResultListItem extends HookConsumerWidget {
             vertical: 8.0.s,
             horizontal: ScreenSideOffset.defaultSmallMargin,
           ),
-          masterPubkey: userPreviewData.masterPubkey,
+          masterPubkey: item.masterPubkey,
           title: Padding(
             padding: EdgeInsetsDirectional.only(bottom: 2.38.s),
             child: Text(
-              userPreviewData.data.trimmedDisplayName,
+              displayName,
               style: context.theme.appTextThemes.subtitle3.copyWith(
                 color: context.theme.appColors.primaryText,
               ),
+              strutStyle: const StrutStyle(forceStrutHeight: true),
             ),
           ),
           constraints: BoxConstraints(minHeight: 48.0.s),
@@ -76,7 +77,7 @@ class ChatSearchResultListItem extends HookConsumerWidget {
                   ),
                 )
               : Text(
-                  prefixUsername(username: userPreviewData.data.name, context: context),
+                  prefixUsername(username: username, context: context),
                   style: context.theme.appTextThemes.body2.copyWith(
                     color: context.theme.appColors.onTertiaryBackground,
                   ),

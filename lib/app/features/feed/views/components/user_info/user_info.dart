@@ -61,9 +61,7 @@ class UserInfo extends HookConsumerWidget {
           child: Text(
             displayName,
             style: tStyle,
-            strutStyle: const StrutStyle(
-              forceStrutHeight: true, // for consistent height w/ and w/o emoji in the display name
-            ),
+            strutStyle: const StrutStyle(forceStrutHeight: true),
           ),
         ),
         subtitle: GestureDetector(

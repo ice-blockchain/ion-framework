@@ -43,7 +43,10 @@ class AccountsTile extends ConsumerWidget {
           ref.read(authProvider.notifier).setCurrentUser(identityKeyName);
         }
       },
-      title: Text(userPreviewData.data.trimmedDisplayName),
+      title: Text(
+        userPreviewData.data.trimmedDisplayName,
+        strutStyle: const StrutStyle(forceStrutHeight: true),
+      ),
       subtitle: Text(prefixUsername(username: userPreviewData.data.name, context: context)),
       masterPubkey: userPreviewData.masterPubkey,
       trailing: isCurrentUser == true
