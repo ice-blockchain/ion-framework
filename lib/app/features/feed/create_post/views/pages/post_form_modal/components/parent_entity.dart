@@ -31,10 +31,16 @@ class ParentEntity extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final parentEntity =
         ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
-    final userMetadata =
-        ref.watch(userPreviewDataProvider(eventReference.masterPubkey)).valueOrNull;
+    final displayName = ref.watch(
+      userPreviewDataProvider(eventReference.masterPubkey, network: false)
+          .select(userPreviewDisplayNameSelector),
+    );
+    final username = ref.watch(
+      userPreviewDataProvider(eventReference.masterPubkey, network: false)
+          .select(userPreviewNameSelector),
+    );
 
-    if (parentEntity == null || userMetadata == null) {
+    if (parentEntity == null) {
       return const Skeleton(child: PostSkeleton());
     }
 
@@ -42,9 +48,9 @@ class ParentEntity extends ConsumerWidget {
       children: [
         SizedBox(height: 6.0.s),
         BadgesUserListItem(
-          title: Text(userMetadata.data.trimmedDisplayName),
-          subtitle: Text(prefixUsername(username: userMetadata.data.name, context: context)),
-          masterPubkey: userMetadata.masterPubkey,
+          title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+          subtitle: Text(prefixUsername(username: username, context: context)),
+          masterPubkey: eventReference.masterPubkey,
           trailing: UserInfoMenu(
             eventReference: eventReference,
           ),
@@ -68,7 +74,7 @@ class ParentEntity extends ConsumerWidget {
                 _ => const SizedBox.shrink(),
               },
               SizedBox(height: 12.0.s),
-              ReplyingTo(name: userMetadata.data.name),
+              ReplyingTo(name: username),
               SizedBox(height: 16.0.s),
             ],
           ),

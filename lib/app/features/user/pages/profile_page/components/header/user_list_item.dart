@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
-import 'package:ion/app/components/list_items_loading_state/item_loading_state.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 
@@ -19,26 +18,19 @@ class UseListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewResult = ref.watch(userPreviewDataProvider(pubkey));
+    final displayName = ref.watch(
+      userPreviewDataProvider(pubkey).select(userPreviewDisplayNameSelector),
+    );
 
-    return userPreviewResult.maybeWhen(
-      data: (userPreviewData) {
-        if (userPreviewData == null) {
-          return const SizedBox.shrink();
-        }
-        return BadgesUserListItem(
-          title: Text(
-            userPreviewData.data.trimmedDisplayName,
-            strutStyle: const StrutStyle(forceStrutHeight: true),
-          ),
-          subtitle: Text(prefixUsername(username: userPreviewData.data.name, context: context)),
-          masterPubkey: pubkey,
-          constraints: BoxConstraints(maxHeight: minHeight, minHeight: minHeight),
-        );
-      },
-      orElse: () => ItemLoadingState(
-        itemHeight: minHeight,
-      ),
+    final username = ref.watch(
+      userPreviewDataProvider(pubkey).select(userPreviewNameSelector),
+    );
+
+    return BadgesUserListItem(
+      title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+      subtitle: Text(prefixUsername(username: username, context: context)),
+      masterPubkey: pubkey,
+      constraints: BoxConstraints(maxHeight: minHeight, minHeight: minHeight),
     );
   }
 }

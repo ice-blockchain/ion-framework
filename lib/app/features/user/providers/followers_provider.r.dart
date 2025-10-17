@@ -46,7 +46,6 @@ class Followers extends _$Followers {
 
     // Collecting master pubkeys of returned metadatas and master pubkeys of
     // event metadatas that are stored on another relays to show the items right away
-    // the light metadata becomes available.
     final masterPubkeys = entitiesPagedData?.data.items
         ?.map((item) {
           return switch (item) {
