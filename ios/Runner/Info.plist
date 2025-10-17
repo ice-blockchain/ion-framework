@@ -93,6 +93,10 @@
 	<string>This app needs microphone access to record voice messages or videos for sharing in chats.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>This app uses Face ID to securely authenticate your identity for account access.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>This identifier will be used to deliver more relevant ads and measure performance.</string>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy</string>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>INSendMessageIntent</string>
