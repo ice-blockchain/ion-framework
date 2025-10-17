@@ -42,7 +42,7 @@ class OneToOneMessagingHeader extends ConsumerWidget {
 
     final metadata = userPreviewData.valueOrNull;
 
-    final receiverPicture = metadata == null && !isBlockedBy && metadata!.data.avatarUrl != null
+    final receiverPicture = metadata != null && !isBlockedBy && metadata.data.avatarUrl != null
         ? metadata.data.avatarUrl
         : Assets.svg.iconProfileNoimage;
     final receiverName = metadata?.data.name;
