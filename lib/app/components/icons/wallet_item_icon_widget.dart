@@ -40,6 +40,9 @@ class WalletItemIconWidget extends StatelessWidget {
               height: iconSize,
               colorFilter: colorFilter,
               errorBuilder: (_, __, ___) => Assets.svg.walletEmptyicon.icon(size: iconSize),
+              placeholderBuilder: (context) {
+                return Assets.svg.walletEmptyicon.icon(size: iconSize);
+              },
             ),
           )
         : IonNetworkImage(
@@ -48,6 +51,7 @@ class WalletItemIconWidget extends StatelessWidget {
             height: iconSize,
             errorWidget: (_, __, ___) => Assets.svg.walletEmptyicon.icon(size: iconSize),
             borderRadius: borderRadius,
+            isPrecached: true,
             imageBuilder: colorFilter != null
                 ? (context, imageProvider) => Container(
                       width: iconSize,
