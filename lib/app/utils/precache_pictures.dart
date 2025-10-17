@@ -6,8 +6,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:http/http.dart' as http;
-import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/image_path.dart';
 
@@ -19,7 +17,6 @@ class PreCachePicturesCacheManager {
       key,
       maxNrOfCacheObjects: 1000,
       stalePeriod: const Duration(days: 60),
-      fileService: _CustomFileService(),
     ),
   );
 }
@@ -74,44 +71,4 @@ Future<void> _precachePicture(BuildContext context, String url) async {
       },
     ),
   );
-}
-
-/// Custom HTTP client that wraps all requests in an error-suppressing zone
-class _CustomHttpClient extends http.BaseClient {
-  final http.Client _inner = http.Client();
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    try {
-      final response = await _inner.send(request);
-      return response;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
-  void close() {
-    _inner.close();
-  }
-}
-
-/// Custom FileService that uses our error-suppressing HTTP client
-class _CustomFileService extends FileService {
-  final http.Client _httpClient = _CustomHttpClient();
-
-  @override
-  Future<FileServiceResponse> get(String url, {Map<String, String>? headers}) async {
-    try {
-      final req = http.Request('GET', Uri.parse(url));
-      if (headers != null) {
-        req.headers.addAll(headers);
-      }
-      final httpResponse = await _httpClient.send(req);
-      return HttpGetResponse(httpResponse);
-    } catch (e) {
-      // Re-throw the exception so the cache manager can handle it properly
-      throw PicturePreloadingException(url, e);
-    }
-  }
 }

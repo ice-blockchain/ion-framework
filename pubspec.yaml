@@ -106,7 +106,6 @@ dependencies:
   google_sign_in: ^6.2.2
   googleapis: ^13.2.0
   hooks_riverpod: ^2.6.1
-  http: ^1.3.0
   icloud_storage: ^2.2.0
   image: ^4.5.4
   image_cropper: ^11.0.0
