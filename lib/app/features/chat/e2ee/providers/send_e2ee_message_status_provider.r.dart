@@ -13,6 +13,7 @@ import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/conversation_pubkeys_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'send_e2ee_message_status_provider.r.g.dart';
@@ -90,26 +91,34 @@ class SendE2eeMessageStatusService {
 
         await Future.wait(
           pubkeys.map((pubkey) async {
-            // If this is read status for the current user mark it as read to
-            // make UX more optimistic
-            if (masterPubkey == currentUserMasterPubkey && status == MessageDeliveryStatus.read) {
-              await conversationMessageDataDaoProvider.addOrUpdateStatus(
-                status: status,
+            try {
+              // If this is read status for the current user mark it as read to
+              // make UX more optimistic
+              if (masterPubkey == currentUserMasterPubkey && status == MessageDeliveryStatus.read) {
+                await conversationMessageDataDaoProvider.addOrUpdateStatus(
+                  status: status,
+                  pubkey: pubkey,
+                  masterPubkey: masterPubkey,
+                  messageEventReference: eventReference,
+                  updateAllBefore: messageEventMessage.createdAt.toDateTime,
+                );
+              }
+
+              await sendE2eeChatMessageService.sendWrappedMessage(
                 pubkey: pubkey,
+                eventSigner: eventSigner!,
                 masterPubkey: masterPubkey,
-                messageEventReference: eventReference,
-                updateAllBefore: messageEventMessage.createdAt.toDateTime,
+                wrappedKinds: [PrivateMessageReactionEntity.kind.toString()],
+                eventMessage: await messageReactionData
+                    .toEventMessage(NoPrivateSigner(eventSigner!.publicKey)),
+              );
+            } catch (e, stackTrace) {
+              Logger.error(
+                e,
+                message: 'Failed to send message status',
+                stackTrace: stackTrace,
               );
             }
-
-            await sendE2eeChatMessageService.sendWrappedMessage(
-              pubkey: pubkey,
-              eventSigner: eventSigner!,
-              masterPubkey: masterPubkey,
-              wrappedKinds: [PrivateMessageReactionEntity.kind.toString()],
-              eventMessage:
-                  await messageReactionData.toEventMessage(NoPrivateSigner(eventSigner!.publicKey)),
-            );
           }),
         );
       }),
