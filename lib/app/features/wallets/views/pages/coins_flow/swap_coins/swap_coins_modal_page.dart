@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
-import 'package:ion/app/components/icons/coin_icon.dart';
-import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
@@ -32,6 +29,7 @@ class SwapCoinsModalPage extends ConsumerWidget {
 
     return SheetContent(
       body: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
             padding: EdgeInsets.symmetric(vertical: 8.0.s),
@@ -45,27 +43,41 @@ class SwapCoinsModalPage extends ConsumerWidget {
           SizedBox(
             height: 12.0.s,
           ),
-          _TokenCard(
-            type: _TokenCardType.from,
-            coinsGroup: initialCoins,
-            coin: initialCoin,
+          Stack(
+            children: [
+              Column(
+                children: [
+                  _TokenCard(
+                    type: _TokenCardType.from,
+                    coinsGroup: initialCoins,
+                    coin: initialCoin,
+                  ),
+                  SizedBox(
+                    height: 10.0.s,
+                  ),
+                  const _TokenCard(
+                    type: _TokenCardType.to,
+                    coinsGroup: null,
+                    coin: null,
+                  ),
+                ],
+              ),
+              const Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: _SwapButton(),
+              ),
+            ],
           ),
-          SizedBox(
-            height: 10.0.s,
-          ),
-          const _TokenCard(
-            type: _TokenCardType.to,
-            coinsGroup: null,
-            coin: null,
-          ),
-          SizedBox(
-            height: 16.0.s,
-          ),
-          const _SwapButton(),
           SizedBox(
             height: 16.0.s,
           ),
           const _ContinueButton(),
+          SizedBox(
+            height: 16.0.s,
+          ),
         ],
       ),
     );
