@@ -470,6 +470,7 @@
   "wallet_swap_coins_sell": "Sell",
   "wallet_swap_coins_buy": "Buy",
   "wallet_swap_coins_select_coin": "Select token",
+  "wallet_swap_coins_continue": "Continue",
   "sorting_price_asc": "Price: low to high",
   "sorting_price_desc": "Price: high to low",
   "wallet_sorting_title": "Sorting the list",
