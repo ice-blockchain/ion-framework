@@ -146,7 +146,8 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
                   insertedAt: DateTime.fromMillisecondsSinceEpoch(row.insertedAt),
                 )
               : null,
-        );
+        )
+        .distinct();
   }
 
   @override
