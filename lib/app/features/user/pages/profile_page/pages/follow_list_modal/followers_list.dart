@@ -7,7 +7,6 @@ import 'package:ion/app/components/nothing_is_found/nothing_is_found.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/user/model/follow_type.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal/components/follow_app_bar.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal/components/follow_list_item.dart';
@@ -57,19 +56,17 @@ class FollowersList extends HookConsumerWidget {
       SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 32.0.s)),
     ];
 
-    return ListCachedObjectsWrapper(
-      child: LoadMoreBuilder(
-        slivers: slivers,
-        hasMore: hasMore,
-        onLoadMore: () => ref
-            .read(
-              followersProvider(
-                pubkey: pubkey,
-                query: debouncedQuery,
-              ).notifier,
-            )
-            .loadMore(),
-      ),
+    return LoadMoreBuilder(
+      slivers: slivers,
+      hasMore: hasMore,
+      onLoadMore: () => ref
+          .read(
+            followersProvider(
+              pubkey: pubkey,
+              query: debouncedQuery,
+            ).notifier,
+          )
+          .loadMore(),
     );
   }
 }
