@@ -36,6 +36,7 @@ class Article extends ConsumerWidget {
     this.showActionButtons = true,
     this.showNotInterested = true,
     this.timeFormat = TimestampFormat.short,
+    this.entityTypeName,
     super.key,
   });
 
@@ -76,6 +77,7 @@ class Article extends ConsumerWidget {
   final Widget? footer;
   final bool accentTheme;
   final bool showNotInterested;
+  final String? entityTypeName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -128,7 +130,10 @@ class Article extends ConsumerWidget {
                       children: [
                         BookmarkButton(eventReference: eventReference),
                         if (isOwnedByCurrentUser)
-                          OwnEntityMenu(eventReference: eventReference)
+                          OwnEntityMenu(
+                            eventReference: eventReference,
+                            entityTypeName: entityTypeName,
+                          )
                         else
                           UserInfoMenu(
                             eventReference: eventReference,
@@ -183,7 +188,10 @@ class Article extends ConsumerWidget {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           if (isOwnedByCurrentUser)
-                                            OwnEntityMenu(eventReference: eventReference)
+                                            OwnEntityMenu(
+                                              eventReference: eventReference,
+                                              entityTypeName: entityTypeName,
+                                            )
                                           else
                                             UserInfoMenu(
                                               eventReference: eventReference,
