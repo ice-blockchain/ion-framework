@@ -39,6 +39,10 @@ class OverlayMenu extends HookWidget {
 
     final hideMenu = useCallback(
       () {
+        if (!overlayPortalController.isShowing) {
+          return;
+        }
+
         animationController.reverse().whenComplete(() {
           overlayPortalController.hide();
           onClose?.call();
