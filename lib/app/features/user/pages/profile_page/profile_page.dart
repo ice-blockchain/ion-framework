@@ -38,6 +38,12 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
 
+class MenuCloseSignal extends ValueNotifier<int> {
+  MenuCloseSignal() : super(0);
+
+  void trigger() => value++;
+}
+
 class ProfilePage extends HookConsumerWidget {
   const ProfilePage({
     required this.masterPubkey,
@@ -94,6 +100,9 @@ class ProfilePage extends HookConsumerWidget {
 
     final backgroundColor = context.theme.appColors.secondaryBackground;
 
+    final menuCloseSignal = useMemoized(MenuCloseSignal.new);
+    useEffect(() => menuCloseSignal.dispose, [menuCloseSignal]);
+
     final onRefresh = useCallback(
       () {
         didRefresh.value = true;
@@ -102,11 +111,9 @@ class ProfilePage extends HookConsumerWidget {
         ref
             .read(ionConnectDatabaseCacheProvider.notifier)
             .remove(userMetadata.value!.toEventReference().toString());
-
         ref
             .read(userMetadataInvalidatorNotifierProvider.notifier)
             .invalidateCurrentUserMetadataProviders();
-
         ref.read(ionConnectCacheProvider.notifier).remove(
               EventCountResultEntity.cacheKeyBuilder(
                 key: masterPubkey,
@@ -143,77 +150,86 @@ class ProfilePage extends HookConsumerWidget {
               top: profileMode != ProfileMode.dark,
               child: DefaultTabController(
                 length: UserContentType.values.length,
-                child: NestedScrollView(
-                  controller: scrollController,
-                  headerSliverBuilder: (context, innerBoxIsScrolled) {
-                    return [
-                      SliverToBoxAdapter(
-                        child: Stack(
-                          children: [
-                            if (profileMode == ProfileMode.dark)
-                              const Positioned.fill(child: ProfileBackground()),
-                            Column(
-                              children: [
-                                SizedBox(
-                                  height: (profileMode == ProfileMode.dark ? statusBarHeight : 0) +
-                                      12.0.s,
-                                ),
-                                Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    ProfileAvatar(
-                                      pubkey: masterPubkey,
-                                      profileMode: profileMode,
-                                    ),
-                                    PositionedDirectional(
-                                      bottom: -6.0.s,
-                                      end: -6.0.s,
-                                      child: ProfileMainAction(
+                child: Listener(
+                  onPointerDown: (_) {
+                    menuCloseSignal.trigger();
+                  },
+                  child: NestedScrollView(
+                    controller: scrollController,
+                    headerSliverBuilder: (context, innerBoxIsScrolled) {
+                      return [
+                        SliverToBoxAdapter(
+                          child: Stack(
+                            children: [
+                              if (profileMode == ProfileMode.dark)
+                                const Positioned.fill(child: ProfileBackground()),
+                              Column(
+                                children: [
+                                  SizedBox(
+                                    height:
+                                        (profileMode == ProfileMode.dark ? statusBarHeight : 0) +
+                                            12.0.s,
+                                  ),
+                                  Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      ProfileAvatar(
                                         pubkey: masterPubkey,
                                         profileMode: profileMode,
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: profileMode == ProfileMode.dark ? 9.0.s : 16.0.s),
-                                ProfileDetails(
-                                  pubkey: masterPubkey,
-                                  profileMode: profileMode,
-                                ),
-                                SizedBox(height: profileMode == ProfileMode.dark ? 5.0.s : 16.0.s),
-                                if (profileMode != ProfileMode.dark) const HorizontalSeparator(),
-                                SizedBox(height: profileMode == ProfileMode.dark ? 9.0.s : 16.0.s),
-                              ],
-                            ),
-                          ],
+                                      PositionedDirectional(
+                                        bottom: -6.0.s,
+                                        end: -6.0.s,
+                                        child: ProfileMainAction(
+                                          pubkey: masterPubkey,
+                                          profileMode: profileMode,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(
+                                      height: profileMode == ProfileMode.dark ? 9.0.s : 16.0.s),
+                                  ProfileDetails(
+                                    pubkey: masterPubkey,
+                                    profileMode: profileMode,
+                                  ),
+                                  SizedBox(
+                                      height: profileMode == ProfileMode.dark ? 5.0.s : 16.0.s),
+                                  if (profileMode != ProfileMode.dark) const HorizontalSeparator(),
+                                  SizedBox(
+                                      height: profileMode == ProfileMode.dark ? 9.0.s : 16.0.s),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      PinnedHeaderSliver(
-                        child: ColoredBox(
-                          color: profileMode == ProfileMode.dark
-                              ? context.theme.appColors.primaryText
-                              : backgroundColor,
-                          child: const ProfileTabsHeader(),
+                        PinnedHeaderSliver(
+                          child: ColoredBox(
+                            color: profileMode == ProfileMode.dark
+                                ? context.theme.appColors.primaryText
+                                : backgroundColor,
+                            child: const ProfileTabsHeader(),
+                          ),
                         ),
-                      ),
-                      const SliverToBoxAdapter(child: SectionSeparator()),
-                    ];
-                  },
-                  body: TabBarView(
-                    children: TabEntityType.values
-                        .map(
-                          (type) => type == TabEntityType.replies
-                              ? TabEntitiesList.replies(
-                                  pubkey: masterPubkey,
-                                  onRefresh: onRefresh,
-                                )
-                              : TabEntitiesList(
-                                  pubkey: masterPubkey,
-                                  type: type,
-                                  onRefresh: onRefresh,
-                                ),
-                        )
-                        .toList(),
+                        const SliverToBoxAdapter(child: SectionSeparator()),
+                      ];
+                    },
+                    body: TabBarView(
+                      children: TabEntityType.values
+                          .map(
+                            (type) => type == TabEntityType.replies
+                                ? TabEntitiesList.replies(
+                                    pubkey: masterPubkey,
+                                    onRefresh: onRefresh,
+                                  )
+                                : TabEntitiesList(
+                                    pubkey: masterPubkey,
+                                    type: type,
+                                    onRefresh: onRefresh,
+                                  ),
+                          )
+                          .toList(),
+                    ),
                   ),
                 ),
               ),
@@ -261,6 +277,7 @@ class ProfilePage extends HookConsumerWidget {
                       ProfileContextMenu(
                         pubkey: masterPubkey,
                         profileMode: profileMode,
+                        closeSignal: menuCloseSignal,
                       ),
                     ],
                   ),
@@ -285,7 +302,6 @@ class ProfilePage extends HookConsumerWidget {
 
 class _IgnorePointerWrapper extends StatelessWidget {
   const _IgnorePointerWrapper({required this.child, required this.shouldWrap});
-
   final Widget child;
   final bool shouldWrap;
 
