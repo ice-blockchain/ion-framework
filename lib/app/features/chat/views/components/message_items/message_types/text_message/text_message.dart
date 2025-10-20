@@ -68,8 +68,7 @@ class TextMessage extends HookConsumerWidget {
       color: isMe ? context.theme.appColors.onPrimaryAccent : context.theme.appColors.primaryText,
     );
 
-    final metadata =
-        hasUrlInText ? ref.watch(urlMetadataProvider(firstUrl)) : null;
+    final metadata = hasUrlInText ? ref.watch(urlMetadataProvider(firstUrl)) : null;
 
     final hasReactionsOrMetadata =
         useHasReaction(entity.toEventReference(), ref) || metadata != null;
