@@ -180,11 +180,13 @@ ChatMessageInfoItem? getRepliedMessageListItem({
   if (repliedEntity.data.messageType == MessageType.profile) {
     final profilePubkey = EventReference.fromEncoded(repliedEntity.data.content).masterPubkey;
 
-    final userMetadata = ref.watch(userMetadataProvider(profilePubkey)).valueOrNull;
+    final userName = ref.watch(
+      userPreviewDataProvider(profilePubkey).select(userPreviewNameSelector),
+    );
 
     return ShareProfileItem(
       eventMessage: repliedEventMessage,
-      contentDescription: userMetadata?.data.name ?? repliedEntity.data.content,
+      contentDescription: userName.isEmpty ? repliedEntity.data.content : userName,
     );
   } else if (repliedEntity.data.messageType == MessageType.visualMedia) {
     final messageMedias = ref

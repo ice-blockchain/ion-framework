@@ -20,11 +20,11 @@ class UserNameTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadataValue = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+    final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
     final isUserVerified = ref.watch(isUserVerifiedProvider(pubkey));
     final isNicknameProven = ref.watch(isNicknameProvenProvider(pubkey));
 
-    if (userMetadataValue == null) {
+    if (userPreviewData == null) {
       return const SizedBox.shrink();
     }
 
@@ -36,7 +36,7 @@ class UserNameTile extends ConsumerWidget {
             Flexible(
               child: Text(
                 textAlign: TextAlign.center,
-                userMetadataValue.data.trimmedDisplayName,
+                userPreviewData.data.trimmedDisplayName,
                 style: context.theme.appTextThemes.subtitle.copyWith(
                   color: context.theme.appColors.primaryText,
                 ),
@@ -53,8 +53,8 @@ class UserNameTile extends ConsumerWidget {
         Text(
           prefixUsername(
             username: (!isNicknameProven)
-                ? '${userMetadataValue.data.name} ${context.i18n.nickname_not_owned_suffix}'
-                : userMetadataValue.data.name,
+                ? '${userPreviewData.data.name} ${context.i18n.nickname_not_owned_suffix}'
+                : userPreviewData.data.name,
             context: context,
           ),
           style: context.theme.appTextThemes.caption.copyWith(

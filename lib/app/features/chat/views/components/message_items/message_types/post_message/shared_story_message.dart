@@ -24,7 +24,6 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -222,13 +221,13 @@ class _StoryOwnerUserInfo extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
+    final usePreviewData = ref.watch(userPreviewDataProvider(masterPubkey));
 
-    if (userMetadata.isLoading) {
+    if (usePreviewData.isLoading) {
       return const SizedBox.shrink();
     }
 
-    final metadata = userMetadata.valueOrNull;
+    final metadata = usePreviewData.valueOrNull;
     final trimmedDisplayName = metadata?.data.trimmedDisplayName;
 
     return PositionedDirectional(
@@ -242,7 +241,7 @@ class _StoryOwnerUserInfo extends ConsumerWidget {
           SizedBox(width: 4.0.s),
           Expanded(
             child: Text(
-              metadata.isDeleted || trimmedDisplayName == null
+              metadata == null || trimmedDisplayName == null
                   ? context.i18n.common_deleted_account
                   : trimmedDisplayName,
               maxLines: 1,

@@ -40,20 +40,20 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) as
     final metadataExpiration =
         ref.read(envProvider.notifier).get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES);
 
-    final userMetadata = ref
+    final userPreviewData = ref
         .watch(
-          userMetadataProvider(
+          userPreviewDataProvider(
             receiverMasterPubkey,
             expirationDuration: Duration(minutes: metadataExpiration),
           ),
         )
         .valueOrNull;
 
-    if (userMetadata == null) continue;
+    if (userPreviewData == null) continue;
 
     result.add(
       ChatSearchResultItem(
-        userMetadata: userMetadata,
+        masterPubkey: userPreviewData.masterPubkey,
         lastMessageContent: message.data.content,
       ),
     );

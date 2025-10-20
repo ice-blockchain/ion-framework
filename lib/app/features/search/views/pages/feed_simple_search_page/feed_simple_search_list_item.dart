@@ -6,32 +6,38 @@ import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/search/providers/feed_search_history_provider.m.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 
 class FeedSimpleSearchListItem extends ConsumerWidget {
-  const FeedSimpleSearchListItem({required this.user, super.key});
+  const FeedSimpleSearchListItem({required this.masterPubkey, super.key});
 
-  final UserMetadataEntity user;
+  final String masterPubkey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final displayName = ref.watch(
+      userPreviewDataProvider(masterPubkey, network: false).select(userPreviewDisplayNameSelector),
+    );
+
+    final username = ref.watch(
+      userPreviewDataProvider(masterPubkey, network: false).select(userPreviewNameSelector),
+    );
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        ref.read(feedSearchHistoryProvider.notifier).addUserIdToTheHistory(user.masterPubkey);
-        ProfileRoute(pubkey: user.masterPubkey).push<void>(context);
+        ref.read(feedSearchHistoryProvider.notifier).addUserIdToTheHistory(masterPubkey);
+        ProfileRoute(pubkey: masterPubkey).push<void>(context);
       },
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 8.0.s),
         child: ScreenSideOffset.small(
           child: BadgesUserListItem(
-            title: Text(user.data.trimmedDisplayName),
-            subtitle: Text(
-              prefixUsername(username: user.data.name, context: context),
-            ),
-            masterPubkey: user.masterPubkey,
+            title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+            subtitle: Text(prefixUsername(username: username, context: context)),
+            masterPubkey: masterPubkey,
           ),
         ),
       ),

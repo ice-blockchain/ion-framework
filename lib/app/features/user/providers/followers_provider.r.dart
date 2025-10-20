@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:ion/app/features/core/model/paged.f.dart';
+import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/followers_data_source_provider.r.dart';
@@ -17,7 +18,7 @@ class Followers extends _$Followers {
   List<EntitiesDataSource>? _dataSourcesKey;
 
   @override
-  FutureOr<({bool hasMore, List<UserMetadataEntity>? users, bool ready})?> build({
+  FutureOr<({bool hasMore, List<String>? masterPubkeys, bool ready})?> build({
     required String pubkey,
     required String query,
   }) async {
@@ -33,23 +34,36 @@ class Followers extends _$Followers {
           .valueOrNull;
       return (
         hasMore: result?.hasMore ?? false,
-        users: result?.users,
+        masterPubkeys: result?.masterPubkeys,
         ready: true,
       );
     }
     // Capture the instance to preserve provider identity across loadMore().
     _dataSourcesKey = ref.watch(followersDataSourceProvider(pubkey));
     final entitiesPagedData = ref.watch(
-      entitiesPagedDataProvider(
-        _dataSourcesKey,
-        awaitMissingEvents: true,
-      ),
+      entitiesPagedDataProvider(_dataSourcesKey),
     );
-    final users = entitiesPagedData?.data.items?.whereType<UserMetadataEntity>().toList();
+
+    // Collecting master pubkeys of returned metadatas and master pubkeys of
+    // event metadatas that are stored on another relays to show the items right away
+    final masterPubkeys = entitiesPagedData?.data.items
+        ?.map((item) {
+          return switch (item) {
+            final UserMetadataEntity userMetadata => userMetadata.masterPubkey,
+            final EventsMetadataEntity eventMetadata
+                when eventMetadata.data.metadataEventReference?.kind == UserMetadataEntity.kind =>
+              eventMetadata.data.metadataEventReference?.masterPubkey,
+            _ => null
+          };
+        })
+        .nonNulls
+        .toList();
+
     final response = (
       hasMore: entitiesPagedData?.hasMore ?? false,
-      users: users,
-      ready: (users?.length ?? 0) >= 12 || entitiesPagedData?.data is! PagedLoading,
+      masterPubkeys: masterPubkeys,
+      // Approximate number of items that is enough to cover the viewport.
+      ready: (masterPubkeys?.length ?? 0) >= 12 || entitiesPagedData?.data is! PagedLoading,
     );
     return response;
   }
@@ -69,14 +83,7 @@ class Followers extends _$Followers {
           .loadMore();
     }
     if (_dataSourcesKey != null) {
-      await ref
-          .read(
-            entitiesPagedDataProvider(
-              _dataSourcesKey,
-              awaitMissingEvents: true,
-            ).notifier,
-          )
-          .fetchEntities();
+      await ref.read(entitiesPagedDataProvider(_dataSourcesKey).notifier).fetchEntities();
     }
   }
 }

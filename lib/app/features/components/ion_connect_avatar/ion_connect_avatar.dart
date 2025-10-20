@@ -25,19 +25,20 @@ class IonConnectAvatar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(masterPubkey)).valueOrNull;
+    final avatarUrl = ref.watch(
+      userPreviewDataProvider(masterPubkey, network: false)
+          .select((value) => value.valueOrNull?.data.avatarUrl),
+    );
 
     final avatar = Avatar(
-      imageWidget: userMetadata != null
-          ? userMetadata.data.avatarUrl != null
-              ? IonConnectNetworkImage(
-                  imageUrl: userMetadata.data.avatarUrl!,
-                  authorPubkey: masterPubkey,
-                  height: size,
-                  width: size,
-                )
-              : DefaultAvatar(size: size)
-          : const SizedBox.shrink(),
+      imageWidget: avatarUrl != null
+          ? IonConnectNetworkImage(
+              imageUrl: avatarUrl,
+              authorPubkey: masterPubkey,
+              height: size,
+              width: size,
+            )
+          : DefaultAvatar(size: size),
       size: size,
       borderRadius: borderRadius,
       fit: fit,

@@ -96,6 +96,30 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
     return parser.parse(result.eventMessage);
   }
 
+  Stream<IonConnectEntity?> watch(
+    String cacheKey, {
+    Duration? expirationDuration,
+    DatabaseCacheStrategy cacheStrategy = DatabaseCacheStrategy.alwaysReturn,
+  }) async* {
+    final parser = ref.read(eventParserProvider);
+    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
+
+    await for (final result in cacheService.watch(cacheKey)) {
+      if (result == null) {
+        yield null;
+        continue;
+      }
+
+      if (cacheStrategy == DatabaseCacheStrategy.returnIfNotExpired &&
+          isExpired(result.insertedAt, expirationDuration)) {
+        yield null;
+        continue;
+      }
+
+      yield parser.parse(result.eventMessage);
+    }
+  }
+
   Future<List<IonConnectEntity>> getAllFiltered({
     String? keyword,
     List<int> kinds = const [],

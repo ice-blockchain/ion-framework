@@ -17,7 +17,7 @@ class IONConnectRelaysDataSource {
 
   static const basePath = '/v1/users';
 
-  Future<List<UserRelaysInfo>> fetchIONConnectRelays({
+  Future<List<IdentityUserInfo>> fetchIONConnectRelays({
     required String username,
     required List<String> masterPubkeys,
   }) async {
@@ -35,7 +35,7 @@ class IONConnectRelaysDataSource {
         username: username,
         token: token.token,
       ),
-      decoder: (result, _) => parseList(result, fromJson: UserRelaysInfo.fromJson),
+      decoder: (result, _) => parseList(result, fromJson: IdentityUserInfo.fromJson),
     );
 
     return response;

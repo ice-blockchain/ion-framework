@@ -21,14 +21,16 @@ class ArticlesFromAuthorPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+    final authorDisplayName = ref.watch(
+      userPreviewDataProvider(pubkey, network: false).select(userPreviewDisplayNameSelector),
+    );
     final dataSource = ref.watch(userArticlesDataSourceProvider(pubkey));
     final entitiesPagedData = ref.watch(entitiesPagedDataProvider(dataSource));
     final entities = entitiesPagedData?.data.items;
 
     return Scaffold(
       appBar: NavigationAppBar.screen(
-        title: Text(userMetadata?.data.trimmedDisplayName ?? ''),
+        title: Text(authorDisplayName),
       ),
       body: LoadMoreBuilder(
         hasMore: entitiesPagedData?.hasMore ?? false,

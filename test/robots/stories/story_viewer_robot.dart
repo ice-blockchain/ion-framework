@@ -45,6 +45,7 @@ class StoryViewerRobot extends BaseRobot with ProviderScopeMixin, StoryStateMixi
     final mockStorage = MockLocalStorage();
     when(() => mockStorage.setStringList(any(), any<List<String>>())).thenAnswer((_) async => true);
     when(() => mockStorage.getStringList(any())).thenReturn(null);
+    when(() => mockStorage.setString(any(), any<String>())).thenAnswer((_) async {});
 
     final router = GoRouter(
       routes: [

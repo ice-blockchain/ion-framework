@@ -33,6 +33,7 @@ class FeedTrendingVideos extends _$FeedTrendingVideos with DelegatedPagedNotifie
     return (
       items: data.items,
       hasMore: data.hasMore,
+      // Approximate number of items that is enough to cover the viewport.
       ready: (data.items?.length ?? 0) >= 3 || !data.isLoading
     );
   }

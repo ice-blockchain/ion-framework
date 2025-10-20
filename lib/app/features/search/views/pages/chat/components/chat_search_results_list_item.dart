@@ -10,6 +10,7 @@ import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dar
 import 'package:ion/app/features/chat/views/components/chat_privacy_tooltip.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_search_history_provider.m.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -26,19 +27,25 @@ class ChatSearchResultListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = item.userMetadata;
+    final displayName = ref.watch(
+      userPreviewDataProvider(item.masterPubkey, network: false)
+          .select(userPreviewDisplayNameSelector),
+    );
+
+    final username = ref.watch(
+      userPreviewDataProvider(item.masterPubkey, network: false).select(userPreviewNameSelector),
+    );
+
     final canSendMessage =
-        ref.watch(canSendMessageProvider(userMetadata.masterPubkey)).valueOrNull ?? false;
+        ref.watch(canSendMessageProvider(item.masterPubkey, network: false)).valueOrNull ?? false;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: canSendMessage
           ? () {
-              ref
-                  .read(chatSearchHistoryProvider.notifier)
-                  .addUserIdToTheHistory(userMetadata.masterPubkey);
+              ref.read(chatSearchHistoryProvider.notifier).addUserIdToTheHistory(item.masterPubkey);
               context.pushReplacement(
-                ConversationRoute(receiverMasterPubkey: item.userMetadata.masterPubkey).location,
+                ConversationRoute(receiverMasterPubkey: item.masterPubkey).location,
               );
             }
           : null,
@@ -49,14 +56,15 @@ class ChatSearchResultListItem extends HookConsumerWidget {
             vertical: 8.0.s,
             horizontal: ScreenSideOffset.defaultSmallMargin,
           ),
-          masterPubkey: userMetadata.masterPubkey,
+          masterPubkey: item.masterPubkey,
           title: Padding(
             padding: EdgeInsetsDirectional.only(bottom: 2.38.s),
             child: Text(
-              userMetadata.data.trimmedDisplayName,
+              displayName,
               style: context.theme.appTextThemes.subtitle3.copyWith(
                 color: context.theme.appColors.primaryText,
               ),
+              strutStyle: const StrutStyle(forceStrutHeight: true),
             ),
           ),
           constraints: BoxConstraints(minHeight: 48.0.s),
@@ -70,7 +78,7 @@ class ChatSearchResultListItem extends HookConsumerWidget {
                   ),
                 )
               : Text(
-                  prefixUsername(username: userMetadata.data.name, context: context),
+                  prefixUsername(username: username, context: context),
                   style: context.theme.appTextThemes.body2.copyWith(
                     color: context.theme.appColors.onTertiaryBackground,
                   ),

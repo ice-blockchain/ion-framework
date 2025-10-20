@@ -14,7 +14,7 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/c
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_list_separator.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/hooks/use_preload_story_media.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
@@ -28,16 +28,16 @@ class StoryListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(
-          userMetadataProvider(pubkey).select((value) {
+    final userPreviewData = ref.watch(
+          userPreviewDataProvider(pubkey, network: false).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
-              ListCachedObjects.updateObject<UserMetadataEntity>(context, entity);
+              ListCachedObjects.updateObject<UserPreviewEntity>(context, entity);
             }
             return entity;
           }),
         ) ??
-        ListCachedObjects.maybeObjectOf<UserMetadataEntity>(context, pubkey);
+        ListCachedObjects.maybeObjectOf<UserPreviewEntity>(context, pubkey);
     final userStory = ref.watch(feedStoriesByPubkeyProvider(pubkey, showOnlySelectedUser: true));
     final storyReference = userStory.firstOrNull?.toEventReference();
 
@@ -53,7 +53,7 @@ class StoryListItem extends HookConsumerWidget {
       sessionPubkey: pubkey,
     );
 
-    if (userMetadata == null || storyReference == null) {
+    if (userPreviewData == null || storyReference == null) {
       return const SizedBox.shrink();
     }
 
@@ -71,7 +71,7 @@ class StoryListItem extends HookConsumerWidget {
           children: [
             StoryItemContent(
               pubkey: pubkey,
-              name: userMetadata.data.name,
+              name: userPreviewData.data.name,
               gradient: gradient.value,
               isViewed: isViewed,
               onTap: () => StoryViewerRoute(pubkey: pubkey).push<void>(context),
@@ -81,7 +81,7 @@ class StoryListItem extends HookConsumerWidget {
               bottom: 18.0.s,
               child: StoryItemFollowButton(
                 pubkey: pubkey,
-                username: userMetadata.data.name,
+                username: userPreviewData.data.name,
               ),
             ),
           ],

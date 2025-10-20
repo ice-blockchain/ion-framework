@@ -52,8 +52,9 @@ bool isAnyFriendMetadataLoaded(Ref ref) {
   final pubkeys = ref.watch(currentUserFollowListProvider).valueOrNull?.masterPubkeys ?? [];
   if (pubkeys.isEmpty) return false;
 
+  // Approximate number of items that is enough to cover the viewport.
   for (final pk in pubkeys.take(4)) {
-    final metadata = ref.watch(userMetadataProvider(pk));
+    final metadata = ref.watch(userPreviewDataProvider(pk));
     if (metadata.hasValue) {
       return true;
     }

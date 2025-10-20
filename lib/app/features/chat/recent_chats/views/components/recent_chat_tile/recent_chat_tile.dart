@@ -251,9 +251,9 @@ class SenderSummary extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
+    final userPreviewData = ref.watch(userPreviewDataProvider(masterPubkey));
 
-    if (userMetadata.isLoading) {
+    if (userPreviewData.isLoading && !userPreviewData.hasValue) {
       return const SizedBox.shrink();
     }
 
@@ -276,7 +276,7 @@ class SenderSummary extends ConsumerWidget {
             ),
           ),
         Text(
-          isEdit ? context.i18n.button_edit : userMetadata.valueOrNull?.data.name ?? '',
+          isEdit ? context.i18n.button_edit : userPreviewData.valueOrNull?.data.name ?? '',
           style: context.theme.appTextThemes.subtitle3.copyWith(
             color: textColor ?? context.theme.appColors.primaryText,
           ),
@@ -332,14 +332,10 @@ class ChatPreview extends HookConsumerWidget {
       MessageType.document => lastMessageContent,
       MessageType.requestFunds => getRequestFundsTitle(ref, lastMessage) ?? lastMessageContent,
       MessageType.moneySent => getMoneySentTitle(ref, lastMessage) ?? lastMessageContent,
-      MessageType.profile => ref
-              .watch(
-                userMetadataProvider(EventReference.fromEncoded(lastMessageContent).masterPubkey),
-              )
-              .valueOrNull
-              ?.data
-              .trimmedDisplayName ??
-          '',
+      MessageType.profile => ref.watch(
+          userPreviewDataProvider(EventReference.fromEncoded(lastMessageContent).masterPubkey)
+              .select(userPreviewDisplayNameSelector),
+        ),
     };
 
     final storyReactionContent =

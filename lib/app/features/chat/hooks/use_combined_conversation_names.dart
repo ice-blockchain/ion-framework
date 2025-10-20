@@ -27,9 +27,9 @@ String? useCombinedConversationNames(
               .firstWhere((pubkey) => pubkey.value != currentUserMasterPubkey)
               .value;
 
-          final userMetadata = await ref.read(userMetadataProvider(receiver).future);
-          if (userMetadata != null) {
-            names.add(userMetadata.data.displayName);
+          final userPreviewData = await ref.read(userPreviewDataProvider(receiver).future);
+          if (userPreviewData != null) {
+            names.add(userPreviewData.data.trimmedDisplayName);
           }
         } else if (conversation.type == ConversationType.community) {
           final community =

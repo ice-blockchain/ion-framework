@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 
 class BadgesUserListItem extends ConsumerWidget {
   const BadgesUserListItem({
@@ -46,8 +47,18 @@ class BadgesUserListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isUserVerified = ref.watch(isUserVerifiedProvider(masterPubkey));
-    final isNicknameProven = ref.watch(isNicknameProvenProvider(masterPubkey));
+    final hasMetadata = ref.watch(
+      userMetadataProvider(masterPubkey, network: false)
+          .select((value) => value.valueOrNull != null),
+    );
+
+    // Checking badges only when user metadata is already fetched to avoid unnecessary network calls.
+    //
+    // Any time we fetch user metadata we also fetch badges via the search extension.
+    // So by the time we have user metadata, we assume that we also have badges that proves the nickname ownership
+    // and verification status.
+    final isUserVerified = hasMetadata && ref.watch(isUserVerifiedProvider(masterPubkey));
+    final isNicknameProven = !hasMetadata || ref.watch(isNicknameProvenProvider(masterPubkey));
 
     return ListItem.user(
       pubkey: masterPubkey,

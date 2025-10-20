@@ -34,11 +34,11 @@ class MoreArticlesFromAuthor extends ConsumerWidget {
         .toList();
 
     final authorDisplayName = ref.watch(
-      userMetadataProvider(eventReference.masterPubkey)
-          .select((value) => value.valueOrNull?.data.trimmedDisplayName),
+      userPreviewDataProvider(eventReference.masterPubkey, network: false)
+          .select(userPreviewDisplayNameSelector),
     );
 
-    if (articlesReferences == null || articlesReferences.isEmpty || authorDisplayName == null) {
+    if (articlesReferences == null || articlesReferences.isEmpty) {
       return const SizedBox.shrink();
     }
 

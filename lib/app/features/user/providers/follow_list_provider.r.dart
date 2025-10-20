@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -52,7 +54,7 @@ Future<FollowListEntity?> currentUserFollowList(Ref ref) async {
 }
 
 @riverpod
-Future<List<UserMetadataEntity>> currentUserFollowListWithMetadata(
+Future<List<String>> currentUserFollowListWithMetadata(
   Ref ref, {
   int limit = 50,
 }) async {
@@ -62,22 +64,21 @@ Future<List<UserMetadataEntity>> currentUserFollowListWithMetadata(
 
   final masterPubkeys = followedPeople.map((follow) => follow.pubkey).toList();
 
-  final followedPeopleWithMetadata =
-      (await ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
-                eventReferences: masterPubkeys
-                    .map(
-                      (masterPubkey) => ReplaceableEventReference(
-                        masterPubkey: masterPubkey,
-                        kind: UserMetadataEntity.kind,
-                      ),
-                    )
-                    .toList(),
-                search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
-              ))
-          .whereType<UserMetadataEntity>()
-          .toList();
+  unawaited(
+    ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
+          eventReferences: masterPubkeys
+              .map(
+                (masterPubkey) => ReplaceableEventReference(
+                  masterPubkey: masterPubkey,
+                  kind: UserMetadataEntity.kind,
+                ),
+              )
+              .toList(),
+          search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
+        ),
+  );
 
-  return followedPeopleWithMetadata;
+  return masterPubkeys;
 }
 
 @riverpod

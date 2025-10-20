@@ -3,6 +3,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
+import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
@@ -20,7 +21,7 @@ List<EntitiesDataSource>? followersDataSource(
   return [
     EntitiesDataSource(
       actionSource: ActionSourceUser(pubkey),
-      entityFilter: (entity) => entity is UserMetadataEntity || entity is FollowListEntity,
+      entityFilter: (entity) => entity is UserMetadataEntity || entity is EventsMetadataEntity,
       pagedFilter: (entity) => entity is FollowListEntity,
       requestFilter: RequestFilter(
         kinds: const [FollowListEntity.kind],

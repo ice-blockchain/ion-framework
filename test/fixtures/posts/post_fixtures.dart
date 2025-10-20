@@ -3,6 +3,7 @@
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_expiration.f.dart';
+import 'package:ion/app/features/ion_connect/model/entity_published_at.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:mocktail/mocktail.dart';
@@ -25,6 +26,9 @@ class FakePostData extends Fake implements ModifiablePostData {
   final MediaType mediaType;
   @override
   final EntityExpiration? expiration;
+
+  @override
+  EntityPublishedAt get publishedAt => const EntityPublishedAt(value: 1760955095234);
 
   @override
   Map<String, MediaAttachment> get media => {'0': FakeAttachment(mediaType)};

@@ -13,6 +13,7 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
+import 'package:ion/app/features/user/model/user_preview_data.dart';
 
 part 'user_metadata.f.freezed.dart';
 part 'user_metadata.f.g.dart';
@@ -20,7 +21,7 @@ part 'user_metadata.f.g.dart';
 @Freezed(equal: false)
 class UserMetadataEntity
     with IonConnectEntity, CacheableEntity, ReplaceableEntity, _$UserMetadataEntity
-    implements EntityEventSerializable, DbCacheableEntity {
+    implements EntityEventSerializable, DbCacheableEntity, UserPreviewEntity {
   const factory UserMetadataEntity({
     required String id,
     required String pubkey,
@@ -58,7 +59,9 @@ class UserMetadataEntity
 }
 
 @freezed
-class UserMetadata with _$UserMetadata implements EventSerializable, ReplaceableEntityData {
+class UserMetadata
+    with _$UserMetadata
+    implements EventSerializable, ReplaceableEntityData, UserPreviewData {
   const factory UserMetadata({
     @Default('') String name,
     @Default('') String displayName,
@@ -109,9 +112,11 @@ class UserMetadata with _$UserMetadata implements EventSerializable, Replaceable
 
   const UserMetadata._();
 
+  @override
   String? get avatarUrl =>
       media.values.where((element) => picture == element.url).firstOrNull?.thumb ?? picture;
 
+  @override
   String get trimmedDisplayName => displayName.trim();
 
   @override
