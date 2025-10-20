@@ -38,10 +38,10 @@ class ProfileContextMenu extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.displayErrors(reportNotifierProvider);
 
-    final closeMenuRef = useRef<VoidCallback?>(null);
+    final closeMenuRef = useRef<CloseMenuCallback?>(null);
     useEffect(
       () {
-        void listener() => closeMenuRef.value?.call();
+        void listener() => closeMenuRef.value?.call(animate: false);
 
         closeSignal.addListener(listener);
 

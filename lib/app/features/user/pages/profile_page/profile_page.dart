@@ -38,6 +38,8 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
 
+typedef CloseMenuCallback = void Function({bool animate});
+
 class MenuCloseSignal extends ValueNotifier<int> {
   MenuCloseSignal() : super(0);
 
@@ -150,9 +152,12 @@ class ProfilePage extends HookConsumerWidget {
               top: profileMode != ProfileMode.dark,
               child: DefaultTabController(
                 length: UserContentType.values.length,
-                child: Listener(
-                  onPointerDown: (_) {
-                    menuCloseSignal.trigger();
+                child: NotificationListener(
+                  onNotification: (notification) {
+                    if (notification is UserScrollNotification) {
+                      menuCloseSignal.trigger();
+                    }
+                    return true;
                   },
                   child: NestedScrollView(
                     controller: scrollController,
