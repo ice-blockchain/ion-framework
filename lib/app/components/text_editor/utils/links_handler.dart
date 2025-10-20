@@ -6,6 +6,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_typing_listener.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
+import 'package:ion/app/services/text_parser/text_parser.dart';
 
 class LinksHandler extends TextEditorTypingListener {
   LinksHandler({
@@ -15,7 +16,8 @@ class LinksHandler extends TextEditorTypingListener {
     required super.ref,
   });
 
-  final _urlMatcher = const UrlMatcher();
+  final _urlMatcher = TextParser(matchers: {const UrlMatcher()});
+
   bool _isFormatting = false;
   Timer? _debounceTimer;
 
@@ -75,13 +77,13 @@ class LinksHandler extends TextEditorTypingListener {
         offset += len;
       }
 
-      final matches = RegExp(_urlMatcher.pattern).allMatches(text);
+      final matches = _urlMatcher.parse(text, onlyMatches: true);
       for (final match in matches) {
-        final url = match.group(0);
-        if (url == null) continue;
+        final url = match.text;
+        if (url.isEmpty) continue;
 
-        final start = match.start;
-        final length = match.end - match.start;
+        final start = match.offset;
+        final length = match.text.length;
 
         if (QuillTextUtils.rangeOverlapsOpsWithAttributes(deltaOps, start, length)) {
           continue;

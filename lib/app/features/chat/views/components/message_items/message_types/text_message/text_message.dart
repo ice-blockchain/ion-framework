@@ -33,16 +33,29 @@ class TextMessage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final firstUrl = useState<String?>(null);
+    // Parse the message once and cache the result
+    // This avoids running the UrlMatcher regex multiple times
+    final parsedMatches = useMemoized(
+      () => TextParser(matchers: {const UrlMatcher()}).parse(
+        eventMessage.content,
+        onlyMatches: true,
+      ),
+      [eventMessage.content],
+    );
 
-    //TODO: re-enable once isolate issue is resolved
-    //useOnInit(() {
-    //  sharedChatIsolate.compute(extractFirstUrl, eventMessage.content).then((url) {
-    //    if (context.mounted) {
-    //      firstUrl.value = url;
-    //    }
-    //  });
-    //});
+    // Extract first URL from parsed matches (no regex needed!)
+    final firstUrl = useMemoized(
+      () {
+        try {
+          return parsedMatches.firstWhere((match) => match.matcher is UrlMatcher).text;
+        } catch (_) {
+          return '';
+        }
+      },
+      [parsedMatches],
+    );
+
+    final hasUrlInText = firstUrl.isNotEmpty;
 
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
 
@@ -56,7 +69,7 @@ class TextMessage extends HookConsumerWidget {
     );
 
     final metadata =
-        firstUrl.value != null ? ref.watch(urlMetadataProvider(firstUrl.value!)) : null;
+        hasUrlInText ? ref.watch(urlMetadataProvider(firstUrl)) : null;
 
     final hasReactionsOrMetadata =
         useHasReaction(entity.toEventReference(), ref) || metadata != null;
@@ -93,9 +106,9 @@ class TextMessage extends HookConsumerWidget {
               eventMessage: eventMessage,
               hasReactionsOrMetadata: hasReactionsOrMetadata,
               hasRepliedMessage: repliedMessageItem != null,
-              hasUrlInText: firstUrl.value != null,
+              hasUrlInText: hasUrlInText,
             ),
-            if (metadata != null) UrlPreviewBlock(url: firstUrl.value!, isMe: isMe),
+            if (metadata != null) UrlPreviewBlock(url: firstUrl, isMe: isMe),
             if (hasReactionsOrMetadata)
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -236,7 +249,20 @@ class _TextRichContent extends HookConsumerWidget {
     if (!hasUrlInText) {
       return Text.rich(TextSpan(text: text, style: textStyle));
     }
-    final textSpan = useTextSpanBuilder(
+
+    // Cache the TextParser instance to avoid recreating it
+    final textParser = useMemoized(
+      () => TextParser(matchers: {const UrlMatcher()}),
+      [],
+    );
+
+    // Memoize the parsed result to avoid reparsing on rebuilds
+    final parsedText = useMemoized(
+      () => textParser.parse(text),
+      [text],
+    );
+
+    final textSpanBuilder = useTextSpanBuilder(
       context,
       defaultStyle: textStyle,
       matcherStyles: {
@@ -245,10 +271,16 @@ class _TextRichContent extends HookConsumerWidget {
           decorationColor: textStyle.color,
         ),
       },
-    ).build(
-      TextParser(matchers: {const UrlMatcher()}).parse(text),
-      onTap: (match) => TextSpanBuilder.defaultOnTap(ref, match: match),
     );
+
+    final textSpan = useMemoized(
+      () => textSpanBuilder.build(
+        parsedText,
+        onTap: (match) => TextSpanBuilder.defaultOnTap(ref, match: match),
+      ),
+      [parsedText, textSpanBuilder],
+    );
+
     return Text.rich(textSpan);
   }
 }

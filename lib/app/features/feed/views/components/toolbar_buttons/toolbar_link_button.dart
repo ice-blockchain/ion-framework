@@ -7,6 +7,7 @@ import 'package:ion/app/components/text_editor/utils/quill_style_manager.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/actions_toolbar_button/actions_toolbar_button.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
+import 'package:ion/app/services/text_parser/text_parser.dart';
 import 'package:ion/app/utils/text_input_formatters.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -64,7 +65,8 @@ class ToolbarLinkButton extends HookWidget {
 
         if (resultLink != null) {
           final url = resultLink.trim();
-          if (RegExp(const UrlMatcher().pattern).hasMatch(url)) {
+          final matches = TextParser(matchers: {const UrlMatcher()}).parse(url, onlyMatches: true);
+          if (matches.isNotEmpty) {
             styleManager.toggleLinkStyle(url);
           }
         }

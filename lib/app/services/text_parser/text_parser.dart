@@ -65,36 +65,51 @@ class TextParser {
 
   late String _pattern;
 
+  /// Cached compiled RegExp for better performance.
+  /// Recompiling RegExp on every parse is expensive, especially with complex patterns.
+  late final RegExp _regExp = RegExp(_pattern);
+
   List<TextMatch> parse(String text, {bool onlyMatches = false}) {
-    final matches = RegExp(_pattern).allMatches(text);
+    final matches = _regExp.allMatches(text);
 
     final result = <TextMatch>[];
     var offset = 0;
 
     for (final match in matches) {
-      if (!onlyMatches && match.start > offset) {
-        final substring = text.substring(offset, match.start);
-        result.add(TextMatch(substring, offset: offset));
-      }
-
       final substring = text.substring(match.start, match.end);
 
       final matcherIndex =
           _matcherGroupNames.indexWhere((name) => match.namedGroup(name) == substring);
 
       if (matcherIndex > -1) {
+        final matcher = matchers.elementAt(matcherIndex);
+
+        // Apply post-match validation (important for UrlMatcher TLD validation)
+        if (!matcher.validate(substring)) {
+          // Invalid match - skip it and don't update offset
+          // This will cause it to be included in the next plain text segment
+          continue;
+        }
+
+        // Valid match - add any preceding plain text first
+        if (!onlyMatches && match.start > offset) {
+          final plainText = text.substring(offset, match.start);
+          result.add(TextMatch(plainText, offset: offset));
+        }
+
+        // Then add the matched text
         result.add(
           TextMatch(
             substring,
             offset: match.start,
-            matcher: matchers.elementAt(matcherIndex),
+            matcher: matcher,
             matcherIndex: matcherIndex,
             groups: match.groups(_matcherGroupRanges[matcherIndex]),
           ),
         );
-      }
 
-      offset = match.end;
+        offset = match.end;
+      }
     }
 
     if (!onlyMatches && offset < text.length) {

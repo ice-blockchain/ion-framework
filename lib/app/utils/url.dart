@@ -3,7 +3,6 @@
 import 'dart:io';
 
 import 'package:ion/app/services/deep_link/deep_link_service.r.dart';
-import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 
 String? removeHttpsPrefix(String? url) {
   // Replace the https:// prefix with an empty string if it exists.
@@ -58,10 +57,6 @@ String resolveImageUrl(String baseUrl, String imageUrl) {
 
 bool isNetworkUrl(String url) {
   return url.startsWith('http://') || url.startsWith('https://');
-}
-
-String? extractFirstUrl(String text) {
-  return RegExp(const UrlMatcher().pattern).firstMatch(text)?.group(0);
 }
 
 bool isOneLinkUrl(String url) {
