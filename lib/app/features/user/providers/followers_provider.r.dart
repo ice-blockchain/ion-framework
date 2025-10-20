@@ -62,6 +62,7 @@ class Followers extends _$Followers {
     final response = (
       hasMore: entitiesPagedData?.hasMore ?? false,
       masterPubkeys: masterPubkeys,
+      // Approximate number of items that is enough to cover the viewport.
       ready: (masterPubkeys?.length ?? 0) >= 12 || entitiesPagedData?.data is! PagedLoading,
     );
     return response;
