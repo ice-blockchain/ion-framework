@@ -41,7 +41,7 @@ class CreateGroupModal extends HookConsumerWidget {
     final createGroupFormNotifier = ref.watch(createGroupFormControllerProvider.notifier);
     final nameController = useTextEditingController(text: createGroupForm.name);
 
-    final participantsMasterkeys = currentMasterPubkey != null
+    final participantsMasterPubkeys = currentMasterPubkey != null
         ? [
             ...createGroupForm.participantsMasterkeys,
             currentMasterPubkey,
@@ -124,7 +124,8 @@ class CreateGroupModal extends HookConsumerWidget {
                         Assets.svg.iconCategoriesFollowing.icon(size: 16.0.s),
                         SizedBox(width: 6.0.s),
                         Text(
-                          context.i18n.group_create_members_number(participantsMasterkeys.length),
+                          context.i18n
+                              .group_create_members_number(participantsMasterPubkeys.length),
                         ),
                         const Spacer(),
                         TextButton(
@@ -143,12 +144,12 @@ class CreateGroupModal extends HookConsumerWidget {
                     SizedBox(height: 20.0.s),
                     Expanded(
                       child: ListView.separated(
-                        itemCount: participantsMasterkeys.length,
+                        itemCount: participantsMasterPubkeys.length,
                         separatorBuilder: (_, __) => SizedBox(height: 12.0.s),
                         itemBuilder: (_, int i) {
-                          final participantMasterkey = participantsMasterkeys[i];
+                          final participantMasterkey = participantsMasterPubkeys[i];
 
-                          return GroupPariticipantsListItem(
+                          return GroupParticipantsListItem(
                             participantMasterkey: participantMasterkey,
                             isCurrentUser: participantMasterkey == currentMasterPubkey,
                             onRemove: () {
@@ -197,7 +198,7 @@ class CreateGroupModal extends HookConsumerWidget {
                       await ref.read(sendE2eeChatMessageServiceProvider).sendMessage(
                         conversationId: generateUuid(),
                         content: '',
-                        participantsMasterPubkeys: participantsMasterkeys,
+                        participantsMasterPubkeys: participantsMasterPubkeys,
                         subject: createGroupForm.name,
                         mediaFiles: [groupPicture!],
                       );

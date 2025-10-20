@@ -23,8 +23,10 @@ class ChatMediaMetaData extends HookConsumerWidget {
       userPreviewDataProvider(eventMessage.masterPubkey).select(userPreviewDisplayNameSelector),
     );
 
-    final messageData =
-        useMemoized(() => ReplaceablePrivateDirectMessageData.fromEventMessage(eventMessage));
+    final messageData = useMemoized(
+      () => ReplaceablePrivateDirectMessageData.fromEventMessage(eventMessage),
+      [eventMessage],
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

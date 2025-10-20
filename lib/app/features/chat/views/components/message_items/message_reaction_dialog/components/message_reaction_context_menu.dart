@@ -48,6 +48,7 @@ class MessageReactionContextMenu extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entityData = useMemoized(
       () => ReplaceablePrivateDirectMessageData.fromEventMessage(messageItem.eventMessage),
+      [messageItem.eventMessage],
     );
 
     final canEdit = entityData.editingEndedAt.value.toDateTime.isAfter(DateTime.now());

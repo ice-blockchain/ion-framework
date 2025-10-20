@@ -44,10 +44,7 @@ class SharedStoryMessage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
 
-    final isMe = useMemoized(
-      () => ref.watch(isCurrentUserSelectorProvider(replyEventMessage.masterPubkey)),
-      [replyEventMessage.masterPubkey],
-    );
+    final isMe = ref.watch(isCurrentUserSelectorProvider(replyEventMessage.masterPubkey));
 
     final storyEntityData = useMemoized(
       () => switch (storyEntity) {
@@ -55,6 +52,7 @@ class SharedStoryMessage extends HookConsumerWidget {
         final PostEntity post => post.data,
         _ => null,
       },
+      [storyEntity],
     );
 
     final storyMedia = useMemoized(
@@ -62,14 +60,15 @@ class SharedStoryMessage extends HookConsumerWidget {
         final EntityDataWithMediaContent data => data.media.values.firstOrNull,
         _ => null,
       },
+      [storyEntityData],
     );
 
     if (storyMedia == null) {
       return _UnavailableStoryContainer(isMe: isMe, replyEventMessage: replyEventMessage);
     }
-
     final storyUrl = useMemoized(
       () => (storyMedia.mediaType == MediaType.video ? storyMedia.thumb : storyMedia.url) ?? '',
+      [storyMedia],
     );
 
     final storyExpired = useMemoized(
@@ -79,6 +78,7 @@ class SharedStoryMessage extends HookConsumerWidget {
         final PostEntity post => post.data.expiration!.value.toDateTime.isBefore(DateTime.now()),
         _ => true,
       },
+      [storyEntity],
     );
 
     final storyBelongsToCurrentUser = storyEntity.masterPubkey == currentUserMasterPubkey;

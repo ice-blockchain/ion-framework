@@ -54,6 +54,7 @@ class MessageItemWrapper extends HookConsumerWidget {
 
     final entity = useMemoized(
       () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(messageItem.eventMessage),
+      [messageItem.eventMessage],
     );
 
     final eventReference = entity.toEventReference();
@@ -175,6 +176,7 @@ ChatMessageInfoItem? getRepliedMessageListItem({
 
   final repliedEntity = useMemoized(
     () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(repliedEventMessage),
+    [repliedEventMessage],
   );
 
   if (repliedEntity.data.messageType == MessageType.profile) {
@@ -202,6 +204,7 @@ ChatMessageInfoItem? getRepliedMessageListItem({
   } else if (repliedEntity.data.messageType == MessageType.sharedPost) {
     final sharedEntity = useMemoized(
       () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(repliedEventMessage),
+      [repliedEventMessage],
     );
 
     final postEntity = sharedEntity.data.quotedEvent != null
@@ -218,6 +221,7 @@ ChatMessageInfoItem? getRepliedMessageListItem({
         final PostEntity post => post.data,
         _ => false,
       },
+      [postEntity],
     );
 
     final postDeleted = useMemoized(
@@ -225,6 +229,7 @@ ChatMessageInfoItem? getRepliedMessageListItem({
         final ModifiablePostEntity post => post.isDeleted,
         _ => false,
       },
+      [postEntity],
     );
 
     if (postData is! EntityDataWithMediaContent || postDeleted) {
@@ -237,7 +242,10 @@ ChatMessageInfoItem? getRepliedMessageListItem({
 
     final (:content, :media) = ref.watch(cachedParsedMediaProvider(postData));
 
-    final contentAsPlainText = useMemoized(() => Document.fromDelta(content).toPlainText().trim());
+    final contentAsPlainText = useMemoized(
+      () => Document.fromDelta(content).toPlainText().trim(),
+      [content],
+    );
 
     return PostItem(
       medias: media,
