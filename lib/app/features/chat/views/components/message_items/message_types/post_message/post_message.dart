@@ -31,6 +31,11 @@ class PostMessage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sharedEntity =
         useMemoized(() => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage));
+
+    if (sharedEntity.data.quotedEvent == null) {
+      return const SizedBox.shrink();
+    }
+
     final kind16EventReference = sharedEntity.data.quotedEvent!.eventReference;
     final postEntity = ref.watch(
           sharedPostMessageProvider(kind16EventReference).select((value) {
