@@ -65,6 +65,8 @@ class EntitiesDataSource with _$EntitiesDataSource {
     required RequestFilter requestFilter,
     required bool Function(IonConnectEntity entity) entityFilter,
     bool Function(IonConnectEntity entity)? pagedFilter,
+    bool Function(EventsMetadataEntity entity)? missingEventsFilter,
+    DateTime Function(IonConnectEntity entity)? paginationPivotBuilder,
   }) = _EntitiesDataSource;
 }
 
@@ -224,11 +226,13 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
 
         // Update pagination params
         if (pagedFilter(entity) && !alreadyHas) {
-          lastEventTime = entity.createdAt.toDateTime;
+          lastEventTime =
+              dataSource.paginationPivotBuilder?.call(entity) ?? entity.createdAt.toDateTime;
         }
 
         // Update pending inserts
-        if (entity is EventsMetadataEntity) {
+        if (entity is EventsMetadataEntity &&
+            (dataSource.missingEventsFilter?.call(entity) ?? true)) {
           final ref = entity.data.metadataEventReference;
           if (ref != null && !pendingInserts.containsKey(ref)) {
             pendingInserts[ref] = cursor;
