@@ -966,5 +966,9 @@
   "follow_user_message": "You followed @{userDisplayName}",
   "nsfw_blocked_dialog_title": "Inappropriate Content",
   "nsfw_blocked_dialog_body_ios": "This media cannot be published because it contains material considered inappropriate under App Store guidelines.",
-  "nsfw_blocked_dialog_body_android": "This media cannot be published because it contains material considered inappropriate under Play Store guidelines."
+  "nsfw_blocked_dialog_body_android": "This media cannot be published because it contains material considered inappropriate under Play Store guidelines.",
+  "error_solana_invalid_recipient_title": "Invalid recipient",
+  "error_solana_invalid_recipient_description": "The recipient's address may be invalid, expired, or the amount may be too small for the account to exist.",
+  "error_solana_insufficient_balance_title": "Transaction blocked",
+  "error_solana_insufficient_balance_description": "Transaction can't be completed because your remaining balance would fall below minimum, required by the network to exist."
 }

@@ -26,13 +26,23 @@ class TransferExceptionFactory {
 
   static final GeneralExceptionHandler _generalHandler = GeneralExceptionHandler();
 
-  static IONException create(String? reason, CoinData coin) {
+  static IONException create({
+    required String? reason,
+    required CoinData coin,
+    double? nativeTokenTotalBalance,
+    double? nativeTokenTransferAmount,
+  }) {
     final generalException = _generalHandler.tryHandle(reason, coin);
     if (generalException != null) return generalException;
 
     final networkHandler = _networkHandlers[coin.network.id];
     if (networkHandler != null) {
-      final networkException = networkHandler.tryHandle(reason, coin);
+      final networkException = networkHandler.tryHandle(
+        reason,
+        coin,
+        nativeTokenTotalBalance: nativeTokenTotalBalance,
+        nativeTokenTransferAmount: nativeTokenTransferAmount,
+      );
       if (networkException != null) return networkException;
     }
 

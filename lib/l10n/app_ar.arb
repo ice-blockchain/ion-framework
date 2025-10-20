@@ -862,5 +862,9 @@
   "share_story_watch_message": "شاهد هذه القصة من {userDisplayName} قبل أن تختفي.",
   "follow_user_message": "أنت تتابع @{userDisplayName}",
   "error_token_below_minimum_title": "غير قادر على التحويل",
-  "error_token_below_minimum_description": "سيؤدي هذا التحويل إلى خفض أحد الحسابات إلى أقل من الحد الأدنى المطلوب {minAmount} {abbreviation} للبقاء نشطًا في الشبكة"
+  "error_token_below_minimum_description": "سيؤدي هذا التحويل إلى خفض أحد الحسابات إلى أقل من الحد الأدنى المطلوب {minAmount} {abbreviation} للبقاء نشطًا في الشبكة",
+  "error_solana_invalid_recipient_title": "مستلم غير صحيح",
+  "error_solana_invalid_recipient_description": "قد يكون عنوان المستلم غير صحيح أو منتهي الصلاحية، أو قد يكون المبلغ صغيرًا جدًا لوجود الحساب.",
+  "error_solana_insufficient_balance_title": "معاملة محظورة",
+  "error_solana_insufficient_balance_description": "لا يمكن إكمال المعاملة لأن رصيدك المتبقي سينخفض إلى ما دون الحد الأدنى المطلوب من الشبكة للوجود."
 }
