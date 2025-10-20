@@ -150,6 +150,7 @@ class RelayAuthService {
       final authMessage = AuthMessage(
         challenge: jsonEncode(signedAuthEvent.toJson().last),
       );
+
       relay.sendMessage(authMessage);
 
       final okMessages = await relay.messages

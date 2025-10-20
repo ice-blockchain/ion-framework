@@ -7,6 +7,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
+import 'package:ion/app/features/user/model/user_delegation.f.dart';
 
 part 'ion_connect_auth.f.freezed.dart';
 
@@ -17,6 +18,7 @@ class IonConnectAuth with _$IonConnectAuth implements EventSerializable {
     required String url,
     required String method,
     List<int>? payload,
+    UserDelegationEntity? userDelegation,
   }) = _IonConnectAuth;
 
   const IonConnectAuth._();
@@ -41,6 +43,13 @@ class IonConnectAuth with _$IonConnectAuth implements EventSerializable {
       );
     }
 
+    if (userDelegation != null) {
+      final attestationJson = jsonEncode(
+        (await userDelegation!.toEntityEventMessage()).toJson().last,
+      );
+      eventTags.add(['attestation', attestationJson]);
+    }
+
     return EventMessage.fromData(
       signer: signer,
       createdAt: createdAt,
@@ -52,7 +61,10 @@ class IonConnectAuth with _$IonConnectAuth implements EventSerializable {
 
   String toAuthorizationHeader(EventMessage event) {
     final eventPayload = event.toJson().last;
-    final headerValue = base64Encode(utf8.encode(jsonEncode(eventPayload)));
+
+    final payloadJson = jsonEncode(eventPayload);
+    final headerValue = base64Encode(utf8.encode(payloadJson));
+
     return 'Bearer $headerValue';
   }
 

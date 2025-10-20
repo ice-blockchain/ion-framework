@@ -11,7 +11,9 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_storage_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_auth.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
 import 'package:ion/app/features/user/providers/relays/ranked_user_relays_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 
 Future<String> generateAuthorizationToken({
   required Ref ref,
@@ -20,7 +22,17 @@ Future<String> generateAuthorizationToken({
   List<int>? fileBytes,
   EventSigner? customEventSigner,
 }) async {
-  final ionConnectAuth = IonConnectAuth(url: url, method: method, payload: fileBytes);
+  // Attach 10100 attestation inline when replica delay is active
+  final isDelayed = ref.read(relaysReplicaDelayProvider).isDelayed;
+  final userDelegation =
+      isDelayed ? await ref.read(currentUserCachedDelegationProvider.future) : null;
+
+  final ionConnectAuth = IonConnectAuth(
+    url: url,
+    method: method,
+    payload: fileBytes,
+    userDelegation: userDelegation,
+  );
 
   if (customEventSigner != null) {
     final authEvent = await ionConnectAuth.toEventMessage(customEventSigner);
@@ -57,10 +69,12 @@ Future<String> getFileStorageApiUrl(
           metadataUri,
           cancelToken: cancelToken,
         );
-    final path = FileStorageMetadata.fromJson(
-      json.decode(response.data as String) as Map<String, dynamic>,
-    ).apiUrl;
-    return metadataUri.replace(path: path).toString();
+    final jsonMap = json.decode(response.data as String) as Map<String, dynamic>;
+    final metadata = FileStorageMetadata.fromJson(jsonMap);
+    final path = metadata.apiUrl;
+    final uploadUrl = metadataUri.replace(path: path).toString();
+
+    return uploadUrl;
   } catch (error) {
     if (_isRelayDead(error)) {
       ref.read(rankedCurrentUserRelaysProvider.notifier).reportUnreachableRelay(relayUrl);

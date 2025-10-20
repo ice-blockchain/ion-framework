@@ -34,6 +34,7 @@ mixin RelayCreateMixin {
     }
 
     await ref.read(relayReachabilityProvider.notifier).clear(url);
+
     return relay;
   }
 
