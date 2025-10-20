@@ -8,7 +8,6 @@ import 'package:ion/app/features/chat/e2ee/views/pages/group_messages_page.dart'
 import 'package:ion/app/features/chat/e2ee/views/pages/one_to_one_messages_page.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/conversation_type_provider.r.dart';
-import 'package:ion/app/features/chat/recent_chats/providers/replied_message_list_item_provider.r.dart';
 
 class ConversationPage extends HookConsumerWidget {
   const ConversationPage({
@@ -36,7 +35,6 @@ class ConversationPage extends HookConsumerWidget {
             return ChannelMessagingPage(communityId: conversationId!);
           case ConversationType.oneToOne:
             return ProviderScope(
-              overrides: const [repliedMessageListItemProvider],
               child: OneToOneMessagesPage(
                 receiverMasterPubkey: receiverMasterPubkey!,
               ),
