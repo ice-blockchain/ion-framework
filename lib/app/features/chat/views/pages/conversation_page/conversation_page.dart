@@ -34,10 +34,8 @@ class ConversationPage extends HookConsumerWidget {
           case ConversationType.community:
             return ChannelMessagingPage(communityId: conversationId!);
           case ConversationType.oneToOne:
-            return ProviderScope(
-              child: OneToOneMessagesPage(
-                receiverMasterPubkey: receiverMasterPubkey!,
-              ),
+            return OneToOneMessagesPage(
+              receiverMasterPubkey: receiverMasterPubkey!,
             );
         }
       },
