@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
@@ -86,6 +87,17 @@ class MediaPickerPage extends HookConsumerWidget {
             .updateDurationLimit(maxVideoDurationInSeconds);
       },
       [maxSelection, maxVideoDurationInSeconds],
+    );
+
+    // Ensure maxSelection is updated when album changes
+    useEffect(
+      () {
+        Future(() {
+          ref.read(mediaSelectionNotifierProvider.notifier).updateMaxSelection(maxSelection);
+        });
+        return null;
+      },
+      [galleryState.valueOrNull?.selectedAlbum?.id],
     );
 
     useRoutePresence(
