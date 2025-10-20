@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats_data.dart';
@@ -152,14 +151,9 @@ class _BuyButton extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             decoration: const BoxDecoration(),
             child: Center(
-              child: SvgPicture.asset(
-                Assets.svg.iconWorkBuycoin,
-                width: 14.s,
-                height: 14.s,
-                colorFilter: ColorFilter.mode(
-                  context.theme.appColors.secondaryBackground,
-                  BlendMode.srcIn,
-                ),
+              child: Assets.svg.iconWorkBuycoin.icon(
+                size: 14.s,
+                color: context.theme.appColors.secondaryBackground,
               ),
             ),
           ),

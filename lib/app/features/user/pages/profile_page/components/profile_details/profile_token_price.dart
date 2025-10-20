@@ -26,11 +26,11 @@ class ProfileTokenPrice extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: Text(
+              //TODO replace mock data
               r'$0,15',
               textAlign: TextAlign.center,
               style: context.theme.appTextThemes.caption3.copyWith(
                 color: context.theme.appColors.primaryText,
-                fontFamily: 'Noto Sans',
               ),
             ),
           ),

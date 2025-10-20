@@ -95,9 +95,7 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
                   border: borderRadius == null
                       ? null
                       : Border.all(
-                          color: profileMode == ProfileMode.dark
-                              ? context.theme.appColors.sheetLine
-                              : context.theme.appColors.secondaryBackground,
+                          color: context.theme.appColors.secondaryBackground,
                           width: 2,
                         ),
                 )

@@ -37,7 +37,7 @@ class FollowCounters extends ConsumerWidget {
   Widget _divider(BuildContext context) {
     if (profileMode == ProfileMode.dark) {
       return Padding(
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
+        padding: EdgeInsetsDirectional.symmetric(horizontal: 12.0.s),
         child: Opacity(
           opacity: 0.40,
           child: Container(
