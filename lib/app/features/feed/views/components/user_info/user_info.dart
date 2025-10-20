@@ -48,10 +48,12 @@ class UserInfo extends HookConsumerWidget {
 
     void openProfile() => ProfileNavigationUtils.navigateToProfile(context, pubkey);
 
-    final tStyle = textStyle ??
-        context.theme.appTextThemes.caption.copyWith(
-          color: accentTheme ? context.theme.appColors.onPrimaryAccent : null,
-        );
+    final tStyle = accentTheme
+        ? (textStyle ??
+            context.theme.appTextThemes.caption.copyWith(
+              color: context.theme.appColors.onPrimaryAccent,
+            ))
+        : textStyle;
 
     return Padding(
       padding: padding ?? EdgeInsets.zero,
