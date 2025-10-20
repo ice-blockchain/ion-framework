@@ -54,6 +54,7 @@ class MainActivity : FlutterFragmentActivity() {
         private const val ERR_CODE_SDK_NOT_INITIALIZED = "ERR_SDK_NOT_INITIALIZED"
         private const val ERR_CODE_SDK_LICENSE_REVOKED = "ERR_SDK_LICENSE_REVOKED"
 
+        private const val TAG = "MainActivity"
 
     }
 
@@ -74,23 +75,25 @@ class MainActivity : FlutterFragmentActivity() {
         "EXTRA_USE_EDITOR_V2" to true
     )
 
+    private var banubaSdkChannel: MethodChannel? = null
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
         audioFocusHandler = AudioFocusHandler(applicationContext, flutterEngine)
 
-        val videoCompressionChannel = MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            "ion/video_compression"
-        )
         videoCompressionPlugin = VideoCompressionPlugin()
-        videoCompressionChannel.setMethodCallHandler(videoCompressionPlugin)
-
-        // Set up your MethodChannel here after registration
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
+            "ion/video_compression"
+        ).setMethodCallHandler(videoCompressionPlugin)
+
+        // Set up your MethodChannel here after registration
+        banubaSdkChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
             "banubaSdkChannel"
-        ).setMethodCallHandler { call, result ->
+        )
+        banubaSdkChannel?.setMethodCallHandler { call, result ->
             // Initialize export result callback to deliver the results back to Flutter
             exportResult = result
 
@@ -389,4 +392,74 @@ class MainActivity : FlutterFragmentActivity() {
             retriever.release()
         }
     }
+
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        Log.d(TAG, "cleanUpFlutterEngine() called")
+        
+        try {
+            // Clean up AudioFocusHandler
+            if (::audioFocusHandler.isInitialized) {
+                try {
+                    audioFocusHandler.cleanup()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error cleaning up AudioFocusHandler", e)
+                }
+            }
+            
+            // Clean up MethodChannels
+            try {
+                banubaSdkChannel?.setMethodCallHandler(null)
+                banubaSdkChannel = null
+                videoCompressionPlugin = null
+            } catch (e: Exception) {
+                Log.e(TAG, "Error cleaning up MethodChannels", e)
+            }
+            
+            // Release video editor resources
+            try {
+                releaseVideoEditorModule()
+                videoEditorSDK = null
+                photoEditorSDK = null
+            } catch (e: Exception) {
+                Log.e(TAG, "Error releasing video editor resources", e)
+            }
+            
+            // Clear any pending results
+            if (exportResult != null) {
+                exportResult = null
+            }
+            
+            // Clean up editing file
+            try {
+                cleanupCurrentEditingFile()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error cleaning up editing file", e)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Unexpected error during MainActivity cleanup", e)
+        }
+        
+        super.cleanUpFlutterEngine(flutterEngine)
+    }
+    
+    override fun onDestroy() {
+        Log.d(TAG, "onDestroy() called")
+        
+        try {
+            // Call super.onDestroy() which triggers delegate.onDetach()
+            // This is where plugins' onDetachedFromActivity() is called
+            super.onDestroy()
+        } catch (e: Throwable) {
+            // Catch crashes from buggy plugins during detachment
+            Log.e(TAG, "Exception during onDestroy (likely from a plugin during detachment)", e)
+            Log.e(TAG, "Exception type: ${e.javaClass.name}")
+            e.stackTrace?.take(5)?.forEach { element ->
+                Log.e(TAG, "  at ${element.className}.${element.methodName}")
+            }
+            // Note: Even catching here might not prevent the crash entirely,
+            // but it logs the issue and may allow graceful degradation
+        }
+    }
+
+
 }
