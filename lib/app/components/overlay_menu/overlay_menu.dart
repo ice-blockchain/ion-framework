@@ -4,8 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/overlay_menu/hooks/use_hide_on_scroll.dart';
 import 'package:ion/app/components/overlay_menu/hooks/use_hide_on_tab_change.dart';
+import 'package:ion/app/components/overlay_menu/models/close_menu.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/user/pages/profile_page/profile_page.dart';
 
 class OverlayMenu extends HookWidget {
   const OverlayMenu({
@@ -18,7 +18,7 @@ class OverlayMenu extends HookWidget {
   });
 
   final Widget child;
-  final Widget Function(CloseMenuCallback closeMenu) menuBuilder;
+  final Widget Function(CloseOverlayMenuCallback closeMenu) menuBuilder;
   final VoidCallback? onOpen;
   final VoidCallback? onClose;
   final ScrollController? scrollController;

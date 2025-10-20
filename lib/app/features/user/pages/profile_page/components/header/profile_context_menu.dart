@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/overlay_menu/models/close_menu.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -14,7 +15,6 @@ import 'package:ion/app/features/user/pages/components/header_action/header_acti
 import 'package:ion/app/features/user/pages/profile_page/components/header/context_menu_item.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/header/context_menu_item_divider.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/block_user_modal/block_user_modal.dart';
-import 'package:ion/app/features/user/pages/profile_page/profile_page.dart';
 import 'package:ion/app/features/user/providers/report_notifier.m.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/block_user_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
@@ -31,14 +31,14 @@ class ProfileContextMenu extends HookConsumerWidget {
   });
 
   final String pubkey;
-  final MenuCloseSignal closeSignal;
+  final OverlayMenuCloseSignal closeSignal;
   final ProfileMode profileMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.displayErrors(reportNotifierProvider);
 
-    final closeMenuRef = useRef<CloseMenuCallback?>(null);
+    final closeMenuRef = useRef<CloseOverlayMenuCallback?>(null);
     useEffect(
       () {
         void listener() => closeMenuRef.value?.call(animate: false);

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/overlay_menu/models/close_menu.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/separated/separator.dart';
@@ -37,14 +38,6 @@ import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
-
-typedef CloseMenuCallback = void Function({bool animate});
-
-class MenuCloseSignal extends ValueNotifier<int> {
-  MenuCloseSignal() : super(0);
-
-  void trigger() => value++;
-}
 
 class ProfilePage extends HookConsumerWidget {
   const ProfilePage({
@@ -102,7 +95,7 @@ class ProfilePage extends HookConsumerWidget {
 
     final backgroundColor = context.theme.appColors.secondaryBackground;
 
-    final menuCloseSignal = useMemoized(MenuCloseSignal.new);
+    final menuCloseSignal = useMemoized(OverlayMenuCloseSignal.new);
     useEffect(() => menuCloseSignal.dispose, [menuCloseSignal]);
 
     final onRefresh = useCallback(
