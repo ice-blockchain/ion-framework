@@ -9,6 +9,7 @@ import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/message_status_provider.r.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -46,7 +47,22 @@ class MessageMetadata extends HookConsumerWidget {
     }
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
 
-    final deliveryStatus = ref.watch(messageStatusProvider(eventReference));
+    final deliveryStatus = ref.watch(
+          messageStatusProvider(eventReference).select((value) {
+            final status = value.valueOrNull;
+
+            if (status != null) {
+              ListCachedObjects.updateObject<MessageStatusWithKey>(
+                context,
+                (key: eventReference.toString(), status: status),
+              );
+            }
+            return status;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<MessageStatusWithKey>(context, eventReference.toString())
+            ?.status ??
+        MessageDeliveryStatus.created;
 
     return Padding(
       padding: EdgeInsetsDirectional.only(start: startPadding ?? 8.0.s),
@@ -81,12 +97,11 @@ class MessageMetadata extends HookConsumerWidget {
           if (isMe)
             Padding(
               padding: EdgeInsetsDirectional.only(start: 2.0.s),
-              child: (deliveryStatus.valueOrNull ?? MessageDeliveryStatus.created) ==
-                      MessageDeliveryStatus.created
+              child: deliveryStatus == MessageDeliveryStatus.created
                   ? SizedBox(width: 12.0.s)
                   : statusIcon(
                       context,
-                      deliveryStatus.valueOrNull ?? MessageDeliveryStatus.created,
+                      deliveryStatus,
                       deliveryStatusIconSize,
                     ),
             ),

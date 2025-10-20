@@ -16,6 +16,7 @@ typedef PathWithKey = ({String key, String filePath});
 // for example shared post messages: kind 30014 -> kind 16 -> kind 30175
 // we want to cache kind 30175 with key of kind 16 event reference
 typedef EntityWithKey = ({String key, IonConnectEntity entity});
+typedef MessageStatusWithKey = ({String key, MessageDeliveryStatus status});
 
 class ListCachedObjectsWrapper extends StatefulWidget {
   const ListCachedObjectsWrapper({required this.child, super.key});
@@ -46,6 +47,7 @@ class ListCachedObjects extends InheritedWidget {
     return switch (object) {
       final PathWithKey fileMap => fileMap.key,
       final EntityWithKey entityMap => entityMap.key,
+      final MessageStatusWithKey statusMap => statusMap.key,
       final EventMessage event => event.sharedId ?? event.id,
       final MessageMediaTableData media => media.messageEventReference,
       final UserMetadataEntity user => user.masterPubkey,
