@@ -29,10 +29,7 @@ class SharedStoryWrapper extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final messageItemKey = useMemoized(GlobalKey.new);
 
-    final isMe = useMemoized(
-      () => ref.watch(isCurrentUserSelectorProvider(sharedEntity.masterPubkey)),
-      [sharedEntity.masterPubkey],
-    );
+    final isMe = ref.watch(isCurrentUserSelectorProvider(sharedEntity.masterPubkey));
 
     final sharedPostMessageStatus =
         ref.watch(sharedPostMessageStatusProvider(sharedEntity)).valueOrNull;

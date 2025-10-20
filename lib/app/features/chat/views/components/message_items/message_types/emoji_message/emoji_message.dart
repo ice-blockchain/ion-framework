@@ -38,10 +38,7 @@ class EmojiMessage extends HookConsumerWidget {
       [eventMessage],
     );
 
-    final isMe = useMemoized(
-      () => ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey)),
-      [eventMessage.masterPubkey],
-    );
+    final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
 
     final hasReaction = useHasReaction(entity.toEventReference(), ref);
 

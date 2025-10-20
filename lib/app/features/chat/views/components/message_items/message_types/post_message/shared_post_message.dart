@@ -39,27 +39,26 @@ class SharedPostMessage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isMe = useMemoized(
-      () => ref.read(isCurrentUserSelectorProvider(sharedEventMessage.masterPubkey)),
-      [sharedEventMessage.masterPubkey],
-    );
+    final isMe = ref.watch(isCurrentUserSelectorProvider(sharedEventMessage.masterPubkey));
 
     final postData = useMemoized(
       () => switch (postEntity) {
-        final PostEntity post => post.data,
-        final ArticleEntity article => article.data,
-        final ModifiablePostEntity post => post.data,
-        _ => false,
+      final PostEntity post => post.data,
+      final ArticleEntity article => article.data,
+      final ModifiablePostEntity post => post.data,
+      _ => false,
       },
+      [postEntity],
     );
 
     final createdAt = useMemoized(
       () => switch (postEntity) {
-        final PostEntity post => post.createdAt,
-        final ArticleEntity article => article.data.publishedAt.value,
-        final ModifiablePostEntity post => post.data.publishedAt.value,
-        _ => DateTime.now().microsecondsSinceEpoch,
+      final PostEntity post => post.createdAt,
+      final ArticleEntity article => article.data.publishedAt.value,
+      final ModifiablePostEntity post => post.data.publishedAt.value,
+      _ => DateTime.now().microsecondsSinceEpoch,
       },
+      [postEntity],
     );
 
     final postEntityEventReference = postEntity.toEventReference();

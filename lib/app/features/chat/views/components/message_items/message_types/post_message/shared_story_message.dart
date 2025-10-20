@@ -44,41 +44,41 @@ class SharedStoryMessage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
 
-    final isMe = useMemoized(
-      () => ref.watch(isCurrentUserSelectorProvider(replyEventMessage.masterPubkey)),
-      [replyEventMessage.masterPubkey],
-    );
+    final isMe = ref.watch(isCurrentUserSelectorProvider(replyEventMessage.masterPubkey));
 
     final storyEntityData = useMemoized(
       () => switch (storyEntity) {
-        final ModifiablePostEntity post => post.data,
-        final PostEntity post => post.data,
-        _ => null,
+      final ModifiablePostEntity post => post.data,
+      final PostEntity post => post.data,
+      _ => null,
       },
+      [storyEntity],
     );
 
     final storyMedia = useMemoized(
       () => switch (storyEntityData) {
-        final EntityDataWithMediaContent data => data.media.values.firstOrNull,
-        _ => null,
+      final EntityDataWithMediaContent data => data.media.values.firstOrNull,
+      _ => null,
       },
+      [storyEntityData],
     );
 
     if (storyMedia == null) {
       return _UnavailableStoryContainer(isMe: isMe, replyEventMessage: replyEventMessage);
     }
-
     final storyUrl = useMemoized(
       () => (storyMedia.mediaType == MediaType.video ? storyMedia.thumb : storyMedia.url) ?? '',
+      [storyMedia],
     );
 
     final storyExpired = useMemoized(
       () => switch (storyEntity) {
-        final ModifiablePostEntity post =>
-          post.data.expiration!.value.toDateTime.isBefore(DateTime.now()),
-        final PostEntity post => post.data.expiration!.value.toDateTime.isBefore(DateTime.now()),
-        _ => true,
+      final ModifiablePostEntity post =>
+        post.data.expiration!.value.toDateTime.isBefore(DateTime.now()),
+      final PostEntity post => post.data.expiration!.value.toDateTime.isBefore(DateTime.now()),
+      _ => true,
       },
+      [storyEntity],
     );
 
     final storyBelongsToCurrentUser = storyEntity.masterPubkey == currentUserMasterPubkey;

@@ -44,10 +44,7 @@ class AudioMessage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isMe = useMemoized(
-      () => ref.read(isCurrentUserSelectorProvider(eventMessage.masterPubkey)),
-      [eventMessage.masterPubkey],
-    );
+    final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
 
     final entity = useMemoized(
       () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),

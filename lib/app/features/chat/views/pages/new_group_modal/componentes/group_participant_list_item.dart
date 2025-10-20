@@ -8,8 +8,8 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class GroupPariticipantsListItem extends ConsumerWidget {
-  const GroupPariticipantsListItem({
+class GroupParticipantsListItem extends ConsumerWidget {
+  const GroupParticipantsListItem({
     required this.onRemove,
     required this.participantMasterkey,
     required this.isCurrentUser,

@@ -104,10 +104,13 @@ class _PollResultItem extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final percentage = useMemoized(() {
-      return option.votes /
-          mockPoll.options.map((e) => e.votes).reduce((value, element) => value + element);
-    });
+    final percentage = useMemoized(
+      () {
+        return option.votes /
+            mockPoll.options.map((e) => e.votes).reduce((value, element) => value + element);
+      },
+      [option.votes, ...mockPoll.options.map((e) => e.votes)],
+    );
 
     return Stack(
       alignment: AlignmentDirectional.centerStart,

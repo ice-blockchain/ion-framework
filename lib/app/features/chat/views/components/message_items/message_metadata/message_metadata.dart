@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -30,8 +31,13 @@ class MessageMetadata extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final eventReference =
-        ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage).toEventReference();
+    final entity = useMemoized(
+      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
+      [eventMessage],
+    );
+
+    final eventReference = entity.toEventReference();
+    final entityData = entity.data;
 
     final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
 
@@ -41,8 +47,6 @@ class MessageMetadata extends HookConsumerWidget {
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
 
     final deliveryStatus = ref.watch(messageStatusProvider(eventReference));
-
-    final entityData = ReplaceablePrivateDirectMessageData.fromEventMessage(eventMessage);
 
     return Padding(
       padding: EdgeInsetsDirectional.only(start: startPadding ?? 8.0.s),

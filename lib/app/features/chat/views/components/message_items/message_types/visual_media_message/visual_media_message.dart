@@ -40,10 +40,7 @@ class VisualMediaMessage extends HookConsumerWidget {
 
     final eventReference = entity.toEventReference();
 
-    final isMe = useMemoized(
-      () => ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey)),
-      [eventMessage.masterPubkey],
-    );
+    final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
 
     final messageMedias = ref.watch(
           chatMediasProvider(eventReference: eventReference).select((value) {
