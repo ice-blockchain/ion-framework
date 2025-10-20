@@ -263,7 +263,8 @@ class PasskeyCancelledException extends IONIdentityException {
     }
 
     final msg = (message ?? '').toLowerCase();
-    return msg.contains('cancel') && msg.contains('user');
+    return msg.contains('cancel') && msg.contains('user') ||
+        msg.contains('ui') && msg.contains('interrupted');
   }
 }
 
