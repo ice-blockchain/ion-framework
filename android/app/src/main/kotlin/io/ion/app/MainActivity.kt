@@ -82,12 +82,11 @@ class MainActivity : FlutterFragmentActivity() {
 
         audioFocusHandler = AudioFocusHandler(applicationContext, flutterEngine)
 
-        val videoCompressionChannel = MethodChannel(
+        videoCompressionPlugin = VideoCompressionPlugin()
+        MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             "ion/video_compression"
-        )
-        videoCompressionPlugin = VideoCompressionPlugin()
-        videoCompressionChannel.setMethodCallHandler(videoCompressionPlugin)
+        ).setMethodCallHandler(videoCompressionPlugin)
 
         // Set up your MethodChannel here after registration
         banubaSdkChannel = MethodChannel(
@@ -407,12 +406,13 @@ class MainActivity : FlutterFragmentActivity() {
                 }
             }
             
-            // Clean up MethodChannel
+            // Clean up MethodChannels
             try {
                 banubaSdkChannel?.setMethodCallHandler(null)
                 banubaSdkChannel = null
+                videoCompressionPlugin = null
             } catch (e: Exception) {
-                Log.e(TAG, "Error cleaning up banubaSdkChannel", e)
+                Log.e(TAG, "Error cleaning up MethodChannels", e)
             }
             
             // Release video editor resources
@@ -453,7 +453,7 @@ class MainActivity : FlutterFragmentActivity() {
             // Catch crashes from buggy plugins during detachment
             Log.e(TAG, "Exception during onDestroy (likely from a plugin during detachment)", e)
             Log.e(TAG, "Exception type: ${e.javaClass.name}")
-            e.stackTrace.take(5).forEach { element ->
+            e.stackTrace?.take(5)?.forEach { element ->
                 Log.e(TAG, "  at ${element.className}.${element.methodName}")
             }
             // Note: Even catching here might not prevent the crash entirely,
