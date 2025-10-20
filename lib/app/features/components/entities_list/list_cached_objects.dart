@@ -11,6 +11,10 @@ import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.d
 import 'package:ion/app/services/logger/logger.dart';
 
 typedef PathWithKey = ({String key, String filePath});
+// In rare cases we might want to store an entity along with custom key
+// for example shared post messages: kind 30014 -> kind 16 -> kind 30175
+// we want to cache kind 30175 with key of kind 16 event reference
+typedef EntityWithKey = ({String key, IonConnectEntity entity});
 
 class ListCachedObjectsWrapper extends StatefulWidget {
   const ListCachedObjectsWrapper({required this.child, super.key});
@@ -40,6 +44,7 @@ class ListCachedObjects extends InheritedWidget {
   static Object identifierSelector<T extends Object>(T object) {
     return switch (object) {
       final PathWithKey fileMap => fileMap.key,
+      final EntityWithKey entityMap => entityMap.key,
       final EventMessage event => event.sharedId ?? event.id,
       final MessageMediaTableData media => media.messageEventReference,
       final UserMetadataEntity user => user.masterPubkey,
