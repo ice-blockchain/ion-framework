@@ -14,6 +14,7 @@ import 'package:ion/app/features/chat/recent_chats/providers/replied_message_lis
 import 'package:ion/app/features/chat/views/components/message_items/components.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/reply_message/reply_message.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
@@ -35,13 +36,20 @@ class ProfileShareMessage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
+    final isMe = useMemoized(
+      () => ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey)),
+      [eventMessage.masterPubkey],
+    );
+
     final entity = useMemoized(
       () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
       [eventMessage],
     );
 
-    final profilePubkey = EventReference.fromEncoded(entity.data.content).masterPubkey;
+    final profilePubkey = useMemoized(
+      () => EventReference.fromEncoded(entity.data.content).masterPubkey,
+      [entity],
+    );
 
     final userMetadata = ref.watch(userMetadataProvider(profilePubkey)).valueOrNull;
 
@@ -50,11 +58,24 @@ class ProfileShareMessage extends HookConsumerWidget {
       contentDescription: userMetadata?.data.name ?? '',
     );
 
-    final repliedEventMessage = ref.watch(repliedMessageListItemProvider(messageItem));
+    final repliedEventMessage = ref.watch(
+          repliedMessageListItemProvider(messageItem).select((value) {
+            final repliedEvent = value.valueOrNull;
+
+            if (repliedEvent != null) {
+              ListCachedObjects.updateObject<EventMessage>(context, repliedEvent);
+            }
+            return repliedEvent;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<EventMessage>(
+          context,
+          entity.data.parentEvent?.eventReference.dTag,
+        );
 
     final repliedMessageItem = getRepliedMessageListItem(
       ref: ref,
-      repliedEventMessage: repliedEventMessage.valueOrNull,
+      repliedEventMessage: repliedEventMessage,
     );
 
     final hasReactions = useHasReaction(entity.toEventReference(), ref);
@@ -64,13 +85,10 @@ class ProfileShareMessage extends HookConsumerWidget {
     }
 
     return MessageItemWrapper(
-      margin: margin,
-      messageItem: ShareProfileItem(
-        eventMessage: eventMessage,
-        contentDescription: userMetadata.data.name,
-      ),
-      contentPadding: EdgeInsets.all(12.0.s),
       isMe: isMe,
+      margin: margin,
+      messageItem: messageItem,
+      contentPadding: EdgeInsets.all(12.0.s),
       child: IntrinsicWidth(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

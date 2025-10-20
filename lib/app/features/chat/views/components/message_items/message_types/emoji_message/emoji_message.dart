@@ -16,6 +16,7 @@ import 'package:ion/app/features/chat/views/components/message_items/message_ite
 import 'package:ion/app/features/chat/views/components/message_items/message_metadata/message_metadata.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/reply_message/reply_message.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 
 class EmojiMessage extends HookConsumerWidget {
@@ -44,16 +45,32 @@ class EmojiMessage extends HookConsumerWidget {
 
     final hasReaction = useHasReaction(entity.toEventReference(), ref);
 
-    final messageItem = TextItem(
-      eventMessage: eventMessage,
-      contentDescription: eventMessage.content,
+    final messageItem = useMemoized(
+      () => TextItem(
+        eventMessage: eventMessage,
+        contentDescription: eventMessage.content,
+      ),
+      [eventMessage],
     );
 
-    final repliedEventMessage = ref.watch(repliedMessageListItemProvider(messageItem));
+    final repliedEventMessage = ref.watch(
+          repliedMessageListItemProvider(messageItem).select((value) {
+            final repliedEvent = value.valueOrNull;
+
+            if (repliedEvent != null) {
+              ListCachedObjects.updateObject<EventMessage>(context, repliedEvent);
+            }
+            return repliedEvent;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<EventMessage>(
+          context,
+          entity.data.parentEvent?.eventReference.dTag,
+        );
 
     final repliedMessageItem = getRepliedMessageListItem(
       ref: ref,
-      repliedEventMessage: repliedEventMessage.valueOrNull,
+      repliedEventMessage: repliedEventMessage,
     );
 
     return MessageItemWrapper(

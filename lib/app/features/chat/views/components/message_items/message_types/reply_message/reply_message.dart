@@ -26,19 +26,19 @@ class ReplyMessage extends HookConsumerWidget {
 
     final messageIconPath = _getMessageIcon();
 
-    final isMyMessage =
-        messageItem.eventMessage.masterPubkey == ref.watch(currentPubkeySelectorProvider);
+    final isMe = useMemoized(
+      () => messageItem.eventMessage.masterPubkey == ref.watch(currentPubkeySelectorProvider),
+      [messageItem.eventMessage.masterPubkey, ref.watch(currentPubkeySelectorProvider)],
+    );
 
     final bgColor = useMemoized(
-      () => isMyMessage
-          ? context.theme.appColors.darkBlue
-          : context.theme.appColors.primaryBackground,
-      [isMyMessage],
+      () => isMe ? context.theme.appColors.darkBlue : context.theme.appColors.primaryBackground,
+      [isMe],
     );
 
     final textColor = useMemoized(
-      () => isMyMessage ? context.theme.appColors.onPrimaryAccent : null,
-      [isMyMessage],
+      () => isMe ? context.theme.appColors.onPrimaryAccent : null,
+      [isMe],
     );
 
     final mediaItem = repliedMessageItem != null && repliedMessageItem is MediaItem
@@ -61,7 +61,7 @@ class ReplyMessage extends HookConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _SideVerticalDivider(isMyMessage: isMyMessage),
+            _SideVerticalDivider(isMyMessage: isMe),
             if (mediaItem != null)
               SizedBox(
                 width: 50.0.s,
