@@ -26,25 +26,23 @@ class ProfileAvatar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewData = ref
-        .watch(userPreviewDataProvider(pubkey))
-        .valueOrNull;
+    final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
 
     return showAvatarPicker
         ? AvatarPicker(
-      avatarUrl: userPreviewData?.data.avatarUrl,
-      avatarSize: pictureSize,
-      borderRadius: borderRadius,
-      iconSize: 20.0.s,
-      iconBackgroundSize: 30.0.s,
-    )
+            avatarUrl: userPreviewData?.data.avatarUrl,
+            avatarSize: pictureSize,
+            borderRadius: borderRadius,
+            iconSize: 20.0.s,
+            iconBackgroundSize: 30.0.s,
+          )
         : StoryColoredProfileAvatar(
-      pubkey: pubkey,
-      size: pictureSize,
-      borderRadius: borderRadius,
-      fit: BoxFit.cover,
-      imageUrl: userPreviewData?.data.avatarUrl,
-      profileMode: profileMode,
-    );
+            pubkey: pubkey,
+            size: pictureSize,
+            borderRadius: borderRadius,
+            fit: BoxFit.cover,
+            imageUrl: userPreviewData?.data.avatarUrl,
+            profileMode: profileMode,
+          );
   }
 }

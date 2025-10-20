@@ -79,17 +79,6 @@ class UserNameTile extends ConsumerWidget {
                 child: const ProfileTokenPrice(),
               ),
           ],
-        Text(
-          prefixUsername(
-            username: (!isNicknameProven)
-                ? '${userPreviewData.data.name} ${context.i18n.nickname_not_owned_suffix}'
-                : userPreviewData.data.name,
-            context: context,
-          ),
-          style: context.theme.appTextThemes.caption.copyWith(
-            color: context.theme.appColors.quaternaryText,
-          ),
-          maxLines: 1,
         ),
       ],
     );
