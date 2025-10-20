@@ -53,7 +53,7 @@ class UnavailableTooltipOverlay extends StatelessWidget {
                     alignment: Alignment.topCenter,
                     children: [
                       Container(
-                        margin: const EdgeInsetsDirectional.only(bottom: 10),
+                        margin: EdgeInsetsDirectional.only(bottom: 10.s),
                         padding: EdgeInsets.symmetric(horizontal: 32.s, vertical: 11.s),
                         decoration: BoxDecoration(
                           color: context.theme.appColors.onPrimaryAccent,
