@@ -74,9 +74,9 @@ class FollowCountersCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () async {
+      onTap: () {
         if (usersNumber > 0) {
-          await FollowListRoute(
+          FollowListRoute(
             pubkey: pubkey,
             followType: followType,
           ).push<String>(context);
