@@ -51,6 +51,8 @@ class ExceptionPresenter {
       PaymentNoDestinationException() => locale.error_payment_no_destination_title,
       TokenBelowMinimumException() => locale.error_token_below_minimum_title,
       InsufficientAmountException() => locale.error_token_below_minimum_title,
+      SolanaInsufficientBalanceException() => locale.error_solana_insufficient_balance_title,
+      SolanaInvalidRecipientException() => locale.error_solana_invalid_recipient_title,
       final IONIdentityException identityException => identityException.title(context),
       SendEventException => locale.error_network_sync_failed_title,
       _ => locale.error_general_title,
@@ -65,6 +67,8 @@ class ExceptionPresenter {
         locale.error_payment_no_destination_description(ex.abbreviation),
       final TokenBelowMinimumException ex =>
         locale.error_token_below_minimum_description(ex.abbreviation, ex.minAmount),
+      SolanaInsufficientBalanceException() => locale.error_solana_insufficient_balance_description,
+      SolanaInvalidRecipientException() => locale.error_solana_invalid_recipient_description,
       final IONIdentityException identityException => identityException.description(context),
       Object _ when showDebugInfo => error.toString(),
       IONException(code: final int code) =>

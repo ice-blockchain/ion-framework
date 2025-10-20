@@ -6,7 +6,12 @@ import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 
 class BitcoinExceptionHandler implements TransferExceptionHandler {
   @override
-  IONException? tryHandle(String? reason, CoinData coin) {
+  IONException? tryHandle(
+    String? reason,
+    CoinData coin, {
+    double? nativeTokenTotalBalance,
+    double? nativeTokenTransferAmount,
+  }) {
     if (!coin.network.isBitcoin) return null;
 
     if (reason != null) {

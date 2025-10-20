@@ -6,7 +6,12 @@ import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 
 class AptosExceptionHandler implements TransferExceptionHandler {
   @override
-  IONException? tryHandle(String? reason, CoinData coin) {
+  IONException? tryHandle(
+    String? reason,
+    CoinData coin, {
+    double? nativeTokenTotalBalance,
+    double? nativeTokenTransferAmount,
+  }) {
     if (!coin.network.isAptos) return null;
 
     if (reason != null) {

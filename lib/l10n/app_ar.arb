@@ -871,4 +871,8 @@
   "wallet_swap_coming_soon": "تبديل العملة سيكون متاحاً قريباً",
   "wallet_buy_coming_soon": "شراء العملة سيكون متاحاً قريباً",
   "wallet_sell_coming_soon": "بيع العملة سيكون متاحاً قريباً"
+  "error_solana_invalid_recipient_title": "مستلم غير صحيح",
+  "error_solana_invalid_recipient_description": "قد يكون عنوان المستلم غير صحيح أو منتهي الصلاحية، أو قد يكون المبلغ صغيرًا جدًا لوجود الحساب.",
+  "error_solana_insufficient_balance_title": "معاملة محظورة",
+  "error_solana_insufficient_balance_description": "لا يمكن إكمال المعاملة لأن رصيدك المتبقي سينخفض إلى ما دون الحد الأدنى المطلوب من الشبكة للوجود."
 }

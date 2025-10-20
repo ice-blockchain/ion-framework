@@ -682,3 +682,11 @@ class UnknownFileDurationException extends IONException {
 class InsufficientAmountException extends IONException {
   InsufficientAmountException() : super(10130, 'Insufficient amount');
 }
+
+class SolanaInsufficientBalanceException extends IONException {
+  SolanaInsufficientBalanceException() : super(10131, 'Solana insufficient balance exception');
+}
+
+class SolanaInvalidRecipientException extends IONException {
+  SolanaInvalidRecipientException() : super(10132, 'Solana invalid recipient exception');
+}

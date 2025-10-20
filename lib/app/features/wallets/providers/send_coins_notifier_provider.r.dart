@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
@@ -55,7 +56,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       final coinAssetData = _extractCoinAssetData(form);
       final (senderWallet, sendableAsset) = _validateFormComponents(form, coinAssetData);
 
-      final walletViewId = await ref.read(currentWalletViewIdProvider.future);
+      final walletView = await ref.read(currentWalletViewDataProvider.future);
 
       var result = await _executeCoinTransfer(
         coinAssetData: coinAssetData,
@@ -67,14 +68,27 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
 
       result = await _waitForTransactionCompletion(senderWallet.id, result);
 
-      _validateTransactionResult(result, coinAssetData.selectedOption!.coin);
+      final nativeCoin = await ref
+          .read(coinsServiceProvider.future)
+          .then((service) => service.getNativeCoin(form.network!));
 
-      final coinsService = await ref.read(coinsServiceProvider.future);
-      final nativeCoin = await coinsService.getNativeCoin(form.network!);
+      final nativeTokenTotalBalance =
+          walletView.coins.firstWhereOrNull((coin) => coin.coin.id == nativeCoin?.id);
+
+      final isTransferringNativeToken = coinAssetData.selectedOption!.coin.native;
+      final transferNativeTokenAmount = isTransferringNativeToken ? coinAssetData.amount : 0.0;
+
+      _validateTransactionResult(
+        result: result,
+        coinAssetData: coinAssetData,
+        coin: coinAssetData.selectedOption!.coin,
+        transferNativeTokenAmount: transferNativeTokenAmount,
+        nativeTokenTotalBalance: nativeTokenTotalBalance?.amount,
+      );
 
       final details = TransactionDetails(
         id: result.id,
-        walletViewId: walletViewId,
+        walletViewId: walletView.id,
         txHash: result.txHash!,
         network: form.network!,
         status: result.status,
@@ -220,9 +234,20 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
   bool _isRetryableStatus(TransactionStatus status) =>
       status == TransactionStatus.pending || status == TransactionStatus.executing;
 
-  void _validateTransactionResult(TransferResult result, CoinData coin) {
+  void _validateTransactionResult({
+    required CoinData coin,
+    required TransferResult result,
+    required double? nativeTokenTotalBalance,
+    required double transferNativeTokenAmount,
+    required CoinAssetToSendData coinAssetData,
+  }) {
     if (result.status == TransactionStatus.rejected || result.status == TransactionStatus.failed) {
-      throw TransferExceptionFactory.create(result.reason, coin);
+      throw TransferExceptionFactory.create(
+        reason: result.reason,
+        coin: coin,
+        nativeTokenTransferAmount: transferNativeTokenAmount,
+        nativeTokenTotalBalance: nativeTokenTotalBalance,
+      );
     }
   }
 
