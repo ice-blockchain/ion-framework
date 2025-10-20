@@ -13,14 +13,24 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'user_chat_privacy_provider.r.g.dart';
 
 @riverpod
-Future<bool> canSendMessage(Ref ref, String masterPubkey, {bool cache = true}) async {
+Future<bool> canSendMessage(
+  Ref ref,
+  String masterPubkey, {
+  bool cache = true,
+  bool network = true,
+}) async {
   // 1. Check if the current user is followed by the target user
   final isFollowed = isCurrentUserFollowed(ref, masterPubkey, cache: cache);
   if (isFollowed) return true;
 
   // 2. Fetch user privacy settings
-  final userMetadata = await ref.watch(userMetadataProvider(masterPubkey, cache: cache).future);
-  final whoCanMessage = userMetadata?.data.whoCanMessageYou;
+  final userMetadata =
+      await ref.watch(userMetadataProvider(masterPubkey, cache: cache, network: network).future);
+
+  // If user metadata is not available, default to not allowing messaging
+  if (userMetadata == null) return false;
+
+  final whoCanMessage = userMetadata.data.whoCanMessageYou;
 
   // If privacy setting allows everyone or is unset, allow messaging
   if (whoCanMessage == null) return true;

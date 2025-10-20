@@ -38,7 +38,9 @@ class FollowingUsers extends ConsumerWidget {
 
             final bool canSendMessage;
             if (controlChatPrivacy) {
-              canSendMessage = ref.watch(canSendMessageProvider(masterPubkey)).valueOrNull ?? false;
+              canSendMessage =
+                  ref.watch(canSendMessageProvider(masterPubkey, network: false)).valueOrNull ??
+                      false;
             } else {
               canSendMessage = true;
             }

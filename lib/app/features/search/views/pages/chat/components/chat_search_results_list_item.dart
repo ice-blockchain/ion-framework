@@ -28,15 +28,16 @@ class ChatSearchResultListItem extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final displayName = ref.watch(
-      userPreviewDataProvider(item.masterPubkey).select(userPreviewDisplayNameSelector),
+      userPreviewDataProvider(item.masterPubkey, network: false)
+          .select(userPreviewDisplayNameSelector),
     );
 
     final username = ref.watch(
-      userPreviewDataProvider(item.masterPubkey).select(userPreviewNameSelector),
+      userPreviewDataProvider(item.masterPubkey, network: false).select(userPreviewNameSelector),
     );
 
     final canSendMessage =
-        ref.watch(canSendMessageProvider(item.masterPubkey)).valueOrNull ?? false;
+        ref.watch(canSendMessageProvider(item.masterPubkey, network: false)).valueOrNull ?? false;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

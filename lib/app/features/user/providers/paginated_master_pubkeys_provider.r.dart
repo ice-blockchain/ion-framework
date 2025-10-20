@@ -32,7 +32,7 @@ class PaginatedMasterPubkeysData {
   final bool hasMore;
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
   static const int _limit = 20;
   late UserInfoFetcher _fetcher;
