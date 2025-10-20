@@ -217,17 +217,17 @@ ChatMessageInfoItem? getRepliedMessageListItem({
 
     final postData = useMemoized(
       () => switch (postEntity) {
-      final ModifiablePostEntity post => post.data,
-      final PostEntity post => post.data,
-      _ => false,
+        final ModifiablePostEntity post => post.data,
+        final PostEntity post => post.data,
+        _ => false,
       },
       [postEntity],
     );
 
     final postDeleted = useMemoized(
       () => switch (postEntity) {
-      final ModifiablePostEntity post => post.isDeleted,
-      _ => false,
+        final ModifiablePostEntity post => post.isDeleted,
+        _ => false,
       },
       [postEntity],
     );

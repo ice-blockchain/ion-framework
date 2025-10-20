@@ -48,17 +48,17 @@ class SharedStoryMessage extends HookConsumerWidget {
 
     final storyEntityData = useMemoized(
       () => switch (storyEntity) {
-      final ModifiablePostEntity post => post.data,
-      final PostEntity post => post.data,
-      _ => null,
+        final ModifiablePostEntity post => post.data,
+        final PostEntity post => post.data,
+        _ => null,
       },
       [storyEntity],
     );
 
     final storyMedia = useMemoized(
       () => switch (storyEntityData) {
-      final EntityDataWithMediaContent data => data.media.values.firstOrNull,
-      _ => null,
+        final EntityDataWithMediaContent data => data.media.values.firstOrNull,
+        _ => null,
       },
       [storyEntityData],
     );
@@ -73,10 +73,10 @@ class SharedStoryMessage extends HookConsumerWidget {
 
     final storyExpired = useMemoized(
       () => switch (storyEntity) {
-      final ModifiablePostEntity post =>
-        post.data.expiration!.value.toDateTime.isBefore(DateTime.now()),
-      final PostEntity post => post.data.expiration!.value.toDateTime.isBefore(DateTime.now()),
-      _ => true,
+        final ModifiablePostEntity post =>
+          post.data.expiration!.value.toDateTime.isBefore(DateTime.now()),
+        final PostEntity post => post.data.expiration!.value.toDateTime.isBefore(DateTime.now()),
+        _ => true,
       },
       [storyEntity],
     );
