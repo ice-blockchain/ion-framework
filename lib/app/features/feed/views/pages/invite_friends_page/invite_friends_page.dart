@@ -43,9 +43,7 @@ class InviteFriendsPage extends HookConsumerWidget {
 
     final userSocialProfile = ref
         .watch(
-          getUserSocialProfileProvider(
-            userIdOrMasterKey: userMetadataValue?.masterPubkey ?? userMetadataValue?.id ?? '',
-          ),
+          getUserSocialProfileProvider(masterPubkey: userMetadataValue?.masterPubkey),
         )
         .valueOrNull;
 
