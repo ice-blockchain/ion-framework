@@ -163,9 +163,11 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
       targetWidth = (maxDimension * aspectRatio).round();
     }
 
-    // Ensure dimensions are even (required for most video codecs)
-    targetWidth = (targetWidth ~/ 2) * 2;
-    targetHeight = (targetHeight ~/ 2) * 2;
+    // Align dimensions to multiples of 16 for broader hardware decoder compatibility
+    // Many Android hardware decoders (e.g., some MediaTek) expect 16x16 macroblock alignment
+    // and can produce corrupted frames for non-mod16 dimensions.
+    targetWidth = ((targetWidth + 15) ~/ 16) * 16;
+    targetHeight = ((targetHeight + 15) ~/ 16) * 16;
 
     return (width: targetWidth, height: targetHeight);
   }
