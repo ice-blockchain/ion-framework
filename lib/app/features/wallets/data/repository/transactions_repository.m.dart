@@ -297,6 +297,7 @@ class TransactionsRepository {
     List<String> txHashes = const [],
     List<String> walletAddresses = const [],
     List<String> walletViewIds = const [],
+    List<String> externalHashes = const [],
     List<String> eventIds = const [],
     List<TransactionStatus> statuses = const [],
     int limit = 20,
@@ -308,6 +309,7 @@ class TransactionsRepository {
     return _transactionsDao.getTransactions(
       walletAddresses: walletAddresses,
       txHashes: txHashes,
+      externalHashes: externalHashes,
       limit: limit,
       offset: offset,
       coinIds: coinIds,

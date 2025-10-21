@@ -24,25 +24,6 @@ part 'money_message_provider.r.g.dart';
 
 typedef MoneyDisplayData = ({String amount, String coin});
 
-EventMessage? _eventFromTag(EventMessage source, String tagName) {
-  try {
-    final tag = source.tags.firstWhereOrNull(
-      (t) => t.isNotEmpty && t.first == tagName,
-    );
-    if (tag != null && tag.length >= 2) {
-      final decoded = jsonDecode(tag[1]) as Map<String, dynamic>;
-      return EventMessage.fromPayloadJson(decoded);
-    }
-  } catch (e, stackTrace) {
-    Logger.error(
-      e,
-      stackTrace: stackTrace,
-      message: 'Failed to extract EventMessage from tag: $tagName',
-    );
-  }
-  return null;
-}
-
 @riverpod
 Stream<FundsRequestEntity?> fundsRequestForMessage(
   Ref ref,
@@ -107,14 +88,31 @@ Stream<TransactionData?> transactionDataForMessage(
   final eventReference =
       EventReference.fromEncoded(eventMessage.content) as ImmutableEventReference;
 
-  yield* switch (eventReference.kind) {
-    WalletAssetEntity.kind => ref
-            .watch(transactionsRepositoryProvider)
-            .valueOrNull
-            ?.watchTransactionByEventId(eventReference.eventId) ??
-        Stream.value(null),
-    _ => Stream.value(null),
-  };
+  if (eventReference.kind != WalletAssetEntity.kind) {
+    yield null;
+    return;
+  }
+
+  final txHash = _txHashFromPaymentSentTag(eventMessage);
+
+  final transactionsRepository = await ref.watch(transactionsRepositoryProvider.future);
+
+  if (txHash == null || txHash.isEmpty) {
+    yield* transactionsRepository.watchTransactionByEventId(eventReference.eventId);
+    return;
+  }
+
+  yield* transactionsRepository.watchTransactions(
+    txHashes: [txHash],
+    externalHashes: [txHash],
+    limit: 1,
+  ).map(
+    (transactions) => _pickBestTransaction(
+      eventId: eventReference.eventId,
+      txHash: txHash,
+      transactions: transactions,
+    ),
+  );
 }
 
 @riverpod
@@ -164,4 +162,64 @@ Future<MoneyDisplayData?> transactionDisplayData(
     amount: formatCrypto(amount),
     coin: coin.abbreviation,
   );
+}
+
+EventMessage? _eventFromTag(EventMessage source, String tagName) {
+  try {
+    final tag = source.tags.firstWhereOrNull(
+      (t) => t.isNotEmpty && t.first == tagName,
+    );
+    if (tag != null && tag.length >= 2) {
+      final decoded = jsonDecode(tag[1]) as Map<String, dynamic>;
+      return EventMessage.fromPayloadJson(decoded);
+    }
+  } catch (e, stackTrace) {
+    Logger.error(
+      e,
+      stackTrace: stackTrace,
+      message: 'Failed to extract EventMessage from tag: $tagName',
+    );
+  }
+  return null;
+}
+
+/// Attempts to read the transaction hash from the "payment-sent" tag.
+/// Returns null if the tag is missing or malformed.
+String? _txHashFromPaymentSentTag(EventMessage eventMessage) {
+  final walletAssetEvent = _eventFromTag(
+    eventMessage,
+    ReplaceablePrivateDirectMessageData.paymentSentTagName,
+  );
+
+  if (walletAssetEvent == null) {
+    return null;
+  }
+
+  try {
+    final walletAssetEntity = WalletAssetEntity.fromEventMessage(walletAssetEvent);
+    return walletAssetEntity.data.content.txHash;
+  } catch (error, stackTrace) {
+    Logger.error(
+      error,
+      stackTrace: stackTrace,
+      message: 'Failed to parse wallet asset event for money message ${eventMessage.id}',
+    );
+    return null;
+  }
+}
+
+/// Chooses the most relevant transaction when several candidates are returned.
+TransactionData? _pickBestTransaction({
+  required String eventId,
+  required String txHash,
+  required List<TransactionData> transactions,
+}) {
+  if (transactions.isEmpty) {
+    return null;
+  }
+
+  return transactions.firstWhereOrNull((t) => t.eventId == eventId) ??
+      transactions.firstWhereOrNull((t) => t.externalHash == txHash) ??
+      transactions.firstWhereOrNull((t) => t.txHash == txHash) ??
+      transactions.firstOrNull;
 }
