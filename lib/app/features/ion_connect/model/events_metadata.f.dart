@@ -55,18 +55,22 @@ class EventsMetadataData with _$EventsMetadataData implements EventSerializable 
 
   factory EventsMetadataData.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
-    final eventId = tags['e']?.first[1];
-    final eventRef = tags['a']?.first[1];
-    final pubkey = tags['p']?.first[1];
+    final eventIds = tags['e'];
+    final eventRefs = tags['a'];
+    final pubkeys = tags['p'];
 
-    final eventReference = eventId != null && pubkey != null
-        ? ImmutableEventReference(eventId: eventId, masterPubkey: pubkey)
-        : eventRef != null
-            ? ReplaceableEventReference.fromString(eventRef)
-            : null;
+    final eventReferences = [
+      if (eventRefs != null)
+        for (final eventRef in eventRefs) ReplaceableEventReference.fromString(eventRef[1]),
+      if (eventIds != null)
+        for (var i = 0, eventId = eventIds[i][1], pubkey = pubkeys?.elementAtOrNull(i)?[1];
+            i < eventIds.length;
+            i++)
+          if (pubkey != null) ImmutableEventReference(eventId: eventId, masterPubkey: pubkey),
+    ].toList();
 
     return EventsMetadataData(
-      eventReferences: [eventReference].nonNulls.toList(),
+      eventReferences: eventReferences,
       metadata:
           EventMessage.fromPayloadJson(jsonDecode(eventMessage.content) as Map<String, dynamic>),
     );
