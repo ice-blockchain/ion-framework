@@ -87,6 +87,19 @@ class SwapCoinsModalPage extends ConsumerWidget {
             ),
           _ContinueButton(
             isEnabled: isContinueButtonEnabled,
+            onPressed: () async {
+              if (isContinueButtonEnabled) {
+                final result = await SwapCoinsConfirmationRoute().push<bool?>(context);
+                if (result != null && result == true) {
+                  /// Waiting until confirmation page is closed
+                  Future.delayed(const Duration(milliseconds: 50), () {
+                    if (context.mounted) {
+                      context.pop();
+                    }
+                  });
+                }
+              }
+            },
           ),
           SizedBox(
             height: 16.0.s,
@@ -440,9 +453,11 @@ class _SwapButton extends ConsumerWidget {
 class _ContinueButton extends StatelessWidget {
   const _ContinueButton({
     required this.isEnabled,
+    required this.onPressed,
   });
 
   final bool isEnabled;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -452,19 +467,7 @@ class _ContinueButton extends StatelessWidget {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
-        onPressed: () async {
-          if (isEnabled) {
-            final result = await SwapCoinsConfirmationRoute().push<bool?>(context);
-            if (result != null && result == true) {
-              /// Waiting until confirmation page is closed
-              Future.delayed(const Duration(milliseconds: 50), () {
-                if (context.mounted) {
-                  context.pop();
-                }
-              });
-            }
-          }
-        },
+        onPressed: onPressed,
         label: Text(
           context.i18n.wallet_swap_coins_continue,
           style: textStyles.body.copyWith(

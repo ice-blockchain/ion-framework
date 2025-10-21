@@ -3,6 +3,7 @@
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/swap_coins_modal_page.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'swap_coins_controller_provider.r.g.dart';
@@ -63,5 +64,30 @@ class SwapCoinsController extends _$SwapCoinsController {
       sellNetwork: buyNetwork,
       buyNetwork: sellNetwork,
     );
+  }
+
+  Future<(CoinsGroup?, NetworkData?)> selectCoin({
+    required CoinSwapType type,
+    required CoinsGroup coin,
+    required Future<NetworkData?> Function() selectNetworkRouteLocationBuilder,
+  }) async {
+    switch (type) {
+      case CoinSwapType.sell:
+        setSellCoin(coin);
+      case CoinSwapType.buy:
+        setBuyCoin(coin);
+    }
+
+    final result = await selectNetworkRouteLocationBuilder();
+    if (result != null) {
+      switch (type) {
+        case CoinSwapType.sell:
+          setSellNetwork(result);
+        case CoinSwapType.buy:
+          setBuyNetwork(result);
+      }
+    }
+
+    return (state.sellCoin, state.sellNetwork);
   }
 }

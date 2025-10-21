@@ -27,23 +27,21 @@ class SwapSelectCoinPage extends ConsumerWidget {
       showCloseButton: false,
       title: context.i18n.wallet_select_coin,
       onCoinSelected: (value) async {
-        switch (type) {
-          case CoinSwapType.sell:
-            ref.read(swapCoinsControllerProvider.notifier).setSellCoin(value);
-          case CoinSwapType.buy:
-            ref.read(swapCoinsControllerProvider.notifier).setBuyCoin(value);
-        }
+        final result = await ref.read(swapCoinsControllerProvider.notifier).selectCoin(
+              type: type,
+              coin: value,
+              selectNetworkRouteLocationBuilder: () async {
+                final result = await context.push(selectNetworkRouteLocationBuilder());
 
-        final result = await context.push(selectNetworkRouteLocationBuilder());
-        if (result is NetworkData) {
-          switch (type) {
-            case CoinSwapType.sell:
-              ref.read(swapCoinsControllerProvider.notifier).setSellNetwork(result);
-            case CoinSwapType.buy:
-              ref.read(swapCoinsControllerProvider.notifier).setBuyNetwork(result);
-          }
+                if (result is NetworkData) {
+                  return result;
+                }
 
-          /// Waiting until network list is closed
+                return null;
+              },
+            );
+
+        if (result.$1 != null && result.$2 != null) {
           await Future.delayed(
             const Duration(milliseconds: 50),
             () {
