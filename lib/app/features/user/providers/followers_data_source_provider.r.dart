@@ -22,14 +22,19 @@ List<EntitiesDataSource>? followersDataSource(
   return [
     EntitiesDataSource(
       actionSource: ActionSourceUser(pubkey),
-      entityFilter: (entity) => entity is UserMetadataEntity || entity is EventsMetadataEntity,
-      // Pagination works upon the kind21750->kind3 events, because we don't receive the original kind3 events
+      // Taking both UserMetadataEntity and EventsMetadataEntity->UserMetadataEntity to show the items right away
+      // and then take the data from identity and then relays
+      entityFilter: (entity) =>
+          entity is UserMetadataEntity ||
+          (entity is EventsMetadataEntity && entity.data.metadata.kind == UserMetadataEntity.kind),
+      // Pagination works upon the EventsMetadataEntity->FollowListEntity events, because we don't receive the original FollowListEntity events
       pagedFilter: (entity) =>
           entity is EventsMetadataEntity && entity.data.metadata.kind == FollowListEntity.kind,
+      // We don't need to fetch missing FollowListEntity events. They are used only for pagination.
       missingEventsFilter: (entity) => entity.data.metadata.kind != FollowListEntity.kind,
       paginationPivotBuilder: (entity) {
         return switch (entity) {
-          // Taking the createdAt for the pagination from the kind3 event wrapped with kind21750
+          // Taking the createdAt for the pagination from the FollowListEntity event wrapped with EventsMetadataEntity
           final EventsMetadataEntity eventsMetadata
               when eventsMetadata.data.metadata.kind == FollowListEntity.kind =>
             eventsMetadata.data.metadata.createdAt.toDateTime,

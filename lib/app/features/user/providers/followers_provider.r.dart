@@ -57,6 +57,9 @@ class Followers extends _$Followers {
           };
         })
         .nonNulls
+        // Take only unique pubkeys, since the state stores UserMetadataEntity + EventsMetadataEntity->UserMetadataEntity,
+        // and EventsMetadataEntity are different each time they are fetched, even if they reference the same user.
+        .toSet()
         .toList();
 
     final response = (
