@@ -143,7 +143,7 @@ class MediaEncryptionService {
 
 @riverpod
 MediaEncryptionService mediaEncryptionService(Ref ref) => MediaEncryptionService(
-      fileCacheService: ref.read(fileCacheServiceProvider),
+      fileCacheService: ref.read(ionConnectFileCacheServiceProvider),
       brotliCompressor: ref.read(brotliCompressorProvider),
       generateMediaUrlFallback:
           ref.read(iONConnectMediaUrlFallbackProvider.notifier).generateFallback,

@@ -14,20 +14,27 @@ part 'ion_file_cache_manager.r.g.dart';
 CacheManager ionFileCacheManager(Ref ref) => IONCacheManager.instance;
 
 @Riverpod(keepAlive: true)
-FileCacheService fileCacheService(Ref ref) =>
-    FileCacheService(ref.watch(ionFileCacheManagerProvider));
+FileCacheService ionConnectFileCacheService(Ref ref) => FileCacheService(
+      ref.watch(ionFileCacheManagerProvider),
+      cacheKeyBuilder: (url) => Uri.tryParse(url)?.path ?? url,
+    );
 
 class FileCacheService {
-  FileCacheService(this._cacheManager);
+  FileCacheService(
+    this._cacheManager, {
+    String Function(String url)? cacheKeyBuilder,
+  }) : _cacheKeyBuilder = cacheKeyBuilder ?? ((url) => url);
 
   final CacheManager _cacheManager;
 
+  final String Function(String url) _cacheKeyBuilder;
+
   Future<File> getFile(String url) async {
-    return _cacheManager.getSingleFile(url);
+    return _cacheManager.getSingleFile(url, key: _cacheKeyBuilder(url));
   }
 
   Future<FileInfo?> getFileFromCache(String url) async {
-    return _cacheManager.getFileFromCache(url);
+    return _cacheManager.getFileFromCache(_cacheKeyBuilder(url));
   }
 
   Future<File> putFile({
@@ -35,10 +42,15 @@ class FileCacheService {
     required Uint8List bytes,
     required String fileExtension,
   }) async {
-    return _cacheManager.putFile(url, bytes, fileExtension: fileExtension);
+    return _cacheManager.putFile(
+      url,
+      key: _cacheKeyBuilder(url),
+      bytes,
+      fileExtension: fileExtension,
+    );
   }
 
   Future<void> removeFile(String url) async {
-    await _cacheManager.removeFile(url);
+    await _cacheManager.removeFile(_cacheKeyBuilder(url));
   }
 }

@@ -95,7 +95,8 @@ class _ChatMediaItem extends HookConsumerWidget {
             return media.url;
           }
 
-          final data = await ref.read(fileCacheServiceProvider).getFileFromCache(media.url);
+          final data =
+              await ref.read(ionConnectFileCacheServiceProvider).getFileFromCache(media.url);
 
           if (data == null) {
             final data = await ref.read(
