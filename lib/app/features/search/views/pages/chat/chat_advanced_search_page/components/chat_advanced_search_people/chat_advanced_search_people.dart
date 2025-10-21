@@ -60,31 +60,26 @@ class ChatAdvancedSearchPeople extends HookConsumerWidget {
             child: ChatSearchNoResults(),
           )
         else
-          SliverFixedExtentList(
-            itemExtent: 57.0.s, // Fixed height for search result items
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                return Column(
-                  children: [
-                    if (index == 0)
-                      Padding(
-                        padding: EdgeInsetsDirectional.only(top: 12.s),
-                      ),
-                    ChatSearchResultListItem(
-                      showLastMessage: true,
-                      item: searchResults[index],
-                    ),
-                    if (index == searchResults.length - 1)
-                      Padding(
-                        padding: EdgeInsetsDirectional.only(bottom: 12.s),
-                        child: const HorizontalSeparator(),
-                      )
-                    else
+          SliverPadding(
+            padding: EdgeInsets.symmetric(vertical: 12.0.s),
+            sliver: SliverFixedExtentList(
+              itemExtent: 66.5.s, // Fixed height for search result items
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return Column(
+                    children: [
                       const HorizontalSeparator(),
-                  ],
-                );
-              },
-              childCount: searchResults.length,
+                      ChatSearchResultListItem(
+                        showLastMessage: true,
+                        item: searchResults[index],
+                      ),
+                      //if last item then show
+                      if (index == searchResults.length - 1) const HorizontalSeparator(),
+                    ],
+                  );
+                },
+                childCount: searchResults.length,
+              ),
             ),
           ),
       ],
