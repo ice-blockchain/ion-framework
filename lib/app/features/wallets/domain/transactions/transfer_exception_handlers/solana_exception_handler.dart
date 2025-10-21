@@ -10,6 +10,17 @@ class SolanaExceptionHandler implements TransferExceptionHandler {
   static const double _maxFee = 0.00002;
   static const double _rentExemptThreshold = 0.003; // upper bound
 
+  /// The maximum number of compute units (≈ execution steps) a Solana transaction
+  /// can consume before it's likely considered a "validation-level" failure.
+  ///
+  /// Transactions that fail before or during early validation — such as
+  /// insufficient balance for fees, invalid recipient address, or expired blockhash —
+  /// typically consume fewer than ~500 units.
+  ///
+  /// If `unitsConsumed` is below this threshold, the transaction most likely failed
+  /// before reaching on-chain instruction execution.
+  static const int _maxValidationUnitsConsumed = 500;
+
   @override
   IONException? tryHandle(
     String? reason,
@@ -62,7 +73,7 @@ class SolanaExceptionHandler implements TransferExceptionHandler {
     if (unitsMatch != null) {
       final consumedUnits = int.parse(unitsMatch.group(1)!);
 
-      if (consumedUnits < 500) {
+      if (consumedUnits < _maxValidationUnitsConsumed) {
         if (nativeTokenTotalBalance != null && nativeTokenTransferAmount != null) {
           final required = nativeTokenTransferAmount + _maxFee + _rentExemptThreshold;
           if (nativeTokenTotalBalance < required) {
