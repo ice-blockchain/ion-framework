@@ -23,16 +23,16 @@ typedef _ReferralSummaryItem = ({
 });
 
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.userSocialProfile});
+  const _SummaryCard(this._userSocialProfile);
 
-  final AsyncValue<UserSocialProfileData> userSocialProfile;
+  final UserSocialProfileData? _userSocialProfile;
 
   int _getReferralCount() {
-    if (!userSocialProfile.hasValue) {
+    if (_userSocialProfile == null) {
       return 0;
     }
 
-    return userSocialProfile.value?.referralCount ?? 0;
+    return _userSocialProfile.referralCount ?? 0;
   }
 
   List<_ReferralSummaryItem> get items => [

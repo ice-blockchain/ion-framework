@@ -41,11 +41,13 @@ class InviteFriendsPage extends HookConsumerWidget {
     final userMetadataValue = ref.watch(currentUserMetadataProvider).valueOrNull;
     final referralCode = userMetadataValue?.data.name;
 
-    final userSocialProfile = ref.watch(
-      getUserSocialProfileProvider(
-        userIdOrMasterKey: userMetadataValue?.masterPubkey ?? '',
-      ),
-    );
+    final userSocialProfile = ref
+        .watch(
+          getUserSocialProfileProvider(
+            userIdOrMasterKey: userMetadataValue?.masterPubkey ?? userMetadataValue?.id ?? '',
+          ),
+        )
+        .valueOrNull;
 
     return Scaffold(
       backgroundColor: context.theme.appColors.secondaryBackground,
@@ -104,7 +106,7 @@ class InviteFriendsPage extends HookConsumerWidget {
                           ],
                         ),
                         const _EarningsCard(),
-                        _SummaryCard(userSocialProfile: userSocialProfile),
+                        _SummaryCard(userSocialProfile),
                         if (referralCode case final referralCode?)
                           _ReferralCodeCard(
                             referralCode: referralCode,
