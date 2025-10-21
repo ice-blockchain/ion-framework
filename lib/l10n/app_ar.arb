@@ -373,6 +373,8 @@
   "wallet_manage_coins": "إدارة العملات",
   "wallet_manage_nfts": "اختر الشبكة",
   "wallet_buy_nfts": "شراء الرموز غير القابلة للاستبدال",
+  "profile_token_buy": "شراء",
+  "profile_token_be_first_to_buy": "كن أول من يشتري",
   "wallet_coin_address": "عنوان {coin}",
   "wallet_network": "الشبكة",
   "wallet_change": "تغيير",

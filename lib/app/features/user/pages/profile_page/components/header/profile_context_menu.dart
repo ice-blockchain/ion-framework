@@ -7,6 +7,7 @@ import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/pages/components/header_action/header_action.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/header/context_menu_item.dart';
@@ -22,10 +23,12 @@ import 'package:ion/generated/assets.gen.dart';
 class ProfileContextMenu extends ConsumerWidget {
   const ProfileContextMenu({
     required this.pubkey,
+    this.profileMode = ProfileMode.light,
     super.key,
   });
 
   final String pubkey;
+  final ProfileMode profileMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -50,6 +53,8 @@ class ProfileContextMenu extends ConsumerWidget {
         onPressed: () {},
         disabled: true,
         opacity: 1,
+        backgroundColor: profileMode == ProfileMode.dark ? Colors.transparent : null,
+        iconColor: profileMode == ProfileMode.dark ? context.theme.appColors.onPrimaryAccent : null,
         assetName: Assets.svg.iconMorePopup,
       ),
     );

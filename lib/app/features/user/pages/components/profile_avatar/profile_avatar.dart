@@ -5,12 +5,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/avatar_picker/avatar_picker.dart';
+import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 
 class ProfileAvatar extends ConsumerWidget {
   const ProfileAvatar({
     required this.pubkey,
     this.showAvatarPicker = false,
+    this.profileMode = ProfileMode.light,
     super.key,
   });
 
@@ -20,6 +22,7 @@ class ProfileAvatar extends ConsumerWidget {
 
   final String pubkey;
   final bool showAvatarPicker;
+  final ProfileMode profileMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,6 +42,7 @@ class ProfileAvatar extends ConsumerWidget {
             borderRadius: borderRadius,
             fit: BoxFit.cover,
             imageUrl: userPreviewData?.data.avatarUrl,
+            profileMode: profileMode,
           );
   }
 }

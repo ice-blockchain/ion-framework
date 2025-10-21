@@ -10,11 +10,13 @@ class UseListItem extends ConsumerWidget {
   const UseListItem({
     required this.pubkey,
     required this.minHeight,
+    this.textColor,
     super.key,
   });
 
   final String pubkey;
   final double minHeight;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,13 +24,22 @@ class UseListItem extends ConsumerWidget {
       userPreviewDataProvider(pubkey).select(userPreviewDisplayNameSelector),
     );
 
+    final textStyle = textColor != null ? TextStyle(color: textColor) : null;
+
     final username = ref.watch(
       userPreviewDataProvider(pubkey).select(userPreviewNameSelector),
     );
 
     return BadgesUserListItem(
-      title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
-      subtitle: Text(prefixUsername(username: username, context: context)),
+      title: Text(
+        displayName,
+        strutStyle: const StrutStyle(forceStrutHeight: true),
+        style: textStyle,
+      ),
+      subtitle: Text(
+        prefixUsername(username: username, context: context),
+        style: textStyle,
+      ),
       masterPubkey: pubkey,
       constraints: BoxConstraints(maxHeight: minHeight, minHeight: minHeight),
     );
