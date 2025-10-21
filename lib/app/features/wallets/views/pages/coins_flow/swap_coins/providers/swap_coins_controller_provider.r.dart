@@ -66,7 +66,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     );
   }
 
-  Future<(CoinsGroup?, NetworkData?)> selectCoin({
+  Future<({CoinsGroup? coin, NetworkData? network})> selectCoin({
     required CoinSwapType type,
     required CoinsGroup coin,
     required Future<NetworkData?> Function() selectNetworkRouteLocationBuilder,
@@ -88,6 +88,9 @@ class SwapCoinsController extends _$SwapCoinsController {
       }
     }
 
-    return (state.sellCoin, state.sellNetwork);
+    return (
+      coin: state.sellCoin,
+      network: state.sellNetwork,
+    );
   }
 }

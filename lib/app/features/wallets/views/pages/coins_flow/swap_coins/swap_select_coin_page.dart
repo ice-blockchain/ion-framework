@@ -41,7 +41,7 @@ class SwapSelectCoinPage extends ConsumerWidget {
               },
             );
 
-        if (result.$1 != null && result.$2 != null) {
+        if (result.coin != null && result.network != null) {
           await Future.delayed(
             const Duration(milliseconds: 50),
             () {
