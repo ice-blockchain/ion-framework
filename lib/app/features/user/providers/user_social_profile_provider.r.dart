@@ -17,3 +17,14 @@ Future<UpdateUserSocialProfileResponse> updateUserSocialProfile(
   final ionIdentityClient = await ref.watch(ionIdentityClientProvider.future);
   return ionIdentityClient.users.updateUserSocialProfile(data: data);
 }
+
+@riverpod
+Future<UserSocialProfileData> getUserSocialProfile(
+  Ref ref, {
+  required String userIdOrMasterKey,
+}) async {
+  final ionIdentityClient = await ref.watch(ionIdentityClientProvider.future);
+  return ionIdentityClient.users.getUserSocialProfile(
+    userIdOrMasterKey: userIdOrMasterKey,
+  );
+}

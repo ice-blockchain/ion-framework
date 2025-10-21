@@ -10,10 +10,12 @@ import 'package:ion/app/components/card/info_card.dart';
 import 'package:ion/app/components/tooltip/copied_tooltip.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_social_profile_provider.r.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_identity_client/ion_identity.dart';
 import 'package:share_plus/share_plus.dart';
 
 class InviteFriendsPage extends HookConsumerWidget {
@@ -32,6 +34,12 @@ class InviteFriendsPage extends HookConsumerWidget {
     );
     final userMetadataValue = ref.watch(currentUserMetadataProvider).valueOrNull;
     final referralCode = userMetadataValue?.data.name;
+
+    final userSocialProfile = ref.watch(
+      getUserSocialProfileProvider(
+        userIdOrMasterKey: userMetadataValue?.masterPubkey ?? '',
+      ),
+    );
 
     return Scaffold(
       backgroundColor: context.theme.appColors.secondaryBackground,
@@ -90,7 +98,7 @@ class InviteFriendsPage extends HookConsumerWidget {
                           ],
                         ),
                         const _EarningsCard(),
-                        _SummaryCard(),
+                        _SummaryCard(userSocialProfile: userSocialProfile),
                         if (referralCode case final referralCode?)
                           _ReferralCodeCard(
                             referralCode: referralCode,
@@ -305,43 +313,47 @@ extension on _SummaryItemType {
       };
 }
 
-class _ReferralSummaryItem {
-  const _ReferralSummaryItem({
-    required this.iconPath,
-    required this.type,
-    required this.value,
-  });
-
-  final String iconPath;
-  final _SummaryItemType type;
-  final int value;
-}
+typedef _ReferralSummaryItem = ({
+  String iconPath,
+  _SummaryItemType type,
+  int value,
+});
 
 class _SummaryCard extends StatelessWidget {
-  _SummaryCard();
+  const _SummaryCard({required this.userSocialProfile});
 
-  final List<_ReferralSummaryItem> items = [
-    _ReferralSummaryItem(
-      iconPath: Assets.svg.iconProfileUsertab,
-      type: _SummaryItemType.totalReferrals,
-      value: 0,
-    ),
-    _ReferralSummaryItem(
-      iconPath: Assets.svg.iconPostVerifyaccount,
-      type: _SummaryItemType.upgrades,
-      value: 0,
-    ),
-    _ReferralSummaryItem(
-      iconPath: Assets.svg.iconInviteDefi,
-      type: _SummaryItemType.deFi,
-      value: 0,
-    ),
-    _ReferralSummaryItem(
-      iconPath: Assets.svg.iconInviteAds,
-      type: _SummaryItemType.ads,
-      value: 0,
-    ),
-  ];
+  final AsyncValue<UserSocialProfileData> userSocialProfile;
+
+  int _getReferralCount() {
+    if (!userSocialProfile.hasValue) {
+      return 0;
+    }
+
+    return userSocialProfile.value?.referralCount ?? 0;
+  }
+
+  List<_ReferralSummaryItem> get items => [
+        (
+          iconPath: Assets.svg.iconProfileUsertab,
+          type: _SummaryItemType.totalReferrals,
+          value: _getReferralCount(),
+        ),
+        (
+          iconPath: Assets.svg.iconPostVerifyaccount,
+          type: _SummaryItemType.upgrades,
+          value: 0,
+        ),
+        (
+          iconPath: Assets.svg.iconInviteDefi,
+          type: _SummaryItemType.deFi,
+          value: 0,
+        ),
+        (
+          iconPath: Assets.svg.iconInviteAds,
+          type: _SummaryItemType.ads,
+          value: 0,
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {

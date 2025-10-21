@@ -14,6 +14,7 @@ class UserSocialProfileData with _$UserSocialProfileData {
     String? avatar,
     String? bio,
     String? referral,
+    int? referralCount,
   }) = _UserSocialProfileData;
 
   factory UserSocialProfileData.fromJson(Map<String, dynamic> json) =>

@@ -7,6 +7,8 @@ import 'package:ion_identity_client/src/users/available_ion_connect_relays/avail
 import 'package:ion_identity_client/src/users/available_ion_connect_relays/data_sources/available_ion_connect_relays_data_source.dart';
 import 'package:ion_identity_client/src/users/get_content_creators/content_creators_service.dart';
 import 'package:ion_identity_client/src/users/get_content_creators/data_sources/get_content_creators_data_source.dart';
+import 'package:ion_identity_client/src/users/get_user_social_profile/data_sources/get_user_social_profile_data_source.dart';
+import 'package:ion_identity_client/src/users/get_user_social_profile/get_user_social_profile_service.dart';
 import 'package:ion_identity_client/src/users/ion_connect_indexers/data_sources/ion_connect_indexers_data_source.dart';
 import 'package:ion_identity_client/src/users/ion_connect_indexers/get_user_connect_indexers_service.dart';
 import 'package:ion_identity_client/src/users/ion_connect_relays/data_sources/ion_connect_relays_data_source.dart';
@@ -63,6 +65,10 @@ class UsersClientServiceLocator {
           config: config,
         ),
         _updateUserSocialProfile(
+          username: username,
+          config: config,
+        ),
+        _getUserSocialProfile(
           username: username,
           config: config,
         ),
@@ -144,6 +150,18 @@ class UsersClientServiceLocator {
       UpdateUserSocialProfileService(
         username,
         UpdateUserSocialProfileDataSource(
+          IONIdentityServiceLocator.networkClient(config: config),
+          IONIdentityServiceLocator.tokenStorage(),
+        ),
+      );
+
+  GetUserSocialProfileService _getUserSocialProfile({
+    required String username,
+    required IONIdentityConfig config,
+  }) =>
+      GetUserSocialProfileService(
+        username,
+        GetUserSocialProfileDataSource(
           IONIdentityServiceLocator.networkClient(config: config),
           IONIdentityServiceLocator.tokenStorage(),
         ),
