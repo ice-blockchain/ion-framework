@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:ion/generated/tlds_set.dart';
+import 'package:ion/app/utils/tlds_set.dart';
 
 sealed class TextMatcher {
   const TextMatcher();

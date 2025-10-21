@@ -247,9 +247,7 @@ class LinksHandler extends TextEditorTypingListener {
 
   /// Checks if attributes contain auto-link marker.
   bool _hasAutoLinkAttributes(Map<String, dynamic>? attrs) {
-    return attrs != null &&
-        attrs.containsKey(Attribute.link.key) &&
-        attrs.containsKey('autoLink');
+    return attrs != null && attrs.containsKey(Attribute.link.key) && attrs.containsKey('autoLink');
   }
 
   /// Clears link and auto-link attributes from the specified range.
