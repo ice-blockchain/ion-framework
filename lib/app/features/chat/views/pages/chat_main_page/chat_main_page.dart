@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/ios_scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_skeleton/recent_chat_skeleton.dart';
@@ -30,19 +31,22 @@ class ChatMainPage extends HookConsumerWidget {
       appBar: ChatMainAppBar(
         scrollController: scrollController,
       ),
-      body: ScreenSideOffset.small(
-        child: conversations.when(
-          data: (data) {
-            if (data.isEmpty) {
-              return const RecentChatsEmptyPage();
-            }
-            return RecentChatsTimelinePage(
-              conversations: data,
-              scrollController: scrollController,
-            );
-          },
-          error: (error, stackTrace) => const SizedBox(),
-          loading: () => const RecentChatSkeleton(),
+      body: ScrollToTopWrapper(
+        scrollController: scrollController,
+        child: ScreenSideOffset.small(
+          child: conversations.when(
+            data: (data) {
+              if (data.isEmpty) {
+                return const RecentChatsEmptyPage();
+              }
+              return RecentChatsTimelinePage(
+                conversations: data,
+                scrollController: scrollController,
+              );
+            },
+            error: (error, stackTrace) => const SizedBox(),
+            loading: () => const RecentChatSkeleton(),
+          ),
         ),
       ),
     );

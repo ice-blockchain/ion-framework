@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/ios_scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -131,149 +132,152 @@ class ProfilePage extends HookConsumerWidget {
     return Scaffold(
       backgroundColor: backgroundColor,
       extendBodyBehindAppBar: profileMode == ProfileMode.dark,
-      body: Stack(
-        alignment: Alignment.topCenter,
-        children: [
-          SafeArea(
-            left: profileMode != ProfileMode.dark,
-            right: profileMode != ProfileMode.dark,
-            top: profileMode != ProfileMode.dark,
-            child: DefaultTabController(
-              length: UserContentType.values.length,
-              child: NestedScrollView(
-                controller: scrollController,
-                headerSliverBuilder: (context, innerBoxIsScrolled) {
-                  return [
-                    SliverToBoxAdapter(
-                      child: Stack(
-                        children: [
-                          if (profileMode == ProfileMode.dark)
-                            const Positioned.fill(child: ProfileBackground()),
-                          Column(
-                            children: [
-                              SizedBox(
-                                height: (profileMode == ProfileMode.dark ? statusBarHeight : 0) +
-                                    12.0.s,
-                              ),
-                              Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  ProfileAvatar(
-                                    pubkey: masterPubkey,
-                                    profileMode: profileMode,
-                                  ),
-                                  PositionedDirectional(
-                                    bottom: -6.0.s,
-                                    end: -6.0.s,
-                                    child: ProfileMainAction(
+      body: ScrollToTopWrapper(
+        scrollController: scrollController,
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            SafeArea(
+              left: profileMode != ProfileMode.dark,
+              right: profileMode != ProfileMode.dark,
+              top: profileMode != ProfileMode.dark,
+              child: DefaultTabController(
+                length: UserContentType.values.length,
+                child: NestedScrollView(
+                  controller: scrollController,
+                  headerSliverBuilder: (context, innerBoxIsScrolled) {
+                    return [
+                      SliverToBoxAdapter(
+                        child: Stack(
+                          children: [
+                            if (profileMode == ProfileMode.dark)
+                              const Positioned.fill(child: ProfileBackground()),
+                            Column(
+                              children: [
+                                SizedBox(
+                                  height: (profileMode == ProfileMode.dark ? statusBarHeight : 0) +
+                                      12.0.s,
+                                ),
+                                Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    ProfileAvatar(
                                       pubkey: masterPubkey,
                                       profileMode: profileMode,
                                     ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: profileMode == ProfileMode.dark ? 9.0.s : 16.0.s),
-                              ProfileDetails(
-                                pubkey: masterPubkey,
-                                profileMode: profileMode,
-                              ),
-                              SizedBox(height: profileMode == ProfileMode.dark ? 5.0.s : 16.0.s),
-                              if (profileMode != ProfileMode.dark) const HorizontalSeparator(),
-                              SizedBox(height: profileMode == ProfileMode.dark ? 9.0.s : 16.0.s),
-                            ],
-                          ),
-                        ],
+                                    PositionedDirectional(
+                                      bottom: -6.0.s,
+                                      end: -6.0.s,
+                                      child: ProfileMainAction(
+                                        pubkey: masterPubkey,
+                                        profileMode: profileMode,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: profileMode == ProfileMode.dark ? 9.0.s : 16.0.s),
+                                ProfileDetails(
+                                  pubkey: masterPubkey,
+                                  profileMode: profileMode,
+                                ),
+                                SizedBox(height: profileMode == ProfileMode.dark ? 5.0.s : 16.0.s),
+                                if (profileMode != ProfileMode.dark) const HorizontalSeparator(),
+                                SizedBox(height: profileMode == ProfileMode.dark ? 9.0.s : 16.0.s),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    PinnedHeaderSliver(
-                      child: ColoredBox(
-                        color: profileMode == ProfileMode.dark
-                            ? context.theme.appColors.primaryText
-                            : backgroundColor,
-                        child: const ProfileTabsHeader(),
+                      PinnedHeaderSliver(
+                        child: ColoredBox(
+                          color: profileMode == ProfileMode.dark
+                              ? context.theme.appColors.primaryText
+                              : backgroundColor,
+                          child: const ProfileTabsHeader(),
+                        ),
                       ),
-                    ),
-                    const SliverToBoxAdapter(child: SectionSeparator()),
-                  ];
-                },
-                body: TabBarView(
-                  children: TabEntityType.values
-                      .map(
-                        (type) => type == TabEntityType.replies
-                            ? TabEntitiesList.replies(
-                                pubkey: masterPubkey,
-                                onRefresh: onRefresh,
-                              )
-                            : TabEntitiesList(
-                                pubkey: masterPubkey,
-                                type: type,
-                                onRefresh: onRefresh,
-                              ),
-                      )
-                      .toList(),
+                      const SliverToBoxAdapter(child: SectionSeparator()),
+                    ];
+                  },
+                  body: TabBarView(
+                    children: TabEntityType.values
+                        .map(
+                          (type) => type == TabEntityType.replies
+                              ? TabEntitiesList.replies(
+                                  pubkey: masterPubkey,
+                                  onRefresh: onRefresh,
+                                )
+                              : TabEntitiesList(
+                                  pubkey: masterPubkey,
+                                  type: type,
+                                  onRefresh: onRefresh,
+                                ),
+                        )
+                        .toList(),
+                  ),
                 ),
               ),
             ),
-          ),
-          _IgnorePointerWrapper(
-            shouldWrap: opacity <= 0.5,
-            child: Opacity(
-              opacity: opacity,
-              child: NavigationAppBar(
-                showBackButton: showBackButton,
-                useScreenTopOffset: true,
-                extendBehindStatusBar: profileMode == ProfileMode.dark,
-                backButtonIcon: backButtonIcon,
-                scrollController: scrollController,
-                horizontalPadding: 0,
-                backgroundBuilder:
-                    profileMode == ProfileMode.dark ? () => const ProfileBackground() : null,
-                title: Header(
-                  opacity: opacity,
-                  pubkey: masterPubkey,
-                  showBackButton: !isCurrentUserProfile,
-                  textColor: profileMode == ProfileMode.dark
-                      ? context.theme.appColors.secondaryBackground
-                      : null,
+            _IgnorePointerWrapper(
+              shouldWrap: opacity <= 0.5,
+              child: Opacity(
+                opacity: opacity,
+                child: NavigationAppBar(
+                  showBackButton: showBackButton,
+                  useScreenTopOffset: true,
+                  extendBehindStatusBar: profileMode == ProfileMode.dark,
+                  backButtonIcon: backButtonIcon,
+                  scrollController: scrollController,
+                  horizontalPadding: 0,
+                  backgroundBuilder:
+                      profileMode == ProfileMode.dark ? () => const ProfileBackground() : null,
+                  title: Header(
+                    opacity: opacity,
+                    pubkey: masterPubkey,
+                    showBackButton: !isCurrentUserProfile,
+                    textColor: profileMode == ProfileMode.dark
+                        ? context.theme.appColors.secondaryBackground
+                        : null,
+                  ),
                 ),
               ),
             ),
-          ),
-          Align(
-            alignment: AlignmentDirectional.topEnd,
-            child: Padding(
-              padding: EdgeInsetsDirectional.only(end: 16.s, top: statusBarHeight),
-              child: SizedBox(
-                height: NavigationAppBar.screenHeaderHeight,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (profileMode == ProfileMode.dark) ...[
-                      ProfileActions(
+            Align(
+              alignment: AlignmentDirectional.topEnd,
+              child: Padding(
+                padding: EdgeInsetsDirectional.only(end: 16.s, top: statusBarHeight),
+                child: SizedBox(
+                  height: NavigationAppBar.screenHeaderHeight,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (profileMode == ProfileMode.dark) ...[
+                        ProfileActions(
+                          pubkey: masterPubkey,
+                          profileMode: profileMode,
+                        ),
+                        SizedBox(width: 8.0.s),
+                      ],
+                      ProfileContextMenu(
                         pubkey: masterPubkey,
                         profileMode: profileMode,
                       ),
-                      SizedBox(width: 8.0.s),
                     ],
-                    ProfileContextMenu(
-                      pubkey: masterPubkey,
-                      profileMode: profileMode,
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-          if (showBackButton)
-            PositionedDirectional(
-              top: statusBarHeight,
-              start: 0,
-              child: NavigationBackButton(
-                context.pop,
-                icon: backButtonIcon,
+            if (showBackButton)
+              PositionedDirectional(
+                top: statusBarHeight,
+                start: 0,
+                child: NavigationBackButton(
+                  context.pop,
+                  icon: backButtonIcon,
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

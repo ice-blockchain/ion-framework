@@ -153,6 +153,7 @@ dependencies:
   qr_flutter: ^4.1.0
   riverpod_annotation: ^2.6.1
   screenshot: ^3.0.0
+  scrolls_to_top: ^2.1.1
   sensors_plus: ^6.1.1
   sentry_flutter: ^8.14.2
   share_plus: ^10.0.2
