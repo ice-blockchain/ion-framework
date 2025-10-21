@@ -14,6 +14,7 @@ class UserNameTile extends ConsumerWidget {
   const UserNameTile({
     required this.pubkey,
     this.profileMode = ProfileMode.light,
+    this.textAlign = TextAlign.center,
     super.key,
   });
 
@@ -21,6 +22,7 @@ class UserNameTile extends ConsumerWidget {
 
   final String pubkey;
   final ProfileMode profileMode;
+  final TextAlign textAlign;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,7 +41,7 @@ class UserNameTile extends ConsumerWidget {
           children: [
             Flexible(
               child: Text(
-                textAlign: TextAlign.center,
+                textAlign: textAlign,
                 userPreviewData.data.trimmedDisplayName,
                 style: context.theme.appTextThemes.subtitle.copyWith(
                   color: profileMode == ProfileMode.dark

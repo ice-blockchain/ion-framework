@@ -1526,6 +1526,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  gradient_borders:
+    dependency: "direct main"
+    description:
+      name: gradient_borders
+      sha256: "492bc88ab8d88a4117a7f00e525a669b65f19973bea7ee677f9d9de7603bf037"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   graphs:
     dependency: transitive
     description:

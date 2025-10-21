@@ -22,7 +22,7 @@ class ProfileTokenStats extends StatelessWidget {
         children: [
           const _BuyHint(),
           SizedBox(width: 8.0.s),
-          const _BuyButton(),
+          const BuyButton(),
         ],
       );
     }
@@ -42,7 +42,7 @@ class ProfileTokenStats extends StatelessWidget {
           icon: Assets.svg.iconSearchGroups,
           text: data!.volume,
         ),
-        const _BuyButton(),
+        const BuyButton(),
       ],
     );
   }
@@ -128,14 +128,19 @@ class _BuyHint extends StatelessWidget {
   }
 }
 
-class _BuyButton extends StatelessWidget {
-  const _BuyButton();
+class BuyButton extends StatelessWidget {
+  const BuyButton({
+    this.height = 23.0,
+    super.key,
+  });
+
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 23.0.s,
-      padding: EdgeInsets.symmetric(horizontal: 10.0.s),
+      height: height.s,
+      padding: EdgeInsets.symmetric(horizontal: 22.0.s),
       decoration: ShapeDecoration(
         color: context.theme.appColors.primaryAccent,
         shape: RoundedRectangleBorder(
@@ -146,7 +151,6 @@ class _BuyButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(width: 3.13.s),
           Container(
             clipBehavior: Clip.antiAlias,
             decoration: const BoxDecoration(),

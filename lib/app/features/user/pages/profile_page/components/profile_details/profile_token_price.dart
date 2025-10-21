@@ -31,6 +31,7 @@ class ProfileTokenPrice extends StatelessWidget {
               textAlign: TextAlign.center,
               style: context.theme.appTextThemes.caption3.copyWith(
                 color: context.theme.appColors.primaryText,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),

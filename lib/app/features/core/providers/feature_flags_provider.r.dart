@@ -18,7 +18,7 @@ class FeatureFlags extends _$FeatureFlags {
       FeedFeatureFlag.showSuggestions: true,
       ChatFeatureFlag.hideCommunity: true,
       ChatFeatureFlag.hideChatBookmark: true,
-      TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled: false,
+      TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled: true,
 
       /// Log flags
       if (ref.watch(envProvider.notifier).get(EnvVariable.SHOW_DEBUG_INFO)) ...{
