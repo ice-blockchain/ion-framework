@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
@@ -15,18 +16,12 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class SwapCoinsConfirmationPage extends ConsumerStatefulWidget {
+class SwapCoinsConfirmationPage extends ConsumerWidget {
   const SwapCoinsConfirmationPage({super.key});
 
   @override
-  ConsumerState<SwapCoinsConfirmationPage> createState() => _SwapCoinsConfirmationPageState();
-}
-
-class _SwapCoinsConfirmationPageState extends ConsumerState<SwapCoinsConfirmationPage> {
-  bool _showMoreDetails = false;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showMoreDetails = useState(false);
     final sellCoins = ref.watch(swapCoinsControllerProvider).sellCoin;
     final sellNetwork = ref.watch(swapCoinsControllerProvider).sellNetwork;
     final buyCoins = ref.watch(swapCoinsControllerProvider).buyCoin;
@@ -66,11 +61,9 @@ class _SwapCoinsConfirmationPageState extends ConsumerState<SwapCoinsConfirmatio
             ),
             SizedBox(height: 16.0.s),
             _SwapDetailsSection(
-              showMoreDetails: _showMoreDetails,
+              showMoreDetails: showMoreDetails.value,
               onToggleDetails: () {
-                setState(() {
-                  _showMoreDetails = !_showMoreDetails;
-                });
+                showMoreDetails.value = !showMoreDetails.value;
               },
             ),
             SizedBox(height: 32.0.s),

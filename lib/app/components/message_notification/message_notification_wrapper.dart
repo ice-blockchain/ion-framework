@@ -114,9 +114,7 @@ class MessageNotificationWrapper extends HookConsumerWidget {
                         ),
                       ],
                     ),
-                    if (suffixWidget != null) ...[
-                      suffixWidget,
-                    ],
+                    if (suffixWidget != null) suffixWidget,
                   ],
                 ),
               ),
