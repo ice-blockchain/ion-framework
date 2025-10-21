@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
@@ -22,25 +21,10 @@ List<EntitiesDataSource>? followersDataSource(
   return [
     EntitiesDataSource(
       actionSource: ActionSourceUser(pubkey),
-      entityFilter: (entity) => entity is FollowListEntity,
-      // State and pagination are build upon EventsMetadataEntity->FollowListEntity.
-      // We don't receive original FollowListEntity because they are too big.
-      // But since EventsMetadataEntity is different each time we fetch it (even if it points to the same user),
-      // we unwrap it here to make sure pagination and state work as expected.
-      entityProcessor: (entity) {
-        if (entity is EventsMetadataEntity && entity.data.metadata.kind == FollowListEntity.kind) {
-          final metadata = entity.data.metadata;
-          return FollowListEntity(
-            createdAt: metadata.createdAt,
-            id: metadata.id,
-            pubkey: metadata.pubkey,
-            masterPubkey: metadata.masterPubkey,
-            signature: '',
-            data: const FollowListData(list: []),
-          );
-        }
-        return entity;
-      },
+      // We don't receive original FollowListEntity events, since they are too big and we don't need it's data here,
+      // so we receive only EventsMetadataEntity->FollowListEntity.
+      entityFilter: (entity) =>
+          entity is EventsMetadataEntity && entity.data.metadata.kind == FollowListEntity.kind,
       // We don't need to fetch missing FollowListEntity events. They are used only for pagination + to take authors' master pubkeys.
       missingEventsFilter: (entity) => entity.data.metadata.kind != FollowListEntity.kind,
       requestFilter: RequestFilter(
