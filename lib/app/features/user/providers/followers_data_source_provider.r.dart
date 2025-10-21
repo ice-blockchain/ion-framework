@@ -22,25 +22,27 @@ List<EntitiesDataSource>? followersDataSource(
   return [
     EntitiesDataSource(
       actionSource: ActionSourceUser(pubkey),
-      // Taking both UserMetadataEntity and EventsMetadataEntity->UserMetadataEntity to show the items right away
-      // and then take the data from identity and then relays
-      entityFilter: (entity) =>
-          entity is UserMetadataEntity ||
-          (entity is EventsMetadataEntity && entity.data.metadata.kind == UserMetadataEntity.kind),
-      // Pagination works upon the EventsMetadataEntity->FollowListEntity events, because we don't receive the original FollowListEntity events
-      pagedFilter: (entity) =>
-          entity is EventsMetadataEntity && entity.data.metadata.kind == FollowListEntity.kind,
-      // We don't need to fetch missing FollowListEntity events. They are used only for pagination.
-      missingEventsFilter: (entity) => entity.data.metadata.kind != FollowListEntity.kind,
-      paginationPivotBuilder: (entity) {
-        return switch (entity) {
-          // Taking the createdAt for the pagination from the FollowListEntity event wrapped with EventsMetadataEntity
-          final EventsMetadataEntity eventsMetadata
-              when eventsMetadata.data.metadata.kind == FollowListEntity.kind =>
-            eventsMetadata.data.metadata.createdAt.toDateTime,
-          _ => entity.createdAt.toDateTime,
-        };
+      entityFilter: (entity) => entity is FollowListEntity,
+      // State and pagination are build upon EventsMetadataEntity->FollowListEntity.
+      // We don't receive original FollowListEntity because they are too big.
+      // But since EventsMetadataEntity is different each time we fetch it (even if it points to the same user),
+      // we unwrap it here to make sure pagination and state work as expected.
+      entityProcessor: (entity) {
+        if (entity is EventsMetadataEntity && entity.data.metadata.kind == FollowListEntity.kind) {
+          final metadata = entity.data.metadata;
+          return FollowListEntity(
+            createdAt: metadata.createdAt,
+            id: metadata.id,
+            pubkey: metadata.pubkey,
+            masterPubkey: metadata.masterPubkey,
+            signature: '',
+            data: const FollowListData(list: []),
+          );
+        }
+        return entity;
       },
+      // We don't need to fetch missing FollowListEntity events. They are used only for pagination + to take authors' master pubkeys.
+      missingEventsFilter: (entity) => entity.data.metadata.kind != FollowListEntity.kind,
       requestFilter: RequestFilter(
         kinds: const [FollowListEntity.kind],
         tags: {

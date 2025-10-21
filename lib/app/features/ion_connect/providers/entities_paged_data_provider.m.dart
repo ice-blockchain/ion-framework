@@ -66,7 +66,7 @@ class EntitiesDataSource with _$EntitiesDataSource {
     required bool Function(IonConnectEntity entity) entityFilter,
     bool Function(IonConnectEntity entity)? pagedFilter,
     bool Function(EventsMetadataEntity entity)? missingEventsFilter,
-    DateTime Function(IonConnectEntity entity)? paginationPivotBuilder,
+    IonConnectEntity Function(IonConnectEntity entity)? entityProcessor,
   }) = _EntitiesDataSource;
 }
 
@@ -221,13 +221,13 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
       // Where each placeholder *would* be inserted in visible list
       final pendingInserts = <EventReference, int>{};
 
-      await for (final entity in entitiesStream) {
+      await for (final rawEntity in entitiesStream) {
+        final entity = dataSource.entityProcessor?.call(rawEntity) ?? rawEntity;
         final alreadyHas = state?.data.items?.contains(entity) ?? false;
 
         // Update pagination params
         if (pagedFilter(entity) && !alreadyHas) {
-          lastEventTime =
-              dataSource.paginationPivotBuilder?.call(entity) ?? entity.createdAt.toDateTime;
+          lastEventTime = entity.createdAt.toDateTime;
         }
 
         // Update pending inserts
