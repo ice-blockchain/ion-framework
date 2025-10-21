@@ -35,6 +35,7 @@ class Article extends ConsumerWidget {
     this.addTrailingPadding = true,
     this.showActionButtons = true,
     this.showNotInterested = true,
+    this.network = true,
     this.timeFormat = TimestampFormat.short,
     super.key,
   });
@@ -76,11 +77,13 @@ class Article extends ConsumerWidget {
   final Widget? footer;
   final bool accentTheme;
   final bool showNotInterested;
+  final bool network;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entity = ref.watch(
-          ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
+          ionConnectEntityWithCountersProvider(eventReference: eventReference, network: network)
+              .select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
               ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
@@ -119,6 +122,7 @@ class Article extends ConsumerWidget {
           else if (isReplied) ...[
             UserInfo(
               pubkey: eventReference.masterPubkey,
+              network: network,
               createdAt: entity.data.publishedAt.value,
               timeFormat: timeFormat,
               accentTheme: accentTheme,
