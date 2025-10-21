@@ -6,6 +6,7 @@ import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/image/ion_network_image.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/utils/image_path.dart';
+import 'package:ion/app/utils/precache_pictures.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class WalletItemIconWidget extends StatelessWidget {
@@ -51,7 +52,7 @@ class WalletItemIconWidget extends StatelessWidget {
             height: iconSize,
             errorWidget: (_, __, ___) => Assets.svg.walletEmptyicon.icon(size: iconSize),
             borderRadius: borderRadius,
-            isPrecached: true,
+            cacheManager: PreCachePicturesCacheManager.instance,
             imageBuilder: colorFilter != null
                 ? (context, imageProvider) => Container(
                       width: iconSize,
