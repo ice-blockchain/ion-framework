@@ -77,6 +77,8 @@ class VideoControllerParams with _$VideoControllerParams {
   }) = _VideoControllerParams;
 }
 
+const _scrubbedDuration = Duration(milliseconds: 100);
+
 @riverpod
 class VideoController extends _$VideoController {
   /// Tracks the currently playing controller to enforce one-at-a-time playback.
@@ -183,14 +185,21 @@ class VideoController extends _$VideoController {
 
         playbackListener = () {
           final currentValue = controller.value;
+          final isPlaying = currentValue.isPlaying;
 
           // Check for a change in the playing state.
-          if (previousValue.isPlaying == currentValue.isPlaying) {
+          if (previousValue.isPlaying == isPlaying) {
+            final positionDifference = (currentValue.position - previousValue.position).abs();
+
+            // Save the video position only if the user has moved it by more than $_scrubbedDuration (100 milliseconds).
+            if (!isPlaying && positionDifference > _scrubbedDuration) {
+              _savePlayerPosition(controller, sourcePath);
+            }
             previousValue = currentValue;
             return;
           }
 
-          if (currentValue.isPlaying) {
+          if (isPlaying) {
             // Restore position when playback resumes.
             _seekToSavedPosition(controller, sourcePath);
 
