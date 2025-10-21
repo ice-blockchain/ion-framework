@@ -73,7 +73,6 @@ class ChatAdvancedSearchPeople extends HookConsumerWidget {
                         showLastMessage: true,
                         item: searchResults[index],
                       ),
-                      //if last item then show
                       if (index == searchResults.length - 1) const HorizontalSeparator(),
                     ],
                   );
