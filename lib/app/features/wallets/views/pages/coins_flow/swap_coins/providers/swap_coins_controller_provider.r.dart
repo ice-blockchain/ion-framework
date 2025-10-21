@@ -10,12 +10,7 @@ part 'swap_coins_controller_provider.r.g.dart';
 @Riverpod(keepAlive: true)
 class SwapCoinsController extends _$SwapCoinsController {
   @override
-  SwapCoinData build() => const SwapCoinData(
-        sellCoin: null,
-        sellNetwork: null,
-        buyCoin: null,
-        buyNetwork: null,
-      );
+  SwapCoinData build() => const SwapCoinData();
 
   void initSellCoin({
     required CoinsGroup? coin,

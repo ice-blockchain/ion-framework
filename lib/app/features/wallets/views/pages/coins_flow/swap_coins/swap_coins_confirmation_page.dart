@@ -227,42 +227,30 @@ class _SwapDetailsSection extends StatelessWidget {
                     ? Column(
                         children: [
                           _Divider(),
-                          AnimatedOpacity(
-                            opacity: showMoreDetails ? 1.0 : 0.0,
-                            duration: const Duration(milliseconds: 200),
-                            child: _DetailRow(
-                              label: context.i18n.wallet_swap_confirmation_price_impact,
-                              value: '-8,83%',
-                            ),
+                          _DetailRow(
+                            isVisible: showMoreDetails,
+                            label: context.i18n.wallet_swap_confirmation_price_impact,
+                            value: '-8,83%',
                           ),
                           _Divider(),
-                          AnimatedOpacity(
-                            opacity: showMoreDetails ? 1.0 : 0.0,
-                            duration: const Duration(milliseconds: 200),
-                            child: _DetailRow(
-                              label: context.i18n.wallet_swap_confirmation_slippage,
-                              value: '1,2%',
-                              showInfoIcon: true,
-                            ),
+                          _DetailRow(
+                            isVisible: showMoreDetails,
+                            label: context.i18n.wallet_swap_confirmation_slippage,
+                            value: '1,2%',
+                            showInfoIcon: true,
                           ),
                           _Divider(),
-                          AnimatedOpacity(
-                            opacity: showMoreDetails ? 1.0 : 0.0,
-                            duration: const Duration(milliseconds: 200),
-                            child: _DetailRow(
-                              label: context.i18n.wallet_swap_confirmation_network_fee,
-                              value: '100.43 ICE',
-                            ),
+                          _DetailRow(
+                            isVisible: showMoreDetails,
+                            label: context.i18n.wallet_swap_confirmation_network_fee,
+                            value: '100.43 ICE',
                           ),
                           _Divider(),
-                          AnimatedOpacity(
-                            opacity: showMoreDetails ? 1.0 : 0.0,
-                            duration: const Duration(milliseconds: 200),
-                            child: _DetailRow(
-                              label: context.i18n.wallet_swap_confirmation_protocol_fee,
-                              value: '0.73 USDT',
-                              showInfoIcon: true,
-                            ),
+                          _DetailRow(
+                            isVisible: showMoreDetails,
+                            label: context.i18n.wallet_swap_confirmation_protocol_fee,
+                            value: '0.73 USDT',
+                            showInfoIcon: true,
                           ),
                         ],
                       )
@@ -325,48 +313,54 @@ class _DetailRow extends StatelessWidget {
   const _DetailRow({
     required this.label,
     required this.value,
+    this.isVisible = true,
     this.showInfoIcon = false,
   });
 
   final String label;
   final String value;
   final bool showInfoIcon;
+  final bool isVisible;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
 
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 10.0.s),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Text(
-                label,
-                style: textStyles.body2.copyWith(
-                  color: colors.quaternaryText,
+    return AnimatedOpacity(
+      opacity: isVisible ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 200),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 10.0.s),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Text(
+                  label,
+                  style: textStyles.body2.copyWith(
+                    color: colors.quaternaryText,
+                  ),
                 ),
-              ),
-              if (showInfoIcon) ...[
-                SizedBox(width: 4.0.s),
-                Assets.svg.iconBlockInformation.icon(
-                  color: colors.tertiaryText,
-                  size: 16.0.s,
-                ),
+                if (showInfoIcon) ...[
+                  SizedBox(width: 4.0.s),
+                  Assets.svg.iconBlockInformation.icon(
+                    color: colors.tertiaryText,
+                    size: 16.0.s,
+                  ),
+                ],
               ],
-            ],
-          ),
-          Text(
-            value,
-            style: textStyles.body2.copyWith(
-              color: colors.primaryText,
-              fontWeight: FontWeight.w600,
             ),
-          ),
-        ],
+            Text(
+              value,
+              style: textStyles.body2.copyWith(
+                color: colors.primaryText,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

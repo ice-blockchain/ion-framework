@@ -9,10 +9,10 @@ part 'swap_coin_data.f.freezed.dart';
 @freezed
 class SwapCoinData with _$SwapCoinData {
   const factory SwapCoinData({
-    required CoinsGroup? sellCoin,
-    required NetworkData? sellNetwork,
-    required CoinsGroup? buyCoin,
-    required NetworkData? buyNetwork,
+    CoinsGroup? sellCoin,
+    NetworkData? sellNetwork,
+    CoinsGroup? buyCoin,
+    NetworkData? buyNetwork,
   }) = _SwapCoinData;
 
   const SwapCoinData._();
