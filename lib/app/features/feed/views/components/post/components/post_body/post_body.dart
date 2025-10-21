@@ -16,6 +16,8 @@ import 'package:ion/app/features/feed/polls/view/components/post_poll.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/post/components/post_body/components/post_media/post_media.dart';
 import 'package:ion/app/features/feed/views/components/post/components/post_body/post_content.dart';
+import 'package:ion/app/features/feed/views/components/pump_ion/pump_ion_bought.dart';
+import 'package:ion/app/features/feed/views/components/pump_ion/pump_ion_buy.dart';
 import 'package:ion/app/features/feed/views/components/url_preview_content/url_preview_content.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -94,44 +96,46 @@ class PostBody extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 10.0.s,
       children: [
-        if (showTextContent || pollData != null)
-          Padding(
-            padding: EdgeInsetsDirectional.symmetric(horizontal: sidePadding ?? 16.0.s),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (showTextContent)
-                  PostContent(
-                    content: content,
-                    entity: entity,
-                    accentTheme: accentTheme,
-                    isTextSelectable: isTextSelectable,
-                    maxLines: maxLines,
-                  ),
-                if (pollData != null)
-                  PostPoll(
-                    pollData: pollData,
-                    accentTheme: accentTheme,
-                    postReference: entity.toEventReference(),
-                  ),
-              ],
-            ),
-          ),
-        if (media.isNotEmpty)
-          PostMedia(
-            media: media,
-            onVideoTap: onVideoTap,
-            sidePadding: sidePadding,
-            eventReference: entity.toEventReference(),
-            framedEventReference: framedEventReference,
-          ),
-        if (media.isEmpty && hasValidUrlMetadata)
-          Padding(
-            padding: EdgeInsetsDirectional.symmetric(horizontal: sidePadding ?? 16.0.s),
-            child: UrlPreviewContent(
-              url: firstUrlInPost,
-            ),
-          ),
+        PumpIonBuy(masterPubkey: entity.masterPubkey),
+        PumpIonBought(masterPubkey: entity.masterPubkey),
+        // if (showTextContent || pollData != null)
+        //   Padding(
+        //     padding: EdgeInsetsDirectional.symmetric(horizontal: sidePadding ?? 16.0.s),
+        //     child: Column(
+        //       crossAxisAlignment: CrossAxisAlignment.start,
+        //       children: [
+        //         if (showTextContent)
+        //           PostContent(
+        //             content: content,
+        //             entity: entity,
+        //             accentTheme: accentTheme,
+        //             isTextSelectable: isTextSelectable,
+        //             maxLines: maxLines,
+        //           ),
+        //         if (pollData != null)
+        //           PostPoll(
+        //             pollData: pollData,
+        //             accentTheme: accentTheme,
+        //             postReference: entity.toEventReference(),
+        //           ),
+        //       ],
+        //     ),
+        //   ),
+        // if (media.isNotEmpty)
+        //   PostMedia(
+        //     media: media,
+        //     onVideoTap: onVideoTap,
+        //     sidePadding: sidePadding,
+        //     eventReference: entity.toEventReference(),
+        //     framedEventReference: framedEventReference,
+        //   ),
+        // if (media.isEmpty && hasValidUrlMetadata)
+        //   Padding(
+        //     padding: EdgeInsetsDirectional.symmetric(horizontal: sidePadding ?? 16.0.s),
+        //     child: UrlPreviewContent(
+        //       url: firstUrlInPost,
+        //     ),
+        //   ),
       ],
     );
   }

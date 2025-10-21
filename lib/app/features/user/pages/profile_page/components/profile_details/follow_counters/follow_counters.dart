@@ -12,11 +12,13 @@ import 'package:ion/app/features/user/providers/followers_count_provider.r.dart'
 class FollowCounters extends ConsumerWidget {
   const FollowCounters({
     required this.pubkey,
+    this.height = 36.0,
     this.profileMode = ProfileMode.light,
     super.key,
   });
 
   final String pubkey;
+  final double height;
   final ProfileMode profileMode;
 
   Decoration _decoration(BuildContext context) {
@@ -95,7 +97,7 @@ class FollowCounters extends ConsumerWidget {
     }
 
     return Container(
-      height: 36.0.s,
+      height: height.s,
       padding: _padding,
       decoration: _decoration(context),
       child: Row(
