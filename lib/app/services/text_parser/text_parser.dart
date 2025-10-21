@@ -57,6 +57,14 @@ class TextParser {
         },
       );
 
+  // TextParser without url matcher
+  factory TextParser.tagsMatchers() => TextParser(
+        matchers: const {
+          HashtagMatcher(),
+          CashtagMatcher(),
+        },
+      );
+
   final Set<TextMatcher> matchers;
 
   final List<String> _matcherGroupNames = [];

@@ -33,30 +33,39 @@ class UrlMatcher extends TextMatcher {
   /// Final TLD validation is done via O(1) HashSet lookup in validate() for better performance.
   /// if you want to match only URLs with a valid TLD, use the pattern from the validate() method.
   @override
-  String get pattern => r'\b(?:'
+  String get pattern => '(?:'
       // URLs with scheme (http://, https://, ftp://, etc.)
-      '(?:'
+      r'\b(?:'
       r'(?:[a-z][a-z0-9+\-.]*):\/\/' // scheme://
       r'(?:[^@\s]+@)?' // optional auth
       r'(?:[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*|localhost)' // host or localhost
+      r'(?::\d{2,5})?' // optional port
+      r'(?:\/[^\s!?.,;:]*[A-Za-z0-9\/])?' // optional path
+      r'(?:\?[^\s!?.,;:]*[A-Za-z0-9%_=&-])?' // optional query params
+      r'\b' // word boundary
       ')'
       '|'
       // www-prefixed URLs without scheme
-      '(?:'
+      r'\b(?:'
       r'www\.' // www.
       r'(?:[A-Za-z0-9-]+\.)*[A-Za-z0-9-]+' // domain parts
+      r'(?::\d{2,5})?' // optional port
+      r'(?:\/[^\s!?.,;:]*[A-Za-z0-9\/])?' // optional path
+      r'(?:\?[^\s!?.,;:]*[A-Za-z0-9%_=&-])?' // optional query params
+      r'\b' // word boundary
       ')'
       '|'
       // bare domain - must be all lowercase, with valid TLD-like structure
       // This is intentionally loose; real validation happens in validate()
+      '(?:'
       '(?<![A-Za-z])' // not preceded by a letter (prevents matching mid-word like "text.To")
       r'[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?\.(?:[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?\.)*[a-z]{2,}' // domain.tld
-      '(?![A-Za-z0-9-])' // not followed by alphanumeric or dash
-      ')'
       r'(?::\d{2,5})?' // optional port
       r'(?:\/[^\s!?.,;:]*[A-Za-z0-9\/])?' // optional path
       r'(?:\?[^\s!?.,;:]*[A-Za-z0-9%_=&-])?' // optional query params
-      r'\b'; // word boundary
+      '(?![A-Za-z0-9-])' // not followed by alphanumeric or dash (acts as boundary)
+      ')'
+      ')';
 
   /// Validates that the URL has a valid TLD using O(1) HashSet lookup.
   /// This prevents false positives from the looser regex pattern.
