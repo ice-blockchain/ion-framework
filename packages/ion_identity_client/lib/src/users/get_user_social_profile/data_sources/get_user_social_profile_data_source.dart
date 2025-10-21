@@ -44,14 +44,10 @@ class GetUserSocialProfileDataSource {
 
   Exception _mapException(RequestExecutionException e) {
     if (e.error is! DioException) return e;
-
     final exception = e.error as DioException;
-    if (InvalidNicknameException.isMatch(exception)) {
-      return InvalidNicknameException();
-    } else if (NicknameAlreadyExistsException.isMatch(exception)) {
-      return NicknameAlreadyExistsException();
-    } else if (NicknameReservedException.isMatch(exception)) {
-      return NicknameReservedException();
+
+    if (exception.response?.statusCode == 404) {
+      return const UserNotFoundException();
     }
 
     return e;
