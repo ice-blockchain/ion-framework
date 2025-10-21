@@ -45,6 +45,7 @@ class Followers extends _$Followers {
       entitiesPagedDataProvider(_dataSourcesKey),
     );
 
+    // Collecting master pubkeys of the wrapped FollowListEntity events.
     final masterPubkeys = entitiesPagedData?.data.items
         ?.map((item) {
           return switch (item) {
