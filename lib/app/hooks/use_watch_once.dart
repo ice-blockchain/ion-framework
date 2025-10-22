@@ -10,15 +10,20 @@ T? useWatchOnce<T>(WidgetRef ref, ProviderListenable<T> provider, {bool notNull 
 
   useEffect(
     () {
-      final subscription = ref.listenManual<T>(provider, (_, next) {
-        if (!hasValue.value && (!notNull || next != null)) {
-          value.value = next;
-          hasValue.value = true;
-        }
-      });
-      return subscription.close;
+      if (!hasValue.value) {
+        final subscription = ref.listenManual<T>(provider, fireImmediately: true, (_, next) {
+          if (!hasValue.value && (!notNull || next != null)) {
+            value.value = next;
+            hasValue.value = true;
+          }
+        });
+        return subscription.close;
+      }
+      return null;
     },
-    [provider, notNull],
+    // We assume that we're using the same provider, hence we don't add it to dependencies.
+    // Otherwise using family providers would lead to unnecessary useEffect triggers.
+    [notNull, hasValue.value],
   );
 
   return value.value;
