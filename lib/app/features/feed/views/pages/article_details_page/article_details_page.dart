@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/counter_items_footer/counter_items_footer.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
+import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/components/text_editor/text_editor_preview.dart';
@@ -84,67 +85,70 @@ class ArticleDetailsPage extends HookConsumerWidget {
             ),
         ],
       ),
-      body: Column(
-        children: [
-          ArticleDetailsProgressIndicator(progress: progress),
-          Flexible(
-            child: CustomScrollView(
-              controller: scrollController,
-              slivers: [
-                SliverList(
-                  delegate: SliverChildListDelegate([
-                    SizedBox(height: 13.0.s),
-                    ScreenSideOffset.small(
-                      child: ArticleDetailsDateTopics(
-                        publishedAt: articleEntity.data.publishedAt.value.toDateTime,
-                        topicsNames: topicsNames,
-                      ),
-                    ),
-                    SizedBox(height: 16.0.s),
-                    if (articleEntity.isDeleted)
+      body: ScrollToTopWrapper(
+        scrollController: scrollController,
+        child: Column(
+          children: [
+            ArticleDetailsProgressIndicator(progress: progress),
+            Flexible(
+              child: CustomScrollView(
+                controller: scrollController,
+                slivers: [
+                  SliverList(
+                    delegate: SliverChildListDelegate([
+                      SizedBox(height: 13.0.s),
                       ScreenSideOffset.small(
-                        child: DeletedEntity(entityType: DeletedEntityType.article),
-                      )
-                    else ...[
-                      ArticleDetailsHeader(
-                        article: articleEntity,
-                      ),
-                      if (articleEntity.data.content.isNotEmpty) SizedBox(height: 20.0.s),
-                      ScreenSideOffset.small(
-                        child: TextEditorPreview(
-                          content: delta,
-                          media: articleEntity.data.media,
-                          authorPubkey: articleEntity.masterPubkey,
-                          enableInteractiveSelection: true,
-                          eventReference: eventReference.encode(),
+                        child: ArticleDetailsDateTopics(
+                          publishedAt: articleEntity.data.publishedAt.value.toDateTime,
+                          topicsNames: topicsNames,
                         ),
                       ),
-                    ],
-                    CounterItemsFooter(eventReference: eventReference),
-                    const SectionSeparator(),
-                    SizedBox(height: 20.0.s),
-                    ScreenSideOffset.small(
-                      child: UserBiography(eventReference: eventReference),
-                    ),
-                    if (topicsNames.isNotEmpty) ...[
+                      SizedBox(height: 16.0.s),
+                      if (articleEntity.isDeleted)
+                        ScreenSideOffset.small(
+                          child: DeletedEntity(entityType: DeletedEntityType.article),
+                        )
+                      else ...[
+                        ArticleDetailsHeader(
+                          article: articleEntity,
+                        ),
+                        if (articleEntity.data.content.isNotEmpty) SizedBox(height: 20.0.s),
+                        ScreenSideOffset.small(
+                          child: TextEditorPreview(
+                            content: delta,
+                            media: articleEntity.data.media,
+                            authorPubkey: articleEntity.masterPubkey,
+                            enableInteractiveSelection: true,
+                            eventReference: eventReference.encode(),
+                          ),
+                        ),
+                      ],
+                      CounterItemsFooter(eventReference: eventReference),
+                      const SectionSeparator(),
                       SizedBox(height: 20.0.s),
-                      ArticleDetailsTopics(topics: topicsNames),
-                    ],
-                    MoreArticlesFromAuthor(eventReference: eventReference),
-                    if (topics.isNotEmpty && topicsNames.isNotEmpty)
-                      MoreArticlesFromTopic(
-                        eventReference: eventReference,
-                        topicKey: topics.first,
-                        topicName: topicsNames.first,
+                      ScreenSideOffset.small(
+                        child: UserBiography(eventReference: eventReference),
                       ),
-                    ScreenBottomOffset(),
-                  ]),
-                ),
-              ],
+                      if (topicsNames.isNotEmpty) ...[
+                        SizedBox(height: 20.0.s),
+                        ArticleDetailsTopics(topics: topicsNames),
+                      ],
+                      MoreArticlesFromAuthor(eventReference: eventReference),
+                      if (topics.isNotEmpty && topicsNames.isNotEmpty)
+                        MoreArticlesFromTopic(
+                          eventReference: eventReference,
+                          topicKey: topics.first,
+                          topicName: topicsNames.first,
+                        ),
+                      ScreenBottomOffset(),
+                    ]),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const HorizontalSeparator(),
-        ],
+            const HorizontalSeparator(),
+          ],
+        ),
       ),
     );
   }

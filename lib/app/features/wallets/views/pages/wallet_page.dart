@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/carousel/wallet_carousel.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
+import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -73,63 +74,66 @@ class WalletPage extends HookConsumerWidget {
           ],
         ],
       ),
-      body: PullToRefreshBuilder(
-        sliverAppBar: CollapsingAppBar(
-          height: Balance.height,
-          bottomOffset: 0,
-          child: Balance(tab: activeTab.value),
-        ),
-        slivers: [
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                const SectionSeparator(),
-                const WalletCarousel(),
-                const FriendsList(),
-                WalletTabsHeader(
-                  activeTab: activeTab.value,
-                  onTabSwitch: (WalletTabType newTab) {
-                    if (newTab != activeTab.value) {
-                      activeTab.value = newTab;
-                    }
-                  },
-                ),
-              ],
-            ),
+      body: ScrollToTopWrapper(
+        scrollController: scrollController,
+        child: PullToRefreshBuilder(
+          sliverAppBar: CollapsingAppBar(
+            height: Balance.height,
+            bottomOffset: 0,
+            child: Balance(tab: activeTab.value),
           ),
-          ...switch (activeTab.value) {
-            WalletTabType.coins => const [
-                CoinsTabHeader(),
-                CoinsTab(),
-              ],
-            WalletTabType.nfts => const [
-                SliverToBoxAdapter(
-                  child: NftsTabHeader(),
-                ),
-                NftsTab(),
-              ],
+          slivers: [
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  const SectionSeparator(),
+                  const WalletCarousel(),
+                  const FriendsList(),
+                  WalletTabsHeader(
+                    activeTab: activeTab.value,
+                    onTabSwitch: (WalletTabType newTab) {
+                      if (newTab != activeTab.value) {
+                        activeTab.value = newTab;
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+            ...switch (activeTab.value) {
+              WalletTabType.coins => const [
+                  CoinsTabHeader(),
+                  CoinsTab(),
+                ],
+              WalletTabType.nfts => const [
+                  SliverToBoxAdapter(
+                    child: NftsTabHeader(),
+                  ),
+                  NftsTab(),
+                ],
+            },
+          ],
+          onRefresh: () async {
+            final currentUserFollowList = ref.read(currentUserFollowListProvider).valueOrNull;
+            if (currentUserFollowList != null) {
+              ref.read(ionConnectCacheProvider.notifier).remove(currentUserFollowList.cacheKey);
+            }
+
+            await ref
+                .read(syncTransactionsServiceProvider.future)
+                .then((service) => service.syncAll());
+
+            ref
+              ..invalidate(walletViewsDataNotifierProvider)
+              ..invalidate(manageCoinsNotifierProvider);
+
+            await ref.read(syncedCoinsBySymbolGroupNotifierProvider.notifier).refresh();
           },
-        ],
-        onRefresh: () async {
-          final currentUserFollowList = ref.read(currentUserFollowListProvider).valueOrNull;
-          if (currentUserFollowList != null) {
-            ref.read(ionConnectCacheProvider.notifier).remove(currentUserFollowList.cacheKey);
-          }
-
-          await ref
-              .read(syncTransactionsServiceProvider.future)
-              .then((service) => service.syncAll());
-
-          ref
-            ..invalidate(walletViewsDataNotifierProvider)
-            ..invalidate(manageCoinsNotifierProvider);
-
-          await ref.read(syncedCoinsBySymbolGroupNotifierProvider.notifier).refresh();
-        },
-        builder: (context, slivers) => CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          controller: scrollController,
-          slivers: slivers,
+          builder: (context, slivers) => CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            controller: scrollController,
+            slivers: slivers,
+          ),
         ),
       ),
     );
