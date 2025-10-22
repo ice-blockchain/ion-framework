@@ -14,8 +14,7 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-UserSocialProfileData _$UserSocialProfileDataFromJson(
-    Map<String, dynamic> json) {
+UserSocialProfileData _$UserSocialProfileDataFromJson(Map<String, dynamic> json) {
   return _UserSocialProfileData.fromJson(json);
 }
 
@@ -26,6 +25,7 @@ mixin _$UserSocialProfileData {
   String? get avatar => throw _privateConstructorUsedError;
   String? get bio => throw _privateConstructorUsedError;
   String? get referral => throw _privateConstructorUsedError;
+  int? get referralCount => throw _privateConstructorUsedError;
 
   /// Serializes this UserSocialProfileData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -39,8 +39,8 @@ mixin _$UserSocialProfileData {
 
 /// @nodoc
 abstract class $UserSocialProfileDataCopyWith<$Res> {
-  factory $UserSocialProfileDataCopyWith(UserSocialProfileData value,
-          $Res Function(UserSocialProfileData) then) =
+  factory $UserSocialProfileDataCopyWith(
+          UserSocialProfileData value, $Res Function(UserSocialProfileData) then) =
       _$UserSocialProfileDataCopyWithImpl<$Res, UserSocialProfileData>;
   @useResult
   $Res call(
@@ -48,12 +48,12 @@ abstract class $UserSocialProfileDataCopyWith<$Res> {
       String? displayName,
       String? avatar,
       String? bio,
-      String? referral});
+      String? referral,
+      int? referralCount});
 }
 
 /// @nodoc
-class _$UserSocialProfileDataCopyWithImpl<$Res,
-        $Val extends UserSocialProfileData>
+class _$UserSocialProfileDataCopyWithImpl<$Res, $Val extends UserSocialProfileData>
     implements $UserSocialProfileDataCopyWith<$Res> {
   _$UserSocialProfileDataCopyWithImpl(this._value, this._then);
 
@@ -72,6 +72,7 @@ class _$UserSocialProfileDataCopyWithImpl<$Res,
     Object? avatar = freezed,
     Object? bio = freezed,
     Object? referral = freezed,
+    Object? referralCount = freezed,
   }) {
     return _then(_value.copyWith(
       username: freezed == username
@@ -94,6 +95,10 @@ class _$UserSocialProfileDataCopyWithImpl<$Res,
           ? _value.referral
           : referral // ignore: cast_nullable_to_non_nullable
               as String?,
+      referralCount: freezed == referralCount
+          ? _value.referralCount
+          : referralCount // ignore: cast_nullable_to_non_nullable
+              as int?,
     ) as $Val);
   }
 }
@@ -102,8 +107,7 @@ class _$UserSocialProfileDataCopyWithImpl<$Res,
 abstract class _$$UserSocialProfileDataImplCopyWith<$Res>
     implements $UserSocialProfileDataCopyWith<$Res> {
   factory _$$UserSocialProfileDataImplCopyWith(
-          _$UserSocialProfileDataImpl value,
-          $Res Function(_$UserSocialProfileDataImpl) then) =
+          _$UserSocialProfileDataImpl value, $Res Function(_$UserSocialProfileDataImpl) then) =
       __$$UserSocialProfileDataImplCopyWithImpl<$Res>;
   @override
   @useResult
@@ -112,16 +116,16 @@ abstract class _$$UserSocialProfileDataImplCopyWith<$Res>
       String? displayName,
       String? avatar,
       String? bio,
-      String? referral});
+      String? referral,
+      int? referralCount});
 }
 
 /// @nodoc
 class __$$UserSocialProfileDataImplCopyWithImpl<$Res>
-    extends _$UserSocialProfileDataCopyWithImpl<$Res,
-        _$UserSocialProfileDataImpl>
+    extends _$UserSocialProfileDataCopyWithImpl<$Res, _$UserSocialProfileDataImpl>
     implements _$$UserSocialProfileDataImplCopyWith<$Res> {
-  __$$UserSocialProfileDataImplCopyWithImpl(_$UserSocialProfileDataImpl _value,
-      $Res Function(_$UserSocialProfileDataImpl) _then)
+  __$$UserSocialProfileDataImplCopyWithImpl(
+      _$UserSocialProfileDataImpl _value, $Res Function(_$UserSocialProfileDataImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of UserSocialProfileData
@@ -134,6 +138,7 @@ class __$$UserSocialProfileDataImplCopyWithImpl<$Res>
     Object? avatar = freezed,
     Object? bio = freezed,
     Object? referral = freezed,
+    Object? referralCount = freezed,
   }) {
     return _then(_$UserSocialProfileDataImpl(
       username: freezed == username
@@ -156,6 +161,10 @@ class __$$UserSocialProfileDataImplCopyWithImpl<$Res>
           ? _value.referral
           : referral // ignore: cast_nullable_to_non_nullable
               as String?,
+      referralCount: freezed == referralCount
+          ? _value.referralCount
+          : referralCount // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }
@@ -165,7 +174,7 @@ class __$$UserSocialProfileDataImplCopyWithImpl<$Res>
 @JsonSerializable(includeIfNull: false)
 class _$UserSocialProfileDataImpl implements _UserSocialProfileData {
   const _$UserSocialProfileDataImpl(
-      {this.username, this.displayName, this.avatar, this.bio, this.referral});
+      {this.username, this.displayName, this.avatar, this.bio, this.referral, this.referralCount});
 
   factory _$UserSocialProfileDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserSocialProfileDataImplFromJson(json);
@@ -180,10 +189,12 @@ class _$UserSocialProfileDataImpl implements _UserSocialProfileData {
   final String? bio;
   @override
   final String? referral;
+  @override
+  final int? referralCount;
 
   @override
   String toString() {
-    return 'UserSocialProfileData(username: $username, displayName: $displayName, avatar: $avatar, bio: $bio, referral: $referral)';
+    return 'UserSocialProfileData(username: $username, displayName: $displayName, avatar: $avatar, bio: $bio, referral: $referral, referralCount: $referralCount)';
   }
 
   @override
@@ -191,29 +202,27 @@ class _$UserSocialProfileDataImpl implements _UserSocialProfileData {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$UserSocialProfileDataImpl &&
-            (identical(other.username, username) ||
-                other.username == username) &&
-            (identical(other.displayName, displayName) ||
-                other.displayName == displayName) &&
+            (identical(other.username, username) || other.username == username) &&
+            (identical(other.displayName, displayName) || other.displayName == displayName) &&
             (identical(other.avatar, avatar) || other.avatar == avatar) &&
             (identical(other.bio, bio) || other.bio == bio) &&
-            (identical(other.referral, referral) ||
-                other.referral == referral));
+            (identical(other.referral, referral) || other.referral == referral) &&
+            (identical(other.referralCount, referralCount) ||
+                other.referralCount == referralCount));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, username, displayName, avatar, bio, referral);
+      Object.hash(runtimeType, username, displayName, avatar, bio, referral, referralCount);
 
   /// Create a copy of UserSocialProfileData
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$UserSocialProfileDataImplCopyWith<_$UserSocialProfileDataImpl>
-      get copyWith => __$$UserSocialProfileDataImplCopyWithImpl<
-          _$UserSocialProfileDataImpl>(this, _$identity);
+  _$$UserSocialProfileDataImplCopyWith<_$UserSocialProfileDataImpl> get copyWith =>
+      __$$UserSocialProfileDataImplCopyWithImpl<_$UserSocialProfileDataImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -229,7 +238,8 @@ abstract class _UserSocialProfileData implements UserSocialProfileData {
       final String? displayName,
       final String? avatar,
       final String? bio,
-      final String? referral}) = _$UserSocialProfileDataImpl;
+      final String? referral,
+      final int? referralCount}) = _$UserSocialProfileDataImpl;
 
   factory _UserSocialProfileData.fromJson(Map<String, dynamic> json) =
       _$UserSocialProfileDataImpl.fromJson;
@@ -244,11 +254,13 @@ abstract class _UserSocialProfileData implements UserSocialProfileData {
   String? get bio;
   @override
   String? get referral;
+  @override
+  int? get referralCount;
 
   /// Create a copy of UserSocialProfileData
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$UserSocialProfileDataImplCopyWith<_$UserSocialProfileDataImpl>
-      get copyWith => throw _privateConstructorUsedError;
+  _$$UserSocialProfileDataImplCopyWith<_$UserSocialProfileDataImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

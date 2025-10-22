@@ -4,6 +4,7 @@ import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/auth/services/extract_user_id/extract_user_id_service.dart';
 import 'package:ion_identity_client/src/users/available_ion_connect_relays/available_ion_connect_relays_service.dart';
 import 'package:ion_identity_client/src/users/get_content_creators/content_creators_service.dart';
+import 'package:ion_identity_client/src/users/get_user_social_profile/get_user_social_profile_service.dart';
 import 'package:ion_identity_client/src/users/ion_connect_indexers/get_user_connect_indexers_service.dart';
 import 'package:ion_identity_client/src/users/ion_connect_relays/ion_connect_relays_service.dart';
 import 'package:ion_identity_client/src/users/search_users_social_profile/search_users_social_profile_service.dart';
@@ -22,6 +23,7 @@ class IONIdentityUsers {
     this._ionConnectContentCreatorsService,
     this._nicknameAvailabilityService,
     this._updateUserSocialProfileService,
+    this._getUserSocialProfileService,
     this._searchUsersSocialProfileService,
     this._extractUserIdService,
     this._availableIONConnectRelaysService,
@@ -35,6 +37,7 @@ class IONIdentityUsers {
   final NicknameAvailabilityService _nicknameAvailabilityService;
   final SetIONConnectRelaysService _setIONConnectRelaysService;
   final UpdateUserSocialProfileService _updateUserSocialProfileService;
+  final GetUserSocialProfileService _getUserSocialProfileService;
   final SearchUsersSocialProfileService _searchUsersSocialProfileService;
   final ExtractUserIdService _extractUserIdService;
   final AvailableIONConnectRelaysService _availableIONConnectRelaysService;
@@ -105,6 +108,13 @@ class IONIdentityUsers {
       data: data,
     );
   }
+
+  Future<UserSocialProfileData> getUserSocialProfile({
+    required String userIdOrMasterKey,
+  }) async =>
+      _getUserSocialProfileService.getUserSocialProfile(
+        userIdOrMasterKey: userIdOrMasterKey,
+      );
 
   Future<List<IdentityUserInfo>> searchForUsersByKeyword({
     required String keyword,
