@@ -149,8 +149,8 @@ class _SlippageAction extends StatelessWidget {
 class _TokenCard extends ConsumerWidget {
   const _TokenCard({
     required this.type,
-    required this.coinsGroup,
-    required this.network,
+    this.coinsGroup,
+    this.network,
   });
 
   final CoinSwapType type;

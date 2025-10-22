@@ -24,31 +24,19 @@ class SwapCoinsController extends _$SwapCoinsController {
         buyNetwork: null,
       );
 
-  void setSellCoin(
-    CoinsGroup coin,
-  ) =>
-      state = state.copyWith(
+  void setSellCoin(CoinsGroup coin) => state = state.copyWith(
         sellCoin: coin,
       );
 
-  void setSellNetwork(
-    NetworkData network,
-  ) =>
-      state = state.copyWith(
+  void setSellNetwork(NetworkData network) => state = state.copyWith(
         sellNetwork: network,
       );
 
-  void setBuyCoin(
-    CoinsGroup coin,
-  ) =>
-      state = state.copyWith(
+  void setBuyCoin(CoinsGroup coin) => state = state.copyWith(
         buyCoin: coin,
       );
 
-  void setBuyNetwork(
-    NetworkData network,
-  ) =>
-      state = state.copyWith(
+  void setBuyNetwork(NetworkData network) => state = state.copyWith(
         buyNetwork: network,
       );
 

@@ -16,6 +16,7 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
 
+// TODO(ice-erebus): add actual data
 class SwapCoinsConfirmationPage extends ConsumerWidget {
   const SwapCoinsConfirmationPage({super.key});
 
@@ -105,6 +106,7 @@ class _SwapTokensSection extends StatelessWidget {
               width: 34.0.s,
             ),
           ),
+          // TODO(ice-erebus): add actual data
           Column(
             children: [
               _TokenRow(
@@ -178,6 +180,7 @@ class _TokenRow extends StatelessWidget {
   }
 }
 
+// TODO(ice-erebus): add actual data
 class _SwapDetailsSection extends StatelessWidget {
   const _SwapDetailsSection({
     required this.showMoreDetails,
