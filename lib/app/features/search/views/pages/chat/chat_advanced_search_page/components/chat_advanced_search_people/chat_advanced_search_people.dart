@@ -13,6 +13,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_local_user_search_provider.r.dart';
+import 'package:ion/app/features/search/views/pages/chat/chat_advanced_search_page/components/chat_advanced_search_all/chat_advanced_search_all.dart';
 import 'package:ion/app/features/search/views/pages/chat/components/chat_no_results_found.dart';
 import 'package:ion/app/features/search/views/pages/chat/components/chat_search_results_list_item.dart';
 import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
@@ -63,7 +64,7 @@ class ChatAdvancedSearchPeople extends HookConsumerWidget {
           SliverPadding(
             padding: EdgeInsets.symmetric(vertical: 12.0.s),
             sliver: SliverFixedExtentList(
-              itemExtent: 66.5.s, // Fixed height for search result items
+              itemExtent: chatAdvancedSearchItemHeight,
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   return Column(
