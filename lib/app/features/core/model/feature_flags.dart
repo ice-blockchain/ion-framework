@@ -42,3 +42,9 @@ final class TokenizedCommunitiesFeatureFlag extends FeatureFlag {
   static const tokenizedCommunitiesEnabled =
       TokenizedCommunitiesFeatureFlag._(key: 'tokenizedCommunitiesEnabled');
 }
+
+final class PinnedContentFeatureFlag extends FeatureFlag {
+  const PinnedContentFeatureFlag._({required super.key});
+
+  static const pinnedContentEnabled = PinnedContentFeatureFlag._(key: 'pinnedContentEnabled');
+}

@@ -926,5 +926,8 @@
   "report_content_description": "Dies ist ein Bericht für den Inhalt",
   "share_user_on_app": "{userDisplayName} auf {shareAppName}",
   "share_story_watch_message": "Schauen Sie sich diese Story von {userDisplayName} an, bevor sie verschwindet.",
-  "follow_user_message": "Sie haben @{userDisplayName} gefolgt"
+  "follow_user_message": "Sie haben @{userDisplayName} gefolgt",
+  "pinned_item": "Angeheftet",
+  "post_menu_pin": "Anheften",
+  "post_menu_unpin": "Lösen"
 }

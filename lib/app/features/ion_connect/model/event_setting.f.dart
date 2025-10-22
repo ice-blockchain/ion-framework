@@ -18,6 +18,8 @@ abstract class EventSetting {
     switch (tag[1]) {
       case WhoCanReplyEventSetting.tagName:
         return WhoCanReplyEventSetting.fromTag(tag);
+      case PinEnabledEventSetting.tagName:
+        return PinEnabledEventSetting.fromTag(tag);
       default:
         throw IncorrectEventTagException(tag: tag.toString());
     }
@@ -136,4 +138,36 @@ class RoleRequiredForPostingEventSetting
 enum RoleRequiredForPosting {
   admin,
   moderator,
+}
+
+@freezed
+class PinEnabledEventSetting with _$PinEnabledEventSetting implements EventSetting {
+  const factory PinEnabledEventSetting({
+    required bool isPined,
+  }) = _PinEnabledEventSetting;
+
+  const PinEnabledEventSetting._();
+
+  factory PinEnabledEventSetting.fromTag(List<String> tag) {
+    if (tag[0] != EventSetting.settingTagName) {
+      throw IncorrectEventTagNameException(actual: tag[0], expected: EventSetting.settingTagName);
+    }
+    if (tag.length < 4) {
+      throw IncorrectEventTagException(tag: tag.toString());
+    }
+
+    return PinEnabledEventSetting(isPined: tag[2] == 'true');
+  }
+
+  @override
+  List<String> toTag() {
+    return [
+      EventSetting.settingTagName,
+      tagName,
+      isPined.toString(),
+      DateTime.now().microsecondsSinceEpoch.toString(),
+    ];
+  }
+
+  static const String tagName = 'pin_enabled';
 }

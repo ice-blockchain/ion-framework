@@ -12,6 +12,9 @@ import 'package:ion/app/features/feed/providers/repost_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/user_posts_data_source_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
+import 'package:ion/app/features/user/extensions/user_pinned_entity_extension.dart';
+import 'package:ion/app/features/user/model/tab_entity_type.dart';
+import 'package:ion/app/features/user/providers/user_pinned_content_provider.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_posts_provider.r.g.dart';
@@ -35,11 +38,14 @@ class UserPosts extends _$UserPosts with DelegatedPagedNotifier {
     }
 
     final data = ref.watch(entitiesPagedDataProvider(dataSources));
-    if (data == null) {
+    final items = data?.data.items;
+    if (data == null || items == null) {
       return (items: null, hasMore: false);
     }
+    final pinnedPostKey = ref.watch(pinnedContentKeyProvider(TabEntityType.posts.name));
+    final sortedItems = items.sortedByPinnedKey(pinnedPostKey);
 
-    return (items: data.data.items, hasMore: data.hasMore);
+    return (items: sortedItems, hasMore: data.hasMore);
   }
 
   @override

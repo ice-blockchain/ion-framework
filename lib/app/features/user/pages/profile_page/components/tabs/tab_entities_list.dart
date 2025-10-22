@@ -9,6 +9,8 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/entities_list/entities_list.dart';
 import 'package:ion/app/features/components/entities_list/entities_list_skeleton.dart';
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
+import 'package:ion/app/features/core/model/feature_flags.dart';
+import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_posts_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
@@ -45,6 +47,7 @@ class TabEntitiesList extends HookConsumerWidget {
             .toList(),
         displayParent: true,
         showNotInterested: false,
+        entityTypeName: TabEntityType.replies.name,
       ),
     );
   }
@@ -66,6 +69,8 @@ class TabEntitiesList extends HookConsumerWidget {
         ref.watch(isBlockedOrBlockedByNotifierProvider(pubkey)).valueOrNull ?? false;
     final tabData = ref.watch(tabEntitiesDataProvider(type: type, pubkey: pubkey));
     final entities = tabData.items ?? [];
+    final pinnedContentEnabled =
+        ref.watch(featureFlagsProvider.notifier).get(PinnedContentFeatureFlag.pinnedContentEnabled);
 
     return LoadMoreBuilder(
       onLoadMore: () async {
@@ -100,6 +105,7 @@ class TabEntitiesList extends HookConsumerWidget {
                       .toList(),
                   showMuted: true,
                   showNotInterested: false,
+                  entityTypeName: pinnedContentEnabled ? type.name : null,
                   onVideoTap: ({
                     required String eventReference,
                     required int initialMediaIndex,

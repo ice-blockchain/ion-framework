@@ -966,5 +966,8 @@
   "follow_user_message": "You followed @{userDisplayName}",
   "nsfw_blocked_dialog_title": "Inappropriate Content",
   "nsfw_blocked_dialog_body_ios": "This media cannot be published because it contains material considered inappropriate under App Store guidelines.",
-  "nsfw_blocked_dialog_body_android": "This media cannot be published because it contains material considered inappropriate under Play Store guidelines."
+  "nsfw_blocked_dialog_body_android": "This media cannot be published because it contains material considered inappropriate under Play Store guidelines.",
+  "pinned_item": "Pinned",
+  "post_menu_pin": "Pin",
+  "post_menu_unpin": "Unpin"
 }
