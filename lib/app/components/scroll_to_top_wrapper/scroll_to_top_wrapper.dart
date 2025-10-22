@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top.dart';
 
@@ -29,7 +30,7 @@ class ScrollToTopWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Only enable on iOS platform
-    if (Theme.of(context).platform != TargetPlatform.iOS) {
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
       return child;
     }
 
