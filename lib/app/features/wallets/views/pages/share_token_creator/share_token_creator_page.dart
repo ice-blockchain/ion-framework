@@ -35,7 +35,7 @@ class ShareTokenCreatorPage extends ConsumerWidget {
     return SheetContent(
       bottomPadding: 0,
       body: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.5,
+        height: 400.s + MediaQuery.paddingOf(context).bottom,
         child: Stack(
           children: [
             const ProfileBackground(),
@@ -56,7 +56,7 @@ class ShareTokenCreatorPage extends ConsumerWidget {
             // Profile Info Overlay
             PositionedDirectional(
               bottom: 0,
-              top: MediaQuery.of(context).size.height * 0.06,
+              top: 60.s,
               start: 0,
               end: 0,
               child: Column(
@@ -105,10 +105,8 @@ class ShareTokenCreatorPage extends ConsumerWidget {
                                 ),
                                 child: Text(
                                   context.i18n.wallet_share_token_creator_live_status,
-                                  style: context.theme.textTheme.bodySmall?.copyWith(
+                                  style: context.theme.appTextThemes.body?.copyWith(
                                     color: context.theme.appColors.onPrimaryAccent,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1.38,
                                   ),
                                 ),
                               ),
@@ -129,9 +127,8 @@ class ShareTokenCreatorPage extends ConsumerWidget {
                     children: [
                       Text(
                         context.i18n.wallet_share_token_creator_title,
-                        style: context.theme.textTheme.titleMedium?.copyWith(
+                        style: context.theme.appTextThemes.title?.copyWith(
                           color: Colors.white,
-                          fontWeight: FontWeight.w600,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -141,9 +138,8 @@ class ShareTokenCreatorPage extends ConsumerWidget {
                         child: Text(
                           context.i18n.wallet_share_token_creator_description,
                           textAlign: TextAlign.center,
-                          style: context.theme.textTheme.bodySmall?.copyWith(
+                          style: context.theme.appTextThemes.caption2?.copyWith(
                             color: context.theme.appColors.attentionBlock,
-                            fontWeight: FontWeight.w400,
                           ),
                         ),
                       ),
@@ -156,9 +152,8 @@ class ShareTokenCreatorPage extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.max,
                       label: Text(
                         context.i18n.wallet_share_token_creator_button,
-                        style: context.theme.textTheme.titleSmall?.copyWith(
+                        style: context.theme.appTextThemes.body?.copyWith(
                           color: context.theme.appColors.onPrimaryAccent,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       backgroundColor: context.theme.appColors.primaryAccent,
