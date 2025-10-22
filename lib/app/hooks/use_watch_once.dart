@@ -14,7 +14,7 @@ T? useWatchOnce<T>(WidgetRef ref, ProviderListenable<T> provider, {bool notNull 
     () {
       if (!hasValue.value) {
         final subscription = ref.listenManual<T>(provider, fireImmediately: true, (_, next) {
-          if (!hasValue.value && (!notNull || next != null)) {
+          if (!notNull || next != null) {
             value.value = next;
             hasValue.value = true;
           }
