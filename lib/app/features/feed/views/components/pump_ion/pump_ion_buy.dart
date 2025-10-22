@@ -78,6 +78,7 @@ class PumpIonBuy extends HookConsumerWidget {
                 UserNameTile(
                   pubkey: masterPubkey,
                   profileMode: ProfileMode.dark,
+                  showProfileTokenPrice: true,
                 ),
                 SizedBox(height: 16.0.s),
                 SizedBox(

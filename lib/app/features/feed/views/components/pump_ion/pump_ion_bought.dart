@@ -9,6 +9,9 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/profile_chart.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats_data.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/user_name_tile/user_name_tile.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
@@ -44,38 +47,51 @@ class PumpIonBought extends HookConsumerWidget {
           color2: avatarColors.$2,
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: 24.0.s, horizontal: 16.0.s),
-            child: Row(
+            child: Column(
               children: [
-                Container(
-                  width: 65.0.s,
-                  height: 65.0.s,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24.0.s),
-                    border: GradientBoxBorder(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: gradient.colors,
-                        stops: gradient.stops,
+                Row(
+                  children: [
+                    Container(
+                      width: 65.0.s,
+                      height: 65.0.s,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24.0.s),
+                        border: GradientBoxBorder(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: gradient.colors,
+                            stops: gradient.stops,
+                          ),
+                          width: 1.5.s,
+                        ),
                       ),
-                      width: 1.5.s,
+                      child: Center(
+                        child: Avatar(
+                          size: 54.s,
+                          imageUrl: avatarUrl,
+                          borderRadius: BorderRadius.circular(18.0.s),
+                        ),
+                      ),
                     ),
-                  ),
-                  child: Center(
-                    child: Avatar(
-                      size: 54.s,
-                      imageUrl: avatarUrl,
-                      borderRadius: BorderRadius.circular(18.0.s),
+                    SizedBox(width: 12.0.s),
+                    Expanded(
+                      child: UserNameTile(
+                        pubkey: masterPubkey,
+                        profileMode: ProfileMode.dark,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        isDecoratedNichname: true,
+                      ),
                     ),
-                  ),
+                    const ProfileChart(
+                      amount: 874.52,
+                      type: ProfileChartType.raising,
+                    ),
+                  ],
                 ),
-                SizedBox(width: 12.0.s),
-                Expanded(
-                  child: UserNameTile(
-                    pubkey: masterPubkey,
-                    profileMode: ProfileMode.dark,
-                    textAlign: TextAlign.left,
-                  ),
+                SizedBox(height: 16.0.s),
+                ProfileTokenStatsInfo(
+                  data: ProfileTokenStatsData.mock(),
                 ),
               ],
             ),
