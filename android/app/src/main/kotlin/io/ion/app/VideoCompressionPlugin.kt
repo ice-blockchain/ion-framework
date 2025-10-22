@@ -273,7 +273,6 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         val capabilities = codecInfo.getCapabilitiesForType(mime)?.encoderCapabilities ?: return
 
         val supportsVbr = capabilities.isBitrateModeSupported(MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR)
-        Log.d(TAG, "Encoder $encoderName bitrate modes: VBR=$supportsVbr, CBR=$supportsCbr, CQ=$supportsCq")
 
         val bitrateMode = when {
             supportsVbr -> {
