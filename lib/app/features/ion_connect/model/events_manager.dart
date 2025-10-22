@@ -76,10 +76,6 @@ class EventsManager {
         final isAuthenticated = authState.valueOrNull?.isAuthenticated ?? false;
 
         for (final eventMessage in batch) {
-          print(
-            'Processing event: ${eventMessage.id.substring(0, 5)}, queue size: ${_eventQueue.length}, batch size: $batchSize',
-          );
-
           if (!isAuthenticated) {
             continue;
           }
