@@ -2,6 +2,7 @@ import UIKit
 import Flutter
 import AVKit
 import AVFoundation
+import MediaPlayer
 import BanubaAudioBrowserSDK
 import BanubaPhotoEditorSDK
 import AppsFlyerLib
@@ -11,14 +12,14 @@ import app_links
 class AudioFocusHandler: NSObject {
     private let channel: FlutterMethodChannel
     private var hasFocus = false
-    
+
     init(flutterEngine: FlutterEngine) {
         self.channel = FlutterMethodChannel(name: "audio_focus_channel", binaryMessenger: flutterEngine.binaryMessenger)
         super.init()
-        
+
         setupAudioSession()
         setupMethodChannel()
-        
+
         // Register for audio interruption notifications
         NotificationCenter.default.addObserver(
             self,
@@ -27,7 +28,7 @@ class AudioFocusHandler: NSObject {
             object: nil
         )
     }
-    
+
     private func setupAudioSession() {
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
@@ -35,16 +36,16 @@ class AudioFocusHandler: NSObject {
             print("Failed to set up audio session: \(error)")
         }
     }
-    
+
     private func setupMethodChannel() {
         channel.setMethodCallHandler { [weak self] (call, result) in
             guard let self = self else { return }
-            
+
             switch call.method {
             case "initAudioFocus":
                 self.setupAudioSession()
                 result(true)
-                
+
             case "requestAudioFocus":
                 do {
                     // When requesting focus, use playback category without mixWithOthers
@@ -58,7 +59,7 @@ class AudioFocusHandler: NSObject {
                     print("Failed to request audio focus: \(error)")
                     result(false)
                 }
-                
+
             case "abandonAudioFocus":
                 do {
                     // When abandoning focus, set back to mixWithOthers
@@ -71,26 +72,26 @@ class AudioFocusHandler: NSObject {
                     print("Failed to abandon audio focus: \(error)")
                     result(false)
                 }
-                
+
             default:
                 result(FlutterMethodNotImplemented)
             }
         }
     }
-    
+
     @objc private func handleAudioInterruption(notification: Notification) {
         guard let userInfo = notification.userInfo,
               let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
               let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
             return
         }
-        
+
         switch type {
         case .began:
             // Interruption began, another app started playing audio
             hasFocus = false
             channel.invokeMethod("onAudioFocusChange", arguments: false)
-            
+
         case .ended:
             // Interruption ended
             if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
@@ -106,56 +107,121 @@ class AudioFocusHandler: NSObject {
                     }
                 }
             }
-            
+
         @unknown default:
             break
         }
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
+    }
+
+}
+
+// Audio Volume Observer implementation (separate channel)
+class AudioVolumeObserver: NSObject {
+    private let channel: FlutterMethodChannel
+    private var volumeObservation: NSKeyValueObservation?
+    private var lastVolume: Float = AVAudioSession.sharedInstance().outputVolume
+    private weak var hostView: UIView?
+    private var volumeView: MPVolumeView?
+
+    init(flutterEngine: FlutterEngine, attachTo view: UIView?) {
+        self.channel = FlutterMethodChannel(name: "audio_volume_channel", binaryMessenger: flutterEngine.binaryMessenger)
+        super.init()
+        self.hostView = view
+        configureSessionIfNeeded()
+        installHiddenVolumeView()
+        startObserving()
+    }
+
+    private func configureSessionIfNeeded() {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            // Keep mixWithOthers so we don't steal focus just to monitor volume
+            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try session.setActive(true)
+        } catch {
+            print("AudioVolumeObserver: Failed to activate audio session: \(error)")
+        }
+    }
+
+    private func installHiddenVolumeView() {
+        guard volumeView == nil else { return }
+        let vv = MPVolumeView(frame: .zero)
+        vv.alpha = 0.001
+        vv.isUserInteractionEnabled = false
+        if let host = hostView {
+            host.addSubview(vv)
+        } else if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let window = windowScene.windows.first {
+            window.addSubview(vv)
+        }
+        volumeView = vv
+    }
+
+    private func startObserving() {
+        let session = AVAudioSession.sharedInstance()
+        lastVolume = session.outputVolume
+        volumeObservation = session.observe(\.outputVolume, options: [.old, .new]) { [weak self] _, change in
+            guard let self = self,
+                  let old = change.oldValue,
+                  let new = change.newValue else { return }
+            if new > old {
+                self.channel.invokeMethod("onVolumeUp", arguments: nil)
+            }
+            self.lastVolume = new
+        }
+    }
+
+    deinit {
+        volumeObservation?.invalidate()
+        volumeObservation = nil
     }
 }
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
-    
+
     // Photo Editor Methods
     static let methodInitPhotoEditor = "initPhotoEditor"
     static let methodStartPhotoEditor = "startPhotoEditor"
     static let argExportedPhotoFile = "argExportedPhotoFilePath"
-    
+
     // Video Editor Methods
     static let methodInitVideoEditor = "initVideoEditor"
     static let methodStartVideoEditorTrimmer = "startVideoEditorTrimmer"
     static let argExportedVideoFile = "argExportedVideoFilePath"
     static let argExportedVideoCoverPreviewPath = "argExportedVideoCoverPreviewPath"
-    
+
     static let errEditorNotInitialized = "ERR_SDK_NOT_INITIALIZED"
-    
+
     private let configEnableCustomAudioBrowser = false
-    
+
     lazy var audioBrowserFlutterEngine = FlutterEngine(name: "audioBrowserEngine")
-    
+
     private var audioFocusHandler: AudioFocusHandler?
-    
-    
+    private var audioVolumeObserver: AudioVolumeObserver?
+
+
     override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         var photoEditor: PhotoEditorModule?
         let videoEditor = VideoEditorModule()
-        
+
         if #available(iOS 10.0, *) {
           UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
         }
 
         if let controller = window?.rootViewController as? FlutterViewController,
            let binaryMessenger = controller as? FlutterBinaryMessenger {
-            
+
             let flutterEngine = controller.engine
             audioFocusHandler = AudioFocusHandler(flutterEngine: flutterEngine)
+            audioVolumeObserver = AudioVolumeObserver(flutterEngine: flutterEngine, attachTo: controller.view)
             
             let channel = FlutterMethodChannel(
                 name: "banubaSdkChannel",

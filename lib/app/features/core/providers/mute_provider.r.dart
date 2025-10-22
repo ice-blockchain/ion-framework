@@ -9,7 +9,8 @@ part 'mute_provider.r.g.dart';
 
 @Riverpod(keepAlive: true)
 class GlobalMuteNotifier extends _$GlobalMuteNotifier {
-  static const _channel = MethodChannel('audio_focus_channel');
+  static const _focusChannel = MethodChannel('audio_focus_channel');
+  static const _volumeChannel = MethodChannel('audio_volume_channel');
 
   @override
   bool build() {
@@ -19,13 +20,25 @@ class GlobalMuteNotifier extends _$GlobalMuteNotifier {
   }
 
   void _setupMethodChannelHandler() {
-    _channel.setMethodCallHandler((call) async {
+    _focusChannel.setMethodCallHandler((call) async {
       return null;
+    });
+    _volumeChannel.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case 'onVolumeUp':
+          if (state) {
+            await toggle();
+          }
+          return null;
+
+        default:
+          return null;
+      }
     });
   }
 
   Future<void> _initializeAudioFocus() async {
-    await _channel.invokeMethod<bool>('initAudioFocus');
+    await _focusChannel.invokeMethod<bool>('initAudioFocus');
   }
 
   Future<void> toggle() async {
@@ -36,10 +49,10 @@ class GlobalMuteNotifier extends _$GlobalMuteNotifier {
 
     while (!success && retries < 3) {
       if (willBeMuted) {
-        final result = await _channel.invokeMethod<bool>('abandonAudioFocus');
+        final result = await _focusChannel.invokeMethod<bool>('abandonAudioFocus');
         success = result ?? false;
       } else {
-        final result = await _channel.invokeMethod<bool>('requestAudioFocus');
+        final result = await _focusChannel.invokeMethod<bool>('requestAudioFocus');
         success = result ?? false;
       }
 
