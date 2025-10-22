@@ -21,8 +21,12 @@ List<EntitiesDataSource>? followersDataSource(
   return [
     EntitiesDataSource(
       actionSource: ActionSourceUser(pubkey),
-      entityFilter: (entity) => entity is UserMetadataEntity || entity is EventsMetadataEntity,
-      pagedFilter: (entity) => entity is FollowListEntity,
+      // We don't receive original FollowListEntity events, since they are too big and we don't need it's data here,
+      // so we receive only EventsMetadataEntity->FollowListEntity.
+      entityFilter: (entity) =>
+          entity is EventsMetadataEntity && entity.data.metadata.kind == FollowListEntity.kind,
+      // We don't need to fetch missing FollowListEntity events. They are used only for pagination + to take authors' master pubkeys.
+      missingEventsFilter: (entity) => entity.data.metadata.kind != FollowListEntity.kind,
       requestFilter: RequestFilter(
         kinds: const [FollowListEntity.kind],
         tags: {

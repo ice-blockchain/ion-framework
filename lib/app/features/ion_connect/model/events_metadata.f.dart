@@ -54,15 +54,23 @@ class EventsMetadataData with _$EventsMetadataData implements EventSerializable 
   const EventsMetadataData._();
 
   factory EventsMetadataData.fromEventMessage(EventMessage eventMessage) {
+    final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
+    final eventIds = tags['e'];
+    final eventRefs = tags['a'];
+    final pubkeys = tags['p'];
+
+    final eventReferences = [
+      if (eventRefs != null)
+        for (final eventRef in eventRefs) ReplaceableEventReference.fromString(eventRef[1]),
+      if (eventIds != null)
+        for (var i = 0, eventId = eventIds[i][1], pubkey = pubkeys?.elementAtOrNull(i)?[1];
+            i < eventIds.length;
+            i++)
+          if (pubkey != null) ImmutableEventReference(eventId: eventId, masterPubkey: pubkey),
+    ].toList();
+
     return EventsMetadataData(
-      eventReferences: eventMessage.tags
-          .where(
-            (tag) =>
-                tag[0] == ReplaceableEventReference.tagName ||
-                tag[0] == ImmutableEventReference.tagName,
-          )
-          .map(EventReference.fromTag)
-          .toList(),
+      eventReferences: eventReferences,
       metadata:
           EventMessage.fromPayloadJson(jsonDecode(eventMessage.content) as Map<String, dynamic>),
     );
@@ -88,7 +96,7 @@ class EventsMetadataData with _$EventsMetadataData implements EventSerializable 
   }
 
   EventReference? get metadataEventReference {
-    // TODO: Handle cases other than `p` tag
+    // TODO: Handle cases other than `p` tag (add EventMessage -> EventReference parser)
     final tags = groupBy(metadata.tags, (tag) => tag[0]);
     final kind = metadata.kind;
     final masterPubkey = tags['p']?.first[1];

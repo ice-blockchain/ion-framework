@@ -2,10 +2,11 @@
 
 import 'dart:async';
 
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/paged.f.dart';
 import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/providers/followers_data_source_provider.r.dart';
 import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -44,15 +45,13 @@ class Followers extends _$Followers {
       entitiesPagedDataProvider(_dataSourcesKey),
     );
 
-    // Collecting master pubkeys of returned metadatas and master pubkeys of
-    // event metadatas that are stored on another relays to show the items right away
+    // Collecting master pubkeys of the wrapped FollowListEntity events.
     final masterPubkeys = entitiesPagedData?.data.items
         ?.map((item) {
           return switch (item) {
-            final UserMetadataEntity userMetadata => userMetadata.masterPubkey,
             final EventsMetadataEntity eventMetadata
-                when eventMetadata.data.metadataEventReference?.kind == UserMetadataEntity.kind =>
-              eventMetadata.data.metadataEventReference?.masterPubkey,
+                when eventMetadata.data.metadata.kind == FollowListEntity.kind =>
+              eventMetadata.data.metadata.masterPubkey,
             _ => null
           };
         })

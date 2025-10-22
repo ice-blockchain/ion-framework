@@ -65,6 +65,7 @@ class EntitiesDataSource with _$EntitiesDataSource {
     required RequestFilter requestFilter,
     required bool Function(IonConnectEntity entity) entityFilter,
     bool Function(IonConnectEntity entity)? pagedFilter,
+    bool Function(EventsMetadataEntity entity)? missingEventsFilter,
   }) = _EntitiesDataSource;
 }
 
@@ -228,7 +229,8 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
         }
 
         // Update pending inserts
-        if (entity is EventsMetadataEntity) {
+        if (entity is EventsMetadataEntity &&
+            (dataSource.missingEventsFilter?.call(entity) ?? true)) {
           final ref = entity.data.metadataEventReference;
           if (ref != null && !pendingInserts.containsKey(ref)) {
             pendingInserts[ref] = cursor;
