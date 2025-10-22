@@ -15,6 +15,23 @@ class _ReferralCodeCard extends HookWidget {
 
     final copyIconWidth = 16.0.s;
 
+    useEffect(
+      () {
+        Timer? timer;
+
+        if (isCopied.value) {
+          timer = Timer(const Duration(seconds: 3), () {
+            isCopied.value = false;
+          });
+        }
+
+        return () {
+          timer?.cancel();
+        };
+      },
+      [isCopied.value],
+    );
+
     return _IonCard(
       padding: EdgeInsets.symmetric(horizontal: 60.0.s, vertical: 22.0.s),
       child: Column(
@@ -37,14 +54,10 @@ class _ReferralCodeCard extends HookWidget {
             ],
           ),
           GestureDetector(
-            onTap: () async {
-              await Clipboard.setData(ClipboardData(text: referralCode));
+            onTap: () {
+              copyToClipboard(referralCode);
 
               isCopied.value = true;
-
-              await Future<void>.delayed(const Duration(seconds: 3)).then((_) {
-                isCopied.value = false;
-              });
             },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,

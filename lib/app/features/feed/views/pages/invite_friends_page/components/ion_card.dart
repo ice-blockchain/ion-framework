@@ -19,11 +19,7 @@ class _IonCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16.0.s),
       ),
       child: Padding(
-        padding: padding ??
-            EdgeInsets.symmetric(
-              horizontal: 16.0.s,
-              vertical: 16.0.s,
-            ),
+        padding: padding ?? EdgeInsetsDirectional.all(16.s),
         child: child,
       ),
     );

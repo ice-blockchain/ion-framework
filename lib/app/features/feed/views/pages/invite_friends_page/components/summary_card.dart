@@ -2,26 +2,6 @@
 
 part of '../invite_friends_page.dart';
 
-enum _SummaryItemType {
-  totalReferrals,
-  upgrades,
-  deFi,
-  ads;
-
-  String toText(BuildContext context) => switch (this) {
-        _SummaryItemType.totalReferrals => context.i18n.invite_friends_summary_referrals_text,
-        _SummaryItemType.upgrades => context.i18n.invite_friends_summary_upgrades_text,
-        _SummaryItemType.deFi => context.i18n.invite_friends_summary_defi_text,
-        _SummaryItemType.ads => context.i18n.invite_friends_summary_ads_text,
-      };
-}
-
-typedef _ReferralSummaryItem = ({
-  String iconPath,
-  _SummaryItemType type,
-  int value,
-});
-
 class _SummaryCard extends StatelessWidget {
   const _SummaryCard(this._userSocialProfile);
 
@@ -35,25 +15,25 @@ class _SummaryCard extends StatelessWidget {
     return _userSocialProfile.referralCount ?? 0;
   }
 
-  List<_ReferralSummaryItem> get items => [
+  List<ReferralSummaryItem> get items => [
         (
           iconPath: Assets.svg.iconProfileUsertab,
-          type: _SummaryItemType.totalReferrals,
+          type: SummaryItemType.totalReferrals,
           value: _getReferralCount(),
         ),
         (
           iconPath: Assets.svg.iconPostVerifyaccount,
-          type: _SummaryItemType.upgrades,
+          type: SummaryItemType.upgrades,
           value: 0,
         ),
         (
           iconPath: Assets.svg.iconInviteDefi,
-          type: _SummaryItemType.deFi,
+          type: SummaryItemType.deFi,
           value: 0,
         ),
         (
           iconPath: Assets.svg.iconInviteAds,
-          type: _SummaryItemType.ads,
+          type: SummaryItemType.ads,
           value: 0,
         ),
       ];
@@ -82,7 +62,7 @@ class _SummaryCard extends StatelessWidget {
 class _SummaryItemRow extends StatelessWidget {
   const _SummaryItemRow({required this.item});
 
-  final _ReferralSummaryItem item;
+  final ReferralSummaryItem item;
 
   @override
   Widget build(BuildContext context) {

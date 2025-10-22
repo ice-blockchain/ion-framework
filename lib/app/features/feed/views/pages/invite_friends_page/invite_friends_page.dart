@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,11 +10,14 @@ import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/card/info_card.dart';
 import 'package:ion/app/components/tooltip/copied_tooltip.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/views/pages/invite_friends_page/models/referral_summary_item.dart';
+import 'package:ion/app/features/feed/views/pages/invite_friends_page/models/summary_item_type.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_social_profile_provider.r.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
+import 'package:ion/app/services/clipboard/clipboard.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:share_plus/share_plus.dart';

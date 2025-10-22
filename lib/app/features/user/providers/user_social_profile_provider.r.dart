@@ -45,9 +45,7 @@ Future<UserSocialProfileData> getUserSocialProfile(
   final currentUserId = userIdentity?.userId;
 
   if (currentUserId == null || currentUserId.isEmpty) {
-    throw Exception(
-      'No valid user identifier provided. Either provide a masterPubkey, userId, or ensure the current user is authenticated.',
-    );
+    throw const UserNotFoundException();
   }
 
   return ionIdentityClient.users.getUserSocialProfile(
