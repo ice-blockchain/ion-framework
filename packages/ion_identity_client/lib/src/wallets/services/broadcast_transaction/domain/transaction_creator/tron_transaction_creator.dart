@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:blockchain_utils/blockchain_utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:ion_identity_client/src/wallets/services/broadcast_transaction/domain/transaction_creator/transaction_creator.dart';
@@ -86,15 +88,28 @@ class _TronHTTPProvider implements TronServiceProvider {
     TronRequestDetails params, {
     Duration? timeout,
   }) async {
+    final timeoutX = timeout ?? defaultRequestTimeout;
     if (params.type.isPostRequest) {
       final response = await client
           .post(params.toUri(url), headers: params.headers, body: params.body())
-          .timeout(timeout ?? defaultRequestTimeout);
+          .timeout(
+        timeoutX,
+        onTimeout: () {
+          throw TimeoutException(
+            'Tron HTTP provider post request timed out after ${timeoutX.inSeconds} seconds',
+          );
+        },
+      );
       return params.toResponse(response.bodyBytes, response.statusCode);
     }
-    final response = await client
-        .get(params.toUri(url), headers: params.headers)
-        .timeout(timeout ?? defaultRequestTimeout);
+    final response = await client.get(params.toUri(url), headers: params.headers).timeout(
+      timeoutX,
+      onTimeout: () {
+        throw TimeoutException(
+          'Tron HTTP provider get request timed out after ${timeoutX.inSeconds} seconds',
+        );
+      },
+    );
     return params.toResponse(response.bodyBytes, response.statusCode);
   }
 }

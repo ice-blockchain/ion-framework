@@ -96,7 +96,14 @@ class Count extends _$Count {
               _ => false,
             },
           )
-          .timeout(const Duration(seconds: 30));
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              throw TimeoutException(
+                'No response received for event count request after 30 seconds',
+              );
+            },
+          );
 
       await ref.read(ionConnectNotifierProvider.notifier).sendEvent(
             requestEvent,
