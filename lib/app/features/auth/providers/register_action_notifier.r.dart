@@ -2,7 +2,6 @@
 
 import 'package:ion/app/features/auth/providers/early_access_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -23,13 +22,6 @@ class RegisterActionNotifier extends _$RegisterActionNotifier {
         await ionIdentity(username: keyName).auth.registerUser(earlyAccessEmail);
       } on PasskeyCancelledException {
         return;
-      } catch (error, stackTrace) {
-        Logger.log(
-          'Error during register',
-          error: error,
-          stackTrace: stackTrace,
-        );
-        rethrow;
       }
     });
   }
