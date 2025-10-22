@@ -74,7 +74,13 @@ class StoryProgressBarContainer extends ConsumerWidget {
                   ? null
                   : () => singleUserStoriesNotifier.advance(
                         storiesLength: stories.length,
-                        onSeenAll: () => userStoriesNotifier.advance(onClose: () => context.pop()),
+                        onSeenAll: () => userStoriesNotifier.advance(
+                          onClose: () {
+                            if (context.mounted) {
+                              context.pop();
+                            }
+                          },
+                        ),
                       ),
               sessionPubkey: currentUserPubkey,
               margin: index > 0 ? EdgeInsetsDirectional.only(start: 4.0.s) : null,

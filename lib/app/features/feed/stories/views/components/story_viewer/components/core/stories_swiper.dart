@@ -55,7 +55,11 @@ class StoriesSwiper extends HookConsumerWidget {
         final isCurrentUser = userIndex == currentUserIndex;
         final userPubkey = userStoriesViewingState.pubkeyAtIndex(userIndex);
 
-        void closeViewer() => context.pop();
+        void closeViewer() {
+          if (context.mounted) {
+            context.pop();
+          }
+        }
 
         return CubeWidget(
           index: userIndex,
@@ -72,7 +76,13 @@ class StoriesSwiper extends HookConsumerWidget {
                         duration: _pageTransitionDuration,
                         curve: Curves.easeInOut,
                       );
-                      userStoriesNotifier.advance(onClose: () => context.pop());
+                      userStoriesNotifier.advance(
+                        onClose: () {
+                          if (context.mounted) {
+                            context.pop();
+                          }
+                        },
+                      );
                     } else {
                       closeViewer();
                     }
@@ -83,7 +93,13 @@ class StoriesSwiper extends HookConsumerWidget {
                         duration: _pageTransitionDuration,
                         curve: Curves.easeInOut,
                       );
-                      userStoriesNotifier.rewind(onClose: () => context.pop());
+                      userStoriesNotifier.rewind(
+                        onClose: () {
+                          if (context.mounted) {
+                            context.pop();
+                          }
+                        },
+                      );
                     } else {
                       closeViewer();
                     }
