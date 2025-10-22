@@ -4,8 +4,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/overlay_menu/hooks/use_hide_on_scroll.dart';
 import 'package:ion/app/components/overlay_menu/hooks/use_hide_on_tab_change.dart';
-import 'package:ion/app/components/overlay_menu/models/close_menu.dart';
 import 'package:ion/app/extensions/extensions.dart';
+
+typedef CloseOverlayMenuCallback = void Function({bool animate});
 
 class OverlayMenu extends HookWidget {
   const OverlayMenu({

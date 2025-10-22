@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/overlay_menu/models/close_menu.dart';
+import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -92,10 +92,9 @@ class ProfileContextMenu extends HookConsumerWidget {
           onPressed: () {
             closeMenu();
             ShareViaMessageModalRoute(
-              eventReference: ReplaceableEventReference(
-                masterPubkey: pubkey,
-                kind: UserMetadataEntity.kind,
-              ).encode(),
+              eventReference:
+                  ReplaceableEventReference(masterPubkey: pubkey, kind: UserMetadataEntity.kind)
+                      .encode(),
             ).push<void>(context);
           },
         ),
@@ -135,10 +134,9 @@ class ProfileContextMenu extends HookConsumerWidget {
           onPressed: () {
             closeMenu();
             ShareViaMessageModalRoute(
-              eventReference: ReplaceableEventReference(
-                masterPubkey: pubkey,
-                kind: UserMetadataEntity.kind,
-              ).encode(),
+              eventReference:
+                  ReplaceableEventReference(masterPubkey: pubkey, kind: UserMetadataEntity.kind)
+                      .encode(),
             ).push<void>(context);
           },
         ),
@@ -151,10 +149,7 @@ class ProfileContextMenu extends HookConsumerWidget {
           onPressed: () {
             closeMenu();
             ref.read(reportNotifierProvider.notifier).report(
-                  ReportReason.user(
-                    text: context.i18n.report_user_description,
-                    pubkey: pubkey,
-                  ),
+                  ReportReason.user(text: context.i18n.report_user_description, pubkey: pubkey),
                 );
           },
         ),
