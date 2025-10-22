@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -28,22 +30,45 @@ Future<void> precachePictures(BuildContext context, Iterable<String> urls) async
 }
 
 Future<void> _precachePicture(BuildContext context, String url) async {
-  if (url.isSvg) {
-    final loader = url.isNetworkSvg ? SvgNetworkLoader(url) : SvgAssetLoader(url);
+  unawaited(
+    runZonedGuarded(
+      () async {
+        if (url.isSvg) {
+          final loader = url.isNetworkSvg ? SvgNetworkLoader(url) : SvgAssetLoader(url);
+          await svg.cache.putIfAbsent(
+            loader.cacheKey(null),
+            () => loader.loadBytes(null),
+          );
+        } else {
+          // For other image types, let the cache manager handle everything.
+          // .getSingleFile() will download the file if not cached, then return it.
+          // We don't need the file itself, just the action of caching.
 
-    await svg.cache.putIfAbsent(loader.cacheKey(null), () => loader.loadBytes(null));
-  } else {
-    // For other image types, let the cache manager handle everything.
-    // .getSingleFile() will download the file if not cached, then return it.
-    // We don't need the file itself, just the action of caching.
-    await PreCachePicturesCacheManager.instance.getSingleFile(url);
-    if (!context.mounted) return;
+          try {
+            await PreCachePicturesCacheManager.instance.getSingleFile(url);
+          } catch (e) {
+            Logger.warning('[Caught getSingleFile error] $url - Error: $e');
+          }
+          if (!context.mounted) return;
 
-    final imageProvider = CachedNetworkImageProvider(
-      url,
-      cacheManager: PreCachePicturesCacheManager.instance,
-      cacheKey: url,
-    );
-    await precacheImage(imageProvider, context);
-  }
+          final imageProvider = CachedNetworkImageProvider(
+            url,
+            cacheManager: PreCachePicturesCacheManager.instance,
+            cacheKey: url,
+          );
+          await precacheImage(
+            imageProvider,
+            context,
+            onError: (error, stackTrace) {
+              Logger.warning('[Suppressed image loading error] while loading $url - Error: $error');
+            },
+          );
+        }
+      },
+      (error, stack) {
+        // Suppress all errors from reaching Sentry's global handler
+        Logger.warning('[Suppressed precache error] while precaching $url - Error: $error, ');
+      },
+    ),
+  );
 }
