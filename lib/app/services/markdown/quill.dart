@@ -119,7 +119,7 @@ void _processMatches(Operation op, Delta processedDelta) {
     return;
   }
 
-  final textParser = TextParser.allMatchers();
+  final textParser = TextParser.tagsMatchers();
   final text = op.data.toString();
   final matches = textParser.parse(text);
 
@@ -134,7 +134,6 @@ void _processMatches(Operation op, Delta processedDelta) {
           ...switch (match.matcher) {
             HashtagMatcher() => {HashtagAttribute.attributeKey: match.text},
             CashtagMatcher() => {CashtagAttribute.attributeKey: match.text},
-            UrlMatcher() => {Attribute.link.key: match.text},
             _ => {},
           },
         },
