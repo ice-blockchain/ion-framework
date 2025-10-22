@@ -10,6 +10,7 @@ import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
 import 'package:ion/app/features/chat/providers/message_status_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reaction_dialog/message_reaction_dialog.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 
 import 'package:ion/generated/assets.gen.dart';
 
@@ -31,8 +32,24 @@ class SharedStoryWrapper extends HookConsumerWidget {
 
     final isMe = ref.watch(isCurrentUserSelectorProvider(sharedEntity.masterPubkey));
 
-    final sharedPostMessageStatus =
-        ref.watch(sharedPostMessageStatusProvider(sharedEntity)).valueOrNull;
+    final sharedPostMessageStatus = ref.watch(
+          sharedPostMessageStatusProvider(sharedEntity).select((value) {
+            final status = value.valueOrNull;
+
+            if (status != null) {
+              ListCachedObjects.updateObject<MessageStatusWithKey>(
+                context,
+                (key: sharedEntity.toEventReference().toString(), status: status),
+              );
+            }
+            return status;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<MessageStatusWithKey>(
+          context,
+          sharedEntity.toEventReference().toString(),
+        )?.status ??
+        MessageDeliveryStatus.sent;
 
     final showReactDialog = useCallback(
       () async {
@@ -44,8 +61,8 @@ class SharedStoryWrapper extends HookConsumerWidget {
             isMe: isMe,
             messageItem: messageItem,
             isSharedStory: true,
+            messageStatus: sharedPostMessageStatus,
             renderObject: messageItemKey.currentContext!.findRenderObject()!,
-            messageStatus: sharedPostMessageStatus ?? MessageDeliveryStatus.sent,
           ),
         );
       },

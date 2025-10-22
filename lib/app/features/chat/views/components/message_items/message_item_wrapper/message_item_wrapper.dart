@@ -17,6 +17,7 @@ import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/message_status_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reaction_dialog/message_reaction_dialog.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
@@ -57,16 +58,14 @@ class MessageItemWrapper extends HookConsumerWidget {
       [messageItem.eventMessage],
     );
 
-    final eventReference = entity.toEventReference();
+    final deliveryStatus = _getDeliveryStatus(
+      ref: ref,
+      entity: entity,
+      context: context,
+      messageItem: messageItem,
+    );
 
-    final deliveryStatus = messageItem is PostItem
-        ? ref.watch(sharedPostMessageStatusProvider(entity))
-        : ref.watch(
-            messageStatusProvider(eventReference)
-              ..selectAsync((status) => status == MessageDeliveryStatus.deleted),
-          );
-
-    if (deliveryStatus.valueOrNull == MessageDeliveryStatus.deleted) {
+    if (deliveryStatus == MessageDeliveryStatus.deleted) {
       return const SizedBox.shrink();
     }
 
@@ -81,7 +80,7 @@ class MessageItemWrapper extends HookConsumerWidget {
               isMe: isMe,
               messageItem: messageItem,
               isSharedPost: messageItem is PostItem,
-              messageStatus: deliveryStatus.valueOrNull ?? MessageDeliveryStatus.created,
+              messageStatus: deliveryStatus,
               renderObject: messageItemKey.currentContext!.findRenderObject()!,
             ),
           );
@@ -109,7 +108,7 @@ class MessageItemWrapper extends HookConsumerWidget {
           Logger.log('Error showing message reaction dialog:', error: e, stackTrace: st);
         }
       },
-      [messageItemKey, isMe, messageItem, deliveryStatus.valueOrNull],
+      [messageItemKey, isMe, messageItem, deliveryStatus],
     );
 
     return Padding(
@@ -147,7 +146,7 @@ class MessageItemWrapper extends HookConsumerWidget {
                   ),
                   child: child,
                 ),
-                if (deliveryStatus.valueOrNull == MessageDeliveryStatus.failed)
+                if (deliveryStatus == MessageDeliveryStatus.failed)
                   Row(
                     children: [
                       SizedBox(width: 6.0.s),
@@ -163,6 +162,36 @@ class MessageItemWrapper extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  MessageDeliveryStatus _getDeliveryStatus({
+    required WidgetRef ref,
+    required BuildContext context,
+    required ChatMessageInfoItem messageItem,
+    required ReplaceablePrivateDirectMessageEntity entity,
+  }) {
+    final eventReference = entity.toEventReference();
+    final provider = messageItem is PostItem
+        ? sharedPostMessageStatusProvider(entity)
+        : messageStatusProvider(eventReference);
+
+    return ref.watch(
+          provider.select((value) {
+            final status = value.valueOrNull;
+            if (status != null) {
+              ListCachedObjects.updateObject<MessageStatusWithKey>(
+                context,
+                (key: eventReference.toString(), status: status),
+              );
+            }
+            return status;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<MessageStatusWithKey>(
+          context,
+          eventReference.toString(),
+        )?.status ??
+        MessageDeliveryStatus.created;
   }
 }
 
