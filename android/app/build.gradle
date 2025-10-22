@@ -122,10 +122,10 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.6.2"
     
-    def banubaPESdkVersion = '1.2.15'
+    def banubaPESdkVersion = '1.2.21'
     implementation "com.banuba.sdk:pe-sdk:${banubaPESdkVersion}"
 
-    def banubaSdkVersion = '1.46.0'
+    def banubaSdkVersion = '1.48.1'
 
     implementation "com.banuba.sdk:ffmpeg:5.3.0"
     implementation "com.banuba.sdk:camera-sdk:${banubaSdkVersion}"
@@ -135,7 +135,6 @@ dependencies {
     implementation "com.banuba.sdk:ve-flow-sdk:${banubaSdkVersion}"
     implementation "com.banuba.sdk:ve-sdk:${banubaSdkVersion}"
     implementation "com.banuba.sdk:ve-ui-sdk:${banubaSdkVersion}"
-    implementation "com.banuba.sdk:ve-gallery-sdk:${banubaSdkVersion}"
     implementation "com.banuba.sdk:ve-effects-sdk:${banubaSdkVersion}"
     implementation "com.banuba.sdk:effect-player-adapter:${banubaSdkVersion}"
     implementation "com.banuba.sdk:ar-cloud:${banubaSdkVersion}"

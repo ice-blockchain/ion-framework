@@ -101,9 +101,7 @@ class BanubaService {
       {
         argVideoFilePath: filePath,
         argMaxVideoDurationMs: maxVideoDuration?.inMilliseconds,
-        // TODO: remove it after update android banuba sdk to 1.47.0
-        // For now it's crash app for android if the skip cover selection
-        argCoverSelectionEnabled: Platform.isAndroid || coverSelectionEnabled,
+        argCoverSelectionEnabled: coverSelectionEnabled,
       },
     );
 
