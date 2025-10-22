@@ -60,7 +60,14 @@ class PasskeysSigner {
     required Duration timeout,
   }) async {
     try {
-      return await future.timeout(timeout);
+      return await future.timeout(
+        timeout,
+        onTimeout: () {
+          throw TimeoutException(
+            'Passkey signer timed out after ${timeout.inSeconds} seconds',
+          );
+        },
+      );
     } on TimeoutException {
       throw const PasskeyValidationException();
     }
