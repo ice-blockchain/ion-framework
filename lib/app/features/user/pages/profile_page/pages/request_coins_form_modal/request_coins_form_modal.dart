@@ -54,7 +54,11 @@ class RequestCoinsFormModal extends HookConsumerWidget {
       ..displayErrors(requestCoinsSubmitNotifierProvider)
       ..listenSuccess(
         requestCoinsSubmitNotifierProvider,
-        (_) => ConversationRoute(receiverMasterPubkey: form.contactPubkey).go(context),
+        (_) {
+          if (context.mounted) {
+            ConversationRoute(receiverMasterPubkey: form.contactPubkey).go(context);
+          }
+        },
       );
 
     final isLoading = ref.watch(requestCoinsSubmitNotifierProvider).isLoading;

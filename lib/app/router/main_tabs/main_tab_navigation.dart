@@ -42,7 +42,7 @@ class MainTabNavigation extends HookWidget {
       canPop: !canPop.value && (tabHistory.value.length <= 1 || currentTab == TabItem.feed),
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop) {
-          if (Navigator.of(context).canPop()) {
+          if (Navigator.of(context).canPop() && context.mounted) {
             context.pop();
           } else {
             if (tabHistory.value.length > 1) {
