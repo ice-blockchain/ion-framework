@@ -105,7 +105,7 @@ class ShareTokenCreatorPage extends ConsumerWidget {
                                 ),
                                 child: Text(
                                   context.i18n.wallet_share_token_creator_live_status,
-                                  style: context.theme.appTextThemes.body?.copyWith(
+                                  style: context.theme.appTextThemes.body.copyWith(
                                     color: context.theme.appColors.onPrimaryAccent,
                                   ),
                                 ),
@@ -127,7 +127,7 @@ class ShareTokenCreatorPage extends ConsumerWidget {
                     children: [
                       Text(
                         context.i18n.wallet_share_token_creator_title,
-                        style: context.theme.appTextThemes.title?.copyWith(
+                        style: context.theme.appTextThemes.title.copyWith(
                           color: Colors.white,
                         ),
                         textAlign: TextAlign.center,
@@ -138,7 +138,7 @@ class ShareTokenCreatorPage extends ConsumerWidget {
                         child: Text(
                           context.i18n.wallet_share_token_creator_description,
                           textAlign: TextAlign.center,
-                          style: context.theme.appTextThemes.caption2?.copyWith(
+                          style: context.theme.appTextThemes.caption2.copyWith(
                             color: context.theme.appColors.attentionBlock,
                           ),
                         ),
@@ -152,7 +152,7 @@ class ShareTokenCreatorPage extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.max,
                       label: Text(
                         context.i18n.wallet_share_token_creator_button,
-                        style: context.theme.appTextThemes.body?.copyWith(
+                        style: context.theme.appTextThemes.body.copyWith(
                           color: context.theme.appColors.onPrimaryAccent,
                         ),
                       ),
