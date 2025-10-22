@@ -15,8 +15,6 @@ import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/core/providers/init_provider.r.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/core/views/pages/error_page.dart';
-import 'package:ion/app/features/force_update/providers/force_update_provider.r.dart';
-import 'package:ion/app/features/force_update/view/pages/app_update_modal.dart';
 import 'package:ion/app/features/push_notifications/providers/initial_notification_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_response_service.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -37,14 +35,8 @@ GoRouter goRouter(Ref ref) {
     redirect: (context, state) async {
       final initState = ref.read(initAppProvider);
       final isSplashAnimationCompleted = ref.read(splashProvider);
-      final forceUpdateRequired = ref.read(forceUpdateProvider).valueOrNull.falseOrValue;
-      final isOnSplash = state.matchedLocation.startsWith(SplashRoute().location);
       final isInitInProgress = initState.isLoading;
       final isInitError = initState.hasError;
-
-      if (forceUpdateRequired && !isOnSplash) {
-        ref.read(uiEventQueueNotifierProvider.notifier).emit(const ShowAppUpdateModalEvent());
-      }
 
       if (isInitError && !isInitInProgress) {
         Logger.log(

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/features/core/model/feature_flags.dart';
-import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'feature_flags_provider.r.g.dart';
@@ -21,12 +20,10 @@ class FeatureFlags extends _$FeatureFlags {
       TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled: false,
 
       /// Log flags
-      if (ref.watch(envProvider.notifier).get(EnvVariable.SHOW_DEBUG_INFO)) ...{
-        LoggerFeatureFlag.logApp: true,
-        LoggerFeatureFlag.logRouters: true,
-        LoggerFeatureFlag.logIonConnect: true,
-        LoggerFeatureFlag.logIonIdentityClient: true,
-      },
+      LoggerFeatureFlag.logApp: true,
+      LoggerFeatureFlag.logRouters: true,
+      LoggerFeatureFlag.logIonConnect: true,
+      LoggerFeatureFlag.logIonIdentityClient: true,
     };
   }
 
