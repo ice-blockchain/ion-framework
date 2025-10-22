@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:scrolls_to_top/scrolls_to_top.dart';
+import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top.dart';
 
 /// iOS-specific wrapper that enables scroll-to-top functionality when tapping the status bar.
 /// This mimics the native iOS behavior where tapping the status bar scrolls the primary

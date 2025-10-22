@@ -2532,14 +2532,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
-  scrolls_to_top:
-    dependency: "direct main"
-    description:
-      name: scrolls_to_top
-      sha256: "8d6684d936b9c1a19c19ee93c836251ae9c803023290762a30cb7657e88e272e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.1"
   sensors_plus:
     dependency: "direct main"
     description:
