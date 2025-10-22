@@ -73,15 +73,19 @@ class EventsManager {
 
         // Cache auth state for this batch
         final authState = ref.read(authProvider);
+        final isAuthenticated = authState.valueOrNull?.isAuthenticated ?? false;
 
         for (final eventMessage in batch) {
           print(
             'Processing event: ${eventMessage.id.substring(0, 5)}, queue size: ${_eventQueue.length}, batch size: $batchSize',
           );
 
+          if (!isAuthenticated) {
+            continue;
+          }
+
           final futures = _handlers.where((handler) {
-            return handler.canHandle(eventMessage) &&
-                (authState.valueOrNull?.isAuthenticated ?? false);
+            return handler.canHandle(eventMessage);
           }).map((handler) => handler.handle(eventMessage));
 
           await Future.wait(futures);
