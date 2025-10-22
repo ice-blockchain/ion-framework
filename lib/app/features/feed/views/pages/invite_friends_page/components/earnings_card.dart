@@ -11,40 +11,37 @@ class _EarningsCard extends StatelessWidget {
       child: Column(
         spacing: 8.0.s,
         children: [
-          Opacity(
-            opacity: 0.3,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 6.0.s,
-                  children: [
-                    Assets.svg.iconCreatecoinNewcoin.icon(
-                      size: 16.0.s,
-                      color: context.theme.appColors.sharkText,
-                    ),
-                    Text(
-                      context.i18n.invite_friends_earnings_title,
-                      style: context.theme.appTextThemes.subtitle3.copyWith(
-                        color: context.theme.appColors.sharkText,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  '0.00 ION',
-                  style: context.theme.appTextThemes.headline2.copyWith(
-                    color: context.theme.appColors.primaryText,
+          Column(
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 6.0.s,
+                children: [
+                  Assets.svg.iconCreatecoinNewcoin.icon(
+                    size: 16.0.s,
+                    color: context.theme.appColors.sharkText.withValues(alpha: 0.3),
                   ),
-                ),
-                Text(
-                  '~ 0.00 USD',
-                  style: context.theme.appTextThemes.caption2.copyWith(
-                    color: context.theme.appColors.secondaryText,
+                  Text(
+                    context.i18n.invite_friends_earnings_title,
+                    style: context.theme.appTextThemes.subtitle3.copyWith(
+                      color: context.theme.appColors.sharkText.withValues(alpha: 0.3),
+                    ),
                   ),
+                ],
+              ),
+              Text(
+                '0.00 ION',
+                style: context.theme.appTextThemes.headline2.copyWith(
+                  color: context.theme.appColors.primaryText.withValues(alpha: 0.3),
                 ),
-              ],
-            ),
+              ),
+              Text(
+                '~ 0.00 USD',
+                style: context.theme.appTextThemes.caption2.copyWith(
+                  color: context.theme.appColors.secondaryText.withValues(alpha: 0.3),
+                ),
+              ),
+            ],
           ),
           const _ComingSoon(),
         ],

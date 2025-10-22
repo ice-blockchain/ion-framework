@@ -3,7 +3,8 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -19,36 +20,14 @@ Future<UpdateUserSocialProfileResponse> updateUserSocialProfile(
   return ionIdentityClient.users.updateUserSocialProfile(data: data);
 }
 
-/// Retrieves a user's social profile data. Priority: masterPubkey > userId > current user.
-/// Throws Exception if no valid user identifier is found.
 @riverpod
-Future<UserSocialProfileData> getUserSocialProfile(
-  Ref ref, {
-  String? masterPubkey,
-  String? userId,
-}) async {
+Future<UserSocialProfileData> currentUserSocialProfile(Ref ref) async {
+  final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+
+  if (currentPubkey == null) {
+    throw UserMasterPubkeyNotFoundException();
+  }
+
   final ionIdentityClient = await ref.watch(ionIdentityClientProvider.future);
-
-  if (masterPubkey != null && masterPubkey.isNotEmpty) {
-    return ionIdentityClient.users.getUserSocialProfile(
-      userIdOrMasterKey: masterPubkey,
-    );
-  }
-
-  if (userId != null && userId.isNotEmpty) {
-    return ionIdentityClient.users.getUserSocialProfile(
-      userIdOrMasterKey: userId,
-    );
-  }
-
-  final userIdentity = ref.watch(currentUserIdentityProvider).valueOrNull;
-  final currentUserId = userIdentity?.userId;
-
-  if (currentUserId == null || currentUserId.isEmpty) {
-    throw const UserNotFoundException();
-  }
-
-  return ionIdentityClient.users.getUserSocialProfile(
-    userIdOrMasterKey: currentUserId,
-  );
+  return ionIdentityClient.users.getUserSocialProfile(userIdOrMasterKey: currentPubkey);
 }

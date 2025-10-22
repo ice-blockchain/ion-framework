@@ -45,11 +45,7 @@ class InviteFriendsPage extends HookConsumerWidget {
     final userMetadataValue = ref.watch(currentUserMetadataProvider).valueOrNull;
     final referralCode = userMetadataValue?.data.name;
 
-    final userSocialProfile = ref
-        .watch(
-          getUserSocialProfileProvider(masterPubkey: userMetadataValue?.masterPubkey),
-        )
-        .valueOrNull;
+    final userSocialProfile = ref.watch(currentUserSocialProfileProvider).valueOrNull;
 
     return Scaffold(
       backgroundColor: context.theme.appColors.secondaryBackground,
