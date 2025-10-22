@@ -334,8 +334,10 @@ class FeedBookmarkCollectionsNotifier extends _$FeedBookmarkCollectionsNotifier 
       [newCollectionData, updatedAllCollectionsData],
       actionSource: ActionSourceUser(currentPubkey),
     );
-    final bookmarksSetEntity =
-        data?.lastWhereOrNull((element) => element is BookmarksSetEntity) as BookmarksSetEntity?;
+    final bookmarksSetEntity = data?.firstWhereOrNull(
+      (entity) => entity is BookmarksSetEntity && entity.data.type == newCollectionData.type,
+    ) as BookmarksSetEntity?;
+
     if (bookmarksSetEntity != null) {
       await ref
           .read(
