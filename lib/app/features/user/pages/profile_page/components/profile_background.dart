@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:ion/app/extensions/extensions.dart';
 
 class ProfileBackground extends StatelessWidget {
   const ProfileBackground({

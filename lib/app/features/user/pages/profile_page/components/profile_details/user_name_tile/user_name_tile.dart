@@ -14,7 +14,9 @@ class UserNameTile extends ConsumerWidget {
   const UserNameTile({
     required this.pubkey,
     this.profileMode = ProfileMode.light,
-    this.textAlign = TextAlign.center,
+    this.showProfileTokenPrice = false,
+    this.mainAxisAlignment = MainAxisAlignment.center,
+    this.isDecoratedNichname = false,
     super.key,
   });
 
@@ -22,7 +24,9 @@ class UserNameTile extends ConsumerWidget {
 
   final String pubkey;
   final ProfileMode profileMode;
-  final TextAlign textAlign;
+  final bool showProfileTokenPrice;
+  final MainAxisAlignment mainAxisAlignment;
+  final bool isDecoratedNichname;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,14 +38,29 @@ class UserNameTile extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    final nichnameWidget = Text(
+      prefixUsername(
+        username: (!isNicknameProven)
+            ? '${userPreviewData.data.name} ${context.i18n.nickname_not_owned_suffix}'
+            : userPreviewData.data.name,
+        context: context,
+      ),
+      style: context.theme.appTextThemes.caption.copyWith(
+        color: profileMode == ProfileMode.dark
+            ? context.theme.appColors.secondaryBackground
+            : context.theme.appColors.quaternaryText,
+      ),
+      maxLines: 1,
+    );
+
     return Column(
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: mainAxisAlignment,
           children: [
             Flexible(
               child: Text(
-                textAlign: textAlign,
+                textAlign: TextAlign.center,
                 userPreviewData.data.trimmedDisplayName,
                 style: context.theme.appTextThemes.subtitle.copyWith(
                   color: profileMode == ProfileMode.dark
@@ -59,23 +78,26 @@ class UserNameTile extends ConsumerWidget {
         ),
         SizedBox(height: 3.0.s),
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: mainAxisAlignment,
           children: [
-            Text(
-              prefixUsername(
-                username: (!isNicknameProven)
-                    ? '${userPreviewData.data.name} ${context.i18n.nickname_not_owned_suffix}'
-                    : userPreviewData.data.name,
-                context: context,
+            if (isDecoratedNichname)
+              Container(
+                decoration: ShapeDecoration(
+                  color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.53.s),
+                  ),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 4.0.s,
+                    vertical: 2.0.s,
+                  ),
+                  child: nichnameWidget,
+                ),
               ),
-              style: context.theme.appTextThemes.caption.copyWith(
-                color: profileMode == ProfileMode.dark
-                    ? context.theme.appColors.secondaryBackground
-                    : context.theme.appColors.quaternaryText,
-              ),
-              maxLines: 1,
-            ),
-            if (profileMode == ProfileMode.dark)
+            if (!isDecoratedNichname) nichnameWidget,
+            if (showProfileTokenPrice)
               Padding(
                 padding: EdgeInsetsDirectional.only(start: 8.0.s),
                 child: const ProfileTokenPrice(),

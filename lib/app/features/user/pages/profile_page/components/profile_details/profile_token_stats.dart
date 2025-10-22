@@ -6,6 +6,50 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats_data.dart';
 import 'package:ion/generated/assets.gen.dart';
 
+class ProfileTokenStatsInfo extends StatelessWidget {
+  const ProfileTokenStatsInfo({
+    this.data,
+    super.key,
+  });
+
+  final ProfileTokenStatsData? data;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: ShapeDecoration(
+        color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.53.s),
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: 34.0.s,
+          vertical: 16.0.s,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _StatItem(
+              icon: Assets.svg.iconMemeMarketcap,
+              text: data!.marketCap,
+            ),
+            _StatItem(
+              icon: Assets.svg.iconMemeMarkers,
+              text: data!.price,
+            ),
+            _StatItem(
+              icon: Assets.svg.iconSearchGroups,
+              text: data!.volume,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class ProfileTokenStats extends StatelessWidget {
   const ProfileTokenStats({
     this.data,
