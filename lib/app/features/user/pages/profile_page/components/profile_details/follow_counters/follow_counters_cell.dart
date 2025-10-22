@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/follow_type.dart';
@@ -76,18 +74,12 @@ class FollowCountersCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () async {
+      onTap: () {
         if (usersNumber > 0) {
-          final pickedUserPubkey = await FollowListRoute(
+          FollowListRoute(
             pubkey: pubkey,
             followType: followType,
           ).push<String>(context);
-
-          if (pickedUserPubkey != null && context.mounted) {
-            unawaited(
-              ProfileRoute(pubkey: pickedUserPubkey).push<void>(context),
-            );
-          }
         }
       },
       child: Center(

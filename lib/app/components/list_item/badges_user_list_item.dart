@@ -70,7 +70,7 @@ class BadgesUserListItem extends ConsumerWidget {
               children: [
                 subtitle,
                 SizedBox(width: 4.0.s),
-                Text(context.i18n.nickname_not_owned_suffix),
+                Expanded(child: Text(context.i18n.nickname_not_owned_suffix)),
               ],
             ),
       leading: leading,
