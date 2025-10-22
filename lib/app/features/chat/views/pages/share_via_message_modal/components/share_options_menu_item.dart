@@ -24,22 +24,12 @@ class ShareOptionsMenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 70.0.s,
-      child: Column(
-        children: [
-          Button.icon(
-            type: buttonType,
-            onPressed: onPressed,
-            icon: icon,
-            borderColor: borderColor,
-          ),
-          SizedBox(height: 6.0.s),
-          Text(
-            label,
-            style: context.theme.appTextThemes.caption2,
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+      child: TextIconButton(
+        icon: icon,
+        label: label,
+        onPressed: onPressed,
+        type: buttonType,
+        borderColor: borderColor,
       ),
     );
   }

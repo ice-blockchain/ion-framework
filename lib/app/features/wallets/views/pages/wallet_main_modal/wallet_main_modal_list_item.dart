@@ -7,13 +7,15 @@ import 'package:ion/generated/assets.gen.dart';
 
 enum WalletMainModalListItem implements MainModalListItem {
   send,
-  receive;
+  receive,
+  swap;
 
   @override
   String getDisplayName(BuildContext context) {
     return switch (this) {
       WalletMainModalListItem.send => context.i18n.wallet_send,
       WalletMainModalListItem.receive => context.i18n.wallet_receive,
+      WalletMainModalListItem.swap => context.i18n.wallet_swap,
     };
   }
 
@@ -22,6 +24,7 @@ enum WalletMainModalListItem implements MainModalListItem {
     return switch (this) {
       WalletMainModalListItem.send => context.i18n.profile_send_option_desc,
       WalletMainModalListItem.receive => context.i18n.profile_request_option_desc,
+      WalletMainModalListItem.swap => context.i18n.wallet_swap_option_desc,
     };
   }
 
@@ -30,6 +33,7 @@ enum WalletMainModalListItem implements MainModalListItem {
     return switch (this) {
       WalletMainModalListItem.send => context.theme.appColors.orangePeel,
       WalletMainModalListItem.receive => context.theme.appColors.success,
+      WalletMainModalListItem.swap => context.theme.appColors.purple,
     };
   }
 
@@ -38,6 +42,7 @@ enum WalletMainModalListItem implements MainModalListItem {
     return switch (this) {
       WalletMainModalListItem.send => Assets.svg.iconButtonSend,
       WalletMainModalListItem.receive => Assets.svg.iconButtonReceive,
+      WalletMainModalListItem.swap => Assets.svg.iconamoonSwap,
     };
   }
 }

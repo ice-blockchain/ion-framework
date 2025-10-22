@@ -33,6 +33,7 @@ class BalanceVisibilityAction extends ConsumerWidget {
     }
 
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           context.i18n.wallet_balance,
@@ -41,7 +42,7 @@ class BalanceVisibilityAction extends ConsumerWidget {
         ),
         TextButton(
           child: Padding(
-            padding: EdgeInsets.all(hitSlop),
+            padding: EdgeInsets.symmetric(horizontal: hitSlop),
             child: iconAsset.icon(
               color: context.theme.appColors.secondaryText,
             ),
