@@ -44,6 +44,7 @@ class Post extends ConsumerWidget {
     this.accentTheme = false,
     this.isTextSelectable = false,
     this.showNotInterested = true,
+    this.network = true,
     this.bodyMaxLines = 6,
     this.contentWrapper,
     this.onVideoTap,
@@ -67,11 +68,13 @@ class Post extends ConsumerWidget {
   final Widget Function(Widget content)? contentWrapper;
   final OnVideoTapCallback? onVideoTap;
   final bool showNotInterested;
+  final bool network;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entity = ref.watch(
-          ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
+          ionConnectEntityWithCountersProvider(eventReference: eventReference, network: network)
+              .select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
               ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
@@ -138,6 +141,7 @@ class Post extends ConsumerWidget {
         header ??
             UserInfo(
               pubkey: eventReference.masterPubkey,
+              network: network,
               createdAt:
                   entity is ModifiablePostEntity ? entity.data.publishedAt.value : entity.createdAt,
               timeFormat: timeFormat,
@@ -366,6 +370,7 @@ final class _QuotedPost extends ConsumerWidget {
             eventReference: eventReference,
             displayQuote: false,
             header: UserInfo(
+              network: true,
               accentTheme: accentTheme,
               pubkey: eventReference.masterPubkey,
               padding: EdgeInsetsDirectional.only(

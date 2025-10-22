@@ -30,6 +30,7 @@ class ArticleListItem extends ConsumerWidget {
         child: Article(
           eventReference: eventReference,
           showNotInterested: showNotInterested,
+          network: false,
         ),
       ),
     );
