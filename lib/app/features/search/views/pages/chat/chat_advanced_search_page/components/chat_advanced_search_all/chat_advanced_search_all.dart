@@ -18,6 +18,8 @@ import 'package:ion/app/features/search/views/pages/chat/components/chat_no_resu
 import 'package:ion/app/features/search/views/pages/chat/components/chat_search_results_list_item.dart';
 import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
 
+final double chatAdvancedSearchItemHeight = 66.5.s;
+
 class ChatAdvancedSearchAll extends HookConsumerWidget {
   const ChatAdvancedSearchAll({required this.query, super.key});
 
@@ -71,7 +73,7 @@ class ChatAdvancedSearchAll extends HookConsumerWidget {
           SliverPadding(
             padding: EdgeInsets.symmetric(vertical: 12.0.s),
             sliver: SliverFixedExtentList(
-              itemExtent: 66.5.s, // Fixed height for search result items
+              itemExtent: chatAdvancedSearchItemHeight,
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   return Column(
