@@ -363,7 +363,11 @@ class GlobalSubscription {
 
       globalSubscriptionNotifier.subscribe(
         requestMessage,
-        onEndOfStoredEvents: completer.complete,
+        onEndOfStoredEvents: () {
+          if (!completer.isCompleted) {
+            completer.complete();
+          }
+        },
         onEvent: (event) => _handleEvent(event, eventSource: EventSource.subscription),
       );
       await completer.future;
