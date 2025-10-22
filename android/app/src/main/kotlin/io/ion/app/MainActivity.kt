@@ -6,6 +6,7 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.Log
 import android.util.Size
+import android.view.KeyEvent
 import androidx.core.os.bundleOf
 import androidx.lifecycle.lifecycleScope
 import com.banuba.sdk.core.EditorUtilityManager
@@ -77,8 +78,15 @@ class MainActivity : FlutterFragmentActivity() {
 
     private var banubaSdkChannel: MethodChannel? = null
 
+    private lateinit var volumeKeyChannel: MethodChannel
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        volumeKeyChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "audio_volume_channel"
+        )
 
         audioFocusHandler = AudioFocusHandler(applicationContext, flutterEngine)
 
@@ -197,13 +205,13 @@ class MainActivity : FlutterFragmentActivity() {
     // Observe export video results
     override fun onActivityResult(requestCode: Int, result: Int, intent: Intent?) {
         super.onActivityResult(requestCode, result, intent)
-        
+
         when (requestCode) {
             VIDEO_EDITOR_REQUEST_CODE -> handleVideoEditorResult(result, intent)
             PHOTO_EDITOR_REQUEST_CODE -> handlePhotoEditorResult(result, intent)
         }
     }
-    
+
     private fun handleVideoEditorResult(result: Int, intent: Intent?) {
         when (result) {
             RESULT_OK -> {
@@ -223,7 +231,7 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
     }
-    
+
     private fun handlePhotoEditorResult(result: Int, intent: Intent?) {
         when (result) {
             RESULT_OK -> {
@@ -236,12 +244,12 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
     }
-    
+
     private fun sendExportSuccess(data: Any?) {
         exportResult?.success(data)
         exportResult = null // Cleaning to avoid sending duplicates
     }
-    
+
     private fun sendExportError(code: String, message: String) {
         exportResult?.error(code, message, null)
         exportResult = null
@@ -395,7 +403,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         Log.d(TAG, "cleanUpFlutterEngine() called")
-        
+
         try {
             // Clean up AudioFocusHandler
             if (::audioFocusHandler.isInitialized) {
@@ -405,7 +413,7 @@ class MainActivity : FlutterFragmentActivity() {
                     Log.e(TAG, "Error cleaning up AudioFocusHandler", e)
                 }
             }
-            
+
             // Clean up MethodChannels
             try {
                 banubaSdkChannel?.setMethodCallHandler(null)
@@ -414,7 +422,7 @@ class MainActivity : FlutterFragmentActivity() {
             } catch (e: Exception) {
                 Log.e(TAG, "Error cleaning up MethodChannels", e)
             }
-            
+
             // Release video editor resources
             try {
                 releaseVideoEditorModule()
@@ -423,12 +431,12 @@ class MainActivity : FlutterFragmentActivity() {
             } catch (e: Exception) {
                 Log.e(TAG, "Error releasing video editor resources", e)
             }
-            
+
             // Clear any pending results
             if (exportResult != null) {
                 exportResult = null
             }
-            
+
             // Clean up editing file
             try {
                 cleanupCurrentEditingFile()
@@ -438,13 +446,13 @@ class MainActivity : FlutterFragmentActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Unexpected error during MainActivity cleanup", e)
         }
-        
+
         super.cleanUpFlutterEngine(flutterEngine)
     }
-    
+
     override fun onDestroy() {
         Log.d(TAG, "onDestroy() called")
-        
+
         try {
             // Call super.onDestroy() which triggers delegate.onDetach()
             // This is where plugins' onDetachedFromActivity() is called
@@ -459,6 +467,20 @@ class MainActivity : FlutterFragmentActivity() {
             // Note: Even catching here might not prevent the crash entirely,
             // but it logs the issue and may allow graceful degradation
         }
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            if (this::volumeKeyChannel.isInitialized) {
+                try {
+                    volumeKeyChannel.invokeMethod("onVolumeUp", null)
+                } catch (t: Throwable) {
+                    Log.w("MainActivity", "Failed to invoke onVolumeUp", t)
+                }
+            }
+            // Do not consume; let the system still change the volume
+        }
+        return super.dispatchKeyEvent(event)
     }
 
 
