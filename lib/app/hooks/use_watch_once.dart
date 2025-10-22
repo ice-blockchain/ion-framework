@@ -8,7 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 /// If [notNull] is true, the hook will ignore null values and wait for the first non-null value.
 T? useWatchOnce<T>(WidgetRef ref, ProviderListenable<T> provider, {bool notNull = true}) {
   final value = useState<T?>(null);
-  final hasValue = useRef(false);
+  final hasValue = useState(false);
 
   useEffect(
     () {
