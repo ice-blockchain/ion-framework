@@ -6,8 +6,9 @@ import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/avatar/default_avatar.dart';
 import 'package:ion/app/features/components/ion_connect_network_image/ion_connect_network_image.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/hooks/use_watch_once.dart';
 
-class IonConnectAvatar extends ConsumerWidget {
+class IonConnectAvatar extends HookConsumerWidget {
   const IonConnectAvatar({
     required this.size,
     required this.masterPubkey,
@@ -25,7 +26,10 @@ class IonConnectAvatar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final avatarUrl = ref.watch(
+    // Avatar from identity is always the full image and in relay's metadata we're using thumbnails.
+    // So taking the first value only to avoid fetching both original image and it's thumbnail.
+    final avatarUrl = useWatchOnce(
+      ref,
       userPreviewDataProvider(masterPubkey, network: false)
           .select((value) => value.valueOrNull?.data.avatarUrl),
     );
