@@ -132,6 +132,7 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
             }
 
             muxer = MediaMuxer(outputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+            muxer.setOrientationHint(metadata.rotation)
 
             val encoderConfig = createEncoderConfig(metadata, codec, quality)
             videoEncoder = createVideoEncoder(encoderConfig)
@@ -202,8 +203,8 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         quality: Double
     ): EncoderConfig {
         val isRotated = metadata.rotation == 90 || metadata.rotation == 270
-        val width = if (isRotated) metadata.height else metadata.width
-        val height = if (isRotated) metadata.width else metadata.height
+        val targetWidth = if (isRotated) metadata.height else metadata.width
+        val targetHeight = if (isRotated) metadata.width else metadata.height
 
         val outputMime = when (codec) {
             "h264" -> MediaFormat.MIMETYPE_VIDEO_AVC
@@ -211,20 +212,24 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
             else -> MediaFormat.MIMETYPE_VIDEO_AVC
         }
 
-        Log.d(TAG, "Encoder config: ${width}x${height}, codec=$codec, quality=$quality")
+        Log.d(TAG, "Encoder config: ${targetWidth}x${targetHeight}, codec=$codec, quality=$quality")
 
-        return EncoderConfig(width, height, outputMime, codec, quality)
+        return EncoderConfig(targetWidth, targetHeight, outputMime, codec, quality)
     }
 
     private fun createVideoEncoder(config: EncoderConfig): MediaCodec {
         val format = MediaFormat.createVideoFormat(config.mime, config.width, config.height)
 
-        format.setInteger(MediaFormat.KEY_BIT_RATE, calculateTargetBitrate(config.quality))
+        // Bitrate scaled by resolution and frame rate to avoid macroblocking on some chipsets
+        format.setInteger(
+            MediaFormat.KEY_BIT_RATE,
+            calculateTargetBitrate(config.width, config.height, DEFAULT_FRAME_RATE, config.quality)
+        )
         format.setInteger(MediaFormat.KEY_FRAME_RATE, DEFAULT_FRAME_RATE)
         format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, DEFAULT_I_FRAME_INTERVAL)
         format.setInteger(
             MediaFormat.KEY_COLOR_FORMAT,
-            MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible
+            MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
         )
 
         when (config.codec) {
@@ -267,14 +272,17 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         val codecInfo = codecList.codecInfos.find { it.name == encoderName } ?: return
         val capabilities = codecInfo.getCapabilitiesForType(mime)?.encoderCapabilities ?: return
 
+        val supportsVbr = capabilities.isBitrateModeSupported(MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR)
+        Log.d(TAG, "Encoder $encoderName bitrate modes: VBR=$supportsVbr, CBR=$supportsCbr, CQ=$supportsCq")
+
         val bitrateMode = when {
-            capabilities.isBitrateModeSupported(MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR) -> {
-                Log.d(TAG, "Using Variable Bitrate (VBR) mode")
+            supportsVbr -> {
+                Log.d(TAG, "Selecting Variable Bitrate (VBR) mode")
                 MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR
             }
 
             else -> {
-                Log.d(TAG, "Using Constant Bitrate (CBR) mode")
+                Log.d(TAG, "Selecting Constant Bitrate (CBR) mode")
                 MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR
             }
         }
@@ -423,10 +431,14 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         Log.d(TAG, "Audio track copied")
     }
 
-    private fun calculateTargetBitrate(quality: Double): Int {
-        val baseBitrate = 1_000_000
+    private fun calculateTargetBitrate(width: Int, height: Int, frameRate: Int, quality: Double): Int {
+        val bpp = 0.08 // bits per pixel for h264 balanced quality
         val qualityFactor = quality.coerceIn(0.5, 1.0)
-        return (baseBitrate * qualityFactor).toInt()
+        val bitrate = (width.toLong() * height.toLong() * frameRate * bpp * qualityFactor).toLong()
+        // Clamp between 1 Mbps and 10 Mbps for stability
+        val min = 1_000_000L
+        val max = 10_000_000L
+        return bitrate.coerceIn(min, max).toInt()
     }
 
     private data class VideoMetadata(
