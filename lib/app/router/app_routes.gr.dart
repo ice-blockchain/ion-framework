@@ -159,6 +159,7 @@ import 'package:ion/app/features/wallets/views/pages/receive_nft/components/shar
 import 'package:ion/app/features/wallets/views/pages/receive_nft/select_nft_network_page.dart';
 import 'package:ion/app/features/wallets/views/pages/send_nft_confirm.dart';
 import 'package:ion/app/features/wallets/views/pages/send_nft_form.dart';
+import 'package:ion/app/features/wallets/views/pages/share_token_creator/share_token_creator_page.dart';
 import 'package:ion/app/features/wallets/views/pages/transaction_details/explore_transaction_details_modal.dart';
 import 'package:ion/app/features/wallets/views/pages/transaction_details/transaction_details.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_main_modal/wallet_main_modal_page.dart';

@@ -9,9 +9,11 @@ class NavigationCloseButton extends StatelessWidget {
   const NavigationCloseButton({
     super.key,
     this.onPressed,
+    this.color,
   });
 
   final VoidCallback? onPressed;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +25,7 @@ class NavigationCloseButton extends StatelessWidget {
           vertical: UiConstants.hitSlop * 2,
         ),
         child: Assets.svg.iconSheetClose.icon(
-          color: context.theme.appColors.tertiaryText,
+          color: color ?? context.theme.appColors.tertiaryText,
         ),
       ),
     );

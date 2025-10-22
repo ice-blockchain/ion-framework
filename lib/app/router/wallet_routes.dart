@@ -38,6 +38,7 @@ class WalletRoutes {
         TypedGoRoute<ManageCoinsRoute>(path: 'manage-coins'),
         TypedGoRoute<ImportTokenRoute>(path: 'import-token'),
         TypedGoRoute<SelectNetworkForTokenRoute>(path: 'select-network'),
+        TypedGoRoute<ShareTokenCreatorRoute>(path: 'share-token-creator/:masterPubkey'),
       ],
     ),
     ...DappsRoutes.routes,
@@ -508,4 +509,14 @@ class ExploreTransactionDetailsRoute extends BaseRouteData with _$ExploreTransac
         );
 
   final String url;
+}
+
+class ShareTokenCreatorRoute extends BaseRouteData with _$ShareTokenCreatorRoute {
+  ShareTokenCreatorRoute({required this.masterPubkey})
+      : super(
+          child: ShareTokenCreatorPage(masterPubkey: masterPubkey),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String masterPubkey;
 }
