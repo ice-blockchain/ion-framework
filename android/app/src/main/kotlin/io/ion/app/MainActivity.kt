@@ -259,10 +259,8 @@ class MainActivity : FlutterFragmentActivity() {
     // You can use Map or JSON to pass custom data for your app.
     private fun preparePhotoExportData(result: Intent?): Map<String, Any?> {
         val photoUri = result?.getParcelableExtra(PhotoCreationActivity.EXTRA_EXPORTED) as? Uri
-        // Convert URI to file path to avoid file:// scheme issues with cache managers
-        val photoPath = photoUri?.path ?: photoUri?.toString()
         return mapOf(
-            ARG_EXPORTED_PHOTO_FILE to photoPath
+            ARG_EXPORTED_PHOTO_FILE to photoUri?.toString()
         )
     }
 
@@ -272,13 +270,13 @@ class MainActivity : FlutterFragmentActivity() {
         // First exported video file path is used to play video in this sample to demonstrate
         // the result of video export.
         // You can provide your custom logic.
-        // Convert URIs to file paths to avoid file:// scheme issues with cache managers
         val firstVideoFilePath = result.videoList[0].sourceUri.path ?: result.videoList[0].sourceUri.toString()
         val videoCoverImagePath = result.preview.path ?: result.preview.toString()
         val data = mapOf(
             ARG_EXPORTED_VIDEO_FILE to firstVideoFilePath,
             ARG_EXPORTED_VIDEO_COVER to videoCoverImagePath
         )
+
         return data
     }
 

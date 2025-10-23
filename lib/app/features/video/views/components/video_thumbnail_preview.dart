@@ -31,20 +31,20 @@ class VideoThumbnailPreview extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // If no thumbnail URL, show loading indicator
-    if (thumbnailUrl != null && thumbnailUrl!.isNotEmpty) {
+    if (thumbnailUrl case final thumbnailUrl? when thumbnailUrl.isNotEmpty) {
       // Wrap thumbnail with BlurHash background if available
       return BlurhashImageWrapper(
         blurhash: blurhash,
         aspectRatio: aspectRatio,
-        child: (isNetworkUrl(thumbnailUrl!))
+        child: (isNetworkUrl(thumbnailUrl))
             ? IonConnectNetworkImage(
-                imageUrl: thumbnailUrl!,
+                imageUrl: thumbnailUrl,
                 authorPubkey: authorPubkey ?? '',
                 fit: fit,
                 placeholder: (_, __) => _placeholder,
               )
             : Image.file(
-                File(thumbnailUrl!),
+                File(thumbnailUrl),
                 fit: fit,
                 errorBuilder: (context, error, stackTrace) => _placeholder,
               ),
