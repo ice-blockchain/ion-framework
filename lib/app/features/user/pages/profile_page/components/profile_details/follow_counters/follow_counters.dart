@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/follow_type.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
@@ -91,19 +92,18 @@ class FollowCounters extends ConsumerWidget {
         mainAxisSize: _mainAxisSize,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (bothAvailable)
-            _buildExpanded(
-              child: FollowCountersCell(
-                pubkey: pubkey,
-                usersNumber: followingNumber,
-                followType: FollowType.following,
-                profileMode: profileMode,
-              ),
-              isExpanded: profileMode != ProfileMode.dark,
-              isVisible: bothAvailable,
+          _cellWrapper(
+            child: FollowCountersCell(
+              pubkey: pubkey,
+              usersNumber: followingNumber ?? 0,
+              followType: FollowType.following,
+              profileMode: profileMode,
             ),
+            isExpanded: profileMode != ProfileMode.dark,
+            isLoading: isLoading,
+          ),
           _divider(context),
-          _buildExpanded(
+          _cellWrapper(
             child: FollowCountersCell(
               pubkey: pubkey,
               usersNumber: followersNumber ?? 0,
@@ -111,26 +111,70 @@ class FollowCounters extends ConsumerWidget {
               profileMode: profileMode,
             ),
             isExpanded: profileMode != ProfileMode.dark,
-            isVisible: bothAvailable,
+            isLoading: isLoading,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildExpanded({
+  Widget _cellWrapper({
     required Widget child,
     required bool isExpanded,
-    required bool isVisible,
+    bool isLoading = false,
   }) {
-    if (!isVisible) {
-      return const SizedBox.shrink();
-    }
+    final content = isLoading ? const _FollowCounterLoadingCell() : child;
+
     if (!isExpanded) {
-      return child;
+      return content;
     }
     return Expanded(
-      child: child,
+      child: content,
+    );
+  }
+}
+
+class _FollowCounterLoadingCell extends StatelessWidget {
+  const _FollowCounterLoadingCell();
+
+  @override
+  Widget build(BuildContext context) {
+    return Skeleton(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Icon placeholder
+          Container(
+            width: 16.0.s,
+            height: 16.0.s,
+            decoration: BoxDecoration(
+              color: context.theme.appColors.secondaryBackground,
+              borderRadius: BorderRadius.circular(2.0.s),
+            ),
+          ),
+          SizedBox(width: 4.0.s),
+          // Number placeholder
+          Container(
+            width: 24.0.s,
+            height: 16.0.s,
+            decoration: BoxDecoration(
+              color: context.theme.appColors.secondaryBackground,
+              borderRadius: BorderRadius.circular(4.0.s),
+            ),
+          ),
+          SizedBox(width: 4.0.s),
+          // Label placeholder
+          Container(
+            width: 40.0.s,
+            height: 16.0.s,
+            decoration: BoxDecoration(
+              color: context.theme.appColors.secondaryBackground,
+              borderRadius: BorderRadius.circular(4.0.s),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
