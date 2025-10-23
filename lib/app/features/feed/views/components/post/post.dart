@@ -45,6 +45,7 @@ class Post extends ConsumerWidget {
     this.isTextSelectable = false,
     this.showNotInterested = true,
     this.network = true,
+    this.cache = true,
     this.bodyMaxLines = 6,
     this.contentWrapper,
     this.onVideoTap,
@@ -69,12 +70,16 @@ class Post extends ConsumerWidget {
   final OnVideoTapCallback? onVideoTap;
   final bool showNotInterested;
   final bool network;
+  final bool cache;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entity = ref.watch(
-          ionConnectEntityWithCountersProvider(eventReference: eventReference, network: network)
-              .select((value) {
+          ionConnectEntityWithCountersProvider(
+            eventReference: eventReference,
+            network: network,
+            cache: cache,
+          ).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
               ListCachedObjects.updateObject<IonConnectEntity>(context, entity);

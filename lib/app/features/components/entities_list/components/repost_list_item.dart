@@ -74,12 +74,14 @@ class RepostListItem extends ConsumerWidget {
                 repostEventReference: eventReference,
                 onVideoTap: onVideoTap,
                 showNotInterested: showNotInterested,
+                cache: false,
               ),
             GenericRepostEntity() when repostEntity.data.kind == ModifiablePostEntity.kind => Post(
                 eventReference: repostEntity.data.eventReference,
                 repostEventReference: eventReference,
                 onVideoTap: onVideoTap,
                 showNotInterested: showNotInterested,
+                cache: false,
               ),
             GenericRepostEntity() when repostEntity.data.kind == ArticleEntity.kind => Padding(
                 padding: EdgeInsetsDirectional.symmetric(vertical: 12.0.s) +
@@ -88,6 +90,7 @@ class RepostListItem extends ConsumerWidget {
                   eventReference: repostEntity.data.eventReference,
                   addTrailingPadding: false,
                   showNotInterested: showNotInterested,
+                  cache: false,
                 ),
               ),
             _ => const SizedBox.shrink(),
