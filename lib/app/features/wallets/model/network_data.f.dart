@@ -49,6 +49,8 @@ class NetworkData with _$NetworkData {
   bool get isPolkadot => id == 'Polkadot' || id == 'Westends';
   bool get isCardano => id == 'Cardano' || id == 'CardanoPreprod';
   bool get isBitcoin => id == 'Bitcoin' || id == 'BitcoinSignet';
+  bool get isAptos => id == 'Aptos' || id == 'AptosTestnet';
+  bool get isSolana => id == 'Solana' || id == 'SolanaDevnet';
 
   String getExplorerUrl(String txHash) => explorerUrl.replaceAll('{txHash}', txHash);
 }

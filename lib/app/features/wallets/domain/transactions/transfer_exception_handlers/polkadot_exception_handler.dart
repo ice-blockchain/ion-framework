@@ -6,7 +6,12 @@ import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 
 class PolkadotExceptionHandler implements TransferExceptionHandler {
   @override
-  IONException? tryHandle(String? reason, CoinData coin) {
+  IONException? tryHandle(
+    String? reason,
+    CoinData coin, {
+    double? nativeTokenTotalBalance,
+    double? nativeTokenTransferAmount,
+  }) {
     if (!coin.network.isPolkadot) return null;
 
     return switch (reason) {
