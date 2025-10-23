@@ -18,13 +18,13 @@ Raw<Stream<EventMessage>> ionConnectEventsSubscription(
   ActionSource actionSource = const ActionSourceCurrentUser(),
   VoidCallback? onEndOfStoredEvents,
 }) {
-  final events = ref.watch(ionConnectNotifierProvider.notifier).requestEvents(
-    requestMessage,
-    actionSource: actionSource,
-    subscriptionBuilder: (requestMessage, relay) {
-      final subscription = relay.subscribe(requestMessage);
+  NostrRelay? subscriptionRelay;
+  NostrSubscription? subscription;
+
+  void unsubscribe() {
+    if (subscriptionRelay != null && subscription != null) {
       try {
-        ref.onDispose(() => relay.unsubscribe(subscription.id));
+        subscriptionRelay!.unsubscribe(subscription!.id);
       } catch (error, stackTrace) {
         SentryService.logException(error, stackTrace: stackTrace, tag: 'ion_connect_subscription');
         Logger.error(
@@ -33,10 +33,23 @@ Raw<Stream<EventMessage>> ionConnectEventsSubscription(
           message: 'Caught error during unsubscribing from relay',
         );
       }
-      return subscription.messages;
+    }
+  }
+
+  final events = ref.watch(ionConnectNotifierProvider.notifier).requestEvents(
+    requestMessage,
+    actionSource: actionSource,
+    subscriptionBuilder: (requestMessage, relay) {
+      unsubscribe();
+      subscriptionRelay = relay;
+      subscription = relay.subscribe(requestMessage);
+
+      return subscription!.messages;
     },
     onEose: onEndOfStoredEvents,
   );
+
+  ref.onDispose(unsubscribe);
 
   return events;
 }

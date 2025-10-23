@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:ui';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,86 +8,61 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_event_handler.dart';
-
-class EventsManagerConfig {
-  const EventsManagerConfig({
-    this.backgroundBatchSize = 3,
-    this.foregroundBatchSize = 15,
-  });
-
-  final int foregroundBatchSize;
-  final int backgroundBatchSize;
-}
+import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/queue.dart';
 
 class EventsManager {
   EventsManager(
     this.ref,
     List<GlobalSubscriptionEventHandler?> handlers, {
-    this.config = const EventsManagerConfig(),
-  }) : _handlers = handlers.whereType<GlobalSubscriptionEventHandler>().toList() {
+    int maxConcurrent = 10,
+  })  : _handlers = handlers.whereType<GlobalSubscriptionEventHandler>().toList(),
+        _taskQueue = ConcurrentTasksQueue(maxConcurrent: maxConcurrent) {
     _listenToAppLifecycle();
   }
 
   final Ref ref;
-  final EventsManagerConfig config;
+  final ConcurrentTasksQueue _taskQueue;
   final List<GlobalSubscriptionEventHandler> _handlers;
-  final Queue<EventMessage> _eventQueue = Queue<EventMessage>();
-
-  bool _isProcessing = false;
-  bool _isAppInForeground = true;
 
   void _listenToAppLifecycle() {
     ref.listen<AppLifecycleState>(
       appLifecycleProvider,
       (previous, next) {
-        if (next == AppLifecycleState.resumed) {
-          _isAppInForeground = true;
-        } else {
-          _isAppInForeground = false;
+        if (next != AppLifecycleState.resumed) {
+          _taskQueue.cancelAll();
         }
       },
     );
   }
 
-  int get _currentBatchSize =>
-      _isAppInForeground ? config.foregroundBatchSize : config.backgroundBatchSize;
-
   void dispatch(EventMessage eventMessage) {
-    _eventQueue.add(eventMessage);
-    _processQueue();
+    _taskQueue.add(() => _processEvent(eventMessage));
   }
 
-  Future<void> _processQueue() async {
-    if (_isProcessing) return;
-    _isProcessing = true;
+  Future<void> _processEvent(EventMessage eventMessage) async {
+    // Check auth state
+    final authState = ref.read(authProvider);
+    final isAuthenticated = authState.valueOrNull?.isAuthenticated ?? false;
 
-    try {
-      while (_eventQueue.isNotEmpty) {
-        final batchSize =
-            _eventQueue.length > _currentBatchSize ? _currentBatchSize : _eventQueue.length;
-        final batch = <EventMessage>[];
-        for (var i = 0; i < batchSize; i++) {
-          batch.add(_eventQueue.removeFirst());
-        }
-
-        // Cache auth state for this batch
-        final authState = ref.read(authProvider);
-        final isAuthenticated = authState.valueOrNull?.isAuthenticated ?? false;
-
-        for (final eventMessage in batch) {
-          if (!isAuthenticated) {
-            continue;
-          }
-
-          final futures = _handlers.where((handler) {
-            return handler.canHandle(eventMessage);
-          }).map((handler) => handler.handle(eventMessage));
-
-          await Future.wait(futures);
-        }
-      }
-    } finally {
-      _isProcessing = false;
+    if (!isAuthenticated) {
+      _taskQueue.cancelAll();
+      return;
     }
+
+    final futures =
+        _handlers.where((handler) => handler.canHandle(eventMessage)).map((handler) async {
+      try {
+        await handler.handle(eventMessage);
+      } catch (e, stack) {
+        Logger.error(
+          e,
+          message: 'Error handling event in events manager: $e',
+          stackTrace: stack,
+        );
+      }
+    });
+
+    await Future.wait(futures);
   }
 }

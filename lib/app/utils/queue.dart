@@ -16,6 +16,8 @@ class ConcurrentTasksQueue {
 
   final Queue<_Task<dynamic>> _queue = Queue<_Task<dynamic>>();
 
+  int get pendingTasksCount => _queue.length;
+
   Future<T> add<T extends dynamic>(Future<T> Function() task) {
     final completer = Completer<T>();
     _queue.add(_Task<T>(task, completer));

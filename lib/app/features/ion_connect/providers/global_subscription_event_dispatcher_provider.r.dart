@@ -26,7 +26,7 @@ class GlobalSubscriptionEventDispatcher {
   }
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 Future<GlobalSubscriptionEventDispatcher> globalSubscriptionEventDispatcherNotifier(
   Ref ref,
 ) async {
@@ -41,11 +41,7 @@ Future<GlobalSubscriptionEventDispatcher> globalSubscriptionEventDispatcherNotif
     ref.watch(badgeAwardHandlerProvider),
   ];
 
-  final eventsManager = EventsManager(
-    ref,
-    handlers,
-    config: const EventsManagerConfig(backgroundBatchSize: 1),
-  );
+  final eventsManager = EventsManager(ref, handlers);
 
   return GlobalSubscriptionEventDispatcher(ref, eventsManager);
 }
