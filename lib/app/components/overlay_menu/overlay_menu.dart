@@ -6,6 +6,8 @@ import 'package:ion/app/components/overlay_menu/hooks/use_hide_on_scroll.dart';
 import 'package:ion/app/components/overlay_menu/hooks/use_hide_on_tab_change.dart';
 import 'package:ion/app/extensions/extensions.dart';
 
+typedef CloseOverlayMenuCallback = void Function({bool animate});
+
 class OverlayMenu extends HookWidget {
   const OverlayMenu({
     required this.child,
@@ -17,7 +19,7 @@ class OverlayMenu extends HookWidget {
   });
 
   final Widget child;
-  final Widget Function(VoidCallback closeMenu) menuBuilder;
+  final Widget Function(CloseOverlayMenuCallback closeMenu) menuBuilder;
   final VoidCallback? onOpen;
   final VoidCallback? onClose;
   final ScrollController? scrollController;
@@ -37,12 +39,20 @@ class OverlayMenu extends HookWidget {
 
     useHideOnTabChange(context, overlayPortalController);
 
-    final hideMenu = useCallback(
-      () {
-        animationController.reverse().whenComplete(() {
+    final hideMenu = useMemoized(
+      () => ({bool animate = true}) {
+        if (!overlayPortalController.isShowing) return;
+
+        if (animate) {
+          animationController.reverse().whenComplete(() {
+            overlayPortalController.hide();
+            onClose?.call();
+          });
+        } else {
           overlayPortalController.hide();
           onClose?.call();
-        });
+          animationController.reset();
+        }
       },
       [overlayPortalController],
     );
