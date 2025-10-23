@@ -2,7 +2,6 @@
 
 import 'dart:io';
 
-import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
@@ -11,7 +10,7 @@ import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
-import 'package:ion/app/utils/directory.dart';
+import 'package:ion/app/utils/database_isolate.dart';
 import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -27,16 +26,10 @@ Future<IonConnectCacheService> ionConnectPersistentCacheService(Ref ref) async {
       ? ref.watch(envProvider.notifier).get<String>(EnvVariable.FOUNDATION_APP_GROUP)
       : null;
 
-  final executor = appGroup == null
-      ? driftDatabase(name: databaseName)
-      : driftDatabase(
-          name: databaseName,
-          native: DriftNativeOptions(
-            databasePath: () async =>
-                getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroup),
-            shareAcrossIsolates: true,
-          ),
-        );
+  final executor = createDatabaseExecutorWithManualIsolate(
+    databaseName: databaseName,
+    appGroupId: appGroup,
+  );
 
   final database = IONConnectCacheDatabase(executor);
   final cacheService = IonConnectCacheServiceDriftImpl(db: database);

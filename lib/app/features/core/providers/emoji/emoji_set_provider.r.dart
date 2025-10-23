@@ -2,9 +2,9 @@
 
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/chat/services/shared_chat_isolate.dart';
 import 'package:ion/app/features/core/model/emoji/emoji_group.f.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -15,7 +15,7 @@ part 'emoji_set_provider.r.g.dart';
 Future<List<EmojiGroup>> emojiGroups(Ref ref) async {
   final data = await rootBundle.loadString(Assets.emojiDataSets.emojisByGroup);
 
-  return compute(
+  return sharedChatIsolate(
     (data) {
       final jsonData = jsonDecode(data) as List<dynamic>;
       return jsonData.map((group) => EmojiGroup.fromJson(group as Map<String, dynamic>)).toList();

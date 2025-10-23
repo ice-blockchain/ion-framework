@@ -12,4 +12,5 @@ final sharedCoreIsolate = IsolateManager.createShared(
   workerMappings: {
     ionConnectSignatureVerifierFn: 'ionConnectSignatureVerifierFn',
   },
+  isDebug: true,
 );
