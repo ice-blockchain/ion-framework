@@ -264,7 +264,9 @@ class PasskeyCancelledException extends IONIdentityException {
 
     final msg = (message ?? '').toLowerCase();
     return msg.contains('cancel') && msg.contains('user') ||
-        msg.contains('ui') && msg.contains('interrupted');
+        msg.contains('ui') && msg.contains('interrupted') ||
+        // that is passkey flow is canceled because user failed to pass biometry but it is required by the system
+        msg.contains('biometry is required');
   }
 }
 
