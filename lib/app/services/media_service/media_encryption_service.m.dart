@@ -11,7 +11,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/chat/services/shared_chat_isolate.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/model/mime_type.dart';
-import 'package:ion/app/features/core/providers/ion_connect_media_url_fallback_provider.r.dart';
+import 'package:ion/app/features/core/providers/ion_connect_media_url_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/services/compressors/brotli_compressor.r.dart';
 import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
@@ -29,13 +29,14 @@ class MediaEncryptionService {
   MediaEncryptionService({
     required this.fileCacheService,
     required this.brotliCompressor,
+    required this.getMediaUrl,
     required this.generateMediaUrlFallback,
   });
 
   final FileCacheService fileCacheService;
   final BrotliCompressor brotliCompressor;
-  final Future<String?> Function(String url, {required String authorPubkey})
-      generateMediaUrlFallback;
+  final String Function(String url) getMediaUrl;
+  final Future<bool> Function(String url, {required String authorPubkey}) generateMediaUrlFallback;
 
   Future<File> retrieveEncryptedMedia(
     MediaAttachment attachment, {
@@ -121,22 +122,18 @@ class MediaEncryptionService {
   Future<File> _downloadFile(
     String url, {
     required String authorPubkey,
-    bool withFallback = true,
   }) async {
     try {
-      return await fileCacheService.getFile(url);
+      final mediaUrl = getMediaUrl(url);
+      return await fileCacheService.getFile(mediaUrl);
     } catch (error) {
-      if (!withFallback) {
-        rethrow;
-      }
+      final generated = await generateMediaUrlFallback(url, authorPubkey: authorPubkey);
 
-      final fallbackUrl = await generateMediaUrlFallback(url, authorPubkey: authorPubkey);
-
-      if (fallbackUrl == null) {
+      if (!generated) {
         throw FailedToGenerateMediaUrlFallback();
       }
 
-      return _downloadFile(fallbackUrl, authorPubkey: authorPubkey, withFallback: false);
+      return _downloadFile(url, authorPubkey: authorPubkey);
     }
   }
 }
@@ -145,8 +142,10 @@ class MediaEncryptionService {
 MediaEncryptionService mediaEncryptionService(Ref ref) => MediaEncryptionService(
       fileCacheService: ref.read(ionConnectFileCacheServiceProvider),
       brotliCompressor: ref.read(brotliCompressorProvider),
-      generateMediaUrlFallback:
-          ref.read(iONConnectMediaUrlFallbackProvider.notifier).generateFallback,
+      getMediaUrl: (String url) => ref.read(ionConnectMediaUrlProvider(url)),
+      generateMediaUrlFallback: (String url, {required String authorPubkey}) => ref
+          .read(ionConnectMediaUrlProvider(url).notifier)
+          .generateFallback(authorPubkey: authorPubkey),
     );
 
 @freezed

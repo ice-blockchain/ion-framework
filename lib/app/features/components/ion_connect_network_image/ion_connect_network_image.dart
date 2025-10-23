@@ -6,7 +6,8 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/image/ion_network_image.dart';
-import 'package:ion/app/features/core/providers/ion_connect_media_url_fallback_provider.r.dart';
+import 'package:ion/app/features/core/providers/ion_connect_media_url_provider.r.dart';
+import 'package:ion/app/services/file_cache/ion_cache_manager.dart';
 
 class IonConnectNetworkImage extends HookConsumerWidget {
   IonConnectNetworkImage({
@@ -53,11 +54,10 @@ class IonConnectNetworkImage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sourcePath = ref
-        .watch(iONConnectMediaUrlFallbackProvider.select((state) => state[imageUrl] ?? imageUrl));
+    final sourcePath = ref.watch(ionConnectMediaUrlProvider(imageUrl));
 
-    // Using the image path as a cache key because it’s a unique identifier for media that may be hosted on different relays or CDN.
-    final cacheKey = useMemoized(() => Uri.tryParse(imageUrl)?.path ?? imageUrl, [imageUrl]);
+    final cacheKey =
+        useMemoized(() => IONCacheManager.getCacheKeyFromIonUrl(sourcePath), [sourcePath]);
 
     return IonNetworkImage(
       imageUrl: sourcePath,
@@ -76,10 +76,9 @@ class IonConnectNetworkImage extends HookConsumerWidget {
       borderRadius: borderRadius,
       errorListener: (_) {
         if (ref.context.mounted) {
-          ref.read(iONConnectMediaUrlFallbackProvider.notifier).generateFallback(
-                imageUrl,
-                authorPubkey: authorPubkey,
-              );
+          ref
+              .read(ionConnectMediaUrlProvider(imageUrl).notifier)
+              .generateFallback(authorPubkey: authorPubkey);
         }
       },
     );

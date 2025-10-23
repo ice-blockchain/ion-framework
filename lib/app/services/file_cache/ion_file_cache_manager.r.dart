@@ -16,7 +16,7 @@ CacheManager ionFileCacheManager(Ref ref) => IONCacheManager.instance;
 @Riverpod(keepAlive: true)
 FileCacheService ionConnectFileCacheService(Ref ref) => FileCacheService(
       ref.watch(ionFileCacheManagerProvider),
-      cacheKeyBuilder: (url) => Uri.tryParse(url)?.path ?? url,
+      cacheKeyBuilder: IONCacheManager.getCacheKeyFromIonUrl,
     );
 
 class FileCacheService {

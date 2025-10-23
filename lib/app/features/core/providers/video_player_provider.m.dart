@@ -15,8 +15,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/bool.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/core/providers/ion_connect_media_url_fallback_provider.r.dart';
+import 'package:ion/app/features/core/providers/ion_connect_media_url_provider.r.dart';
 import 'package:ion/app/features/core/providers/mute_provider.r.dart';
+import 'package:ion/app/services/file_cache/ion_cache_manager.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -87,10 +88,7 @@ class VideoController extends _$VideoController {
 
   @override
   Future<Raw<VideoPlayerController>> build(VideoControllerParams params) async {
-    final sourcePath = ref.watch(
-      iONConnectMediaUrlFallbackProvider
-          .select((state) => state[params.sourcePath] ?? params.sourcePath),
-    );
+    final sourcePath = ref.watch(ionConnectMediaUrlProvider(params.sourcePath));
 
     // Cancellation signal for in-flight initialization (scroll off / dispose / refresh).
     final cancelInit = Completer<void>();
@@ -222,8 +220,8 @@ class VideoController extends _$VideoController {
       final authorPubkey = params.authorPubkey;
       if (error.dataSourceType == DataSourceType.network && authorPubkey != null) {
         await ref
-            .watch(iONConnectMediaUrlFallbackProvider.notifier)
-            .generateFallback(params.sourcePath, authorPubkey: authorPubkey);
+            .watch(ionConnectMediaUrlProvider(params.sourcePath).notifier)
+            .generateFallback(authorPubkey: authorPubkey);
       }
       rethrow;
     }
@@ -367,13 +365,7 @@ class VideoPlayerControllerFactory {
   }
 
   static String _cacheKeyFor(String input) {
-    try {
-      final u = Uri.parse(input);
-      return u.path;
-    } catch (_) {
-      // On parse issues, fall back to the original string.
-      return input;
-    }
+    return IONCacheManager.getCacheKeyFromIonUrl(input);
   }
 }
 

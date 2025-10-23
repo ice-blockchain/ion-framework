@@ -19,6 +19,12 @@ class IONCacheManager {
       fileService: HttpFileService(),
     ),
   );
+
+  // Using the media path as a cache key because it’s a unique identifier for media
+  // that may be hosted on different relays or CDN.
+  static String getCacheKeyFromIonUrl(String url) {
+    return Uri.tryParse(url)?.path ?? url;
+  }
 }
 
 class IONFileSystem implements FileSystem {
