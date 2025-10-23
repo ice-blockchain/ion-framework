@@ -56,7 +56,10 @@ class WalletNftsViewModel {
 
   NftsState _filterNfts(List<NftData> nfts, String query, Set<String> selectedNetworks) {
     final filteredNfts = nfts
-        .where((nft) => nft.symbol.toLowerCase().contains(query))
+        .where(
+          (nft) =>
+              nft.symbol.toLowerCase().contains(query) || nft.name.toLowerCase().contains(query),
+        )
         .where((nft) => selectedNetworks.isEmpty || selectedNetworks.contains(nft.network.id))
         .toList();
 
