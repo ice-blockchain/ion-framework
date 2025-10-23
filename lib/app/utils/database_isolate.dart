@@ -49,25 +49,32 @@ Future<DriftIsolate> _createIsolate(
   String dbPath,
   DatabaseSetup? setupCallback,
 ) async {
-  final receiverPost = ReceivePort();
-  await sharedCoreIsolate(
-    (message) async {
-      final server = DriftIsolate.inCurrent(() {
-        return LazyDatabase(() async {
-          final database = NativeDatabase(
-            File(dbPath),
-            setup: setupCallback,
-          );
-          return database;
+  final receiverPort = ReceivePort();
+
+  try {
+    await sharedCoreIsolate(
+      (message) async {
+        final server = DriftIsolate.inCurrent(() {
+          return LazyDatabase(() async {
+            return NativeDatabase(
+              File(dbPath),
+              setup: setupCallback,
+            );
+          });
         });
-      });
+        message.send(server);
+      },
+      receiverPort.sendPort,
+    );
 
-      message.send(server);
-    },
-    receiverPost.sendPort,
-  );
+    final server = await receiverPort.first;
 
-  final server = await receiverPost.first as DriftIsolate;
-  receiverPost.close();
-  return server;
+    if (server is! DriftIsolate) {
+      throw StateError('Expected DriftIsolate but got ${server.runtimeType}');
+    }
+
+    return server;
+  } finally {
+    receiverPort.close();
+  }
 }
