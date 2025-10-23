@@ -12,6 +12,7 @@ import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:path/path.dart' as path;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:uri_to_file/uri_to_file.dart';
 
 part 'banuba_service.r.g.dart';
 
@@ -68,12 +69,8 @@ class BanubaService {
         }
 
         if (Platform.isAndroid) {
-          final photoPath = exportedPhotoFilePath as String;
-          // Convert file:// URI to file path if needed
-          final photoFilePath =
-              photoPath.startsWith('file://') ? Uri.parse(photoPath).toFilePath() : photoPath;
-
-          return photoFilePath;
+          final file = await toFile(exportedPhotoFilePath as String);
+          return file.path;
         }
 
         return exportedPhotoFilePath as String;
