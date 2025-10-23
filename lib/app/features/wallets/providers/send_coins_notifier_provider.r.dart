@@ -15,6 +15,7 @@ import 'package:ion/app/features/wallets/domain/coins/coins_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/send_transaction_to_relay_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/transfer_exception_factory.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
+import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
@@ -54,7 +55,8 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       final form = ref.read(sendAssetFormControllerProvider);
 
       final coinAssetData = _extractCoinAssetData(form);
-      final (senderWallet, sendableAsset) = _validateFormComponents(form, coinAssetData);
+      final (senderWallet, sendableAsset, selectedOption) =
+          _validateFormComponents(form, coinAssetData);
 
       final walletView = await ref.read(currentWalletViewDataProvider.future);
 
@@ -75,13 +77,13 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       final nativeTokenTotalBalance =
           walletView.coins.firstWhereOrNull((coin) => coin.coin.id == nativeCoin?.id);
 
-      final isTransferringNativeToken = coinAssetData.selectedOption!.coin.native;
+      final isTransferringNativeToken = selectedOption.coin.native;
       final transferNativeTokenAmount = isTransferringNativeToken ? coinAssetData.amount : 0.0;
 
       _validateTransactionResult(
         result: result,
+        coin: selectedOption.coin,
         coinAssetData: coinAssetData,
-        coin: coinAssetData.selectedOption!.coin,
         transferNativeTokenAmount: transferNativeTokenAmount,
         nativeTokenTotalBalance: nativeTokenTotalBalance?.amount,
       );
@@ -159,12 +161,17 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
     return form.assetData as CoinAssetToSendData;
   }
 
-  (Wallet senderWallet, WalletAsset sendableAsset) _validateFormComponents(
+  (
+    Wallet senderWallet,
+    WalletAsset sendableAsset,
+    CoinInWalletData selectedOption,
+  ) _validateFormComponents(
     SendAssetFormData form,
     CoinAssetToSendData coinAssetData,
   ) {
     final senderWallet = form.senderWallet;
     final sendableAsset = coinAssetData.associatedAssetWithSelectedOption;
+    final selectedOption = coinAssetData.selectedOption;
 
     if (senderWallet == null) {
       final error = FormException('Sender wallet is required', formName: _formName);
@@ -178,7 +185,13 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       throw error;
     }
 
-    return (senderWallet, sendableAsset);
+    if (selectedOption == null) {
+      final error = FormException('Selected option is required', formName: _formName);
+      Logger.error(error, message: 'Cannot send coins: selectedOption is missing');
+      throw error;
+    }
+
+    return (senderWallet, sendableAsset, selectedOption);
   }
 
   Future<TransferResult> _executeCoinTransfer({
@@ -237,9 +250,9 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
   void _validateTransactionResult({
     required CoinData coin,
     required TransferResult result,
-    required double? nativeTokenTotalBalance,
     required double transferNativeTokenAmount,
     required CoinAssetToSendData coinAssetData,
+    double? nativeTokenTotalBalance,
   }) {
     if (result.status == TransactionStatus.rejected || result.status == TransactionStatus.failed) {
       throw TransferExceptionFactory.create(
