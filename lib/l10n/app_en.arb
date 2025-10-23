@@ -978,7 +978,7 @@
   "wallet_more": "More",
   "wallet_swap_coming_soon": "Swapping currency will be available soon",
   "wallet_buy_coming_soon": "Buying currency will be available soon",
-  "wallet_sell_coming_soon": "Selling currency will be available soon"
+  "wallet_sell_coming_soon": "Selling currency will be available soon",
   "error_solana_invalid_recipient_title": "Invalid recipient",
   "error_solana_invalid_recipient_description": "The recipient's address may be invalid, expired, or the amount may be too small for the account to exist.",
   "error_solana_insufficient_balance_title": "Transaction blocked",
