@@ -23,5 +23,4 @@ final sharedChatIsolate = IsolateManager.createShared(
     compressBrotliFn: 'compressBrotliFn',
     decompressBrotliFn: 'decompressBrotliFn',
   },
-  isDebug: true,
 );
