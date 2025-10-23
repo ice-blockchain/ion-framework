@@ -49,8 +49,8 @@ String ionConnectCdnUrl(Ref ref, String url) {
   if (config == null) return url;
   try {
     final cdnBase = Uri.parse(config.cdnBaseUrl);
-    final source = Uri.parse(url);
-    return cdnBase.resolve(source.path).toString();
+    final filePath = Uri.parse(url).pathSegments.last;
+    return cdnBase.replace(pathSegments: [...cdnBase.pathSegments, filePath]).toString();
   } catch (error, stackTrace) {
     Logger.error(error, stackTrace: stackTrace, message: 'Failed to use CDN URL for $url');
     return url;
