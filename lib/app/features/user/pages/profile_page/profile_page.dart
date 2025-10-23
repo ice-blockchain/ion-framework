@@ -186,16 +186,19 @@ class ProfilePage extends HookConsumerWidget {
                                     ],
                                   ),
                                   SizedBox(
-                                      height: profileMode == ProfileMode.dark ? 9.0.s : 16.0.s),
+                                    height: profileMode == ProfileMode.dark ? 9.0.s : 16.0.s,
+                                  ),
                                   ProfileDetails(
                                     pubkey: masterPubkey,
                                     profileMode: profileMode,
                                   ),
                                   SizedBox(
-                                      height: profileMode == ProfileMode.dark ? 5.0.s : 16.0.s),
+                                    height: profileMode == ProfileMode.dark ? 5.0.s : 16.0.s,
+                                  ),
                                   if (profileMode != ProfileMode.dark) const HorizontalSeparator(),
                                   SizedBox(
-                                      height: profileMode == ProfileMode.dark ? 9.0.s : 16.0.s),
+                                    height: profileMode == ProfileMode.dark ? 9.0.s : 16.0.s,
+                                  ),
                                 ],
                               ),
                             ],
