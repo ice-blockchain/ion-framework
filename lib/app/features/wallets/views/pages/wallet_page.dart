@@ -86,8 +86,10 @@ class WalletPage extends HookConsumerWidget {
             SliverToBoxAdapter(
               child: Column(
                 children: [
-                  const SectionSeparator(),
-                  const WalletCarousel(),
+                  if (tokenizedCommunitiesEnabled) ...[
+                    const SectionSeparator(),
+                    const WalletCarousel(),
+                  ],
                   const FriendsList(),
                   WalletTabsHeader(
                     activeTab: activeTab.value,
