@@ -43,16 +43,6 @@ class ProfileUserInfo extends ConsumerWidget {
           pubkey: pubkey,
           profileMode: profileMode,
         ),
-        Container(
-          margin: EdgeInsetsDirectional.symmetric(vertical: 12.5.s),
-          height: 0.5,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0x00ffffff), Color(0xffe1eaf8), Color(0x00ffffff)],
-            ),
-          ),
-        ),
-        if (profileMode == ProfileMode.dark) ProfileTokenStats(data: ProfileTokenStatsData.mock()),
       ],
     );
 
@@ -66,7 +56,21 @@ class ProfileUserInfo extends ConsumerWidget {
             borderRadius: BorderRadius.circular(12.53.s),
           ),
         ),
-        child: info,
+        child: Column(
+          children: [
+            info,
+            Container(
+              margin: EdgeInsetsDirectional.symmetric(vertical: 12.5.s),
+              height: 0.5,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0x00ffffff), Color(0xffe1eaf8), Color(0x00ffffff)],
+                ),
+              ),
+            ),
+            ProfileTokenStats(data: ProfileTokenStatsData.mock()),
+          ],
+        ),
       );
     }
 
