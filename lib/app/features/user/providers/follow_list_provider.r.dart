@@ -61,9 +61,9 @@ Future<List<String>> currentUserFollowListWithMetadata(
 }) async {
   final allFollowedPeople = await ref.watch(currentUserFollowListProvider.future);
 
-  final followeList = allFollowedPeople?.data.list;
+  final followedList = allFollowedPeople?.data.list;
 
-  final followedPeople = (hasLimit ? followeList?.take(limit) : followeList) ?? [];
+  final followedPeople = (hasLimit ? followedList?.take(limit) : followedList) ?? [];
 
   final masterPubkeys = followedPeople.map((follow) => follow.pubkey).toList();
 
