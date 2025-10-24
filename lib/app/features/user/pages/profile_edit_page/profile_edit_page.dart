@@ -9,6 +9,7 @@ import 'package:ion/app/components/screen_offset/screen_top_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/components/text_editor/components/suggestions_container.dart';
 import 'package:ion/app/components/text_editor/text_editor.dart';
+import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/views/components/user_data_inputs/bio_rich_text_input.dart';
@@ -111,9 +112,14 @@ class ProfileEditPage extends HookConsumerWidget {
                               BioRichTextInput(
                                 textEditorKey: textEditorKey,
                                 initialValue: userMetadata.data.about,
-                                onChanged: (text) => update(
-                                  draftRef.value.copyWith(about: text.trim().isEmpty ? null : text),
-                                ),
+                                onChanged: (text) {
+                                  final trimmedText = QuillTextUtils.trimDeltaJson(text);
+
+                                  return update(
+                                    draftRef.value
+                                        .copyWith(about: text.trim().isEmpty ? null : trimmedText),
+                                  );
+                                },
                               ),
                               SuggestionsContainer(
                                 scrollController: scrollController,
