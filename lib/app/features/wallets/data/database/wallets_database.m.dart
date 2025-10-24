@@ -3,7 +3,6 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -21,7 +20,7 @@ import 'package:ion/app/features/wallets/data/database/tables/sync_coins_table.d
 import 'package:ion/app/features/wallets/data/database/tables/transaction_visibility_status_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transactions_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.steps.dart';
-import 'package:ion/app/utils/directory.dart';
+import 'package:ion/app/utils/database_isolate.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'wallets_database.m.g.dart';
@@ -74,25 +73,12 @@ class WalletsDatabase extends _$WalletsDatabase {
 
   /// Opens a connection to the database with the given pubkey
   /// Uses app group container for iOS extensions if appGroupId is provided
+  /// Runs on a manually created isolate using the shared core isolate
   static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
-    final databaseName = 'wallets_database_$pubkey';
-    if (appGroupId == null) {
-      return driftDatabase(
-        name: databaseName,
-        native: DriftNativeOptions(
-          setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
-        ),
-      );
-    }
-
-    return driftDatabase(
-      name: databaseName,
-      native: DriftNativeOptions(
-        databasePath: () async =>
-            getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroupId),
-        shareAcrossIsolates: true,
-        setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
-      ),
+    return createDatabaseExecutorWithManualIsolate(
+      databaseName: 'wallets_database_$pubkey',
+      appGroupId: appGroupId,
+      setupCallback: (database) => database.execute(DatabaseConstants.journalModeWAL),
     );
   }
 

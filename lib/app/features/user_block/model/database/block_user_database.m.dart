@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -13,6 +12,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user_block/extensions/event_message.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
 import 'package:ion/app/features/user_block/providers/blocked_users_database_provider.r.dart';
+import 'package:ion/app/utils/database_isolate.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'block_user_database.m.g.dart';
@@ -37,11 +37,9 @@ class BlockUserDatabase extends _$BlockUserDatabase {
   int get schemaVersion => 1;
 
   static QueryExecutor _openConnection(String pubkey) {
-    return driftDatabase(
-      name: 'block_user_database_$pubkey',
-      native: DriftNativeOptions(
-        setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
-      ),
+    return createDatabaseExecutorWithManualIsolate(
+      databaseName: 'block_user_database_$pubkey',
+      setupCallback: (database) => database.execute(DatabaseConstants.journalModeWAL),
     );
   }
 }

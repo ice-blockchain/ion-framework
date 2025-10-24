@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -17,6 +16,7 @@ import 'package:ion/app/features/feed/notifications/data/database/tables/subscri
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/utils/database_isolate.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'notifications_database.m.g.dart';
@@ -263,11 +263,9 @@ class NotificationsDatabase extends _$NotificationsDatabase {
   }
 
   static QueryExecutor _openConnection(String pubkey) {
-    return driftDatabase(
-      name: 'notifications_database_$pubkey',
-      native: DriftNativeOptions(
-        setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
-      ),
+    return createDatabaseExecutorWithManualIsolate(
+      databaseName: 'notifications_database_$pubkey',
+      setupCallback: (database) => database.execute(DatabaseConstants.journalModeWAL),
     );
   }
 }
