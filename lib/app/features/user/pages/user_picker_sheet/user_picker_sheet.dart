@@ -25,6 +25,7 @@ class UserPickerSheet extends HookConsumerWidget {
     this.selectable = false,
     this.controlPrivacy = false,
     this.selectedPubkeys = const [],
+    this.hasLimit = true,
   });
 
   final NavigationAppBar navigationBar;
@@ -34,6 +35,7 @@ class UserPickerSheet extends HookConsumerWidget {
   final Duration? expirationDuration;
   final DatabaseCacheStrategy? cacheStrategy;
   final void Function(String masterPubkey) onUserSelected;
+  final bool hasLimit;
 
   final Widget? header;
   final Widget? footer;
@@ -84,6 +86,7 @@ class UserPickerSheet extends HookConsumerWidget {
             onUserSelected: onUserSelected,
             controlChatPrivacy: controlPrivacy,
             selectedPubkeys: selectedPubkeys,
+            hasLimit: hasLimit,
           )
         else
           SearchedUsers(
