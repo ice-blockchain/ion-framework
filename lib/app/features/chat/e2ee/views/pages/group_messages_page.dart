@@ -91,7 +91,7 @@ class _Header extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entity = ReplaceablePrivateDirectMessageData.fromEventMessage(lastMessage);
     final groupImageFile = useFuture(
-      ref.watch(mediaEncryptionServiceProvider).retrieveEncryptedMedia(
+      ref.watch(mediaEncryptionServiceProvider).getEncryptedMedia(
             entity.primaryMedia!,
             authorPubkey: lastMessage.masterPubkey,
           ),

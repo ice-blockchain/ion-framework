@@ -420,7 +420,7 @@ class IonConnectPushDataPayload {
           final thumbMedia = message.data.media.values.firstWhereOrNull(
             (media) => media.url == imageMedia.thumb,
           );
-          final decryptedMedia = await mediaEncryptionService.retrieveEncryptedMedia(
+          final decryptedMedia = await mediaEncryptionService.getEncryptedMedia(
             thumbMedia ?? imageMedia,
             authorPubkey: message.pubkey,
           );
