@@ -201,6 +201,8 @@
   "restore_identity_invalid_creds_alert_title": "Invalid credentials",
   "restore_identity_invalid_creds_alert_description": "Please ensure that you have entered the correct information.",
   "discover_creators_description": "Connect with visionaries and inspiring voices",
+  "creator_token_is_live": "Creator token is live",
+  "hodl_for": "HODL for {time}",
   "feed_invite_friends_title": "Invite Friends",
   "feed_invite_friends_subtitle": "Grow and earn rewards",
   "feed_invite_friends_button": "Invite",

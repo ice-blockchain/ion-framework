@@ -2,16 +2,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/utils/num.dart';
 
 class ProfileTokenPrice extends StatelessWidget {
   const ProfileTokenPrice({
+    required this.amount,
     super.key,
   });
+
+  final double amount;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 37.0.s,
       padding: const EdgeInsets.symmetric(horizontal: 4),
       decoration: ShapeDecoration(
         color: context.theme.appColors.secondaryBackground,
@@ -19,23 +22,13 @@ class ProfileTokenPrice extends StatelessWidget {
           borderRadius: BorderRadius.circular(6.0.s),
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: double.infinity,
-            child: Text(
-              //TODO replace mock data
-              r'$0,15',
-              textAlign: TextAlign.center,
-              style: context.theme.appTextThemes.caption3.copyWith(
-                color: context.theme.appColors.primaryText,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
+      child: Text(
+        formatToCurrency(amount),
+        textAlign: TextAlign.center,
+        style: context.theme.appTextThemes.caption3.copyWith(
+          color: context.theme.appColors.primaryText,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

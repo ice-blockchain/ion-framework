@@ -1,12 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/views/components/pump_ion/pump_ion_bought.dart';
+import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
-
-enum ProfileChartType {
-  raising,
-  falling,
-}
 
 class ProfileChart extends StatelessWidget {
   const ProfileChart({
@@ -25,11 +22,16 @@ class ProfileChart extends StatelessWidget {
       ProfileChartType.falling => const Color(0xFFFF396E),
     };
 
+    final symbol = switch (type) {
+      ProfileChartType.raising => r'+$',
+      ProfileChartType.falling => r'-$',
+    };
+
     return Container(
       decoration: ShapeDecoration(
         color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.53.s),
+          borderRadius: BorderRadius.circular(6.0.s),
         ),
       ),
       child: Padding(
@@ -38,20 +40,18 @@ class ProfileChart extends StatelessWidget {
           children: [
             SvgPicture.asset(
               Assets.svg.iconChartLine,
-              width: 24.0.s,
-              height: 24.0.s,
+              width: 14.0.s,
+              height: 14.0.s,
               colorFilter: ColorFilter.mode(
                 color,
                 BlendMode.srcIn,
               ),
             ),
             SizedBox(width: 4.0.s),
-            Expanded(
-              child: Text(
-                amount.toString(),
-                style: context.theme.appTextThemes.body2.copyWith(
-                  color: color,
-                ),
+            Text(
+              formatToCurrency(amount, symbol),
+              style: context.theme.appTextThemes.body2.copyWith(
+                color: color,
               ),
             ),
           ],

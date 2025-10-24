@@ -161,6 +161,39 @@ String formatDetailedTimestamp(DateTime dateTime, {Locale? locale}) {
   return dateFormat.format(localDateTime);
 }
 
+/// Returns a compact HODL duration string for a start [DateTime].
+///
+/// Examples:
+/// - 1 hour 23 minutes -> "1h23m"
+/// - 3 days 4 hours -> "3d4h"
+/// - 45 minutes -> "45m"
+///
+/// If [start] is in the future, returns "0m".
+String formatCompactHodlSince(DateTime start) {
+  final now = DateTime.now();
+  final diff = now.difference(start.toLocal());
+
+  if (diff.isNegative) return '0m';
+
+  final days = diff.inDays;
+  final hours = diff.inHours.remainder(24);
+  final minutes = diff.inMinutes.remainder(60);
+
+  if (days > 0) {
+    if (hours > 0) return '${days}d${hours}h';
+    return '${days}d';
+  }
+
+  if (hours > 0) {
+    if (minutes > 0) return '${hours}h${minutes}m';
+    return '${hours}h';
+  }
+
+  if (minutes > 0) return '${minutes}m';
+
+  return '0m';
+}
+
 bool isSameDay(DateTime date1, DateTime date2) {
   return date1.year == date2.year && date1.month == date2.month && date1.day == date2.day;
 }

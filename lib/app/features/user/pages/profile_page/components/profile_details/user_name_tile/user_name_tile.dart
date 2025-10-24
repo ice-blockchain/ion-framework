@@ -60,7 +60,7 @@ class UserNameTile extends ConsumerWidget {
           children: [
             Flexible(
               child: Text(
-                textAlign: TextAlign.center,
+                textAlign: isDecoratedNichname ? TextAlign.left : TextAlign.center,
                 userPreviewData.data.trimmedDisplayName,
                 style: context.theme.appTextThemes.subtitle.copyWith(
                   color: profileMode == ProfileMode.dark
@@ -85,7 +85,7 @@ class UserNameTile extends ConsumerWidget {
                 decoration: ShapeDecoration(
                   color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.53.s),
+                    borderRadius: BorderRadius.circular(6.0.s),
                   ),
                 ),
                 child: Padding(
@@ -100,7 +100,10 @@ class UserNameTile extends ConsumerWidget {
             if (showProfileTokenPrice)
               Padding(
                 padding: EdgeInsetsDirectional.only(start: 8.0.s),
-                child: const ProfileTokenPrice(),
+                child: const ProfileTokenPrice(
+                  //TODO: replace mock data
+                  amount: 0.14,
+                ),
               ),
           ],
         ),
