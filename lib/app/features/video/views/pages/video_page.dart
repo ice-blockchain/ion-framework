@@ -201,13 +201,17 @@ class _VideoPlayerWidget extends HookConsumerWidget {
       child: Stack(
         children: [
           if (controller.value.aspectRatio < 1)
+            // For vertical videos: fill the available height and crop left/right (BoxFit.cover),
+            // so the video occupies the full screen height without letterboxing.
             SizedBox.expand(
-              child: FittedBox(
-                fit: BoxFit.fitWidth,
-                child: SizedBox(
-                  width: controller.value.size.width,
-                  height: controller.value.size.height,
-                  child: VideoPlayer(controller),
+              child: ClipRect(
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: controller.value.size.width,
+                    height: controller.value.size.height,
+                    child: VideoPlayer(controller),
+                  ),
                 ),
               ),
             )
