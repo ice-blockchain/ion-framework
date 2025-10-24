@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/button/follow_button.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/build_context.dart';
@@ -45,12 +44,6 @@ class CreatorListItem extends ConsumerWidget {
         contentPadding: EdgeInsets.all(12.0.s),
         borderRadius: BorderRadius.circular(16.0.s),
         trailing: FollowUserButton(pubkey: masterPubkey, follower: selected),
-        // trailing: FollowButton(
-        //   onPressed: onPressed, 
-        //   isFollowing: selected,
-        //   style: FollowButtonStyle(),
-        //   styleWhenFollowing: FollowButtonStyle(),  
-        // ),
         trailingPadding: EdgeInsetsDirectional.only(start: 6.0.s),
       ),
     );

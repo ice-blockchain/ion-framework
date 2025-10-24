@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class FollowButton extends StatelessWidget {
+class FollowButton extends HookWidget {
   const FollowButton({
     required this.onPressed,
     required this.isFollowing,
-    // required this.style,
-    // required this.styleWhenFollowing,
     required this.decoration,
     required this.decorationWhenFollowing,
     this.visibility = FollowButtonVisibility.always,
@@ -18,7 +17,7 @@ class FollowButton extends StatelessWidget {
     super.key,
   });
 
-  final VoidCallback onPressed;
+  final Future<void> Function()? onPressed;
 
   final bool isFollowing;
 
@@ -32,14 +31,33 @@ class FollowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isKeptVisible = useState<bool>(false);
+    final isDisabled = useState<bool>(false);
+
+    if (visibility == FollowButtonVisibility.keepUntilRefresh) {
+      if (isFollowing && !isKeptVisible.value) {
+        return const SizedBox.shrink();
+      }
+    }
+
     final effectiveDecoration = isFollowing ? decorationWhenFollowing : decoration;
 
+    Future<void> handlePressed() async {
+      if (visibility == FollowButtonVisibility.keepUntilRefresh) {
+        isKeptVisible.value = true;
+      }
+      isDisabled.value = true;
+      await onPressed?.call();
+      isDisabled.value = false;
+    }
+
     return AnimatedContainer(
-      duration: Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 250),
       padding: effectiveDecoration.contentPadding,
       decoration: effectiveDecoration,
+      alignment: Alignment.center,
       child: TextButton(
-        onPressed: onPressed,
+        onPressed: isDisabled.value ? null : handlePressed,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -59,7 +77,7 @@ class FollowButton extends StatelessWidget {
                       : context.theme.appColors.secondaryBackground,
                 ),
               ),
-            ]
+            ],
           ],
         ),
       ),
@@ -68,10 +86,6 @@ class FollowButton extends StatelessWidget {
 }
 
 class FollowButtonDecoration extends BoxDecoration {
-  final Color foregroundColor;
-  final EdgeInsetsGeometry contentPadding;
-  final bool showLabel;
-
   FollowButtonDecoration({
     required this.foregroundColor,
     EdgeInsetsGeometry? contentPadding,
@@ -79,8 +93,11 @@ class FollowButtonDecoration extends BoxDecoration {
     super.color,
     super.border,
     super.borderRadius,
-  }) : this.contentPadding =
-            contentPadding ?? EdgeInsets.symmetric(horizontal: 14.0.s, vertical: 4.0.s);
+  }) : contentPadding = contentPadding ?? EdgeInsets.symmetric(horizontal: 14.0.s, vertical: 4.0.s);
+
+  final Color foregroundColor;
+  final EdgeInsetsGeometry contentPadding;
+  final bool showLabel;
 }
 
 class FollowButtonStyle extends ButtonStyle {
@@ -107,5 +124,5 @@ class FollowButtonStyle extends ButtonStyle {
 
 enum FollowButtonVisibility {
   always,
-  keepUntilRestart,
+  keepUntilRefresh,
 }

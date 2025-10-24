@@ -56,16 +56,16 @@ class FollowUserButton extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16.0.s),
         border: Border.all(color: context.theme.appColors.primaryAccent),
       ),  
-      onPressed: () {
+      onPressed: () async {
         if (following) {
-          showSimpleBottomSheet<void>(
+          await showSimpleBottomSheet<void>(
             context: context,
             child: UnfollowUserModal(
               pubkey: pubkey,
             ),
           );
         } else {
-          ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
+          await ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
         }
       },
       isFollowing: following,
