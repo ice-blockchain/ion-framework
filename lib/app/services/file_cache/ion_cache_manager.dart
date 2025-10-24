@@ -3,6 +3,7 @@
 import 'package:file/file.dart' hide FileSystem;
 import 'package:file/local.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:ion/app/utils/url.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -23,7 +24,11 @@ class IONCacheManager {
   // Using the media path as a cache key because it’s a unique identifier for media
   // that may be hosted on different relays or CDN.
   static String getCacheKeyFromIonUrl(String url) {
-    return Uri.tryParse(url)?.path ?? url;
+    if (!isIonMediaUrl(url)) {
+      return url;
+    }
+
+    return Uri.tryParse(url)?.pathSegments.lastOrNull ?? url;
   }
 }
 
