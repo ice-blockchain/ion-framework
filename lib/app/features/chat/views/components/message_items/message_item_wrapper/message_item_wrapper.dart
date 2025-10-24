@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
@@ -16,6 +17,8 @@ import 'package:ion/app/features/chat/model/message_list_item.f.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/message_status_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/providers/selected_reply_message_provider.r.dart';
+import 'package:ion/app/features/chat/views/components/message_items/message_item_wrapper/swipeable_message.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reaction_dialog/message_reaction_dialog.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -111,52 +114,62 @@ class MessageItemWrapper extends HookConsumerWidget {
       [messageItemKey, isMe, messageItem, deliveryStatus],
     );
 
-    return Padding(
-      padding: margin ?? EdgeInsets.zero,
-      child: Align(
-        alignment: isMe ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
-        child: GestureDetector(
-          onLongPress: () {
-            HapticFeedback.mediumImpact();
-            showReactDialog();
-          },
-          child: RepaintBoundary(
-            key: messageItemKey,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: contentPadding,
-                  constraints: BoxConstraints(
-                    maxWidth: maxWidth,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isMe
-                        ? context.theme.appColors.primaryAccent
-                        : context.theme.appColors.onPrimaryAccent,
-                    borderRadius: BorderRadiusDirectional.only(
-                      topStart: Radius.circular(12.0.s),
-                      topEnd: Radius.circular(12.0.s),
-                      bottomStart:
-                          !isLastMessageFromAuthor || isMe ? Radius.circular(12.0.s) : Radius.zero,
-                      bottomEnd: isMe && isLastMessageFromAuthor && (messageItem is! PostItem)
-                          ? Radius.zero
-                          : Radius.circular(12.0.s),
-                    ),
-                  ),
-                  child: child,
-                ),
-                if (deliveryStatus == MessageDeliveryStatus.failed)
-                  Row(
-                    children: [
-                      SizedBox(width: 6.0.s),
-                      Assets.svg.iconMessageFailed.icon(
-                        color: context.theme.appColors.attentionRed,
-                        size: 16.0.s,
+    return SwipeableMessage(
+      enabled: deliveryStatus != MessageDeliveryStatus.failed,
+      onSwipeToReply: () {
+        ref.read(selectedReplyMessageProvider.notifier).selectedReplyMessage = messageItem;
+      },
+      accentTheme: isMe,
+      child: ScreenSideOffset.small(
+        child: Padding(
+          padding: margin ?? EdgeInsets.zero,
+          child: Align(
+            alignment: isMe ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+            child: GestureDetector(
+              onLongPress: () {
+                HapticFeedback.mediumImpact();
+                showReactDialog();
+              },
+              child: RepaintBoundary(
+                key: messageItemKey,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: contentPadding,
+                      constraints: BoxConstraints(
+                        maxWidth: maxWidth,
                       ),
-                    ],
-                  ),
-              ],
+                      decoration: BoxDecoration(
+                        color: isMe
+                            ? context.theme.appColors.primaryAccent
+                            : context.theme.appColors.onPrimaryAccent,
+                        borderRadius: BorderRadiusDirectional.only(
+                          topStart: Radius.circular(12.0.s),
+                          topEnd: Radius.circular(12.0.s),
+                          bottomStart: !isLastMessageFromAuthor || isMe
+                              ? Radius.circular(12.0.s)
+                              : Radius.zero,
+                          bottomEnd: isMe && isLastMessageFromAuthor && (messageItem is! PostItem)
+                              ? Radius.zero
+                              : Radius.circular(12.0.s),
+                        ),
+                      ),
+                      child: child,
+                    ),
+                    if (deliveryStatus == MessageDeliveryStatus.failed)
+                      Row(
+                        children: [
+                          SizedBox(width: 6.0.s),
+                          Assets.svg.iconMessageFailed.icon(
+                            color: context.theme.appColors.attentionRed,
+                            size: 16.0.s,
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
