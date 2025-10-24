@@ -61,8 +61,8 @@ class _UploadDialog extends HookConsumerWidget {
     final showCheckbox = shownOnce;
 
     ref
-      ..listenError(uploadDeviceKeypairNotifierProvider, (_) => context.pop())
-      ..listenSuccess(uploadDeviceKeypairNotifierProvider, (_) => context.pop());
+      ..listenError(uploadDeviceKeypairNotifierProvider, (_) => _popIfMounted(context))
+      ..listenSuccess(uploadDeviceKeypairNotifierProvider, (_) => _popIfMounted(context));
 
     return _DeviceKeypairDialogContent(
       icon: Assets.svg.actionchatsynckey.icon(size: _iconSize.s),
@@ -117,8 +117,8 @@ class _RestoreDialog extends HookConsumerWidget {
     final showCheckbox = shownOnce;
 
     ref
-      ..listenError(restoreDeviceKeypairNotifierProvider, (_) => context.pop())
-      ..listenSuccess(restoreDeviceKeypairNotifierProvider, (_) => context.pop());
+      ..listenError(restoreDeviceKeypairNotifierProvider, (_) => _popIfMounted(context))
+      ..listenSuccess(restoreDeviceKeypairNotifierProvider, (_) => _popIfMounted(context));
 
     return _DeviceKeypairDialogContent(
       icon: Assets.svg.actionchatrestorekey.icon(size: _iconSize.s),
@@ -153,6 +153,12 @@ class _RestoreDialog extends HookConsumerWidget {
         );
       },
     );
+  }
+}
+
+void _popIfMounted(BuildContext context) {
+  if (context.mounted) {
+    context.pop();
   }
 }
 

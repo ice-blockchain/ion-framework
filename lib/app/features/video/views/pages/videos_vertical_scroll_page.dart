@@ -136,7 +136,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
         void listener() {
           if (userPageController.offset < -150 ||
               (userPageController.offset > userPageController.position.maxScrollExtent + 150)) {
-            if (context.canPop() && !hasMore) {
+            if (context.canPop() && !hasMore && context.mounted) {
               context.pop();
             }
           }
@@ -182,7 +182,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
                       eventReference: currentEventReference.value,
                       iconColor: secondaryBackgroundColor,
                       onDelete: () {
-                        if (context.canPop()) {
+                        if (context.canPop() && context.mounted) {
                           context.pop();
                         }
                       },

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -44,7 +45,14 @@ class NftsRepository {
         return _merge(nft, json.decode(cachedJson) as Map<String, dynamic>);
       }
 
-      final response = await _dio.get<Map<String, dynamic>>(nft.tokenUri).timeout(_networkTimeout);
+      final response = await _dio.get<Map<String, dynamic>>(nft.tokenUri).timeout(
+        _networkTimeout,
+        onTimeout: () {
+          throw TimeoutException(
+            'Getting NFT extras timed out after ${_networkTimeout.inSeconds} seconds',
+          );
+        },
+      );
       final data = response.data;
       if (response.statusCode != 200 || data == null) {
         return nft; // fail soft, return base NFT

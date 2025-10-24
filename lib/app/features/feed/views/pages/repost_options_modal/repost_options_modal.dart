@@ -74,9 +74,11 @@ class RepostOptionsModal extends HookConsumerWidget {
                               eventReference.encode(),
                             );
                             if (context.mounted) {
-                              WidgetsBinding.instance.addPostFrameCallback(
-                                (_) => context.pop(),
-                              );
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (context.mounted) {
+                                  context.pop();
+                                }
+                              });
                             }
 
                           case RepostOptionAction.undoRepost:

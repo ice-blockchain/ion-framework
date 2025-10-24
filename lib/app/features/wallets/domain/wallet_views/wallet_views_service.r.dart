@@ -294,10 +294,17 @@ class WalletViewsService {
       ({error}) async {
         return _identity.wallets
             .getWalletView(
-              walletViewId,
-              paginationToken: paginationToken,
-            )
-            .timeout(const Duration(seconds: 15));
+          walletViewId,
+          paginationToken: paginationToken,
+        )
+            .timeout(
+          const Duration(seconds: 15),
+          onTimeout: () {
+            throw TimeoutException(
+              'Getting wallet view page timed out after 15 seconds',
+            );
+          },
+        );
       },
       maxRetries: 3,
       initialDelay: const Duration(milliseconds: 200),
