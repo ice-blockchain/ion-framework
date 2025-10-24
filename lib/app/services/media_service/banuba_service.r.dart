@@ -10,6 +10,7 @@ import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/utils/url.dart';
 import 'package:path/path.dart' as path;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uri_to_file/uri_to_file.dart';
@@ -113,8 +114,8 @@ class BanubaService {
 
       // Convert file:// URIs to file paths on Android
       if (Platform.isAndroid) {
-        newPath = newPath.startsWith('file://') ? Uri.parse(newPath).toFilePath() : newPath;
-        thumb = thumb.startsWith('file://') ? Uri.parse(thumb).toFilePath() : thumb;
+        newPath = fileUriToPath(newPath);
+        thumb = fileUriToPath(thumb);
       }
 
       return (newPath: newPath, thumb: thumb);
