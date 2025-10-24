@@ -7,13 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
-import 'package:ion/app/features/core/providers/ion_connect_media_url_fallback_provider.r.dart';
+import 'package:ion/app/features/core/providers/ion_connect_media_url_provider.r.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/stories/providers/story_feed_prefetch_registry_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_image_loading_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_video_controller_provider.m.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
+import 'package:ion/app/services/file_cache/ion_cache_manager.dart';
 import 'package:ion/app/services/logger/logger.dart';
 
 void usePreloadStoryMedia(
@@ -79,7 +80,7 @@ Future<void> preloadStoryMedia({
 
   if (media.mediaType == MediaType.image) {
     final cacheManager = ref.read(storyImageCacheManagerProvider);
-    final resolvedUrl = ref.read(iONConnectMediaUrlFallbackProvider)[media.url] ?? media.url;
+    final resolvedUrl = ref.read(ionConnectMediaUrlProvider(media.url));
 
     try {
       await cacheManager.getSingleFile(resolvedUrl);
@@ -88,7 +89,7 @@ Future<void> preloadStoryMedia({
       final imageProvider = CachedNetworkImageProvider(
         resolvedUrl,
         cacheManager: cacheManager,
-        cacheKey: resolvedUrl,
+        cacheKey: IONCacheManager.getCacheKeyFromIonUrl(resolvedUrl),
       );
 
       await precacheImage(imageProvider, context);
