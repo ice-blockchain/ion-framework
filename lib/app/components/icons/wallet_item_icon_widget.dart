@@ -23,6 +23,10 @@ class WalletItemIconWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (imageUrl.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     final iconSize = type.size;
     final borderRadius = type.borderRadius;
     final colorFilter = color == null
