@@ -96,46 +96,47 @@ class PostBody extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 10.0.s,
       children: [
+        // TODO: use when real data is available
         PumpIonBuy(masterPubkey: entity.masterPubkey),
         PumpIonBought(masterPubkey: entity.masterPubkey),
-        // if (showTextContent || pollData != null)
-        //   Padding(
-        //     padding: EdgeInsetsDirectional.symmetric(horizontal: sidePadding ?? 16.0.s),
-        //     child: Column(
-        //       crossAxisAlignment: CrossAxisAlignment.start,
-        //       children: [
-        //         if (showTextContent)
-        //           PostContent(
-        //             content: content,
-        //             entity: entity,
-        //             accentTheme: accentTheme,
-        //             isTextSelectable: isTextSelectable,
-        //             maxLines: maxLines,
-        //           ),
-        //         if (pollData != null)
-        //           PostPoll(
-        //             pollData: pollData,
-        //             accentTheme: accentTheme,
-        //             postReference: entity.toEventReference(),
-        //           ),
-        //       ],
-        //     ),
-        //   ),
-        // if (media.isNotEmpty)
-        //   PostMedia(
-        //     media: media,
-        //     onVideoTap: onVideoTap,
-        //     sidePadding: sidePadding,
-        //     eventReference: entity.toEventReference(),
-        //     framedEventReference: framedEventReference,
-        //   ),
-        // if (media.isEmpty && hasValidUrlMetadata)
-        //   Padding(
-        //     padding: EdgeInsetsDirectional.symmetric(horizontal: sidePadding ?? 16.0.s),
-        //     child: UrlPreviewContent(
-        //       url: firstUrlInPost,
-        //     ),
-        //   ),
+        if (showTextContent || pollData != null)
+          Padding(
+            padding: EdgeInsetsDirectional.symmetric(horizontal: sidePadding ?? 16.0.s),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (showTextContent)
+                  PostContent(
+                    content: content,
+                    entity: entity,
+                    accentTheme: accentTheme,
+                    isTextSelectable: isTextSelectable,
+                    maxLines: maxLines,
+                  ),
+                if (pollData != null)
+                  PostPoll(
+                    pollData: pollData,
+                    accentTheme: accentTheme,
+                    postReference: entity.toEventReference(),
+                  ),
+              ],
+            ),
+          ),
+        if (media.isNotEmpty)
+          PostMedia(
+            media: media,
+            onVideoTap: onVideoTap,
+            sidePadding: sidePadding,
+            eventReference: entity.toEventReference(),
+            framedEventReference: framedEventReference,
+          ),
+        if (media.isEmpty && hasValidUrlMetadata)
+          Padding(
+            padding: EdgeInsetsDirectional.symmetric(horizontal: sidePadding ?? 16.0.s),
+            child: UrlPreviewContent(
+              url: firstUrlInPost,
+            ),
+          ),
       ],
     );
   }

@@ -58,7 +58,7 @@ const Color _useAvatarFallbackColor2 = Color(0xFF3EB0FF);
 
   // Return null while loading to show skeleton
   if (isLoadingState.value || palette == null) {
-    return (null, null);
+    return (_useAvatarFallbackColor1, _useAvatarFallbackColor2);
   }
 
   // Extract two visually distinct colors that work well for gradients
