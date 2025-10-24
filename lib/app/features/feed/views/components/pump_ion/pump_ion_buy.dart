@@ -56,9 +56,12 @@ class PumpIonBuy extends HookConsumerWidget {
                   height: 94.0.s,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24.0.s),
+                    // GradientBoxBorder not accepting AlignmentDirectional
                     border: GradientBoxBorder(
                       gradient: LinearGradient(
+                        // ignore: prefer_alignment_directional
                         begin: Alignment.topLeft,
+                        // ignore: prefer_alignment_directional
                         end: Alignment.bottomRight,
                         colors: gradient.colors,
                         stops: gradient.stops,
@@ -97,7 +100,7 @@ class PumpIonBuy extends HookConsumerWidget {
                           bottom: 26.0.s,
                         ),
                       ),
-                      const Positioned(
+                      const PositionedDirectional(
                         bottom: 0,
                         child: BuyButton(),
                       ),

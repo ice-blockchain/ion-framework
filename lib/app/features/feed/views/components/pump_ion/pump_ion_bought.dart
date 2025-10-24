@@ -86,9 +86,12 @@ class PumpIonBought extends HookConsumerWidget {
                               height: 62.0.s,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(16.0.s),
+                                // GradientBoxBorder not accepting AlignmentDirectional
                                 border: GradientBoxBorder(
                                   gradient: LinearGradient(
+                                    // ignore: prefer_alignment_directional
                                     begin: Alignment.topLeft,
+                                    // ignore: prefer_alignment_directional
                                     end: Alignment.bottomRight,
                                     colors: gradient.colors,
                                     stops: gradient.stops,
@@ -137,7 +140,7 @@ class PumpIonBought extends HookConsumerWidget {
               ),
             ],
           ),
-          Positioned(
+          PositionedDirectional(
             top: topContainerHeight - (badgeHeight - padding) / 2,
             height: badgeHeight,
             child: Container(
