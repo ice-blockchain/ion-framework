@@ -13,12 +13,14 @@ class SwipeableMessage extends HookWidget {
     required this.accentTheme,
     super.key,
     this.enabled = true,
+    this.margin,
   });
 
   final Widget child;
   final VoidCallback onSwipeToReply;
   final bool enabled;
   final bool accentTheme;
+  final EdgeInsetsDirectional? margin;
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +136,7 @@ class SwipeableMessage extends HookWidget {
               iconSize: iconSize,
               innerPadding: innerPadding,
               outerPadding: outerPadding,
+              margin: margin,
             ),
           // Message content that slides left
           Transform.translate(
@@ -154,6 +157,7 @@ class _ReplyIcon extends StatelessWidget {
     required this.iconSize,
     required this.innerPadding,
     required this.outerPadding,
+    this.margin,
   });
 
   final bool accentTheme;
@@ -162,7 +166,7 @@ class _ReplyIcon extends StatelessWidget {
   final double iconSize;
   final double innerPadding;
   final double outerPadding;
-
+  final EdgeInsetsDirectional? margin;
   double get _iconOffset {
     final offset = -maxSwipeDistance - swipeOffset;
     return offset >= 0 ? 0.0 : offset;
@@ -175,7 +179,11 @@ class _ReplyIcon extends StatelessWidget {
       child: Align(
         alignment: AlignmentDirectional.centerEnd,
         child: Padding(
-          padding: EdgeInsetsDirectional.only(end: outerPadding),
+          padding: EdgeInsetsDirectional.only(
+            end: outerPadding,
+            top: margin?.top ?? 0,
+            bottom: margin?.bottom ?? 0,
+          ),
           child: Container(
             padding: EdgeInsets.all(innerPadding),
             decoration: BoxDecoration(

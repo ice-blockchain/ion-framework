@@ -119,6 +119,7 @@ class MessageItemWrapper extends HookConsumerWidget {
       onSwipeToReply: () {
         ref.read(selectedReplyMessageProvider.notifier).selectedReplyMessage = messageItem;
       },
+      margin: margin,
       accentTheme: isMe,
       child: ScreenSideOffset.small(
         child: Padding(
