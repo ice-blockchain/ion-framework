@@ -48,6 +48,8 @@ class ProfileShareMessage extends HookConsumerWidget {
       [entity],
     );
 
+    final hasReactions = useHasReaction(entity.toEventReference(), ref);
+
     final userMetadata = ref.watch(userPreviewDataProvider(profilePubkey)).valueOrNull;
 
     final messageItem = ShareProfileItem(
@@ -74,8 +76,6 @@ class ProfileShareMessage extends HookConsumerWidget {
       ref: ref,
       repliedEventMessage: repliedEventMessage,
     );
-
-    final hasReactions = useHasReaction(entity.toEventReference(), ref);
 
     if (userMetadata == null) {
       return const SizedBox.shrink();

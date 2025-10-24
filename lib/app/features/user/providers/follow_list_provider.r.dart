@@ -57,10 +57,13 @@ Future<FollowListEntity?> currentUserFollowList(Ref ref) async {
 Future<List<String>> currentUserFollowListWithMetadata(
   Ref ref, {
   int limit = 50,
+  bool hasLimit = true,
 }) async {
   final allFollowedPeople = await ref.watch(currentUserFollowListProvider.future);
 
-  final followedPeople = allFollowedPeople?.data.list.take(limit).toList() ?? [];
+  final followedList = allFollowedPeople?.data.list;
+
+  final followedPeople = (hasLimit ? followedList?.take(limit) : followedList) ?? [];
 
   final masterPubkeys = followedPeople.map((follow) => follow.pubkey).toList();
 

@@ -16,6 +16,7 @@ class FollowingUsers extends ConsumerWidget {
     this.selectedPubkeys = const [],
     this.selectable = false,
     this.controlChatPrivacy = false,
+    this.hasLimit = true,
     super.key,
   });
 
@@ -23,10 +24,13 @@ class FollowingUsers extends ConsumerWidget {
   final bool controlChatPrivacy;
   final List<String> selectedPubkeys;
   final void Function(String masterPubkey) onUserSelected;
+  final bool hasLimit;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final followListMasterPubkeys = ref.watch(currentUserFollowListWithMetadataProvider());
+    final followListMasterPubkeys = ref.watch(
+      currentUserFollowListWithMetadataProvider(hasLimit: hasLimit),
+    );
 
     return followListMasterPubkeys.maybeWhen(
       data: (masterPubkeys) {

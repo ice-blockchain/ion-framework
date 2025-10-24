@@ -22,6 +22,7 @@ class SendProfileModal extends StatelessWidget {
           actions: [NavigationCloseButton(onPressed: () => context.pop())],
         ),
         onUserSelected: (masterPubkey) => context.pop<String>(masterPubkey),
+        hasLimit: false,
       ),
     );
   }
