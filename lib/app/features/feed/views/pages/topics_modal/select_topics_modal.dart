@@ -9,11 +9,12 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/feed_interests.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
+import 'package:ion/app/features/feed/providers/recent_topics_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
+import 'package:ion/app/features/feed/views/pages/topics_modal/components/recent_topics.dart';
 import 'package:ion/app/features/feed/views/pages/topics_modal/hooks/use_sorted_categories.dart';
 import 'package:ion/app/features/feed/views/pages/topics_modal/selected_topics.dart';
 import 'package:ion/app/features/feed/views/pages/topics_modal/topics_category_section.dart';
-import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 
@@ -38,21 +39,16 @@ class SelectTopicsModal extends HookConsumerWidget {
         (interests) => interests.where(availableSubcategories.containsKey).toSet(),
       ),
     );
-    final initialSelectedSubcategories = useState(<String, FeedInterestsSubcategory>{});
     final searchValue = useState('');
-    final isAnythingSelected = useMemoized(
-      () => selectedSubcategories.isNotEmpty,
-      [selectedSubcategories],
-    );
-
-    useOnInit(
+    final isAnythingSelected = selectedSubcategories.isNotEmpty;
+    final onAdd = useCallback(
       () {
-        initialSelectedSubcategories.value = Map.fromEntries(
-          availableSubcategories.entries
-              .where((entry) => selectedSubcategories.contains(entry.key)),
-        );
+        Navigator.pop(context, false);
+        ref
+            .read(recentTopicsNotifierProvider(feedType).notifier)
+            .appendAll(feedType, selectedSubcategories);
       },
-      [availableInterests],
+      [selectedSubcategories],
     );
 
     return SheetContent(
@@ -65,7 +61,7 @@ class SelectTopicsModal extends HookConsumerWidget {
             onBackPress: () => Navigator.pop(context, false),
             actions: [
               GestureDetector(
-                onTap: isAnythingSelected ? () => Navigator.pop(context, false) : null,
+                onTap: isAnythingSelected ? onAdd : null,
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.0.s),
                   child: Text(
@@ -88,10 +84,11 @@ class SelectTopicsModal extends HookConsumerWidget {
               },
             ),
           ),
+          RecentTopics(
+            feedType: feedType,
+          ),
           SelectedTopics(
             feedType: feedType,
-            initialSelectedSubcategories: initialSelectedSubcategories.value,
-            searchQuery: searchValue.value,
           ),
           SizedBox(height: 8.0.s),
           Expanded(
@@ -105,7 +102,6 @@ class SelectTopicsModal extends HookConsumerWidget {
                   feedType: feedType,
                   category: sortedCategories.entries.elementAt(index),
                   searchQuery: searchValue.value,
-                  addTopPadding: index != 0,
                 );
               },
             ),
