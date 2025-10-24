@@ -27,6 +27,7 @@ class SwipeableMessage extends HookWidget {
     );
     final swipeOffset = useState<double>(0);
     final animationStartValue = useRef<double>(0);
+    final hasTriggeredHaptic = useState<bool>(false);
 
     final iconSize = 20.0.s;
     final innerPadding = 8.0.s;
@@ -81,15 +82,24 @@ class SwipeableMessage extends HookWidget {
 
         // Check threshold BEFORE starting animation
         if (currentSwipeValue.abs() >= replyIconOffset) {
-          HapticFeedback.lightImpact();
           onSwipeToReply();
         }
+
+        // Reset haptic trigger flag for next swipe
+        hasTriggeredHaptic.value = false;
 
         // Now animate back to 0
         animationStartValue.value = currentSwipeValue;
         animationController.forward(from: 0);
       },
-      [enabled, swipeOffset, animationController, replyIconOffset, onSwipeToReply],
+      [
+        enabled,
+        swipeOffset,
+        animationController,
+        replyIconOffset,
+        onSwipeToReply,
+        hasTriggeredHaptic,
+      ],
     );
 
     return GestureDetector(
@@ -98,10 +108,18 @@ class SwipeableMessage extends HookWidget {
           return;
         }
 
-        // Only allow left swipe (negative delta)
-        if (details.delta.dx < 0) {
-          final newOffset = swipeOffset.value + details.delta.dx;
-          swipeOffset.value = newOffset.clamp(-maxSwipeDistance, 0.0);
+        final newOffset = swipeOffset.value + details.delta.dx;
+        swipeOffset.value = newOffset.clamp(-maxSwipeDistance, 0.0);
+
+        // Trigger haptic only once when threshold is reached
+        if (swipeOffset.value.abs() >= replyIconOffset) {
+          if (!hasTriggeredHaptic.value) {
+            HapticFeedback.lightImpact();
+            hasTriggeredHaptic.value = true;
+          }
+        } else {
+          // Reset when user swipes back below threshold
+          hasTriggeredHaptic.value = false;
         }
       },
       onHorizontalDragEnd: (_) => handleSwipeEnd(),
