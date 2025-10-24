@@ -21,6 +21,7 @@ import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/media_service/mime_resolver/mime_resolver.dart';
+import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:ion/app/utils/queue.dart';
 import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
@@ -123,8 +124,7 @@ class MediaEncryptionService {
 
       // Use a temporary file for decrypted bytes
       final tempDir = await getTemporaryDirectory();
-      final tempFilePath =
-          '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}_${attachment.originalFileHash}';
+      final tempFilePath = '${tempDir.path}/${generateUuid()}';
       final decryptedFile = await File(tempFilePath).writeAsBytes(decryptedFileBytes);
 
       final mimeType = ionMimeTypeResolver.lookup(
@@ -146,7 +146,11 @@ class MediaEncryptionService {
           bytes: decompressedFile.readAsBytesSync(),
           fileExtension: fileExtension,
         );
-        await decryptedFile.delete();
+        try {
+          await decryptedFile.delete();
+        } catch (e, st) {
+          Logger.error(e, message: 'Failed to delete temporary decrypted file', stackTrace: st);
+        }
 
         return cachedFile;
       } else {
@@ -155,7 +159,11 @@ class MediaEncryptionService {
           bytes: decryptedFileBytes,
           fileExtension: fileExtension,
         );
-        await decryptedFile.delete();
+        try {
+          await decryptedFile.delete();
+        } catch (e, st) {
+          Logger.error(e, message: 'Failed to delete temporary decrypted file', stackTrace: st);
+        }
         return cachedFile;
       }
     } catch (e, st) {
