@@ -18,6 +18,8 @@ import 'package:ion/app/features/search/views/pages/chat/components/chat_no_resu
 import 'package:ion/app/features/search/views/pages/chat/components/chat_search_results_list_item.dart';
 import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
 
+final double chatAdvancedSearchItemHeight = 66.5.s;
+
 class ChatAdvancedSearchAll extends HookConsumerWidget {
   const ChatAdvancedSearchAll({required this.query, super.key});
 
@@ -68,32 +70,25 @@ class ChatAdvancedSearchAll extends HookConsumerWidget {
             child: ChatSearchNoResults(),
           )
         else
-          SliverFixedExtentList(
-            itemExtent: 57.0.s, // Fixed height for search result items
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                return Column(
-                  children: [
-                    if (index == 0)
-                      Padding(
-                        padding: EdgeInsetsDirectional.only(top: 12.s),
-                        child: const HorizontalSeparator(),
-                      ),
-                    ChatSearchResultListItem(
-                      showLastMessage: true,
-                      item: searchResults[index],
-                    ),
-                    if (index == searchResults.length - 1)
-                      Padding(
-                        padding: EdgeInsetsDirectional.only(bottom: 12.s),
-                        child: const HorizontalSeparator(),
-                      )
-                    else
+          SliverPadding(
+            padding: EdgeInsets.symmetric(vertical: 12.0.s),
+            sliver: SliverFixedExtentList(
+              itemExtent: chatAdvancedSearchItemHeight,
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return Column(
+                    children: [
                       const HorizontalSeparator(),
-                  ],
-                );
-              },
-              childCount: searchResults.length,
+                      ChatSearchResultListItem(
+                        showLastMessage: true,
+                        item: searchResults[index],
+                      ),
+                      if (index == searchResults.length - 1) const HorizontalSeparator(),
+                    ],
+                  );
+                },
+                childCount: searchResults.length,
+              ),
             ),
           ),
       ],
