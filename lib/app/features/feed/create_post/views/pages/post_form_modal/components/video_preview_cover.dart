@@ -12,6 +12,7 @@ import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/co
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/services/media_service/aspect_ratio.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/utils/url.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:video_player/video_player.dart';
 
@@ -69,8 +70,7 @@ class VideoPreviewCover extends HookConsumerWidget {
       final thumbPath = attachedVideoNotifier.value?.thumb;
       File? newThumbFile;
       if (thumbPath != null) {
-        final pathFromUri =
-            thumbPath.startsWith('file://') ? Uri.parse(thumbPath).toFilePath() : thumbPath;
+        final pathFromUri = fileUriToPath(thumbPath);
         newThumbFile = File(pathFromUri);
       } else {
         newThumbFile = null;
