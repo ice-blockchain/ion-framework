@@ -18,7 +18,7 @@ part 'ion_connect_media_url_provider.r.g.dart';
 class IonConnectMediaUrl extends _$IonConnectMediaUrl {
   @override
   String build(String url) {
-    if (!isNetworkUrl(url)) {
+    if (!isIonMediaUrl(url)) {
       return url;
     }
 
