@@ -69,6 +69,23 @@ bool isOneLinkUrl(String url) {
   return DeepLinkService.oneLinkUrlRegex.hasMatch(url);
 }
 
+/// Converts a file:// URI to a file system path.
+/// If the path doesn't start with 'file://', returns it as-is.
+///
+/// This is useful for handling file URIs from Android native code.
+///
+/// Example:
+/// ```dart
+/// fileUriToPath('file:///storage/emulated/0/video.mp4')
+/// // Returns: '/storage/emulated/0/video.mp4'
+///
+/// fileUriToPath('/storage/emulated/0/video.mp4')
+/// // Returns: '/storage/emulated/0/video.mp4'
+/// ```
+String fileUriToPath(String path) {
+  return path.startsWith('file://') ? Uri.parse(path).toFilePath() : path;
+}
+
 /// Returns `false` If [address] is not a numeric IPv4 (dotted-decimal
 /// notation) or IPv6 (hexadecimal representation) address
 bool isIP(String address) => InternetAddress.tryParse(address) != null;
