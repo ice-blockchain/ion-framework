@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
@@ -19,6 +20,7 @@ import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:rxdart/rxdart.dart';
 
 part 'money_message_provider.r.g.dart';
 
@@ -102,16 +104,36 @@ Stream<TransactionData?> transactionDataForMessage(
     return;
   }
 
-  yield* transactionsRepository.watchTransactions(
+  // Watch by txHash and externalHash separately and prefer txHash match over externalHash
+  final byHash = transactionsRepository.watchTransactions(
     txHashes: [txHash],
-    externalHashes: [txHash],
     limit: 1,
-  ).map(
-    (transactions) => _pickBestTransaction(
+  ).map((transactions) {
+    final selected = _pickBestTransaction(
       eventId: eventReference.eventId,
       txHash: txHash,
       transactions: transactions,
-    ),
+    );
+    return selected;
+  });
+
+  final byExternalHash = transactionsRepository.watchTransactions(
+    externalHashes: [txHash],
+    limit: 1,
+  ).map((transactions) {
+    final selected = _pickBestTransaction(
+      eventId: eventReference.eventId,
+      txHash: txHash,
+      transactions: transactions,
+    );
+    return selected;
+  });
+
+  // Prefer txHash stream value when present, otherwise externalHash
+  yield* Rx.combineLatest2<TransactionData?, TransactionData?, TransactionData?>(
+    byHash.startWith(null),
+    byExternalHash.startWith(null),
+    (byTxHash, byExternal) => byTxHash ?? byExternal,
   );
 }
 

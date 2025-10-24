@@ -152,6 +152,7 @@ dependencies:
   qr_code_scanner_plus: ^2.0.10+1
   qr_flutter: ^4.1.0
   riverpod_annotation: ^2.6.1
+  rxdart: ^0.28.0
   screenshot: ^3.0.0
   sensors_plus: ^6.1.1
   sentry_flutter: ^8.14.2
