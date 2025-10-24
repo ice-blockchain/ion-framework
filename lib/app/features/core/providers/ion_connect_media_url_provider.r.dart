@@ -11,9 +11,9 @@ part 'ion_connect_media_url_provider.r.g.dart';
 
 /// A provider that resolves ION Connect media URLs.
 ///
-/// We first try CDN URL, if that fails
-/// we try the original URL, and if that also fails
-/// we generate fallback URL using available media author's relays.
+/// We first try the CDN URL.
+/// If that fails, we try the original URL.
+/// If that also fails, we generate a fallback URL using the media author's available relays.
 @Riverpod(keepAlive: true)
 class IonConnectMediaUrl extends _$IonConnectMediaUrl {
   @override
