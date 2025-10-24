@@ -36,6 +36,7 @@ class Article extends ConsumerWidget {
     this.showActionButtons = true,
     this.showNotInterested = true,
     this.network = true,
+    this.cache = true,
     this.timeFormat = TimestampFormat.short,
     super.key,
   });
@@ -44,6 +45,7 @@ class Article extends ConsumerWidget {
     required EventReference eventReference,
     bool accentTheme = false,
     Widget? footer,
+    bool cache = true,
   }) {
     return Article(
       showActionButtons: false,
@@ -51,6 +53,7 @@ class Article extends ConsumerWidget {
       accentTheme: accentTheme,
       eventReference: eventReference,
       footer: footer,
+      cache: cache,
     );
   }
 
@@ -58,6 +61,7 @@ class Article extends ConsumerWidget {
     required EventReference eventReference,
     Widget? header,
     bool accentTheme = false,
+    bool cache = true,
   }) {
     return Article(
       header: header,
@@ -65,6 +69,7 @@ class Article extends ConsumerWidget {
       accentTheme: accentTheme,
       showActionButtons: false,
       eventReference: eventReference,
+      cache: cache,
     );
   }
 
@@ -78,12 +83,16 @@ class Article extends ConsumerWidget {
   final bool accentTheme;
   final bool showNotInterested;
   final bool network;
+  final bool cache;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entity = ref.watch(
-          ionConnectEntityWithCountersProvider(eventReference: eventReference, network: network)
-              .select((value) {
+          ionConnectEntityWithCountersProvider(
+            eventReference: eventReference,
+            network: network,
+            cache: cache,
+          ).select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
               ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
