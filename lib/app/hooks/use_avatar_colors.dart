@@ -7,6 +7,10 @@ import 'package:palette_generator/palette_generator.dart';
 const Color _useAvatarFallbackColor1 = Color(0xFFB43C4B);
 const Color _useAvatarFallbackColor2 = Color(0xFF3EB0FF);
 
+/// Global cache for avatar colors to prevent expensive palette generation during scroll
+/// Key: avatar URL, Value: (color1, color2)
+final Map<String, (Color, Color)> _avatarColorsCache = {};
+
 /// Hook to extract two colors from the user's avatar using PaletteGenerator
 /// Returns null colors while loading, then returns extracted colors
 (Color?, Color?) useAvatarColors(String? avatarUrl) {
@@ -18,6 +22,13 @@ const Color _useAvatarFallbackColor2 = Color(0xFF3EB0FF);
       if (avatarUrl == null || avatarUrl.isEmpty) {
         paletteState.value = null;
         isLoadingState.value = false;
+        return null;
+      }
+
+      // Check cache first
+      if (_avatarColorsCache.containsKey(avatarUrl)) {
+        isLoadingState.value = false;
+        // Cache hit - no need to generate palette, will use cached colors below
         return null;
       }
 
@@ -54,9 +65,14 @@ const Color _useAvatarFallbackColor2 = Color(0xFF3EB0FF);
     [avatarUrl],
   );
 
+  // Check cache first for instant return
+  if (avatarUrl != null && _avatarColorsCache.containsKey(avatarUrl)) {
+    return _avatarColorsCache[avatarUrl]!;
+  }
+
   final palette = paletteState.value;
 
-  // Return null while loading to show skeleton
+  // Return fallback while loading
   if (isLoadingState.value || palette == null) {
     return (_useAvatarFallbackColor1, _useAvatarFallbackColor2);
   }
@@ -88,5 +104,12 @@ const Color _useAvatarFallbackColor2 = Color(0xFF3EB0FF);
 
   color2 ??= _useAvatarFallbackColor2;
 
-  return (color1, color2);
+  final result = (color1, color2);
+
+  // Cache the result for future use
+  if (avatarUrl != null) {
+    _avatarColorsCache[avatarUrl] = result;
+  }
+
+  return result;
 }
