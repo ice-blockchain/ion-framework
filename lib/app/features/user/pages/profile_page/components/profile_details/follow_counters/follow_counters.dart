@@ -22,7 +22,7 @@ class FollowCounters extends ConsumerWidget {
   final String pubkey;
   final double height;
   final ProfileMode profileMode;
-  final EdgeInsets? padding;
+  final EdgeInsetsGeometry? padding;
 
   Decoration _decoration(BuildContext context) {
     if (profileMode == ProfileMode.dark) {

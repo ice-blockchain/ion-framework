@@ -93,11 +93,11 @@ class PumpIonBuy extends HookConsumerWidget {
                         pubkey: masterPubkey,
                         profileMode: ProfileMode.dark,
                         height: followCountersHeight,
-                        padding: EdgeInsets.only(
-                          left: 16.0.s,
-                          right: 16.0.s,
-                          top: 16.0.s,
-                          bottom: 26.0.s,
+                        padding: EdgeInsetsDirectional.only(
+                          start: 16.0.s,
+                          end: 16.0.s,
+                          top: 12.0.s,
+                          bottom: 24.0.s,
                         ),
                       ),
                       const PositionedDirectional(
