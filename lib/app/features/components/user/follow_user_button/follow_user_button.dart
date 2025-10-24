@@ -44,19 +44,31 @@ class FollowUserButton extends ConsumerWidget {
         follower != null ? follower! : ref.watch(isCurrentUserFollowedProvider(pubkey));
 
     return FollowButton(
-      onPressed: () {
+      decoration: FollowButtonDecoration(
+        foregroundColor: context.theme.appColors.onPrimaryAccent,
+        color: context.theme.appColors.primaryAccent,
+        borderRadius: BorderRadius.circular(16.0.s),
+        border: Border.all(color: context.theme.appColors.primaryAccent),
+      ),
+      decorationWhenFollowing: FollowButtonDecoration(
+        foregroundColor: context.theme.appColors.primaryAccent,
+        color: context.theme.appColors.primaryAccent.withValues(alpha: 0),
+        borderRadius: BorderRadius.circular(16.0.s),
+        border: Border.all(color: context.theme.appColors.primaryAccent),
+      ),
+      onPressed: () async {
         if (following) {
-          showSimpleBottomSheet<void>(
+          await showSimpleBottomSheet<void>(
             context: context,
             child: UnfollowUserModal(
               pubkey: pubkey,
             ),
           );
         } else {
-          ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
+          await ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
         }
       },
-      following: following,
+      isFollowing: following,
       followLabel: isCurrentUserFollowed && !following ? context.i18n.button_follow_back : null,
     );
   }
