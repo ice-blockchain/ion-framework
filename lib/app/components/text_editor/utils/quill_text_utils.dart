@@ -1,10 +1,41 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:flutter_quill/flutter_quill.dart' show Attribute;
+import 'dart:convert';
+import 'package:flutter_quill/flutter_quill.dart' show Attribute, Document;
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
 
 class QuillTextUtils {
+  /// Trims extra newlines at the end of the text,
+  /// keeping only one to match Quill’s format.
+  static String? trimDeltaJson(String? jsonDelta) {
+    if (jsonDelta == null || jsonDelta.trim().isEmpty) return null;
+
+    try {
+      final raw = jsonDecode(jsonDelta);
+      if (raw is! List) return jsonDelta;
+
+      final doc = Document.fromJson(raw.cast<Map<String, dynamic>>());
+      final plain = doc.toPlainText().trim();
+
+      if (plain.isEmpty) return null;
+
+      // Remove extra trailing newlines
+      final ops = List<Map<String, dynamic>>.from(raw);
+      if (ops.isNotEmpty) {
+        final last = ops.last;
+        final insert = last['insert'];
+        if (insert is String && insert.contains('\n')) {
+          last['insert'] = insert.replaceFirst(RegExp(r'\n+$'), '\n');
+        }
+      }
+
+      return jsonEncode(ops);
+    } catch (_) {
+      return jsonDelta; // Fallback for invalid JSON
+    }
+  }
+
   static Delta truncateDelta(Delta original, int maxChars) {
     final truncated = Delta();
     var consumed = 0;
