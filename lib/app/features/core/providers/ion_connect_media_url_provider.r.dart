@@ -32,6 +32,7 @@ class IonConnectMediaUrl extends _$IonConnectMediaUrl {
     final currentFallback =
         ref.read(ionConnectMediaUrlFallbackProvider.select((state) => state[url]));
     if (currentFallback == null && state != url) {
+      // This is for the case when we first try CDN and in case of a failure, we're trying the original URL.
       state = url;
       return true;
     } else {
