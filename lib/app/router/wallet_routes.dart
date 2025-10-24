@@ -18,6 +18,7 @@ class WalletRoutes {
         ...coinSendRoutes,
         ...coinReceiveRoutes,
         ...nftSendRoutes,
+        ...swapCoinsRoutes,
       ],
     ),
     ...walletManagementRoutes,
@@ -104,6 +105,14 @@ class WalletRoutes {
         TypedGoRoute<DeleteWalletRoute>(path: 'delete-wallet'),
       ],
     ),
+  ];
+
+  static const swapCoinsRoutes = <TypedRoute<RouteData>>[
+    TypedGoRoute<SwapCoinsRoute>(path: 'swap-coins'),
+    TypedGoRoute<SwapSelectCoinRoute>(path: 'swap-select-coin'),
+    TypedGoRoute<SwapSellSelectNetworkRoute>(path: 'swap-sell-select-network'),
+    TypedGoRoute<SwapBuySelectNetworkRoute>(path: 'swap-buy-select-network'),
+    TypedGoRoute<SwapCoinsConfirmationRoute>(path: 'swap-coins-confirmation'),
   ];
 }
 
@@ -519,4 +528,59 @@ class ShareTokenCreatorRoute extends BaseRouteData with _$ShareTokenCreatorRoute
         );
 
   final String masterPubkey;
+}
+
+class SwapCoinsRoute extends BaseRouteData with _$SwapCoinsRoute {
+  SwapCoinsRoute()
+      : super(
+          child: const SwapCoinsModalPage(),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class SwapSelectCoinRoute extends BaseRouteData with _$SwapSelectCoinRoute {
+  SwapSelectCoinRoute({
+    required this.coinType,
+  }) : super(
+          child: SwapSelectCoinPage(
+            selectNetworkRouteLocationBuilder: () => switch (coinType) {
+              CoinSwapType.sell => SwapSellSelectNetworkRoute().location,
+              CoinSwapType.buy => SwapBuySelectNetworkRoute().location,
+            },
+            type: coinType,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final CoinSwapType coinType;
+}
+
+class SwapSellSelectNetworkRoute extends BaseRouteData with _$SwapSellSelectNetworkRoute {
+  SwapSellSelectNetworkRoute()
+      : super(
+          child: const NetworkListView(
+            type: NetworkListViewType.swapSell,
+            onSelectReturnType: true,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class SwapBuySelectNetworkRoute extends BaseRouteData with _$SwapBuySelectNetworkRoute {
+  SwapBuySelectNetworkRoute()
+      : super(
+          child: const NetworkListView(
+            type: NetworkListViewType.swapBuy,
+            onSelectReturnType: true,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class SwapCoinsConfirmationRoute extends BaseRouteData with _$SwapCoinsConfirmationRoute {
+  SwapCoinsConfirmationRoute()
+      : super(
+          child: const SwapCoinsConfirmationPage(),
+          type: IceRouteType.bottomSheet,
+        );
 }

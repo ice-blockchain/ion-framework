@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
+import 'package:ion/app/components/message_notification/models/message_notification_state.dart';
 import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
 
@@ -30,6 +31,13 @@ class MessageNotificationWrapper extends HookConsumerWidget {
 
     final notification = useState<MessageNotification?>(null);
 
+    final color = switch (notification.value?.state) {
+      MessageNotificationState.success => context.theme.appColors.success,
+      MessageNotificationState.error => context.theme.appColors.attentionRed,
+      MessageNotificationState.info => context.theme.appColors.primaryAccent,
+      _ => context.theme.appColors.primaryAccent,
+    };
+
     ref.listen(
       messageNotificationNotifierProvider,
       (_, next) {
@@ -54,6 +62,8 @@ class MessageNotificationWrapper extends HookConsumerWidget {
       },
     );
 
+    final suffixWidget = notification.value?.suffixWidget;
+
     return Stack(
       children: [
         child,
@@ -68,7 +78,7 @@ class MessageNotificationWrapper extends HookConsumerWidget {
                 height: 42.0.s,
                 padding: EdgeInsets.all(8.0.s),
                 decoration: BoxDecoration(
-                  color: context.theme.appColors.primaryAccent,
+                  color: color,
                   borderRadius: BorderRadius.circular(12.0.s),
                   boxShadow: [
                     BoxShadow(
@@ -79,26 +89,32 @@ class MessageNotificationWrapper extends HookConsumerWidget {
                   ],
                 ),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (notification.value?.icon != null) ...[
-                      Container(
-                        width: 26.0.s,
-                        height: 26.0.s,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: context.theme.appColors.onPrimaryAccent,
-                          borderRadius: BorderRadius.circular(8.0.s),
+                    Row(
+                      children: [
+                        if (notification.value?.icon != null) ...[
+                          Container(
+                            width: 26.0.s,
+                            height: 26.0.s,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: context.theme.appColors.onPrimaryAccent,
+                              borderRadius: BorderRadius.circular(8.0.s),
+                            ),
+                            child: notification.value?.icon,
+                          ),
+                          SizedBox(width: 10.0.s),
+                        ],
+                        Text(
+                          notification.value?.message ?? '',
+                          style: context.theme.appTextThemes.body.copyWith(
+                            color: context.theme.appColors.onPrimaryAccent,
+                          ),
                         ),
-                        child: notification.value?.icon,
-                      ),
-                      SizedBox(width: 10.0.s),
-                    ],
-                    Text(
-                      notification.value?.message ?? '',
-                      style: context.theme.appTextThemes.body.copyWith(
-                        color: context.theme.appColors.onPrimaryAccent,
-                      ),
+                      ],
                     ),
+                    if (suffixWidget != null) suffixWidget,
                   ],
                 ),
               ),

@@ -25,6 +25,7 @@ class SearchInput extends HookWidget {
     this.suffix,
     this.showCancelButton = true,
     this.onTap,
+    this.hintText,
     FocusNode? focusNode,
     TextEditingController? controller,
   })  : externalFocusNode = focusNode,
@@ -43,6 +44,7 @@ class SearchInput extends HookWidget {
   final ValueChanged<String>? onSubmitted;
   final Widget? suffix;
   final ValueSetter<String>? onTap;
+  final String? hintText;
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +90,7 @@ class SearchInput extends HookWidget {
                   ),
                   borderRadius: BorderRadius.circular(16.0.s),
                 ),
-                hintText: context.i18n.search_placeholder,
+                hintText: hintText ?? context.i18n.search_placeholder,
                 hintStyle: context.theme.appTextThemes.body.copyWith(
                   color: context.theme.appColors.tertiaryText,
                 ),

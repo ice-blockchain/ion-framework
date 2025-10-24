@@ -19,11 +19,13 @@ class CoinsListView extends StatelessWidget {
     required this.coinsResult,
     required this.onQueryChanged,
     this.showBackButton = false,
+    this.showCloseButton = true,
     super.key,
   });
 
   final String title;
   final bool showBackButton;
+  final bool showCloseButton;
   final AsyncValue<List<CoinsGroup>> coinsResult;
   final void Function(CoinsGroup group) onItemTap;
   final void Function(String query) onQueryChanged;
@@ -37,14 +39,15 @@ class CoinsListView extends StatelessWidget {
           child: NavigationAppBar.screen(
             title: Text(title),
             showBackButton: showBackButton,
-            actions: const [
-              NavigationCloseButton(),
+            actions: [
+              if (showCloseButton) const NavigationCloseButton(),
             ],
           ),
         ),
         ScreenSideOffset.small(
           child: SearchInput(
             onTextChanged: onQueryChanged,
+            hintText: context.i18n.wallet_coins_search_hint,
           ),
         ),
         SizedBox(
