@@ -107,6 +107,7 @@ dependencies:
   google_fonts: ^6.2.1
   google_sign_in: ^6.2.2
   googleapis: ^13.2.0
+  gradient_borders: ^1.0.2
   hooks_riverpod: ^2.6.1
   icloud_storage: ^2.2.0
   image: ^4.5.4

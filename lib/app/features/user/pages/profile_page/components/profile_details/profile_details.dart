@@ -29,7 +29,11 @@ class ProfileDetails extends ConsumerWidget {
     return ScreenSideOffset.small(
       child: Column(
         children: [
-          UserNameTile(pubkey: pubkey, profileMode: profileMode),
+          UserNameTile(
+            pubkey: pubkey,
+            profileMode: profileMode,
+            showProfileTokenPrice: profileMode == ProfileMode.dark,
+          ),
           SizedBox(height: 12.0.s),
           if (profileMode != ProfileMode.dark)
             isCurrentUserProfile

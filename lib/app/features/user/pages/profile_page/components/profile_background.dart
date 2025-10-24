@@ -1,97 +1,66 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:ion/app/extensions/extensions.dart';
 
 class ProfileBackground extends StatelessWidget {
-  const ProfileBackground({super.key});
+  const ProfileBackground({
+    this.color1,
+    this.color2,
+    this.disableDarkGradient = false,
+    this.child,
+    super.key,
+  });
+
+  final Color? color1;
+  final Color? color2;
+  final bool disableDarkGradient;
+  final Widget? child;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(color: context.theme.appColors.primaryText),
-      child: Stack(
-        children: [
-          PositionedDirectional(
-            start: 0,
-            top: 0,
-            child: Opacity(
-              opacity: 0.40,
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment(0.50, 0.20),
-                    radius: 0.77,
-                    colors: [Color(0xFF115DC9), Color(0x003F6EDC)],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          PositionedDirectional(
-            start: 37.s,
-            top: 23.s,
-            child: Opacity(
-              opacity: 0.50,
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 600, sigmaY: 600),
+    final childWithBackground = color1 != null && color2 != null
+        ? Stack(
+            children: [
+              Positioned.fill(
                 child: Container(
-                  width: 300.s,
-                  height: 208.s,
-                  decoration: const ShapeDecoration(
-                    color: Color(0xFF115ECA),
-                    shape: OvalBorder(),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [color1!, color2!],
+                      stops: const [0.0, 1.0],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          PositionedDirectional(
-            start: 328.05.s,
-            top: -425.s,
-            child: Opacity(
-              opacity: 0.65,
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 600, sigmaY: 600),
-                child: Container(
-                  transform: Matrix4.identity()..rotateZ(0.69),
-                  width: 675.85,
-                  height: 468.74,
-                  decoration: const ShapeDecoration(
-                    color: Color(0xFFB601BF),
-                    shape: OvalBorder(),
+              // Dark overlay gradient
+              if (!disableDarkGradient)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.4),
+                          Colors.black,
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0.0, 0.4, 1.0],
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ),
-          PositionedDirectional(
-            start: -244.77.s,
-            top: -387.52.s,
-            child: Opacity(
-              opacity: 0.55,
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(
-                  sigmaX: 600,
-                  sigmaY: 600,
-                ),
-                child: Container(
-                  transform: Matrix4.identity()..rotateZ(0.69),
-                  width: 611.43.s,
-                  height: 424.06.s,
-                  decoration: const ShapeDecoration(
-                    color: Color(0xFF02ACCA),
-                    shape: OvalBorder(),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+              // Child content
+              if (child != null) child!,
+            ],
+          )
+        : ColoredBox(
+            color: const Color(0xFFD1D1D5),
+            child: child,
+          );
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: childWithBackground,
     );
   }
 }
