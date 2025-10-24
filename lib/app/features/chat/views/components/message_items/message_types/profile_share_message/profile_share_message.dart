@@ -8,7 +8,6 @@ import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
-import 'package:ion/app/features/chat/hooks/use_has_reaction.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/replied_message_list_item_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/components.dart';
@@ -75,7 +74,7 @@ class ProfileShareMessage extends HookConsumerWidget {
       repliedEventMessage: repliedEventMessage,
     );
 
-    final hasReactions = useHasReaction(entity.toEventReference(), ref);
+    const hasReactions = false;
 
     if (userMetadata == null) {
       return const SizedBox.shrink();
