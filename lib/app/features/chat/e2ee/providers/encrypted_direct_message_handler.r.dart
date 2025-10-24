@@ -73,7 +73,7 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
     final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
     if (entity.data.media.isNotEmpty) {
       for (final media in entity.data.media.values) {
-        await mediaEncryptionService.retrieveEncryptedMedia(
+        await mediaEncryptionService.getEncryptedMedia(
           media,
           authorPubkey: rumor.masterPubkey,
         );

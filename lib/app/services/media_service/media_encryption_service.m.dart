@@ -68,7 +68,7 @@ class MediaEncryptionService {
     required this.fileCacheService,
     required this.brotliCompressor,
     required this.generateMediaUrlFallback,
-    int maxConcurrentOperations = 1,
+    int maxConcurrentOperations = 5,
   }) : _taskQueue = ConcurrentTasksQueue(maxConcurrent: maxConcurrentOperations);
 
   final FileCacheService fileCacheService;
@@ -85,77 +85,78 @@ class MediaEncryptionService {
     _taskQueue.cancelAll();
   }
 
-  Future<File> retrieveEncryptedMedia(
+  Future<File> getEncryptedMedia(
     MediaAttachment attachment, {
     required String authorPubkey,
   }) async {
-    print(
-        'QQQ: Adding retrieveEncryptedMedia to queue, current queue length: ${_taskQueue.pendingTasksCount}');
-    return _taskQueue.add(() => _retrieveEncryptedMediaInternal(attachment, authorPubkey));
+    // First, check cache synchronously (not in queue)
+    if (attachment.encryptionKey != null &&
+        attachment.encryptionNonce != null &&
+        attachment.encryptionMac != null) {
+      final url = attachment.url;
+      final cacheFileInfo = await fileCacheService.getFileFromCache(url);
+      if (cacheFileInfo != null) {
+        return cacheFileInfo.file;
+      }
+      // Only download/decrypt/compress in the queue
+      return _taskQueue.add(() => _retrieveEncryptedMedia(attachment, authorPubkey));
+    } else {
+      Logger.error('Media does not have a valid encryption prop');
+      throw FailedToDecryptFileException();
+    }
   }
 
-  Future<File> _retrieveEncryptedMediaInternal(
+  Future<File> _retrieveEncryptedMedia(
     MediaAttachment attachment,
     String authorPubkey,
   ) async {
     try {
-      if (attachment.encryptionKey != null &&
-          attachment.encryptionNonce != null &&
-          attachment.encryptionMac != null) {
-        final url = attachment.url;
+      final url = attachment.url;
+      final file = await _downloadFile(url, authorPubkey: authorPubkey);
 
-        final cacheFileInfo = await fileCacheService.getFileFromCache(url);
+      final decryptedFileBytes = await sharedChatIsolate.compute(
+        (args) async {
+          return decryptMediaFileFn(args);
+        },
+        (file: file, attachment: attachment),
+      );
 
-        if (cacheFileInfo != null) {
-          return cacheFileInfo.file;
-        }
+      // Use a temporary file for decrypted bytes
+      final tempDir = await getTemporaryDirectory();
+      final tempFilePath =
+          '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}_${attachment.originalFileHash}';
+      final decryptedFile = await File(tempFilePath).writeAsBytes(decryptedFileBytes);
 
-        final file = await _downloadFile(url, authorPubkey: authorPubkey);
+      final mimeType = ionMimeTypeResolver.lookup(
+        decryptedFile.path,
+        headerBytes: decryptedFileBytes,
+      );
 
-        final decryptedFileBytes = await sharedChatIsolate.compute(
-          (args) async {
-            return decryptMediaFileFn(args);
-          },
-          (file: file, attachment: attachment),
+      final fileExtension = mimeType != null ? extensionFromMime(mimeType) ?? '' : '';
+
+      await fileCacheService.removeFile(url);
+
+      final mediaType = mimeType != null ? MediaType.fromMimeType(mimeType) : MediaType.unknown;
+
+      if (mediaType == MediaType.unknown) {
+        final decompressedFile = await brotliCompressor.decompress(decryptedFileBytes);
+
+        final cachedFile = await fileCacheService.putFile(
+          url: url,
+          bytes: decompressedFile.readAsBytesSync(),
+          fileExtension: fileExtension,
         );
-        final decryptedFile = File.fromRawPath(decryptedFileBytes);
+        await decryptedFile.delete();
 
-        final mimeType = ionMimeTypeResolver.lookup(
-          decryptedFile.path,
-          headerBytes: decryptedFileBytes,
-        );
-
-        final fileExtension = mimeType != null ? extensionFromMime(mimeType) ?? '' : '';
-
-        await fileCacheService.removeFile(url);
-
-        final mediaType = mimeType != null ? MediaType.fromMimeType(mimeType) : MediaType.unknown;
-
-        if (mediaType == MediaType.unknown) {
-          final decompressedFile = await brotliCompressor.decompress(decryptedFileBytes);
-
-          final decryptedFile = await fileCacheService.putFile(
-            url: url,
-            bytes: decompressedFile.readAsBytesSync(),
-            fileExtension: fileExtension,
-          );
-          print(
-              'QQQ: Retrieved and decrypted media, queue length: ${_taskQueue.pendingTasksCount}');
-
-          return decryptedFile;
-        } else {
-          final decryptedFile = await fileCacheService.putFile(
-            url: url,
-            bytes: decryptedFileBytes,
-            fileExtension: fileExtension,
-          );
-          print(
-              'QQQ: Retrieved and decrypted media, queue length: ${_taskQueue.pendingTasksCount}');
-          return decryptedFile;
-        }
+        return cachedFile;
       } else {
-        Logger.error('Media does not have a valid encryption prop');
-        throw FailedToDecryptFileException();
+        final cachedFile = await fileCacheService.putFile(
+          url: url,
+          bytes: decryptedFileBytes,
+          fileExtension: fileExtension,
+        );
+        await decryptedFile.delete();
+        return cachedFile;
       }
     } catch (e, st) {
       Logger.error(e, stackTrace: st);
@@ -164,14 +165,6 @@ class MediaEncryptionService {
   }
 
   Future<EncryptedMediaFile> encryptMediaFile(MediaFile mediaFile) async {
-    print(
-        'QQQ: Adding encryptMediaFile to queue, current queue length: ${_taskQueue.pendingTasksCount}');
-    return _taskQueue.add(() => _encryptMediaFileInternal(mediaFile));
-  }
-
-  Future<EncryptedMediaFile> _encryptMediaFileInternal(
-    MediaFile mediaFile,
-  ) async {
     final documentsDir = await getApplicationDocumentsDirectory();
 
     final encryptedMediaFile = await sharedChatIsolate.compute(
