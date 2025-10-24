@@ -59,7 +59,8 @@ class ProfilePage extends HookConsumerWidget {
     final tokenizedCommunitiesEnabled = ref
         .watch(featureFlagsProvider.notifier)
         .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
-    final profileMode = tokenizedCommunitiesEnabled ? ProfileMode.dark : ProfileMode.light;
+    final profileMode =
+        isVerifiedUser && tokenizedCommunitiesEnabled ? ProfileMode.dark : ProfileMode.light;
     final statusBarHeight = MediaQuery.paddingOf(context).top;
 
     if (userMetadata.isLoading && !userMetadata.hasValue) {

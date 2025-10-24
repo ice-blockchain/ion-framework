@@ -158,6 +158,7 @@ class PumpIonBought extends HookConsumerWidget {
                 ),
                 alignment: Alignment.center,
                 child: Text(
+                  // TODO: replace with real data
                   formatToCurrency(0.14),
                   style: context.theme.appTextThemes.caption2.copyWith(
                     color: context.theme.appColors.primaryBackground,
