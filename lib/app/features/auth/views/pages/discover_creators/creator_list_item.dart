@@ -8,6 +8,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
+import 'package:ion/app/features/components/user/follow_user_button/follow_user_button.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 
@@ -43,7 +44,13 @@ class CreatorListItem extends ConsumerWidget {
         backgroundColor: context.theme.appColors.tertiaryBackground,
         contentPadding: EdgeInsets.all(12.0.s),
         borderRadius: BorderRadius.circular(16.0.s),
-        trailing: FollowButton(onPressed: onPressed, following: selected),
+        trailing: FollowUserButton(pubkey: masterPubkey, follower: selected),
+        // trailing: FollowButton(
+        //   onPressed: onPressed, 
+        //   isFollowing: selected,
+        //   style: FollowButtonStyle(),
+        //   styleWhenFollowing: FollowButtonStyle(),  
+        // ),
         trailingPadding: EdgeInsetsDirectional.only(start: 6.0.s),
       ),
     );
