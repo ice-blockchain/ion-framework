@@ -23,6 +23,8 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:showcaseview/showcaseview.dart';
+import 'package:ion/app/features/feed/create_post/providers/media_nsfw_parallel_checker.m.dart';
+import 'package:ion/app/services/media_service/media_service.m.dart';
 
 class PostFormModal extends HookConsumerWidget {
   const PostFormModal._({
@@ -181,6 +183,59 @@ class PostFormModal extends HookConsumerWidget {
     if (textEditorController == null) {
       return const SizedBox.shrink();
     }
+
+    // TODO: Run only if media files are added or changed.
+    final mediaFiles = attachedMediaFilesNotifier.value;
+    final mediaCount = mediaFiles.length;
+    print('🔥DEBUG: Media files count: $mediaCount, files: $mediaFiles');
+
+    // NSFW check for media files (images, etc.)
+    useEffect(() {
+      print('🔥UseEffect() TRIGGERED! Media files: $mediaFiles (count: $mediaCount)');
+      if (mediaFiles.isNotEmpty) {
+        print('🔥Calling NSFW check for ${mediaFiles.length} files');
+
+        // Schedule NSFW check to run after the current frame
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          try {
+            // Convert asset IDs to actual file paths before NSFW check
+            final convertedMediaFiles = await ref
+                .read(mediaServiceProvider)
+                .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
+
+            await ref
+                .read(mediaNsfwParallelCheckerProvider.notifier)
+                .addMediaListCheck(convertedMediaFiles);
+            print('🔥NSFW check call completed successfully');
+          } catch (e) {
+            print('🔥NSFW check call failed: $e');
+          }
+        });
+      }
+
+      return null;
+    }, [mediaCount]);
+
+    // NSFW check for video files
+    useEffect(() {
+      final videoFile = attachedVideoNotifier.value;
+      if (videoFile != null) {
+        print('🔥Video NSFW check triggered for: ${videoFile.path}');
+
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          try {
+            await ref
+                .read(mediaNsfwParallelCheckerProvider.notifier)
+                .addMediaListCheck([videoFile]);
+            print('🔥Video NSFW check completed');
+          } catch (e) {
+            print('🔥Video NSFW check failed: $e');
+          }
+        });
+      }
+
+      return null;
+    }, [attachedVideoNotifier.value]);
 
     return BackHardwareButtonInterceptor(
       onBackPress: (_) async => textEditorController.document.isEmpty()
