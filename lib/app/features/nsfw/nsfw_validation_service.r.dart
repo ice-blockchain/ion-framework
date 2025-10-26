@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/nsfw/nsfw_detector.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector_factory.r.dart';
+import 'package:ion/app/features/nsfw/static/nsfw_parallel_checker.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -66,26 +67,11 @@ class NsfwValidationService {
   }
 
   Future<bool> _hasNsfwInImagePaths(List<String> imagePaths) async {
-    if (imagePaths.isEmpty) return false;
-
-    final detector = await detectorFactory.create();
-    try {
-      for (final path in imagePaths) {
-        try {
-          final bytes = await File(path).readAsBytes();
-          final result = await detector.classifyBytes(bytes);
-          Logger.log('NSFW image validation rate: ${result.nsfw}');
-          if (result.decision != NsfwDecision.allow) {
-            return true;
-          }
-        } catch (e, st) {
-          Logger.error(e, message: 'NSFW image validation failed', stackTrace: st);
-        }
-      }
-      return false;
-    } finally {
-      detector.dispose();
-    }
+    return NsfwParallelChecker.hasNsfwInImagePaths(
+      imagePaths: imagePaths,
+      poolSize: 1,
+      blockThreshold: detectorFactory.blockThreshold,
+    );
   }
 
   List<MediaFile> _extractVideoFiles(List<MediaFile> mediaFiles) {
@@ -96,28 +82,39 @@ class NsfwValidationService {
   }
 
   Future<bool> _hasNsfwInVideos(List<MediaFile> videos) async {
-    final detector = await detectorFactory.create();
-    try {
-      for (final video in videos) {
-        final timestamps = await _buildTimestamps(video);
-        for (final ts in timestamps) {
-          try {
-            final thumbMediaFile = await videoCompressor.getThumbnail(video, timestamp: ts);
-            final bytes = await File(thumbMediaFile.path).readAsBytes();
-            final result = await detector.classifyBytes(bytes);
-            Logger.log('NSFW video thumbnail validation rate: ${result.nsfw}');
-            if (result.decision != NsfwDecision.allow) {
-              return true;
-            }
-          } catch (e, st) {
-            Logger.error(e, message: 'NSFW video thumbnail validation failed', stackTrace: st);
-          }
+    return _hasNsfwInVideosParallel(videos);
+  }
+
+  // Extract thumbnails on main thread, process in isolates
+  Future<bool> _hasNsfwInVideosParallel(List<MediaFile> videos) async {
+    // Extract ALL thumbnails on main thread
+    final thumbnailBytes = <Uint8List>[];
+
+    for (final video in videos) {
+      final timestamps = await _buildTimestamps(video);
+      for (final ts in timestamps) {
+        try {
+          final thumbMediaFile = await videoCompressor.getThumbnail(video, timestamp: ts);
+          final bytes = await File(thumbMediaFile.path).readAsBytes();
+          thumbnailBytes.add(bytes);
+        } catch (e, st) {
+          Logger.error(e, message: 'NSFW video thumbnail validation failed', stackTrace: st);
         }
       }
-      return false;
-    } finally {
-      detector.dispose();
     }
+
+    if (thumbnailBytes.isEmpty) {
+      return false;
+    }
+
+    // Process ALL thumbnails in parallel (isolates)
+    final hasNsfw = await NsfwParallelChecker.hasNsfwInImageBytes(
+      imageBytesList: thumbnailBytes,
+      blockThreshold: detectorFactory.blockThreshold,
+      poolSize: 1, // Use same optimal pool size as images
+    );
+
+    return hasNsfw;
   }
 
   Future<List<String>> _buildTimestamps(MediaFile video) async {
