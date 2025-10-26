@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
+import 'package:ion/app/features/feed/create_post/providers/media_nsfw_parallel_checker.m.dart';
 import 'package:ion/app/features/feed/create_post/views/hooks/use_can_submit_post.dart';
 import 'package:ion/app/features/feed/polls/providers/poll_draft_provider.r.dart';
 import 'package:ion/app/features/feed/polls/utils/poll_utils.dart';
@@ -21,7 +22,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
+import 'package:ion/app/features/nsfw/widgets/nsfw_blocked_sheet.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
@@ -78,6 +79,14 @@ class PostSubmitButton extends HookConsumerWidget {
       modifiedEvent: modifiedEntity,
     );
 
+    final loading =
+        ref.watch(mediaNsfwParallelCheckerProvider.select((state) => state.isFinalCheckInProcess));
+    final anotherLoading = useState(false);
+
+    if (loading || anotherLoading.value) {
+      return const CircularProgressIndicator();
+    }
+
     return ToolbarSendButton(
       enabled: isSubmitButtonEnabled,
       onPressed: () async {
@@ -86,7 +95,6 @@ class PostSubmitButton extends HookConsumerWidget {
           ref.read(topicTooltipVisibilityNotifierProvider.notifier).show();
           return;
         }
-
         // Do not set language for replies.
         final language =
             parentEvent == null ? ref.read(selectedEntityLanguageNotifierProvider) : null;
@@ -95,15 +103,37 @@ class PostSubmitButton extends HookConsumerWidget {
           return;
         }
 
+        anotherLoading.value = true;
+        final triggerDateTime = DateTime.now();
+        print('🔥Before assetIds to mediafiles! ');
         final filesToUpload = createOption == CreatePostOption.video
             ? mediaFiles
             : await ref
                 .read(mediaServiceProvider)
                 .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
+        print('🔥After converting: ${DateTime.now().difference(triggerDateTime).inMilliseconds}ms');
 
         // NSFW validation: block posting if any selected image is NSFW
-        final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, filesToUpload);
-        if (isBlocked) return;
+        // final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, filesToUpload);
+        // if (isBlocked) return;
+        print('💧Checking NSFW🔥');
+
+        print('🔥Before loading: ${DateTime.now().difference(triggerDateTime).inMilliseconds}ms');
+        final hasNsfw = await ref
+            .read(mediaNsfwParallelCheckerProvider.notifier)
+            .getNsfwCheckValueOrWaitUntil();
+        anotherLoading.value = false;
+
+        print('💧Has NSFW result: $hasNsfw🔥');
+        if (hasNsfw) {
+          if (context.mounted) {
+            await showNsfwBlockedSheet(context);
+          }
+
+          return;
+        }
+
+        // return ref.context.pop(true);
 
         if (context.mounted) {
           final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
