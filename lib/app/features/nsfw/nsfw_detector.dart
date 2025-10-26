@@ -28,6 +28,13 @@ class NsfwDetector {
     double blockThreshold = 0.60,
   }) : _blockThreshold = blockThreshold;
 
+  /// Internal constructor for use by static helpers.
+  /// Allows external code to create detector with custom interpreter.
+  NsfwDetector.internal(
+    this._interpreter, {
+    double blockThreshold = 0.60,
+  }) : _blockThreshold = blockThreshold;
+
   final Interpreter _interpreter;
   final double _blockThreshold;
 

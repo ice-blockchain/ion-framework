@@ -19,13 +19,12 @@ class NsfwModelManager {
   /// Gets the file path to the NSFW model.
   /// On first call, copies the model from assets to app documents directory.
   /// Next calls just return the cached path.
-  /// This is required for isolate support, as isolates cannot access rootBundle.
+  /// This is required, as isolates cannot access rootBundle.
 
   static Future<String> getModelPath() async {
-    // Return cached path if already initialized
     if (_cachedModelPath != null) {
       final file = File(_cachedModelPath!);
-      if (await file.exists()) {
+      if (file.existsSync()) {
         Logger.log('📦 [NSFW Model] Using cached model at: $_cachedModelPath');
         return _cachedModelPath!;
       }
@@ -69,7 +68,7 @@ class NsfwModelManager {
 
     try {
       final file = File(_cachedModelPath!);
-      if (await file.exists()) {
+      if (file.existsSync()) {
         await file.delete();
         Logger.log('📦 [NSFW Model] Cache cleared: $_cachedModelPath');
       }
@@ -86,6 +85,6 @@ class NsfwModelManager {
   static Future<bool> isModelCached() async {
     if (_cachedModelPath == null) return false;
     final file = File(_cachedModelPath!);
-    return file.exists();
+    return file.existsSync();
   }
 }
