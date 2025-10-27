@@ -3,6 +3,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ion/app/utils/url.dart';
 
+import '../test_utils.dart';
+
 void main() {
   group('isIonMediaUrl', () {
     test('returns true for valid ION media URLs', () {
@@ -62,122 +64,107 @@ void main() {
       }
     });
   });
-  group('fileUriToPath', () {
-    test('returns path as-is when it does not start with file://', () {
-      const path = '/storage/emulated/0/video.mp4';
 
-      final result = fileUriToPath(path);
-
-      expect(result, path);
-    });
-
-    test('handles file:// URI with special characters', () {
-      const fileUri = 'file:///storage/emulated/0/My%20Video%20File.mp4';
-      const expectedPath = '/storage/emulated/0/My Video File.mp4';
-
-      final result = fileUriToPath(fileUri);
-
-      expect(result, expectedPath);
-    });
-
-    test('handles file:// URI with spaces (already decoded)', () {
-      const fileUri = 'file:///storage/emulated/0/My Video File.mp4';
-      const expectedPath = '/storage/emulated/0/My Video File.mp4';
-
-      final result = fileUriToPath(fileUri);
-
-      expect(result, expectedPath);
-    });
-
-    test('handles relative path without file:// prefix', () {
-      const relativePath = 'videos/export.mp4';
-
-      final result = fileUriToPath(relativePath);
-
-      expect(result, relativePath);
-    });
-
-    test('handles empty string', () {
-      const emptyPath = '';
-
-      final result = fileUriToPath(emptyPath);
-
-      expect(result, emptyPath);
-    });
-
-    test('handles path with Unicode characters', () {
-      const path = '/storage/emulated/0/视频.mp4';
-
-      final result = fileUriToPath(path);
-
-      expect(result, path);
-    });
-
-    test('handles file:// URI with Unicode characters', () {
-      const fileUri = 'file:///storage/emulated/0/%E8%A7%86%E9%A2%91.mp4';
-      const expectedPath = '/storage/emulated/0/视频.mp4';
-
-      final result = fileUriToPath(fileUri);
-
-      expect(result, expectedPath);
-    });
-
-    test('does not modify https:// URLs', () {
-      const httpsUrl = 'https://example.com/video.mp4';
-
-      final result = fileUriToPath(httpsUrl);
-
-      expect(result, httpsUrl);
-    });
-
-    test('does not modify content:// URIs', () {
-      const contentUri = 'content://media/external/images/media/1000025399';
-
-      final result = fileUriToPath(contentUri);
-
-      expect(result, contentUri);
-    });
-
-    test('handles thumbnail preview path format', () {
-      // Real-world example from the bug fix
-      const fileUri =
-          'file:///storage/emulated/0/Android/data/io.ion.app/files/export/export_preview-2025-10-17T20-58-36.526.png';
-      const expectedPath =
-          '/storage/emulated/0/Android/data/io.ion.app/files/export/export_preview-2025-10-17T20-58-36.526.png';
-
-      final result = fileUriToPath(fileUri);
-
-      expect(result, expectedPath);
+  parameterizedGroup('fileUriToPath', [
+    (
+      description: 'returns path as-is when it does not start with file://',
+      input: '/storage/emulated/0/video.mp4',
+      expected: '/storage/emulated/0/video.mp4',
+    ),
+    (
+      description: 'handles file:// URI with special characters',
+      input: 'file:///storage/emulated/0/My%20Video%20File.mp4',
+      expected: '/storage/emulated/0/My Video File.mp4',
+    ),
+    (
+      description: 'handles file:// URI with spaces (already decoded)',
+      input: 'file:///storage/emulated/0/My Video File.mp4',
+      expected: '/storage/emulated/0/My Video File.mp4',
+    ),
+    (
+      description: 'handles relative path without file:// prefix',
+      input: 'videos/export.mp4',
+      expected: 'videos/export.mp4',
+    ),
+    (
+      description: 'handles empty string',
+      input: '',
+      expected: '',
+    ),
+    (
+      description: 'handles path with Unicode characters',
+      input: '/storage/emulated/0/视频.mp4',
+      expected: '/storage/emulated/0/视频.mp4',
+    ),
+    (
+      description: 'handles file:// URI with Unicode characters',
+      input: 'file:///storage/emulated/0/%E8%A7%86%E9%A2%91.mp4',
+      expected: '/storage/emulated/0/视频.mp4',
+    ),
+    (
+      description: 'does not modify https:// URLs',
+      input: 'https://example.com/video.mp4',
+      expected: 'https://example.com/video.mp4',
+    ),
+    (
+      description: 'does not modify content:// URIs',
+      input: 'content://media/external/images/media/1000025399',
+      expected: 'content://media/external/images/media/1000025399',
+    ),
+    (
+      description: 'handles thumbnail preview path format',
+      input:
+          'file:///storage/emulated/0/Android/data/io.ion.app/files/export/export_preview-2025-10-17T20-58-36.526.png',
+      expected:
+          '/storage/emulated/0/Android/data/io.ion.app/files/export/export_preview-2025-10-17T20-58-36.526.png',
+    ),
+  ], (t) {
+    test(t.description, () {
+      final result = fileUriToPath(t.input);
+      expect(result, t.expected);
     });
   });
 
-  group('isNetworkUrl', () {
-    test('returns true for http URLs', () {
-      expect(isNetworkUrl('http://example.com'), isTrue);
-    });
-
-    test('returns true for https URLs', () {
-      expect(isNetworkUrl('https://example.com'), isTrue);
-    });
-
-    test('returns false for file:// URIs', () {
-      expect(isNetworkUrl('file:///storage/video.mp4'), isFalse);
-    });
-
-    test('returns false for content:// URIs', () {
-      expect(isNetworkUrl('content://media/external/images/media/123'), isFalse);
-    });
-
-    test('returns false for local file paths', () {
-      expect(isNetworkUrl('/storage/emulated/0/video.mp4'), isFalse);
-    });
-
-    test('returns false for empty string', () {
-      expect(isNetworkUrl(''), isFalse);
-    });
-
-    test('returns false for relative paths', () {
-      expect(isNetworkUrl('videos/example.mp4'), isFalse);
+  parameterizedGroup('isNetworkUrl', [
+    (
+      description: 'returns true for http URLs',
+      input: 'http://example.com',
+      expected: true,
+    ),
+    (
+      description: 'returns true for https URLs',
+      input: 'https://example.com',
+      expected: true,
+    ),
+    (
+      description: 'returns false for file:// URIs',
+      input: 'file:///storage/video.mp4',
+      expected: false,
+    ),
+    (
+      description: 'returns false for content:// URIs',
+      input: 'content://media/external/images/media/123',
+      expected: false,
+    ),
+    (
+      description: 'returns false for local file paths',
+      input: '/storage/emulated/0/video.mp4',
+      expected: false,
+    ),
+    (
+      description: 'returns false for empty string',
+      input: '',
+      expected: false,
+    ),
+    (
+      description: 'returns false for relative paths',
+      input: 'videos/example.mp4',
+      expected: false,
+    ),
+  ], (t) {
+    test(t.description, () {
+      final result = isNetworkUrl(t.input);
+      expect(result, t.expected);
     });
   });
 }
