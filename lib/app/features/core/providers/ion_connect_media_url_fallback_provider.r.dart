@@ -25,7 +25,7 @@ class IonConnectMediaUrlFallback extends _$IonConnectMediaUrlFallback {
   final Map<String, Future<List<String>?>> _identityRelays = {};
 
   Future<String?> generateFallback(String initialAssetUrl, {required String authorPubkey}) async {
-    if (!isNetworkUrl(initialAssetUrl)) {
+    if (!isIonMediaUrl(initialAssetUrl)) {
       return null;
     }
 
