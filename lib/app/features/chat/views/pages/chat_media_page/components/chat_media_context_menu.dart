@@ -43,7 +43,7 @@ class ChatMediaContextMenu extends HookConsumerWidget {
 
         if (isRemoteUrl) {
           final fileInfo =
-              await ref.read(fileCacheServiceProvider).getFileFromCache(activeMedia.url);
+              await ref.read(ionConnectFileCacheServiceProvider).getFileFromCache(activeMedia.url);
           if (fileInfo == null) {
             return;
           }

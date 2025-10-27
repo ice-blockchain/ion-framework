@@ -6,7 +6,7 @@ part of '../chat_database.m.dart';
 ConversationMessageDao conversationMessageDao(Ref ref) => ConversationMessageDao(
       ref.watch(chatDatabaseProvider),
       masterPubkey: ref.watch(currentPubkeySelectorProvider),
-      fileCacheService: ref.watch(fileCacheServiceProvider),
+      fileCacheService: ref.watch(ionConnectFileCacheServiceProvider),
       eventSigner: ref.watch(currentUserIonConnectEventSignerProvider).valueOrNull,
     );
 

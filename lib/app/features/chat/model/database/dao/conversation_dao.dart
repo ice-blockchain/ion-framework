@@ -6,7 +6,7 @@ part of '../chat_database.m.dart';
 ConversationDao conversationDao(Ref ref) => ConversationDao(
       ref.watch(chatDatabaseProvider),
       eventMessageDao: ref.watch(eventMessageDaoProvider),
-      fileCacheService: ref.watch(fileCacheServiceProvider),
+      fileCacheService: ref.watch(ionConnectFileCacheServiceProvider),
     );
 
 @DriftAccessor(

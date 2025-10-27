@@ -211,6 +211,14 @@ class MediaEncryptionService {
   }
 }
 
+@riverpod
+MediaEncryptionService mediaEncryptionService(Ref ref) => MediaEncryptionService(
+      fileCacheService: ref.read(ionConnectFileCacheServiceProvider),
+      brotliCompressor: ref.read(brotliCompressorProvider),
+      generateMediaUrlFallback:
+          ref.read(iONConnectMediaUrlFallbackProvider.notifier).generateFallback,
+    );
+
 @freezed
 class EncryptedMediaFile with _$EncryptedMediaFile {
   const factory EncryptedMediaFile({
