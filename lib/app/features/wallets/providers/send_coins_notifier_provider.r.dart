@@ -141,7 +141,8 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       // Capture to Sentry the next exceptions
       // - Unexpected ones (not IONException)
       // - Unexpected blockchain errors with reason (FailedToSendCryptoAssetsException)
-      if (error is! IONException || error is FailedToSendCryptoAssetsException) {
+      if ((error is! IONException && error is! PasskeyCancelledException) ||
+          error is FailedToSendCryptoAssetsException) {
         await SentryService.logException(
           error,
           stackTrace: state.stackTrace,

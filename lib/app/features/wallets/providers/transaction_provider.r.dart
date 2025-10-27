@@ -11,6 +11,7 @@ import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
 
@@ -79,8 +80,14 @@ class TransactionNotifier extends _$TransactionNotifier {
       );
 
       state = AsyncValue.data(transactionDetails);
-    } catch (error, _) {
+    } catch (error, stackTrace) {
       Logger.error('[TransactionNotifier] Error processing transaction: $error');
+      state = AsyncValue.error(error, stackTrace);
+      await SentryService.logException(
+        error,
+        stackTrace: stackTrace,
+        tag: 'resolve_transaction_failure',
+      );
     }
   }
 

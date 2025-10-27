@@ -17,6 +17,7 @@ import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'coin_transaction_history_notifier_provider.r.g.dart';
@@ -54,6 +55,11 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
       return initialState;
     } catch (error, stackTrace) {
       Logger.error('$_tag Failed to initialize: $error', stackTrace: stackTrace);
+      await SentryService.logException(
+        error,
+        stackTrace: stackTrace,
+        tag: 'transaction_history_init_failure',
+      );
       return const CoinTransactionHistoryState(
         transactions: [],
         isLoading: false,
