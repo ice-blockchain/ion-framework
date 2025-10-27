@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ice-blockchain/nostr-sdk-ios",
       "state" : {
-        "revision" : "1bc4292d858bc944fd9ecdcff07937bb2309f15d",
-        "version" : "0.4.0"
+        "revision" : "6872ca9dde47add3f3397a673f42ec97172e1dfa",
+        "version" : "0.4.1"
       }
     },
     {
