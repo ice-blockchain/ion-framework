@@ -29,6 +29,11 @@ class LoggerInitializer {
 
     // Handles platform-level errors that occur outside of the Flutter framework
     PlatformDispatcher.instance.onError = (error, stack) {
+      // Ignore expected cancellation errors
+      if (error is StateError && error.message == 'cancelled') {
+        return true; // Silently handle it
+      }
+
       Logger.error('[Platform Error] $error', stackTrace: stack);
       return true;
     };
