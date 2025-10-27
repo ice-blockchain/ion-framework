@@ -26,10 +26,11 @@ class FollowingUsers extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final followListMasterPubkeys = ref.watch(currentUserFollowListWithMetadataProvider());
+    final followListState = ref.watch(currentUserFollowListWithMetadataProvider);
 
-    return followListMasterPubkeys.maybeWhen(
-      data: (masterPubkeys) {
+    return followListState.maybeWhen(
+      data: (data) {
+        final masterPubkeys = data.pubkeys;
         if (masterPubkeys.isEmpty) return const _NoUserView();
 
         return SliverList.builder(
