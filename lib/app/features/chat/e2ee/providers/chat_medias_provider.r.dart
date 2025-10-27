@@ -8,9 +8,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'chat_medias_provider.r.g.dart';
 
 @riverpod
-Stream<List<MessageMediaTableData>> chatMedias(
-  Ref ref, {
-  required EventReference eventReference,
-}) {
+Stream<List<MessageMediaTableData>> chatMedias(Ref ref, {required EventReference eventReference}) {
   return ref.watch(messageMediaDaoProvider).watchByEventId(eventReference);
 }

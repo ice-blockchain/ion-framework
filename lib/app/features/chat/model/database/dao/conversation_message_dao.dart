@@ -90,7 +90,7 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
       ..where(messageStatusTable.status.equals(MessageDeliveryStatus.received.index))
       ..groupBy([messageStatusTable.messageEventReference]);
 
-    return query.watch().map((rows) => rows.length);
+    return query.watch().map((rows) => rows.length).distinct();
   }
 
   Stream<int> getAllUnreadMessagesCount(
@@ -120,9 +120,7 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
       ..where(messageStatusTable.masterPubkey.equals(masterPubkey))
       ..groupBy([eventMessageTable.masterPubkey]);
 
-    return query.watch().map((rows) {
-      return rows.length;
-    });
+    return query.watch().map((rows) => rows.length).distinct();
   }
 
   Stream<Map<DateTime, List<EventMessage>>> getMessages(String conversationId) {
@@ -165,7 +163,7 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
       }
 
       return groupedMessages;
-    });
+    }).distinct((m1, m2) => const DeepCollectionEquality().equals(m1, m2));
   }
 
   Future<EventMessage> getEventMessage({required EventReference eventReference}) async {
@@ -199,7 +197,7 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
     return query.watchSingleOrNull().map((row) {
       if (row == null) return null;
       return row.readTable(eventMessageTable).toEventMessage();
-    });
+    }).distinct();
   }
 
   Future<void> removeMessagesFromDatabase(List<EventReference> eventReferences) async {
