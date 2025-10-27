@@ -14,7 +14,6 @@ import 'package:ion/app/features/chat/services/shared_chat_isolate.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
-import 'package:ion/app/features/core/providers/ion_connect_media_url_fallback_provider.r.dart';
 import 'package:ion/app/features/core/providers/ion_connect_media_url_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/services/compressors/brotli_compressor.r.dart';
@@ -34,10 +33,12 @@ part 'media_encryption_service.m.g.dart';
 @riverpod
 MediaEncryptionService mediaEncryptionService(Ref ref) {
   final service = MediaEncryptionService(
-    fileCacheService: ref.read(fileCacheServiceProvider),
+    fileCacheService: ref.read(ionConnectFileCacheServiceProvider),
     brotliCompressor: ref.read(brotliCompressorProvider),
-    generateMediaUrlFallback:
-        ref.read(iONConnectMediaUrlFallbackProvider.notifier).generateFallback,
+    getMediaUrl: (String url) => ref.read(ionConnectMediaUrlProvider(url)),
+    generateMediaUrlFallback: (String url, {required String authorPubkey}) => ref
+        .read(ionConnectMediaUrlProvider(url).notifier)
+        .generateFallback(authorPubkey: authorPubkey),
   );
 
   final lifecycleSubscription = ref.listen<AppLifecycleState>(
@@ -208,16 +209,6 @@ class MediaEncryptionService {
     }
   }
 }
-
-@riverpod
-MediaEncryptionService mediaEncryptionService(Ref ref) => MediaEncryptionService(
-      fileCacheService: ref.read(ionConnectFileCacheServiceProvider),
-      brotliCompressor: ref.read(brotliCompressorProvider),
-      getMediaUrl: (String url) => ref.read(ionConnectMediaUrlProvider(url)),
-      generateMediaUrlFallback: (String url, {required String authorPubkey}) => ref
-          .read(ionConnectMediaUrlProvider(url).notifier)
-          .generateFallback(authorPubkey: authorPubkey),
-    );
 
 @freezed
 class EncryptedMediaFile with _$EncryptedMediaFile {
