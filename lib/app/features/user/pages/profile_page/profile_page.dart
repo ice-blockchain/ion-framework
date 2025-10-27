@@ -34,6 +34,7 @@ import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
+import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
@@ -93,6 +94,9 @@ class ProfilePage extends HookConsumerWidget {
     }
     final (:opacity) = useAnimatedOpacityOnScroll(scrollController, topOffset: paddingTop);
 
+    // Extract colors from user avatar for profile background
+    final avatarUrl = userMetadata.valueOrNull?.data.avatarUrl;
+    final avatarColors = useAvatarColors(avatarUrl);
     final backgroundColor = context.theme.appColors.secondaryBackground;
 
     final menuCloseSignal = useMemoized(OverlayMenuCloseSignal.new);
@@ -160,7 +164,12 @@ class ProfilePage extends HookConsumerWidget {
                           child: Stack(
                             children: [
                               if (profileMode == ProfileMode.dark)
-                                const Positioned.fill(child: ProfileBackground()),
+                                Positioned.fill(
+                                  child: ProfileBackground(
+                                    color1: avatarColors.$1,
+                                    color2: avatarColors.$2,
+                                  ),
+                                ),
                               Column(
                                 children: [
                                   SizedBox(
@@ -246,8 +255,13 @@ class ProfilePage extends HookConsumerWidget {
                   backButtonIcon: backButtonIcon,
                   scrollController: scrollController,
                   horizontalPadding: 0,
-                  backgroundBuilder:
-                      profileMode == ProfileMode.dark ? () => const ProfileBackground() : null,
+                  backgroundBuilder: profileMode == ProfileMode.dark
+                      ? () => ProfileBackground(
+                            color1: avatarColors.$1,
+                            color2: avatarColors.$2,
+                            disableDarkGradient: true,
+                          )
+                      : null,
                   title: Header(
                     opacity: opacity,
                     pubkey: masterPubkey,

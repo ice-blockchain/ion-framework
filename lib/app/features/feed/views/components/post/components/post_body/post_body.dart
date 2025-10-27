@@ -94,6 +94,9 @@ class PostBody extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 10.0.s,
       children: [
+        // TODO: use PumpIonBuy && PumpIonBought when real data is available
+        // PumpIonBuy(masterPubkey: entity.masterPubkey),
+        // PumpIonBought(masterPubkey: entity.masterPubkey),
         if (showTextContent || pollData != null)
           Padding(
             padding: EdgeInsetsDirectional.symmetric(horizontal: sidePadding ?? 16.0.s),

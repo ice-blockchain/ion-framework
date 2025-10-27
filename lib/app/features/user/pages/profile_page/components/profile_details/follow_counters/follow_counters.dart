@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/follow_type.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/gradient_vertical_devider.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters_cell.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user/providers/followers_count_provider.r.dart';
@@ -12,12 +13,16 @@ import 'package:ion/app/features/user/providers/followers_count_provider.r.dart'
 class FollowCounters extends ConsumerWidget {
   const FollowCounters({
     required this.pubkey,
+    this.height = 36.0,
     this.profileMode = ProfileMode.light,
+    this.padding,
     super.key,
   });
 
   final String pubkey;
+  final double height;
   final ProfileMode profileMode;
+  final EdgeInsetsGeometry? padding;
 
   Decoration _decoration(BuildContext context) {
     if (profileMode == ProfileMode.dark) {
@@ -38,24 +43,7 @@ class FollowCounters extends ConsumerWidget {
     if (profileMode == ProfileMode.dark) {
       return Padding(
         padding: EdgeInsetsDirectional.symmetric(horizontal: 12.0.s),
-        child: Opacity(
-          opacity: 0.40,
-          child: Container(
-            height: 22.0.s,
-            width: 0.44.s,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [
-                  Color(0x00ffffff),
-                  Color(0xccffffff),
-                  Color(0x00ffffff),
-                ],
-              ),
-            ),
-          ),
-        ),
+        child: const GradientVerticalDevider(),
       );
     }
     return VerticalDivider(
@@ -69,8 +57,9 @@ class FollowCounters extends ConsumerWidget {
 
   EdgeInsets get _padding {
     if (profileMode == ProfileMode.dark) {
-      return EdgeInsets.symmetric(horizontal: 13.0.s);
+      return EdgeInsets.symmetric(horizontal: 16.0.s);
     }
+
     return EdgeInsets.zero;
   }
 
@@ -95,8 +84,8 @@ class FollowCounters extends ConsumerWidget {
     }
 
     return Container(
-      height: 36.0.s,
-      padding: _padding,
+      height: height.s,
+      padding: padding ?? _padding,
       decoration: _decoration(context),
       child: Row(
         mainAxisSize: _mainAxisSize,
