@@ -10,9 +10,80 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/optimistic_ui/features/follow/follow_provider.r.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/providers/follow_list_state.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'follow_list_provider.r.g.dart';
+
+const _kFollowListLimit = 50;
+
+@riverpod
+class CurrentUserFollowListWithMetadata extends _$CurrentUserFollowListWithMetadata {
+  late final List<String> _allPubkeys;
+
+  @override
+  Future<CurrentUserFollowListWithMetadataState> build() async {
+    final followListEntity = await ref.watch(currentUserFollowListProvider.future);
+    _allPubkeys = followListEntity?.data.list.map((e) => e.pubkey).toList() ?? [];
+
+    final initialPubkeys = _allPubkeys.take(_kFollowListLimit).toList();
+
+    _fetchMetadata(initialPubkeys);
+
+    return CurrentUserFollowListWithMetadataState(
+      pubkeys: initialPubkeys,
+      hasMore: initialPubkeys.length < _allPubkeys.length,
+    );
+  }
+
+  Future<void> fetchEntities() async {
+    if (state.isLoading || !state.hasValue || !state.value!.hasMore) {
+      return;
+    }
+
+    final previousState = state.value!;
+    state = AsyncData(previousState.copyWith(hasMore: false)); // to prevent concurrent fetches
+
+    final currentPubkeys = previousState.pubkeys;
+
+    final nextPubkeys = _allPubkeys.skip(currentPubkeys.length).take(_kFollowListLimit).toList();
+
+    if (nextPubkeys.isEmpty) {
+      state = AsyncData(previousState.copyWith(hasMore: false));
+      return;
+    }
+
+    _fetchMetadata(nextPubkeys);
+
+    final newPubkeys = [...currentPubkeys, ...nextPubkeys];
+    state = AsyncData(
+      previousState.copyWith(
+        pubkeys: newPubkeys,
+        hasMore: newPubkeys.length < _allPubkeys.length,
+      ),
+    );
+  }
+
+  void _fetchMetadata(List<String> pubkeys) {
+    if (pubkeys.isEmpty) {
+      return;
+    }
+
+    unawaited(
+      ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
+            eventReferences: pubkeys
+                .map(
+                  (masterPubkey) => ReplaceableEventReference(
+                    masterPubkey: masterPubkey,
+                    kind: UserMetadataEntity.kind,
+                  ),
+                )
+                .toList(),
+            search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
+          ),
+    );
+  }
+}
 
 @riverpod
 Future<FollowListEntity?> followList(
@@ -51,34 +122,6 @@ Future<FollowListEntity?> currentUserFollowList(Ref ref) async {
     return null;
   }
   return ref.watch(followListProvider(currentPubkey).future);
-}
-
-@riverpod
-Future<List<String>> currentUserFollowListWithMetadata(
-  Ref ref, {
-  int limit = 50,
-}) async {
-  final allFollowedPeople = await ref.watch(currentUserFollowListProvider.future);
-
-  final followedPeople = allFollowedPeople?.data.list.take(limit).toList() ?? [];
-
-  final masterPubkeys = followedPeople.map((follow) => follow.pubkey).toList();
-
-  unawaited(
-    ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
-          eventReferences: masterPubkeys
-              .map(
-                (masterPubkey) => ReplaceableEventReference(
-                  masterPubkey: masterPubkey,
-                  kind: UserMetadataEntity.kind,
-                ),
-              )
-              .toList(),
-          search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
-        ),
-  );
-
-  return masterPubkeys;
 }
 
 @riverpod
