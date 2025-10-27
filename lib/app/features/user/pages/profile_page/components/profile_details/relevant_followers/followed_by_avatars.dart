@@ -21,8 +21,12 @@ class FollowedByAvatars extends StatelessWidget {
         children: [
           for (int i = pubkeys.length - 1; i >= 0; i--)
             PositionedDirectional(
+              key: ValueKey<String>('pos-${pubkeys[i]}-$i'),
               start: i * (avatarSize - overlap),
-              child: _FollowedAvatar(pubkey: pubkeys[i]),
+              child: _FollowedAvatar(
+                key: ValueKey<String>('avatar-${pubkeys[i]}'),
+                pubkey: pubkeys[i],
+              ),
             ),
         ],
       ),
@@ -31,7 +35,7 @@ class FollowedByAvatars extends StatelessWidget {
 }
 
 class _FollowedAvatar extends StatelessWidget {
-  const _FollowedAvatar({required this.pubkey});
+  const _FollowedAvatar({required this.pubkey, super.key});
 
   final String pubkey;
 
@@ -48,6 +52,7 @@ class _FollowedAvatar extends StatelessWidget {
         borderRadius: BorderRadius.circular(6.0.s),
       ),
       child: IonConnectAvatar(
+        key: ValueKey<String>('ion-$pubkey'),
         size: avatarSize - borderWidth * 2,
         fit: BoxFit.cover,
         masterPubkey: pubkey,
