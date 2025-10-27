@@ -54,7 +54,7 @@ class MessageMediaDao extends DatabaseAccessor<ChatDatabase> with _$MessageMedia
         if (media.remoteUrl == null) return true;
         return mediaUrls.add(media.remoteUrl);
       }).toList();
-    });
+    }).distinct((l1, l2) => const DeepCollectionEquality().equals(l1, l2));
   }
 
   Future<void> updateById(

@@ -140,7 +140,7 @@ class ConversationMessageDataDao extends DatabaseAccessor<ChatDatabase>
         return MessageDeliveryStatus.sent;
       }
       return MessageDeliveryStatus.created;
-    });
+    }).distinct();
   }
 
   Future<Map<String, List<String>>> getFailedParticipants({
