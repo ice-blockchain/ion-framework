@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
@@ -118,133 +117,131 @@ class OneToOneMessageList extends HookConsumerWidget {
         children: [
           ColoredBox(
             color: context.theme.appColors.primaryBackground,
-            child: ScreenSideOffset.small(
-              child: SuperListView.builder(
-                reverse: true,
-                cacheExtent: 2000,
-                itemCount: allMessages.length,
-                controller: scrollController,
-                listController: listController,
-                key: const Key('one_to_one_messages_list'),
-                padding: EdgeInsetsDirectional.only(bottom: 12.s),
-                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                findChildIndexCallback: (key) {
-                  final valueKey = key as ValueKey<String>;
-                  return allMessages.indexWhere((e) => e.id == valueKey.value);
-                },
-                // Add item extent estimation for better scroll performance
-                extentEstimation: (index, dimensions) {
-                  if (index == null || index >= allMessages.length) return 60.0.s; // Default height
-                  final message = allMessages[index];
-                  final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(message);
+            child: SuperListView.builder(
+              reverse: true,
+              cacheExtent: 2000,
+              itemCount: allMessages.length,
+              controller: scrollController,
+              listController: listController,
+              key: const Key('one_to_one_messages_list'),
+              padding: EdgeInsetsDirectional.only(bottom: 12.s),
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              findChildIndexCallback: (key) {
+                final valueKey = key as ValueKey<String>;
+                return allMessages.indexWhere((e) => e.id == valueKey.value);
+              },
+              // Add item extent estimation for better scroll performance
+              extentEstimation: (index, dimensions) {
+                if (index == null || index >= allMessages.length) return 60.0.s; // Default height
+                final message = allMessages[index];
+                final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(message);
 
-                  // Base height estimate for the message type
-                  var estimatedHeight = _getEstimatedHeight(entity.data.messageType);
+                // Base height estimate for the message type
+                var estimatedHeight = _getEstimatedHeight(entity.data.messageType);
 
-                  // Add date header height if this message shows a date
-                  final hasDateHeader = dateHeaderLookup.containsKey(message.id);
-                  if (hasDateHeader) {
-                    estimatedHeight += 50.0.s; // Date header height estimate
+                // Add date header height if this message shows a date
+                final hasDateHeader = dateHeaderLookup.containsKey(message.id);
+                if (hasDateHeader) {
+                  estimatedHeight += 50.0.s; // Date header height estimate
+                }
+
+                // Add margin spacing
+                final isLastMessageInConversation = index == 0;
+                final hasNextMessageFromAnotherUser =
+                    index > 0 && allMessages[index - 1].masterPubkey != message.masterPubkey;
+
+                if (!isLastMessageInConversation) {
+                  if (hasNextMessageFromAnotherUser) {
+                    estimatedHeight += 16.0;
+                  } else {
+                    estimatedHeight += 8.0;
                   }
+                }
 
-                  // Add margin spacing
-                  final isLastMessageInConversation = index == 0;
-                  final hasNextMessageFromAnotherUser =
-                      index > 0 && allMessages[index - 1].masterPubkey != message.masterPubkey;
+                return estimatedHeight;
+              },
+              itemBuilder: (context, index) {
+                final message = allMessages[index];
 
-                  if (!isLastMessageInConversation) {
-                    if (hasNextMessageFromAnotherUser) {
-                      estimatedHeight += 16.0;
-                    } else {
-                      estimatedHeight += 8.0;
-                    }
-                  }
+                final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(message);
 
-                  return estimatedHeight;
-                },
-                itemBuilder: (context, index) {
-                  final message = allMessages[index];
+                final displayDate = dateHeaderLookup[message.id];
 
-                  final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(message);
+                final isLastMessageInConversation = index == 0;
 
-                  final displayDate = dateHeaderLookup[message.id];
+                final hasNextMessageFromAnotherUser =
+                    index > 0 && allMessages[index - 1].masterPubkey != message.masterPubkey;
 
-                  final isLastMessageInConversation = index == 0;
+                final isPreviousMessageFromAnotherDay = index > 0 &&
+                    !isSameDay(
+                      allMessages[index - 1].publishedAt.toDateTime,
+                      message.publishedAt.toDateTime,
+                    );
 
-                  final hasNextMessageFromAnotherUser =
-                      index > 0 && allMessages[index - 1].masterPubkey != message.masterPubkey;
+                final margin = EdgeInsetsDirectional.only(
+                  bottom: isLastMessageInConversation || isPreviousMessageFromAnotherDay
+                      ? 0
+                      : hasNextMessageFromAnotherUser
+                          ? 16.0.s
+                          : 8.0.s,
+                );
 
-                  final isPreviousMessageFromAnotherDay = index > 0 &&
-                      !isSameDay(
-                        allMessages[index - 1].publishedAt.toDateTime,
-                        message.publishedAt.toDateTime,
-                      );
-
-                  final margin = EdgeInsetsDirectional.only(
-                    bottom: isLastMessageInConversation || isPreviousMessageFromAnotherDay
-                        ? 0
-                        : hasNextMessageFromAnotherUser
-                            ? 16.0.s
-                            : 8.0.s,
-                  );
-
-                  return Column(
-                    key: ValueKey(message.id),
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (displayDate != null)
-                        Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 12.0.s),
-                            child: ChatDateHeaderText(date: displayDate),
-                          ),
+                return Column(
+                  key: ValueKey(message.id),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (displayDate != null)
+                      Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12.0.s),
+                          child: ChatDateHeaderText(date: displayDate),
                         ),
-                      switch (entity.data.messageType) {
-                        MessageType.text => TextMessage(
-                            margin: margin,
-                            eventMessage: message,
-                            onTapReply: () => onTapReply(entity),
-                          ),
-                        MessageType.profile => ProfileShareMessage(
-                            margin: margin,
-                            eventMessage: message,
-                            onTapReply: () => onTapReply(entity),
-                          ),
-                        MessageType.visualMedia => VisualMediaMessage(
-                            margin: margin,
-                            eventMessage: message,
-                            onTapReply: () => onTapReply(entity),
-                          ),
-                        MessageType.sharedPost => PostMessage(
-                            margin: margin,
-                            eventMessage: message,
-                            onTapReply: () => onTapReply(entity),
-                          ),
-                        MessageType.requestFunds || MessageType.moneySent => MoneyMessage(
-                            margin: margin,
-                            eventMessage: message,
-                            onTapReply: () => onTapReply(entity),
-                          ),
-                        MessageType.emoji => EmojiMessage(
-                            margin: margin,
-                            eventMessage: message,
-                            onTapReply: () => onTapReply(entity),
-                          ),
-                        MessageType.audio => AudioMessage(
-                            margin: margin,
-                            eventMessage: message,
-                            onTapReply: () => onTapReply(entity),
-                          ),
-                        MessageType.document => DocumentMessage(
-                            margin: margin,
-                            eventMessage: message,
-                            onTapReply: () => onTapReply(entity),
-                          ),
-                      },
-                    ],
-                  );
-                },
-              ),
+                      ),
+                    switch (entity.data.messageType) {
+                      MessageType.text => TextMessage(
+                          margin: margin,
+                          eventMessage: message,
+                          onTapReply: () => onTapReply(entity),
+                        ),
+                      MessageType.profile => ProfileShareMessage(
+                          margin: margin,
+                          eventMessage: message,
+                          onTapReply: () => onTapReply(entity),
+                        ),
+                      MessageType.visualMedia => VisualMediaMessage(
+                          margin: margin,
+                          eventMessage: message,
+                          onTapReply: () => onTapReply(entity),
+                        ),
+                      MessageType.sharedPost => PostMessage(
+                          margin: margin,
+                          eventMessage: message,
+                          onTapReply: () => onTapReply(entity),
+                        ),
+                      MessageType.requestFunds || MessageType.moneySent => MoneyMessage(
+                          margin: margin,
+                          eventMessage: message,
+                          onTapReply: () => onTapReply(entity),
+                        ),
+                      MessageType.emoji => EmojiMessage(
+                          margin: margin,
+                          eventMessage: message,
+                          onTapReply: () => onTapReply(entity),
+                        ),
+                      MessageType.audio => AudioMessage(
+                          margin: margin,
+                          eventMessage: message,
+                          onTapReply: () => onTapReply(entity),
+                        ),
+                      MessageType.document => DocumentMessage(
+                          margin: margin,
+                          eventMessage: message,
+                          onTapReply: () => onTapReply(entity),
+                        ),
+                    },
+                  ],
+                );
+              },
             ),
           ),
           ScrollToBottomButton(
