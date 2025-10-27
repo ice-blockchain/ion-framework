@@ -104,7 +104,7 @@ class ConversationMessageReactionDao extends DatabaseAccessor<ChatDatabase>
           masterPubkeys: entry.value.map((e) => e.masterPubkey).toSet().toList(),
         );
       }).toList();
-    }).distinct((l1, l2) => const DeepCollectionEquality().equals(l1, l2));
+    }).distinct((l1, l2) => l1.equalsDeep(l2));
   }
 
   Future<bool> isReactionExist({
