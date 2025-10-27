@@ -79,16 +79,13 @@ class PostSubmitButton extends HookConsumerWidget {
       modifiedEvent: modifiedEntity,
     );
 
-    final loading =
+    final isFinalCheckInProcess =
         ref.watch(mediaNsfwParallelCheckerProvider.select((state) => state.isFinalCheckInProcess));
-    final anotherLoading = useState(false);
-
-    if (loading || anotherLoading.value) {
-      return const CircularProgressIndicator();
-    }
+    final loading = useState(false);
 
     return ToolbarSendButton(
       enabled: isSubmitButtonEnabled,
+      loading: isFinalCheckInProcess || loading.value,
       onPressed: () async {
         if (!shownTooltip.value && selectedTopics.isEmpty) {
           shownTooltip.value = true;
@@ -103,28 +100,19 @@ class PostSubmitButton extends HookConsumerWidget {
           return;
         }
 
-        anotherLoading.value = true;
-        final triggerDateTime = DateTime.now();
-        print('🔥Before assetIds to mediafiles! ');
+        loading.value = true;
         final filesToUpload = createOption == CreatePostOption.video
             ? mediaFiles
             : await ref
                 .read(mediaServiceProvider)
                 .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
-        print('🔥After converting: ${DateTime.now().difference(triggerDateTime).inMilliseconds}ms');
 
-        // NSFW validation: block posting if any selected image is NSFW
-        // final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, filesToUpload);
-        // if (isBlocked) return;
-        print('💧Checking NSFW🔥');
-
-        print('🔥Before loading: ${DateTime.now().difference(triggerDateTime).inMilliseconds}ms');
         final hasNsfw = await ref
             .read(mediaNsfwParallelCheckerProvider.notifier)
             .getNsfwCheckValueOrWaitUntil();
-        anotherLoading.value = false;
+        loading.value = false;
 
-        print('💧Has NSFW result: $hasNsfw🔥');
+        // NSFW validation: block posting if any selected image is NSFW
         if (hasNsfw) {
           if (context.mounted) {
             await showNsfwBlockedSheet(context);
@@ -132,8 +120,6 @@ class PostSubmitButton extends HookConsumerWidget {
 
           return;
         }
-
-        // return ref.context.pop(true);
 
         if (context.mounted) {
           final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
