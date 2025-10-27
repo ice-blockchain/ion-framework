@@ -22,10 +22,13 @@ class IonConnectMediaUrl extends _$IonConnectMediaUrl {
       return url;
     }
 
-    final cdnUrl = ref.watch(ionConnectCdnUrlProvider(url));
     final fallbackUrl = ref.watch(ionConnectMediaUrlFallbackProvider.select((state) => state[url]));
 
-    return fallbackUrl ?? cdnUrl;
+    if (fallbackUrl != null) {
+      return fallbackUrl;
+    }
+
+    return ref.watch(ionConnectCdnUrlProvider(url));
   }
 
   Future<bool> generateFallback({required String authorPubkey}) async {

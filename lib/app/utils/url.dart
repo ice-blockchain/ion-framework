@@ -59,9 +59,10 @@ bool isNetworkUrl(String url) {
   return url.startsWith('http://') || url.startsWith('https://');
 }
 
+final _mediaIdRegex = RegExp(r'^[0-9a-f]{64}:[0-9a-f]{64}\.[a-z0-9]+$', caseSensitive: false);
+
 bool isIonMediaUrl(String url) {
-  final mediaIdRegex = RegExp(r'[0-9a-f]{64}:[0-9a-f]{64}\.[a-z0-9]+$', caseSensitive: false);
-  return isNetworkUrl(url) && mediaIdRegex.hasMatch(url);
+  return isNetworkUrl(url) && _mediaIdRegex.hasMatch(url);
 }
 
 bool isOneLinkUrl(String url) {
