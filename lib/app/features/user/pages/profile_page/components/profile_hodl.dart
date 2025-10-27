@@ -28,7 +28,7 @@ class ProfileHODL extends StatelessWidget {
         Text(
           // Show compact HODL like "1h23m"
           context.i18n.hodl_for(
-            DateTime.now().difference(time).isNegative ? '0m' : formatCompactHodlSince(time),
+            formatCompactHodlSince(time),
           ),
           style: context.theme.appTextThemes.caption2.copyWith(
             color: context.theme.appColors.secondaryBackground,
