@@ -405,9 +405,8 @@ class IonConnectPushDataPayload {
         final mediaEncryptionService = MediaEncryptionService(
           fileCacheService: FileCacheService(IONCacheManager.instance),
           brotliCompressor: BrotliCompressor(),
-          generateMediaUrlFallback: (url, {required String authorPubkey}) async {
-            return null;
-          },
+          generateMediaUrlFallback: (url, {required String authorPubkey}) async => true,
+          getMediaUrl: (String url) => url,
         );
 
         final imageMedia = message.data.visualMedias.firstWhereOrNull(
