@@ -5,6 +5,7 @@ import 'package:ion/app/features/wallets/data/repository/transactions_repository
 import 'package:ion/app/features/wallets/domain/transactions/external_hash_processor.r.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -79,6 +80,11 @@ class TransactionLoader {
         e,
         stackTrace: stack,
         message: 'Failed to ${isFullLoad ? "load all" : "sync"} transactions',
+      );
+      await SentryService.logException(
+        e,
+        stackTrace: stack,
+        tag: 'load_transactions_failure',
       );
       return false;
     }
