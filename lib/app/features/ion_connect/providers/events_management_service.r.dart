@@ -54,9 +54,9 @@ Future<EventsManagementService> eventsManagementService(Ref ref) async {
   });
 
   ref.onDispose(() {
+    manager.cancelAllOperations();
     lifecycleSubscription.close();
     authSubscription.close();
-    manager.cancelAllOperations();
   });
 
   return manager;

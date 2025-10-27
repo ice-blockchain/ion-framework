@@ -124,7 +124,7 @@ class MediaEncryptionService {
 
       // Use a temporary file for decrypted bytes
       final tempDir = await getTemporaryDirectory();
-      final tempFilePath = '${tempDir.path}/${generateUuid()}';
+      final tempFilePath = '${tempDir.path}/${generateUuid()}.tmp';
       final decryptedFile = await File(tempFilePath).writeAsBytes(decryptedFileBytes);
 
       final mimeType = ionMimeTypeResolver.lookup(
