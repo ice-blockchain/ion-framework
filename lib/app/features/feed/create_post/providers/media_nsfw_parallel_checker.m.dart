@@ -22,11 +22,6 @@ class MediaNsfwState with _$MediaNsfwState {
 class MediaNsfwParallelChecker extends _$MediaNsfwParallelChecker {
   @override
   MediaNsfwState build() {
-    // Cleanup when provider is disposed (though keepAlive: true means it won't auto-dispose)
-    ref.onDispose(() {
-      // Add any cleanup logic here if needed
-    });
-
     return const MediaNsfwState();
   }
 
@@ -87,6 +82,8 @@ class MediaNsfwParallelChecker extends _$MediaNsfwParallelChecker {
     });
 
     final result = await completer.future;
+    state = state.copyWith(isFinalCheckInProcess: false);
+
     return result;
   }
 }
