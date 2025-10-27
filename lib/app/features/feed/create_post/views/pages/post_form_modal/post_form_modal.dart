@@ -184,20 +184,13 @@ class PostFormModal extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    // TODO: Run only if media files are added or changed.
     final mediaFiles = attachedMediaFilesNotifier.value;
-    final mediaCount = mediaFiles.length;
-    print('🔥DEBUG: Media files count: $mediaCount, files: $mediaFiles');
-
-    // NSFW check for media files (images, etc.)
-    useEffect(() {
-      print('🔥UseEffect() TRIGGERED! Media files: $mediaFiles (count: $mediaCount)');
-      if (mediaFiles.isNotEmpty) {
-        print('🔥Calling NSFW check for ${mediaFiles.length} files');
-
-        // Schedule NSFW check to run after the current frame
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          try {
+    final mediaSignature = mediaFiles.map((f) => f.path).join(',');
+    useEffect(
+      () {
+        if (mediaFiles.isNotEmpty) {
+          // Schedule NSFW check to run after the current frame
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
             // Convert asset IDs to actual file paths before NSFW check
             final convertedMediaFiles = await ref
                 .read(mediaServiceProvider)
@@ -206,31 +199,20 @@ class PostFormModal extends HookConsumerWidget {
             await ref
                 .read(mediaNsfwParallelCheckerProvider.notifier)
                 .addMediaListCheck(convertedMediaFiles);
-            print('🔥NSFW check call completed successfully');
-          } catch (e) {
-            print('🔥NSFW check call failed: $e');
-          }
-        });
-      }
+          });
+        }
 
-      return null;
-    }, [mediaCount]);
+        return null;
+      },
+      [mediaSignature],
+    );
 
     // NSFW check for video files
     useEffect(() {
       final videoFile = attachedVideoNotifier.value;
       if (videoFile != null) {
-        print('🔥Video NSFW check triggered for: ${videoFile.path}');
-
         WidgetsBinding.instance.addPostFrameCallback((_) async {
-          try {
-            await ref
-                .read(mediaNsfwParallelCheckerProvider.notifier)
-                .addMediaListCheck([videoFile]);
-            print('🔥Video NSFW check completed');
-          } catch (e) {
-            print('🔥Video NSFW check failed: $e');
-          }
+          await ref.read(mediaNsfwParallelCheckerProvider.notifier).addMediaListCheck([videoFile]);
         });
       }
 

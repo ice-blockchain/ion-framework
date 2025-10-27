@@ -24,7 +24,6 @@ class MediaNsfwParallelChecker extends _$MediaNsfwParallelChecker {
   MediaNsfwState build() {
     // Cleanup when provider is disposed (though keepAlive: true means it won't auto-dispose)
     ref.onDispose(() {
-      print('🧹 MediaNsfwParallelChecker disposed - cleaning up resources');
       // Add any cleanup logic here if needed
     });
 
@@ -32,79 +31,62 @@ class MediaNsfwParallelChecker extends _$MediaNsfwParallelChecker {
   }
 
   Future<void> addMediaListCheck(List<MediaFile> mediaFiles) async {
-    print('🔥Instance hash: ${identityHashCode(this)}');
-    print('Fresh state: $state');
+    // 1. Remove all NSFW files from previous checks
+    final hasNotNsfwFromPreviousChecks =
+        Map.fromEntries(state.checks.entries.where((entry) => entry.value != true));
 
-    // Create new state with all media files as pending checks
-    final newChecks = <MediaFile, bool?>{...state.checks};
+    // 2. Add all new files to the pending state, and keep the rest as is
+    final updatedChecksWithNewPending = <MediaFile, bool?>{...hasNotNsfwFromPreviousChecks};
     for (final mediaFile in mediaFiles) {
-      newChecks[mediaFile] = null;
+      if (updatedChecksWithNewPending.containsKey(mediaFile)) continue;
+      updatedChecksWithNewPending[mediaFile] = null;
     }
-    state = state.copyWith(checks: newChecks);
-    print('🔥Pending states added: ${state.checks.length}');
 
-    print('🔥DATETIME: ${DateTime.now()}');
+    // 3. Create new state with new pending checks added
+    state = state.copyWith(checks: updatedChecksWithNewPending);
+
+    final needToCheckMediaFiles = updatedChecksWithNewPending.entries
+        .where((entry) => entry.value == null)
+        .map((entry) => entry.key)
+        .toList();
+
+    if (needToCheckMediaFiles.isEmpty) {
+      return;
+    }
+
     final nsfwValidationService = await ref.read(nsfwValidationServiceProvider.future);
-    final hasNsfw = await nsfwValidationService.hasNsfwInMediaFiles(mediaFiles);
+    final hasNsfw = await nsfwValidationService.hasNsfwInMediaFiles(needToCheckMediaFiles);
 
-    print('🔥Has NSFW: $hasNsfw');
-    print('🔥DATETIME: ${DateTime.now()} state: $state');
-
-    if (hasNsfw) {
-      final newChecks = <MediaFile, bool?>{...state.checks};
-      for (final mediaFile in mediaFiles) {
-        newChecks[mediaFile] = true;
-      }
-      state = state.copyWith(checks: newChecks);
-      print('🔥States updated after NSFW check: $newChecks}');
-    } else {
-      final newChecks = <MediaFile, bool?>{...state.checks};
-      for (final mediaFile in mediaFiles) {
-        newChecks[mediaFile] = false;
-      }
-      state = state.copyWith(checks: newChecks);
-      print('🔥States updated after no NSFW check: $newChecks}');
+    // 4. Update the state with the new checks results
+    final newResultChecks = <MediaFile, bool?>{...state.checks};
+    for (final mediaFile in needToCheckMediaFiles) {
+      newResultChecks[mediaFile] = hasNsfw;
     }
+    state = state.copyWith(checks: newResultChecks);
   }
 
   Future<bool> getNsfwCheckValueOrWaitUntil() async {
-    print('🔥Instance hash: ${identityHashCode(this)}');
-    print('🔥Final checks started');
-
     // Set final check in process
     state = state.copyWith(isFinalCheckInProcess: true);
 
-    print('🔥Current State: $state');
     final hasPendingChecks = state.checks.values.any((bool? isNsfw) => isNsfw == null);
-    print('🔥Has pending checks: $hasPendingChecks');
     if (!hasPendingChecks) {
       final hasNsfw = state.checks.values.any((bool? isNsfw) => isNsfw! == true);
-      print(
-        '🔥State: $state',
-      );
-      print(
-        '🔥No pending checks, returning result: $hasNsfw',
-      );
       // Reset final check in process
       state = state.copyWith(isFinalCheckInProcess: false);
       return hasNsfw;
     }
-    print('🔥STILL PENDING CHECKS');
 
     final completer = Completer<bool>();
 
     listenSelf((_, next) {
-      print('🔥ListenSelf: New state: $next');
       final hasPendingChecks = next.checks.values.any((bool? isNsfw) => isNsfw == null);
-      print('🔥ListenSelf: Has pending checks: $hasPendingChecks');
       if (!hasPendingChecks && !completer.isCompleted) {
-        print('🔥ListenSelf: Completing completer');
         completer.complete(next.checks.values.any((bool? isNsfw) => isNsfw! == true));
       }
     });
 
     final result = await completer.future;
-    print('🔥ListenSelf: Result: $result');
     return result;
   }
 }
