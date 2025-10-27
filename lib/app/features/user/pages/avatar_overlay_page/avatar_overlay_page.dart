@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/components/ion_connect_network_image/ion_connect_network_image.dart';
 import 'package:ion/app/features/feed/views/pages/fullscreen_media/hooks/use_image_zoom.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart' as metadata;
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 
 class AvatarOverlayPage extends HookConsumerWidget {
@@ -17,30 +17,18 @@ class AvatarOverlayPage extends HookConsumerWidget {
 
   final String pubkey;
 
-  Widget _fallbackAvatar(BuildContext context) {
-    return IonConnectAvatar(
-      size: MediaQuery.of(context).size.width,
-      masterPubkey: pubkey,
-      fit: BoxFit.fitWidth,
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
-
-    String? pictureUrl;
-    if (userPreviewData?.data is metadata.UserMetadata) {
-      final userMetadata = userPreviewData!.data as metadata.UserMetadata;
-      pictureUrl = userMetadata.picture;
-    }
+    final pictureUrl = ref.watch(
+      userMetadataProvider(pubkey).select((state) => state.valueOrNull?.data.picture),
+    );
 
     final zoomController = useImageZoom(ref);
 
     return ColoredBox(
       color: context.theme.appColors.backgroundSheet.withAlpha(179),
       child: _ImageHitTestWidget(
-        onTapOutside: () => Navigator.of(context).pop(),
+        onTapOutside: context.pop,
         child: GestureDetector(
           onDoubleTapDown: zoomController.onDoubleTapDown,
           onDoubleTap: zoomController.onDoubleTap,
@@ -59,14 +47,33 @@ class AvatarOverlayPage extends HookConsumerWidget {
                       authorPubkey: pubkey,
                       fit: BoxFit.fitWidth,
                       errorWidget: (context, error, stackTrace) {
-                        return _fallbackAvatar(context);
+                        return _FallbackAvatar(
+                          pubkey: pubkey,
+                        );
                       },
                     ),
                   )
-                : _fallbackAvatar(context),
+                : _FallbackAvatar(pubkey: pubkey),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _FallbackAvatar extends StatelessWidget {
+  const _FallbackAvatar({
+    required this.pubkey,
+  });
+
+  final String pubkey;
+
+  @override
+  Widget build(BuildContext context) {
+    return IonConnectAvatar(
+      size: MediaQuery.of(context).size.width,
+      masterPubkey: pubkey,
+      fit: BoxFit.fitWidth,
     );
   }
 }
