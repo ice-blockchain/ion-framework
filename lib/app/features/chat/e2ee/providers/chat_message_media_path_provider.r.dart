@@ -53,7 +53,7 @@ Future<String?> chatMessageMediaPath(
 
   final encryptedMedia = await ref
       .watch(mediaEncryptionServiceProvider)
-      .retrieveEncryptedMedia(mediaAttachmentToLoad, authorPubkey: entity.masterPubkey);
+      .getEncryptedMedia(mediaAttachmentToLoad, authorPubkey: entity.masterPubkey);
 
   if (convertAudioToWav && !encryptedMedia.path.endsWith('.wav')) {
     final wavFilePath =

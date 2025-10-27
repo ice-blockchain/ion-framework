@@ -2,15 +2,18 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/services/shared_chat_isolate.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/model/mime_type.dart';
+import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/core/providers/ion_connect_media_url_fallback_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/services/compressors/brotli_compressor.r.dart';
@@ -18,6 +21,8 @@ import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/media_service/mime_resolver/mime_resolver.dart';
+import 'package:ion/app/services/uuid/uuid.dart';
+import 'package:ion/app/utils/queue.dart';
 import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -25,74 +30,141 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'media_encryption_service.m.freezed.dart';
 part 'media_encryption_service.m.g.dart';
 
+@riverpod
+MediaEncryptionService mediaEncryptionService(Ref ref) {
+  final service = MediaEncryptionService(
+    fileCacheService: ref.read(fileCacheServiceProvider),
+    brotliCompressor: ref.read(brotliCompressorProvider),
+    generateMediaUrlFallback:
+        ref.read(iONConnectMediaUrlFallbackProvider.notifier).generateFallback,
+  );
+
+  final lifecycleSubscription = ref.listen<AppLifecycleState>(
+    appLifecycleProvider,
+    (previous, next) {
+      if (next != AppLifecycleState.resumed) {
+        service.cancelAllOperations();
+      }
+    },
+  );
+
+  final authSubscription = ref.listen(authProvider, (previous, next) {
+    final isAuthenticated = next.valueOrNull?.isAuthenticated ?? false;
+    if (!isAuthenticated) {
+      service.cancelAllOperations();
+    }
+  });
+
+  ref.onDispose(() {
+    authSubscription.close();
+    lifecycleSubscription.close();
+    service.cancelAllOperations();
+  });
+
+  return service;
+}
+
 class MediaEncryptionService {
   MediaEncryptionService({
     required this.fileCacheService,
     required this.brotliCompressor,
     required this.generateMediaUrlFallback,
-  });
+    int maxConcurrentOperations = 5,
+  }) : _taskQueue = ConcurrentTasksQueue(maxConcurrent: maxConcurrentOperations);
 
   final FileCacheService fileCacheService;
   final BrotliCompressor brotliCompressor;
   final Future<String?> Function(String url, {required String authorPubkey})
       generateMediaUrlFallback;
+  final ConcurrentTasksQueue _taskQueue;
 
-  Future<File> retrieveEncryptedMedia(
+  /// Returns the number of media operations currently pending in the queue
+  int get pendingOperationsCount => _taskQueue.pendingTasksCount;
+
+  /// Cancels all pending media operations in the queue
+  void cancelAllOperations() {
+    _taskQueue.cancelAll();
+  }
+
+  Future<File> getEncryptedMedia(
     MediaAttachment attachment, {
     required String authorPubkey,
   }) async {
+    // First, check cache synchronously (not in queue)
+    if (attachment.encryptionKey != null &&
+        attachment.encryptionNonce != null &&
+        attachment.encryptionMac != null) {
+      final url = attachment.url;
+      final cacheFileInfo = await fileCacheService.getFileFromCache(url);
+      if (cacheFileInfo != null) {
+        return cacheFileInfo.file;
+      }
+      // Only download/decrypt/compress in the queue
+      return _taskQueue.add(() => _retrieveEncryptedMedia(attachment, authorPubkey));
+    } else {
+      Logger.error('Media does not have a valid encryption prop');
+      throw FailedToDecryptFileException();
+    }
+  }
+
+  Future<File> _retrieveEncryptedMedia(
+    MediaAttachment attachment,
+    String authorPubkey,
+  ) async {
     try {
-      if (attachment.encryptionKey != null &&
-          attachment.encryptionNonce != null &&
-          attachment.encryptionMac != null) {
-        final url = attachment.url;
+      final url = attachment.url;
+      final file = await _downloadFile(url, authorPubkey: authorPubkey);
 
-        final cacheFileInfo = await fileCacheService.getFileFromCache(url);
+      final decryptedFileBytes = await sharedChatIsolate.compute(
+        (args) async {
+          return decryptMediaFileFn(args);
+        },
+        (file: file, attachment: attachment),
+      );
 
-        if (cacheFileInfo != null) {
-          return cacheFileInfo.file;
-        }
+      // Use a temporary file for decrypted bytes
+      final tempDir = await getTemporaryDirectory();
+      final tempFilePath = '${tempDir.path}/${generateUuid()}.tmp';
+      final decryptedFile = await File(tempFilePath).writeAsBytes(decryptedFileBytes);
 
-        final file = await _downloadFile(url, authorPubkey: authorPubkey);
+      final mimeType = ionMimeTypeResolver.lookup(
+        decryptedFile.path,
+        headerBytes: decryptedFileBytes,
+      );
 
-        final decryptedFileBytes = await sharedChatIsolate.compute(
-          (args) async {
-            return decryptMediaFileFn(args);
-          },
-          (file: file, attachment: attachment),
+      final fileExtension = mimeType != null ? extensionFromMime(mimeType) ?? '' : '';
+
+      await fileCacheService.removeFile(url);
+
+      final mediaType = mimeType != null ? MediaType.fromMimeType(mimeType) : MediaType.unknown;
+
+      if (mediaType == MediaType.unknown) {
+        final decompressedFile = await brotliCompressor.decompress(decryptedFileBytes);
+
+        final cachedFile = await fileCacheService.putFile(
+          url: url,
+          bytes: decompressedFile.readAsBytesSync(),
+          fileExtension: fileExtension,
         );
-        final decryptedFile = File.fromRawPath(decryptedFileBytes);
-
-        final mimeType =
-            ionMimeTypeResolver.lookup(decryptedFile.path, headerBytes: decryptedFileBytes);
-
-        final fileExtension = mimeType != null ? extensionFromMime(mimeType) ?? '' : '';
-
-        await fileCacheService.removeFile(url);
-
-        final mediaType = mimeType != null ? MediaType.fromMimeType(mimeType) : MediaType.unknown;
-
-        if (mediaType == MediaType.unknown) {
-          final decompressedFile = await brotliCompressor.decompress(decryptedFileBytes);
-
-          final decryptedFile = await fileCacheService.putFile(
-            url: url,
-            bytes: decompressedFile.readAsBytesSync(),
-            fileExtension: fileExtension,
-          );
-
-          return decryptedFile;
-        } else {
-          final decryptedFile = await fileCacheService.putFile(
-            url: url,
-            bytes: decryptedFileBytes,
-            fileExtension: fileExtension,
-          );
-          return decryptedFile;
+        try {
+          await decryptedFile.delete();
+        } catch (e, st) {
+          Logger.error(e, message: 'Failed to delete temporary decrypted file', stackTrace: st);
         }
+
+        return cachedFile;
       } else {
-        Logger.error('Media does not have a valid encryption prop');
-        throw FailedToDecryptFileException();
+        final cachedFile = await fileCacheService.putFile(
+          url: url,
+          bytes: decryptedFileBytes,
+          fileExtension: fileExtension,
+        );
+        try {
+          await decryptedFile.delete();
+        } catch (e, st) {
+          Logger.error(e, message: 'Failed to delete temporary decrypted file', stackTrace: st);
+        }
+        return cachedFile;
       }
     } catch (e, st) {
       Logger.error(e, stackTrace: st);
@@ -100,9 +172,7 @@ class MediaEncryptionService {
     }
   }
 
-  Future<EncryptedMediaFile> encryptMediaFile(
-    MediaFile mediaFile,
-  ) async {
+  Future<EncryptedMediaFile> encryptMediaFile(MediaFile mediaFile) async {
     final documentsDir = await getApplicationDocumentsDirectory();
 
     final encryptedMediaFile = await sharedChatIsolate.compute(
@@ -140,14 +210,6 @@ class MediaEncryptionService {
     }
   }
 }
-
-@riverpod
-MediaEncryptionService mediaEncryptionService(Ref ref) => MediaEncryptionService(
-      fileCacheService: ref.read(fileCacheServiceProvider),
-      brotliCompressor: ref.read(brotliCompressorProvider),
-      generateMediaUrlFallback:
-          ref.read(iONConnectMediaUrlFallbackProvider.notifier).generateFallback,
-    );
 
 @freezed
 class EncryptedMediaFile with _$EncryptedMediaFile {

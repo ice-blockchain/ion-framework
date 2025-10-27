@@ -20,7 +20,7 @@ import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
 import 'package:ion/app/features/ion_connect/providers/event_backfill_service.r.dart';
-import 'package:ion/app/features/ion_connect/providers/global_subscription_event_dispatcher_provider.r.dart';
+import 'package:ion/app/features/ion_connect/providers/events_management_service.r.dart';
 import 'package:ion/app/features/ion_connect/providers/global_subscription_latest_event_timestamp_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -45,7 +45,7 @@ class GlobalSubscription {
     required this.latestEventTimestampService,
     required this.ionConnectNotifier,
     required this.globalSubscriptionNotifier,
-    required this.globalSubscriptionEventDispatcher,
+    required this.eventsManagementService,
     required this.eventBackfillService,
   });
 
@@ -54,7 +54,7 @@ class GlobalSubscription {
   final GlobalSubscriptionLatestEventTimestampService latestEventTimestampService;
   final IonConnectNotifier ionConnectNotifier;
   final GlobalSubscriptionNotifier globalSubscriptionNotifier;
-  final GlobalSubscriptionEventDispatcher globalSubscriptionEventDispatcher;
+  final EventsManagementService eventsManagementService;
   final EventBackfillService eventBackfillService;
 
   static const List<int> _genericEventKinds = [
@@ -448,7 +448,7 @@ class GlobalSubscription {
         }
       }
 
-      globalSubscriptionEventDispatcher.dispatch(eventMessage);
+      eventsManagementService.dispatch(eventMessage);
     } catch (e) {
       throw GlobalSubscriptionEventMessageHandlingException(e);
     }
@@ -518,11 +518,10 @@ GlobalSubscription? globalSubscription(Ref ref) {
       ref.watch(globalSubscriptionLatestEventTimestampServiceProvider);
   final ionConnectNotifier = ref.watch(ionConnectNotifierProvider.notifier);
   final globalSubscriptionNotifier = ref.watch(globalSubscriptionNotifierProvider.notifier);
-  final globalSubscriptionEventDispatcherNotifier =
-      ref.watch(globalSubscriptionEventDispatcherNotifierProvider).valueOrNull;
+  final eventsManagementService = ref.watch(eventsManagementServiceProvider).valueOrNull;
   final eventBackfillService = ref.watch(eventBackfillServiceProvider);
 
-  if (latestEventTimestampService == null || globalSubscriptionEventDispatcherNotifier == null) {
+  if (latestEventTimestampService == null || eventsManagementService == null) {
     return null;
   }
 
@@ -532,7 +531,7 @@ GlobalSubscription? globalSubscription(Ref ref) {
     latestEventTimestampService: latestEventTimestampService,
     ionConnectNotifier: ionConnectNotifier,
     globalSubscriptionNotifier: globalSubscriptionNotifier,
-    globalSubscriptionEventDispatcher: globalSubscriptionEventDispatcherNotifier,
+    eventsManagementService: eventsManagementService,
     eventBackfillService: eventBackfillService,
   );
 }
