@@ -92,37 +92,46 @@ class FollowCounters extends ConsumerWidget {
         mainAxisSize: _mainAxisSize,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _cellWrapper(
+          _FollowCounterCellWrapper(
+            isExpanded: profileMode != ProfileMode.dark,
+            isLoading: isLoading,
             child: FollowCountersCell(
               pubkey: pubkey,
               usersNumber: followingNumber ?? 0,
               followType: FollowType.following,
               profileMode: profileMode,
             ),
-            isExpanded: profileMode != ProfileMode.dark,
-            isLoading: isLoading,
           ),
           _divider(context),
-          _cellWrapper(
+          _FollowCounterCellWrapper(
+            isExpanded: profileMode != ProfileMode.dark,
+            isLoading: isLoading,
             child: FollowCountersCell(
               pubkey: pubkey,
               usersNumber: followersNumber ?? 0,
               followType: FollowType.followers,
               profileMode: profileMode,
             ),
-            isExpanded: profileMode != ProfileMode.dark,
-            isLoading: isLoading,
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _cellWrapper({
-    required Widget child,
-    required bool isExpanded,
-    bool isLoading = false,
-  }) {
+class _FollowCounterCellWrapper extends StatelessWidget {
+  const _FollowCounterCellWrapper({
+    required this.child,
+    required this.isExpanded,
+    this.isLoading = false,
+  });
+
+  final Widget child;
+  final bool isExpanded;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
     final content = isLoading ? const _FollowCounterLoadingCell() : child;
 
     if (!isExpanded) {
