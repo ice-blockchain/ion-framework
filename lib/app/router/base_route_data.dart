@@ -21,6 +21,7 @@ enum IceRouteType {
   mainModalSheet,
   simpleModalSheet,
   swipeDismissible,
+  overlay,
 }
 
 abstract class BaseRouteData extends GoRouteData {
@@ -73,6 +74,7 @@ abstract class BaseRouteData extends GoRouteData {
           state: state,
           isFullscreenMedia: isFullscreenMedia,
         ),
+      IceRouteType.overlay => OverlayPage(child: child, state: state),
     };
   }
 }
@@ -209,5 +211,27 @@ class SwipeDismissiblePageRoute extends CustomTransitionPage<void> {
             state: state,
             child: child,
           ),
+        );
+}
+
+class OverlayPage extends CustomTransitionPage<void> {
+  OverlayPage({
+    required super.child,
+    required GoRouterState state,
+  }) : super(
+          key: state.pageKey,
+          opaque: false,
+          barrierColor: Colors.transparent,
+          transitionDuration: const Duration(milliseconds: 300),
+          reverseTransitionDuration: const Duration(milliseconds: 300),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: Material(
+                color: Colors.transparent,
+                child: child,
+              ),
+            );
+          },
         );
 }

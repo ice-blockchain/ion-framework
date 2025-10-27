@@ -117,6 +117,7 @@ import 'package:ion/app/features/settings/views/settings_modal.dart';
 import 'package:ion/app/features/user/model/follow_type.dart';
 import 'package:ion/app/features/user/model/payment_type.dart';
 import 'package:ion/app/features/user/model/tab_entity_type.dart';
+import 'package:ion/app/features/user/pages/avatar_overlay_page/avatar_overlay_page.dart';
 import 'package:ion/app/features/user/pages/bookmarks_page/bookmarks_page.dart';
 import 'package:ion/app/features/user/pages/edit_bookmarks_page/edit_bookmarks_page.dart';
 import 'package:ion/app/features/user/pages/profile_edit_page/pages/category_select_modal/category_select_modal.dart';
@@ -352,6 +353,18 @@ class WalletMainModalRoute extends BaseRouteData with _$WalletMainModalRoute {
           child: const WalletMainModalPage(),
           type: IceRouteType.mainModalSheet,
         );
+}
+
+@TypedGoRoute<AvatarOverlayRoute>(path: '/avatar-overlay/:pubkey')
+class AvatarOverlayRoute extends BaseRouteData with _$AvatarOverlayRoute {
+  AvatarOverlayRoute({
+    required this.pubkey,
+  }) : super(
+          child: AvatarOverlayPage(pubkey: pubkey),
+          type: IceRouteType.overlay,
+        );
+
+  final String pubkey;
 }
 
 @TypedGoRoute<CompressTestRoute>(path: '/compress-test')
