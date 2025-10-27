@@ -17,7 +17,7 @@ class ModalWrapper extends StatelessWidget {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
-        if (!didPop && Navigator.of(context).canPop()) {
+        if (!didPop && Navigator.of(context).canPop() && context.mounted) {
           context.pop();
         }
       },

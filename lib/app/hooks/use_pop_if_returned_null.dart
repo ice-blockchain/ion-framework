@@ -13,7 +13,9 @@ PopIfNullCallback<T> usePopIfReturnedNull<T>() {
       final result = await func();
       if (result == null && context.mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          context.pop();
+          if (context.mounted) {
+            context.pop();
+          }
         });
       }
     },

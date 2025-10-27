@@ -22,9 +22,9 @@ Raw<Stream<EventMessage>> ionConnectEventsSubscription(
   NostrSubscription? subscription;
 
   void unsubscribe() {
-    if (subscriptionRelay != null && subscription != null) {
+    if ((subscriptionRelay, subscription) case (final relay?, final sub?)) {
       try {
-        subscriptionRelay!.unsubscribe(subscription!.id);
+        relay.unsubscribe(sub.id);
       } catch (error, stackTrace) {
         SentryService.logException(error, stackTrace: stackTrace, tag: 'ion_connect_subscription');
         Logger.error(
@@ -42,9 +42,9 @@ Raw<Stream<EventMessage>> ionConnectEventsSubscription(
     subscriptionBuilder: (requestMessage, relay) {
       unsubscribe();
       subscriptionRelay = relay;
-      subscription = relay.subscribe(requestMessage);
-
-      return subscription!.messages;
+      final sub = relay.subscribe(requestMessage);
+      subscription = sub;
+      return sub.messages;
     },
     onEose: onEndOfStoredEvents,
   );

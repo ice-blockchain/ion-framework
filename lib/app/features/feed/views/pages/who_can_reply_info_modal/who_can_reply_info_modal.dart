@@ -26,7 +26,7 @@ class WhoCanReplyInfoModal extends HookConsumerWidget {
 
     useOnInit(
       () {
-        if (description.isEmpty) {
+        if (description.isEmpty && context.mounted) {
           context.pop();
         }
       },
