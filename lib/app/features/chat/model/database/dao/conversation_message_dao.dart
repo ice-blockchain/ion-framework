@@ -163,7 +163,7 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
       }
 
       return groupedMessages;
-    }).distinct((m1, m2) => const DeepCollectionEquality().equals(m1, m2));
+    }).distinct((m1, m2) => m1.equalsDeep(m2));
   }
 
   Future<EventMessage> getEventMessage({required EventReference eventReference}) async {

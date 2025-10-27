@@ -144,7 +144,6 @@ class ListCachedObjects extends InheritedWidget {
   @override
   bool updateShouldNotify(covariant InheritedWidget oldWidget) {
     if (oldWidget is ListCachedObjects) {
-      const equality = DeepCollectionEquality();
       return !equality.equals(objects, oldWidget.objects);
     }
 
