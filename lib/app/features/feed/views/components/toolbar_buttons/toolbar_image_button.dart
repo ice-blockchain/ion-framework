@@ -30,6 +30,15 @@ class AttachedMediaHandler extends ToolbarMediaButtonDelegate {
 
   @override
   void handleSelectedMedia(List<MediaFile> files) {
+    // Remove files that are no longer selected
+    final currentFiles = [...attachedMediaNotifier.value];
+    for (final file in currentFiles) {
+      if (!files.any((e) => e.path == file.path)) {
+        attachedMediaNotifier.value.remove(file);
+      }
+    }
+
+    // Add new files
     for (final file in files) {
       if (!attachedMediaNotifier.value.any((e) => e.path == file.path)) {
         attachedMediaNotifier.value.add(file);
