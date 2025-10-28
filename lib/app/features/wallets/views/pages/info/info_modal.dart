@@ -21,7 +21,7 @@ class InfoModal extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final description = infoType.getDesc(context);
-    
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
