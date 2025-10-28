@@ -728,7 +728,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   /// Enables the English content fallback mechanism that is used
   /// when there is not enough content in the user's defined content languages.
   void _enableEnglishContentAndResetPagination() {
-    Logger.info('$_logTag Enabling English content fallback and reset the pagination state');
+    Logger.info('$_logTag Enabling English content fallback and resetting the pagination state');
     state = state.copyWith(
       englishContentFallbackEnabled: true,
       forYouRetryLimitReached: false,
