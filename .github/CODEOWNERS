@@ -1,1 +1,100 @@
 * @ice-blockchain/flutter @ice-blockchain/testers
+
+#  ### FEATURES ###
+# Auth
+/lib/app/features/auth/ @ice-tychon @ice-hades
+
+# Badges
+/lib/app/features/badge/ @ice-hades
+/lib/app/features/user/model/badges/ @ice-hades
+/lib/app/components/list_item/badges_user_list_item.dart @ice-hades
+
+# Banuba
+/lib/app/services/media_service/banuba_service.r.dart @ice-erebus
+/ios/Runner/PhotoEditorModule.swift @ice-erebus
+/ios/Runner/VideoEditorModule.swift @ice-erebus
+/android/app/src/main/kotlin/io/ion/app/VideoEditorModule.kt @ice-erebus
+
+# Chat
+/lib/app/features/chat/ @ice-kreios @ice-damocles
+/lib/app/features/search/views/pages/chat/ @ice-kreios @ice-damocles
+
+# Databases / Persistance
+/lib/app/features/chat/model/database/ @ice-damocles
+/lib/app/features/feed/notifications/data/database/ @ice-damocles
+/lib/app/features/feed/data/database/ @ice-damocles
+/lib/app/features/wallets/data/database/ @ice-damocles
+
+# Deeplinks / AppsFlyer
+/lib/app/services/deep_link/ @ice-neoptolemus
+/lib/app/components/url_preview/ @ice-neoptolemus
+
+# Feed / Content Creation
+/lib/app/features/feed @ice-orion
+
+# Force update
+/lib/app/features/force_update/ @ice-orion
+
+# Gallery
+/lib/app/features/gallery/ @ice-erebus
+
+# Global Subscription
+/lib/app/features/ion_connect/providers/global_subscription.r.dart @ice-kreios @ice-damocles
+/lib/app/features/ion_connect/providers/global_subscription_latest_event_timestamp_provider.r.dart @ice-kreios @ice-damocles
+
+# IonConnect / Nostr / Relays
+/lib/app/features/ion_connect/ @ice-orion
+/lib/app/features/user/providers/relays/ @ice-orion
+
+# In-App-Notification
+/lib/app/features/feed/notifications/ @ice-priapus
+
+# NSFW
+/lib/app/features/nsfw/ @ice-tychon @ice-phobos
+
+# Onboarding
+/lib/app/features/auth/providers/onboarding_data_provider.m.dart @ice-orion
+/lib/app/features/auth/providers/onboarding_complete_notifier.r.dart @ice-orion
+/lib/app/features/auth/providers/onboarding_complete_provider.r.dart @ice-orion
+
+# Optimistic UI
+/lib/app/features/optimistic_ui/ @ice-cerberus
+/lib/app/features/user_block/optimistic_ui/ @ice-cerberus
+/lib/app/features/settings/optimistic_ui/ @ice-cerberus
+/lib/app/features/feed/reposts/providers/optimistic/ @ice-cerberus
+/lib/app/features/chat/views/components/message_items/message_reactions/optimistic_ui/ @ice-cerberus
+
+# Protect account
+/lib/app/features/protect_account/ @ice-tychon
+
+# Pushes
+/lib/app/features/push_notifications/ @ice-endymion
+
+# Search
+/lib/app/features/search/ @ice-endymion
+
+# Settings
+/lib/app/features/settings/ @ice-orion @ice-brontes
+
+# User
+/lib/app/features/user/ @ice-orion @ice-hades @ice-evander
+
+# User bloc
+/lib/app/features/user_block/ @ice-damocles @ice-hades
+
+# Video views
+/lib/app/features/video/views/ @ice-hades @ice-tychon @ice-orion @ice-deimos
+
+# Media Compression
+/lib/app/services/compressors/ @ice-cerberus
+/ios/Runner/VideoCompressionPlugin.swift @ice-cerberus
+/android/app/src/main/kotlin/io/ion/app/VideoCompressionPlugin.kt @ice-cerberus
+
+# Wallets
+/lib/app/features/wallets/ @ice-brontes
+
+#  ### LIBS ###
+/packages/ion_connect_cache/ @ice-damocles
+/packages/ion_content_labeler/ @ice-orion
+/packages/ion_identity_client/ @ice-tychon @ice-hades
+/packages/ion_lint_rules @ice-hades
