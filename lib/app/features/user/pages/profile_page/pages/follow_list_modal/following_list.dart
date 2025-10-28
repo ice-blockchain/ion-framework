@@ -24,6 +24,7 @@ class FollowingList extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final followingState = ref.watch(userFollowListWithMetadataProvider(pubkey));
     final followeePubkeys = followingState.valueOrNull?.pubkeys;
+    final totalPubkeysCount = followingState.valueOrNull?.allPubkeys.length;
     final searchQuery = useState('');
     final debouncedQuery = useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '';
 
@@ -60,7 +61,7 @@ class FollowingList extends HookConsumerWidget {
       },
       slivers: [
         FollowAppBar(
-          title: FollowType.following.getTitleWithCounter(context, 0),
+          title: FollowType.following.getTitleWithCounter(context, totalPubkeysCount ?? 0),
         ),
         FollowSearchBar(onTextChanged: (query) => searchQuery.value = query),
         if (searchQuery.value.isNotEmpty)

@@ -19,20 +19,19 @@ const _followListLimit = 50;
 
 @riverpod
 class UserFollowListWithMetadata extends _$UserFollowListWithMetadata {
-  late final List<String> _allPubkeys;
-
   @override
   Future<UserFollowListWithMetadataState> build(String pubkey) async {
     final followListEntity = await ref.watch(followListProvider(pubkey).future);
-    _allPubkeys = followListEntity?.data.list.map((e) => e.pubkey).toList() ?? [];
+    final allPubkeys = followListEntity?.data.list.map((e) => e.pubkey).toList() ?? [];
 
-    final initialPubkeys = _allPubkeys.take(_followListLimit).toList();
+    final initialPubkeys = allPubkeys.take(_followListLimit).toList();
 
     _fetchMetadata(initialPubkeys);
 
     return UserFollowListWithMetadataState(
+      allPubkeys: allPubkeys,
       pubkeys: initialPubkeys,
-      hasMore: initialPubkeys.length < _allPubkeys.length,
+      hasMore: initialPubkeys.length < allPubkeys.length,
     );
   }
 
@@ -41,12 +40,13 @@ class UserFollowListWithMetadata extends _$UserFollowListWithMetadata {
       return;
     }
 
+    final allPubkeys = state.value!.allPubkeys;
     final previousState = state.value!;
     state = AsyncData(previousState.copyWith(hasMore: false)); // to prevent concurrent fetches
 
     final currentPubkeys = previousState.pubkeys;
 
-    final nextPubkeys = _allPubkeys.skip(currentPubkeys.length).take(_followListLimit).toList();
+    final nextPubkeys = allPubkeys.skip(currentPubkeys.length).take(_followListLimit).toList();
 
     if (nextPubkeys.isEmpty) {
       state = AsyncData(previousState.copyWith(hasMore: false));
@@ -59,7 +59,7 @@ class UserFollowListWithMetadata extends _$UserFollowListWithMetadata {
     state = AsyncData(
       previousState.copyWith(
         pubkeys: newPubkeys,
-        hasMore: newPubkeys.length < _allPubkeys.length,
+        hasMore: newPubkeys.length < allPubkeys.length,
       ),
     );
   }
