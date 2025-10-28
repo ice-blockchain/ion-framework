@@ -15,7 +15,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'follow_list_provider.r.g.dart';
 
-const _followListLimit = 50;
+const _followListLimit = 25;
 
 @riverpod
 class UserFollowListWithMetadata extends _$UserFollowListWithMetadata {
