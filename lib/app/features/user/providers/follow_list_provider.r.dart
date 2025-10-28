@@ -15,22 +15,22 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'follow_list_provider.r.g.dart';
 
-const _kFollowListLimit = 50;
+const _followListLimit = 50;
 
 @riverpod
-class CurrentUserFollowListWithMetadata extends _$CurrentUserFollowListWithMetadata {
+class UserFollowListWithMetadata extends _$UserFollowListWithMetadata {
   late final List<String> _allPubkeys;
 
   @override
-  Future<CurrentUserFollowListWithMetadataState> build() async {
-    final followListEntity = await ref.watch(currentUserFollowListProvider.future);
+  Future<UserFollowListWithMetadataState> build(String pubkey) async {
+    final followListEntity = await ref.watch(followListProvider(pubkey).future);
     _allPubkeys = followListEntity?.data.list.map((e) => e.pubkey).toList() ?? [];
 
-    final initialPubkeys = _allPubkeys.take(_kFollowListLimit).toList();
+    final initialPubkeys = _allPubkeys.take(_followListLimit).toList();
 
     _fetchMetadata(initialPubkeys);
 
-    return CurrentUserFollowListWithMetadataState(
+    return UserFollowListWithMetadataState(
       pubkeys: initialPubkeys,
       hasMore: initialPubkeys.length < _allPubkeys.length,
     );
@@ -46,7 +46,7 @@ class CurrentUserFollowListWithMetadata extends _$CurrentUserFollowListWithMetad
 
     final currentPubkeys = previousState.pubkeys;
 
-    final nextPubkeys = _allPubkeys.skip(currentPubkeys.length).take(_kFollowListLimit).toList();
+    final nextPubkeys = _allPubkeys.skip(currentPubkeys.length).take(_followListLimit).toList();
 
     if (nextPubkeys.isEmpty) {
       state = AsyncData(previousState.copyWith(hasMore: false));
