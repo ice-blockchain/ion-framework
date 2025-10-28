@@ -9,10 +9,6 @@ environment:
 
 dependencies:
   asn1lib: ^1.5.4
-  bdk_flutter:
-    git:
-      url: https://github.com/ice-tychon/bdk-flutter.git
-      ref: chore/update-flutter-rust-bridge
   blockchain_utils: ^4.1.0
   collection: ^1.18.0
   convert: ^3.1.1

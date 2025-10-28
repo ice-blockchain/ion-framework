@@ -179,15 +179,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  bdk_flutter:
-    dependency: transitive
-    description:
-      path: "."
-      ref: "chore/update-flutter-rust-bridge"
-      resolved-ref: b814f25f749e2ead958ed5414c70c8df8baf1b32
-      url: "https://github.com/ice-tychon/bdk-flutter.git"
-    source: git
-    version: "0.31.3"
   bech32:
     dependency: "direct main"
     description:
@@ -244,14 +235,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.2"
-  build_cli_annotations:
-    dependency: transitive
-    description:
-      name: build_cli_annotations
-      sha256: b59d2769769efd6c9ff6d4c4cede0be115a566afc591705c2040b707534b1172
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.0"
   build_config:
     dependency: transitive
     description:
@@ -1268,14 +1251,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.6.1"
-  flutter_rust_bridge:
-    dependency: transitive
-    description:
-      name: flutter_rust_bridge
-      sha256: "35c257fc7f98e34c1314d6c145e5ed54e7c94e8a9f469947e31c9298177d546f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.7.0"
   flutter_screenutil:
     dependency: "direct main"
     description:
@@ -1906,14 +1881,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  mockito:
-    dependency: transitive
-    description:
-      name: mockito
-      sha256: "4546eac99e8967ea91bae633d2ca7698181d008e95fa4627330cf903d573277a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.4.6"
   mocktail:
     dependency: "direct main"
     description:

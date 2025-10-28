@@ -6,8 +6,6 @@ import 'package:ion_identity_client/src/core/service_locator/ion_identity_client
 import 'package:ion_identity_client/src/core/service_locator/ion_identity_service_locator.dart';
 import 'package:ion_identity_client/src/signer/identity_signer.dart';
 import 'package:ion_identity_client/src/wallets/ion_identity_wallets.dart';
-import 'package:ion_identity_client/src/wallets/services/broadcast_transaction/broadcast_transaction_service.dart';
-import 'package:ion_identity_client/src/wallets/services/broadcast_transaction/domain/transaction_creator/transaction_creator_factory.dart';
 import 'package:ion_identity_client/src/wallets/services/create_wallet/create_wallet_service.dart';
 import 'package:ion_identity_client/src/wallets/services/create_wallet/data_sources/create_wallet_data_source.dart';
 import 'package:ion_identity_client/src/wallets/services/generate_signature/data_sources/generate_signature_data_source.dart';
@@ -67,11 +65,6 @@ class WalletsClientServiceLocator {
       ),
       extractUserIdService: ExtractUserIdService(
         tokenStorage: IONIdentityServiceLocator.tokenStorage(),
-      ),
-      broadcastTransactionService: broadcastTransactionService(
-        username: username,
-        config: config,
-        signer: identitySigner,
       ),
       makeTransferService: makeTransferService(
         username: username,
@@ -186,21 +179,6 @@ class WalletsClientServiceLocator {
         IONIdentityServiceLocator.networkClient(config: config),
         IONIdentityServiceLocator.tokenStorage(),
       ),
-    );
-  }
-
-  BroadcastTransactionService broadcastTransactionService({
-    required String username,
-    required IONIdentityConfig config,
-    required IdentitySigner signer,
-  }) {
-    return BroadcastTransactionService(
-      username,
-      UserActionSignerServiceLocator().userActionSigner(
-        config: config,
-        identitySigner: signer,
-      ),
-      TransactionCreatorFactory(),
     );
   }
 
