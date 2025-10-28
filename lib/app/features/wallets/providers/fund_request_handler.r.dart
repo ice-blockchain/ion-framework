@@ -21,7 +21,7 @@ class FundsRequestHandler extends GlobalSubscriptionEncryptedEventMessageHandler
 
   @override
   bool canHandle({required IonConnectGiftWrapEntity entity}) {
-    return entity.data.kinds.containsDeep([FundsRequestEntity.kind.toString()]);
+    return entity.data.kinds.containsList([FundsRequestEntity.kind.toString()]);
   }
 
   @override
