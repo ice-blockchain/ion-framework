@@ -24,7 +24,8 @@ extension DeepEqualityListExtension on List<dynamic> {
   }
 
   bool containsList(List<String> target) {
-    return any((element) =>
-        element is List<String> && const ListEquality<String>().equals(element, target));
+    return any(
+      (element) => element is List<String> && const ListEquality<String>().equals(element, target),
+    );
   }
 }
