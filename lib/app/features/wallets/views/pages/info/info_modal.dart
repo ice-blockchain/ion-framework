@@ -36,8 +36,6 @@ class InfoModal extends HookWidget {
       scaler: MediaQuery.textScalerOf(context),
     );
 
-    final textAlign = lineCount <= 3 ? TextAlign.center : TextAlign.start;
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -55,7 +53,6 @@ class InfoModal extends HookWidget {
             iconAsset: infoType.iconAsset,
             title: infoType.getTitle(context),
             description: description,
-            descriptionTextAlign: textAlign,
           ),
         ),
         ScreenBottomOffset(margin: 16.0.s),

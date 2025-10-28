@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/copy/copy_builder.dart';
 import 'package:ion/app/components/icons/network_icon_widget.dart';
@@ -8,13 +9,20 @@ import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
+import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
+import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/utils/formatters.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class ReceiveInfoCard extends StatelessWidget {
+part 'address_info_container.dart';
+
+part 'wallet_address_qr_code.dart';
+
+class ReceiveInfoCard extends HookWidget {
   const ReceiveInfoCard({
     required this.network,
     this.coinsGroup,
@@ -26,53 +34,81 @@ class ReceiveInfoCard extends StatelessWidget {
   final String? walletAddress;
   final CoinsGroup? coinsGroup;
 
+  /// Since ion provides only personal wallets for use, there is no need
+  /// to use the memo/tag field when receiving funds.
+  /// However, some services make the memo field mandatory when sending funds.
+  /// In these cases, we recommend users use the following text,
+  /// as it will be ignored by the blockchain anyway.
+  static const String _memoValue = 'Online';
+
   @override
   Widget build(BuildContext context) {
+    final shortAddress = useState<String?>(null);
+    useEffect(
+      () {
+        shortAddress.value = walletAddress != null ? shortenAddress(walletAddress!) : null;
+        return null;
+      },
+      [walletAddress],
+    );
+
     return Row(
       children: [
         Expanded(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: context.theme.appColors.tertiaryBackground,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(height: 20.0.s),
-                if (coinsGroup != null) ...[
-                  CoinIconWithNetwork.medium(
-                    coinsGroup!.iconUrl,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 20.0.s),
+              _ContainerWithBackground(
+                padding: EdgeInsets.symmetric(vertical: 20.s),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: _WalletAddressQrCode(
                     network: network,
+                    coinsGroup: coinsGroup,
+                    walletAddress: walletAddress,
                   ),
-                  SizedBox(height: 10.0.s),
-                  Text(
-                    coinsGroup!.abbreviation,
-                    style: context.theme.appTextThemes.body.copyWith(
-                      color: context.theme.appColors.primaryText,
-                    ),
+                ),
+              ),
+              SizedBox(height: 12.s),
+              if (walletAddress.isNotEmpty && shortAddress.value != null)
+                _AddressInfoContainer(
+                  title: context.i18n.wallet_address,
+                  value: shortAddress.value!,
+                  valueToCopy: walletAddress,
+                  onTapInfo: () {
+                    showSimpleBottomSheet<void>(
+                      context: context,
+                      child: const InfoModal(
+                        infoType: InfoType.walletAddress,
+                      ),
+                    );
+                  },
+                )
+              else
+                Skeleton(
+                  child: _AddressInfoContainer(
+                    title: context.i18n.wallet_address,
+                    value: walletAddress!,
+                    onTapInfo: () {},
                   ),
-                  Text('(${network.displayName})'),
-                ] else ...[
-                  NetworkIconWidget(
-                    type: WalletItemIconType.huge(),
-                    imageUrl: network.image,
-                  ),
-                  SizedBox(height: 10.0.s),
-                  Text(
-                    network.displayName,
-                    style: context.theme.appTextThemes.body.copyWith(
-                      color: context.theme.appColors.primaryText,
-                    ),
-                  ),
-                ],
-                SizedBox(height: 8.0.s),
-                if (walletAddress.isNotEmpty)
-                  _AddressDescription(walletAddress!)
-                else
-                  const _AddressLoader(),
+                ),
+              if (network.isMemoSupported && walletAddress.isNotEmpty) ...[
+                SizedBox(height: 12.s),
+                _AddressInfoContainer(
+                  title: context.i18n.wallet_memo,
+                  value: _memoValue,
+                  onTapInfo: () {
+                    showSimpleBottomSheet<void>(
+                      context: context,
+                      child: const InfoModal(
+                        infoType: InfoType.memo,
+                      ),
+                    );
+                  },
+                ),
               ],
-            ),
+            ],
           ),
         ),
       ],
@@ -80,74 +116,30 @@ class ReceiveInfoCard extends StatelessWidget {
   }
 }
 
-class _AddressLoader extends StatelessWidget {
-  const _AddressLoader();
+class _ContainerWithBackground extends StatelessWidget {
+  const _ContainerWithBackground({
+    required this.child,
+    this.padding,
+  });
+
+  final Widget child;
+  final EdgeInsets? padding;
 
   @override
   Widget build(BuildContext context) {
-    return const Skeleton(
-      child: _AddressDescription(''),
-    );
-  }
-}
-
-class _AddressDescription extends StatelessWidget {
-  const _AddressDescription(this.address);
-
-  final String address;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          width: 150.0.s,
-          height: 150.0.s,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20.0.s),
-            child: QrImageView(
-              backgroundColor: context.theme.appColors.secondaryBackground,
-              errorCorrectionLevel: QrErrorCorrectLevel.H,
-              dataModuleStyle: QrDataModuleStyle(
-                dataModuleShape: QrDataModuleShape.circle,
-                color: context.theme.appColors.primaryText,
-              ),
-              embeddedImageStyle: QrEmbeddedImageStyle(size: Size(40.0.s, 40.0.s)),
-              embeddedImage: AssetImage(Assets.images.qrCode.qrCodeLogo.path),
-              data: address,
-              size: 150.0.s,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: context.theme.appColors.tertiaryBackground,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: padding ??
+            EdgeInsets.symmetric(
+              vertical: 12.s,
+              horizontal: 16.s,
             ),
-          ),
-        ),
-        SizedBox(height: 8.0.s),
-        Text(
-          shortenAddress(address),
-          style: context.theme.appTextThemes.body.copyWith(
-            color: context.theme.appColors.primaryText,
-          ),
-        ),
-        SizedBox(height: 22.0.s),
-        CopyBuilder(
-          defaultIcon: Assets.svg.iconBlockCopyBlue.icon(),
-          defaultText: context.i18n.button_copy,
-          defaultBorderColor: context.theme.appColors.strokeElements,
-          builder: (context, onCopy, content) => Button(
-            minimumSize: Size(148.0.s, 48.0.s),
-            leadingIcon: content.icon,
-            borderColor: content.borderColor,
-            onPressed: () => onCopy(address),
-            label: Text(
-              content.text,
-              style: context.theme.appTextThemes.body.copyWith(
-                color: context.theme.appColors.primaryText,
-              ),
-            ),
-            type: ButtonType.secondary,
-          ),
-        ),
-        SizedBox(height: 16.0.s),
-      ],
+        child: child,
+      ),
     );
   }
 }
