@@ -10,8 +10,8 @@ class FollowButton extends HookWidget {
   const FollowButton({
     required this.onPressed,
     required this.following,
-    required this.decoration,
-    required this.decorationWhenFollowing,
+    this.decoration,
+    this.decorationWhenFollowing,
     this.visibility = FollowButtonVisibility.always,
     this.followLabel,
     super.key,
@@ -25,9 +25,9 @@ class FollowButton extends HookWidget {
 
   final FollowButtonVisibility visibility;
 
-  final FollowButtonDecoration decoration;
+  final FollowButtonDecoration? decoration;
 
-  final FollowButtonDecoration decorationWhenFollowing;
+  final FollowButtonDecoration? decorationWhenFollowing;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,10 @@ class FollowButton extends HookWidget {
       }
     }
 
-    final effectiveDecoration = following ? decorationWhenFollowing : decoration;
+    final effectiveDecoration = following
+        ? (decorationWhenFollowing ??
+            FollowButtonDecoration.defaultDecorationWhenFollowing(context))
+        : (decoration ?? FollowButtonDecoration.defaultDecoration(context));
 
     Future<void> handlePressed() async {
       if (visibility == FollowButtonVisibility.keepUntilRefresh) {
@@ -100,6 +103,24 @@ class FollowButtonDecoration extends BoxDecoration {
     super.border,
     super.borderRadius,
   }) : contentPadding = contentPadding ?? EdgeInsets.symmetric(horizontal: 14.0.s, vertical: 4.0.s);
+
+  factory FollowButtonDecoration.defaultDecoration(BuildContext context) {
+    return FollowButtonDecoration(
+      foregroundColor: context.theme.appColors.onPrimaryAccent,
+      color: context.theme.appColors.primaryAccent,
+      borderRadius: BorderRadius.circular(16.0.s),
+      border: Border.all(color: context.theme.appColors.primaryAccent),
+    );
+  }
+
+  factory FollowButtonDecoration.defaultDecorationWhenFollowing(BuildContext context) {
+    return FollowButtonDecoration(
+      foregroundColor: context.theme.appColors.primaryAccent,
+      color: context.theme.appColors.primaryAccent.withValues(alpha: 0),
+      borderRadius: BorderRadius.circular(16.0.s),
+      border: Border.all(color: context.theme.appColors.primaryAccent),
+    );
+  }
 
   final Color foregroundColor;
   final EdgeInsetsGeometry contentPadding;
