@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 part of 'receive_info_card.dart';
 
 class _WalletAddressQrCode extends StatelessWidget {
