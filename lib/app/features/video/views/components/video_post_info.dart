@@ -43,19 +43,6 @@ class VideoPostInfo extends StatelessWidget {
             await ref.read(toggleFollowNotifierProvider.notifier).toggle(videoPost.masterPubkey);
           },
           following: ref.watch(isCurrentUserFollowingSelectorProvider(videoPost.masterPubkey)),
-          decoration: FollowButtonDecoration(
-            borderRadius: BorderRadius.circular(16.0.s),
-            contentPadding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 4.0.s),
-            foregroundColor: context.theme.appColors.onPrimaryAccent,
-            color: context.theme.appColors.primaryAccent,
-          ),
-          decorationWhenFollowing: FollowButtonDecoration(
-            showLabel: false,
-            contentPadding: EdgeInsets.all(4.0.s),
-            foregroundColor: context.theme.appColors.onPrimaryAccent,
-            borderRadius: BorderRadius.circular(16.0.s),
-            color: context.theme.appColors.success,
-          ),
         );
       },
     );

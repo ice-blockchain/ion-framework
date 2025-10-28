@@ -45,18 +45,6 @@ class CreatorListItem extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16.0.s),
         trailing: FollowButton(
           following: selected,
-          decoration: FollowButtonDecoration(
-            foregroundColor: context.theme.appColors.onPrimaryAccent,
-            color: context.theme.appColors.primaryAccent,
-            borderRadius: BorderRadius.circular(16.0.s),
-            border: Border.all(color: context.theme.appColors.primaryAccent),
-          ),
-          decorationWhenFollowing: FollowButtonDecoration(
-            foregroundColor: context.theme.appColors.primaryAccent,
-            color: context.theme.appColors.primaryAccent.withValues(alpha: 0),
-            borderRadius: BorderRadius.circular(16.0.s),
-            border: Border.all(color: context.theme.appColors.primaryAccent),
-          ),
           onPressed: () async {
             return onPressed();
           },
