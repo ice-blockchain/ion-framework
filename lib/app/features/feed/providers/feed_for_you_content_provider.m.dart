@@ -106,10 +106,10 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       }
     }
 
-    // Some content languages don't have enough content, so if we didn't manage to fetch enough
+    // Some content languages don't have enough data, so if we didn't manage to fetch the page
     // and English is not enabled, we enable it as a fallback and try to fetch more events.
     if (fetchedEvents < limit && !(await _hasEnglishContentLanguage())) {
-      _enableEnglishContentFallback();
+      _enableEnglishContentAndResetPagination();
       await for (final entity in _fetchFillPageData(limit: limit - fetchedEvents)) {
         yield entity;
         fetchedEvents++;
@@ -727,7 +727,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   /// Enables the English content fallback mechanism that is used
   /// when there is not enough content in the user's defined content languages.
-  void _enableEnglishContentFallback() {
+  void _enableEnglishContentAndResetPagination() {
     Logger.info('$_logTag Enabling English content fallback and reset the pagination state');
     state = state.copyWith(
       englishContentFallbackEnabled: true,
