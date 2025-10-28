@@ -25,6 +25,7 @@ class IonNetworkImage extends HookWidget {
     this.errorListener,
     this.errorWidget,
     this.borderRadius,
+    this.cacheKey,
   }) : cacheManager = cacheManager ??
             CacheManager(
               Config(
@@ -50,6 +51,7 @@ class IonNetworkImage extends HookWidget {
   final ImageWidgetBuilder? imageBuilder;
   final ProgressIndicatorBuilder? progressIndicatorBuilder;
   final BorderRadiusGeometry? borderRadius;
+  final String? cacheKey;
 
   @override
   Widget build(BuildContext context) {
@@ -72,8 +74,6 @@ class IonNetworkImage extends HookWidget {
     }
 
     final fetchError = useRef<Object?>(null);
-    // Use the full URL as cache key to avoid collisions (e.g., '/favicon.ico' across domains)
-    final cacheKey = imageUrl;
 
     if (borderRadius != null) {
       return DecoratedBox(

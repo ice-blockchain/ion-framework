@@ -11,7 +11,7 @@ part 'ion_connect_media_url_fallback_provider.r.g.dart';
 /// When a media URL fails to load, this provider replaces it with
 /// a fallback URL using one of the user's available relays.
 @Riverpod(keepAlive: true)
-class IONConnectMediaUrlFallback extends _$IONConnectMediaUrlFallback {
+class IonConnectMediaUrlFallback extends _$IonConnectMediaUrlFallback {
   @override
   Map<String, String> build() => {};
 
@@ -25,7 +25,7 @@ class IONConnectMediaUrlFallback extends _$IONConnectMediaUrlFallback {
   final Map<String, Future<List<String>?>> _identityRelays = {};
 
   Future<String?> generateFallback(String initialAssetUrl, {required String authorPubkey}) async {
-    if (!isNetworkUrl(initialAssetUrl)) {
+    if (!isIonMediaUrl(initialAssetUrl)) {
       return null;
     }
 
