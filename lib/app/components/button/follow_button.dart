@@ -2,14 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class FollowButton extends HookWidget {
   const FollowButton({
     required this.onPressed,
-    required this.isFollowing,
+    required this.following,
     required this.decoration,
     required this.decorationWhenFollowing,
     this.visibility = FollowButtonVisibility.always,
@@ -19,7 +19,7 @@ class FollowButton extends HookWidget {
 
   final Future<void> Function()? onPressed;
 
-  final bool isFollowing;
+  final bool following;
 
   final String? followLabel;
 
@@ -35,20 +35,25 @@ class FollowButton extends HookWidget {
     final isDisabled = useState<bool>(false);
 
     if (visibility == FollowButtonVisibility.keepUntilRefresh) {
-      if (isFollowing && !isKeptVisible.value) {
+      if (following && !isKeptVisible.value) {
         return const SizedBox.shrink();
       }
     }
 
-    final effectiveDecoration = isFollowing ? decorationWhenFollowing : decoration;
+    final effectiveDecoration = following ? decorationWhenFollowing : decoration;
 
     Future<void> handlePressed() async {
       if (visibility == FollowButtonVisibility.keepUntilRefresh) {
         isKeptVisible.value = true;
       }
       isDisabled.value = true;
-      await onPressed?.call();
-      isDisabled.value = false;
+      try {
+        await onPressed?.call();
+      } catch (e, s) {
+        Logger.error(e, stackTrace: s, message: 'Error following user');
+      } finally {
+        isDisabled.value = false;
+      }
     }
 
     return AnimatedContainer(
@@ -56,23 +61,24 @@ class FollowButton extends HookWidget {
       padding: effectiveDecoration.contentPadding,
       decoration: effectiveDecoration,
       alignment: Alignment.center,
+      curve: Curves.easeInOut,
       child: TextButton(
         onPressed: isDisabled.value ? null : handlePressed,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            (isFollowing ? Assets.svg.iconSearchFollowers : Assets.svg.iconSearchFollow).icon(
+            (following ? Assets.svg.iconSearchFollowers : Assets.svg.iconSearchFollow).icon(
               color: effectiveDecoration.foregroundColor,
               size: 16.0.s,
             ),
             if (effectiveDecoration.showLabel) ...[
               SizedBox(width: 3.0.s),
               Text(
-                isFollowing
+                following
                     ? context.i18n.button_following
                     : followLabel ?? context.i18n.button_follow,
                 style: context.theme.appTextThemes.caption.copyWith(
-                  color: isFollowing
+                  color: following
                       ? context.theme.appColors.primaryAccent
                       : context.theme.appColors.secondaryBackground,
                 ),
@@ -98,28 +104,6 @@ class FollowButtonDecoration extends BoxDecoration {
   final Color foregroundColor;
   final EdgeInsetsGeometry contentPadding;
   final bool showLabel;
-}
-
-class FollowButtonStyle extends ButtonStyle {
-  FollowButtonStyle({
-    this.showLabel = true,
-    EdgeInsetsGeometry? padding,
-    OutlinedBorder? shape,
-    Color? backgroundColor,
-    Color? foregroundColor,
-    this.type = ButtonType.primary,
-  }) : super(
-          backgroundColor: WidgetStateProperty.all(backgroundColor),
-          foregroundColor: WidgetStateProperty.all(foregroundColor),
-          padding: WidgetStateProperty.all(padding ?? EdgeInsets.symmetric(horizontal: 15.0.s)),
-          shape: WidgetStateProperty.all(
-            shape ?? RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0.s)),
-          ),
-        );
-
-  final bool showLabel;
-
-  final ButtonType type;
 }
 
 enum FollowButtonVisibility {

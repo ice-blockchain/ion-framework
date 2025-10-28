@@ -42,7 +42,7 @@ class VideoPostInfo extends StatelessWidget {
           onPressed: () async {
             await ref.read(toggleFollowNotifierProvider.notifier).toggle(videoPost.masterPubkey);
           },
-          isFollowing: ref.watch(isCurrentUserFollowingSelectorProvider(videoPost.masterPubkey)),
+          following: ref.watch(isCurrentUserFollowingSelectorProvider(videoPost.masterPubkey)),
           decoration: FollowButtonDecoration(
             borderRadius: BorderRadius.circular(16.0.s),
             contentPadding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 4.0.s),

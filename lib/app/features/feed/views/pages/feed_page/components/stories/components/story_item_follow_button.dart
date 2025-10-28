@@ -20,7 +20,8 @@ class StoryItemFollowButton extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isLoading = ref.watch(currentUserFollowListProvider.select((state) => state.isLoading));
+    final isLoading =
+        ref.watch(currentUserFollowListProvider.select((state) => state.isRefreshing));
     if (isLoading) {
       return const SizedBox.shrink();
     }
@@ -44,7 +45,7 @@ class StoryItemFollowButton extends HookConsumerWidget {
       onPressed: () async {
         await ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
       },
-      isFollowing: isFollowUser,
+      following: isFollowUser,
       visibility: FollowButtonVisibility.keepUntilRefresh,
       decoration: FollowButtonDecoration(
         foregroundColor: context.theme.appColors.onPrimaryAccent,
@@ -52,9 +53,6 @@ class StoryItemFollowButton extends HookConsumerWidget {
         showLabel: false,
         color: context.theme.appColors.primaryAccent,
         borderRadius: BorderRadius.circular(10.0.s),
-        border: Border.all(
-          width: 1.s,
-        ),
       ),
       decorationWhenFollowing: FollowButtonDecoration(
         foregroundColor: context.theme.appColors.onPrimaryAccent,
@@ -62,9 +60,6 @@ class StoryItemFollowButton extends HookConsumerWidget {
         showLabel: false,
         color: context.theme.appColors.success,
         borderRadius: BorderRadius.circular(10.0.s),
-        border: Border.all(
-          width: 1.s,
-        ),
       ),
     );
   }
