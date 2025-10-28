@@ -20,7 +20,7 @@
 /lib/app/features/chat/ @ice-kreios @ice-damocles
 /lib/app/features/search/views/pages/chat/ @ice-kreios @ice-damocles
 
-# Databases / Persistance
+# Databases / Persistence
 /lib/app/features/chat/model/database/ @ice-damocles
 /lib/app/features/feed/notifications/data/database/ @ice-damocles
 /lib/app/features/feed/data/database/ @ice-damocles
