@@ -1,5 +1,4 @@
-# The testing team owns all test files.
-/test/ @ice-blockchain/testers
+* @ice-blockchain/flutter @ice-blockchain/testers
 
 #  ### FEATURES ###
 # Auth
