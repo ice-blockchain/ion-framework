@@ -106,9 +106,9 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       }
     }
 
-    if (fetchedEvents < limit &&
-        !(await _hasEnglishContentLanguage()) &&
-        !_englishContentFallbackEnabled()) {
+    // Some content languages don't have enough content, so if we didn't manage to fetch enough
+    // and English is not enabled, we enable it as a fallback and try to fetch more events.
+    if (fetchedEvents < limit && !(await _hasEnglishContentLanguage())) {
       _enableEnglishContentFallback();
       await for (final entity in _fetchFillPageData(limit: limit - fetchedEvents)) {
         yield entity;
@@ -120,7 +120,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }
 
   /// Concurrently fetching followed users, global accounts and interested events.
-  /// The "for you" (interested) events have an overflow multiplier to fetch more events
+  /// Interested events have an overflow multiplier to fetch more events
   /// in the initial request, so that we have more chances to fill the viewport.
   Stream<IonConnectEntity> _fetchInitialPageData({required int limit}) async* {
     Logger.info('$_logTag Requesting initial events with overflow');
@@ -130,6 +130,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     final forYouLimit = limit - followingLimit - globalAccountsLimit;
     final forYouOverflowedLimit =
         await _getFeedForYouOverflowedDistribution(forYouLimit: forYouLimit);
+
     yield* StreamGroup.merge([
       _fetchUnseenFollowing(limit: followingLimit),
       _fetchUnseenGlobalAccounts(limit: globalAccountsLimit),
@@ -140,7 +141,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   /// Fetching more "for you" events to fill the viewport,
   /// if we didn't manage to fetch enough data.
   Stream<IonConnectEntity> _fetchFillPageData({required int limit}) {
-    Logger.info('$_logTag Requesting additional [$limit] events to fill the viewport');
+    Logger.info('$_logTag Requesting additional [$limit] interested events to fill the viewport');
     return _fetchForYou(limit: limit);
   }
 
@@ -701,7 +702,10 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   Future<List<String>> _getContentLanguages() async {
     final contentLanguages = await ref.read(contentLanguageWatchProvider.future);
-    return contentLanguages?.hashtags.toList() ?? ['en'];
+    return {
+      if (contentLanguages != null) ...contentLanguages.hashtags,
+      if (state.englishContentFallbackEnabled) 'en',
+    }.toList();
   }
 
   Future<bool> _hasEnglishContentLanguage() async {
@@ -709,17 +713,9 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     return contentLanguages.contains('en');
   }
 
-  bool _englishContentFallbackEnabled() {
-    return state.englishContentFallbackEnabled;
-  }
-
   Future<Map<String, List<List<String>>>> _buildLangFilterTags() async {
     final contentLanguages = await _getContentLanguages();
-    final langHashtags = {
-      ...contentLanguages,
-      if (state.englishContentFallbackEnabled) 'en',
-    }.toList();
-    final label = EntityLabel(values: langHashtags, namespace: EntityLabelNamespace.language);
+    final label = EntityLabel(values: contentLanguages, namespace: EntityLabelNamespace.language);
     return label.toFilterTags();
   }
 
@@ -730,9 +726,9 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }
 
   /// Enables the English content fallback mechanism that is used
-  /// when there is not enough content in the user's content languages.
+  /// when there is not enough content in the user's defined content languages.
   void _enableEnglishContentFallback() {
-    Logger.info('$_logTag Enabling English Content fallback and reset the pagination state');
+    Logger.info('$_logTag Enabling English content fallback and reset the pagination state');
     state = state.copyWith(
       englishContentFallbackEnabled: true,
       forYouRetryLimitReached: false,
