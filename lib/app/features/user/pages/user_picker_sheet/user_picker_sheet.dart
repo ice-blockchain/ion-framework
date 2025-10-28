@@ -7,6 +7,7 @@ import 'package:ion/app/components/inputs/search_input/search_input.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/components/following_users.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/components/searched_users.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
@@ -51,7 +52,10 @@ class UserPickerSheet extends HookConsumerWidget {
         expirationDuration: expirationDuration,
       ),
     );
-    final followListState = ref.watch(currentUserFollowListWithMetadataProvider);
+
+    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+
+    final followListState = ref.watch(userFollowListWithMetadataProvider(currentPubkey!));
     final showFollowingUsers = debouncedQuery.isEmpty;
 
     return LoadMoreBuilder(
@@ -100,7 +104,7 @@ class UserPickerSheet extends HookConsumerWidget {
         if (footer != null) footer!,
       ],
       onLoadMore: showFollowingUsers
-          ? ref.read(currentUserFollowListWithMetadataProvider.notifier).fetchEntities
+          ? ref.read(userFollowListWithMetadataProvider(currentPubkey).notifier).fetchEntities
           : ref.read(searchUsersProvider(query: debouncedQuery).notifier).loadMore,
       hasMore: showFollowingUsers
           ? followListState.valueOrNull?.hasMore ?? false

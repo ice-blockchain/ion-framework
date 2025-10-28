@@ -22,7 +22,8 @@ class FollowingList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final followeePubkeys = ref.watch(followListProvider(pubkey)).valueOrNull?.masterPubkeys;
+    final followingState = ref.watch(userFollowListWithMetadataProvider(pubkey));
+    final followeePubkeys = followingState.valueOrNull?.pubkeys;
     final searchQuery = useState('');
     final debouncedQuery = useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '';
 
@@ -39,19 +40,27 @@ class FollowingList extends HookConsumerWidget {
     final searchMasterPubkeys = searchPagedData?.masterPubkeys;
 
     return LoadMoreBuilder(
-      hasMore: searchPagedData?.hasMore ?? false,
-      onLoadMore: () => ref
-          .read(
-            searchUsersProvider(
-              query: debouncedQuery,
-              followedByPubkey: pubkey,
-              includeCurrentUser: true,
-            ).notifier,
-          )
-          .loadMore(),
+      hasMore: searchQuery.value.isNotEmpty
+          ? searchPagedData?.hasMore ?? false
+          : followingState.valueOrNull?.hasMore ?? false,
+      onLoadMore: () async {
+        if (searchQuery.value.isNotEmpty) {
+          await ref
+              .read(
+                searchUsersProvider(
+                  query: debouncedQuery,
+                  followedByPubkey: pubkey,
+                  includeCurrentUser: true,
+                ).notifier,
+              )
+              .loadMore();
+        } else {
+          await ref.read(userFollowListWithMetadataProvider(pubkey).notifier).fetchEntities();
+        }
+      },
       slivers: [
         FollowAppBar(
-          title: FollowType.following.getTitleWithCounter(context, followeePubkeys?.length ?? 0),
+          title: FollowType.following.getTitleWithCounter(context, 0),
         ),
         FollowSearchBar(onTextChanged: (query) => searchQuery.value = query),
         if (searchQuery.value.isNotEmpty)
