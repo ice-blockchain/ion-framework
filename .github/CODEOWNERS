@@ -1,4 +1,8 @@
-* @ice-blockchain/flutter @ice-blockchain/testers
+# This is the fallback for any file that doesn't have a more specific owner.
+* @ice-orion @ice-hades
+
+# The testing team owns all test files.
+/test/ @ice-blockchain/testers
 
 #  ### FEATURES ###
 # Auth
@@ -97,4 +101,13 @@
 /packages/ion_connect_cache/ @ice-damocles
 /packages/ion_content_labeler/ @ice-orion
 /packages/ion_identity_client/ @ice-tychon @ice-hades
-/packages/ion_lint_rules @ice-hades
+/packages/ion_lint_rules/ @ice-hades
+
+# ### PROJECT CONFIG & ROOT LEVEL FILES ###
+/pubspec.yaml @ice-orion @ice-hades
+/pubspec.lock @ice-orion
+/build.yaml @ice-damocles
+/analysis_options.yaml @ice-hades
+/README.md @ice-orion
+/CHANGELOG.md @ice-orion
+/scripts/ @ice-orion @ice-cerberus
