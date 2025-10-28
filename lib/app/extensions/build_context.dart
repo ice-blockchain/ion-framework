@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ion/generated/app_localizations.dart';
 
 extension ThemeGetter on BuildContext {
@@ -14,4 +15,12 @@ extension I18nGetter on BuildContext {
 
 extension NavigatorExt on BuildContext {
   bool get isCurrentRoute => ModalRoute.of(this)?.isCurrent ?? false;
+}
+
+extension MaybePopExtension on BuildContext {
+  void maybePop<T extends Object?>([T? result]) {
+    if (canPop()) {
+      pop(result);
+    }
+  }
 }

@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
+import 'package:ion/app/extensions/extensions.dart';
 
 typedef PopIfNullCallback<T> = Future<void> Function(Future<T?> Function());
 
@@ -14,7 +14,7 @@ PopIfNullCallback<T> usePopIfReturnedNull<T>() {
       if (result == null && context.mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {
-            context.pop();
+            context.maybePop();
           }
         });
       }

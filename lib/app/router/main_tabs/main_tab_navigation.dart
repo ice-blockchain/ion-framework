@@ -93,7 +93,7 @@ class MainTabNavigation extends HookWidget {
 
   void _navigateToTab(BuildContext context, TabItem tabItem, {required bool initialLocation}) {
     if (state.isMainModalOpen) {
-      context.pop();
+      context.maybePop();
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => shell.goBranch(tabItem.navigationIndex),
       );

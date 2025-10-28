@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_top_offset.dart';
 import 'package:ion/app/constants/ui.dart';
@@ -148,7 +147,7 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
       leading: leading ??
           (showBackButton
               ? NavigationBackButton(
-                  () => (onBackPress ?? context.pop)(),
+                  () => (onBackPress ?? context.maybePop)(),
                   hideKeyboardOnBack: hideKeyboardOnBack,
                   icon: backButtonIcon,
                 )
