@@ -31,7 +31,7 @@ class EncryptedDirectMessageReactionHandler extends GlobalSubscriptionEncryptedE
   bool canHandle({
     required IonConnectGiftWrapEntity entity,
   }) {
-    return entity.data.kinds.containsDeep([
+    return entity.data.kinds.containsList([
       PrivateMessageReactionEntity.kind.toString(),
       PrivateMessageReactionEntity.kind.toString(),
     ]);
