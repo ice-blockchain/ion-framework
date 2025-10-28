@@ -39,9 +39,9 @@ class UserFollowListWithMetadata extends _$UserFollowListWithMetadata {
     if (state.isLoading || !state.hasValue || !state.value!.hasMore) {
       return;
     }
-
-    final allPubkeys = state.value!.allPubkeys;
     final previousState = state.value!;
+    final allPubkeys = previousState.allPubkeys;
+
     state = AsyncData(previousState.copyWith(hasMore: false)); // to prevent concurrent fetches
 
     final currentPubkeys = previousState.pubkeys;
