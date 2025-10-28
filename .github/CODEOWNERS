@@ -1,6 +1,3 @@
-# This is the fallback for any file that doesn't have a more specific owner.
-* @ice-orion @ice-hades
-
 # The testing team owns all test files.
 /test/ @ice-blockchain/testers
 
@@ -73,6 +70,7 @@
 
 # Pushes
 /lib/app/features/push_notifications/ @ice-endymion
+/ios/NotificationServiceExtension/ @ice-endymion
 
 # Search
 /lib/app/features/search/ @ice-endymion
