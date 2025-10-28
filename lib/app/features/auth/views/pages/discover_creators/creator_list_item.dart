@@ -2,12 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/button/follow_button.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
-import 'package:ion/app/features/components/user/follow_user_button/follow_user_button.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 
@@ -43,7 +43,24 @@ class CreatorListItem extends ConsumerWidget {
         backgroundColor: context.theme.appColors.tertiaryBackground,
         contentPadding: EdgeInsets.all(12.0.s),
         borderRadius: BorderRadius.circular(16.0.s),
-        trailing: FollowUserButton(pubkey: masterPubkey, follower: selected),
+        trailing: FollowButton(
+          following: selected,
+          decoration: FollowButtonDecoration(
+            foregroundColor: context.theme.appColors.onPrimaryAccent,
+            color: context.theme.appColors.primaryAccent,
+            borderRadius: BorderRadius.circular(16.0.s),
+            border: Border.all(color: context.theme.appColors.primaryAccent),
+          ),
+          decorationWhenFollowing: FollowButtonDecoration(
+            foregroundColor: context.theme.appColors.primaryAccent,
+            color: context.theme.appColors.primaryAccent.withValues(alpha: 0),
+            borderRadius: BorderRadius.circular(16.0.s),
+            border: Border.all(color: context.theme.appColors.primaryAccent),
+          ),
+          onPressed: () async {
+            return onPressed();
+          },
+        ),
         trailingPadding: EdgeInsetsDirectional.only(start: 6.0.s),
       ),
     );

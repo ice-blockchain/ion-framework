@@ -20,11 +20,13 @@ class FollowUserButton extends ConsumerWidget {
     /// We pass this if the know that the user is a follower to avoid extra kind3 requests.
     /// TODO: remove after kind3 rework and removing the hack with 21750->kind3 in followersProvider
     this.follower,
+    this.onPressed,
     super.key,
   });
 
   final String pubkey;
   final bool? follower;
+  final Future<void> Function()? onPressed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -56,19 +58,20 @@ class FollowUserButton extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16.0.s),
         border: Border.all(color: context.theme.appColors.primaryAccent),
       ),
-      onPressed: () async {
-        if (following) {
-          await showSimpleBottomSheet<void>(
-            context: context,
-            child: UnfollowUserModal(
-              pubkey: pubkey,
-            ),
-          );
-        } else {
-          await ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
-        }
-      },
-      isFollowing: following,
+      onPressed: onPressed ??
+          () async {
+            if (following) {
+              await showSimpleBottomSheet<void>(
+                context: context,
+                child: UnfollowUserModal(
+                  pubkey: pubkey,
+                ),
+              );
+            } else {
+              await ref.read(toggleFollowNotifierProvider.notifier).toggle(pubkey);
+            }
+          },
+      following: following,
       followLabel: isCurrentUserFollowed && !following ? context.i18n.button_follow_back : null,
     );
   }
