@@ -38,6 +38,7 @@ class FollowListItem extends ConsumerWidget {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
       child: BadgesUserListItem(
+        key: ValueKey<String>(pubkey),
         title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
         trailing: FollowUserButton(pubkey: pubkey, follower: follower),
         subtitle: Text(prefixUsername(username: username, context: context)),
