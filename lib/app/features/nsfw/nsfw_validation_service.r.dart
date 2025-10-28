@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/nsfw/nsfw_detector.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector_factory.r.dart';
-import 'package:ion/app/features/nsfw/static/nsfw_parallel_checker.dart';
+import 'package:ion/app/features/nsfw/static/shared/nsfw_isolate_functions.dart';
+import 'package:ion/app/features/nsfw/static/shared/shared_nsfw_isolate.dart';
+import 'package:ion/app/features/nsfw/static/nsfw_model_manager.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -22,7 +26,7 @@ Future<NsfwValidationService> nsfwValidationService(Ref ref) async => NsfwValida
     );
 
 class NsfwValidationService {
-  const NsfwValidationService({
+  NsfwValidationService({
     required this.detectorFactory,
     required this.videoCompressor,
     required this.videoInfoService,
@@ -31,6 +35,8 @@ class NsfwValidationService {
   final NsfwDetectorFactory detectorFactory;
   final VideoCompressor videoCompressor;
   final VideoInfoService videoInfoService;
+
+  Completer<void>? _initCompleter;
 
   Future<bool> hasNsfwInMediaFiles(List<MediaFile> mediaFiles) async {
     final imagePaths = mediaFiles.where(_isImageMedia).map((m) => m.path).toList();
@@ -66,12 +72,57 @@ class NsfwValidationService {
         lower.endsWith('.bmp');
   }
 
+  /// Ensures model is initialized in isolate (lazy init, thread-safe)
+  Future<void> _ensureInitialized() async {
+    // If already initialized or initialization in progress, wait
+    if (_initCompleter != null) {
+      return _initCompleter!.future;
+    }
+
+    // Start initialization
+    _initCompleter = Completer<void>();
+
+    try {
+      final modelPath = await NsfwModelManager.getModelPath();
+      await sharedNsfwIsolate.compute(
+        nsfwInitializeModelFn,
+        [modelPath, detectorFactory.blockThreshold],
+      );
+      _initCompleter!.complete();
+    } catch (e) {
+      _initCompleter!.completeError(e);
+      _initCompleter = null; // Reset to allow retry
+      rethrow;
+    }
+  }
+
   Future<bool> _hasNsfwInImagePaths(List<String> imagePaths) async {
-    return NsfwParallelChecker.hasNsfwInImagePaths(
-      imagePaths: imagePaths,
-      poolSize: 1,
-      blockThreshold: detectorFactory.blockThreshold,
+    await _ensureInitialized();
+    if (imagePaths.isEmpty) return false;
+
+    // Read all image bytes in parallel
+    final imageBytesListFutures = imagePaths.map((path) async {
+      try {
+        final file = File(path);
+        return await file.readAsBytes();
+      } catch (e) {
+        return null;
+      }
+    }).toList();
+
+    final imageBytesListNullable = await Future.wait(imageBytesListFutures);
+    final imageBytesList =
+        imageBytesListNullable.where((bytes) => bytes != null).map((bytes) => bytes!).toList();
+
+    if (imageBytesList.isEmpty) return false;
+
+    // Use persistent isolate directly
+    final results = await sharedNsfwIsolate.compute(
+      nsfwCheckImagesFn,
+      [imageBytesList],
     );
+
+    return results.any((r) => r.decision == NsfwDecision.block);
   }
 
   List<MediaFile> _extractVideoFiles(List<MediaFile> mediaFiles) {
@@ -87,6 +138,8 @@ class NsfwValidationService {
 
   // Extract thumbnails on main thread, process in isolates
   Future<bool> _hasNsfwInVideosParallel(List<MediaFile> videos) async {
+    await _ensureInitialized();
+
     // Extract ALL thumbnails on main thread
     final thumbnailBytes = <Uint8List>[];
 
@@ -107,14 +160,13 @@ class NsfwValidationService {
       return false;
     }
 
-    // Process ALL thumbnails in parallel (isolates)
-    final hasNsfw = await NsfwParallelChecker.hasNsfwInImageBytes(
-      imageBytesList: thumbnailBytes,
-      blockThreshold: detectorFactory.blockThreshold,
-      poolSize: 1, // Use same optimal pool size as images
+    // Process ALL thumbnails in parallel using persistent isolate
+    final results = await sharedNsfwIsolate.compute(
+      nsfwCheckImagesFn,
+      [thumbnailBytes],
     );
 
-    return hasNsfw;
+    return results.any((r) => r.decision == NsfwDecision.block);
   }
 
   Future<List<String>> _buildTimestamps(MediaFile video) async {
