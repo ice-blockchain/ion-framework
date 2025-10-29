@@ -1010,5 +1010,10 @@
   "wallet_swap_confirmation_swap_button": "Swap",
   "wallet_swapping_coins": "Swapping...",
   "wallet_swapped_coins": "Swap complete",
-  "wallet_swap_failed": "Transaction failed"
+  "wallet_swap_failed": "Transaction failed",
+  "wallet_carousel_portfolio_title": "Portfolio",
+  "wallet_carousel_portfolio_description": "All your assets control by you, secured by us",
+  "wallet_carousel_swap_description": "Swap tokens instantly and securely with minimal fees",
+  "wallet_carousel_bridge_title": "Bridge",
+  "wallet_carousel_bridge_description": "Transfer assets between blockchain networks without delay"
 }
