@@ -34,7 +34,7 @@ class WalletCarouselItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 2,
+              flex: 3,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -52,7 +52,6 @@ class WalletCarouselItem extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(width: 4.s),
             Expanded(child: icon),
           ],
         ),
@@ -86,8 +85,7 @@ class WalletCarousel extends StatelessWidget {
             icon: Assets.svg.walletBridge.icon(size: 80.s),
           ),
         ],
-        autoPlay: true,
-        viewportFraction: 0.9.s,
+        viewportFraction: 0.85.s,
         enlargeCenterPage: true,
         dotsSpacing: 4.s,
         dotsSize: 3.s,

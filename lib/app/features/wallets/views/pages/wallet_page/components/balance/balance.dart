@@ -60,9 +60,7 @@ class Balance extends ConsumerWidget {
                   .copyWith(color: context.theme.appColors.primaryText),
             ),
           Padding(
-            padding: EdgeInsetsDirectional.only(
-              top: 6.0.s,
-            ),
+            padding: EdgeInsetsDirectional.only(top: 10.0.s),
             child: BalanceActions(
               isLoading: shouldShowLoader,
               onReceive: () {
