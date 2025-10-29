@@ -157,9 +157,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
                                   imageColor: imageColor,
                                   originalImageUrl: imageUrl,
                                   eventReference: modifiedEvent!,
-                                  language: detectedLanguage != null && detectedLanguage.relevant
-                                      ? detectedLanguage.value
-                                      : null,
+                                  language: detectedLanguage?.value,
                                   mediaAttachments: mediaAttachments,
                                 ),
                           );
@@ -173,9 +171,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
                                   mediaIds: imageIds,
                                   whoCanReply: whoCanReply,
                                   imageColor: imageColor,
-                                  language: detectedLanguage != null && detectedLanguage.relevant
-                                      ? detectedLanguage.value
-                                      : null,
+                                  language: detectedLanguage?.value,
                                 ),
                           );
                         }
