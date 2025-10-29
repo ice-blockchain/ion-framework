@@ -88,9 +88,8 @@ class WalletMainModalPage extends HookConsumerWidget {
 
   String _getSubRouteLocation(WalletMainModalListItem type) {
     return switch (type) {
-      WalletMainModalListItem.send => isCoinAlreadySet
-          ? SelectNetworkWalletRoute().location
-          : SelectCoinWalletRoute().location,
+      WalletMainModalListItem.send =>
+        isCoinAlreadySet ? SelectNetworkWalletRoute().location : SelectCoinWalletRoute().location,
       WalletMainModalListItem.receive => ReceiveCoinRoute().location,
       WalletMainModalListItem.swap => '', // TODO: add swap route when the feature is implemented
     };
