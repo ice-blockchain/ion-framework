@@ -59,7 +59,7 @@ class ProfileContextMenu extends HookConsumerWidget {
           context,
           ref,
           closeMenu,
-        );
+        ).toList();
         return OverlayMenuContainer(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -78,7 +78,7 @@ class ProfileContextMenu extends HookConsumerWidget {
     );
   }
 
-  List<Widget> _buildMenuItems(
+  Iterable<Widget> _buildMenuItems(
     BuildContext context,
     WidgetRef ref,
     VoidCallback closeMenu,
@@ -86,7 +86,7 @@ class ProfileContextMenu extends HookConsumerWidget {
     final isCurrentUser = ref.watch(isCurrentUserSelectorProvider(pubkey));
 
     if (isCurrentUser) {
-      return [
+      return <Widget>[
         ContextMenuItem(
           label: context.i18n.button_share,
           iconAsset: Assets.svg.iconButtonShare,
@@ -99,7 +99,6 @@ class ProfileContextMenu extends HookConsumerWidget {
             ).push<void>(context);
           },
         ),
-        const ContextMenuItemDivider(),
         ContextMenuItem(
           label: context.i18n.bookmarks_title,
           iconAsset: Assets.svg.iconBookmarks,
@@ -108,7 +107,6 @@ class ProfileContextMenu extends HookConsumerWidget {
             BookmarksRoute().push<void>(context);
           },
         ),
-        const ContextMenuItemDivider(),
         ContextMenuItem(
           label: context.i18n.invite_friends_button,
           iconAsset: Assets.svg.iconButtonInvite,
@@ -117,7 +115,6 @@ class ProfileContextMenu extends HookConsumerWidget {
             InviteFriendsRoute().push<void>(context);
           },
         ),
-        const ContextMenuItemDivider(),
         ContextMenuItem(
           label: context.i18n.settings_title,
           iconAsset: Assets.svg.iconProfileSettings,
@@ -126,7 +123,7 @@ class ProfileContextMenu extends HookConsumerWidget {
             SettingsRoute().push<void>(context);
           },
         ),
-      ];
+      ].separated(const ContextMenuItemDivider());
     } else {
       final isMuted = ref.watch(isUserMutedProvider(pubkey));
       return [
@@ -142,13 +139,8 @@ class ProfileContextMenu extends HookConsumerWidget {
             ).push<void>(context);
           },
         ),
-        const ContextMenuItemDivider(),
-        if (isMuted) ...[
-          _UnmutePostsMenuItem(masterPubkey: pubkey, closeMenu: closeMenu),
-          const ContextMenuItemDivider(),
-        ],
+        if (isMuted) _UnmutePostsMenuItem(masterPubkey: pubkey, closeMenu: closeMenu),
         _BlockUserMenuItem(masterPubkey: pubkey, closeMenu: closeMenu),
-        const ContextMenuItemDivider(),
         ContextMenuItem(
           label: context.i18n.button_report,
           iconAsset: Assets.svg.iconReport,
@@ -159,7 +151,7 @@ class ProfileContextMenu extends HookConsumerWidget {
                 );
           },
         ),
-      ];
+      ].separated(const ContextMenuItemDivider());
     }
   }
 }

@@ -22,3 +22,16 @@ extension DistinctBy<T, K> on Iterable<T> {
     return where((e) => seen.add(key(e))).toList();
   }
 }
+
+extension SeparatedIterableExtension<T> on Iterable<T> {
+  Iterable<T> separated(T separator) sync* {
+    final iterator = this.iterator;
+    if (iterator.moveNext()) {
+      yield iterator.current;
+      while (iterator.moveNext()) {
+        yield separator;
+        yield iterator.current;
+      }
+    }
+  }
+}
