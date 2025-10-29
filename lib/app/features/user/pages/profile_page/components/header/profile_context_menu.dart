@@ -15,6 +15,7 @@ import 'package:ion/app/features/user/pages/components/header_action/header_acti
 import 'package:ion/app/features/user/pages/profile_page/components/header/context_menu_item.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/header/context_menu_item_divider.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/block_user_modal/block_user_modal.dart';
+import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
 import 'package:ion/app/features/user/providers/report_notifier.m.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/block_user_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
@@ -127,6 +128,7 @@ class ProfileContextMenu extends HookConsumerWidget {
         ),
       ];
     } else {
+      final isMuted = ref.watch(isUserMutedProvider(pubkey));
       return [
         ContextMenuItem(
           label: context.i18n.button_share,
@@ -141,6 +143,10 @@ class ProfileContextMenu extends HookConsumerWidget {
           },
         ),
         const ContextMenuItemDivider(),
+        if (isMuted) ...[
+          _UnmutePostsMenuItem(masterPubkey: pubkey, closeMenu: closeMenu),
+          const ContextMenuItemDivider(),
+        ],
         _BlockUserMenuItem(masterPubkey: pubkey, closeMenu: closeMenu),
         const ContextMenuItemDivider(),
         ContextMenuItem(
@@ -184,6 +190,28 @@ class _BlockUserMenuItem extends ConsumerWidget {
         } else {
           ref.read(toggleBlockNotifierProvider.notifier).toggle(masterPubkey);
         }
+      },
+    );
+  }
+}
+
+class _UnmutePostsMenuItem extends ConsumerWidget {
+  const _UnmutePostsMenuItem({
+    required this.masterPubkey,
+    required this.closeMenu,
+  });
+
+  final String masterPubkey;
+  final VoidCallback closeMenu;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ContextMenuItem(
+      label: context.i18n.button_unmute_posts,
+      iconAsset: Assets.svg.iconChannelUnmute,
+      onPressed: () {
+        closeMenu();
+        ref.read(mutedUsersProvider.notifier).toggleMutedMasterPubkey(masterPubkey);
       },
     );
   }
