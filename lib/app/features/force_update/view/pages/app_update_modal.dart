@@ -120,8 +120,8 @@ class AppUpdateModal extends ConsumerWidget {
           ],
         ),
         if (onPressedClose != null)
-          Positioned(
-            right: 10.0.s,
+          PositionedDirectional(
+            end: 10.0.s,
             top: 10.0.s,
             child: IconButton(
               icon: Assets.svg.iconSheetClose.icon(
