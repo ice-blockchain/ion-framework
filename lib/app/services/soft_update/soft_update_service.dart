@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 // lib/app/services/soft_update/soft_update_service.dart
 import 'dart:async';
 import 'package:in_app_update/in_app_update.dart';
