@@ -9,7 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
-import 'package:ion/app/features/feed/create_post/providers/media_nsfw_parallel_checker.m.dart';
+import 'package:ion/app/features/nsfw/providers/media_nsfw_checker_notifier.m.dart';
 import 'package:ion/app/features/feed/create_post/views/hooks/use_can_submit_post.dart';
 import 'package:ion/app/features/feed/polls/providers/poll_draft_provider.r.dart';
 import 'package:ion/app/features/feed/polls/utils/poll_utils.dart';
@@ -80,7 +80,7 @@ class PostSubmitButton extends HookConsumerWidget {
     );
 
     final isFinalCheckInProcess =
-        ref.watch(mediaNsfwParallelCheckerProvider.select((state) => state.isFinalCheckInProcess));
+        ref.watch(mediaNsfwCheckerNotifierProvider.select((state) => state.isFinalCheckInProcess));
     final loading = useState(false);
 
     return ToolbarSendButton(
@@ -108,7 +108,7 @@ class PostSubmitButton extends HookConsumerWidget {
                 .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
 
         final hasNsfw = await ref
-            .read(mediaNsfwParallelCheckerProvider.notifier)
+            .read(mediaNsfwCheckerNotifierProvider.notifier)
             .getNsfwCheckValueOrWaitUntil();
         loading.value = false;
 

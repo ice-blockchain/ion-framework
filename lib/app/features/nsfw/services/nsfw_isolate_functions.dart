@@ -11,12 +11,10 @@ Future<NsfwDetector> _createDetector(
   String modelPath,
   double blockThreshold,
 ) async {
-  // Configure interpreter options
   final options = InterpreterOptions()
     ..threads = 1 // Each isolate uses 1 thread
     ..useNnApiForAndroid = false;
 
-  // Try to enable XNNPACK for better CPU performance
   try {
     options.addDelegate(
       XNNPackDelegate(
@@ -33,14 +31,13 @@ Future<NsfwDetector> _createDetector(
     options: options,
   );
 
-  // Create detector
   return NsfwDetector.internal(
     interpreter,
     blockThreshold: blockThreshold,
   );
 }
 
-// One-shot isolate function: creates detector + checks all media in single isolate
+// One-shot isolate function which creates detector and checks all media in single isolate
 @pragma('vm:entry-point')
 Future<Map<String, NsfwResult>> nsfwCheckAllMediaOneShotFn(List<dynamic> params) async {
   final modelPath = params[0] as String;
