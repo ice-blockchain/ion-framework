@@ -16,40 +16,49 @@ void useNsfwValidation({
   // Handle image files
   useEffect(
     () {
-      if (mediaFiles.isNotEmpty) {
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          try {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        try {
+          final mediaChecker = ref.read(mediaNsfwParallelCheckerProvider.notifier);
+
+          if (mediaFiles.isNotEmpty) {
             final convertedMediaFiles = await ref
                 .read(mediaServiceProvider)
                 .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
 
-            await ref
-                .read(mediaNsfwParallelCheckerProvider.notifier)
-                .addMediaListCheck(convertedMediaFiles);
-          } catch (e) {
-            // Handle conversion errors
+            await mediaChecker.addMediaListCheck(convertedMediaFiles);
+          } else {
+            if (!mediaChecker.hasEmptyChecks) {
+              // The case when we removed last media, but we still have that result kept in the state
+              await mediaChecker.addMediaListCheck([]);
+            }
           }
-        });
-      }
+        } catch (e, st) {
+          // TODO: Handle error
+        }
+      });
       return null;
     },
     [mediaSignature],
   );
 
-  // Handle video files
+// Handle video files
   useEffect(
     () {
-      if (videoFile != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          try {
-            await ref
-                .read(mediaNsfwParallelCheckerProvider.notifier)
-                .addMediaListCheck([videoFile]);
-          } catch (e) {
-            // Handle video validation errors
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        try {
+          final mediaChecker = ref.read(mediaNsfwParallelCheckerProvider.notifier);
+          if (videoFile != null) {
+            await mediaChecker.addMediaListCheck([videoFile]);
+          } else {
+            if (!mediaChecker.hasEmptyChecks) {
+              // The case when we removed last video, but we still have that result kept in the state
+              await mediaChecker.addMediaListCheck([]);
+            }
           }
-        });
-      }
+        } catch (e, st) {
+          // TODO: Handle error
+        }
+      });
       return null;
     },
     [videoFile],

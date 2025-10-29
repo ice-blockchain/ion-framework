@@ -29,13 +29,25 @@ Future<NsfwResult> nsfwCheckImageFn(List<dynamic> params) async {
 
 // Checks multiple images for NSFW content in parallel
 @pragma('vm:entry-point')
-Future<List<NsfwResult>> nsfwCheckImagesFn(List<dynamic> params) async {
-  final imageBytesList = params[0] as List<Uint8List>;
+Future<Map<String, NsfwResult>> nsfwCheckImagesFn(List<dynamic> params) async {
+  final pathToBytes = params[0] as Map<String, Uint8List>;
+  final results = <String, NsfwResult>{};
+
   final detector = _getDetector();
 
-  final futures = imageBytesList.map(detector.classifyBytes);
+  for (final entry in pathToBytes.entries) {
+    final path = entry.key;
+    final bytes = entry.value;
 
-  return Future.wait(futures);
+    final result = await detector.classifyBytes(bytes);
+    results[path] = result;
+
+    if (result.decision == NsfwDecision.block) {
+      return results;
+    }
+  }
+
+  return results;
 }
 
 // Gets cached detector or throws if not initialized
