@@ -41,10 +41,6 @@ Future<Map<String, NsfwResult>> nsfwCheckImagesFn(List<dynamic> params) async {
 
     final result = await detector.classifyBytes(bytes);
     results[path] = result;
-
-    if (result.decision == NsfwDecision.block) {
-      return results;
-    }
   }
 
   return results;
