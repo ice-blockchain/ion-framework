@@ -8,6 +8,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ion_content_labeler_provider.r.g.dart';
 
+const _languageDetectionThreshold = 0.3;
+
 class ContentLanguage {
   const ContentLanguage({required this.value});
   final String value;
@@ -26,14 +28,11 @@ class DetectedContentLanguage extends ContentLanguage {
 class IonContentLabeler {
   IonContentLabeler({
     required IONTextLabeler labeler,
-    required double relevantThreshold,
     required double confidentThreshold,
   })  : _labeler = labeler,
-        _relevantThreshold = relevantThreshold,
         _confidentThreshold = confidentThreshold;
 
   final IONTextLabeler _labeler;
-  final double _relevantThreshold;
   final double _confidentThreshold;
 
   Future<DetectedContentLanguage?> detectLanguageLabels(String content) async {
@@ -49,7 +48,7 @@ class IonContentLabeler {
         '[Content Labeler] language labels: ${detectionResults.labels}, input: ${content.length > 50 ? '${content.substring(0, 50)}...' : content}',
       );
       final bestResult = detectionResults.labels.firstOrNull;
-      if (bestResult != null && bestResult.score >= _relevantThreshold) {
+      if (bestResult != null && bestResult.score >= _languageDetectionThreshold) {
         return DetectedContentLanguage(
           value: bestResult.name,
           score: bestResult.score,
@@ -68,7 +67,6 @@ Future<IonContentLabeler> ionContentLabeler(Ref ref) async {
   final feedConfig = await ref.read(feedConfigProvider.future);
   return IonContentLabeler(
     labeler: IONTextLabeler(),
-    relevantThreshold: 0.3,
     confidentThreshold: feedConfig.langDetectScoreThreshold,
   );
 }
