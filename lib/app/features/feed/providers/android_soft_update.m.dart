@@ -42,6 +42,10 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
       updateState: AndroidUpdateState.initial,
     );
 
+    if (!Platform.isAndroid) {
+      return initial;
+    }
+
     _init();
     ref.onDispose(() => _subscription?.cancel());
 
@@ -55,8 +59,6 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
 
   Future<void> _checkForUpdates() async {
     try {
-      if (!Platform.isAndroid) return;
-
       _currentUpdateInfo = await _softUpdateService.checkForUpdate();
       final isAvailable =
           _currentUpdateInfo?.updateAvailability == UpdateAvailability.updateAvailable;
@@ -78,11 +80,6 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
 
   Future<void> tryToStartUpdate() async {
     final info = _currentUpdateInfo;
-    if (!Platform.isAndroid) {
-      Logger.warning('$_tag: Soft update is only available on Android');
-      return;
-    }
-
     if (info == null) {
       _openSiteWithDownloadLinks();
       return;
