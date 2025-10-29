@@ -153,30 +153,29 @@ class AndroidInAppUpdateButton extends ConsumerWidget {
     final updateState = ref.watch(androidSoftUpdateProvider).updateState;
 
     return Button(
-      leadingIcon: _getLeadingIcon(context, updateState),
+      leadingIcon: (updateState == AndroidUpdateState.initial)
+          ? Assets.svg.iconFeedUpdate.icon(color: context.theme.appColors.onPrimaryAccent)
+          : null,
       onPressed: () async {
         if (updateState == AndroidUpdateState.initial) {
           await ref.read(androidSoftUpdateProvider.notifier).tryToStartUpdate();
         }
       },
-      label: _getButtonLabel(context, updateState),
+      label: _AndroidUpdateButtonLabel(state: updateState),
       mainAxisSize: MainAxisSize.max,
     );
   }
+}
 
-  Widget? _getLeadingIcon(BuildContext context, AndroidUpdateState state) {
-    if (state == AndroidUpdateState.initial) {
-      return Assets.svg.iconFeedUpdate.icon(
-        color: context.theme.appColors.onPrimaryAccent,
-      );
-    }
-    return null;
-  }
+class _AndroidUpdateButtonLabel extends StatelessWidget {
+  const _AndroidUpdateButtonLabel({required this.state});
 
-  Widget? _getButtonLabel(BuildContext context, AndroidUpdateState state) {
-    switch (state) {
-      case AndroidUpdateState.loading:
-        return SizedBox(
+  final AndroidUpdateState state;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (state) {
+      AndroidUpdateState.loading => SizedBox(
           width: 26.0.s,
           height: 26.0.s,
           child: CircularProgressIndicator(
@@ -184,12 +183,9 @@ class AndroidInAppUpdateButton extends ConsumerWidget {
             color: context.theme.appColors.onPrimaryAccent,
             strokeCap: StrokeCap.round,
           ),
-        );
-      case AndroidUpdateState.success:
-      case AndroidUpdateState.error:
-        return const SizedBox.shrink();
-      case AndroidUpdateState.initial:
-        return Text(context.i18n.update_update_action);
-    }
+        ),
+      AndroidUpdateState.success || AndroidUpdateState.error => const SizedBox.shrink(),
+      AndroidUpdateState.initial => Text(context.i18n.update_update_action),
+    };
   }
 }
