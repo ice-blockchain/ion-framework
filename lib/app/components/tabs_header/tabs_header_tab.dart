@@ -15,17 +15,14 @@ class TabsHeaderTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = IconTheme.of(context).color;
-    final iconAsset = tabType.iconAsset;
 
     return Padding(
       padding: EdgeInsetsDirectional.only(bottom: 8.0.s),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ...[
-            iconAsset.icon(size: 18.0.s, color: color),
-            SizedBox(width: 6.0.s),
-          ],
+          tabType.iconAsset.icon(size: 18.0.s, color: color),
+          SizedBox(width: 6.0.s),
           Text(
             tabType.getTitle(context),
             style: context.theme.appTextThemes.subtitle3.copyWith(color: color),
