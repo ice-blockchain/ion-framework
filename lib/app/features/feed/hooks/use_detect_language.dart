@@ -33,13 +33,10 @@ void useDetectLanguage(
 
             if (!context.mounted) return;
 
-            // If the content language is detected (not user selected), update in every case
-            if (currentLanguage is DetectedContentLanguage?) {
-              ref.read(selectedEntityLanguageNotifierProvider.notifier).langLabel =
-                  detectedLanguage != null && detectedLanguage.relevant ? detectedLanguage : null;
-            }
-            // If the content language is user selected, update only if detected with high confidence
-            else if (detectedLanguage != null && detectedLanguage.confident) {
+            // If the content language is detected (not user selected)
+            // Or if the content language is user selected, but detected language has high confidence
+            if (currentLanguage is DetectedContentLanguage? ||
+                detectedLanguage != null && detectedLanguage.confident) {
               ref.read(selectedEntityLanguageNotifierProvider.notifier).langLabel =
                   detectedLanguage;
             }

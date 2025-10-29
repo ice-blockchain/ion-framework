@@ -17,11 +17,9 @@ class DetectedContentLanguage extends ContentLanguage {
   const DetectedContentLanguage({
     required super.value,
     required this.score,
-    required this.relevant,
     required this.confident,
   });
   final double score;
-  final bool relevant;
   final bool confident;
 }
 
@@ -51,11 +49,10 @@ class IonContentLabeler {
         '[Content Labeler] language labels: ${detectionResults.labels}, input: ${content.length > 50 ? '${content.substring(0, 50)}...' : content}',
       );
       final bestResult = detectionResults.labels.firstOrNull;
-      if (bestResult != null) {
+      if (bestResult != null && bestResult.score >= _relevantThreshold) {
         return DetectedContentLanguage(
           value: bestResult.name,
           score: bestResult.score,
-          relevant: bestResult.score >= _relevantThreshold,
           confident: bestResult.score >= _confidentThreshold,
         );
       }
