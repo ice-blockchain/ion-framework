@@ -14,6 +14,14 @@ final class GoogleDriveStorageService extends CloudStorageService {
   static const appDataFolder = 'appDataFolder';
 
   @override
+  Future<void> signOut() async {
+    try {
+      final googleSignIn = GoogleSignIn.standard(scopes: [DriveApi.driveAppdataScope]);
+      await googleSignIn.signOut();
+    } catch (_) {}
+  }
+
+  @override
   Future<bool> isAvailable() async {
     try {
       // Will throw if google drive not available
