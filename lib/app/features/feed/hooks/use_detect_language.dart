@@ -13,7 +13,6 @@ void useDetectLanguage(
   required QuillController? quillController,
   bool enabled = true,
 }) {
-  final labeler = ref.read(ionContentLabelerProvider);
   final context = useContext();
   final isRunning = useRef(false);
   useEffect(
@@ -28,9 +27,21 @@ void useDetectLanguage(
               return;
             }
             isRunning.value = true;
+            final labeler = await ref.read(ionContentLabelerProvider.future);
             final detectedLanguage = await labeler.detectLanguageLabels(text);
-            if (detectedLanguage != null && context.mounted) {
-              ref.read(selectedEntityLanguageNotifierProvider.notifier).lang = detectedLanguage;
+            final currentLanguage = ref.read(selectedEntityLanguageNotifierProvider);
+
+            if (!context.mounted) return;
+
+            // If the content language is detected (not user selected), update in every case
+            if (currentLanguage is DetectedContentLanguage?) {
+              ref.read(selectedEntityLanguageNotifierProvider.notifier).langLabel =
+                  detectedLanguage != null && detectedLanguage.relevant ? detectedLanguage : null;
+            }
+            // If the content language is user selected, update only if detected with high confidence
+            else if (detectedLanguage != null && detectedLanguage.confident) {
+              ref.read(selectedEntityLanguageNotifierProvider.notifier).langLabel =
+                  detectedLanguage;
             }
           } catch (e, st) {
             Logger.error(e, stackTrace: st, message: '[Content Labeler] useDetectLanguage failed');

@@ -16,14 +16,14 @@ class StoryLanguageButton extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedEntityLanguageCode = ref.watch(selectedEntityLanguageNotifierProvider);
     final selectedEntityLanguage = selectedEntityLanguageCode != null
-        ? Language.fromIsoCode(selectedEntityLanguageCode)
+        ? Language.fromIsoCode(selectedEntityLanguageCode.value)
         : null;
 
     return ListItem(
       title: Text(
         selectedEntityLanguage != null
             ? selectedEntityLanguage.displayName
-            : selectedEntityLanguageCode ?? context.i18n.common_language,
+            : selectedEntityLanguageCode?.value ?? context.i18n.common_language,
         style: context.theme.appTextThemes.caption.copyWith(
           color: context.theme.appColors.primaryAccent,
         ),
