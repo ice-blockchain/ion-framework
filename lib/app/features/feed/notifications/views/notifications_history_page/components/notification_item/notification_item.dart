@@ -7,6 +7,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_content.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_icons.dart';
@@ -138,6 +139,15 @@ class NotificationItem extends HookConsumerWidget {
       final GenericRepostEntity repost => repost.data.eventReference,
       _ => entity.toEventReference(),
     };
+
+    // Check if the entity is a story
+    if (entity is ModifiablePostEntity && entity.isStory) {
+      StoryViewerRoute(
+        pubkey: entity.masterPubkey,
+        initialStoryReference: eventReference.encode(),
+      ).push<void>(context);
+      return;
+    }
 
     if (eventReference.isArticleReference) {
       ArticleDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
