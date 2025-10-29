@@ -8,6 +8,7 @@ import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
+import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/balance/balance_actions.dart';
@@ -71,7 +72,10 @@ class Balance extends ConsumerWidget {
                     ReceiveCoinRoute().push<void>(context);
                 }
               },
-              onMore: () => WalletMainModalRoute().push<void>(context),
+              onMore: () {
+                ref.invalidate(sendAssetFormControllerProvider);
+                WalletMainModalRoute().push<void>(context);
+              },
               onNeedToEnable2FA: () => SecureAccountModalRoute().push<void>(context),
             ),
           ),

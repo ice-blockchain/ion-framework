@@ -40,7 +40,7 @@ bool shouldShowFriendsList(Ref ref) {
 
 @riverpod
 Future<bool> shouldShowFriendsSection(Ref ref) async {
-  await ref.debounce(duration: const Duration(milliseconds: 500));
+  await ref.debounce(duration: const Duration(milliseconds: 100));
   final shouldShowList = ref.watch(shouldShowFriendsListProvider);
   final shouldShowLoader = ref.watch(shouldShowFriendsLoaderProvider);
 
