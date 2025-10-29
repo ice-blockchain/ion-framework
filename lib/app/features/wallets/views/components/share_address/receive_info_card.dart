@@ -58,7 +58,7 @@ class ReceiveInfoCard extends HookWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(height: 20.0.s),
+              SizedBox(height: 12.0.s),
               _ContainerWithBackground(
                 padding: EdgeInsets.symmetric(vertical: 20.s),
                 child: SizedBox(

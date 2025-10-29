@@ -15,7 +15,7 @@ class _WalletAddressQrCode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final qrCodeSize = 150.s;
+    final qrCodeSize = 170.s;
 
     return Column(
       children: [
