@@ -16,6 +16,7 @@ import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/data/models/retry_counter.dart';
 import 'package:ion/app/features/feed/data/repository/following_feed_seen_events_repository.r.dart';
 import 'package:ion/app/features/feed/data/repository/following_users_fetch_states_repository.r.dart';
+import 'package:ion/app/features/feed/providers/counters/helpers/feed_sorting_helpers.dart';
 import 'package:ion/app/features/feed/providers/feed_config_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_data_source_builders.dart';
 import 'package:ion/app/features/feed/providers/feed_request_queue.r.dart';
@@ -71,10 +72,22 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
     if (state.isLoading) return;
     state = state.copyWith(isLoading: true);
     try {
+      final newItems = <IonConnectEntity>{};
       await for (final entity in requestEntities(limit: feedType.pageSize)) {
-        state = state.copyWith(items: {...(state.items ?? {}), entity});
+        newItems.add(entity);
       }
       _ensureEmptyState();
+
+      final combinedItems = {...(state.items ?? {}), ...newItems};
+
+      final sortedItems = await FeedSortingManager.getSortedItems(
+        ref: ref,
+        items: combinedItems,
+        feedType: feedType,
+        feedModifier: feedModifier,
+      );
+
+      state = state.copyWith(items: sortedItems);
     } finally {
       state = state.copyWith(isLoading: false);
     }
