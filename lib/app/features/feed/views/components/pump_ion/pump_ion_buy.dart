@@ -47,8 +47,7 @@ class PumpIonBuy extends HookConsumerWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12.0.s),
         child: ProfileBackground(
-          color1: avatarColors.$1,
-          color2: avatarColors.$2,
+          colors: avatarColors,
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: 24.0.s, horizontal: 16.0.s),
             child: Column(

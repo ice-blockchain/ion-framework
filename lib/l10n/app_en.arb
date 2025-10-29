@@ -1016,5 +1016,7 @@
   "wallet_carousel_portfolio_description": "Track and manage all your crypto securely in one place",
   "wallet_carousel_swap_description": "Swap your tokens instantly and securely, directly from your wallet",
   "wallet_carousel_bridge_title": "Bridge",
-  "wallet_carousel_bridge_description": "Bridge your tokens securely across multiple connected networks"
+  "wallet_carousel_bridge_description": "Bridge your tokens securely across multiple connected networks",
+  "tokenized_communities_trending_tokens" : "Trending Tokens",
+  "tokenized_communities_top_tokens" : "Top Tokens"
 }

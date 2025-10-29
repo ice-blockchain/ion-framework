@@ -883,5 +883,7 @@
   "error_solana_invalid_recipient_title": "مستلم غير صحيح",
   "error_solana_invalid_recipient_description": "قد يكون عنوان المستلم غير صحيح أو منتهي الصلاحية، أو قد يكون المبلغ صغيرًا جدًا لوجود الحساب.",
   "error_solana_insufficient_balance_title": "معاملة محظورة",
-  "error_solana_insufficient_balance_description": "لا يمكن إكمال المعاملة لأن رصيدك المتبقي سينخفض إلى ما دون الحد الأدنى المطلوب من الشبكة للوجود."
+  "error_solana_insufficient_balance_description": "لا يمكن إكمال المعاملة لأن رصيدك المتبقي سينخفض إلى ما دون الحد الأدنى المطلوب من الشبكة للوجود.",
+  "tokenized_communities_trending_tokens": "التوكنات الرائجة",
+  "tokenized_communities_top_tokens": "أفضل التوكنات"
 }

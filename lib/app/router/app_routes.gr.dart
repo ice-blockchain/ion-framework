@@ -119,6 +119,7 @@ import 'package:ion/app/features/user/model/payment_type.dart';
 import 'package:ion/app/features/user/model/tab_entity_type.dart';
 import 'package:ion/app/features/user/pages/avatar_overlay_page/avatar_overlay_page.dart';
 import 'package:ion/app/features/user/pages/bookmarks_page/bookmarks_page.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/creator_tokens_page.dart';
 import 'package:ion/app/features/user/pages/edit_bookmarks_page/edit_bookmarks_page.dart';
 import 'package:ion/app/features/user/pages/profile_edit_page/pages/category_select_modal/category_select_modal.dart';
 import 'package:ion/app/features/user/pages/profile_edit_page/profile_edit_page.dart';

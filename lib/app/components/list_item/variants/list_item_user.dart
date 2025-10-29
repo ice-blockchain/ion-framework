@@ -28,6 +28,7 @@ class _ListItemUser extends ListItem {
   }) : super(
           leading: leading ??
               IonConnectAvatar(
+                key: ValueKey('avatar_$pubkey'),
                 size: avatarSize ?? ListItem.defaultAvatarSize,
                 masterPubkey: pubkey,
               ),
