@@ -25,13 +25,9 @@ class NsfwModelManager {
     if (_cachedModelPath != null) {
       final file = File(_cachedModelPath!);
       if (file.existsSync()) {
-        Logger.log('📦 [NSFW Model] Using cached model at: $_cachedModelPath');
         return _cachedModelPath!;
       }
     }
-
-    Logger.log('📦 [NSFW Model] Copying model from assets to file system...');
-    final startTime = DateTime.now();
 
     // Get app documents directory
     final directory = await getApplicationDocumentsDirectory();
@@ -42,14 +38,6 @@ class NsfwModelManager {
     try {
       final bytes = await rootBundle.load(_assetPath);
       await file.writeAsBytes(bytes.buffer.asUint8List());
-
-      final duration = DateTime.now().difference(startTime).inMilliseconds;
-      final sizeInMB = (bytes.lengthInBytes / (1024 * 1024)).toStringAsFixed(2);
-
-      Logger.log(
-        '📦 [NSFW Model] Model copied successfully in ${duration}ms '
-        '(${sizeInMB}MB) to: $modelPath',
-      );
 
       _cachedModelPath = modelPath;
       return modelPath;
@@ -70,7 +58,6 @@ class NsfwModelManager {
       final file = File(_cachedModelPath!);
       if (file.existsSync()) {
         await file.delete();
-        Logger.log('📦 [NSFW Model] Cache cleared: $_cachedModelPath');
       }
       _cachedModelPath = null;
     } catch (e, st) {
