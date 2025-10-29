@@ -71,8 +71,10 @@ class MediaNsfwParallelChecker extends _$MediaNsfwParallelChecker {
     // 6. Update the state with the new checks results
     final newResultChecks = <String, bool?>{...state.checks};
     for (final path in needToCheckPaths) {
-      final result = nsfwCheckResults[path] ?? false;
-      newResultChecks[path] = result;
+      if (nsfwCheckResults.containsKey(path)) {
+        newResultChecks[path] = nsfwCheckResults[path];
+      }
+      // If result is missing, keep as null (pending/failed) - don't default to false
     }
     state = state.copyWith(checks: newResultChecks);
   }
