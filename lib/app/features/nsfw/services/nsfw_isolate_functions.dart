@@ -18,7 +18,7 @@ Future<NsfwDetector> _createDetector(
   try {
     options.addDelegate(
       XNNPackDelegate(
-        options: XNNPackDelegateOptions(numThreads: 1),
+        options: XNNPackDelegateOptions(),
       ),
     );
   } catch (e) {
