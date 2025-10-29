@@ -63,6 +63,7 @@ class _CarouselCard extends HookConsumerWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: ProfileBackground(
+        key: ValueKey(pubkey),
         colors: colors,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -66,7 +66,19 @@ class CreatorTokensPage extends HookConsumerWidget {
         ref.watch(followListProvider(masterPubkey)).valueOrNull?.masterPubkeys ?? [];
 
     // Initialize with first carousel item if available, otherwise use masterPubkey
-    final selectedPubkey = useState(masterPubkeys.isNotEmpty ? masterPubkeys.first : masterPubkey);
+    final initialPubkey = masterPubkeys.isNotEmpty ? masterPubkeys.first : masterPubkey;
+    final selectedPubkey = useState(initialPubkey);
+
+    // Update selectedPubkey when masterPubkeys changes and current value is not in the list
+    useEffect(
+      () {
+        if (masterPubkeys.isNotEmpty && !masterPubkeys.contains(selectedPubkey.value)) {
+          selectedPubkey.value = masterPubkeys.first;
+        }
+        return null;
+      },
+      [masterPubkeys],
+    );
 
     // Get avatar URL from selected pubkey's metadata
     final selectedUserMetadata = ref.watch(userMetadataProvider(selectedPubkey.value));
@@ -108,7 +120,7 @@ class CreatorTokensPage extends HookConsumerWidget {
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(top: 70.0.s, bottom: 44.0.s),
+                              padding: EdgeInsetsDirectional.only(top: 70.0.s, bottom: 44.0.s),
                               child: CreatorTokensCarousel(
                                 items: masterPubkeys,
                                 onItemChanged: (item) {
