@@ -6,56 +6,6 @@ import 'dart:typed_data';
 import 'package:ion/app/features/nsfw/nsfw_detector.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
-// Global detector instance (persistent in isolate)
-NsfwDetector? _detector;
-
-// Initializes NSFW detector with model file
-@pragma('vm:entry-point')
-Future<void> nsfwInitializeModelFn(List<dynamic> params) async {
-  final modelPath = params[0] as String;
-  final blockThreshold = params[1] as double;
-
-  _detector = await _createDetector(modelPath, blockThreshold);
-}
-
-// Checks single image for NSFW content
-@pragma('vm:entry-point')
-Future<NsfwResult> nsfwCheckImageFn(List<dynamic> params) async {
-  final imageBytes = params[0] as Uint8List;
-  final detector = _getDetector();
-
-  return detector.classifyBytes(imageBytes);
-}
-
-// Checks multiple images for NSFW content in parallel
-@pragma('vm:entry-point')
-Future<Map<String, NsfwResult>> nsfwCheckImagesFn(List<dynamic> params) async {
-  final pathToBytes = params[0] as Map<String, Uint8List>;
-  final results = <String, NsfwResult>{};
-
-  final detector = _getDetector();
-
-  for (final entry in pathToBytes.entries) {
-    final path = entry.key;
-    final bytes = entry.value;
-
-    final result = await detector.classifyBytes(bytes);
-    results[path] = result;
-  }
-
-  return results;
-}
-
-// Gets cached detector or throws if not initialized
-NsfwDetector _getDetector() {
-  if (_detector == null) {
-    throw StateError(
-      'NSFW detector not initialized. Call nsfwInitializeModelFn first.',
-    );
-  }
-  return _detector!;
-}
-
 // Creates and configures NSFW detector
 Future<NsfwDetector> _createDetector(
   String modelPath,
@@ -88,4 +38,26 @@ Future<NsfwDetector> _createDetector(
     interpreter,
     blockThreshold: blockThreshold,
   );
+}
+
+// One-shot isolate function: creates detector + checks all media in single isolate
+@pragma('vm:entry-point')
+Future<Map<String, NsfwResult>> nsfwCheckAllMediaOneShotFn(List<dynamic> params) async {
+  final modelPath = params[0] as String;
+  final blockThreshold = params[1] as double;
+  final pathToBytes = params[2] as Map<String, Uint8List>;
+  final results = <String, NsfwResult>{};
+
+  // Create detector (one-time per isolate)
+  final detector = await _createDetector(modelPath, blockThreshold);
+
+  // Check all items
+  for (final entry in pathToBytes.entries) {
+    final path = entry.key;
+    final bytes = entry.value;
+    final result = await detector.classifyBytes(bytes);
+    results[path] = result;
+  }
+
+  return results;
 }
