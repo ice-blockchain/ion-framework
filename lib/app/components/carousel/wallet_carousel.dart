@@ -85,6 +85,7 @@ class WalletCarousel extends StatelessWidget {
             icon: Assets.svg.walletBridge.icon(size: 80.s),
           ),
         ],
+        autoPlay: true,
         viewportFraction: 0.85.s,
         enlargeCenterPage: true,
         dotsSpacing: 4.s,
