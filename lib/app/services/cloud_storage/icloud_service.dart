@@ -15,6 +15,11 @@ final class ICloudStorageService extends CloudStorageService {
   final String containerId;
 
   @override
+  Future<void> signOut() async {
+    // no op for iCloud
+  }
+
+  @override
   Future<bool> isAvailable() async {
     try {
       await ICloudStorage.gather(
