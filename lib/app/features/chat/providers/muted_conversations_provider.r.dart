@@ -93,7 +93,7 @@ class MutedConversations extends _$MutedConversations {
           existChatConversationIdProvider(participantsMasterPubkeys).future,
         ) ??
         generateConversationId(
-          conversationType: ConversationType.oneToOne,
+          conversationType: ConversationType.direct,
           receiverMasterPubkeys: [masterPubkey, currentUserMasterPubkey],
         );
     final localNotificationsService = await ref.read(localNotificationsServiceProvider.future);
@@ -117,7 +117,7 @@ Future<List<String>> mutedConversationIds(Ref ref) async {
   final mutedOneToOneConversationIds = [
     ...mutedReceiverPubkeys.map(
       (masterPubkey) => generateConversationId(
-        conversationType: ConversationType.oneToOne,
+        conversationType: ConversationType.direct,
         receiverMasterPubkeys: [masterPubkey, currentUserMasterPubkey],
       ),
     ),

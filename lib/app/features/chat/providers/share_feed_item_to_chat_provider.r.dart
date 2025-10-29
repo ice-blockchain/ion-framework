@@ -155,7 +155,7 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
 
     final conversationId = existingConversationId ??
         generateConversationId(
-          conversationType: ConversationType.oneToOne,
+          conversationType: ConversationType.direct,
           receiverMasterPubkeys: [masterPubkey, currentUserMasterPubkey],
         );
 

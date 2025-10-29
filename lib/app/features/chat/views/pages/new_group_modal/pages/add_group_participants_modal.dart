@@ -9,6 +9,7 @@ import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/create_group_form_controller_provider.r.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/user_picker_sheet.dart';
+import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
@@ -25,41 +26,44 @@ class AddGroupParticipantsModal extends HookConsumerWidget {
 
     return SheetContent(
       topPadding: 0,
-      body: UserPickerSheet(
-        selectable: true,
-        key: const Key('add-group-participants-modal'),
-        selectedPubkeys: createGroupForm.participantsMasterkeys.toList(),
-        onUserSelected: createGroupFormNotifier.toggleMember,
-        navigationBar: NavigationAppBar.modal(
-          title: Text(context.i18n.group_create_title),
-          showBackButton: false,
-          actions: const [
-            NavigationCloseButton(),
-          ],
-        ),
-        footer: Column(
-          children: [
-            const HorizontalSeparator(),
-            ScreenBottomOffset(
-              margin: 32.0.s,
-              child: Padding(
-                padding: EdgeInsetsDirectional.only(top: 16.0.s),
-                child: ScreenSideOffset.large(
-                  child: Button(
-                    onPressed: () {
-                      CreateGroupModalRoute().push<void>(context);
-                    },
-                    label: Text(context.i18n.button_next),
-                    mainAxisSize: MainAxisSize.max,
-                    trailingIcon: Assets.svg.iconButtonNext.icon(
-                      color: context.theme.appColors.onPrimaryAccent,
-                    ),
+      body: Column(
+        children: [
+          Expanded(
+            child: UserPickerSheet(
+              selectable: true,
+              key: const Key('add-group-participants-modal'),
+              selectedPubkeys: createGroupForm.participantsMasterPubkeys.toList(),
+              onUserSelected: createGroupFormNotifier.toggleMember,
+              navigationBar: NavigationAppBar.modal(
+                title: Text(context.i18n.group_create_title),
+                showBackButton: false,
+                actions: const [
+                  NavigationCloseButton(),
+                ],
+              ),
+            ),
+          ),
+          const HorizontalSeparator(),
+          ScreenBottomOffset(
+            margin: 32.0.s,
+            child: Padding(
+              padding: EdgeInsetsDirectional.only(top: 16.0.s),
+              child: ScreenSideOffset.medium(
+                child: Button(
+                  onPressed: () {
+                    ref.read(searchUsersQueryProvider.notifier).text = '';
+                    CreateGroupModalRoute().replace(context);
+                  },
+                  label: Text(context.i18n.button_next),
+                  mainAxisSize: MainAxisSize.max,
+                  trailingIcon: Assets.svg.iconButtonNext.icon(
+                    color: context.theme.appColors.onPrimaryAccent,
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -59,7 +59,7 @@ class OneToOneMessagesPage extends HookConsumerWidget {
 
         final conversationIdValue = existingConversationId ??
             generateConversationId(
-              conversationType: ConversationType.oneToOne,
+              conversationType: ConversationType.direct,
               receiverMasterPubkeys: [receiverMasterPubkey, currentUserMasterPubkey],
             );
         conversationId.value = conversationIdValue;
@@ -150,7 +150,7 @@ class _MessagesList extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final messages = conversationId == null
         ? null
-        : ref.watch(conversationMessagesProvider(conversationId!, ConversationType.oneToOne));
+        : ref.watch(conversationMessagesProvider(conversationId!, ConversationType.direct));
 
     final loadingStartTime = useRef<DateTime?>(null);
     final canShowContent = useState(false);

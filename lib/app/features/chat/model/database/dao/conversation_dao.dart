@@ -96,7 +96,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
     if (kind == CommunityJoinEntity.kind) {
       return ConversationType.community;
     }
-    return subject == null ? ConversationType.oneToOne : ConversationType.group;
+    return subject == null ? ConversationType.direct : ConversationType.group;
   }
 
   Future<void> _batchInsertConversations(List<ConversationTableCompanion?> companions) async {
@@ -183,7 +183,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
 
   ///
   /// Get the id of the conversation with the given receiver master pubkey
-  /// Only searches for non-deleted conversations of type [ConversationType.oneToOne]
+  /// Only searches for non-deleted conversations of type [ConversationType.direct]
   ///
   Future<String?> getExistingConversationId(List<String> participantsMasterPubkeys) async {
     final query = select(conversationTable).join([
@@ -196,7 +196,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
         eventMessageTable.eventReference.equalsExp(conversationMessageTable.messageEventReference),
       ),
     ])
-      ..where(conversationTable.type.equals(ConversationType.oneToOne.index))
+      ..where(conversationTable.type.equals(ConversationType.direct.index))
       ..where(conversationTable.isHidden.equals(false))
       ..where(conversationMessageTable.conversationId.equals(participantsMasterPubkeys.join()))
       ..where(

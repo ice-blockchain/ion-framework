@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -14,23 +13,15 @@ import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/community/providers/community_metadata_provider.r.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
-import 'package:ion/app/features/chat/model/message_type.dart';
-import 'package:ion/app/features/chat/providers/unread_message_count_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/archived_conversations_provider.r.dart';
-import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_skeleton/recent_chat_skeleton.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/archive_chat_tile.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_tile.dart';
-import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
-import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
-import 'package:ion/generated/assets.gen.dart';
 
 class RecentChatsTimelinePage extends HookConsumerWidget {
   const RecentChatsTimelinePage({
@@ -165,7 +156,7 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     if (currentUserMasterPubkey == null) return;
 
     final participantsMasterPubkeys = conversations
-        .where((c) => c.type == ConversationType.oneToOne)
+        .where((c) => c.type == ConversationType.direct)
         .map((c) => c.receiverMasterPubkey(currentUserMasterPubkey))
         .toSet()
         .nonNulls;
@@ -196,18 +187,13 @@ class ConversationList extends ConsumerWidget {
           final conversation = conversations[index];
           return Column(
             children: [
-              if (conversation.type == ConversationType.community)
-                CommunityRecentChatTile(
-                  conversation: conversation,
-                  key: ValueKey(conversation.conversationId),
-                )
-              else if (conversation.type == ConversationType.oneToOne)
-                E2eeRecentChatTile(
+              if (conversation.type == ConversationType.direct)
+                EncryptedDirectChatTile(
                   conversation: conversation,
                   key: ValueKey(conversation.conversationId),
                 )
               else if (conversation.type == ConversationType.group)
-                EncryptedGroupRecentChatTile(
+                EncryptedGroupChatTile(
                   conversation: conversation,
                   key: ValueKey(conversation.conversationId),
                 ),
@@ -218,169 +204,6 @@ class ConversationList extends ConsumerWidget {
         },
         childCount: conversations.length,
       ),
-    );
-  }
-}
-
-class CommunityRecentChatTile extends ConsumerWidget {
-  const CommunityRecentChatTile({required this.conversation, super.key});
-
-  final ConversationListItem conversation;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final community = ref.watch(communityMetadataProvider(conversation.conversationId)).valueOrNull;
-
-    final unreadMessagesCount =
-        ref.watch(getUnreadMessagesCountProvider(conversation.conversationId));
-    if (community == null) {
-      return const SizedBox.shrink();
-    }
-
-    final eventReference = ReplaceablePrivateDirectMessageEntity.fromEventMessage(
-      conversation.latestMessage!,
-    ).toEventReference();
-
-    final entity =
-        ReplaceablePrivateDirectMessageData.fromEventMessage(conversation.latestMessage!);
-
-    return RecentChatTile(
-      name: community.data.name,
-      conversation: conversation,
-      avatarUrl: community.data.avatar?.url,
-      eventReference: eventReference,
-      defaultAvatar: Container(
-        width: 40.0.s,
-        height: 40.0.s,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: context.theme.appColors.onTertiaryFill,
-          borderRadius: BorderRadius.circular(12.0.s),
-        ),
-        child: Assets.svg.iconChannelEmptychannel.icon(
-          size: 26.0.s,
-          color: context.theme.appColors.secondaryBackground,
-        ),
-      ),
-      unreadMessagesCount: unreadMessagesCount.valueOrNull ?? 0,
-      lastMessageAt: (conversation.latestMessage?.createdAt ?? conversation.joinedAt).toDateTime,
-      lastMessageContent: conversation.latestMessage?.content ?? context.i18n.empty_message_history,
-      messageType: entity.messageType,
-      onTap: () {
-        ConversationRoute(conversationId: conversation.conversationId).push<void>(context);
-      },
-    );
-  }
-}
-
-class E2eeRecentChatTile extends HookConsumerWidget {
-  const E2eeRecentChatTile({required this.conversation, super.key});
-
-  final ConversationListItem conversation;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (conversation.latestMessage == null) {
-      return const SizedBox.shrink();
-    }
-
-    final entity =
-        ReplaceablePrivateDirectMessageData.fromEventMessage(conversation.latestMessage!);
-
-    final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
-
-    final receiverMasterPubkey =
-        entity.relatedPubkeys?.firstWhereOrNull((p) => p.value != currentUserPubkey)?.value;
-
-    if (receiverMasterPubkey == null) {
-      return const SizedBox.shrink();
-    }
-
-    final unreadMessagesCount =
-        ref.watch(getUnreadMessagesCountProvider(conversation.conversationId));
-
-    final eventReference = ReplaceablePrivateDirectMessageEntity.fromEventMessage(
-      conversation.latestMessage!,
-    ).toEventReference();
-
-    final isUserVerified = ref.watch(isUserVerifiedProvider(receiverMasterPubkey));
-
-    final userPreviewData = ref.watch(userPreviewDataProvider(receiverMasterPubkey));
-
-    if (userPreviewData.isLoading && !userPreviewData.hasValue) {
-      return const RecentChatSkeletonItem();
-    }
-
-    final previewData = userPreviewData.valueOrNull;
-    final trimmedDisplayName = previewData?.data.trimmedDisplayName;
-
-    return RecentChatTile(
-      defaultAvatar: null,
-      conversation: conversation,
-      messageType: entity.messageType,
-      name: previewData == null || trimmedDisplayName == null
-          ? context.i18n.common_deleted_account
-          : trimmedDisplayName,
-      avatarUrl: previewData == null ? Assets.svg.iconProfileNoimage : previewData.data.avatarUrl,
-      eventReference: eventReference,
-      unreadMessagesCount: unreadMessagesCount.valueOrNull ?? 0,
-      lastMessageContent: entity.messageType == MessageType.document
-          ? entity.primaryMedia?.alt ?? ''
-          : entity.content,
-      lastMessageAt: (conversation.latestMessage?.createdAt ?? conversation.joinedAt).toDateTime,
-      isVerified: isUserVerified,
-      onTap: () {
-        ConversationRoute(receiverMasterPubkey: receiverMasterPubkey).push<void>(context);
-      },
-    );
-  }
-}
-
-class EncryptedGroupRecentChatTile extends HookConsumerWidget {
-  const EncryptedGroupRecentChatTile({required this.conversation, super.key});
-
-  final ConversationListItem conversation;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final ConversationListItem(:latestMessage) = conversation;
-
-    if (latestMessage == null) {
-      return const SizedBox.shrink();
-    }
-
-    final entity = ReplaceablePrivateDirectMessageData.fromEventMessage(latestMessage);
-
-    final name = entity.groupSubject?.value ?? '';
-
-    final unreadMessagesCount =
-        ref.watch(getUnreadMessagesCountProvider(conversation.conversationId));
-
-    final groupImageFile = useFuture(
-      ref.watch(mediaEncryptionServiceProvider).getEncryptedMedia(
-            entity.primaryMedia!,
-            authorPubkey: latestMessage.masterPubkey,
-          ),
-    ).data;
-
-    final eventReference = ReplaceablePrivateDirectMessageEntity.fromEventMessage(
-      conversation.latestMessage!,
-    ).toEventReference();
-
-    return RecentChatTile(
-      name: name,
-      conversation: conversation,
-      eventReference: eventReference,
-      avatarWidget: groupImageFile != null ? Image.file(groupImageFile) : null,
-      defaultAvatar: Assets.svg.iconChannelEmptychannel.icon(size: 40.0.s),
-      lastMessageAt: (conversation.latestMessage?.createdAt ?? conversation.joinedAt).toDateTime,
-      lastMessageContent:
-          entity.content.isEmpty ? context.i18n.empty_message_history : entity.content,
-      unreadMessagesCount: unreadMessagesCount.valueOrNull ?? 0,
-      messageType: entity.messageType,
-      onTap: () {
-        ConversationRoute(conversationId: conversation.conversationId).push<void>(context);
-      },
     );
   }
 }

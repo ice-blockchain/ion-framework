@@ -9,8 +9,8 @@ part 'create_group_form_data.f.freezed.dart';
 class CreateGroupFormData with _$CreateGroupFormData {
   const factory CreateGroupFormData({
     String? name,
-    @Default(GroupType.public) GroupType type,
-    @Default({}) Set<String> participantsMasterkeys,
+    @Default(GroupType.encrypted) GroupType type,
+    @Default({}) Set<String> participantsMasterPubkeys,
   }) = _CreateGroupFormData;
 
   const CreateGroupFormData._();
