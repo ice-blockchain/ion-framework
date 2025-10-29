@@ -17,11 +17,15 @@ class ChatMainModalPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hideCommunity =
-        ref.watch(featureFlagsProvider.notifier).get(ChatFeatureFlag.hideCommunity);
-
-    final menuItems =
-        ConversationType.values.where((type) => !hideCommunity || !type.isCommunity).toList();
+    final hideGroup = ref.watch(featureFlagsProvider.notifier).get(ChatFeatureFlag.hideCommunity);
+    // Always hide channels (not implemented yet)
+    // Always show direct messages
+    // Show groups only if hideCommunity is false
+    final menuItems = ConversationType.values.where((type) {
+      if (type.isDirect) return true;
+      if (!hideGroup && type.isGroup) return true;
+      return false;
+    }).toList();
 
     return SheetContent(
       backgroundColor: context.theme.appColors.secondaryBackground,

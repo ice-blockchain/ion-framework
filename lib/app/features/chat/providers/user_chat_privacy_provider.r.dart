@@ -49,7 +49,7 @@ Future<bool> canSendMessage(
   );
 
   final generatedConversationId = generateConversationId(
-    conversationType: ConversationType.oneToOne,
+    conversationType: ConversationType.direct,
     receiverMasterPubkeys: participantsMasterPubkeys,
   );
 

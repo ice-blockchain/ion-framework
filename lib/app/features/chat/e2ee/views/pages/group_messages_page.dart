@@ -63,13 +63,10 @@ class GroupMessagesPage extends HookConsumerWidget {
                 final conversationMessageManagementService =
                     ref.read(sendE2eeChatMessageServiceProvider);
 
-                final groupImageTag = lastMessage.tags.firstWhereOrNull((e) => e.first == 'imeta');
-
                 await conversationMessageManagementService.sendMessage(
                   conversationId: conversationId,
                   content: content ?? '',
                   mediaFiles: mediaFiles ?? [],
-                  groupImageTag: groupImageTag,
                   subject: privateMessageEntity.groupSubject?.value,
                   participantsMasterPubkeys:
                       privateMessageEntity.relatedPubkeys?.map((e) => e.value).toList() ?? [],
@@ -90,15 +87,17 @@ class _Header extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entity = ReplaceablePrivateDirectMessageData.fromEventMessage(lastMessage);
-    final groupImageFile = useFuture(
-      ref.watch(mediaEncryptionServiceProvider).getEncryptedMedia(
-            entity.primaryMedia!,
-            authorPubkey: lastMessage.masterPubkey,
-          ),
-    ).data;
+    final groupImageFile = entity.primaryMedia != null
+        ? useFuture(
+            ref.watch(mediaEncryptionServiceProvider).getEncryptedMedia(
+                  entity.primaryMedia!,
+                  authorPubkey: lastMessage.masterPubkey,
+                ),
+          ).data
+        : null;
 
     return MessagingHeader(
-      conversationId: '', //TODO: set when groups are impl
+      conversationId: '',
       imageWidget: groupImageFile != null ? Image.file(groupImageFile) : null,
       name: entity.groupSubject?.value ?? '',
       subtitle: MemberCountTile(count: entity.relatedPubkeys?.length ?? 0),
