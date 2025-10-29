@@ -7,7 +7,6 @@ import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/info_type.dart';
-import 'package:ion/app/hooks/use_text_line_count.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 
@@ -22,21 +21,6 @@ class InfoModal extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final description = infoType.getDesc(context);
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final availableWidth = screenWidth - (ScreenSideOffset.defaultMediumMargin * 2);
-
-    final descriptionStyle = context.theme.appTextThemes.body2.copyWith(
-      color: context.theme.appColors.secondaryText,
-    );
-
-    final lineCount = useTextLineCount(
-      text: description,
-      textStyle: descriptionStyle,
-      maxWidth: availableWidth,
-      scaler: MediaQuery.textScalerOf(context),
-    );
-
-    final textAlign = lineCount <= 3 ? TextAlign.center : TextAlign.start;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -55,7 +39,6 @@ class InfoModal extends HookWidget {
             iconAsset: infoType.iconAsset,
             title: infoType.getTitle(context),
             description: description,
-            descriptionTextAlign: textAlign,
           ),
         ),
         ScreenBottomOffset(margin: 16.0.s),
