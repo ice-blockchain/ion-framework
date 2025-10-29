@@ -12,6 +12,7 @@ import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/current_user_story_list_item.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_list_item.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
+import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 
 class StoryList extends ConsumerWidget {
   const StoryList({
@@ -24,7 +25,17 @@ class StoryList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserPubkey = ref.watch(currentPubkeySelectorProvider) ?? '';
-    final filteredPubkeys = pubkeys.where((pubkey) => pubkey != currentUserPubkey).toList();
+    final blockedUsersPubkeys = ref
+            .watch(currentUserBlockListNotifierProvider)
+            .valueOrNull
+            ?.map((block) => block.data.blockedMasterPubkeys)
+            .expand((pubkey) => pubkey)
+            .toList() ??
+        [];
+
+    final filteredPubkeys = pubkeys
+        .where((pubkey) => pubkey != currentUserPubkey && !blockedUsersPubkeys.contains(pubkey))
+        .toList();
 
     ref.listenSuccess(createPostNotifierProvider(CreatePostOption.story), (next) {
       ref.read(feedStoriesProvider.notifier).refresh();
