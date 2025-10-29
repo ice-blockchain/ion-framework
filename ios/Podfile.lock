@@ -61,8 +61,6 @@ PODS:
     - BanubaLicenseServicingSDK (= 1.46.1)
     - BanubaUtilities (= 1.46.1)
     - BanubaVideoEditorCore (= 1.46.1)
-  - bdk_flutter (0.31.3):
-    - Flutter
   - blurhash_ffi (0.0.1):
     - Flutter
   - BNBAcneEyebagsRemoval (1.17.6):
@@ -441,7 +439,6 @@ DEPENDENCIES:
   - BanubaSDK (= 1.46.1)
   - BanubaSDKSimple (= 1.46.1)
   - BanubaVideoEditorSDK (= 1.46.1)
-  - bdk_flutter (from `.symlinks/plugins/bdk_flutter/ios`)
   - blurhash_ffi (from `.symlinks/plugins/blurhash_ffi/ios`)
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
   - cryptography_flutter (from `.symlinks/plugins/cryptography_flutter/ios`)
@@ -554,8 +551,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/appsflyer_sdk/ios"
   audio_waveforms:
     :path: ".symlinks/plugins/audio_waveforms/ios"
-  bdk_flutter:
-    :path: ".symlinks/plugins/bdk_flutter/ios"
   blurhash_ffi:
     :path: ".symlinks/plugins/blurhash_ffi/ios"
   camera_avfoundation:
@@ -660,7 +655,6 @@ SPEC CHECKSUMS:
   BanubaUtilities: 54076882f31ce5e55660e027b54f60715b15f0df
   BanubaVideoEditorCore: c690fb447047c2578122b77605949115bd81bbef
   BanubaVideoEditorSDK: d5c993350343e1b261fc520b1d9d4181da01c913
-  bdk_flutter: cef9180019b4c6b67a3e3dfb74611683fe140107
   blurhash_ffi: 87aab623d744d4d6cd6057d285bd2258df904786
   BNBAcneEyebagsRemoval: daea7ba8b08677762c3671345984dda5b6bb2ed9
   BNBBackground: 8e1888bd4879bfd5b4ee273c56dcb8d34d40a789

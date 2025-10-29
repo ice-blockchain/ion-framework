@@ -61,12 +61,6 @@ melos run pub_get
 ```
 Since we use monorepo with several packages, we need to download dependencies for each package. To simplify this process, we use Melos, which allows us to define commands that run across all packages. For a list of available commands, check `melos.yaml`.
 
-## Install Rust
-```
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-Some dependencies require Rust to be installed
-
 # Run the project
 
 You should pass environment variables to Flutter compiler:
