@@ -170,14 +170,14 @@ class StoryPreviewPage extends HookConsumerWidget {
                               quotedEvent: isPostScreenshot ? null : eventReference,
                               sourcePostReference: isPostScreenshot ? eventReference : null,
                               topics: ref.read(selectedInterestsNotifierProvider),
-                              language: language,
+                              language: language.value,
                             );
                           } else if (mediaType == MediaType.video) {
                             await createPostNotifier.create(
                               mediaFiles: [MediaFile(path: path, mimeType: mimeType)],
                               whoCanReply: whoCanReply,
                               topics: ref.read(selectedInterestsNotifierProvider),
-                              language: language,
+                              language: language.value,
                             );
                           }
                           if (context.mounted) {

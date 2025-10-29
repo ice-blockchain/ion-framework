@@ -137,7 +137,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
                         );
                         if (isBlocked) return;
 
-                        final labeler = ref.read(ionContentLabelerProvider);
+                        final labeler = await ref.read(ionContentLabelerProvider.future);
                         final detectedLanguage = await labeler.detectLanguageLabels(
                           Document.fromDelta(content).toPlainText(),
                         );
@@ -157,7 +157,9 @@ class ArticlePreviewModal extends HookConsumerWidget {
                                   imageColor: imageColor,
                                   originalImageUrl: imageUrl,
                                   eventReference: modifiedEvent!,
-                                  language: detectedLanguage,
+                                  language: detectedLanguage != null && detectedLanguage.relevant
+                                      ? detectedLanguage.value
+                                      : null,
                                   mediaAttachments: mediaAttachments,
                                 ),
                           );
@@ -171,7 +173,9 @@ class ArticlePreviewModal extends HookConsumerWidget {
                                   mediaIds: imageIds,
                                   whoCanReply: whoCanReply,
                                   imageColor: imageColor,
-                                  language: detectedLanguage,
+                                  language: detectedLanguage != null && detectedLanguage.relevant
+                                      ? detectedLanguage.value
+                                      : null,
                                 ),
                           );
                         }
