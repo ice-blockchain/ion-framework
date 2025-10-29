@@ -67,6 +67,15 @@ class NotificationResponseService {
     }
   }
 
+  /// Safely gets the navigator context, returning null if context is null or not mounted
+  BuildContext? _getNavigatorContext() {
+    final context = rootNavigatorKey.currentContext;
+    if (context != null && context.mounted) {
+      return context;
+    }
+    return null;
+  }
+
   RouteMatchList get _currentRouteMatchList {
     final router = GoRouter.of(rootNavigatorKey.currentContext!);
     final lastMatch = router.routerDelegate.currentConfiguration.last;
@@ -176,13 +185,18 @@ class NotificationResponseService {
     EventReference eventReference, {
     bool isInitialNotification = false,
   }) async {
+    final context = _getNavigatorContext();
+    if (context == null) {
+      return;
+    }
+
     final route = PostDetailsRoute(eventReference: eventReference.encode());
     // Get path without query parameters
     final routePath = route.location.split(IonConnectUriProtocolService.prefix).first;
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
     if (isInitialNotification) {
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
@@ -193,24 +207,29 @@ class NotificationResponseService {
         return;
       }
 
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
-    await route.push<void>(rootNavigatorKey.currentContext!);
+    await route.push<void>(context);
   }
 
   Future<void> _openArticleDetail(
     EventReference eventReference, {
     bool isInitialNotification = false,
   }) async {
+    final context = _getNavigatorContext();
+    if (context == null) {
+      return;
+    }
+
     final route = ArticleDetailsRoute(eventReference: eventReference.encode());
     // Get path without query parameters
     final routePath = route.location.split(IonConnectUriProtocolService.prefix).first;
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
     if (isInitialNotification) {
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
@@ -220,20 +239,25 @@ class NotificationResponseService {
         return;
       }
 
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
-    await route.push<void>(rootNavigatorKey.currentContext!);
+    await route.push<void>(context);
   }
 
   Future<void> _openProfileDetail(String pubkey, {bool isInitialNotification = false}) async {
+    final context = _getNavigatorContext();
+    if (context == null) {
+      return;
+    }
+
     final route = ProfileRoute(pubkey: pubkey);
     final routePath = route.location.split('?').first;
     final currentPath = _currentRouteMatchList.fullPath;
 
     if (isInitialNotification) {
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
@@ -243,20 +267,25 @@ class NotificationResponseService {
         return;
       }
 
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
-    await route.push<void>(rootNavigatorKey.currentContext!);
+    await route.push<void>(context);
   }
 
   Future<void> _openChat(String pubkey, {bool isInitialNotification = false}) async {
+    final context = _getNavigatorContext();
+    if (context == null) {
+      return;
+    }
+
     final route = ConversationRoute(receiverMasterPubkey: pubkey);
     final routePath = route.location.split('?').first;
     final currentPath = _currentRouteMatchList.fullPath;
 
     if (isInitialNotification) {
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
@@ -266,11 +295,11 @@ class NotificationResponseService {
         return;
       }
 
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
-    await route.push<void>(rootNavigatorKey.currentContext!);
+    await route.push<void>(context);
   }
 
   Future<void> _openStoryViewer(
@@ -278,6 +307,11 @@ class NotificationResponseService {
     EventReference eventReference, {
     bool isInitialNotification = false,
   }) async {
+    final context = _getNavigatorContext();
+    if (context == null) {
+      return;
+    }
+
     final route = StoryViewerRoute(
       pubkey: pubkey,
       initialStoryReference: eventReference.encode(),
@@ -287,7 +321,7 @@ class NotificationResponseService {
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
     if (isInitialNotification) {
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
@@ -298,11 +332,11 @@ class NotificationResponseService {
         return;
       }
 
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
-    await route.push<void>(rootNavigatorKey.currentContext!);
+    await route.push<void>(context);
   }
 }
 
