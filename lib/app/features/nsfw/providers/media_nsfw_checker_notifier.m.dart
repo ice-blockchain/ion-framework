@@ -16,6 +16,8 @@ class MediaNsfwState with _$MediaNsfwState {
     @Default({}) Map<String, bool?> nsfwResults,
     @Default(false) bool isFinalCheckInProcess,
   }) = _MediaNsfwState;
+
+  bool get isEmpty => nsfwResults.isEmpty;
 }
 
 @riverpod
@@ -25,10 +27,8 @@ class MediaNsfwCheckerNotifier extends _$MediaNsfwCheckerNotifier {
     return const MediaNsfwState();
   }
 
-  bool get isEmpty => state.nsfwResults.isEmpty;
-
   Future<void> checkMediaForNsfw(List<MediaFile> mediaFiles) async {
-    if (mediaFiles.isEmpty && !isEmpty) {
+    if (mediaFiles.isEmpty && !state.isEmpty) {
       state = state.copyWith(nsfwResults: <String, bool?>{});
       return;
     }

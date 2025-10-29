@@ -18,6 +18,7 @@ void useNsfwValidation({
     () {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final mediaChecker = ref.read(mediaNsfwCheckerNotifierProvider.notifier);
+        final mediaCheckerState = ref.read(mediaNsfwCheckerNotifierProvider);
 
         if (mediaFiles.isNotEmpty) {
           final convertedMediaFiles = await ref
@@ -26,7 +27,7 @@ void useNsfwValidation({
 
           await mediaChecker.checkMediaForNsfw(convertedMediaFiles);
         } else {
-          if (!mediaChecker.isEmpty) {
+          if (!mediaCheckerState.isEmpty) {
             // The case when we removed last media, but we still have that result kept in the state
             await mediaChecker.checkMediaForNsfw([]);
           }
@@ -42,10 +43,12 @@ void useNsfwValidation({
     () {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final mediaChecker = ref.read(mediaNsfwCheckerNotifierProvider.notifier);
+        final mediaCheckerState = ref.read(mediaNsfwCheckerNotifierProvider);
+
         if (videoFile != null) {
           await mediaChecker.checkMediaForNsfw([videoFile]);
         } else {
-          if (!mediaChecker.isEmpty) {
+          if (!mediaCheckerState.isEmpty) {
             // The case when we removed last video, but we still have that result kept in the state
             await mediaChecker.checkMediaForNsfw([]);
           }
