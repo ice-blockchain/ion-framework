@@ -89,6 +89,7 @@ class UserInfoSummary extends HookConsumerWidget {
       return SizedBox(
         width: double.infinity,
         child: Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 8.0.s,
           runSpacing: 4.0.s,
           children: tiles,
@@ -101,6 +102,7 @@ class UserInfoSummary extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
             spacing: 8.0.s,
             runSpacing: 4.0.s,
             children: tiles.slice(0, 2),
@@ -109,6 +111,7 @@ class UserInfoSummary extends HookConsumerWidget {
             height: 4.0.s,
           ),
           Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
             spacing: 8.0.s,
             runSpacing: 4.0.s,
             children: tiles.slice(2),
