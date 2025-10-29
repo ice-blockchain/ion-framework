@@ -12,6 +12,7 @@ import 'package:ion/app/constants/links.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/providers/android_soft_update.m.dart';
 import 'package:ion/app/features/force_update/model/app_update_type.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/services/browser/browser.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
@@ -57,7 +58,7 @@ class ShowInAppUpdateModalEvent extends UiEvent {
   }
 }
 
-class AppUpdateModal extends ConsumerWidget {
+class AppUpdateModal extends HookConsumerWidget {
   const AppUpdateModal({
     required this.appUpdateType,
     this.onPressedClose,
@@ -72,25 +73,22 @@ class AppUpdateModal extends ConsumerWidget {
     final isSoftUpdate = appUpdateType == AppUpdateType.androidSoftUpdate;
 
     if (isSoftUpdate) {
+      useOnInit(() => ref.read(androidSoftUpdateProvider.notifier).markModalAsShown());
+
+      final updateState = ref.watch(androidSoftUpdateProvider).updateState;
       useEffect(
         () {
-          ref.read(androidSoftUpdateProvider.notifier).markModalAsShown();
-          return null;
-        },
-        [],
-      );
-
-      ref.listen<AndroidSoftUpdateState>(
-        androidSoftUpdateProvider,
-        (previous, next) {
-          final updateState = next.updateState;
           if (updateState == AndroidUpdateState.success ||
               updateState == AndroidUpdateState.error) {
-            if (context.mounted) {
-              Navigator.of(context).maybePop();
-            }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) {
+                Navigator.of(context).maybePop();
+              }
+            });
           }
+          return null;
         },
+        [updateState],
       );
     }
 
