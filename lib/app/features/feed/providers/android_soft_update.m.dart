@@ -94,7 +94,7 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
     }
 
     if (info == null) {
-      _openExternalStoreLink();
+      _openSiteWithDownloadLinks();
       return;
     }
 
@@ -103,7 +103,7 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
     } else if (info.immediateUpdateAllowed) {
       await _startImmediateUpdate();
     } else {
-      _openExternalStoreLink();
+      _openSiteWithDownloadLinks();
     }
   }
 
@@ -115,7 +115,7 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
       if (result == AppUpdateResult.success) {
         state = state.copyWith(updateState: AndroidUpdateState.success);
       } else {
-        _openExternalStoreLink();
+        _openSiteWithDownloadLinks();
         state = state.copyWith(updateState: AndroidUpdateState.error);
       }
     } catch (e, st) {
@@ -131,7 +131,7 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
       if (result == AppUpdateResult.success) {
         state = state.copyWith(updateState: AndroidUpdateState.success);
       } else {
-        _openExternalStoreLink();
+        _openSiteWithDownloadLinks();
         state = state.copyWith(updateState: AndroidUpdateState.error);
       }
     } catch (e, st) {
@@ -144,7 +144,7 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
     state = state.copyWith(isUpdateAvailable: false);
   }
 
-  void _openExternalStoreLink() {
+  void _openSiteWithDownloadLinks() {
     openUrl(Links.appUpdate);
   }
 
