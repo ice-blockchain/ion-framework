@@ -15,6 +15,7 @@ import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/core/providers/init_provider.r.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/core/views/pages/error_page.dart';
+import 'package:ion/app/features/feed/providers/android_soft_update.m.dart';
 import 'package:ion/app/features/force_update/providers/force_update_provider.r.dart';
 import 'package:ion/app/features/force_update/view/pages/app_update_modal.dart';
 import 'package:ion/app/features/push_notifications/providers/initial_notification_provider.r.dart';
@@ -38,9 +39,15 @@ GoRouter goRouter(Ref ref) {
       final initState = ref.read(initAppProvider);
       final isSplashAnimationCompleted = ref.read(splashProvider);
       final forceUpdateRequired = ref.read(forceUpdateProvider).valueOrNull.falseOrValue;
+      final isAndroidSoftUpdateRequired = ref.read(androidSoftUpdateProvider).isUpdateAvailable;
       final isOnSplash = state.matchedLocation.startsWith(SplashRoute().location);
       final isInitInProgress = initState.isLoading;
       final isInitError = initState.hasError;
+
+      if (!forceUpdateRequired && !isOnSplash && isAndroidSoftUpdateRequired) {
+        ref.read(uiEventQueueNotifierProvider.notifier).emit(const ShowInAppUpdateModalEvent());
+        ref.read(androidSoftUpdateProvider.notifier).markModalAsShown();
+      }
 
       if (forceUpdateRequired && !isOnSplash) {
         ref.read(uiEventQueueNotifierProvider.notifier).emit(const ShowAppUpdateModalEvent());
