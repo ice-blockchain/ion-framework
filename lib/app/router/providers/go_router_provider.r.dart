@@ -39,14 +39,15 @@ GoRouter goRouter(Ref ref) {
       final initState = ref.read(initAppProvider);
       final isSplashAnimationCompleted = ref.read(splashProvider);
       final forceUpdateRequired = ref.read(forceUpdateProvider).valueOrNull.falseOrValue;
-      final isAndroidSoftUpdateRequired = ref.read(androidSoftUpdateProvider).isUpdateAvailable;
+      final androidUpdateState = ref.read(androidSoftUpdateProvider);
+      final isAndroidSoftUpdateRequired =
+          androidUpdateState.isUpdateAvailable && !androidUpdateState.modalWasShown;
       final isOnSplash = state.matchedLocation.startsWith(SplashRoute().location);
       final isInitInProgress = initState.isLoading;
       final isInitError = initState.hasError;
 
       if (!forceUpdateRequired && !isOnSplash && isAndroidSoftUpdateRequired) {
         ref.read(uiEventQueueNotifierProvider.notifier).emit(const ShowInAppUpdateModalEvent());
-        ref.read(androidSoftUpdateProvider.notifier).markModalAsShown();
       }
 
       if (forceUpdateRequired && !isOnSplash) {

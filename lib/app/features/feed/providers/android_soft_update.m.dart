@@ -2,12 +2,10 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:ion/app/constants/links.dart';
-import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/services/browser/browser.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/soft_update/soft_update_service.dart';
@@ -23,6 +21,7 @@ class AndroidSoftUpdateState with _$AndroidSoftUpdateState {
   const factory AndroidSoftUpdateState({
     required bool isUpdateAvailable,
     required AndroidUpdateState updateState,
+    @Default(false) bool modalWasShown,
   }) = _AndroidSoftUpdateState;
 
   const AndroidSoftUpdateState._();
@@ -50,17 +49,6 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
   }
 
   Future<void> _init() async {
-    ref.listen<AppLifecycleState>(
-      appLifecycleProvider,
-      (previous, next) async {
-        if (next == AppLifecycleState.resumed) {
-          if (state.isUpdateAvailable == false) {
-            await _checkForUpdates();
-          }
-        }
-      },
-    );
-
     await _checkForUpdates();
     _listenInstallStatus();
   }
@@ -115,7 +103,10 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
 
       final result = await _softUpdateService.startFlexibleUpdate();
       if (result == AppUpdateResult.success) {
-        state = state.copyWith(updateState: AndroidUpdateState.success);
+        state = state.copyWith(
+          updateState: AndroidUpdateState.success,
+          isUpdateAvailable: false,
+        );
       } else {
         _openSiteWithDownloadLinks();
         state = state.copyWith(updateState: AndroidUpdateState.error);
@@ -131,7 +122,10 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
       state = state.copyWith(updateState: AndroidUpdateState.loading);
       final result = await _softUpdateService.performImmediateUpdate();
       if (result == AppUpdateResult.success) {
-        state = state.copyWith(updateState: AndroidUpdateState.success);
+        state = state.copyWith(
+          updateState: AndroidUpdateState.success,
+          isUpdateAvailable: false,
+        );
       } else {
         _openSiteWithDownloadLinks();
         state = state.copyWith(updateState: AndroidUpdateState.error);
@@ -143,7 +137,7 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
   }
 
   void markModalAsShown() {
-    state = state.copyWith(isUpdateAvailable: false);
+    state = state.copyWith(modalWasShown: true);
   }
 
   void _openSiteWithDownloadLinks() {
