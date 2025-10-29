@@ -112,6 +112,7 @@ dependencies:
   icloud_storage: ^2.2.0
   image: ^4.5.4
   image_cropper: ^11.0.0
+  in_app_update: ^4.2.5
   intl: any
   ion_connect_cache:
     path: packages/ion_connect_cache
@@ -181,7 +182,6 @@ dependencies:
   visibility_detector: ^0.4.0+2
   wakelock_plus: ^1.2.11
   window_manager: ^0.4.2
-  in_app_update: ^4.2.5
 
 dev_dependencies:
   build_runner: ^2.4.15
