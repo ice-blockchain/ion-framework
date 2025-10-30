@@ -33,6 +33,9 @@ class NsfwModelManager {
     final directory = await getApplicationDocumentsDirectory();
     final modelPath = '${directory.path}/$_modelFileName';
     final file = File(modelPath);
+    if (file.existsSync()) {
+      return modelPath;
+    }
 
     // Copy model from assets to file system
     try {
