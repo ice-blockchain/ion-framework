@@ -64,8 +64,8 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
           _currentUpdateInfo?.updateAvailability == UpdateAvailability.updateAvailable;
 
       state = state.copyWith(isUpdateAvailable: isAvailable);
-    } catch (error, stackTrace) {
-      Logger.error(error, stackTrace: stackTrace, message: '$_tag: Failed to check for updates');
+    } catch (e, st) {
+      Logger.error(e, stackTrace: st, message: '$_tag: Failed to check for updates');
       state = state.copyWith(isUpdateAvailable: false);
     }
   }

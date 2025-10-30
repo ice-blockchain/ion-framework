@@ -16,8 +16,8 @@ class SoftUpdateService {
       _currentUpdateInfo = updateInfo;
 
       return updateInfo;
-    } catch (e) {
-      Logger.error('$_tag: Failed to check for update: $e');
+    } catch (e, st) {
+      Logger.error(e, stackTrace: st, message: '$_tag: Failed to check for update');
       return null;
     }
   }
@@ -39,8 +39,8 @@ class SoftUpdateService {
       }
 
       return result;
-    } catch (e) {
-      Logger.error('$_tag Failed to start flexible update: $e');
+    } catch (e, st) {
+      Logger.error(e, stackTrace: st, message: '$_tag Failed to start flexible update');
       return AppUpdateResult.inAppUpdateFailed;
     }
   }
@@ -50,8 +50,8 @@ class SoftUpdateService {
       await InAppUpdate.completeFlexibleUpdate();
 
       return AppUpdateResult.success;
-    } catch (e) {
-      Logger.error('$_tag: Failed to complete flexible update: $e');
+    } catch (e, st) {
+      Logger.error(e, stackTrace: st, message: '$_tag: Failed to complete flexible update');
       return AppUpdateResult.inAppUpdateFailed;
     }
   }
@@ -64,8 +64,8 @@ class SoftUpdateService {
 
       final result = await InAppUpdate.performImmediateUpdate();
       return result;
-    } catch (e) {
-      Logger.error('$_tag: Failed to perform immediate update: $e');
+    } catch (e, st) {
+      Logger.error(e, stackTrace: st, message: '$_tag: Failed to perform immediate update');
       return AppUpdateResult.inAppUpdateFailed;
     }
   }
