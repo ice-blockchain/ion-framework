@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -11,10 +12,10 @@ import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 
 class PostContent extends HookConsumerWidget {
   const PostContent({
@@ -40,9 +41,11 @@ class PostContent extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    final isExpanded = ref.watch(expandedPostsStateProvider).contains(entity.id);
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final truncResult = maxLines != null
+        final truncResult = maxLines != null && !isExpanded
             ? _truncateForMaxLines(
                 currentContent,
                 context.theme.appTextThemes.body2,
@@ -55,40 +58,43 @@ class PostContent extends HookConsumerWidget {
         final hasOverflow = truncResult.hasOverflow;
         final displayDelta = hasOverflow ? truncResult.delta : currentContent;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextEditorPreview(
-              scrollable: false,
-              content: displayDelta,
-              customStyles: accentTheme
-                  ? textEditorStyles(
-                      context,
-                      color: context.theme.appColors.onPrimaryAccent,
-                    )
-                  : null,
-              enableInteractiveSelection: isTextSelectable,
-              tagsColor: accentTheme ? context.theme.appColors.anakiwa : null,
-            ),
-            if (hasOverflow && maxLines != null)
-              GestureDetector(
-                onTap: () {
-                  final eventReference = entity.toEventReference();
-                  PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
-                },
-                child: Padding(
-                  padding: EdgeInsetsDirectional.only(top: 4.0.s),
-                  child: Text(
-                    context.i18n.common_show_more,
-                    style: context.theme.appTextThemes.body2.copyWith(
-                      color: accentTheme
-                          ? context.theme.appColors.onPrimaryAccent
-                          : context.theme.appColors.primaryAccent,
+        return AnimatedSize(
+          duration: 300.ms,
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextEditorPreview(
+                key: ValueKey(isExpanded),
+                scrollable: false,
+                content: displayDelta,
+                customStyles: accentTheme
+                    ? textEditorStyles(
+                        context,
+                        color: context.theme.appColors.onPrimaryAccent,
+                      )
+                    : null,
+                enableInteractiveSelection: isTextSelectable,
+                tagsColor: accentTheme ? context.theme.appColors.anakiwa : null,
+              ),
+              if (hasOverflow && maxLines != null)
+                GestureDetector(
+                  onTap: () => ref.read(expandedPostsStateProvider.notifier).expand(entity),
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.only(top: 4.0.s),
+                    child: Text(
+                      context.i18n.common_show_more,
+                      style: context.theme.appTextThemes.body2.copyWith(
+                        color: accentTheme
+                            ? context.theme.appColors.onPrimaryAccent
+                            : context.theme.appColors.primaryAccent,
+                      ),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         );
       },
     );

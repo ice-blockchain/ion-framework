@@ -140,3 +140,29 @@ IonConnectEntity? getRepostedEntity(Ref ref, IonConnectEntity entity) {
   if (repostedEventReference == null) return null;
   return ref.read(ionConnectSyncEntityWithCountersProvider(eventReference: repostedEventReference));
 }
+
+@riverpod
+class ExpandedPostsState extends _$ExpandedPostsState {
+  @override
+  Set<String> build() => {};
+
+  bool isExpanded(IonConnectEntity entity) {
+    return state.contains(entity.id);
+  }
+
+  void expand(IonConnectEntity entity) {
+    state = {...state, entity.id};
+  }
+
+  void collapse(IonConnectEntity entity) {
+    state = state.where((id) => id != entity.id).toSet();
+  }
+
+  void toggle(IonConnectEntity entity) {
+    if (state.contains(entity.id)) {
+      state = state.where((id) => id != entity.id).toSet();
+    } else {
+      state = {...state, entity.id};
+    }
+  }
+}
