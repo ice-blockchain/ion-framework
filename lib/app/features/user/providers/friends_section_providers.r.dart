@@ -21,8 +21,7 @@ bool shouldShowFriendsList(Ref ref) {
   final hasEnoughFriends = ref.watch(hasEnoughFriendsProvider);
   final isAnyMetadataLoaded = ref.watch(isAnyFriendMetadataLoadedProvider);
 
-  final result = hasEnoughFriends && isAnyMetadataLoaded;
-  return result;
+  return hasEnoughFriends && isAnyMetadataLoaded;
 }
 
 @riverpod
