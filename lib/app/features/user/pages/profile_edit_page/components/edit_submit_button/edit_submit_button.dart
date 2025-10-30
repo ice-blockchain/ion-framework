@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
@@ -52,7 +51,7 @@ class EditSubmitButton extends ConsumerWidget {
               .read(updateUserMetadataNotifierProvider.notifier)
               .publish(draftRef.value, avatar: avatarFile, banner: bannerFile);
           if (context.mounted && !ref.read(updateUserMetadataNotifierProvider).hasError) {
-            context.pop();
+            context.maybePop();
           }
         }
       },

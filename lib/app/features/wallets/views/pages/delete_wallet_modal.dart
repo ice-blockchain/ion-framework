@@ -3,7 +3,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/card/rounded_card.dart';
@@ -84,7 +83,7 @@ class DeleteWalletModal extends HookConsumerWidget {
                         context.i18n.button_cancel,
                       ),
                       onPressed: () {
-                        context.pop();
+                        context.maybePop();
                       },
                       minimumSize: buttonMinimalSize,
                     ),
@@ -104,7 +103,7 @@ class DeleteWalletModal extends HookConsumerWidget {
                             .delete();
 
                         if (context.mounted) {
-                          context.pop();
+                          context.maybePop();
                         }
                       },
                       minimumSize: buttonMinimalSize,

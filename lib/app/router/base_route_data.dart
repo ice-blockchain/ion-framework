@@ -49,7 +49,7 @@ abstract class BaseRouteData extends GoRouteData {
             key: key,
             onPopInvokedWithResult: (didPop, result) async {
               if (!didPop && context.mounted) {
-                context.pop();
+                context.maybePop();
               }
             },
             child: child,

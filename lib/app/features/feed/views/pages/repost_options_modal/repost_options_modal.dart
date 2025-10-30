@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/modal_action_button/modal_action_button.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
@@ -65,7 +64,7 @@ class RepostOptionsModal extends HookConsumerWidget {
                                 .read(toggleRepostNotifierProvider.notifier)
                                 .toggle(eventReference);
                             if (context.mounted) {
-                              context.pop();
+                              context.maybePop();
                             }
 
                           case RepostOptionAction.quotePost:
@@ -76,7 +75,7 @@ class RepostOptionsModal extends HookConsumerWidget {
                             if (context.mounted) {
                               WidgetsBinding.instance.addPostFrameCallback((_) {
                                 if (context.mounted) {
-                                  context.pop();
+                                  context.maybePop();
                                 }
                               });
                             }
@@ -86,7 +85,7 @@ class RepostOptionsModal extends HookConsumerWidget {
                                 .read(toggleRepostNotifierProvider.notifier)
                                 .toggle(eventReference);
                             if (context.mounted) {
-                              context.pop();
+                              context.maybePop();
                             }
                         }
                       },

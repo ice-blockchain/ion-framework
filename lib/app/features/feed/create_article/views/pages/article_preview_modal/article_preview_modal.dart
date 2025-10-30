@@ -5,7 +5,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
@@ -179,12 +178,12 @@ class ArticlePreviewModal extends HookConsumerWidget {
 
                         if (!ref.read(createArticleProvider(type)).hasError &&
                             ref.context.mounted) {
-                          context.pop();
+                          context.maybePop();
 
                           // We need also close ArticleFormModal after article is created or changed
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             if (context.mounted) {
-                              context.pop();
+                              context.maybePop();
                             }
                           });
                         }
