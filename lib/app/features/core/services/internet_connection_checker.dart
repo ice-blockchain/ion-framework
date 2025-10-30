@@ -34,9 +34,11 @@ class InternetConnectionChecker {
     required Duration checkInterval,
     required Duration checkNoInternetInterval,
     required List<InternetCheckOption> options,
+    Duration confirmDisconnectDelay = const Duration(seconds: 30),
   })  : _checkInterval = checkInterval,
         _checkNoInternetInterval = checkNoInternetInterval,
-        _internetCheckOptions = options {
+        _internetCheckOptions = options,
+        _confirmDisconnectDelay = confirmDisconnectDelay {
     _statusStreamController.onListen = _maybeEmitStatusUpdate;
     _statusStreamController.onCancel = _handleStatusChangeCancel;
   }
@@ -46,9 +48,11 @@ class InternetConnectionChecker {
   final Duration _checkInterval;
   final Duration _checkNoInternetInterval;
   final List<InternetCheckOption> _internetCheckOptions;
+  final Duration _confirmDisconnectDelay;
 
   InternetStatus? _lastStatus;
   Timer? _timerHandle;
+  bool _isAwaitingDisconnectConfirmation = false;
 
   final _statusStreamController = StreamController<InternetStatus>.broadcast();
 
@@ -67,22 +71,58 @@ class InternetConnectionChecker {
       return;
     }
 
-    final currentStatus = await _currentStatus();
-
-    if (_lastStatus != currentStatus) {
-      Logger.info('[Internet] status changed: ${currentStatus.name}');
-      _statusStreamController.add(currentStatus);
+    final isConnected = await _hasInternetAccess();
+    if (isConnected) {
+      _handleConnected();
+      return;
     }
 
-    final checkInterval =
-        currentStatus == InternetStatus.connected ? _checkInterval : _checkNoInternetInterval;
-    _timerHandle = Timer(checkInterval, _maybeEmitStatusUpdate);
-
-    _lastStatus = currentStatus;
+    _handleNotConnected();
   }
 
-  Future<InternetStatus> _currentStatus() async {
-    return await _hasInternetAccess() ? InternetStatus.connected : InternetStatus.disconnected;
+  void _handleConnected() {
+    if (_lastStatus != InternetStatus.connected) {
+      Logger.info('[Internet] status changed: connected');
+      _statusStreamController.add(InternetStatus.connected);
+    }
+    _isAwaitingDisconnectConfirmation = false;
+    _lastStatus = InternetStatus.connected;
+    _scheduleNextCheck(_checkInterval);
+  }
+
+  void _handleNotConnected() {
+    if (_lastStatus == InternetStatus.disconnected) {
+      // Already disconnected: keep regular no-internet checks
+      _scheduleNextCheck(_checkNoInternetInterval);
+      return;
+    }
+
+    if (!_isAwaitingDisconnectConfirmation) {
+      _scheduleDisconnectConfirmation();
+      return;
+    }
+
+    _emitDisconnectedAfterConfirmation();
+  }
+
+  void _scheduleDisconnectConfirmation() {
+    Logger.info(
+      '[Internet] first failure detected; confirming in ${_confirmDisconnectDelay.inSeconds}s',
+    );
+    _isAwaitingDisconnectConfirmation = true;
+    _scheduleNextCheck(_confirmDisconnectDelay);
+  }
+
+  void _emitDisconnectedAfterConfirmation() {
+    Logger.info('[Internet] confirmation failed; status changed: disconnected');
+    _statusStreamController.add(InternetStatus.disconnected);
+    _lastStatus = InternetStatus.disconnected;
+    _isAwaitingDisconnectConfirmation = false;
+    _scheduleNextCheck(_checkNoInternetInterval);
+  }
+
+  void _scheduleNextCheck(Duration delay) {
+    _timerHandle = Timer(delay, _maybeEmitStatusUpdate);
   }
 
   Future<bool> _hasInternetAccess() async {
@@ -133,5 +173,6 @@ class InternetConnectionChecker {
     _timerHandle?.cancel();
     _timerHandle = null;
     _lastStatus = null;
+    _isAwaitingDisconnectConfirmation = false;
   }
 }
