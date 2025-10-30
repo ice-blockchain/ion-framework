@@ -29,7 +29,7 @@ void useNsfwValidation({
         } else {
           if (!mediaCheckerState.isEmpty) {
             // The case when we removed last media, but we still have that result kept in the state
-            await mediaChecker.checkMediaForNsfw([]);
+            mediaChecker.resetNsfwResults();
           }
         }
       });
@@ -50,7 +50,7 @@ void useNsfwValidation({
         } else {
           if (!mediaCheckerState.isEmpty) {
             // The case when we removed last video, but we still have that result kept in the state
-            await mediaChecker.checkMediaForNsfw([]);
+            mediaChecker.resetNsfwResults();
           }
         }
       });
