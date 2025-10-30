@@ -88,7 +88,7 @@ class ListCachedObjects extends InheritedWidget {
     Logger.log(
       'Updating object of type ${object.runtimeType}, amount of cached objects: ${objects?.length}',
     );
-    
+
     if (objects == null) return;
 
     final identifier = identifierSelector<T>(object);
