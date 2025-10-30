@@ -81,7 +81,7 @@ class MediaNsfwCheckerNotifier extends _$MediaNsfwCheckerNotifier {
     state = state.copyWith(nsfwResults: updatedResults);
   }
 
-  Future<bool> getNsfwCheckValueOrWaitUntil() async {
+  Future<bool> getFinalNsfwResult() async {
     // Set final check in process
     state = state.copyWith(isFinalCheckInProcess: true);
 
