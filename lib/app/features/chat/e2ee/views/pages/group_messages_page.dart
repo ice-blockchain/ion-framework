@@ -69,7 +69,7 @@ class GroupMessagesPage extends HookConsumerWidget {
                     conversationId: conversationId,
                     content: content ?? '',
                     mediaFiles: mediaFiles ?? [],
-                    subject: privateMessageEntity.groupSubject?.value,
+                    groupName: privateMessageEntity.groupSubject?.value,
                     participantsMasterPubkeys:
                         privateMessageEntity.relatedPubkeys?.map((e) => e.value).toList() ?? [],
                   );

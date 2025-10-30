@@ -96,7 +96,7 @@ class MessageMetadata extends HookConsumerWidget {
                     : context.theme.appColors.quaternaryText,
               ),
             ),
-          if (isMe)
+          if (isMe && entity.data.groupSubject == null)
             Padding(
               padding: EdgeInsetsDirectional.only(start: 2.0.s),
               child: deliveryStatus == MessageDeliveryStatus.created

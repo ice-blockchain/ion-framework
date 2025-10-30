@@ -170,7 +170,7 @@ class CreateGroupModal extends HookConsumerWidget {
                 mainAxisSize: MainAxisSize.max,
                 label: Text(context.i18n.group_create_create_button),
                 leadingIcon: loading.value
-                    ? IONLoadingIndicator(size: Size(32.s, 32.s))
+                    ? IONLoadingIndicator(size: Size(24.s, 24.s))
                     : Assets.svg.iconPlusCreatechannel.icon(
                         size: 32.s,
                         color: context.theme.appColors.onPrimaryAccent,
@@ -190,7 +190,7 @@ class CreateGroupModal extends HookConsumerWidget {
 
                       await ref.read(sendE2eeChatMessageServiceProvider).sendMessage(
                             content: '',
-                            subject: createGroupForm.name,
+                            groupName: createGroupForm.name,
                             conversationId: generateUuid(),
                             participantsMasterPubkeys: participantsMasterPubkeys,
                             mediaFiles: groupPicture != null ? [groupPicture] : [],
