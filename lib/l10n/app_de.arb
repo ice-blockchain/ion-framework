@@ -4,8 +4,8 @@
   "app_language_description": "Die App wird dir in der ausgewählten Sprache angezeigt",
   "app_language_title": "App-Sprache",
   "article_menu_report_article": "Artikel melden",
-  "article_page_from_author": "von <<<MASK0>>>",
-  "article_page_in_topic": "in <<<MASK0>>>",
+  "article_page_from_author": "von {name}",
+  "article_page_in_topic": "in {name}",
   "article_page_title": "Artikel",
   "article_preview_title": "Artikelvorschau",
   "auth_identity_io": "Identity.io",
@@ -187,7 +187,7 @@
     }
   },
   "chat_money_request_title": "Angefordert",
-  "chat_money_sent_preview_title": "Du hast <<<MASK0>>> gesendet",
+  "chat_money_sent_preview_title": "Du hast {amount} gesendet",
   "@chat_money_sent_preview_title": {
     "placeholders": {
       "amount": {
@@ -287,7 +287,7 @@
   "contact_wallet_is_private": "Wallet ist privat.",
   "contact_wallet_is_private_description": "Du kannst keine Gelder senden oder anfordern.",
   "contact_wallet_is_private_title": "Private Wallet",
-  "contact_wallet_not_found_description": "Diese Person hat keine Wallet im <<<MASK0>>>-Netzwerk.",
+  "contact_wallet_not_found_description": "Diese Person hat keine Wallet im {network}-Netzwerk.",
   "contact_wallet_not_found_title": "Wallet nicht gefunden",
   "content_language_description": "Dir werden Inhalte in der ausgewählten Sprache angezeigt",
   "content_language_title": "Inhaltssprachen",
@@ -498,7 +498,7 @@
   "get_started_title": "Los geht’s",
   "group_create_create_button": "Gruppe erstellen",
   "group_create_first_message": "Gruppe wurde erstellt",
-  "group_create_members_number": "Gruppenmitglieder (<<<MASK0>>>)",
+  "group_create_members_number": "Gruppenmitglieder ({members})",
   "group_create_name_label": "Gruppenname",
   "group_create_title": "Neue Gruppe",
   "group_create_type": "Gruppentyp",
@@ -525,7 +525,7 @@
   "invite_friends_summary_upgrades_text": "Upgrades",
   "maintenance_page_description": "Wir nehmen im Hintergrund einige schnelle Verbesserungen vor. Bald ist wieder alles normal. Bitte versuche es später erneut.",
   "maintenance_page_title": "Wir sind bald zurück",
-  "members_count": "{count, plural, =1 {<<<MASK0>>> Mitglied} other {<<<MASK1>>> Mitglieder}}",
+  "members_count": "{count, plural, =1 {{count} Mitglied} other {{count} Mitglieder}}",
   "messaging_empty_description": "Nachrichten und Sprachnachrichten sind Ende-zu-Ende verschlüsselt.",
   "new_chat_modal_description": "Suche oben nach Nutzern, Gruppen und Kanälen …",
   "new_chat_modal_new_channel_button": "Neuer Kanal",
