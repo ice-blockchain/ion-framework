@@ -51,7 +51,6 @@ class MediaNsfwCheckerNotifier extends _$MediaNsfwCheckerNotifier {
 
     // 3. Create new state with new pending checks added
     state = state.copyWith(nsfwResults: checkStateWithPending);
-    // Logs removed for cleanliness
 
     // 4. Get list of files that need checking (paths with null value)
     final needToCheckPaths = checkStateWithPending.entries

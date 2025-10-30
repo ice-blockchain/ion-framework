@@ -101,61 +101,65 @@ class PostSubmitButton extends HookConsumerWidget {
         }
 
         loading.value = true;
-        final filesToUpload = createOption == CreatePostOption.video
-            ? mediaFiles
-            : await ref
-                .read(mediaServiceProvider)
-                .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
+        try {
+          final filesToUpload = createOption == CreatePostOption.video
+              ? mediaFiles
+              : await ref
+                  .read(mediaServiceProvider)
+                  .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
 
-        final hasNsfw =
-            await ref.read(mediaNsfwCheckerNotifierProvider.notifier).getFinalNsfwResult();
-        loading.value = false;
+          final hasNsfw =
+              await ref.read(mediaNsfwCheckerNotifierProvider.notifier).getFinalNsfwResult();
+          loading.value = false;
 
-        // NSFW validation: block posting if any selected image is NSFW
-        if (hasNsfw) {
+          // NSFW validation: block posting if any selected image is NSFW
+          if (hasNsfw) {
+            if (context.mounted) {
+              await showNsfwBlockedSheet(context);
+            }
+
+            return;
+          }
+
           if (context.mounted) {
-            await showNsfwBlockedSheet(context);
+            final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
+
+            if (modifiedEvent != null) {
+              unawaited(
+                notifier.modify(
+                  content: textEditorController.document.toDelta(),
+                  mediaFiles: filesToUpload,
+                  mediaAttachments: mediaAttachments,
+                  eventReference: modifiedEvent!,
+                  whoCanReply: whoCanReply,
+                  topics: selectedTopics,
+                  poll: PollUtils.pollDraftToPollData(draftPoll),
+                  language: language?.value,
+                ),
+              );
+            } else {
+              unawaited(
+                notifier.create(
+                  content: textEditorController.document.toDelta(),
+                  parentEvent: parentEvent,
+                  quotedEvent: quotedEvent,
+                  mediaFiles: filesToUpload,
+                  whoCanReply: whoCanReply,
+                  topics: selectedTopics,
+                  poll: PollUtils.pollDraftToPollData(draftPoll),
+                  language: language?.value,
+                ),
+              );
+            }
+
+            if (onSubmitted != null) {
+              onSubmitted!();
+            } else if (context.mounted) {
+              ref.context.maybePop(true);
+            }
           }
-
-          return;
-        }
-
-        if (context.mounted) {
-          final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
-
-          if (modifiedEvent != null) {
-            unawaited(
-              notifier.modify(
-                content: textEditorController.document.toDelta(),
-                mediaFiles: filesToUpload,
-                mediaAttachments: mediaAttachments,
-                eventReference: modifiedEvent!,
-                whoCanReply: whoCanReply,
-                topics: selectedTopics,
-                poll: PollUtils.pollDraftToPollData(draftPoll),
-                language: language?.value,
-              ),
-            );
-          } else {
-            unawaited(
-              notifier.create(
-                content: textEditorController.document.toDelta(),
-                parentEvent: parentEvent,
-                quotedEvent: quotedEvent,
-                mediaFiles: filesToUpload,
-                whoCanReply: whoCanReply,
-                topics: selectedTopics,
-                poll: PollUtils.pollDraftToPollData(draftPoll),
-                language: language?.value,
-              ),
-            );
-          }
-
-          if (onSubmitted != null) {
-            onSubmitted!();
-          } else if (context.mounted) {
-            ref.context.maybePop(true);
-          }
+        } finally {
+          loading.value = false;
         }
       },
     );
