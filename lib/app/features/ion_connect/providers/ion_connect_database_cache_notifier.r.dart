@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -28,13 +29,19 @@ Future<IonConnectCacheService> ionConnectPersistentCacheService(Ref ref) async {
       : null;
 
   final executor = appGroup == null
-      ? driftDatabase(name: databaseName)
+      ? driftDatabase(
+          name: databaseName,
+          native: DriftNativeOptions(
+            setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
+          ),
+        )
       : driftDatabase(
           name: databaseName,
           native: DriftNativeOptions(
             databasePath: () async =>
                 getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroup),
             shareAcrossIsolates: true,
+            setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
           ),
         );
 
