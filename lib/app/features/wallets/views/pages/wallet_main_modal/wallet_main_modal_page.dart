@@ -65,7 +65,6 @@ class WalletMainModalPage extends HookConsumerWidget {
     );
   }
 
-  String _getSubRouteLocation(WalletMainModalListItem type, {bool isCoinAlreadySet = false}) {
   void _onFlow(
     BuildContext context,
     WidgetRef ref,
@@ -86,10 +85,11 @@ class WalletMainModalPage extends HookConsumerWidget {
     context.pushReplacement(_getSubRouteLocation(type));
   }
 
-  String _getSubRouteLocation(WalletMainModalListItem type) {
+  String _getSubRouteLocation(WalletMainModalListItem type, {bool isCoinAlreadySet = false}) {
     return switch (type) {
-      WalletMainModalListItem.send =>
-        isCoinAlreadySet ? SelectNetworkWalletRoute().location : SelectCoinWalletRoute().location,
+      WalletMainModalListItem.send => skipSelectCoinRoute
+          ? SelectNetworkWalletRoute().location
+          : SelectCoinWalletRoute().location,
       WalletMainModalListItem.receive => ReceiveCoinRoute().location,
       WalletMainModalListItem.swap => '', // TODO: add swap route when the feature is implemented
     };
