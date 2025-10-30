@@ -16,6 +16,7 @@ import 'package:ion/app/features/chat/e2ee/views/components/one_to_one_messages_
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/conversation_messages_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/chat_input_bar/chat_input_bar.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
 
@@ -44,36 +45,38 @@ class GroupMessagesPage extends HookConsumerWidget {
     return Scaffold(
       backgroundColor: context.theme.appColors.secondaryBackground,
       body: SafeArea(
-        child: Column(
-          children: [
-            _Header(lastMessage: lastMessage),
-            _MessagesList(conversationId: conversationId),
-            ChatInputBar(
-              receiverMasterPubkey: '', //TODO: set when groups are impl
-              conversationId: conversationId,
-              onSubmitted: ({content, mediaFiles}) async {
-                final currentPubkey = ref.read(currentPubkeySelectorProvider);
-                if (currentPubkey == null) {
-                  throw UserMasterPubkeyNotFoundException();
-                }
+        child: ListCachedObjectsWrapper(
+          child: Column(
+            children: [
+              _Header(lastMessage: lastMessage),
+              _MessagesList(conversationId: conversationId),
+              ChatInputBar(
+                receiverMasterPubkey: '', //TODO: set when groups are impl
+                conversationId: conversationId,
+                onSubmitted: ({content, mediaFiles}) async {
+                  final currentPubkey = ref.read(currentPubkeySelectorProvider);
+                  if (currentPubkey == null) {
+                    throw UserMasterPubkeyNotFoundException();
+                  }
 
-                final privateMessageEntity =
-                    ReplaceablePrivateDirectMessageData.fromEventMessage(lastMessage);
+                  final privateMessageEntity =
+                      ReplaceablePrivateDirectMessageData.fromEventMessage(lastMessage);
 
-                final conversationMessageManagementService =
-                    ref.read(sendE2eeChatMessageServiceProvider);
+                  final conversationMessageManagementService =
+                      ref.read(sendE2eeChatMessageServiceProvider);
 
-                await conversationMessageManagementService.sendMessage(
-                  conversationId: conversationId,
-                  content: content ?? '',
-                  mediaFiles: mediaFiles ?? [],
-                  subject: privateMessageEntity.groupSubject?.value,
-                  participantsMasterPubkeys:
-                      privateMessageEntity.relatedPubkeys?.map((e) => e.value).toList() ?? [],
-                );
-              },
-            ),
-          ],
+                  await conversationMessageManagementService.sendMessage(
+                    conversationId: conversationId,
+                    content: content ?? '',
+                    mediaFiles: mediaFiles ?? [],
+                    subject: privateMessageEntity.groupSubject?.value,
+                    participantsMasterPubkeys:
+                        privateMessageEntity.relatedPubkeys?.map((e) => e.value).toList() ?? [],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
