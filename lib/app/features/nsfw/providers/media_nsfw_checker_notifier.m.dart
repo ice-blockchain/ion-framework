@@ -29,12 +29,11 @@ class MediaNsfwCheckerNotifier extends _$MediaNsfwCheckerNotifier {
     return const MediaNsfwState();
   }
 
-  Future<void> checkMediaForNsfw(List<MediaFile> mediaFiles) async {
-    if (mediaFiles.isEmpty && !state.isEmpty) {
-      state = state.copyWith(nsfwResults: <String, bool?>{});
-      return;
-    }
+  void resetNsfwResults() {
+    state = const MediaNsfwState();
+  }
 
+  Future<void> checkMediaForNsfw(List<MediaFile> mediaFiles) async {
     // 1. Remove all NSFW files from previous checks
     final previousSafeResults =
         Map.fromEntries(state.nsfwResults.entries.where((entry) => entry.value != true));
