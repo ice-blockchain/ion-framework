@@ -17,6 +17,8 @@ class MediaNsfwState with _$MediaNsfwState {
     @Default(false) bool isFinalCheckInProcess,
   }) = _MediaNsfwState;
 
+  const MediaNsfwState._();
+
   bool get isEmpty => nsfwResults.isEmpty;
 }
 
