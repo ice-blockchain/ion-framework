@@ -182,11 +182,6 @@ class SendE2eeChatMessageService {
         return a.compareTo(b);
       });
 
-      //if (mediaAttachmentsUsersBased.isEmpty && trimmedContent.isEmpty && quotedEvent == null) {
-      //  await ref.read(eventMessageDaoProvider).deleteByEventReference(eventReference);
-      //  return sentMessage;
-      //}
-
       final receiverMasterPubkey =
           participantsMasterPubkeys.firstWhere((pubkey) => pubkey != currentUserMasterPubkey);
 

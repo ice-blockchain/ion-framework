@@ -170,7 +170,7 @@ class CreateGroupModal extends HookConsumerWidget {
                 mainAxisSize: MainAxisSize.max,
                 label: Text(context.i18n.group_create_create_button),
                 leadingIcon: loading.value
-                    ? IONLoadingIndicator(size: Size(16.s, 16.s))
+                    ? IONLoadingIndicator(size: Size(32.s, 32.s))
                     : Assets.svg.iconPlusCreatechannel.icon(
                         size: 32.s,
                         color: context.theme.appColors.onPrimaryAccent,
