@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
+import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
-import 'package:ion/app/features/wallets/views/pages/nft_details/hooks/use_show_tooltip_overlay.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_main_modal/wallet_main_modal_list_item.dart';
 import 'package:ion/app/hooks/use_on_receive_funds_flow.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -24,21 +24,19 @@ class WalletMainModalPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final swapButtonKey = useRef(GlobalKey());
-    final showSwapTooltipOverlay = useShowTooltipOverlay(
-      targetKey: swapButtonKey.value,
-      text: context.i18n.wallet_swap_coming_soon,
-    );
-    final onFlow = useCallback(
-      (WalletMainModalListItem type) {
-        if (type == WalletMainModalListItem.swap) {
-          return showSwapTooltipOverlay();
-        }
-        ref.invalidate(sendAssetFormControllerProvider);
-        context.pushReplacement(_getSubRouteLocation(type));
-      },
-      [],
-    );
+    void onFlow(WalletMainModalListItem type) {
+      if (type == WalletMainModalListItem.swap) {
+        return ref.read(messageNotificationNotifierProvider.notifier).show(
+              MessageNotification(
+                message: context.i18n.wallet_swap_coming_soon,
+                icon: Assets.svg.iconBlockTime.icon(size: 16.0.s),
+              ),
+            );
+      }
+      ref.invalidate(sendAssetFormControllerProvider);
+      context.pushReplacement(_getSubRouteLocation(type));
+    }
+
     final onReceiveFlow = useOnReceiveFundsFlow(
       onReceive: () => onFlow(WalletMainModalListItem.receive),
       onNeedToEnable2FA: () {
@@ -63,7 +61,6 @@ class WalletMainModalPage extends HookConsumerWidget {
                 final type = WalletMainModalListItem.values[index];
 
                 return MainModalItem(
-                  key: type == WalletMainModalListItem.swap ? swapButtonKey.value : null,
                   item: type,
                   onTap: () {
                     if (type == WalletMainModalListItem.receive) {
