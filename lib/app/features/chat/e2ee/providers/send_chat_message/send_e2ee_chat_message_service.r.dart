@@ -58,9 +58,10 @@ class SendE2eeChatMessageService {
     required String content,
     required String conversationId,
     required List<String> participantsMasterPubkeys,
+    bool isGroupMessage = false,
     int? kind,
     List<List<String>>? tags,
-    String? subject,
+    String? groupName,
     String? quotedEventKind,
     EventMessage? editedMessage,
     EventMessage? repliedMessage,
@@ -132,7 +133,7 @@ class SendE2eeChatMessageService {
         // Sender master public key
         masterPubkey: currentUserMasterPubkey,
         // Optional subject for group messages
-        groupSubject: subject.isNotEmpty ? GroupSubject(subject!) : null,
+        groupSubject: groupName.isNotEmpty ? GroupSubject(groupName!) : null,
         // All participants master public keys
         relatedPubkeys: participantsMasterPubkeys
             .map((masterPubkey) => RelatedPubkey(value: masterPubkey))
@@ -182,10 +183,13 @@ class SendE2eeChatMessageService {
         return a.compareTo(b);
       });
 
-      final receiverMasterPubkey =
-          participantsMasterPubkeys.firstWhere((pubkey) => pubkey != currentUserMasterPubkey);
+      // Used only for direct messages
+      final receiverMasterPubkey = isGroupMessage
+          ? null
+          : participantsMasterPubkeys
+              .firstWhereOrNull((pubkey) => pubkey != currentUserMasterPubkey);
 
-      final isBlockedByReceiver =
+      final isBlockedByReceiver = receiverMasterPubkey != null &&
           await ref.read(isBlockedByNotifierProvider(receiverMasterPubkey).future);
 
       await Future.wait(
@@ -208,7 +212,7 @@ class SendE2eeChatMessageService {
                 publishedAt: publishedAt,
                 editingEndedAt: editingEndedAt,
                 conversationId: conversationId,
-                groupSubject: subject.isNotEmpty ? GroupSubject(subject!) : null,
+                groupSubject: groupName.isNotEmpty ? GroupSubject(groupName!) : null,
                 media: {
                   for (final attachment in attachments) attachment.url: attachment,
                 },
