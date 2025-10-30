@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
@@ -75,7 +76,7 @@ class AvatarPicker extends HookConsumerWidget {
               if (avatarProcessorState is ImageProcessorStateInitial ||
                   avatarProcessorState is ImageProcessorStateProcessed ||
                   avatarProcessorState is ImageProcessorStateError) {
-                final mediaFiles = await showSimpleBottomSheet<List<MediaFile>>(
+                await showSimpleBottomSheet<List<MediaFile>>(
                   context: context,
                   child: MediaPickerPage(
                     maxSelection: 1,
@@ -83,17 +84,21 @@ class AvatarPicker extends HookConsumerWidget {
                     title: title,
                     type: MediaPickerType.image,
                     isNeedFilterVideoByFormat: false,
+                    onSelectCallback: (mediaFiles) async {
+                      if (context.mounted) {
+                        context.pop();
+                      }
+
+                      await ref
+                          .read(imageProcessorNotifierProvider(ImageProcessingType.avatar).notifier)
+                          .process(
+                            assetId: mediaFiles.first.path,
+                            cropUiSettings:
+                                ref.read(mediaServiceProvider).buildCropImageUiSettings(context),
+                          );
+                    },
                   ),
                 );
-                if (mediaFiles != null && context.mounted) {
-                  await ref
-                      .read(imageProcessorNotifierProvider(ImageProcessingType.avatar).notifier)
-                      .process(
-                        assetId: mediaFiles.first.path,
-                        cropUiSettings:
-                            ref.read(mediaServiceProvider).buildCropImageUiSettings(context),
-                      );
-                }
               }
             },
             requestDialog: const PermissionRequestSheet(
