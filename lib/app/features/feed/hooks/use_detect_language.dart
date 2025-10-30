@@ -36,7 +36,7 @@ void useDetectLanguage(
             // If the content language is detected (not user selected)
             // Or if the content language is user selected, but detected language has high confidence
             if (currentLanguage is DetectedContentLanguage? ||
-                detectedLanguage != null && detectedLanguage.confident) {
+                (detectedLanguage != null && detectedLanguage.confident)) {
               ref.read(selectedEntityLanguageNotifierProvider.notifier).langLabel =
                   detectedLanguage;
             }
