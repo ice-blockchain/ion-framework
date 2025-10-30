@@ -122,22 +122,21 @@ class UserMetadataInvalidatorNotifier extends _$UserMetadataInvalidatorNotifier 
   @override
   FutureOr<void> build() async {}
 
-  Future<void> invalidateCurrentUserMetadataProviders({
-    ActionType? actionType,
-  }) async {
+  Future<void> invalidateCurrentUserMetadataProviders() async {
     final masterPubkey = ref.read(currentPubkeySelectorProvider);
     if (masterPubkey == null) {
       return;
     }
 
     final _ = await ref.refresh(
-      ionConnectNetworkEntityProvider(
-        search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
-        actionType: actionType,
+      ionConnectEntityProvider(
+        cache: false,
         eventReference: ReplaceableEventReference(
           masterPubkey: masterPubkey,
           kind: UserMetadataEntity.kind,
         ),
+        cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
+        search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
       ).future,
     );
   }
