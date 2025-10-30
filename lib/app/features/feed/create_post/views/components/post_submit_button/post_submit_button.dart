@@ -108,8 +108,12 @@ class PostSubmitButton extends HookConsumerWidget {
                   .read(mediaServiceProvider)
                   .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
 
+          if (!context.mounted) return;
+
           final hasNsfw =
               await ref.read(mediaNsfwCheckerNotifierProvider.notifier).getFinalNsfwResult();
+
+          if (!context.mounted) return;
           loading.value = false;
 
           // NSFW validation: block posting if any selected image is NSFW
@@ -159,7 +163,9 @@ class PostSubmitButton extends HookConsumerWidget {
             }
           }
         } finally {
-          loading.value = false;
+          if (context.mounted) {
+            loading.value = false;
+          }
         }
       },
     );
