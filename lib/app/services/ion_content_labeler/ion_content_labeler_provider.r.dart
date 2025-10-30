@@ -64,7 +64,7 @@ class IonContentLabeler {
 
 @Riverpod(keepAlive: true)
 Future<IonContentLabeler> ionContentLabeler(Ref ref) async {
-  final feedConfig = await ref.read(feedConfigProvider.future);
+  final feedConfig = await ref.watch(feedConfigProvider.future);
   return IonContentLabeler(
     labeler: IONTextLabeler(),
     confidentThreshold: feedConfig.langDetectScoreThreshold,
