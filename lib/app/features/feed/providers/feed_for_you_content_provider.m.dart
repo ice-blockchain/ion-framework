@@ -69,6 +69,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       items: null,
       isLoading: false,
       forYouRetryLimitReached: false,
+      englishContentFallbackEnabled: false,
       hasMoreFollowing: true,
       modifiersPagination: {},
     );
@@ -89,9 +90,40 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }
 
   Stream<IonConnectEntity> requestEntities({required int limit}) async* {
-    Logger.info('$_logTag Requesting events');
+    Logger.info('$_logTag Requesting events, limit: [$limit]');
 
     var fetchedEvents = 0;
+
+    await for (final entity in _fetchInitialPageData(limit: limit)) {
+      yield entity;
+      fetchedEvents++;
+    }
+
+    if (fetchedEvents < limit) {
+      await for (final entity in _fetchFillPageData(limit: limit - fetchedEvents)) {
+        yield entity;
+        fetchedEvents++;
+      }
+    }
+
+    // Some content languages don't have enough data, so if we didn't manage to fetch the page
+    // and English is not enabled, we enable it as a fallback and try to fetch more events.
+    if (fetchedEvents < limit && !(await _hasEnglishContentLanguage())) {
+      _enableEnglishContentAndResetPagination();
+      await for (final entity in _fetchFillPageData(limit: limit - fetchedEvents)) {
+        yield entity;
+        fetchedEvents++;
+      }
+    }
+
+    Logger.info('$_logTag Done requesting events, found: [$fetchedEvents]');
+  }
+
+  /// Concurrently fetching followed users, global accounts and interested events.
+  /// Interested events have an overflow multiplier to fetch more events
+  /// in the initial request, so that we have more chances to fill the viewport.
+  Stream<IonConnectEntity> _fetchInitialPageData({required int limit}) async* {
+    Logger.info('$_logTag Requesting initial events with overflow');
 
     final followingLimit = _getFeedFollowingDistribution(totalLimit: limit);
     final globalAccountsLimit = _getFeedGlobalAccountsDistribution(totalLimit: limit);
@@ -99,30 +131,18 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     final forYouOverflowedLimit =
         await _getFeedForYouOverflowedDistribution(forYouLimit: forYouLimit);
 
-    // Concurrently fetching followed users, global accounts and interested events.
-    // The "for you" (interested) events have an overflow multiplier to fetch more events
-    // in the initial request, so that we have more chances to fill the viewport.
-    final initialFetchStream = StreamGroup.merge([
+    yield* StreamGroup.merge([
       _fetchUnseenFollowing(limit: followingLimit),
       _fetchUnseenGlobalAccounts(limit: globalAccountsLimit),
       _fetchForYou(limit: forYouOverflowedLimit),
     ]);
+  }
 
-    await for (final entity in initialFetchStream) {
-      yield entity;
-      fetchedEvents++;
-    }
-
-    Logger.info(
-      '$_logTag Initial request is done, found [$fetchedEvents] events',
-    );
-
-    // Fetching more "for you" events to fill the viewport if we didn't manage to fetch enough
-    if (fetchedEvents < limit) {
-      yield* _fetchForYou(limit: limit - fetchedEvents);
-    }
-
-    Logger.info('$_logTag Done requesting events');
+  /// Fetching more "for you" events to fill the viewport,
+  /// if we didn't manage to fetch enough data.
+  Stream<IonConnectEntity> _fetchFillPageData({required int limit}) {
+    Logger.info('$_logTag Requesting additional [$limit] interested events to fill the viewport');
+    return _fetchForYou(limit: limit);
   }
 
   Stream<IonConnectEntity> _fetchUnseenFollowing({required int limit}) async* {
@@ -166,7 +186,10 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }
 
   Stream<IonConnectEntity> _fetchForYou({required int limit}) async* {
-    if (state.forYouRetryLimitReached) return;
+    if (state.forYouRetryLimitReached) {
+      Logger.info('$_logTag Retry limit reached, skipping interested events fetch');
+      return;
+    }
 
     Logger.info('$_logTag Requesting [$limit] interested events');
 
@@ -677,13 +700,22 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     };
   }
 
-  Future<Map<String, List<List<String>>>> _buildLangFilterTags() async {
+  Future<List<String>> _getContentLanguages() async {
     final contentLanguages = await ref.read(contentLanguageWatchProvider.future);
-    if (contentLanguages == null || contentLanguages.hashtags.isEmpty) {
-      return {};
-    }
-    final label =
-        EntityLabel(values: contentLanguages.hashtags, namespace: EntityLabelNamespace.language);
+    return {
+      if (contentLanguages != null) ...contentLanguages.hashtags,
+      if (state.englishContentFallbackEnabled) 'en',
+    }.toList();
+  }
+
+  Future<bool> _hasEnglishContentLanguage() async {
+    final contentLanguages = await _getContentLanguages();
+    return contentLanguages.contains('en');
+  }
+
+  Future<Map<String, List<List<String>>>> _buildLangFilterTags() async {
+    final contentLanguages = await _getContentLanguages();
+    final label = EntityLabel(values: contentLanguages, namespace: EntityLabelNamespace.language);
     return label.toFilterTags();
   }
 
@@ -691,6 +723,17 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     if (state.items == null) {
       state = state.copyWith(items: const {});
     }
+  }
+
+  /// Enables the English content fallback mechanism that is used
+  /// when there is not enough content in the user's defined content languages.
+  void _enableEnglishContentAndResetPagination() {
+    Logger.info('$_logTag Enabling English content fallback and resetting the pagination state');
+    state = state.copyWith(
+      englishContentFallbackEnabled: true,
+      forYouRetryLimitReached: false,
+      modifiersPagination: {},
+    );
   }
 
   /// Determines which interests should be used for the given modifier and feed type.
@@ -725,6 +768,7 @@ class FeedForYouContentState with _$FeedForYouContentState implements PagedState
     required Set<IonConnectEntity>? items,
     required Map<FeedModifier, Map<String, RelayPagination>> modifiersPagination,
     required bool forYouRetryLimitReached,
+    required bool englishContentFallbackEnabled,
     required bool hasMoreFollowing,
     required bool isLoading,
   }) = _FeedForYouContentState;

@@ -56,6 +56,7 @@ FeedForYouContentState _stateWith(List<ModifiablePostEntity> posts) => FeedForYo
       forYouRetryLimitReached: false,
       hasMoreFollowing: false,
       isLoading: false,
+      englishContentFallbackEnabled: false,
     );
 
 ProviderContainer _containerWith(List<ModifiablePostEntity> posts) {
