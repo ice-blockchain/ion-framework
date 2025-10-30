@@ -29,6 +29,8 @@ class ChatAdvancedSearchAll extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     useAutomaticKeepAlive();
 
+    final debouncedQuery = useDebounced(query, const Duration(milliseconds: 300)) ?? '';
+
     final env = ref.read(envProvider.notifier);
     final expirationDuration = Duration(
       minutes: env.get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES),
@@ -36,12 +38,12 @@ class ChatAdvancedSearchAll extends HookConsumerWidget {
 
     final remoteUserSearch = ref.watch(
       searchUsersProvider(
-        query: query,
+        query: debouncedQuery,
         expirationDuration: expirationDuration,
       ),
     );
-    final localUserSearch = ref.watch(chatLocalUserSearchProvider(query));
-    final localMessageSearch = ref.watch(chatMessagesSearchProvider(query));
+    final localUserSearch = ref.watch(chatLocalUserSearchProvider(debouncedQuery));
+    final localMessageSearch = ref.watch(chatMessagesSearchProvider(debouncedQuery));
 
     final hasMore = remoteUserSearch.valueOrNull?.hasMore ?? true;
 
@@ -97,21 +99,22 @@ class ChatAdvancedSearchAll extends HookConsumerWidget {
           ref
               .read(
                 searchUsersProvider(
-                  query: query,
+                  query: debouncedQuery,
                   expirationDuration: expirationDuration,
                 ).notifier,
               )
               .refresh(),
         );
         ref
-          ..invalidate(chatLocalUserSearchProvider(query))
-          ..invalidate(chatMessagesSearchProvider(query));
+          ..invalidate(chatLocalUserSearchProvider(debouncedQuery))
+          ..invalidate(chatMessagesSearchProvider(debouncedQuery));
       },
       builder: (context, slivers) => LoadMoreBuilder(
         slivers: slivers,
         onLoadMore: ref
             .read(
-              searchUsersProvider(query: query, expirationDuration: expirationDuration).notifier,
+              searchUsersProvider(query: debouncedQuery, expirationDuration: expirationDuration)
+                  .notifier,
             )
             .loadMore,
         hasMore: remoteUserSearch.valueOrNull?.hasMore ?? false,

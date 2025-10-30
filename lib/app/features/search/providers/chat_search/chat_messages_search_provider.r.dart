@@ -13,9 +13,21 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chat_messages_search_provider.r.g.dart';
 
+final chatSearchCacheProvider = StateProvider<Map<String, List<ChatSearchResultItem>>>((ref) {
+  return {};
+});
+
 @riverpod
-Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) async {
+Future<List<ChatSearchResultItem>?> chatMessagesSearch(
+  Ref ref,
+  String query,
+) async {
   if (query.isEmpty) return null;
+
+  final cachedResults = ref.watch(chatSearchCacheProvider);
+  if (cachedResults.containsKey(query)) {
+    return cachedResults[query];
+  }
 
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
   if (currentUserMasterPubkey == null) return null;
@@ -28,17 +40,40 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) as
 
   final entities = searchResults.map(ReplaceablePrivateDirectMessageEntity.fromEventMessage);
 
+  final messages = entities.sortedBy((entity) => entity.createdAt.toDateTime).reversed;
+
+  final receiverMasterPubkeys = messages
+      .map(
+        (message) => message.allPubkeys.firstWhereOrNull(
+          (key) => key != currentUserMasterPubkey,
+        ),
+      )
+      .nonNulls
+      .toSet();
+
+  final metadataExpiration =
+      ref.read(envProvider.notifier).get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES);
+
+  await Future.wait(
+    [
+      for (final pubkey in receiverMasterPubkeys)
+        ref.watch(
+          userPreviewDataProvider(
+            pubkey,
+            expirationDuration: Duration(minutes: metadataExpiration),
+          ).future,
+        ),
+    ],
+  );
+
   final result = <ChatSearchResultItem>[];
 
-  for (final message in entities.sortedBy((entity) => entity.createdAt.toDateTime).reversed) {
+  for (final message in messages) {
     final receiverMasterPubkey = message.allPubkeys.firstWhereOrNull(
       (key) => key != currentUserMasterPubkey,
     );
 
     if (receiverMasterPubkey == null) continue;
-
-    final metadataExpiration =
-        ref.read(envProvider.notifier).get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES);
 
     final userPreviewData = ref
         .watch(
@@ -59,5 +94,6 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) as
     );
   }
 
+  ref.read(chatSearchCacheProvider.notifier).update((state) => {...state, query: result});
   return result;
 }

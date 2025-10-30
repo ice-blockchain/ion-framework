@@ -14,7 +14,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'chat_local_user_search_provider.r.g.dart';
 
 @riverpod
-Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) async {
+Future<List<ChatSearchResultItem>?> chatLocalUserSearch(
+  Ref ref,
+  String query,
+) async {
   if (query.isEmpty) return null;
 
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
@@ -35,6 +38,28 @@ Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) a
       .toList()
     ..sortBy((message) => message.createdAt.toDateTime);
 
+  final receiverMasterPubkeys = lastConversationEntities.reversed
+      .map(
+        (message) => message.allPubkeys.firstWhereOrNull(
+          (key) => key != currentUserMasterPubkey,
+        ),
+      )
+      .nonNulls
+      .toSet();
+  final metadataExpiration =
+      ref.read(envProvider.notifier).get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES);
+
+  final userPreviews = await Future.wait(
+    [
+      for (final pubkey in receiverMasterPubkeys)
+        ref.watch(
+          userPreviewDataProvider(
+            pubkey,
+            expirationDuration: Duration(minutes: metadataExpiration),
+          ).future,
+        ),
+    ],
+  );
   final result = <ChatSearchResultItem>[];
 
   for (final message in lastConversationEntities.reversed) {
@@ -44,14 +69,8 @@ Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) a
 
     if (receiverMasterPubkey == null) continue;
 
-    final metadataExpiration =
-        ref.read(envProvider.notifier).get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES);
-
-    final userPreviewData = await ref.watch(
-      userPreviewDataProvider(
-        receiverMasterPubkey,
-        expirationDuration: Duration(minutes: metadataExpiration),
-      ).future,
+    final userPreviewData = userPreviews.firstWhereOrNull(
+      (userPreview) => userPreview?.masterPubkey == receiverMasterPubkey,
     );
 
     if (userPreviewData == null) continue;
