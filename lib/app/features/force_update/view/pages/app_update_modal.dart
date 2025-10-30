@@ -79,7 +79,7 @@ class AppUpdateModal extends HookConsumerWidget {
       useEffect(
         () {
           if (updateState == AndroidUpdateState.success ||
-              updateState == AndroidUpdateState.error) {
+              updateState == AndroidUpdateState.errorOrCancel) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (context.mounted) {
                 Navigator.of(context).maybePop();
@@ -182,7 +182,7 @@ class _AndroidUpdateButtonLabel extends StatelessWidget {
             strokeCap: StrokeCap.round,
           ),
         ),
-      AndroidUpdateState.success || AndroidUpdateState.error => const SizedBox.shrink(),
+      AndroidUpdateState.success || AndroidUpdateState.errorOrCancel => const SizedBox.shrink(),
       AndroidUpdateState.initial => Text(context.i18n.update_update_action),
     };
   }

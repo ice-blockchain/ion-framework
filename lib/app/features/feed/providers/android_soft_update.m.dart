@@ -14,7 +14,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'android_soft_update.m.freezed.dart';
 part 'android_soft_update.m.g.dart';
 
-enum AndroidUpdateState { initial, loading, success, error }
+enum AndroidUpdateState { initial, loading, success, errorOrCancel }
 
 @freezed
 class AndroidSoftUpdateState with _$AndroidSoftUpdateState {
@@ -97,20 +97,21 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
   Future<void> startFlexibleUpdate() async {
     try {
       state = state.copyWith(updateState: AndroidUpdateState.loading);
-
       final result = await _softUpdateService.startFlexibleUpdate();
-      if (result == AppUpdateResult.success) {
-        state = state.copyWith(
-          updateState: AndroidUpdateState.success,
-          isUpdateAvailable: false,
-        );
-      } else {
-        _openSiteWithDownloadLinks();
-        state = state.copyWith(updateState: AndroidUpdateState.error);
+
+      switch (result) {
+        case AppUpdateResult.success:
+          state = state.copyWith(
+            updateState: AndroidUpdateState.success,
+            isUpdateAvailable: false,
+          );
+        case AppUpdateResult.userDeniedUpdate:
+        case AppUpdateResult.inAppUpdateFailed:
+          state = state.copyWith(updateState: AndroidUpdateState.errorOrCancel);
       }
     } catch (e, st) {
       Logger.error(e, stackTrace: st, message: '$_tag: Failed to start flexible update');
-      state = state.copyWith(updateState: AndroidUpdateState.error);
+      state = state.copyWith(updateState: AndroidUpdateState.errorOrCancel);
     }
   }
 
@@ -118,18 +119,20 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
     try {
       state = state.copyWith(updateState: AndroidUpdateState.loading);
       final result = await _softUpdateService.performImmediateUpdate();
-      if (result == AppUpdateResult.success) {
-        state = state.copyWith(
-          updateState: AndroidUpdateState.success,
-          isUpdateAvailable: false,
-        );
-      } else {
-        _openSiteWithDownloadLinks();
-        state = state.copyWith(updateState: AndroidUpdateState.error);
+
+      switch (result) {
+        case AppUpdateResult.success:
+          state = state.copyWith(
+            updateState: AndroidUpdateState.success,
+            isUpdateAvailable: false,
+          );
+        case AppUpdateResult.userDeniedUpdate:
+        case AppUpdateResult.inAppUpdateFailed:
+          state = state.copyWith(updateState: AndroidUpdateState.errorOrCancel);
       }
     } catch (e, st) {
       Logger.error(e, stackTrace: st, message: '$_tag: Failed to start immediate update');
-      state = state.copyWith(updateState: AndroidUpdateState.error);
+      state = state.copyWith(updateState: AndroidUpdateState.errorOrCancel);
     }
   }
 
@@ -151,7 +154,7 @@ class AndroidSoftUpdate extends _$AndroidSoftUpdate {
         return AndroidUpdateState.success;
       case InstallStatus.failed:
       case InstallStatus.canceled:
-        return AndroidUpdateState.error;
+        return AndroidUpdateState.errorOrCancel;
       case InstallStatus.unknown:
       case InstallStatus.downloaded:
         return AndroidUpdateState.initial;
