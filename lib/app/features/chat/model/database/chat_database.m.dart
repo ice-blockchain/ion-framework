@@ -5,7 +5,6 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -30,7 +29,7 @@ import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
-import 'package:ion/app/utils/directory.dart';
+import 'package:ion/app/utils/database_isolate.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chat_database.m.g.dart';
@@ -92,25 +91,10 @@ class ChatDatabase extends _$ChatDatabase {
   int get schemaVersion => 4;
 
   static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
-    final databaseName = 'conversation_database_$pubkey';
-
-    if (appGroupId == null) {
-      return driftDatabase(
-        name: databaseName,
-        native: DriftNativeOptions(
-          setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
-        ),
-      );
-    }
-
-    return driftDatabase(
-      name: databaseName,
-      native: DriftNativeOptions(
-        databasePath: () async =>
-            getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroupId),
-        shareAcrossIsolates: true,
-        setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
-      ),
+    return createDatabaseExecutorWithManualIsolate(
+      databaseName: 'conversation_database_$pubkey',
+      appGroupId: appGroupId,
+      setupCallback: (database) => database.execute(DatabaseConstants.journalModeWAL),
     );
   }
 
