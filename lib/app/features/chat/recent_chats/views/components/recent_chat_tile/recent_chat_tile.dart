@@ -204,6 +204,7 @@ class EncryptedDirectChatTile extends HookConsumerWidget {
                                 MessageMetadata(
                                   displayTime: false,
                                   displayEdited: false,
+                                  updateCachedObjects: false,
                                   eventMessage: lastMessage,
                                   deliveryStatusIconSize: 16.0.s,
                                 ),
@@ -312,8 +313,8 @@ class EncryptedGroupChatTile extends HookConsumerWidget {
                     Avatar(
                       size: 48.0.s,
                       defaultAvatar: Container(
-                        width: 40.0.s,
-                        height: 40.0.s,
+                        width: 48.0.s,
+                        height: 48.0.s,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: context.theme.appColors.onTertiaryFill,
@@ -375,6 +376,7 @@ class EncryptedGroupChatTile extends HookConsumerWidget {
                                 MessageMetadata(
                                   displayTime: false,
                                   displayEdited: false,
+                                  updateCachedObjects: false,
                                   eventMessage: lastMessage,
                                   deliveryStatusIconSize: 16.0.s,
                                 ),
