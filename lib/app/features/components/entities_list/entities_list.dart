@@ -29,6 +29,7 @@ class EntitiesList extends HookWidget {
     this.readFromDB = false,
     this.showMuted = false,
     this.showNotInterested = true,
+    this.plainInlineStyles = false,
     super.key,
   });
 
@@ -39,6 +40,7 @@ class EntitiesList extends HookWidget {
   final bool readFromDB;
   final bool showMuted;
   final bool showNotInterested;
+  final bool plainInlineStyles;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +61,7 @@ class EntitiesList extends HookWidget {
                 readFromDB: readFromDB,
                 showMuted: showMuted,
                 showNotInterested: showNotInterested,
+                plainInlineStyles: plainInlineStyles,
               ),
             IonEntityListItem() => const SizedBox.shrink()
           };
@@ -76,6 +79,7 @@ class _EntityListItem extends ConsumerWidget {
     required this.showMuted,
     required this.showNotInterested,
     this.onVideoTap,
+    this.plainInlineStyles = false,
     double? separatorHeight,
     super.key,
   }) : separatorHeight = separatorHeight ?? 4.0.s;
@@ -87,6 +91,7 @@ class _EntityListItem extends ConsumerWidget {
   final OnVideoTapCallback? onVideoTap;
   final bool showMuted;
   final bool showNotInterested;
+  final bool plainInlineStyles;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -116,6 +121,7 @@ class _EntityListItem extends ConsumerWidget {
             eventReference: entity.toEventReference(),
             displayParent: displayParent,
             onVideoTap: onVideoTap,
+            plainInlineStyles: plainInlineStyles,
           ),
         final ArticleEntity article => ArticleListItem(
             article: article,
