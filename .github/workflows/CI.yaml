@@ -72,6 +72,10 @@ jobs:
           ./scripts/generate_locales.sh &
           ./scripts/generate_code.sh &
           wait
+      - name: Verify localization
+        run: |
+          cd main-repo
+          ./scripts/verify_locales.sh --strict
       - name: Analyze code
         id: analyze-code
         run: |
