@@ -34,6 +34,7 @@ class NsfwModelManager {
     final modelPath = '${directory.path}/$_modelFileName';
     final file = File(modelPath);
     if (file.existsSync()) {
+      _cachedModelPath = modelPath;
       return modelPath;
     }
 
