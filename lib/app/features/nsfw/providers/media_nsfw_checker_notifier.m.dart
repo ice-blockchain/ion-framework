@@ -34,25 +34,18 @@ class MediaNsfwCheckerNotifier extends _$MediaNsfwCheckerNotifier {
   }
 
   Future<void> checkMediaForNsfw(List<MediaFile> mediaFiles) async {
-    // 1. Remove all NSFW files from previous checks
-    final previousSafeResults =
-        Map.fromEntries(state.nsfwResults.entries.where((entry) => entry.value != true));
-
-    // 2. Add all new files to the pending state, and keep the rest as is
-    final checkStateWithPending = <String, bool?>{...previousSafeResults};
+    // 1. Make a new list containing only the requested media files, keeping values from previous checks if they exist
+    // to prevent one more redundant extra check for the same file.
+    final previousResults = state.nsfwResults;
+    final currentResults = <String, bool?>{};
     for (final mediaFile in mediaFiles) {
       final path = mediaFile.path;
-      if (checkStateWithPending.containsKey(path)) {
-        continue;
-      }
-      checkStateWithPending[path] = null;
+      currentResults[path] = previousResults[path]; // NSFW result or null
     }
+    state = state.copyWith(nsfwResults: currentResults);
 
-    // 3. Create new state with new pending checks added
-    state = state.copyWith(nsfwResults: checkStateWithPending);
-
-    // 4. Get list of files that need checking (paths with null value)
-    final needToCheckPaths = checkStateWithPending.entries
+    // 2. Get list of file paths that need checking (paths with null value)
+    final needToCheckPaths = currentResults.entries
         .where((entry) => entry.value == null)
         .map((entry) => entry.key)
         .toList();
@@ -61,22 +54,18 @@ class MediaNsfwCheckerNotifier extends _$MediaNsfwCheckerNotifier {
       return;
     }
 
-    // 5. Filter original mediaFiles to only those needing check
+    // 3. Filter original mediaFiles to only those needing check
     final needToCheckMediaFiles =
         mediaFiles.where((file) => needToCheckPaths.contains(file.path)).toList();
 
     final nsfwValidationService = await ref.read(nsfwValidationServiceProvider.future);
     final nsfwCheckResults = await nsfwValidationService.hasNsfwInMediaFiles(needToCheckMediaFiles);
 
-    // 6. Update the state with the new checks results
-    final updatedResults = <String, bool?>{...state.nsfwResults};
-    for (final path in needToCheckPaths) {
-      if (nsfwCheckResults.containsKey(path)) {
-        updatedResults[path] = nsfwCheckResults[path];
-      }
-      // If result is missing, keep as null (pending/failed) - don't default to false
+    // 4. Update the current results with the new checks results
+    for (final nsfwCheckResult in nsfwCheckResults.entries) {
+      currentResults[nsfwCheckResult.key] = nsfwCheckResult.value;
     }
-    state = state.copyWith(nsfwResults: updatedResults);
+    state = state.copyWith(nsfwResults: currentResults);
   }
 
   Future<bool> getFinalNsfwResult() async {
