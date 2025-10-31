@@ -21,41 +21,28 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(
   Ref ref,
   String query,
 ) async {
-  final stopwatch = Stopwatch()..start();
-  print("QWERTY [SEARCH START] query: $query");
-
   if (query.isEmpty) return null;
 
   final cachedResults = ref.watch(chatSearchCacheProvider);
   if (cachedResults.containsKey(query)) {
-    print("QWERTY [CACHE HIT] took: ${stopwatch.elapsedMilliseconds}ms");
     return cachedResults[query];
   }
-  print("QWERTY [CACHE MISS] took: ${stopwatch.elapsedMilliseconds}ms");
 
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
   if (currentUserMasterPubkey == null) return null;
 
   final caseInsensitiveQuery = query.toLowerCase();
-  print("QWERTY [AFTER SETUP] took: ${stopwatch.elapsedMilliseconds}ms");
 
   final eventMessageDao = ref.watch(eventMessageDaoProvider);
 
-  final dbStopwatch = Stopwatch()..start();
   final searchResults = await eventMessageDao.search(caseInsensitiveQuery);
-  dbStopwatch.stop();
-  print("QWERTY [DB SEARCH] found ${searchResults.length} messages, took: ${dbStopwatch.elapsedMilliseconds}ms, total: ${stopwatch.elapsedMilliseconds}ms");
 
-  final entityStopwatch = Stopwatch()..start();
   final entities = searchResults.map(ReplaceablePrivateDirectMessageEntity.fromEventMessage);
 
   // Database already returns results sorted by createdAt DESC, no need to sort again
   final messages = entities.toList();
-  entityStopwatch.stop();
-  print("QWERTY [ENTITY MAPPING] ${messages.length} messages, took: ${entityStopwatch.elapsedMilliseconds}ms, total: ${stopwatch.elapsedMilliseconds}ms");
 
   // Extract unique receiver pubkeys and filter out nulls early
-  final pubkeyStopwatch = Stopwatch()..start();
   final receiverMasterPubkeys = <String>{};
   final messagePubkeyMap = <ReplaceablePrivateDirectMessageEntity, String>{};
 
@@ -68,12 +55,9 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(
       messagePubkeyMap[message] = receiverMasterPubkey;
     }
   }
-  pubkeyStopwatch.stop();
-  print("QWERTY [PUBKEY EXTRACTION] ${receiverMasterPubkeys.length} unique pubkeys, took: ${pubkeyStopwatch.elapsedMilliseconds}ms, total: ${stopwatch.elapsedMilliseconds}ms");
 
   if (receiverMasterPubkeys.isEmpty) {
     ref.read(chatSearchCacheProvider.notifier).update((state) => {...state, query: []});
-    print("QWERTY [EMPTY RESULT] took: ${stopwatch.elapsedMilliseconds}ms");
     return [];
   }
 
@@ -81,7 +65,6 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(
       ref.read(envProvider.notifier).get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES);
 
   // Load all user preview data upfront and cache in a map
-  final userDataStopwatch = Stopwatch()..start();
   final userPreviewDataFutures = receiverMasterPubkeys.map(
     (pubkey) => ref
         .watch(
@@ -94,17 +77,13 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(
   );
 
   final userPreviewDataEntries = await Future.wait(userPreviewDataFutures);
-  userDataStopwatch.stop();
-  print("QWERTY [USER DATA LOAD] ${receiverMasterPubkeys.length} users, took: ${userDataStopwatch.elapsedMilliseconds}ms, total: ${stopwatch.elapsedMilliseconds}ms");
 
   final userPreviewDataMap = {
     for (final entry in userPreviewDataEntries)
       if (entry.value != null) entry.key: entry.value!,
   };
-  print("QWERTY [USER DATA MAP] ${userPreviewDataMap.length} valid users, total: ${stopwatch.elapsedMilliseconds}ms");
 
   // Build results using cached user preview data
-  final resultStopwatch = Stopwatch()..start();
   final result = <ChatSearchResultItem>[];
 
   for (final message in messages) {
@@ -121,11 +100,7 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(
       ),
     );
   }
-  resultStopwatch.stop();
-  print("QWERTY [RESULT BUILD] ${result.length} results, took: ${resultStopwatch.elapsedMilliseconds}ms, total: ${stopwatch.elapsedMilliseconds}ms");
 
   ref.read(chatSearchCacheProvider.notifier).update((state) => {...state, query: result});
-  stopwatch.stop();
-  print("QWERTY [SEARCH COMPLETE] ${result.length} results, total time: ${stopwatch.elapsedMilliseconds}ms");
   return result;
 }

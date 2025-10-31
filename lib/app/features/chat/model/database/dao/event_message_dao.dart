@@ -39,12 +39,8 @@ class EventMessageDao extends DatabaseAccessor<ChatDatabase> with _$EventMessage
   }
 
   Future<List<EventMessage>> search(String query) async {
-    final stopwatch = Stopwatch()..start();
-    print("QWERTY [DB SEARCH START] query: $query");
-
     if (query.isEmpty) return [];
 
-    final queryBuildStopwatch = Stopwatch()..start();
     final queryBuilder = select(db.eventMessageTable).join([
       innerJoin(
         db.conversationMessageTable,
@@ -65,24 +61,12 @@ class EventMessageDao extends DatabaseAccessor<ChatDatabase> with _$EventMessage
       )
       ..orderBy([OrderingTerm.desc(db.eventMessageTable.createdAt)])
       ..limit(100);
-    queryBuildStopwatch.stop();
-    print("QWERTY [DB QUERY BUILD] took: ${queryBuildStopwatch.elapsedMilliseconds}ms");
 
-    final executeStopwatch = Stopwatch()..start();
     final searchResults = await queryBuilder.get();
-    executeStopwatch.stop();
-    print(
-        "QWERTY [DB QUERY EXECUTE] returned ${searchResults.length} rows, took: ${executeStopwatch.elapsedMilliseconds}ms");
 
-    final mapStopwatch = Stopwatch()..start();
-    final result =
-        searchResults.map((row) => row.readTable(db.eventMessageTable).toEventMessage()).toList();
-    mapStopwatch.stop();
-    stopwatch.stop();
-    print(
-        "QWERTY [DB RESULT MAPPING] ${result.length} messages, took: ${mapStopwatch.elapsedMilliseconds}ms, total: ${stopwatch.elapsedMilliseconds}ms");
-
-    return result;
+    return searchResults
+        .map((row) => row.readTable(db.eventMessageTable).toEventMessage())
+        .toList();
   }
 
   Future<EventMessage> getByReference(EventReference eventReference) async {
