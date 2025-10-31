@@ -24,6 +24,8 @@ class MediaNsfwState with _$MediaNsfwState {
 
 @riverpod
 class MediaNsfwCheckerNotifier extends _$MediaNsfwCheckerNotifier {
+  int _runVersion = 0;
+
   @override
   MediaNsfwState build() {
     return const MediaNsfwState();
@@ -34,6 +36,8 @@ class MediaNsfwCheckerNotifier extends _$MediaNsfwCheckerNotifier {
   }
 
   Future<void> checkMediaForNsfw(List<MediaFile> mediaFiles) async {
+    final runId = ++_runVersion;
+
     // 1. Make a new list containing only the requested media files, keeping values from previous checks if they exist
     // to prevent one more redundant extra check for the same file.
     final previousResults = state.nsfwResults;
@@ -60,6 +64,10 @@ class MediaNsfwCheckerNotifier extends _$MediaNsfwCheckerNotifier {
 
     final nsfwValidationService = await ref.read(nsfwValidationServiceProvider.future);
     final nsfwCheckResults = await nsfwValidationService.hasNsfwInMediaFiles(needToCheckMediaFiles);
+
+    if (runId != _runVersion) {
+      return;
+    }
 
     // 4. Update the current results with the new checks results
     for (final nsfwCheckResult in nsfwCheckResults.entries) {
