@@ -23,7 +23,7 @@ class EncryptedBlockedUserHandler extends GlobalSubscriptionEncryptedEventMessag
 
   @override
   bool canHandle({required IonConnectGiftWrapEntity entity}) {
-    return entity.data.kinds.containsDeep([
+    return entity.data.kinds.containsList([
       BlockedUserEntity.kind.toString(),
     ]);
   }

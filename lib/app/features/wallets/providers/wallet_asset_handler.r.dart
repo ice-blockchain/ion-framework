@@ -36,7 +36,7 @@ class WalletAssetHandler extends GlobalSubscriptionEncryptedEventMessageHandler 
 
   @override
   bool canHandle({required IonConnectGiftWrapEntity entity}) {
-    return entity.data.kinds.containsDeep([WalletAssetEntity.kind.toString()]);
+    return entity.data.kinds.containsList([WalletAssetEntity.kind.toString()]);
   }
 
   @override

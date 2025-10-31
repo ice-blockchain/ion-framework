@@ -53,7 +53,7 @@ class EncryptedDeletionRequestHandler extends GlobalSubscriptionEncryptedEventMe
 
   @override
   bool canHandle({required IonConnectGiftWrapEntity entity}) =>
-      entity.data.kinds.containsDeep([DeletionRequestEntity.kind.toString()]);
+      entity.data.kinds.containsList([DeletionRequestEntity.kind.toString()]);
 
   @override
   Future<EventReference> handle(EventMessage rumor) async {
