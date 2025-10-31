@@ -23,6 +23,7 @@ class PostContent extends HookConsumerWidget {
     this.accentTheme = false,
     this.isTextSelectable = false,
     this.maxLines = 4,
+    this.plainInlineStyles = false,
     super.key,
   });
 
@@ -31,6 +32,7 @@ class PostContent extends HookConsumerWidget {
   final bool isTextSelectable;
   final int? maxLines;
   final Delta? content;
+  final bool plainInlineStyles;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -69,6 +71,7 @@ class PostContent extends HookConsumerWidget {
                   : null,
               enableInteractiveSelection: isTextSelectable,
               tagsColor: accentTheme ? context.theme.appColors.anakiwa : null,
+              ignoreInlineBoldItalic: plainInlineStyles,
             ),
             if (hasOverflow && maxLines != null)
               GestureDetector(
