@@ -123,7 +123,7 @@ class ProfileContextMenu extends HookConsumerWidget {
             SettingsRoute().push<void>(context);
           },
         ),
-      ].intersperse(const ContextMenuItemDivider());
+      ].separated(const ContextMenuItemDivider());
     } else {
       final isMuted = ref.watch(isUserMutedProvider(pubkey));
       return [
@@ -151,7 +151,7 @@ class ProfileContextMenu extends HookConsumerWidget {
                 );
           },
         ),
-      ].intersperse(const ContextMenuItemDivider());
+      ].separated(const ContextMenuItemDivider());
     }
   }
 }

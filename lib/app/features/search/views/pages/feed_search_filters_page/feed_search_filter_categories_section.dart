@@ -50,7 +50,7 @@ class FeedSearchFilterCategoriesSection extends StatelessWidget {
             backgroundColor: context.theme.appColors.secondaryBackground,
             contentPadding: EdgeInsets.zero,
           );
-        }).intersperse(const HorizontalSeparator()),
+        }).separated(const HorizontalSeparator()),
       ],
     );
   }
