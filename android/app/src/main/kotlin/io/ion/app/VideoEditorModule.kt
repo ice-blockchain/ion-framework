@@ -22,7 +22,6 @@ import com.banuba.sdk.core.VideoResolution
 import com.banuba.sdk.ve.effects.Effects
 import com.banuba.sdk.ve.domain.VideoRangeList
 import com.banuba.sdk.ve.effects.music.MusicEffect
-import com.banuba.sdk.gallery.di.GalleryKoinModule
 import com.banuba.sdk.playback.di.VePlaybackSdkKoinModule
 import com.banuba.sdk.ve.data.EditorAspectSettings
 import com.banuba.sdk.ve.di.VeSdkKoinModule
@@ -65,7 +64,6 @@ class VideoEditorModule {
                     VeUiSdkKoinModule().module,
                     VeFlowKoinModule().module,
                     BanubaEffectPlayerKoinModule().module,
-                    GalleryKoinModule().module,
 
                     // Sample integration module
                     SampleIntegrationVeKoinModule(
