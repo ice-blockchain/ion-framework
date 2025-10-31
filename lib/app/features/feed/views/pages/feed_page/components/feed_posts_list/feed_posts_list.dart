@@ -47,6 +47,7 @@ class FeedPostsList extends HookConsumerWidget {
           framedEventReference: framedEventReference,
         ).push<void>(context);
       },
+      plainInlineStyles: true,
     );
   }
 

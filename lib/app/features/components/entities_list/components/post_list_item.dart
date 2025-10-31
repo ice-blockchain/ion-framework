@@ -13,6 +13,7 @@ class PostListItem extends StatelessWidget {
     this.displayParent = false,
     this.showNotInterested = true,
     this.onVideoTap,
+    this.plainInlineStyles = false,
     super.key,
   });
 
@@ -23,6 +24,8 @@ class PostListItem extends StatelessWidget {
   final OnVideoTapCallback? onVideoTap;
 
   final bool showNotInterested;
+
+  final bool plainInlineStyles;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +41,7 @@ class PostListItem extends StatelessWidget {
         onVideoTap: onVideoTap,
         headerOffset: 12.0.s,
         network: false,
-        plainInlineStyles: true,
+        plainInlineStyles: plainInlineStyles,
       ),
     );
   }
