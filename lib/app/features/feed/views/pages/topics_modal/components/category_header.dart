@@ -6,12 +6,10 @@ import 'package:ion/app/extensions/extensions.dart';
 class CategoryHeader extends StatelessWidget {
   const CategoryHeader({
     required this.categoryName,
-    required this.addTopPadding,
     super.key,
   });
 
   final String categoryName;
-  final bool addTopPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +17,7 @@ class CategoryHeader extends StatelessWidget {
       padding: EdgeInsetsDirectional.only(
         start: 16.s,
         end: 25.s,
-        top: addTopPadding ? 16.s : 2.s,
+        top: 20.s,
         bottom: 6.s,
       ),
       child: Text(
