@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/card/info_card.dart';
+import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
+import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/constants/links.dart';
@@ -45,6 +47,8 @@ class ShowInAppUpdateModalEvent extends UiEvent {
 
   @override
   void performAction(BuildContext context) {
+    final ref = ProviderScope.containerOf(context);
+
     if (!shown) {
       shown = true;
       showSimpleBottomSheet<void>(
@@ -53,6 +57,19 @@ class ShowInAppUpdateModalEvent extends UiEvent {
           appUpdateType: AppUpdateType.androidSoftUpdate,
           onPressedClose: () => context.pop(),
         ),
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) {
+            final currentState = ref.read(androidSoftUpdateProvider);
+            if (currentState.updateState == AndroidUpdateState.loading) {
+              ref.read(messageNotificationNotifierProvider.notifier).show(
+                    MessageNotification(
+                      message: context.i18n.update_inapp_notification_loading,
+                      icon: null,
+                    ),
+                  );
+            }
+          }
+        },
       ).then((_) => shown = false);
     }
   }
