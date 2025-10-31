@@ -33,7 +33,7 @@ class ConversationPage extends HookConsumerWidget {
             return GroupMessagesPage(conversationId: conversationId!);
           case ConversationType.community:
             return ChannelMessagingPage(communityId: conversationId!);
-          case ConversationType.oneToOne:
+          case ConversationType.direct:
             return OneToOneMessagesPage(
               receiverMasterPubkey: receiverMasterPubkey!,
             );

@@ -19,7 +19,7 @@ String? useCombinedConversationNames(
 
       final names = <String>[];
       for (final conversation in conversations) {
-        if (conversation.type == ConversationType.oneToOne) {
+        if (conversation.type == ConversationType.direct) {
           final latestMessageEntity =
               ReplaceablePrivateDirectMessageData.fromEventMessage(conversation.latestMessage!);
 

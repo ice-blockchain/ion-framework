@@ -19,6 +19,7 @@ class MessageMetadata extends HookConsumerWidget {
     required this.eventMessage,
     this.displayTime = true,
     this.displayEdited = true,
+    this.updateCachedObjects = true,
     super.key,
     this.startPadding,
     this.deliveryStatusIconSize,
@@ -26,6 +27,7 @@ class MessageMetadata extends HookConsumerWidget {
 
   final bool displayTime;
   final bool displayEdited;
+  final bool updateCachedObjects;
   final double? startPadding;
   final double? deliveryStatusIconSize;
   final EventMessage eventMessage;
@@ -51,7 +53,7 @@ class MessageMetadata extends HookConsumerWidget {
           messageStatusProvider(eventReference).select((value) {
             final status = value.valueOrNull;
 
-            if (status != null) {
+            if (status != null && updateCachedObjects) {
               ListCachedObjects.updateObject<MessageStatusWithKey>(
                 context,
                 (key: eventReference.toString(), status: status),
@@ -94,7 +96,7 @@ class MessageMetadata extends HookConsumerWidget {
                     : context.theme.appColors.quaternaryText,
               ),
             ),
-          if (isMe)
+          if (isMe && entity.data.groupSubject == null)
             Padding(
               padding: EdgeInsetsDirectional.only(start: 2.0.s),
               child: deliveryStatus == MessageDeliveryStatus.created

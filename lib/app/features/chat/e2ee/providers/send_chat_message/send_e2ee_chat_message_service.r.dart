@@ -58,31 +58,33 @@ class SendE2eeChatMessageService {
     required String content,
     required String conversationId,
     required List<String> participantsMasterPubkeys,
+    bool isGroupMessage = false,
     int? kind,
     List<List<String>>? tags,
-    String? subject,
+    String? groupName,
+    String? quotedEventKind,
     EventMessage? editedMessage,
     EventMessage? repliedMessage,
     EventMessage? failedEventMessage,
-    List<String>? groupImageTag,
     QuotedImmutableEvent? quotedEvent,
-    String? quotedEventKind,
     List<MediaFile> mediaFiles = const [],
     Map<String, List<String>>? failedParticipantsMasterPubkeys,
   }) async {
+    EventMessage? sentMessage;
+    ReplaceableEventReference? eventReference;
+
     final trimmedContent = content.trim();
 
     final preparedMediaFiles =
         mediaFiles.map((e) => e.copyWith(originalMimeType: e.mimeType)).toList();
 
-    EventMessage? sentMessage;
-
+    // Shared ID is used to identify the message across edits and retries
     final sharedId = editedMessage?.sharedId ?? failedEventMessage?.sharedId ?? generateUuid();
-    ReplaceableEventReference? eventReference;
 
-    final editedMessageEntity = editedMessage != null
+    final editedMessageEntityData = editedMessage != null
         ? ReplaceablePrivateDirectMessageData.fromEventMessage(editedMessage)
         : null;
+
     final participantsPubkeysMap = failedParticipantsMasterPubkeys ??
         await ref
             .read(conversationPubkeysProvider.notifier)
@@ -92,9 +94,10 @@ class SendE2eeChatMessageService {
     final randomCreatedAt = randomDateBefore();
 
     try {
-      final publishedAt = editedMessageEntity?.publishedAt ?? EntityPublishedAt(value: createdAt);
+      final publishedAt =
+          editedMessageEntityData?.publishedAt ?? EntityPublishedAt(value: createdAt);
 
-      final editingEndedAt = editedMessageEntity?.editingEndedAt ??
+      final editingEndedAt = editedMessageEntityData?.editingEndedAt ??
           EntityEditingEndedAt.build(
             ref.read(envProvider.notifier).get<int>(EnvVariable.EDIT_MESSAGE_ALLOWED_MINUTES),
           );
@@ -117,28 +120,44 @@ class SendE2eeChatMessageService {
           _getTagValue(ReplaceablePrivateDirectMessageData.paymentSentTagName, tags);
 
       final localEventMessageData = ReplaceablePrivateDirectMessageData(
-        content: trimmedContent,
-        paymentRequested: paymentRequested,
-        paymentSent: paymentSent,
+        // Message identifier to link edits and retries
         messageId: sharedId,
+        // Core text content with metadata stored in tags
+        content: trimmedContent,
+        // Original messages publication time
         publishedAt: publishedAt,
+        // Time when editing is no longer allowed
         editingEndedAt: editingEndedAt,
+        // Conversation where the message belongs (direct or group)
         conversationId: conversationId,
+        // Sender master public key
+        masterPubkey: currentUserMasterPubkey,
+        // Optional subject for group messages
+        groupSubject: groupName.isNotEmpty ? GroupSubject(groupName!) : null,
+        // All participants master public keys
+        relatedPubkeys: participantsMasterPubkeys
+            .map((masterPubkey) => RelatedPubkey(value: masterPubkey))
+            .toList(),
+        // Payment info
+        paymentSent: paymentSent,
+        paymentRequested: paymentRequested,
+        // Quoted event kind for replies and quotes
+        quotedEventKind: quotedEventKind,
+        // Quoted event data when replying or quoting
+        quotedEvent: quotedEvent ?? editedMessageEntityData?.quotedEvent,
+        // Related events (replies, edits)
+        relatedEvents:
+            editedMessageEntityData?.relatedEvents ?? _generateRelatedEvents(repliedMessage),
+        // Attached media files
         media: {
           for (final attachment in preparedMediaFiles.map(MediaAttachment.fromMediaFile))
             attachment.url: attachment,
         },
-        masterPubkey: currentUserMasterPubkey,
-        groupSubject: subject.isNotEmpty ? GroupSubject(subject!) : null,
-        relatedPubkeys:
-            participantsMasterPubkeys.map((pubkey) => RelatedPubkey(value: pubkey)).toList(),
-        quotedEvent: quotedEvent ?? editedMessageEntity?.quotedEvent,
-        quotedEventKind: quotedEventKind,
-        relatedEvents: editedMessageEntity?.relatedEvents ?? _generateRelatedEvents(repliedMessage),
       );
 
       eventReference = localEventMessageData.toReplaceableEventReference(currentUserMasterPubkey);
 
+      // Kind 30014 is not signed directly, but sealed and gift-wrapped later
       final localEventMessage = await localEventMessageData
           .toEventMessage(NoPrivateSigner(eventSigner.publicKey), createdAt: createdAt);
 
@@ -164,15 +183,13 @@ class SendE2eeChatMessageService {
         return a.compareTo(b);
       });
 
-      if (mediaAttachmentsUsersBased.isEmpty && trimmedContent.isEmpty && quotedEvent == null) {
-        await ref.read(eventMessageDaoProvider).deleteByEventReference(eventReference);
-        return sentMessage;
-      }
+      // Used only for direct messages
+      final receiverMasterPubkey = isGroupMessage
+          ? null
+          : participantsMasterPubkeys
+              .firstWhereOrNull((pubkey) => pubkey != currentUserMasterPubkey);
 
-      final receiverMasterPubkey =
-          participantsMasterPubkeys.firstWhere((pubkey) => pubkey != currentUserMasterPubkey);
-
-      final isBlockedByReceiver =
+      final isBlockedByReceiver = receiverMasterPubkey != null &&
           await ref.read(isBlockedByNotifierProvider(receiverMasterPubkey).future);
 
       await Future.wait(
@@ -195,18 +212,18 @@ class SendE2eeChatMessageService {
                 publishedAt: publishedAt,
                 editingEndedAt: editingEndedAt,
                 conversationId: conversationId,
-                groupSubject: subject.isNotEmpty ? GroupSubject(subject!) : null,
+                groupSubject: groupName.isNotEmpty ? GroupSubject(groupName!) : null,
                 media: {
                   for (final attachment in attachments) attachment.url: attachment,
                 },
                 masterPubkey: currentUserMasterPubkey,
-                quotedEvent: quotedEvent ?? editedMessageEntity?.quotedEvent,
+                quotedEvent: quotedEvent ?? editedMessageEntityData?.quotedEvent,
                 quotedEventKind: quotedEventKind,
                 relatedPubkeys: participantsMasterPubkeys
                     .map((pubkey) => RelatedPubkey(value: pubkey))
                     .toList(),
-                relatedEvents:
-                    editedMessageEntity?.relatedEvents ?? _generateRelatedEvents(repliedMessage),
+                relatedEvents: editedMessageEntityData?.relatedEvents ??
+                    _generateRelatedEvents(repliedMessage),
               ).toEventMessage(NoPrivateSigner(eventSigner.publicKey), createdAt: createdAt);
 
               if (!isBlockedByReceiver) {

@@ -14,7 +14,7 @@ Future<ConversationType> conversationType(
   String? receiverPubKey,
 ) async {
   if (receiverPubKey != null) {
-    return ConversationType.oneToOne;
+    return ConversationType.direct;
   }
 
   if (conversationId == null) {
