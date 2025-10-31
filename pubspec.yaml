@@ -171,7 +171,7 @@ dependencies:
   talker_dio_logger: 4.7.1
   talker_flutter: 4.7.1
   talker_riverpod_logger: 4.7.1
-  tflite_flutter: ^0.11.0
+  tflite_flutter: ^0.12.1
   timeago: ^3.6.1
   uri_to_file: ^1.0.0
   url_launcher: ^6.3.1
