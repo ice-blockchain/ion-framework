@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/balance/coin_usd_amount.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/receive_coins_form_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/balance/balance_actions.dart';
@@ -35,7 +36,11 @@ class Balance extends ConsumerWidget {
                 NetworkSelectReceiveRoute().push<void>(context);
               },
               onNeedToEnable2FA: () => SecureAccountModalRoute().push<void>(context),
-              onMore: () => WalletMainModalRoute().push<void>(context),
+              onMore: () {
+                ref.invalidate(sendAssetFormControllerProvider);
+                ref.read(sendAssetFormControllerProvider.notifier).setCoin(coinsGroup);
+                WalletMainModalRoute().push<void>(context);
+              },
             ),
           ),
         ],

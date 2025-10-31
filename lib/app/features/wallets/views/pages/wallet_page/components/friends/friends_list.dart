@@ -18,7 +18,7 @@ class FriendsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final showFriendsSection = ref.watch(shouldShowFriendsSectionProvider).valueOrNull ?? false;
+    final showFriendsSection = ref.watch(shouldShowFriendsListProvider);
     if (!showFriendsSection) {
       return const SizedBox.shrink();
     }

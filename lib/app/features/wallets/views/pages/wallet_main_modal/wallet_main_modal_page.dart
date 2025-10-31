@@ -10,6 +10,7 @@ import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
+import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_main_modal/wallet_main_modal_list_item.dart';
 import 'package:ion/app/hooks/use_on_receive_funds_flow.dart';
@@ -77,13 +78,20 @@ class WalletMainModalPage extends HookConsumerWidget {
             ),
           );
     }
+
+    final skipSelectCoinRoute = type == WalletMainModalListItem.send &&
+        ref.read(sendAssetFormControllerProvider).assetData is CoinAssetToSendData;
     ref.invalidate(sendAssetFormControllerProvider);
-    context.pushReplacement(_getSubRouteLocation(type));
+    context.pushReplacement(
+      _getSubRouteLocation(type, skipSelectCoinRoute: skipSelectCoinRoute),
+    );
   }
 
-  String _getSubRouteLocation(WalletMainModalListItem type) {
+  String _getSubRouteLocation(WalletMainModalListItem type, {bool skipSelectCoinRoute = false}) {
     return switch (type) {
-      WalletMainModalListItem.send => SelectCoinWalletRoute().location,
+      WalletMainModalListItem.send => skipSelectCoinRoute
+          ? SelectNetworkWalletRoute().location
+          : SelectCoinWalletRoute().location,
       WalletMainModalListItem.receive => ReceiveCoinRoute().location,
       WalletMainModalListItem.swap => '', // TODO: add swap route when the feature is implemented
     };
