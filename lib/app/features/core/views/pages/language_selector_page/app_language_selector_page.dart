@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/model/language.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
@@ -16,8 +17,6 @@ class AppLanguageSelectorPage extends HookConsumerWidget {
   const AppLanguageSelectorPage({
     required this.title,
     required this.description,
-    required this.selectedLanguages,
-    required this.toggleLanguageSelection,
     this.appBar,
     this.continueButton,
     this.preferredLanguages,
@@ -28,30 +27,35 @@ class AppLanguageSelectorPage extends HookConsumerWidget {
   final String description;
   final Widget? appBar;
   final Widget? continueButton;
-  final List<String> selectedLanguages;
   final List<Language>? preferredLanguages;
-  final void Function(String) toggleLanguageSelection;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Get preferred languages for app locale (includes app locale, system locale, and English)
-    final localePreferredLanguages = ref.watch(localePreferredLanguagesProvider);
+    // Capture preferred languages only once when screen is first built
+    // This prevents the list from re-sorting when the user selects a language
+    final localePreferredLanguages = useMemoized(
+      () => ref.read(localePreferredLanguagesProvider),
+      [], // Empty dependencies = only compute once
+    );
     final preferredLangs = preferredLanguages ?? localePreferredLanguages;
 
     // Filter to only show supported app languages
     final supportedLanguages = useSupportedLanguages(Language.values);
 
-    // Sort with preferred languages at the top
     final sortedLanguages = useSortedLanguages(
       languages: supportedLanguages,
       preferredLangs: preferredLangs,
     );
 
+    final locale = ref.watch(appLocaleProvider);
+
     return LanguageSelectorPage(
       title: title,
       description: description,
-      selectedLanguages: selectedLanguages,
-      toggleLanguageSelection: toggleLanguageSelection,
+      selectedLanguages: [locale.languageCode.toLowerCase()],
+      toggleLanguageSelection: (languageCode) {
+        ref.read(appLocaleProvider.notifier).locale = Locale(languageCode);
+      },
       languages: sortedLanguages,
       appBar: appBar,
       continueButton: continueButton,
