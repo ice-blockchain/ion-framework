@@ -24,24 +24,9 @@ class WalletMainModalPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    void onFlow(WalletMainModalListItem type) {
-      if (type == WalletMainModalListItem.swap) {
-        return ref.read(messageNotificationNotifierProvider.notifier).show(
-              MessageNotification(
-                message: context.i18n.wallet_swap_coming_soon,
-                icon: Assets.svg.iconBlockTime.icon(size: 16.0.s),
-              ),
-            );
-      }
-      ref.invalidate(sendAssetFormControllerProvider);
-      context.pushReplacement(_getSubRouteLocation(type));
-    }
-
     final onReceiveFlow = useOnReceiveFundsFlow(
-      onReceive: () => onFlow(WalletMainModalListItem.receive),
-      onNeedToEnable2FA: () {
-        context.pushReplacement(SecureAccountModalRoute().location);
-      },
+      onReceive: () => _onFlow(context, ref, WalletMainModalListItem.receive),
+      onNeedToEnable2FA: () => context.pushReplacement(SecureAccountModalRoute().location),
       ref: ref,
     );
 
@@ -66,7 +51,7 @@ class WalletMainModalPage extends HookConsumerWidget {
                     if (type == WalletMainModalListItem.receive) {
                       onReceiveFlow();
                     } else {
-                      onFlow(type);
+                      _onFlow(context, ref, type);
                     }
                   },
                   index: index,
@@ -77,6 +62,23 @@ class WalletMainModalPage extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _onFlow(
+    BuildContext context,
+    WidgetRef ref,
+    WalletMainModalListItem type,
+  ) {
+    if (type == WalletMainModalListItem.swap) {
+      return ref.read(messageNotificationNotifierProvider.notifier).show(
+            MessageNotification(
+              message: context.i18n.wallet_swap_coming_soon,
+              icon: Assets.svg.iconBlockTime.icon(size: 16.0.s),
+            ),
+          );
+    }
+    ref.invalidate(sendAssetFormControllerProvider);
+    context.pushReplacement(_getSubRouteLocation(type));
   }
 
   String _getSubRouteLocation(WalletMainModalListItem type) {
