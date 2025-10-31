@@ -9,7 +9,16 @@ part 'conversations_provider.r.g.dart';
 
 @riverpod
 Stream<List<ConversationListItem>> conversations(Ref ref) {
-  return ref.watch(conversationDaoProvider).watch();
+  print("QWERTY [CONVERSATIONS PROVIDER START]");
+  final stopwatch = Stopwatch()..start();
+  
+  return ref.watch(conversationDaoProvider).watch().map((conversations) {
+    stopwatch.stop();
+    print("QWERTY [CONVERSATIONS PROVIDER EMIT] ${conversations.length} conversations, took: ${stopwatch.elapsedMilliseconds}ms");
+    stopwatch.reset();
+    stopwatch.start();
+    return conversations;
+  });
 }
 
 @riverpod

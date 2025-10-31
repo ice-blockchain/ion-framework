@@ -90,7 +90,7 @@ class ChatDatabase extends _$ChatDatabase {
   final String? appGroupId;
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
     final databaseName = 'conversation_database_$pubkey';
@@ -119,11 +119,14 @@ class ChatDatabase extends _$ChatDatabase {
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (m) => m.createAll(),
-      onUpgrade: stepByStep(
-        from1To2: (m, schema) async {
+      onUpgrade: (m, from, to) async {
+        // Run migrations step by step
+        if (from < 2) {
+          final schema = Schema2(database: m.database);
+          final migrator = Migrator(m.database, schema);
           await Future.wait(
             [
-              m.alterTable(
+              migrator.alterTable(
                 TableMigration(
                   schema.conversationTable,
                   columnTransformer: {
@@ -133,7 +136,7 @@ class ChatDatabase extends _$ChatDatabase {
                   },
                 ),
               ),
-              m.alterTable(
+              migrator.alterTable(
                 TableMigration(
                   schema.eventMessageTable,
                   columnTransformer: {
@@ -146,16 +149,58 @@ class ChatDatabase extends _$ChatDatabase {
               ),
             ],
           );
-        },
-        from2To3: (Migrator m, Schema3 schema) async {
+          from = 2;
+        }
+        if (from < 3) {
+          final schema = Schema3(database: m.database);
+          final migrator = Migrator(m.database, schema);
           //  Rename "isDeleted" column from ConversationTable to "isHidden"
-          await m.dropColumn(schema.conversationTable, 'is_deleted');
-          await m.addColumn(schema.conversationTable, schema.conversationTable.isHidden);
-        },
-        from3To4: (Migrator m, Schema4 schema) async {
-          await m.createTable(schema.processedGiftWrapTable);
-        },
-      ),
+          await migrator.dropColumn(schema.conversationTable, 'is_deleted');
+          await migrator.addColumn(schema.conversationTable, schema.conversationTable.isHidden);
+          from = 3;
+        }
+        if (from < 4) {
+          final schema = Schema4(database: m.database);
+          final migrator = Migrator(m.database, schema);
+          await migrator.createTable(schema.processedGiftWrapTable);
+          from = 4;
+        }
+        if (from < 5) {
+          // Add indexes to optimize queries
+          await Future.wait([
+            // Index for conversation_message joins
+            m.database.customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_conversation_message_conversation_id '
+              'ON conversation_message_table(conversation_id)',
+            ),
+            // Index for event_message joins
+            m.database.customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_conversation_message_event_reference '
+              'ON conversation_message_table(message_event_reference)',
+            ),
+            // Index for event_message ordering and filtering
+            m.database.customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_event_message_created_at '
+              'ON event_message_table(created_at)',
+            ),
+            // Index for event_message kind filtering
+            m.database.customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_event_message_kind '
+              'ON event_message_table(kind)',
+            ),
+            // Composite index for kind + created_at (for search queries)
+            m.database.customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_event_message_kind_created_at '
+              'ON event_message_table(kind, created_at DESC)',
+            ),
+            // Index for message_status deleted check
+            m.database.customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_message_status_reference_status '
+              'ON message_status_table(message_event_reference, status)',
+            ),
+          ]);
+        }
+      },
     );
   }
 }

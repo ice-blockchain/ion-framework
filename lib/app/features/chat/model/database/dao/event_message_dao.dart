@@ -39,12 +39,50 @@ class EventMessageDao extends DatabaseAccessor<ChatDatabase> with _$EventMessage
   }
 
   Future<List<EventMessage>> search(String query) async {
+    final stopwatch = Stopwatch()..start();
+    print("QWERTY [DB SEARCH START] query: $query");
+
     if (query.isEmpty) return [];
 
-    final searchResults =
-        await (select(db.eventMessageTable)..where((tbl) => tbl.content.like('%$query%'))).get();
+    final queryBuildStopwatch = Stopwatch()..start();
+    final queryBuilder = select(db.eventMessageTable).join([
+      innerJoin(
+        db.conversationMessageTable,
+        db.conversationMessageTable.messageEventReference
+            .equalsExp(db.eventMessageTable.eventReference),
+      ),
+    ])
+      ..where(db.eventMessageTable.kind.equals(ReplaceablePrivateDirectMessageEntity.kind))
+      ..where(db.eventMessageTable.content.like('%$query%'))
+      ..where(
+        notExistsQuery(
+          select(db.messageStatusTable)
+            ..where((tbl) => tbl.status.equals(MessageDeliveryStatus.deleted.index))
+            ..where(
+              (table) => table.messageEventReference.equalsExp(db.eventMessageTable.eventReference),
+            ),
+        ),
+      )
+      ..orderBy([OrderingTerm.desc(db.eventMessageTable.createdAt)])
+      ..limit(100);
+    queryBuildStopwatch.stop();
+    print("QWERTY [DB QUERY BUILD] took: ${queryBuildStopwatch.elapsedMilliseconds}ms");
 
-    return searchResults.map((row) => row.toEventMessage()).toList();
+    final executeStopwatch = Stopwatch()..start();
+    final searchResults = await queryBuilder.get();
+    executeStopwatch.stop();
+    print(
+        "QWERTY [DB QUERY EXECUTE] returned ${searchResults.length} rows, took: ${executeStopwatch.elapsedMilliseconds}ms");
+
+    final mapStopwatch = Stopwatch()..start();
+    final result =
+        searchResults.map((row) => row.readTable(db.eventMessageTable).toEventMessage()).toList();
+    mapStopwatch.stop();
+    stopwatch.stop();
+    print(
+        "QWERTY [DB RESULT MAPPING] ${result.length} messages, took: ${mapStopwatch.elapsedMilliseconds}ms, total: ${stopwatch.elapsedMilliseconds}ms");
+
+    return result;
   }
 
   Future<EventMessage> getByReference(EventReference eventReference) async {

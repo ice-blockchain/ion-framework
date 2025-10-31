@@ -135,6 +135,10 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
   /// The list is sorted in descending order (newest first)
 
   Stream<List<ConversationListItem>> watch() {
+    print("QWERTY [CONVERSATIONS WATCH START]");
+    final overallStopwatch = Stopwatch()..start();
+
+    final queryBuildStopwatch = Stopwatch()..start();
     final query = select(conversationTable).join([
       innerJoin(
         conversationMessageTable,
@@ -159,8 +163,15 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
       ..addColumns([eventMessageTable.createdAt.max()])
       ..groupBy([conversationTable.id])
       ..distinct;
+    queryBuildStopwatch.stop();
+    print("QWERTY [CONVERSATIONS QUERY BUILD] took: ${queryBuildStopwatch.elapsedMilliseconds}ms");
 
     return query.watch().map((rows) {
+      overallStopwatch.stop();
+      print(
+          "QWERTY [CONVERSATIONS QUERY RESULT] ${rows.length} rows returned, query time: ${overallStopwatch.elapsedMilliseconds}ms");
+
+      final mapStopwatch = Stopwatch()..start();
       final sortedRows = rows
           .sortedBy<num>(
         (e) =>
@@ -176,8 +187,18 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
           latestMessage: row.readTableOrNull(eventMessageTable)?.toEventMessage(),
         );
       }).toList();
+      mapStopwatch.stop();
+      print(
+          "QWERTY [CONVERSATIONS MAPPING] mapped to ${sortedRows.length} items, took: ${mapStopwatch.elapsedMilliseconds}ms");
 
-      return sortedRows.reversed.toList();
+      final reverseStopwatch = Stopwatch()..start();
+      final result = sortedRows.reversed.toList();
+      reverseStopwatch.stop();
+      overallStopwatch.reset();
+      overallStopwatch.start();
+      print("QWERTY [CONVERSATIONS REVERSE] took: ${reverseStopwatch.elapsedMilliseconds}ms");
+
+      return result;
     }).distinct((l1, l2) => l1.equalsDeep(l2));
   }
 
