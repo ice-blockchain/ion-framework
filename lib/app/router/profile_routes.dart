@@ -11,6 +11,7 @@ class ProfileRoutes {
     TypedGoRoute<BookmarksRoute>(path: 'bookmarks'),
     TypedGoRoute<EditBookmarksRoute>(path: 'bookmarks_edit'),
     TypedGoRoute<FollowListRoute>(path: 'follow-list-fullstack'),
+    TypedGoRoute<CreatorTokensRoute>(path: 'creator-tokens'),
     TypedShellRoute<ModalShellRouteData>(
       routes: [
         TypedGoRoute<CategorySelectRoute>(path: 'category-selector'),
@@ -335,4 +336,13 @@ class FullscreenMediaRoute extends BaseRouteData with _$FullscreenMediaRoute {
   final int initialMediaIndex;
   final String eventReference;
   final String? framedEventReference;
+}
+
+class CreatorTokensRoute extends BaseRouteData with _$CreatorTokensRoute {
+  CreatorTokensRoute({required this.masterPubkey})
+      : super(
+          child: CreatorTokensPage(masterPubkey: masterPubkey),
+        );
+
+  final String masterPubkey;
 }
