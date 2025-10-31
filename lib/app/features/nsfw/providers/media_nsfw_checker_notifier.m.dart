@@ -14,7 +14,7 @@ part 'media_nsfw_checker_notifier.m.g.dart';
 class MediaNsfwState with _$MediaNsfwState {
   const factory MediaNsfwState({
     @Default({}) Map<String, Completer<bool>> nsfwCompleters,
-    @Default(false) bool isFinalCheckInProcess,
+    @Default(false) bool loading,
   }) = _MediaNsfwState;
 
   const MediaNsfwState._();
@@ -67,13 +67,13 @@ class MediaNsfwCheckerNotifier extends _$MediaNsfwCheckerNotifier {
   }
 
   Future<bool> hasNsfwMedia() async {
-    state = state.copyWith(isFinalCheckInProcess: true);
+    state = state.copyWith(loading: true);
 
     final futures = state.nsfwCompleters.values.map((c) => c.future).toList();
     final results = await Future.wait(futures);
     final hasNsfw = results.any((r) => r == true);
 
-    state = state.copyWith(isFinalCheckInProcess: false);
+    state = state.copyWith(loading: false);
 
     return hasNsfw;
   }
