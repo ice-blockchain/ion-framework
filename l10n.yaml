@@ -3,3 +3,4 @@ output-dir: lib/generated/
 output-class: I18n
 template-arb-file: app_en.arb
 output-localization-file: app_localizations.dart
+untranslated-messages-file: untranslated_messages.txt

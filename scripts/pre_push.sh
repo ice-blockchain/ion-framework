@@ -24,7 +24,7 @@ printf '%s\n' "${avar}"
 
 # Generate Locales
 printf "\e[33;1m%s\e[0m\n" '=== Generate Locales ==='
-scripts/generate_locales.sh
+scripts/generate_locales.sh --verify --strict
 if [ $? -ne 0 ]; then
   printf "\e[31;1m%s\e[0m\n" '=== Generate locales error ==='
   exit 1
