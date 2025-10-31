@@ -11,7 +11,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_header.dart';
 import 'package:ion/app/features/auth/views/pages/select_languages/language_list_item.dart';
 import 'package:ion/app/features/core/model/language.dart';
-import 'package:ion/app/hooks/use_filtered_languages.dart';
 import 'package:ion/app/hooks/use_measured_widget_height.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -46,9 +45,19 @@ class LanguageSelectorPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final searchQuery = useState('');
-    final filteredLanguages = useFilteredLanguages(
-      languages: languages,
-      query: searchQuery.value,
+
+    // Filter languages based on search query
+    final filteredLanguages = useMemoized(
+      () {
+        final normalizedQuery = searchQuery.value.toLowerCase().trim();
+        return normalizedQuery.isEmpty
+            ? languages
+            : languages.where((language) {
+                return language.name.toLowerCase().contains(normalizedQuery) ||
+                    (language.localName?.toLowerCase().contains(normalizedQuery) ?? false);
+              }).toList();
+      },
+      [searchQuery.value, languages],
     );
 
     final mayContinue = selectedLanguages.isNotEmpty;
