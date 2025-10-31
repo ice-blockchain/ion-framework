@@ -44,6 +44,8 @@ class CloudBackupOption extends HookConsumerWidget {
       isOptionEnabled: hasCurrentUserBackupInCloud.value.falseOrValue,
       isLoading: hasCurrentUserBackupInCloud.isLoading,
       onTap: () async {
+        // sign out first to trigger available accounts pop up
+        await ref.read(cloudStorageProvider).signOut();
         final cloudAvailable = await ref.read(cloudStorageProvider).isAvailable();
         if (!context.mounted) return;
         if (!cloudAvailable) {
