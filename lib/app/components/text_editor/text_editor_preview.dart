@@ -71,7 +71,7 @@ class TextEditorPreview extends HookWidget {
   }
 }
 
-class _QuillFormattedContent extends ConsumerWidget {
+class _QuillFormattedContent extends HookConsumerWidget {
   const _QuillFormattedContent({
     required this.controller,
     required this.enableInteractiveSelection,
@@ -98,13 +98,17 @@ class _QuillFormattedContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final effectiveStyles = () {
-      if (ignoreInlineBoldItalic) {
-        final color = customStyles?.paragraph?.style.color;
-        return textEditorStylesPlainInline(context, color: color);
-      }
-      return customStyles ?? textEditorStyles(context);
-    }();
+    final effectiveStyles = useMemoized(
+      () {
+        if (ignoreInlineBoldItalic) {
+          final color = customStyles?.paragraph?.style.color;
+          return textEditorStylesPlainInline(context, color: color);
+        }
+
+        return customStyles ?? textEditorStyles(context);
+      },
+      [ignoreInlineBoldItalic, customStyles],
+    );
 
     return QuillEditor.basic(
       controller: controller,
