@@ -32,6 +32,7 @@ class PostBody extends HookConsumerWidget {
     this.onVideoTap,
     this.sidePadding,
     this.framedEventReference,
+    this.plainInlineStyles = false,
     super.key,
   });
 
@@ -42,6 +43,7 @@ class PostBody extends HookConsumerWidget {
   final int? maxLines;
   final double? sidePadding;
   final OnVideoTapCallback? onVideoTap;
+  final bool plainInlineStyles;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -110,6 +112,7 @@ class PostBody extends HookConsumerWidget {
                     accentTheme: accentTheme,
                     isTextSelectable: isTextSelectable,
                     maxLines: maxLines,
+                    plainInlineStyles: plainInlineStyles,
                   ),
                 if (pollData != null)
                   PostPoll(
