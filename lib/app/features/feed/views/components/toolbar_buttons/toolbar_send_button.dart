@@ -20,7 +20,7 @@ class ToolbarSendButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: enabled ? onPressed : null,
+      onTap: (enabled && !loading) ? onPressed : null,
       child: Container(
         width: 48.0.s,
         height: 28.0.s,

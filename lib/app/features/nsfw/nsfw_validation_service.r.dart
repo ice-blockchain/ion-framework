@@ -2,9 +2,12 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector_factory.r.dart';
+import 'package:ion/app/features/nsfw/services/nsfw_isolate_functions.dart';
+import 'package:ion/app/features/nsfw/services/nsfw_model_manager.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -21,7 +24,7 @@ Future<NsfwValidationService> nsfwValidationService(Ref ref) async => NsfwValida
     );
 
 class NsfwValidationService {
-  const NsfwValidationService({
+  NsfwValidationService({
     required this.detectorFactory,
     required this.videoCompressor,
     required this.videoInfoService,
@@ -31,23 +34,146 @@ class NsfwValidationService {
   final VideoCompressor videoCompressor;
   final VideoInfoService videoInfoService;
 
-  Future<bool> hasNsfwInMediaFiles(List<MediaFile> mediaFiles) async {
-    final imagePaths = mediaFiles.where(_isImageMedia).map((m) => m.path).toList();
-    final hasNsfwInImages = await hasNsfwInImagePaths(imagePaths);
-    if (hasNsfwInImages) return true;
-
+  /// Combined validation: images + videos in single isolate call
+  /// Uses one-shot isolate (spawns new isolate per call)
+  Future<Map<String, bool>> hasNsfwInMediaFiles(
+    List<MediaFile> mediaFiles,
+  ) async {
+    // 1. Extract images and videos
+    final imageFiles = mediaFiles.where(_isImageMedia).toList();
     final videoFiles = _extractVideoFiles(mediaFiles);
-    if (videoFiles.isEmpty) return false;
 
-    final hasNsfwInVideos = await _hasNsfwInVideos(videoFiles);
-    if (hasNsfwInVideos) return true;
+    // 2. Extract video thumbnails (main thread, heavy I/O)
+    final thumbnailPathToVideoPath = <String, String>{};
+    final thumbnailPathToBytes = <String, Uint8List>{};
 
-    return false;
+    for (final video in videoFiles) {
+      final timestamps = await _buildTimestamps(video);
+
+      for (final ts in timestamps) {
+        try {
+          final thumbMediaFile = await videoCompressor.getThumbnail(video, timestamp: ts);
+          final bytes = await File(thumbMediaFile.path).readAsBytes();
+
+          thumbnailPathToBytes[thumbMediaFile.path] = bytes;
+          thumbnailPathToVideoPath[thumbMediaFile.path] = video.path;
+        } catch (e, st) {
+          Logger.error(e, message: 'NSFW video thumbnail validation failed', stackTrace: st);
+        }
+      }
+    }
+
+    // 3. Build combined pathToBytes map (images + thumbnails)
+    final combinedPathToBytes = <String, Uint8List>{};
+
+    // Add images
+    for (final imageFile in imageFiles) {
+      try {
+        final bytes = await File(imageFile.path).readAsBytes();
+        combinedPathToBytes[imageFile.path] = bytes;
+      } catch (e) {
+        Logger.warning('Failed to read image for NSFW check: ${imageFile.path}: $e');
+      }
+    }
+
+    // Add thumbnails
+    combinedPathToBytes.addAll(thumbnailPathToBytes);
+
+    if (combinedPathToBytes.isEmpty) {
+      return {};
+    }
+
+    // 4. Single isolate call with all media (one-shot isolate)
+    final modelPath = await NsfwModelManager.getModelPath();
+    Map<String, NsfwResult> results;
+    try {
+      results = await compute(
+        nsfwCheckAllMediaOneShotFn,
+        [modelPath, detectorFactory.blockThreshold, combinedPathToBytes],
+      );
+    } catch (e, st) {
+      Logger.error(e, message: 'NSFW combined isolate failed', stackTrace: st);
+      return {};
+    }
+
+    // 5. Aggregate results back to media files
+    final finalResults = <String, bool>{};
+
+    // Direct image results
+    for (final imageFile in imageFiles) {
+      final result = results[imageFile.path];
+      if (result != null) {
+        final isNsfw = result.decision == NsfwDecision.block;
+        finalResults[imageFile.path] = isNsfw;
+      }
+    }
+
+    // Aggregate thumbnail results to videos (any thumbnail NSFW = video NSFW)
+    for (final videoFile in videoFiles) {
+      final videoThumbnails = thumbnailPathToVideoPath.entries
+          .where((entry) => entry.value == videoFile.path)
+          .map((entry) => entry.key)
+          .toList();
+
+      if (videoThumbnails.isEmpty) {
+        // No thumbnails extracted, mark as safe
+        finalResults[videoFile.path] = false;
+        continue;
+      }
+
+      // Check if any thumbnail is NSFW
+      final videoIsNsfw = videoThumbnails.any(
+        (thumbPath) => results[thumbPath]?.decision == NsfwDecision.block,
+      );
+
+      finalResults[videoFile.path] = videoIsNsfw;
+    }
+
+    return finalResults;
   }
 
-  Future<bool> hasNsfwInImagePaths(List<String> imagePaths) async {
-    final paths = imagePaths.where(_isImageExtension).toList();
-    return _hasNsfwInImagePaths(paths);
+  Future<Map<String, bool>> hasNsfwInImagePaths(List<String> paths) async {
+    if (paths.isEmpty) {
+      return {};
+    }
+
+    final imagePaths = paths.where(_isImageExtension).toList();
+
+    // Prepare path → bytes map
+    final pathToBytes = <String, Uint8List>{};
+
+    for (final path in imagePaths) {
+      try {
+        final bytes = await File(path).readAsBytes();
+        pathToBytes[path] = bytes;
+      } catch (e) {
+        Logger.warning('Failed to read image for NSFW check: $path: $e');
+      }
+    }
+
+    if (pathToBytes.isEmpty) {
+      return {};
+    }
+
+    // Get model path for one-shot isolate
+    final modelPath = await NsfwModelManager.getModelPath();
+
+    Map<String, NsfwResult> results;
+    try {
+      results = await compute(
+        nsfwCheckAllMediaOneShotFn,
+        [modelPath, detectorFactory.blockThreshold, pathToBytes],
+      );
+    } catch (e, st) {
+      Logger.error(e, message: 'NSFW image isolate failed', stackTrace: st);
+      return {};
+    }
+
+    final finalResults = results.map(
+      (path, result) => MapEntry(path, result.decision == NsfwDecision.block),
+    );
+
+    return finalResults;
   }
 
   bool _isImageMedia(MediaFile media) {
@@ -65,59 +191,11 @@ class NsfwValidationService {
         lower.endsWith('.bmp');
   }
 
-  Future<bool> _hasNsfwInImagePaths(List<String> imagePaths) async {
-    if (imagePaths.isEmpty) return false;
-
-    final detector = await detectorFactory.create();
-    try {
-      for (final path in imagePaths) {
-        try {
-          final bytes = await File(path).readAsBytes();
-          final result = await detector.classifyBytes(bytes);
-          Logger.log('NSFW image validation rate: ${result.nsfw}');
-          if (result.decision != NsfwDecision.allow) {
-            return true;
-          }
-        } catch (e, st) {
-          Logger.error(e, message: 'NSFW image validation failed', stackTrace: st);
-        }
-      }
-      return false;
-    } finally {
-      detector.dispose();
-    }
-  }
-
   List<MediaFile> _extractVideoFiles(List<MediaFile> mediaFiles) {
     return mediaFiles.where((m) {
       final mime = m.mimeType ?? '';
       return mime.startsWith('video/');
     }).toList();
-  }
-
-  Future<bool> _hasNsfwInVideos(List<MediaFile> videos) async {
-    final detector = await detectorFactory.create();
-    try {
-      for (final video in videos) {
-        final timestamps = await _buildTimestamps(video);
-        for (final ts in timestamps) {
-          try {
-            final thumbMediaFile = await videoCompressor.getThumbnail(video, timestamp: ts);
-            final bytes = await File(thumbMediaFile.path).readAsBytes();
-            final result = await detector.classifyBytes(bytes);
-            Logger.log('NSFW video thumbnail validation rate: ${result.nsfw}');
-            if (result.decision != NsfwDecision.allow) {
-              return true;
-            }
-          } catch (e, st) {
-            Logger.error(e, message: 'NSFW video thumbnail validation failed', stackTrace: st);
-          }
-        }
-      }
-      return false;
-    } finally {
-      detector.dispose();
-    }
   }
 
   Future<List<String>> _buildTimestamps(MediaFile video) async {

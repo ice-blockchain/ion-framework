@@ -21,7 +21,8 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
+import 'package:ion/app/features/nsfw/providers/media_nsfw_checker_notifier.m.dart';
+import 'package:ion/app/features/nsfw/widgets/nsfw_blocked_sheet.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
@@ -78,15 +79,19 @@ class PostSubmitButton extends HookConsumerWidget {
       modifiedEvent: modifiedEntity,
     );
 
+    final nsfwCheckerLoading =
+        ref.watch(mediaNsfwCheckerNotifierProvider.select((state) => state.loading));
+    final loading = useState(false);
+
     return ToolbarSendButton(
       enabled: isSubmitButtonEnabled,
+      loading: nsfwCheckerLoading || loading.value,
       onPressed: () async {
         if (!shownTooltip.value && selectedTopics.isEmpty) {
           shownTooltip.value = true;
           ref.read(topicTooltipVisibilityNotifierProvider.notifier).show();
           return;
         }
-
         // Do not set language for replies.
         final language =
             parentEvent == null ? ref.read(selectedEntityLanguageNotifierProvider) : null;
@@ -95,51 +100,70 @@ class PostSubmitButton extends HookConsumerWidget {
           return;
         }
 
-        final filesToUpload = createOption == CreatePostOption.video
-            ? mediaFiles
-            : await ref
-                .read(mediaServiceProvider)
-                .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
+        loading.value = true;
+        try {
+          final filesToUpload = createOption == CreatePostOption.video
+              ? mediaFiles
+              : await ref
+                  .read(mediaServiceProvider)
+                  .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
 
-        // NSFW validation: block posting if any selected image is NSFW
-        final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, filesToUpload);
-        if (isBlocked) return;
+          if (!context.mounted) return;
 
-        if (context.mounted) {
-          final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
+          final hasNsfw = await ref.read(mediaNsfwCheckerNotifierProvider.notifier).hasNsfwMedia();
 
-          if (modifiedEvent != null) {
-            unawaited(
-              notifier.modify(
-                content: textEditorController.document.toDelta(),
-                mediaFiles: filesToUpload,
-                mediaAttachments: mediaAttachments,
-                eventReference: modifiedEvent!,
-                whoCanReply: whoCanReply,
-                topics: selectedTopics,
-                poll: PollUtils.pollDraftToPollData(draftPoll),
-                language: language,
-              ),
-            );
-          } else {
-            unawaited(
-              notifier.create(
-                content: textEditorController.document.toDelta(),
-                parentEvent: parentEvent,
-                quotedEvent: quotedEvent,
-                mediaFiles: filesToUpload,
-                whoCanReply: whoCanReply,
-                topics: selectedTopics,
-                poll: PollUtils.pollDraftToPollData(draftPoll),
-                language: language,
-              ),
-            );
+          if (!context.mounted) return;
+          loading.value = false;
+
+          // NSFW validation: block posting if any selected image is NSFW
+          if (hasNsfw) {
+            if (context.mounted) {
+              await showNsfwBlockedSheet(context);
+            }
+
+            return;
           }
 
-          if (onSubmitted != null) {
-            onSubmitted!();
-          } else if (context.mounted) {
-            ref.context.maybePop(true);
+          if (context.mounted) {
+            final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
+
+            if (modifiedEvent != null) {
+              unawaited(
+                notifier.modify(
+                  content: textEditorController.document.toDelta(),
+                  mediaFiles: filesToUpload,
+                  mediaAttachments: mediaAttachments,
+                  eventReference: modifiedEvent!,
+                  whoCanReply: whoCanReply,
+                  topics: selectedTopics,
+                  poll: PollUtils.pollDraftToPollData(draftPoll),
+                  language: language,
+                ),
+              );
+            } else {
+              unawaited(
+                notifier.create(
+                  content: textEditorController.document.toDelta(),
+                  parentEvent: parentEvent,
+                  quotedEvent: quotedEvent,
+                  mediaFiles: filesToUpload,
+                  whoCanReply: whoCanReply,
+                  topics: selectedTopics,
+                  poll: PollUtils.pollDraftToPollData(draftPoll),
+                  language: language,
+                ),
+              );
+            }
+
+            if (onSubmitted != null) {
+              onSubmitted!();
+            } else if (context.mounted) {
+              ref.context.maybePop(true);
+            }
+          }
+        } finally {
+          if (context.mounted) {
+            loading.value = false;
           }
         }
       },

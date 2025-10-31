@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/co
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_media_files.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_media_links.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_video.dart';
+import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_nsfw_validation.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_post_quill_controller.dart';
 import 'package:ion/app/features/feed/hooks/use_detect_language.dart';
 import 'package:ion/app/features/feed/hooks/use_preselect_language.dart';
@@ -177,6 +178,12 @@ class PostFormModal extends HookConsumerWidget {
     usePreselectTopics(ref, eventReference: modifiedEvent);
     usePreselectLanguage(ref, eventReference: modifiedEvent);
     useDetectLanguage(ref, enabled: parentEvent == null, quillController: textEditorController);
+
+    useNsfwValidation(
+      ref: ref,
+      mediaFiles: attachedMediaFilesNotifier.value,
+      videoFile: attachedVideoNotifier.value,
+    );
 
     if (textEditorController == null) {
       return const SizedBox.shrink();
