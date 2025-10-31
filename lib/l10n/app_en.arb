@@ -43,6 +43,7 @@
   "button_share": "Share",
   "button_mute": "Mute",
   "button_unmute": "Unmute",
+  "button_unmute_posts": "Unmute posts",
   "button_block": "Block",
   "button_unblock": "Unblock",
   "button_report": "Report",

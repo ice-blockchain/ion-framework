@@ -15,6 +15,6 @@ class SeparatedColumn extends Column {
     super.textBaseline,
     List<Widget> children = const [],
   }) : super(
-          children: children.intersperse(separator).toList(),
+          children: children.separated(separator).toList(),
         );
 }

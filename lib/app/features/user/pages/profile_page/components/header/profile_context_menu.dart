@@ -15,6 +15,7 @@ import 'package:ion/app/features/user/pages/components/header_action/header_acti
 import 'package:ion/app/features/user/pages/profile_page/components/header/context_menu_item.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/header/context_menu_item_divider.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/block_user_modal/block_user_modal.dart';
+import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
 import 'package:ion/app/features/user/providers/report_notifier.m.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/block_user_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
@@ -58,7 +59,7 @@ class ProfileContextMenu extends HookConsumerWidget {
           context,
           ref,
           closeMenu,
-        );
+        ).toList();
         return OverlayMenuContainer(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -77,7 +78,7 @@ class ProfileContextMenu extends HookConsumerWidget {
     );
   }
 
-  List<Widget> _buildMenuItems(
+  Iterable<Widget> _buildMenuItems(
     BuildContext context,
     WidgetRef ref,
     VoidCallback closeMenu,
@@ -85,7 +86,7 @@ class ProfileContextMenu extends HookConsumerWidget {
     final isCurrentUser = ref.watch(isCurrentUserSelectorProvider(pubkey));
 
     if (isCurrentUser) {
-      return [
+      return <Widget>[
         ContextMenuItem(
           label: context.i18n.button_share,
           iconAsset: Assets.svg.iconButtonShare,
@@ -98,7 +99,6 @@ class ProfileContextMenu extends HookConsumerWidget {
             ).push<void>(context);
           },
         ),
-        const ContextMenuItemDivider(),
         ContextMenuItem(
           label: context.i18n.bookmarks_title,
           iconAsset: Assets.svg.iconBookmarks,
@@ -107,7 +107,6 @@ class ProfileContextMenu extends HookConsumerWidget {
             BookmarksRoute().push<void>(context);
           },
         ),
-        const ContextMenuItemDivider(),
         ContextMenuItem(
           label: context.i18n.invite_friends_button,
           iconAsset: Assets.svg.iconButtonInvite,
@@ -116,7 +115,6 @@ class ProfileContextMenu extends HookConsumerWidget {
             InviteFriendsRoute().push<void>(context);
           },
         ),
-        const ContextMenuItemDivider(),
         ContextMenuItem(
           label: context.i18n.settings_title,
           iconAsset: Assets.svg.iconProfileSettings,
@@ -125,8 +123,9 @@ class ProfileContextMenu extends HookConsumerWidget {
             SettingsRoute().push<void>(context);
           },
         ),
-      ];
+      ].separated(const ContextMenuItemDivider());
     } else {
+      final isMuted = ref.watch(isUserMutedProvider(pubkey));
       return [
         ContextMenuItem(
           label: context.i18n.button_share,
@@ -140,9 +139,8 @@ class ProfileContextMenu extends HookConsumerWidget {
             ).push<void>(context);
           },
         ),
-        const ContextMenuItemDivider(),
+        if (isMuted) _UnmutePostsMenuItem(masterPubkey: pubkey, closeMenu: closeMenu),
         _BlockUserMenuItem(masterPubkey: pubkey, closeMenu: closeMenu),
-        const ContextMenuItemDivider(),
         ContextMenuItem(
           label: context.i18n.button_report,
           iconAsset: Assets.svg.iconReport,
@@ -153,7 +151,7 @@ class ProfileContextMenu extends HookConsumerWidget {
                 );
           },
         ),
-      ];
+      ].separated(const ContextMenuItemDivider());
     }
   }
 }
@@ -184,6 +182,28 @@ class _BlockUserMenuItem extends ConsumerWidget {
         } else {
           ref.read(toggleBlockNotifierProvider.notifier).toggle(masterPubkey);
         }
+      },
+    );
+  }
+}
+
+class _UnmutePostsMenuItem extends ConsumerWidget {
+  const _UnmutePostsMenuItem({
+    required this.masterPubkey,
+    required this.closeMenu,
+  });
+
+  final String masterPubkey;
+  final VoidCallback closeMenu;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ContextMenuItem(
+      label: context.i18n.button_unmute_posts,
+      iconAsset: Assets.svg.iconChannelUnmute,
+      onPressed: () {
+        closeMenu();
+        ref.read(mutedUsersProvider.notifier).toggleMutedMasterPubkey(masterPubkey);
       },
     );
   }

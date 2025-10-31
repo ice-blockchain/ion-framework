@@ -1,18 +1,23 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:ion/app/utils/iterable.dart' as utils;
-
-extension IntersperseExtensions<T> on Iterable<T> {
-  /// Puts [element] between every element in [list].
+extension SeparatedExtensions<T> on Iterable<T> {
+  /// Puts [separator] between every element in [iterable].
   ///
   /// Example:
   ///
-  ///     final list1 = <int>[].intersperse(2); // [];
-  ///     final list2 = [0].intersperse(2); // [0];
-  ///     final list3 = [0, 0].intersperse(2); // [0, 2, 0];
+  ///     final list1 = <int>[].separated(2); // [];
+  ///     final list2 = [0].separated(2); // [0];
+  ///     final list3 = [0, 0].separated(2); // [0, 2, 0];
   ///
-  Iterable<T> intersperse(T element) {
-    return utils.intersperse(element, this);
+  Iterable<T> separated(T element) sync* {
+    final iterator = this.iterator;
+    if (iterator.moveNext()) {
+      yield iterator.current;
+      while (iterator.moveNext()) {
+        yield element;
+        yield iterator.current;
+      }
+    }
   }
 }
 
