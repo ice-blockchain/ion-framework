@@ -7,6 +7,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/language.dart';
 import 'package:ion/app/features/feed/providers/selected_entity_language_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class LanguageButton extends ConsumerWidget {
@@ -16,14 +17,17 @@ class LanguageButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedEntityLanguageCode = ref.watch(selectedEntityLanguageNotifierProvider);
     final selectedEntityLanguage = selectedEntityLanguageCode != null
-        ? Language.fromIsoCode(selectedEntityLanguageCode)
+        ? Language.fromIsoCode(selectedEntityLanguageCode.value)
         : null;
 
     return TagButton(
-      onPressed: () => EntityLanguageRoute().push<void>(context),
+      onPressed: selectedEntityLanguageCode is DetectedContentLanguage &&
+              selectedEntityLanguageCode.confident
+          ? null
+          : () => EntityLanguageRoute().push<void>(context),
       label: selectedEntityLanguage != null
           ? selectedEntityLanguage.displayName
-          : selectedEntityLanguageCode ?? context.i18n.common_language,
+          : selectedEntityLanguageCode?.value ?? context.i18n.common_language,
       leadingIcon: Assets.svg.iconSelectLanguage.icon(
         color: context.theme.appColors.primaryAccent,
         size: 12.s,

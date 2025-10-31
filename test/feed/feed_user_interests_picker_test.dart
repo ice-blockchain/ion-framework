@@ -35,6 +35,7 @@ void main() {
         followingMaxRetriesMultiplier: 5,
         forYouOverflowMultiplier: 2,
         nsfwBlockThreshold: 0.5,
+        langDetectScoreThreshold: 0.9,
         cdnBaseUrl: '',
       );
       interests = FeedInterests.fromJson({
