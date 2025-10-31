@@ -79,13 +79,13 @@ class PostSubmitButton extends HookConsumerWidget {
       modifiedEvent: modifiedEntity,
     );
 
-    final isFinalCheckInProcess =
-        ref.watch(mediaNsfwCheckerNotifierProvider.select((state) => state.isFinalCheckInProcess));
+    final nsfwCheckerLoading =
+        ref.watch(mediaNsfwCheckerNotifierProvider.select((state) => state.loading));
     final loading = useState(false);
 
     return ToolbarSendButton(
       enabled: isSubmitButtonEnabled,
-      loading: isFinalCheckInProcess || loading.value,
+      loading: nsfwCheckerLoading || loading.value,
       onPressed: () async {
         if (!shownTooltip.value && selectedTopics.isEmpty) {
           shownTooltip.value = true;
