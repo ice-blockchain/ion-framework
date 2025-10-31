@@ -61,8 +61,8 @@ class PostMessage extends HookConsumerWidget {
     final isStory = useMemoized<bool>(
       () {
         return switch (postEntity) {
-          final ModifiablePostEntity post => post.data.expiration != null,
-          final PostEntity post => post.data.expiration != null,
+          final ModifiablePostEntity post => post.isStory,
+          final PostEntity post => post.isStory,
           _ => false,
         };
       },

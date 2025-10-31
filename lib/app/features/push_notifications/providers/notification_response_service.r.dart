@@ -15,8 +15,10 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
+import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/push_notifications/data/models/ion_connect_push_data_payload.f.dart';
@@ -36,15 +38,18 @@ class NotificationResponseService {
   NotificationResponseService({
     required Future<GiftUnwrapService> Function() getGiftUnwrapService,
     required UserMetadataEntity? Function(String pubkey) getUserMetadata,
+    required Future<IonConnectEntity?> Function(EventReference eventReference) getEntityData,
     required EventParser eventParser,
     required String? currentPubkey,
   })  : _getGiftUnwrapService = getGiftUnwrapService,
         _getUserMetadata = getUserMetadata,
+        _getEntityData = getEntityData,
         _eventParser = eventParser,
         _currentPubkey = currentPubkey;
 
   final Future<GiftUnwrapService> Function() _getGiftUnwrapService;
   final UserMetadataEntity? Function(String pubkey) _getUserMetadata;
+  final Future<IonConnectEntity?> Function(EventReference eventReference) _getEntityData;
   final EventParser _eventParser;
   final String? _currentPubkey;
 
@@ -60,6 +65,15 @@ class NotificationResponseService {
         Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
       }
     }
+  }
+
+  /// Safely gets the navigator context, returning null if context is null or not mounted
+  BuildContext? _getNavigatorContext() {
+    final context = rootNavigatorKey.currentContext;
+    if (context != null && context.mounted) {
+      return context;
+    }
+    return null;
   }
 
   RouteMatchList get _currentRouteMatchList {
@@ -114,10 +128,21 @@ class NotificationResponseService {
             isInitialNotification: isInitialNotification,
           );
         case ReactionEntity():
-          await _openPostDetail(
-            entity.data.eventReference,
-            isInitialNotification: isInitialNotification,
-          );
+          final eventReference = entity.data.eventReference;
+          final entityData = await _getEntityData(eventReference);
+          // Check if the referenced entity is a story
+          if (entityData is ModifiablePostEntity && entityData.isStory) {
+            await _openStoryViewer(
+              entityData.masterPubkey,
+              eventReference,
+              isInitialNotification: isInitialNotification,
+            );
+          } else {
+            await _openPostDetail(
+              eventReference,
+              isInitialNotification: isInitialNotification,
+            );
+          }
         case FollowListEntity():
           await _openProfileDetail(
             entity.masterPubkey,
@@ -160,13 +185,18 @@ class NotificationResponseService {
     EventReference eventReference, {
     bool isInitialNotification = false,
   }) async {
+    final context = _getNavigatorContext();
+    if (context == null) {
+      return;
+    }
+
     final route = PostDetailsRoute(eventReference: eventReference.encode());
     // Get path without query parameters
     final routePath = route.location.split(IonConnectUriProtocolService.prefix).first;
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
     if (isInitialNotification) {
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
@@ -177,24 +207,29 @@ class NotificationResponseService {
         return;
       }
 
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
-    await route.push<void>(rootNavigatorKey.currentContext!);
+    await route.push<void>(context);
   }
 
   Future<void> _openArticleDetail(
     EventReference eventReference, {
     bool isInitialNotification = false,
   }) async {
+    final context = _getNavigatorContext();
+    if (context == null) {
+      return;
+    }
+
     final route = ArticleDetailsRoute(eventReference: eventReference.encode());
     // Get path without query parameters
     final routePath = route.location.split(IonConnectUriProtocolService.prefix).first;
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
     if (isInitialNotification) {
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
@@ -204,20 +239,25 @@ class NotificationResponseService {
         return;
       }
 
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
-    await route.push<void>(rootNavigatorKey.currentContext!);
+    await route.push<void>(context);
   }
 
   Future<void> _openProfileDetail(String pubkey, {bool isInitialNotification = false}) async {
+    final context = _getNavigatorContext();
+    if (context == null) {
+      return;
+    }
+
     final route = ProfileRoute(pubkey: pubkey);
     final routePath = route.location.split('?').first;
     final currentPath = _currentRouteMatchList.fullPath;
 
     if (isInitialNotification) {
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
@@ -227,20 +267,25 @@ class NotificationResponseService {
         return;
       }
 
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
-    await route.push<void>(rootNavigatorKey.currentContext!);
+    await route.push<void>(context);
   }
 
   Future<void> _openChat(String pubkey, {bool isInitialNotification = false}) async {
+    final context = _getNavigatorContext();
+    if (context == null) {
+      return;
+    }
+
     final route = ConversationRoute(receiverMasterPubkey: pubkey);
     final routePath = route.location.split('?').first;
     final currentPath = _currentRouteMatchList.fullPath;
 
     if (isInitialNotification) {
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
@@ -250,11 +295,48 @@ class NotificationResponseService {
         return;
       }
 
-      route.pushReplacement(rootNavigatorKey.currentContext!);
+      route.pushReplacement(context);
       return;
     }
 
-    await route.push<void>(rootNavigatorKey.currentContext!);
+    await route.push<void>(context);
+  }
+
+  Future<void> _openStoryViewer(
+    String pubkey,
+    EventReference eventReference, {
+    bool isInitialNotification = false,
+  }) async {
+    final context = _getNavigatorContext();
+    if (context == null) {
+      return;
+    }
+
+    final route = StoryViewerRoute(
+      pubkey: pubkey,
+      initialStoryReference: eventReference.encode(),
+    );
+    // Get path without query parameters
+    final routePath = route.location.split(IonConnectUriProtocolService.prefix).first;
+    final currentPath = _currentRouteMatchList.fullPath.split(':').first;
+
+    if (isInitialNotification) {
+      route.pushReplacement(context);
+      return;
+    }
+
+    if (routePath == currentPath) {
+      final currentLocation = _currentRouteMatchList.uri.toString();
+
+      if (route.location == currentLocation) {
+        return;
+      }
+
+      route.pushReplacement(context);
+      return;
+    }
+
+    await route.push<void>(context);
   }
 }
 
@@ -264,11 +346,14 @@ NotificationResponseService notificationResponseService(Ref ref) {
   Future<GiftUnwrapService> getGiftUnwrapService() => ref.watch(giftUnwrapServiceProvider.future);
   UserMetadataEntity? getUserMetadata(String pubkey) =>
       ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+  Future<IonConnectEntity?> getEntityData(EventReference eventReference) =>
+      ref.read(ionConnectEntityWithCountersProvider(eventReference: eventReference).future);
   final eventParser = ref.watch(eventParserProvider);
 
   return NotificationResponseService(
     getGiftUnwrapService: getGiftUnwrapService,
     getUserMetadata: getUserMetadata,
+    getEntityData: getEntityData,
     eventParser: eventParser,
     currentPubkey: currentPubkey,
   );

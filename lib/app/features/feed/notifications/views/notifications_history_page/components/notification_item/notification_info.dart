@@ -119,8 +119,7 @@ class NotificationInfo extends HookConsumerWidget {
     final relatedEntity = _getRelatedEntity(ref, notification: notification);
 
     return switch (relatedEntity) {
-      ModifiablePostEntity(:final data) when data.expiration != null =>
-        ref.context.i18n.common_story,
+      ModifiablePostEntity() when relatedEntity.isStory => ref.context.i18n.common_story,
       ModifiablePostEntity(:final data) when data.parentEvent != null =>
         ref.context.i18n.common_comment,
       ModifiablePostEntity() => ref.context.i18n.common_post,
