@@ -26,6 +26,7 @@ class TextEditorPreview extends HookWidget {
     this.scrollable = true,
     this.authorPubkey,
     this.eventReference,
+    this.ignoreInlineBoldItalic = false,
     super.key,
   });
 
@@ -38,6 +39,7 @@ class TextEditorPreview extends HookWidget {
   final Color? tagsColor;
   final String? authorPubkey;
   final String? eventReference;
+  final bool ignoreInlineBoldItalic;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +66,7 @@ class TextEditorPreview extends HookWidget {
       enableInteractiveSelection: enableInteractiveSelection,
       authorPubkey: authorPubkey,
       eventReference: eventReference,
+      ignoreInlineBoldItalic: ignoreInlineBoldItalic,
     );
   }
 }
@@ -79,6 +82,7 @@ class _QuillFormattedContent extends ConsumerWidget {
     this.scrollable = true,
     this.authorPubkey,
     this.eventReference,
+    this.ignoreInlineBoldItalic = false,
   });
 
   final QuillController controller;
@@ -90,10 +94,17 @@ class _QuillFormattedContent extends ConsumerWidget {
   final Color? tagsColor;
   final String? authorPubkey;
   final String? eventReference;
+  final bool ignoreInlineBoldItalic;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final effectiveStyles = customStyles ?? textEditorStyles(context);
+    final effectiveStyles = () {
+      if (ignoreInlineBoldItalic) {
+        final color = customStyles?.paragraph?.style.color;
+        return textEditorStylesPlainInline(context, color: color);
+      }
+      return customStyles ?? textEditorStyles(context);
+    }();
 
     return QuillEditor.basic(
       controller: controller,

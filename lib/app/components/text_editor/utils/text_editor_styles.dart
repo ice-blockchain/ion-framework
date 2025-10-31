@@ -65,6 +65,24 @@ DefaultStyles textEditorStyles(BuildContext context, {Color? color}) {
   );
 }
 
+DefaultStyles textEditorStylesPlainInline(BuildContext context, {Color? color}) {
+  final base = textEditorStyles(context, color: color);
+
+  final paragraphStyle = base.paragraph?.style ??
+      context.theme.appTextThemes.body2.copyWith(
+        color: color ?? context.theme.appColors.postContent,
+      );
+  return DefaultStyles(
+    paragraph: base.paragraph,
+    placeHolder: base.placeHolder,
+    lists: base.lists,
+    quote: base.quote,
+    // NOTE: ignore inline bold and italic styles
+    bold: paragraphStyle,
+    italic: paragraphStyle,
+  );
+}
+
 TextStyle customTextStyleBuilder(
   Attribute<dynamic> attribute,
   BuildContext context, {

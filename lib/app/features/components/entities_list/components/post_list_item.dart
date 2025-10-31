@@ -38,6 +38,7 @@ class PostListItem extends StatelessWidget {
         onVideoTap: onVideoTap,
         headerOffset: 12.0.s,
         network: false,
+        plainInlineStyles: true,
       ),
     );
   }

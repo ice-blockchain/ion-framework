@@ -49,6 +49,7 @@ class Post extends ConsumerWidget {
     this.bodyMaxLines = 6,
     this.contentWrapper,
     this.onVideoTap,
+    this.plainInlineStyles = false,
     super.key,
   });
 
@@ -71,6 +72,7 @@ class Post extends ConsumerWidget {
   final bool showNotInterested;
   final bool network;
   final bool cache;
+  final bool plainInlineStyles;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -119,6 +121,7 @@ class Post extends ConsumerWidget {
           accentTheme: accentTheme,
           isTextSelectable: isTextSelectable,
           framedEventReference: repostEventReference ?? quotedEventReference,
+          plainInlineStyles: plainInlineStyles,
         ),
         if (displayQuote && quotedEventReference != null)
           ScreenSideOffset.small(
