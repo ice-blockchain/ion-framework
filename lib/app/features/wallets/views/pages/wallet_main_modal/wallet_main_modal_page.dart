@@ -79,13 +79,15 @@ class WalletMainModalPage extends HookConsumerWidget {
           );
     }
 
-    final isCoinAlreadySet = type == WalletMainModalListItem.send &&
+    final skipSelectCoinRoute = type == WalletMainModalListItem.send &&
         ref.read(sendAssetFormControllerProvider).assetData is CoinAssetToSendData;
     ref.invalidate(sendAssetFormControllerProvider);
-    context.pushReplacement(_getSubRouteLocation(type));
+    context.pushReplacement(
+      _getSubRouteLocation(type, skipSelectCoinRoute: skipSelectCoinRoute),
+    );
   }
 
-  String _getSubRouteLocation(WalletMainModalListItem type, {bool isCoinAlreadySet = false}) {
+  String _getSubRouteLocation(WalletMainModalListItem type, {bool skipSelectCoinRoute = false}) {
     return switch (type) {
       WalletMainModalListItem.send => skipSelectCoinRoute
           ? SelectNetworkWalletRoute().location
