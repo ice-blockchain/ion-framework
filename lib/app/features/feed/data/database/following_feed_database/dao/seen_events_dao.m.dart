@@ -51,7 +51,7 @@ class SeenEventsDao extends DatabaseAccessor<FollowingFeedDatabase> with _$SeenE
     );
   }
 
-  Future<SeenEvent?> getByReference({
+  Future<SeenEvent?> getByReferenceForFeed({
     required EventReference eventReference,
     required FeedType feedType,
     FeedModifier? feedModifier,
@@ -62,6 +62,16 @@ class SeenEventsDao extends DatabaseAccessor<FollowingFeedDatabase> with _$SeenE
       ..where(
         (tbl) => tbl.feedModifier.equals(const FeedModifierConverter().toSql(feedModifier)),
       )
+      ..limit(1);
+
+    return query.getSingleOrNull();
+  }
+
+  Future<SeenEvent?> getByReference({
+    required EventReference eventReference,
+  }) async {
+    final query = select(db.seenEventsTable)
+      ..where((tbl) => tbl.eventReference.equalsValue(eventReference))
       ..limit(1);
 
     return query.getSingleOrNull();

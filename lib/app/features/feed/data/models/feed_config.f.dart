@@ -27,6 +27,7 @@ class FeedConfig with _$FeedConfig implements AppConfigWithVersion {
     required double followingMaxRetriesMultiplier,
     required double nsfwBlockThreshold,
     required String cdnBaseUrl,
+    @Default(0.5) double forYouSeenSkipsMultiplier, //TODO: remove default
     @Default(true) bool allowNewRegistrations,
     @Default(false) bool enableEarlyAccessRegistrations,
     @Default(true) bool forceSecurityEnabled,

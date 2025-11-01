@@ -335,4 +335,9 @@ class FakeFollowingFeedSeenEventsRepository implements FollowingFeedSeenEventsRe
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<bool> isSeen({required EventReference eventReference}) {
+    throw UnimplementedError();
+  }
 }
