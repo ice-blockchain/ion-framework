@@ -630,11 +630,9 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   Future<bool> _isSeen(IonConnectEntity entity, {required FeedModifier modifier}) async {
     final seenEventsRepository = ref.read(followingFeedSeenEventsRepositoryProvider);
-    return seenEventsRepository.isSeen(
-      eventReference: entity.toEventReference(),
-      feedType: feedType,
-      feedModifier: modifier,
-    );
+    final res = await seenEventsRepository.isSeen(eventReference: entity.toEventReference());
+
+    return res;
   }
 
   Future<String?> _getRequestInterest({

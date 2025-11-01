@@ -64,7 +64,7 @@ class FollowingFeedSeenEventsRepository {
     required FeedType feedType,
     FeedModifier? feedModifier,
   }) async {
-    final seenEvent = await _seenEventsDao.getByReference(
+    final seenEvent = await _seenEventsDao.getByReferenceForFeed(
       eventReference: eventReference,
       feedType: feedType,
       feedModifier: feedModifier,
@@ -172,17 +172,8 @@ class FollowingFeedSeenEventsRepository {
     return _seenEventsDao.getUsersCreatedContentTime(maxUserEvents: maxUserEvents);
   }
 
-  Future<bool> isSeen({
-    required EventReference eventReference,
-    required FeedType feedType,
-    FeedModifier? feedModifier,
-  }) async {
-    final seenEvent = await _seenEventsDao.getByReference(
-      eventReference: eventReference,
-      feedType: feedType,
-      feedModifier: feedModifier,
-    );
-
+  Future<bool> isSeen({required EventReference eventReference}) async {
+    final seenEvent = await _seenEventsDao.getByReference(eventReference: eventReference);
     return seenEvent != null;
   }
 }
