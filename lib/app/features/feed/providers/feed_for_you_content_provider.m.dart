@@ -193,10 +193,11 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
     Logger.info('$_logTag Requesting [$limit] interested events');
 
-    final retryCounter = await _buildRetryCounter(limit: limit);
-    final seenSkipsCounter = await _buildSeenSkipsCounter(limit: limit);
-    final pageFetchContext =
-        InterestsPageFetchContext(retryCounter: retryCounter, seenSkipsCounter: seenSkipsCounter);
+    final pageFetchContext = InterestsPageFetchContext(
+      retryCounter: await _buildRetryCounter(limit: limit),
+      seenSkipsCounter: await _buildSeenSkipsCounter(limit: limit),
+      skippedSeenEntities: {},
+    );
     final modifiersDistribution = await _getFeedModifiersDistribution(limit: limit);
 
     yield* StreamGroup.merge([
@@ -209,7 +210,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
           ),
     ]);
 
-    if (retryCounter.isReached) {
+    if (pageFetchContext.retryCounter.isReached) {
       state = state.copyWith(forYouRetryLimitReached: true);
       Logger.warning('$_logTag Retry limit reached');
     }
@@ -924,8 +925,9 @@ class InterestsPageFetchContext {
   const InterestsPageFetchContext({
     required this.retryCounter,
     required this.seenSkipsCounter,
-    this.skippedSeenEntities = const {},
+    required this.skippedSeenEntities,
   });
+
   final Counter retryCounter;
   final Counter seenSkipsCounter;
   final Map<FeedModifier, List<IonConnectEntity>> skippedSeenEntities;
