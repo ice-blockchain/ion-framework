@@ -171,4 +171,18 @@ class FollowingFeedSeenEventsRepository {
   }) async {
     return _seenEventsDao.getUsersCreatedContentTime(maxUserEvents: maxUserEvents);
   }
+
+  Future<bool> isSeen({
+    required EventReference eventReference,
+    required FeedType feedType,
+    FeedModifier? feedModifier,
+  }) async {
+    final seenEvent = await _seenEventsDao.getByReference(
+      eventReference: eventReference,
+      feedType: feedType,
+      feedModifier: feedModifier,
+    );
+
+    return seenEvent != null;
+  }
 }
