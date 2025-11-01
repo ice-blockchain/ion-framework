@@ -2,8 +2,8 @@
 
 import 'dart:math';
 
-class RetryCounter {
-  RetryCounter({
+class Counter {
+  Counter({
     required this.limit,
   }) : _current = 0;
 

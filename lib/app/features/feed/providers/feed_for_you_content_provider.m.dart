@@ -7,10 +7,11 @@ import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/feed/data/models/counter.dart';
 import 'package:ion/app/features/feed/data/models/feed_config.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_modifier.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
-import 'package:ion/app/features/feed/data/models/retry_counter.dart';
+import 'package:ion/app/features/feed/data/repository/following_feed_seen_events_repository.r.dart';
 import 'package:ion/app/features/feed/providers/feed_config_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_data_source_builders.dart';
 import 'package:ion/app/features/feed/providers/feed_following_content_provider.m.dart';
@@ -37,7 +38,6 @@ import 'package:ion/app/utils/pagination.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'feed_for_you_content_provider.m.freezed.dart';
-
 part 'feed_for_you_content_provider.m.g.dart';
 
 @riverpod
@@ -134,7 +134,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     yield* StreamGroup.merge([
       _fetchUnseenFollowing(limit: followingLimit),
       _fetchUnseenGlobalAccounts(limit: globalAccountsLimit),
-      _fetchForYou(limit: forYouOverflowedLimit),
+      _fetchInterested(limit: forYouOverflowedLimit),
     ]);
   }
 
@@ -142,7 +142,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   /// if we didn't manage to fetch enough data.
   Stream<IonConnectEntity> _fetchFillPageData({required int limit}) {
     Logger.info('$_logTag Requesting additional [$limit] interested events to fill the viewport');
-    return _fetchForYou(limit: limit);
+    return _fetchInterested(limit: limit);
   }
 
   Stream<IonConnectEntity> _fetchUnseenFollowing({required int limit}) async* {
@@ -185,7 +185,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
   }
 
-  Stream<IonConnectEntity> _fetchForYou({required int limit}) async* {
+  Stream<IonConnectEntity> _fetchInterested({required int limit}) async* {
     if (state.forYouRetryLimitReached) {
       Logger.info('$_logTag Retry limit reached, skipping interested events fetch');
       return;
@@ -193,7 +193,10 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
     Logger.info('$_logTag Requesting [$limit] interested events');
 
-    final retryCounter = await _buildRetryCounter();
+    final retryCounter = await _buildRetryCounter(limit: limit);
+    final seenSkipsCounter = await _buildSeenSkipsCounter(limit: limit);
+    final pageFetchContext =
+        InterestsPageFetchContext(retryCounter: retryCounter, seenSkipsCounter: seenSkipsCounter);
     final modifiersDistribution = await _getFeedModifiersDistribution(limit: limit);
 
     yield* StreamGroup.merge([
@@ -202,7 +205,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
           _fetchInterestsEntities(
             modifier: modifier,
             limit: modifierLimit,
-            retryCounter: retryCounter,
+            pageFetchContext: pageFetchContext,
           ),
     ]);
 
@@ -212,10 +215,16 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
   }
 
-  Future<RetryCounter> _buildRetryCounter() async {
+  Future<Counter> _buildRetryCounter({required int limit}) async {
     final feedConfig = await ref.read(feedConfigProvider.future);
-    final maxRetries = (feedType.pageSize * feedConfig.forYouMaxRetriesMultiplier).ceil();
-    return RetryCounter(limit: maxRetries);
+    final maxRetries = (limit * feedConfig.forYouMaxRetriesMultiplier).ceil();
+    return Counter(limit: maxRetries);
+  }
+
+  Future<Counter> _buildSeenSkipsCounter({required int limit}) async {
+    final feedConfig = await ref.read(feedConfigProvider.future);
+    final maxSeenSkips = (limit * feedConfig.forYouSeenSkipsMultiplier).ceil();
+    return Counter(limit: maxSeenSkips);
   }
 
   int _getFeedFollowingDistribution({required int totalLimit}) {
@@ -357,9 +366,9 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   Stream<IonConnectEntity> _fetchInterestsEntities({
     required FeedModifier modifier,
     required int limit,
-    required RetryCounter retryCounter,
+    required InterestsPageFetchContext pageFetchContext,
   }) async* {
-    if (retryCounter.isReached) return;
+    if (pageFetchContext.retryCounter.isReached) return;
 
     await _refreshModifierPagination(modifier: modifier);
 
@@ -380,23 +389,39 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     await for (final entity in _requestEntitiesFromRelays(
       relays: nextPageRelays.keys,
       modifier: modifier,
-      retryCounter: retryCounter,
+      pageFetchContext: pageFetchContext,
     )) {
       yield entity;
       requestedCount++;
     }
 
-    final remaining = limit - requestedCount;
+    var remaining = limit - requestedCount;
 
     Logger.info(
-      '$_logTag Got [$requestedCount] events with [${modifier.name}] modifier, remaining: [$remaining], tries left: [${retryCounter.triesLeft}]',
+      '$_logTag Got [$requestedCount] events with [${modifier.name}] modifier, remaining: [$remaining], tries left: [${pageFetchContext.retryCounter.triesLeft}]',
     );
+
+    if (remaining > 0) {
+      var storedSeenCount = 0;
+      await for (final entity in _fetchAvailableStoredSeenEntities(
+        pageFetchContext: pageFetchContext,
+        modifier: modifier,
+        limit: remaining,
+      )) {
+        yield entity;
+        storedSeenCount++;
+      }
+      remaining = remaining - storedSeenCount;
+      Logger.info(
+        '$_logTag Got [$storedSeenCount] seen stored events with [${modifier.name}] modifier, remaining: [$remaining]',
+      );
+    }
 
     if (remaining > 0) {
       yield* _fetchInterestsEntities(
         modifier: modifier,
         limit: remaining,
-        retryCounter: retryCounter,
+        pageFetchContext: pageFetchContext,
       );
     }
   }
@@ -454,7 +479,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   Stream<IonConnectEntity> _requestEntitiesFromRelays({
     required Iterable<String> relays,
     required FeedModifier modifier,
-    required RetryCounter retryCounter,
+    required InterestsPageFetchContext pageFetchContext,
   }) async* {
     final requestsQueue = await ref.read(feedRequestQueueProvider.future);
     final resultsController = StreamController<IonConnectEntity>();
@@ -463,7 +488,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     final requests = [
       for (final relayUrl in relays)
         requestsQueue.add(() async {
-          if (retryCounter.isReached) return;
+          if (pageFetchContext.retryCounter.isReached) return;
 
           final relayInterestsPagination =
               state.modifiersPagination[modifier]![relayUrl]!.interestsPagination;
@@ -486,7 +511,11 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
           missingEvents.addAll(missing);
 
           if (entity != null) {
-            if (await _shouldShowEntity(entity)) {
+            if (await _shouldShowEntity(
+              entity,
+              modifier: modifier,
+              pageFetchContext: pageFetchContext,
+            )) {
               resultsController.add(entity);
             }
             // Even when we don't add an entity to the results (to not count this entity as "fetched"),
@@ -500,9 +529,9 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
             );
           } else {
             Logger.info(
-              '$_logTag No events found for interest: $interest, ${modifier.name}, on relay: $relayUrl, tries left ${retryCounter.triesLeft}',
+              '$_logTag No events found for interest: $interest, ${modifier.name}, on relay: $relayUrl, tries left ${pageFetchContext.retryCounter.triesLeft}',
             );
-            retryCounter.increment();
+            pageFetchContext.retryCounter.increment();
             state = state.copyWithRelayInterestPagination(
               interestPagination.copyWith(hasMore: false),
               relayUrl: relayUrl,
@@ -540,7 +569,11 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     yield* resultsController.stream;
   }
 
-  Future<bool> _shouldShowEntity(IonConnectEntity entity) async {
+  Future<bool> _shouldShowEntity(
+    IonConnectEntity entity, {
+    required FeedModifier modifier,
+    required InterestsPageFetchContext pageFetchContext,
+  }) async {
     final currentItems = state.items ?? {};
 
     // The entity might have already been added to the state by another request.
@@ -562,8 +595,19 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       return false;
     }
 
+    // We don't show posts from nsfw accounts.
     if (await _isNsfwAccount(entity.masterPubkey)) {
       Logger.info('$_logTag Entity is from NSFW account, skipping: ${entity.id}');
+      return false;
+    }
+
+    // We attempt to show only unseen entities.
+    if (!pageFetchContext.seenSkipsCounter.isReached && await _isSeen(entity, modifier: modifier)) {
+      pageFetchContext.seenSkipsCounter.increment();
+      pageFetchContext.skippedSeenEntities.putIfAbsent(modifier, () => []).add(entity);
+      Logger.info(
+        '$_logTag Entity has been seen before, skipping: ${entity.id}, seen skips left: ${pageFetchContext.seenSkipsCounter.triesLeft}',
+      );
       return false;
     }
 
@@ -582,6 +626,15 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       );
       return false;
     }
+  }
+
+  Future<bool> _isSeen(IonConnectEntity entity, {required FeedModifier modifier}) async {
+    final seenEventsRepository = ref.read(followingFeedSeenEventsRepositoryProvider);
+    return seenEventsRepository.isSeen(
+      eventReference: entity.toEventReference(),
+      feedType: feedType,
+      feedModifier: modifier,
+    );
   }
 
   Future<String?> _getRequestInterest({
@@ -757,6 +810,34 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     return userInterests.categories.keys.toList();
   }
 
+  /// We attempt to show only unseen entities, but if the number of seen skips
+  /// has reached the limit, we show the collected seen entities and don't skip them anymore.
+  Stream<IonConnectEntity> _fetchAvailableStoredSeenEntities({
+    required InterestsPageFetchContext pageFetchContext,
+    required FeedModifier modifier,
+    required int limit,
+  }) async* {
+    if (!pageFetchContext.seenSkipsCounter.isReached) {
+      return;
+    }
+
+    final skippedSeenEntities = pageFetchContext.skippedSeenEntities[modifier];
+
+    if (skippedSeenEntities == null || skippedSeenEntities.isEmpty) {
+      return;
+    }
+
+    Logger.info(
+      '$_logTag Using stored seen entities with [${modifier.name}] modifier since seen skips limit reached',
+    );
+
+    for (final entity in skippedSeenEntities.take(limit)) {
+      yield entity;
+    }
+
+    skippedSeenEntities.clear();
+  }
+
   String get _logTag => '[FEED FOR_YOU ${feedType.name}]';
 
   static const String _explorePaginationInterest = '_explore';
@@ -839,4 +920,15 @@ class InterestPagination with _$InterestPagination {
     required bool hasMore,
     int? lastEventCreatedAt,
   }) = _InterestPagination;
+}
+
+class InterestsPageFetchContext {
+  const InterestsPageFetchContext({
+    required this.retryCounter,
+    required this.seenSkipsCounter,
+    this.skippedSeenEntities = const {},
+  });
+  final Counter retryCounter;
+  final Counter seenSkipsCounter;
+  final Map<FeedModifier, List<IonConnectEntity>> skippedSeenEntities;
 }
