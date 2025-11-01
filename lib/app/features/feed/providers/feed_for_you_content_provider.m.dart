@@ -413,9 +413,11 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
         storedSeenCount++;
       }
       remaining = remaining - storedSeenCount;
-      Logger.info(
-        '$_logTag Got [$storedSeenCount] seen stored events with [${modifier.name}] modifier, remaining: [$remaining]',
-      );
+      if (storedSeenCount > 0) {
+        Logger.info(
+          '$_logTag Got [$storedSeenCount] seen stored events with [${modifier.name}] modifier, remaining: [$remaining]',
+        );
+      }
     }
 
     if (remaining > 0) {
