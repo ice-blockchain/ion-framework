@@ -8,6 +8,7 @@ import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/providers/group/encrypted_group_metadata_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
@@ -236,10 +237,14 @@ class EncryptedGroupChatTile extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final groupMetadata =
+        ref.watch(encryptedGroupMetadataProvider(conversation.conversationId)).valueOrNull;
+
     final lastMessage = conversation.latestMessage;
+
     final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
 
-    if (lastMessage == null || currentUserMasterPubkey == null) {
+    if (lastMessage == null || groupMetadata == null || currentUserMasterPubkey == null) {
       return const SizedBox.shrink();
     }
 
@@ -261,11 +266,11 @@ class EncryptedGroupChatTile extends HookConsumerWidget {
     final lastMessageAt = lastMessage.createdAt.toDateTime;
 
     // Group info
-    final groupName = lastMessageEntity.data.groupSubject?.value ?? '';
-    final groupAvatarFile = lastMessageEntity.data.primaryMedia != null
+    final groupName = groupMetadata.name;
+    final groupAvatarFile = groupMetadata.avatar.media != null
         ? useFuture(
             ref.watch(mediaEncryptionServiceProvider).getEncryptedMedia(
-                  lastMessageEntity.data.primaryMedia!,
+                  groupMetadata.avatar.media!,
                   authorPubkey: lastMessage.masterPubkey,
                 ),
           ).data
