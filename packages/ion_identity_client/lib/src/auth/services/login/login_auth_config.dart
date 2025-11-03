@@ -2,8 +2,8 @@
 
 typedef GetPasswordCallback = Future<String> Function();
 
-class LoginAuthConfig {
-  const LoginAuthConfig({
+class AuthConfig {
+  const AuthConfig({
     this.getPassword,
     this.localisedReasonForBiometrics,
     this.localisedCancelForBiometrics,
@@ -13,5 +13,3 @@ class LoginAuthConfig {
   final String? localisedReasonForBiometrics;
   final String? localisedCancelForBiometrics;
 }
-
-

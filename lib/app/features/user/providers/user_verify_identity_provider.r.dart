@@ -53,7 +53,9 @@ Future<VerifyIdentityType> verifyIdentityType(
   final ionIdentity = await ref.read(ionIdentityProvider.future);
 
   if (username != null) {
-    if (ionIdentity(username: username).auth.isPasswordFlowUser()) {
+    // Prefer capabilities over storage heuristics to pick the correct UI
+    final capabilities = await ionIdentity(username: username).auth.getLoginCapabilities();
+    if (capabilities.passwordFlowAvailable) {
       final userBiometricsState =
           await ref.read(userBiometricsStateProvider(username: username).future);
       return userBiometricsState == BiometricsState.enabled

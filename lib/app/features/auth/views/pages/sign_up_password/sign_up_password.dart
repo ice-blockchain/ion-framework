@@ -7,7 +7,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/auth/providers/register_action_notifier.r.dart';
+import 'package:ion/app/features/auth/flows/run_sign_up_then_login.dart';
+import 'package:ion/app/features/auth/providers/auth_flow_action_notifier.r.dart';
 import 'package:ion/app/features/auth/views/components/auth_footer/auth_footer.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
 import 'package:ion/app/features/auth/views/components/identity_key_name_input/identity_key_name_input.dart';
@@ -17,6 +18,7 @@ import 'package:ion/app/features/components/biometrics/hooks/use_on_suggest_biom
 import 'package:ion/app/features/components/verify_identity/components/password_input.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_identity_client/ion_identity.dart';
 
 class SignUpPasswordPage extends HookConsumerWidget {
   const SignUpPasswordPage({super.key});
@@ -33,7 +35,11 @@ class SignUpPasswordPage extends HookConsumerWidget {
 
     final formKey = useRef(GlobalKey<FormState>());
 
-    ref.displayErrors(registerActionNotifierProvider);
+    ref.displayErrors(
+      authFlowActionNotifierProvider,
+      excludedExceptions: {UserAlreadyExistsException},
+    );
+    final onSuggestToAddBiometrics = useOnSuggestToAddBiometrics(ref);
 
     final passwordsError = useState<String?>(null);
     final focusedPasswordValue = useState<String?>(null);
@@ -60,8 +66,6 @@ class SignUpPasswordPage extends HookConsumerWidget {
         passwordConfirmationInputFocused.value,
       ],
     );
-
-    final onSuggestToAddBiometrics = useOnSuggestToAddBiometrics(ref);
 
     return SheetContent(
       body: KeyboardDismissOnTap(
@@ -109,19 +113,14 @@ class SignUpPasswordPage extends HookConsumerWidget {
                       onPressed: () async {
                         if (passwordController.text == passwordConfirmationController.text) {
                           if (formKey.value.currentState!.validate()) {
-                            await ref
-                                .read(registerActionNotifierProvider.notifier)
-                                .signUpWithPassword(
-                                  keyName: identityKeyNameController.text,
-                                  password: passwordController.text,
-                                );
-                            final state = ref.read(registerActionNotifierProvider);
-                            if (!state.hasError) {
-                              await onSuggestToAddBiometrics(
-                                username: identityKeyNameController.text,
-                                password: passwordController.text,
-                              );
-                            }
+                            await runSignUpThenLogin(
+                              context: ref.context,
+                              ref: ref,
+                              identityKeyName: identityKeyNameController.text,
+                              kind: SignUpKind.password,
+                              password: passwordController.text,
+                              suggestBiometrics: onSuggestToAddBiometrics,
+                            );
                           }
                         } else {
                           passwordsError.value = context.i18n.error_passwords_are_not_equal;

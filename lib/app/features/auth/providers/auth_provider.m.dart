@@ -82,13 +82,14 @@ class Auth extends _$Auth {
         );
       }
     });
-    return AuthState(
+    final result = AuthState(
       authenticatedIdentityKeyNames: authenticatedIdentityKeyNames.toList(),
       suggestToAddBiometrics: userBiometricsState == BiometricsState.canSuggest,
       suggestToCreateLocalPasskeyCreds:
           userLocalPasskeyCredsState == LocalPasskeyCredsState.canSuggest,
       hasEventSigner: eventSigner != null,
     );
+    return result;
   }
 
   Future<void> signOut() async {

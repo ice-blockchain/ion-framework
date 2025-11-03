@@ -112,7 +112,7 @@ class LoginExecutorFactory {
   final PrivateKeyStorage privateKeyStorage;
 
   LoginExecutor create({
-    required LoginAuthConfig config,
+    required AuthConfig config,
     required UserActionChallenge challenge,
     required String username,
     required bool localCredsOnly,

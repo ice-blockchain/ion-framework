@@ -181,7 +181,7 @@ class SignInStep extends HookConsumerWidget {
     }
     alreadyAskedRef.value = true;
 
-    const config = LoginAuthConfig();
+    const config = AuthConfig();
     ref.read(loginActionNotifierProvider.notifier).signIn(
           keyName: usernameRef.value,
           config: config,

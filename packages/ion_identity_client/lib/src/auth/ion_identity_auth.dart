@@ -6,6 +6,7 @@ import 'package:ion_identity_client/src/auth/services/credentials/create_recover
 import 'package:ion_identity_client/src/auth/services/credentials/get_credentials_service.dart';
 import 'package:ion_identity_client/src/auth/services/delegated_login/delegated_login_service.dart';
 import 'package:ion_identity_client/src/auth/services/delete/delete_service.dart';
+import 'package:ion_identity_client/src/auth/services/login/login_capabilities.dart';
 import 'package:ion_identity_client/src/auth/services/login/login_service.dart';
 import 'package:ion_identity_client/src/auth/services/logout/logout_service.dart';
 import 'package:ion_identity_client/src/auth/services/recover_user/recover_user_service.dart';
@@ -74,8 +75,10 @@ class IONIdentityAuth {
 
   Future<void> verifyUserLoginFlow() => loginService.verifyUserLoginFlow();
 
+  Future<LoginCapabilities> getLoginCapabilities() => loginService.getLoginCapabilities();
+
   Future<void> login({
-    required LoginAuthConfig config,
+    required AuthConfig config,
     required List<TwoFAType> twoFATypes,
     required bool localCredsOnly,
   }) =>

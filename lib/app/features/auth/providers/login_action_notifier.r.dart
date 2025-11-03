@@ -24,7 +24,7 @@ class LoginActionNotifier extends _$LoginActionNotifier {
 
   Future<void> signIn({
     required String keyName,
-    required LoginAuthConfig config,
+    required AuthConfig config,
     required bool localCredsOnly,
     Map<TwoFaType, String>? twoFaTypes,
   }) async {
@@ -39,10 +39,10 @@ class LoginActionNotifier extends _$LoginActionNotifier {
 
       try {
         await ionIdentity(username: keyName).auth.login(
-          config: config,
-          twoFATypes: twoFATypes,
-          localCredsOnly: localCredsOnly,
-        );
+              config: config,
+              twoFATypes: twoFATypes,
+              localCredsOnly: localCredsOnly,
+            );
       } on NoLocalPasskeyCredsFoundIONIdentityException {
         // Are we trying to suggest a passkey for empty identity key name?
         // If yes, and there're no local creds, do nothing

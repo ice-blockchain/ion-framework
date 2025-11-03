@@ -35,32 +35,45 @@ Future<void> guardPasskeyDialog(
   );
 }
 
-class RiverpodLoginConfigRequestBuilder<T> extends HookConsumerWidget {
-  const RiverpodLoginConfigRequestBuilder({
+class RiverpodAuthConfigRequestBuilder<T> extends HookConsumerWidget {
+  const RiverpodAuthConfigRequestBuilder({
     required this.child,
     required this.request,
+    this.provider,
     this.identityKeyName,
     this.onPasswordCaptured,
     super.key,
   });
 
   final Widget child;
-  final Future<void> Function(LoginAuthConfig config) request;
+  final Future<void> Function(AuthConfig config) request;
+  final ProviderListenable<AsyncValue<T>>? provider;
   final String? identityKeyName;
   final void Function(String password)? onPasswordCaptured;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (provider != null) {
+      ref.listen(provider!, (prev, next) {
+        if (!next.isLoading && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      });
+    }
     final onGetPassword = useOnGetPassword<String>();
 
     useOnInit(
       () async {
-        try {
-          await _executeRequest(context, ref, onGetPassword);
-        } finally {
-          if (context.mounted) {
-            Navigator.of(context).pop();
+        if (provider == null) {
+          try {
+            await _executeRequest(context, ref, onGetPassword);
+          } finally {
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
           }
+        } else {
+          await _executeRequest(context, ref, onGetPassword);
         }
       },
       <Object>[onGetPassword],
@@ -75,14 +88,19 @@ class RiverpodLoginConfigRequestBuilder<T> extends HookConsumerWidget {
     Future<String> Function(OnPasswordFlow<String> onPasswordFlow) onGetPassword,
   ) async {
     final locale = context.i18n;
+    final username = identityKeyName ?? ref.read(currentIdentityKeyNameSelectorProvider)!;
+    final ionIdentity = await ref.read(ionIdentityProvider.future);
+    final capabilities = await ionIdentity(username: username).auth.getLoginCapabilities();
 
-    final config = LoginAuthConfig(
+    final config = AuthConfig(
       localisedReasonForBiometrics: locale.verify_with_biometrics_title,
       localisedCancelForBiometrics: locale.button_cancel,
-      getPassword: () => onGetPassword(({required String password}) async {
-        onPasswordCaptured?.call(password);
-        return password;
-      }),
+      getPassword: capabilities.passwordFlowAvailable
+          ? () => onGetPassword(({required String password}) async {
+                onPasswordCaptured?.call(password);
+                return password;
+              })
+          : null,
     );
 
     await request(config);
