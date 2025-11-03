@@ -104,7 +104,7 @@ class ConversationMessageReactionDao extends DatabaseAccessor<ChatDatabase>
           masterPubkeys: entry.value.map((e) => e.masterPubkey).toSet().toList(),
         );
       }).toList();
-    });
+    }).distinct((l1, l2) => l1.equalsDeep(l2));
   }
 
   Future<bool> isReactionExist({
@@ -159,7 +159,8 @@ class ConversationMessageReactionDao extends DatabaseAccessor<ChatDatabase>
           ..where((table) => table.messageEventReference.equalsValue(eventReference))
           ..limit(1))
         .watchSingleOrNull()
-        .map((row) => row?.content);
+        .map((row) => row?.content)
+        .distinct();
 
     await for (final value in stream) {
       yield value;

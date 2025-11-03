@@ -28,11 +28,11 @@ class EncryptedRepostHandler extends GlobalSubscriptionEncryptedEventMessageHand
   bool canHandle({
     required IonConnectGiftWrapEntity entity,
   }) {
-    return entity.data.kinds.containsDeep([
+    return entity.data.kinds.containsList([
           GenericRepostEntity.kind.toString(),
           ArticleEntity.kind.toString(),
         ]) ||
-        entity.data.kinds.containsDeep([
+        entity.data.kinds.containsList([
           GenericRepostEntity.kind.toString(),
           ModifiablePostEntity.kind.toString(),
         ]);

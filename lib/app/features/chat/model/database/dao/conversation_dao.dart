@@ -178,7 +178,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
       }).toList();
 
       return sortedRows.reversed.toList();
-    });
+    }).distinct((l1, l2) => l1.equalsDeep(l2));
   }
 
   ///
