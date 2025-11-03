@@ -23,8 +23,9 @@ class FollowingList extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final followingState = ref.watch(userFollowListWithMetadataProvider(pubkey));
-    final followeePubkeys = followingState.valueOrNull?.pubkeys;
-    final totalPubkeysCount = followingState.valueOrNull?.allPubkeys.length;
+    final followingData = followingState.valueOrNull;
+    final followeePubkeys = followingData?.pubkeys;
+    final totalPubkeysCount = followingData?.allPubkeys.length;
     final searchQuery = useState('');
     final debouncedQuery = useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '';
 
@@ -43,7 +44,7 @@ class FollowingList extends HookConsumerWidget {
     return LoadMoreBuilder(
       hasMore: searchQuery.value.isNotEmpty
           ? searchPagedData?.hasMore ?? false
-          : followingState.valueOrNull?.hasMore ?? false,
+          : followingData?.hasMore ?? false,
       onLoadMore: () async {
         if (searchQuery.value.isNotEmpty) {
           await ref

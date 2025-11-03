@@ -19,8 +19,6 @@ const _followListLimit = 25;
 
 @riverpod
 class UserFollowListWithMetadata extends _$UserFollowListWithMetadata {
-  bool _isLoading = false;
-
   @override
   Future<UserFollowListWithMetadataState> build(String pubkey) async {
     final followListEntity = await ref.watch(followListProvider(pubkey).future);
@@ -38,36 +36,31 @@ class UserFollowListWithMetadata extends _$UserFollowListWithMetadata {
   }
 
   Future<void> fetchEntities() async {
-    if (_isLoading || state.isLoading || !state.hasValue || !state.value!.hasMore) {
+    if (state.isLoading || !state.hasValue || !state.value!.hasMore) {
       return;
     }
 
-    try {
-      _isLoading = true;
-      final previousState = state.value!;
-      final allPubkeys = previousState.allPubkeys;
+    final previousState = state.value!;
+    final allPubkeys = previousState.allPubkeys;
 
-      final currentPubkeys = previousState.pubkeys;
+    final currentPubkeys = previousState.pubkeys;
 
-      final nextPubkeys = allPubkeys.skip(currentPubkeys.length).take(_followListLimit).toList();
+    final nextPubkeys = allPubkeys.skip(currentPubkeys.length).take(_followListLimit).toList();
 
-      if (nextPubkeys.isEmpty) {
-        state = AsyncData(previousState.copyWith(hasMore: false));
-        return;
-      }
-
-      _fetchMetadata(nextPubkeys);
-
-      final newPubkeys = [...currentPubkeys, ...nextPubkeys];
-      state = AsyncData(
-        previousState.copyWith(
-          pubkeys: newPubkeys,
-          hasMore: newPubkeys.length < allPubkeys.length,
-        ),
-      );
-    } finally {
-      _isLoading = false;
+    if (nextPubkeys.isEmpty) {
+      state = AsyncData(previousState.copyWith(hasMore: false));
+      return;
     }
+
+    _fetchMetadata(nextPubkeys);
+
+    final newPubkeys = [...currentPubkeys, ...nextPubkeys];
+    state = AsyncData(
+      previousState.copyWith(
+        pubkeys: newPubkeys,
+        hasMore: newPubkeys.length < allPubkeys.length,
+      ),
+    );
   }
 
   void _fetchMetadata(List<String> pubkeys) {

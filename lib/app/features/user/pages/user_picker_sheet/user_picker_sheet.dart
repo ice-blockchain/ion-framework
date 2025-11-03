@@ -54,8 +54,12 @@ class UserPickerSheet extends HookConsumerWidget {
     );
 
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+    if (currentPubkey == null) {
+      // Should never happen because currentPubkeySelectorProvider is marked as keepAlive: true
+      return const SizedBox.shrink();
+    }
 
-    final followListState = ref.watch(userFollowListWithMetadataProvider(currentPubkey!));
+    final followListState = ref.watch(userFollowListWithMetadataProvider(currentPubkey));
     final showFollowingUsers = debouncedQuery.isEmpty;
 
     return LoadMoreBuilder(
