@@ -12,21 +12,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chat_messages_search_provider.r.g.dart';
 
-final chatSearchCacheProvider = StateProvider<Map<String, List<ChatSearchResultItem>>>((ref) {
-  return {};
-});
-
 @riverpod
 Future<List<ChatSearchResultItem>?> chatMessagesSearch(
   Ref ref,
   String query,
 ) async {
   if (query.isEmpty) return null;
-
-  final cachedResults = ref.watch(chatSearchCacheProvider);
-  if (cachedResults.containsKey(query)) {
-    return cachedResults[query];
-  }
 
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
   if (currentUserMasterPubkey == null) return null;
@@ -57,7 +48,6 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(
   }
 
   if (receiverMasterPubkeys.isEmpty) {
-    ref.read(chatSearchCacheProvider.notifier).update((state) => {...state, query: []});
     return [];
   }
 
@@ -101,6 +91,5 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(
     );
   }
 
-  ref.read(chatSearchCacheProvider.notifier).update((state) => {...state, query: result});
   return result;
 }

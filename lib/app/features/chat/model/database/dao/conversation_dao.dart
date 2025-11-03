@@ -135,6 +135,10 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
   /// The list is sorted in descending order (newest first)
 
   Stream<List<ConversationListItem>> watch() {
+    final deletedMessagesSubquery = selectOnly(messageStatusTable)
+      ..addColumns([messageStatusTable.messageEventReference])
+      ..where(messageStatusTable.status.equals(MessageDeliveryStatus.deleted.index));
+
     final query = select(conversationTable).join([
       innerJoin(
         conversationMessageTable,
@@ -145,17 +149,10 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
         eventMessageTable.eventReference.equalsExp(conversationMessageTable.messageEventReference),
       ),
     ])
-      ..where(
-        notExistsQuery(
-          select(messageStatusTable)
-            ..where((tbl) => tbl.status.equals(MessageDeliveryStatus.deleted.index))
-            ..where(
-              (table) => table.messageEventReference
-                  .equalsExp(conversationMessageTable.messageEventReference),
-            ),
-        ),
-      )
       ..where(conversationTable.isHidden.equals(false))
+      ..where(
+        conversationMessageTable.messageEventReference.isNotInQuery(deletedMessagesSubquery),
+      )
       ..addColumns([eventMessageTable.createdAt.max()])
       ..groupBy([conversationTable.id])
       ..distinct;
