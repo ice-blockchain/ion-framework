@@ -250,7 +250,11 @@ class EncryptedGroupChatTile extends HookConsumerWidget {
     }
 
     final isEditMode = ref.watch(conversationsEditModeProvider);
-    final selectedConversations = ref.watch(selectedConversationsProvider);
+    final isSelected = ref.watch(
+      selectedConversationsProvider.select(
+        (conversations) => conversations.contains(conversation),
+      ),
+    );
 
     // Last message info
     final lastMessageEntity = useMemoized(
@@ -268,14 +272,17 @@ class EncryptedGroupChatTile extends HookConsumerWidget {
 
     // Group info
     final groupName = groupMetadata.name;
-    final groupAvatarFile = groupMetadata.avatar.media != null
-        ? useFuture(
-            ref.watch(mediaEncryptionServiceProvider).getEncryptedMedia(
-                  groupMetadata.avatar.media!,
-                  authorPubkey: lastMessage.masterPubkey,
-                ),
-          ).data
-        : null;
+    final avatarMedia = groupMetadata.avatar.media;
+    final avatarFuture = useMemoized(
+      () => avatarMedia != null
+          ? ref.read(mediaEncryptionServiceProvider).getEncryptedMedia(
+                avatarMedia,
+                authorPubkey: lastMessage.masterPubkey,
+              )
+          : null,
+      [avatarMedia?.url, lastMessage.masterPubkey],
+    );
+    final groupAvatarFile = useFuture(avatarFuture).data;
 
     // Conversation info
     final conversationItemKey = useMemoized(GlobalKey.new);
@@ -308,7 +315,7 @@ class EncryptedGroupChatTile extends HookConsumerWidget {
                 duration: const Duration(milliseconds: 200),
                 child: Padding(
                   padding: EdgeInsetsDirectional.only(end: 10.0.s),
-                  child: selectedConversations.contains(conversation)
+                  child: isSelected
                       ? Assets.svg.iconBlockCheckboxOn.icon(size: 24.0.s)
                       : Assets.svg.iconBlockCheckboxOff.icon(size: 24.0.s),
                 ),
