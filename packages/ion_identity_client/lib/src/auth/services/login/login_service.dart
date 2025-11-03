@@ -5,28 +5,28 @@ import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/auth/dtos/private_key_data.j.dart';
 import 'package:ion_identity_client/src/auth/helpers/extract_username_from_token_helper.dart';
 import 'package:ion_identity_client/src/auth/services/login/data_sources/login_data_source.dart';
+import 'package:ion_identity_client/src/auth/services/login/login_executors.dart';
 import 'package:ion_identity_client/src/core/storage/biometrics_state_storage.dart';
 import 'package:ion_identity_client/src/core/storage/private_key_storage.dart';
 import 'package:ion_identity_client/src/core/storage/token_storage.dart';
 import 'package:ion_identity_client/src/signer/dtos/dtos.dart';
-import 'package:ion_identity_client/src/signer/identity_signer.dart';
 
 class LoginService {
   const LoginService({
     required this.username,
-    required this.identitySigner,
     required this.dataSource,
     required this.tokenStorage,
     required this.privateKeyStorage,
     required this.biometricsStateStorage,
+    required this.loginExecutorFactory,
   });
 
   final String username;
-  final IdentitySigner identitySigner;
   final LoginDataSource dataSource;
   final TokenStorage tokenStorage;
   final PrivateKeyStorage privateKeyStorage;
   final BiometricsStateStorage biometricsStateStorage;
+  final LoginExecutorFactory loginExecutorFactory;
 
   /// Initializes the login process for the specified [username].
   ///
@@ -92,58 +92,31 @@ class LoginService {
   /// - [UserNotFoundException] if the user account does not exist.
   /// - [PasskeyValidationException] if the passkey validation fails.
   /// - [UnknownIONIdentityException] for any other unexpected errors during the login process.
-  Future<void> loginUser({
-    required OnVerifyIdentity<AssertionRequestData> onVerifyIdentity,
+  Future<void> login({
+    required LoginAuthConfig config,
     required List<TwoFAType> twoFATypes,
     required bool localCredsOnly,
   }) async {
     final challenge = await dataSource.loginInit(username: username, twoFATypes: twoFATypes);
-    final assertion = await onVerifyIdentity(
-      onPasskeyFlow: () {
-        return identitySigner.loginWithPasskey(
-          username: username,
-          challenge: challenge,
-          localCredsOnly: localCredsOnly,
-        );
-      },
-      onPasswordFlow: ({required String password}) async {
-        final credentialDescriptor = identitySigner.extractPasswordProtectedCredentials(challenge);
-        final assertion = await identitySigner.signWithPassword(
-          challenge: challenge.challenge,
-          encryptedPrivateKey: credentialDescriptor.encryptedPrivateKey!,
-          credentialId: credentialDescriptor.id,
-          credentialKind: CredentialKind.PasswordProtectedKey,
-          password: password,
-        );
-        final biometricsState = biometricsStateStorage.getBiometricsState(username: username);
-        if (biometricsState == null || biometricsState == BiometricsState.failed) {
-          await biometricsStateStorage.updateBiometricsState(
-            username: username,
-            biometricsState: BiometricsState.canSuggest,
-          );
-        }
-        return assertion;
-      },
-      onBiometricsFlow: ({required String localisedReason, required String localisedCancel}) {
-        final credentialDescriptor = identitySigner.extractPasswordProtectedCredentials(challenge);
-        return identitySigner.signWithBiometrics(
-          challenge: challenge.challenge,
-          username: username,
-          encryptedPrivateKey: credentialDescriptor.encryptedPrivateKey!,
-          credentialId: credentialDescriptor.id,
-          credentialKind: CredentialKind.PasswordProtectedKey,
-          localisedReason: localisedReason,
-          localisedCancel: localisedCancel,
-        );
-      },
+    
+    final executor = loginExecutorFactory.create(
+      config: config,
+      challenge: challenge,
+      username: username,
+      localCredsOnly: localCredsOnly,
+    );
+    final assertion = await executor.execute(
+      username: username,
+      challenge: challenge,
+      localCredsOnly: localCredsOnly,
     );
 
     final tokens = await dataSource.loginComplete(
       challengeIdentifier: challenge.challengeIdentifier,
       assertion: assertion,
     );
-    final tokenKeyUsername = username.isEmpty ? extractUsernameFromToken(tokens.token) : username;
 
+    final tokenKeyUsername = username.isEmpty ? extractUsernameFromToken(tokens.token) : username;
     await tokenStorage.setTokens(
       username: tokenKeyUsername,
       newTokens: tokens,

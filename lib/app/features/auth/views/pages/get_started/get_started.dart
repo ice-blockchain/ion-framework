@@ -106,30 +106,19 @@ class GetStartedPage extends HookConsumerWidget {
     await guardPasskeyDialog(
       ref.context,
       identityKeyName: identityKeyName,
-      (child) => RiverpodVerifyIdentityRequestBuilder(
-        provider: loginActionNotifierProvider,
+      (child) => RiverpodLoginConfigRequestBuilder<void>(
         identityKeyName: identityKeyName,
-        requestWithVerifyIdentity: (OnVerifyIdentity<AssertionRequestData> onVerifyIdentity) {
-          if (ref.context.mounted) {
-            ref.read(loginActionNotifierProvider.notifier).signIn(
-                  keyName: identityKeyName,
-                  onVerifyIdentity: ({
-                    required onPasskeyFlow,
-                    required onPasswordFlow,
-                    required onBiometricsFlow,
-                  }) =>
-                      onVerifyIdentity(
-                    onPasskeyFlow: onPasskeyFlow,
-                    onBiometricsFlow: onBiometricsFlow,
-                    onPasswordFlow: ({required String password}) {
-                      loginPassword = password;
-                      return onPasswordFlow(password: password);
-                    },
-                  ),
-                  twoFaTypes: twoFaTypes,
-                  localCredsOnly: localCredsOnly,
-                );
-          }
+        onPasswordCaptured: (String p) => loginPassword = p,
+        request: (LoginAuthConfig config) async {
+          await ref.read(loginActionNotifierProvider.notifier).verifyUserLoginFlow(
+                keyName: identityKeyName,
+              );
+          await ref.read(loginActionNotifierProvider.notifier).signIn(
+                keyName: identityKeyName,
+                config: config,
+                twoFaTypes: twoFaTypes,
+                localCredsOnly: localCredsOnly,
+              );
         },
         child: child,
       ),

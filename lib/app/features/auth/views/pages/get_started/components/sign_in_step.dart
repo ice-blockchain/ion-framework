@@ -172,20 +172,19 @@ class SignInStep extends HookConsumerWidget {
     );
   }
 
-  void _attemptAutoPasskeyLogin(WidgetRef ref, ObjectRef<bool> alreadyAskedRef) {
+  void _attemptAutoPasskeyLogin(
+    WidgetRef ref,
+    ObjectRef<bool> alreadyAskedRef,
+  ) {
     if (alreadyAskedRef.value) {
       return;
     }
     alreadyAskedRef.value = true;
 
+    const config = LoginAuthConfig();
     ref.read(loginActionNotifierProvider.notifier).signIn(
           keyName: usernameRef.value,
-          onVerifyIdentity: ({
-            required onPasskeyFlow,
-            required onPasswordFlow,
-            required onBiometricsFlow,
-          }) =>
-              onPasskeyFlow(),
+          config: config,
           twoFaTypes: twoFAOptions.value,
           localCredsOnly: true,
         );

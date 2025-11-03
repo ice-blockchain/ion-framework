@@ -14,6 +14,7 @@ import 'package:ion_identity_client/src/auth/services/extract_user_id/extract_us
 import 'package:ion_identity_client/src/auth/services/key_service.dart';
 import 'package:ion_identity_client/src/auth/services/login/data_sources/login_data_source.dart';
 import 'package:ion_identity_client/src/auth/services/login/login_service.dart';
+import 'package:ion_identity_client/src/auth/services/login/login_executors.dart';
 import 'package:ion_identity_client/src/auth/services/logout/data_sources/logout_data_source.dart';
 import 'package:ion_identity_client/src/auth/services/logout/logout_service.dart';
 import 'package:ion_identity_client/src/auth/services/recover_user/data_sources/recover_user_data_source.dart';
@@ -98,13 +99,17 @@ class AuthClientServiceLocator {
   }) {
     return LoginService(
       username: username,
-      identitySigner: identitySigner,
       dataSource: LoginDataSource(
         networkClient: IONIdentityServiceLocator.networkClient(config: config),
       ),
       tokenStorage: IONIdentityServiceLocator.tokenStorage(),
       privateKeyStorage: IONIdentityServiceLocator.privateKeyStorage(),
       biometricsStateStorage: IONIdentityServiceLocator.biometricsStateStorage(),
+      loginExecutorFactory: LoginExecutorFactory(
+        identitySigner: identitySigner,
+        biometricsStateStorage: IONIdentityServiceLocator.biometricsStateStorage(),
+        privateKeyStorage: IONIdentityServiceLocator.privateKeyStorage(),
+      ),
     );
   }
 

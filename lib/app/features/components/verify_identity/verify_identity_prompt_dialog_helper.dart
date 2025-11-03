@@ -35,12 +35,67 @@ Future<void> guardPasskeyDialog(
   );
 }
 
+class RiverpodLoginConfigRequestBuilder<T> extends HookConsumerWidget {
+  const RiverpodLoginConfigRequestBuilder({
+    required this.child,
+    required this.request,
+    this.identityKeyName,
+    this.onPasswordCaptured,
+    super.key,
+  });
+
+  final Widget child;
+  final Future<void> Function(LoginAuthConfig config) request;
+  final String? identityKeyName;
+  final void Function(String password)? onPasswordCaptured;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final onGetPassword = useOnGetPassword<String>();
+
+    useOnInit(
+      () async {
+        try {
+          await _executeRequest(context, ref, onGetPassword);
+        } finally {
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
+      <Object>[onGetPassword],
+    );
+
+    return child;
+  }
+
+  Future<void> _executeRequest(
+    BuildContext context,
+    WidgetRef ref,
+    Future<String> Function(OnPasswordFlow<String> onPasswordFlow) onGetPassword,
+  ) async {
+    final locale = context.i18n;
+
+    final config = LoginAuthConfig(
+      localisedReasonForBiometrics: locale.verify_with_biometrics_title,
+      localisedCancelForBiometrics: locale.button_cancel,
+      getPassword: () => onGetPassword(({required String password}) async {
+        onPasswordCaptured?.call(password);
+        return password;
+      }),
+    );
+
+    await request(config);
+  }
+}
+
 class RiverpodUserActionSignerRequestBuilder<T> extends HookConsumerWidget {
   const RiverpodUserActionSignerRequestBuilder({
     required this.child,
     required this.provider,
     required this.request,
     this.identityKeyName,
+    this.onPasswordCaptured,
     super.key,
   });
 
@@ -48,6 +103,7 @@ class RiverpodUserActionSignerRequestBuilder<T> extends HookConsumerWidget {
   final ProviderListenable<AsyncValue<T>> provider;
   final Future<void> Function(UserActionSignerNew signer) request;
   final String? identityKeyName;
+  final void Function(String password)? onPasswordCaptured;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -84,7 +140,10 @@ class RiverpodUserActionSignerRequestBuilder<T> extends HookConsumerWidget {
     final signer = await signerFactory.createSigner(
       localisedReasonForBiometrics: locale.verify_with_biometrics_title,
       localisedCancelForBiometrics: locale.button_cancel,
-      getPassword: () => onGetPassword(({required String password}) async => password),
+      getPassword: () => onGetPassword(({required String password}) async {
+        onPasswordCaptured?.call(password);
+        return password;
+      }),
     );
 
     await request(signer);

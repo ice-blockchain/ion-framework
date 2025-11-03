@@ -15,15 +15,12 @@ class LoginActionNotifier extends _$LoginActionNotifier {
 
     state = await AsyncValue.guard(() async {
       final ionIdentity = await ref.read(ionIdentityProvider.future);
-      await ionIdentity(username: keyName).auth.loginUser(
-        twoFATypes: [],
+      final signer =
+          ionIdentity(username: keyName).userActionSignerFactory.createPasskeySigner();
+      await ionIdentity(username: keyName).auth.loginUserWithSigner(
+        signer: signer,
+        twoFATypes: const [],
         localCredsOnly: true,
-        onVerifyIdentity: ({
-          required onBiometricsFlow,
-          required onPasskeyFlow,
-          required onPasswordFlow,
-        }) =>
-            onPasskeyFlow(),
       );
     });
   }

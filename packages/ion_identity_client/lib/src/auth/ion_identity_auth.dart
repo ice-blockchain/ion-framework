@@ -74,13 +74,13 @@ class IONIdentityAuth {
 
   Future<void> verifyUserLoginFlow() => loginService.verifyUserLoginFlow();
 
-  Future<void> loginUser({
-    required OnVerifyIdentity<AssertionRequestData> onVerifyIdentity,
+  Future<void> login({
+    required LoginAuthConfig config,
     required List<TwoFAType> twoFATypes,
     required bool localCredsOnly,
   }) =>
-      loginService.loginUser(
-        onVerifyIdentity: onVerifyIdentity,
+      loginService.login(
+        config: config,
         twoFATypes: twoFATypes,
         localCredsOnly: localCredsOnly,
       );

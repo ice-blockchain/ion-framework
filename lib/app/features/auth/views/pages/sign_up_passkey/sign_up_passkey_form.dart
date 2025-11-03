@@ -68,10 +68,11 @@ class SignUpPasskeyForm extends HookConsumerWidget {
                 FocusScope.of(context).unfocus();
                 guardPasskeyDialog(
                   ref.context,
-                  (child) => RiverpodVerifyIdentityRequestBuilder(
+                  (child) => RiverpodUserActionSignerRequestBuilder(
                     provider: registerActionNotifierProvider,
-                    requestWithVerifyIdentity: (_) {
-                      ref
+                    identityKeyName: identityKeyNameController.text,
+                    request: (_) async {
+                      await ref
                           .read(registerActionNotifierProvider.notifier)
                           .signUp(keyName: identityKeyNameController.text);
                     },
