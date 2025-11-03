@@ -31,15 +31,21 @@ class RelevantFollowers extends ConsumerWidget {
     }
 
     final pubkeys = entities
-        .take(3)
         .map(
           (entity) => switch (entity) {
             final EventsMetadataEntity eventsMetadata =>
-              eventsMetadata.data.metadataEventReference!.masterPubkey,
+              eventsMetadata.data.metadataEventReference?.masterPubkey,
             _ => entity.masterPubkey,
           },
         )
+        .whereType<String>()
+        .where((k) => k.isNotEmpty)
+        .take(3)
         .toList();
+
+    if (pubkeys.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Row(
       children: [
