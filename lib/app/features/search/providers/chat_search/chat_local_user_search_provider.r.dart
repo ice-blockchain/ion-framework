@@ -14,10 +14,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'chat_local_user_search_provider.r.g.dart';
 
 @riverpod
-Future<List<ChatSearchResultItem>?> chatLocalUserSearch(
-  Ref ref,
-  String query,
-) async {
+Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) async {
   if (query.isEmpty) return null;
 
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);

@@ -120,10 +120,10 @@ class ChatDatabase extends _$ChatDatabase {
     return MigrationStrategy(
       onCreate: (m) => m.createAll(),
       onUpgrade: stepByStep(
-        from1To2: (migrator, schema) async {
+        from1To2: (m, schema) async {
           await Future.wait(
             [
-              migrator.alterTable(
+              m.alterTable(
                 TableMigration(
                   schema.conversationTable,
                   columnTransformer: {
@@ -133,7 +133,7 @@ class ChatDatabase extends _$ChatDatabase {
                   },
                 ),
               ),
-              migrator.alterTable(
+              m.alterTable(
                 TableMigration(
                   schema.eventMessageTable,
                   columnTransformer: {
@@ -147,44 +147,44 @@ class ChatDatabase extends _$ChatDatabase {
             ],
           );
         },
-        from2To3: (migrator, schema) async {
+        from2To3: (m, schema) async {
           //  Rename "isDeleted" column from ConversationTable to "isHidden"
-          await migrator.dropColumn(schema.conversationTable, 'is_deleted');
-          await migrator.addColumn(schema.conversationTable, schema.conversationTable.isHidden);
+          await m.dropColumn(schema.conversationTable, 'is_deleted');
+          await m.addColumn(schema.conversationTable, schema.conversationTable.isHidden);
         },
-        from3To4: (migrator, schema) async {
-          await migrator.createTable(schema.processedGiftWrapTable);
+        from3To4: (m, schema) async {
+          await m.createTable(schema.processedGiftWrapTable);
         },
-        from4To5: (Migrator migrator, Schema5 schema) async {
+        from4To5: (m, schema) async {
           // Add indexes to optimize queries
           await Future.wait([
             // Index for conversation_message joins
-            migrator.database.customStatement(
+            m.database.customStatement(
               'CREATE INDEX IF NOT EXISTS idx_conversation_message_conversation_id '
               'ON conversation_message_table(conversation_id)',
             ),
             // Index for event_message joins
-            migrator.database.customStatement(
+            m.database.customStatement(
               'CREATE INDEX IF NOT EXISTS idx_conversation_message_event_reference '
               'ON conversation_message_table(message_event_reference)',
             ),
             // Index for event_message ordering and filtering
-            migrator.database.customStatement(
+            m.database.customStatement(
               'CREATE INDEX IF NOT EXISTS idx_event_message_created_at '
               'ON event_message_table(created_at)',
             ),
             // Index for event_message kind filtering
-            migrator.database.customStatement(
+            m.database.customStatement(
               'CREATE INDEX IF NOT EXISTS idx_event_message_kind '
               'ON event_message_table(kind)',
             ),
             // Composite index for kind + created_at (for search queries)
-            migrator.database.customStatement(
+            m.database.customStatement(
               'CREATE INDEX IF NOT EXISTS idx_event_message_kind_created_at '
               'ON event_message_table(kind, created_at DESC)',
             ),
             // Index for message_status deleted check
-            migrator.database.customStatement(
+            m.database.customStatement(
               'CREATE INDEX IF NOT EXISTS idx_message_status_reference_status '
               'ON message_status_table(message_event_reference, status)',
             ),
