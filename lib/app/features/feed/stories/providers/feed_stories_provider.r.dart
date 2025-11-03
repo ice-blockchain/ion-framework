@@ -11,6 +11,7 @@ import 'package:ion/app/features/feed/providers/feed_for_you_content_provider.m.
 import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'feed_stories_provider.r.g.dart';
@@ -19,7 +20,15 @@ part 'feed_stories_provider.r.g.dart';
 class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
   @override
   ({Iterable<ModifiablePostEntity> items, bool hasMore, bool ready}) build() {
+    final blockedUsersPubkeys = ref
+            .watch(currentUserBlockListNotifierProvider)
+            .valueOrNull
+            ?.map((block) => block.data.blockedMasterPubkeys)
+            .expand((pubkey) => pubkey)
+            .toList() ??
+        [];
     final filter = ref.watch(feedCurrentFilterProvider);
+
     final currentUserStory = ref.watch(currentUserFeedStoryProvider);
     final data = switch (filter.filter) {
       FeedFilter.following => ref.watch(
@@ -43,8 +52,11 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
       if (userStories != null) ...userStories,
     };
 
+    final filteredStoriesBlockedByCurrentUser =
+        stories.where((story) => !blockedUsersPubkeys.contains(story.masterPubkey)).toList();
+
     return (
-      items: stories,
+      items: filteredStoriesBlockedByCurrentUser,
       hasMore: data.hasMore,
       // Approx number of items needed to fill the viewport
       ready: stories.length >= (filteredCurrentUserStory != null ? 5 : 4) || !data.isLoading
