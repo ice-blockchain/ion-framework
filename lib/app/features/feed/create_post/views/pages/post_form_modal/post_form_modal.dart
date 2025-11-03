@@ -21,6 +21,8 @@ import 'package:ion/app/features/feed/hooks/use_preselect_language.dart';
 import 'package:ion/app/features/feed/hooks/use_preselect_topics.dart';
 import 'package:ion/app/features/feed/views/pages/cancel_creation_modal/cancel_creation_modal.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/nsfw/providers/media_nsfw_checker.r.dart';
+import 'package:ion/app/hooks/use_invalidate_on_dispose.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -184,6 +186,7 @@ class PostFormModal extends HookConsumerWidget {
       mediaFiles: attachedMediaFilesNotifier.value,
       videoFile: attachedVideoNotifier.value,
     );
+    useInvalidateOnDispose(ref, mediaNsfwCheckerProvider);
 
     if (textEditorController == null) {
       return const SizedBox.shrink();

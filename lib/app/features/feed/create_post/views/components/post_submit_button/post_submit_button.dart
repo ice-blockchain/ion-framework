@@ -23,9 +23,10 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/nsfw/models/nsfw_check_result.f.dart';
-import 'package:ion/app/features/nsfw/providers/media_nsfw_checker_notifier.m.dart';
+import 'package:ion/app/features/nsfw/providers/media_nsfw_checker.r.dart';
 import 'package:ion/app/features/nsfw/widgets/nsfw_blocked_sheet.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
 class PostSubmitButton extends HookConsumerWidget {
@@ -81,13 +82,11 @@ class PostSubmitButton extends HookConsumerWidget {
       modifiedEvent: modifiedEntity,
     );
 
-    final nsfwCheckerLoading =
-        ref.watch(mediaNsfwCheckerNotifierProvider.select((state) => state.loading));
     final loading = useState(false);
 
     return ToolbarSendButton(
       enabled: isSubmitButtonEnabled,
-      loading: nsfwCheckerLoading || loading.value,
+      loading: loading.value,
       onPressed: () async {
         if (!shownTooltip.value && selectedTopics.isEmpty) {
           shownTooltip.value = true;
@@ -112,12 +111,10 @@ class PostSubmitButton extends HookConsumerWidget {
 
           if (!context.mounted) return;
 
-          final nsfwCheckResult =
-              await ref.read(mediaNsfwCheckerNotifierProvider.notifier).hasNsfwMedia();
+          final nsfwCheckResult = await ref.read(mediaNsfwCheckerProvider).hasNsfwMedia();
 
           if (!context.mounted) return;
           loading.value = false;
-
           if (nsfwCheckResult is NsfwFailure) {
             // TODO: Add bottom sheet for this case
             showErrorModal(context, nsfwCheckResult.error);
