@@ -39,12 +39,10 @@ class SelectedTopics extends HookConsumerWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 6.0.s,
       children: [
         CategoryHeader(
           categoryName: context.i18n.common_selected,
-        ),
-        SizedBox(
-          height: 6.0.s,
         ),
         SizedBox(
           height: 34.s,
