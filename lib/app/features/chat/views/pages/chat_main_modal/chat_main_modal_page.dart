@@ -17,8 +17,7 @@ class ChatMainModalPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hideGroup = false;
-    //ref.watch(featureFlagsProvider.notifier).get(ChatFeatureFlag.hideCommunity);
+    final hideGroup = ref.watch(featureFlagsProvider.notifier).get(ChatFeatureFlag.hideCommunity);
     // Always hide channels (not implemented yet)
     // Always show direct messages
     // Show groups only if hideCommunity is false
