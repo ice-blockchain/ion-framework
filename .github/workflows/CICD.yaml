@@ -359,10 +359,11 @@ jobs:
           if [[ ${{ env.APP_ENV == 'production' }} == true ]]
             then
               echo "APP_FLAVOR=production" >> $GITHUB_ENV
+              echo "RELEASE_STATUS=completed" >> $GITHUB_ENV
             else
               echo "APP_FLAVOR=staging" >> $GITHUB_ENV
+              echo "RELEASE_STATUS=draft" >> $GITHUB_ENV
           fi
-          echo "RELEASE_STATUS=draft" >> $GITHUB_ENV
           echo "BUILD_NUMBER=$(echo $((GITHUB_RUN_NUMBER)))" >> $GITHUB_ENV
       - name: Build Android App (${{env.ANDROID_ARCHIVE_TYPE}} v${{ env.APP_VERSION }} build:${{ env.BUILD_NUMBER }})
         id: build-app
