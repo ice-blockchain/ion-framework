@@ -61,6 +61,7 @@ fastlane/keys
 
 # Third-party tools
 .cursorrules
+.cursorignore
 
 assets/ion_identity/networks.json
 assets/ion_identity/coins.json
