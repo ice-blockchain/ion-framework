@@ -20,7 +20,6 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) as
   if (currentUserMasterPubkey == null) return null;
 
   final caseInsensitiveQuery = query.toLowerCase();
-
   final eventMessageDao = ref.watch(eventMessageDaoProvider);
 
   final searchResults = await eventMessageDao.search(caseInsensitiveQuery);

@@ -41,6 +41,10 @@ class EventMessageDao extends DatabaseAccessor<ChatDatabase> with _$EventMessage
   Future<List<EventMessage>> search(String query) async {
     if (query.isEmpty) return [];
 
+    final deletedMessagesSubquery = selectOnly(db.messageStatusTable)
+      ..addColumns([db.messageStatusTable.messageEventReference])
+      ..where(db.messageStatusTable.status.equals(MessageDeliveryStatus.deleted.index));
+
     final queryBuilder = select(db.eventMessageTable).join([
       innerJoin(
         db.conversationMessageTable,
@@ -51,14 +55,11 @@ class EventMessageDao extends DatabaseAccessor<ChatDatabase> with _$EventMessage
       ..where(db.eventMessageTable.kind.equals(ReplaceablePrivateDirectMessageEntity.kind))
       ..where(db.eventMessageTable.content.like('%$query%'))
       ..where(
-        notExistsQuery(
-          select(db.messageStatusTable)
-            ..where((tbl) => tbl.status.equals(MessageDeliveryStatus.deleted.index))
-            ..where(
-              (table) => table.messageEventReference.equalsExp(db.eventMessageTable.eventReference),
-            ),
-        ),
-      );
+        db.eventMessageTable.eventReference.isNotInQuery(deletedMessagesSubquery),
+      )
+      ..orderBy([
+        OrderingTerm.desc(db.eventMessageTable.createdAt),
+      ]);
 
     final searchResults = await queryBuilder.get();
 
