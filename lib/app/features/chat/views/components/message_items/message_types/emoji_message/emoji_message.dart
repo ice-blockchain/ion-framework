@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/hooks/use_has_reaction.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/replied_message_list_item_provider.r.dart';
@@ -34,7 +34,7 @@ class EmojiMessage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entity = useMemoized(
-      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
+      () => EncryptedDirectMessageEntity.fromEventMessage(eventMessage),
       [eventMessage],
     );
 

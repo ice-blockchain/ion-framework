@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/providers/messaging_bottom_bar_state_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/chat_input_bar/components/cancel_record_button.dart';
 import 'package:ion/app/features/chat/views/components/chat_input_bar/components/delete_audio_button.dart';
@@ -56,7 +56,7 @@ class ChatInputBarRecordingOverlay extends HookConsumerWidget {
         final durationSubscription = recorderController.onCurrentDuration.listen((currentDuration) {
           duration.value = currentDuration + previousDuration.value;
           if (currentDuration.inSeconds ==
-              ReplaceablePrivateDirectMessageData.audioMessageDurationLimitInSeconds) {
+              EncryptedDirectMessageData.audioMessageDurationLimitInSeconds) {
             ref.read(voiceRecordingActiveStateProvider.notifier).pause();
             return;
           }

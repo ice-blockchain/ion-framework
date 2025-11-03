@@ -24,9 +24,8 @@ class EventMessageDao extends DatabaseAccessor<ChatDatabase> with _$EventMessage
         eventReference = DeletionRequestEntity.fromEventMessage(event).toEventReference();
       case GenericRepostEntity.kind:
         eventReference = GenericRepostEntity.fromEventMessage(event).toEventReference();
-      case ReplaceablePrivateDirectMessageEntity.kind:
-        eventReference =
-            ReplaceablePrivateDirectMessageEntity.fromEventMessage(event).toEventReference();
+      case EncryptedDirectMessageEntity.kind:
+        eventReference = EncryptedDirectMessageEntity.fromEventMessage(event).toEventReference();
       case PrivateMessageReactionEntity.kind:
         eventReference = PrivateMessageReactionEntity.fromEventMessage(event).toEventReference();
       default:

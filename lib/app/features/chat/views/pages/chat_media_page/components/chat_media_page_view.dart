@@ -7,7 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/chat_message_load_media_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
@@ -46,7 +46,7 @@ class ChatMediaPageView extends HookConsumerWidget {
       useMemoized(
         () async {
           final entity = await ref.watch(eventMessageDaoProvider).getByReference(eventReference);
-          return ReplaceablePrivateDirectMessageEntity.fromEventMessage(entity);
+          return EncryptedDirectMessageEntity.fromEventMessage(entity);
         },
         [eventReference],
       ),
@@ -82,7 +82,7 @@ class _ChatMediaItem extends HookConsumerWidget {
 
   final MediaAttachment media;
   final ImageZoomController zoomController;
-  final ReplaceablePrivateDirectMessageEntity entity;
+  final EncryptedDirectMessageEntity entity;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

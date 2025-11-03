@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_message_reaction_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -171,7 +171,7 @@ class NotificationResponseService {
     final rumor = await giftUnwrapService.unwrap(giftWrap);
 
     switch (rumor.kind) {
-      case ReplaceablePrivateDirectMessageEntity.kind:
+      case EncryptedDirectMessageEntity.kind:
       case PrivateMessageReactionEntity.kind:
       case FundsRequestEntity.kind:
       case WalletAssetEntity.kind:

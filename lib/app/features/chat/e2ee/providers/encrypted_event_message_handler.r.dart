@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/encrypted_deletion_request_handler.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/encrypted_direct_message_handler.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/encrypted_direct_message_reaction_handler.r.dart';
@@ -59,7 +59,7 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
 
     // Unwrap the gift only if it contains a direct message kind
     final containsDirectMessageKind = wrapEntity.data.kinds
-        .any((kinds) => kinds.contains(ReplaceablePrivateDirectMessageEntity.kind.toString()));
+        .any((kinds) => kinds.contains(EncryptedDirectMessageEntity.kind.toString()));
 
     EventMessage? rumor;
 
@@ -97,7 +97,7 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
   }
 
   Future<void> _checkReceivedStatusForDirectMessage(EventMessage rumor) async {
-    final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
+    final entity = EncryptedDirectMessageEntity.fromEventMessage(rumor);
     final eventReference = entity.toEventReference();
 
     // Make sure conversation and message are not deleted before sending "received" status

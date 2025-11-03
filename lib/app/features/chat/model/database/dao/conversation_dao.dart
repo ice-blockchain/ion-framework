@@ -200,7 +200,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
       ..where(conversationTable.isHidden.equals(false))
       ..where(conversationMessageTable.conversationId.equals(participantsMasterPubkeys.join()))
       ..where(
-        eventMessageTable.kind.equals(ReplaceablePrivateDirectMessageEntity.kind),
+        eventMessageTable.kind.equals(EncryptedDirectMessageEntity.kind),
       )
       ..orderBy([OrderingTerm.desc(eventMessageTable.createdAt)])
       ..limit(1);
@@ -276,7 +276,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
     final eventMessage = row?.readTable(eventMessageTable).toEventMessage();
 
     if (eventMessage != null) {
-      final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage);
+      final entity = EncryptedDirectMessageEntity.fromEventMessage(eventMessage);
       return entity.allPubkeys;
     }
 

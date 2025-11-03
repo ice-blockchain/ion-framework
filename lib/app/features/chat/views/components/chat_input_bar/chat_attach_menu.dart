@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/model/upload_limit_modal_type.dart';
 import 'package:ion/app/features/chat/views/pages/upload_limit_reached_modal/upload_limit_reached_modal.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
@@ -69,8 +69,7 @@ class _MediaButton extends ConsumerWidget {
         final mediaFiles = await MediaPickerRoute(
           maxSelection: 10,
           isNeedFilterVideoByFormat: false,
-          maxVideoDurationInSeconds:
-              ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds,
+          maxVideoDurationInSeconds: EncryptedDirectMessageData.videoDurationLimitInSeconds,
         ).push<List<MediaFile>>(context);
         if (mediaFiles != null && mediaFiles.isNotEmpty && context.mounted) {
           final convertedMediaFiles = await ref
@@ -105,8 +104,7 @@ class _CameraButton extends ConsumerWidget {
         final mediaFiles = await MediaPickerRoute(
           maxSelection: 10,
           isNeedFilterVideoByFormat: false,
-          maxVideoDurationInSeconds:
-              ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds,
+          maxVideoDurationInSeconds: EncryptedDirectMessageData.videoDurationLimitInSeconds,
         ).push<List<MediaFile>>(context);
         if (mediaFiles != null && mediaFiles.isNotEmpty && context.mounted) {
           final convertedMediaFiles = await ref
@@ -204,7 +202,7 @@ class _DocumentButton extends ConsumerWidget {
           );
 
           if (mediaType == MediaType.unknown) {
-            if (file.size > ReplaceablePrivateDirectMessageData.fileMessageSizeLimit) {
+            if (file.size > EncryptedDirectMessageData.fileMessageSizeLimit) {
               if (context.mounted) {
                 unawaited(
                   showModalBottomSheet(
@@ -220,8 +218,7 @@ class _DocumentButton extends ConsumerWidget {
           } else if (mediaType == MediaType.video) {
             final duration =
                 (await ref.read(videoInfoServiceProvider).getVideoInformation(file.path!)).duration;
-            if (duration.inSeconds >
-                ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds) {
+            if (duration.inSeconds > EncryptedDirectMessageData.videoDurationLimitInSeconds) {
               if (context.mounted) {
                 unawaited(
                   showModalBottomSheet(

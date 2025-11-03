@@ -13,7 +13,8 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/views/components/user_data_inputs/general_user_data_input.dart';
 import 'package:ion/app/features/chat/community/models/group_type.dart';
-import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/group_member_role.f.dart';
+import 'package:ion/app/features/chat/e2ee/providers/group/send_e2ee_group_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/providers/create_group_form_controller_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/general_selection_button.dart';
 import 'package:ion/app/features/chat/views/pages/new_group_modal/componentes/group_participant_list_item.dart';
@@ -188,12 +189,19 @@ class CreateGroupModal extends HookConsumerWidget {
 
                       loading.value = true;
 
-                      await ref.read(sendE2eeChatMessageServiceProvider).sendMessage(
-                            content: '',
-                            groupName: createGroupForm.name,
-                            conversationId: generateUuid(),
-                            participantsMasterPubkeys: participantsMasterPubkeys,
-                            mediaFiles: groupPicture != null ? [groupPicture] : [],
+                      final members = participantsMasterPubkeys
+                          .map(
+                            (masterPubkey) => masterPubkey == currentMasterPubkey
+                                ? GroupMemberRole.owner(masterPubkey)
+                                : GroupMemberRole.member(masterPubkey),
+                          )
+                          .toList();
+
+                      await ref.read(sendE2eeGroupChatMessageServiceProvider).sendMetadataMessage(
+                            members: members,
+                            groupPicture: groupPicture,
+                            groupId: generateUuid(),
+                            groupName: createGroupForm.name!,
                           );
 
                       loading.value = false;

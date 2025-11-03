@@ -2,7 +2,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';

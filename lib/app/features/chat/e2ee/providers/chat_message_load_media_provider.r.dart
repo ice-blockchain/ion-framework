@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -15,7 +15,7 @@ part 'chat_message_load_media_provider.r.g.dart';
 @Riverpod(keepAlive: true)
 Raw<Future<File?>> chatMessageLoadMedia(
   Ref ref, {
-  required ReplaceablePrivateDirectMessageEntity entity,
+  required EncryptedDirectMessageEntity entity,
   String? cacheKey,
   MediaAttachment? mediaAttachment,
   bool loadThumbnail = true,

@@ -8,6 +8,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/conversation_identifier.f.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/master_pubkey_tag.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/group_member_role.f.dart';
 import 'package:ion/app/features/chat/model/group_subject.f.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
@@ -22,7 +23,6 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_event.f.dart';
-import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/model/replaceable_event_identifier.f.dart';
 import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
@@ -31,28 +31,28 @@ import 'package:ion/app/services/ion_connect/ion_connect_protocol_identifier_typ
 import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:ion/app/utils/string.dart';
 
-part 'private_direct_message_data.f.freezed.dart';
+part 'encrypted_group_message_entity.f.freezed.dart';
 
 @Freezed(equal: false)
-class ReplaceablePrivateDirectMessageEntity
-    with IonConnectEntity, ReplaceableEntity, _$ReplaceablePrivateDirectMessageEntity {
-  const factory ReplaceablePrivateDirectMessageEntity({
+class EncryptedGroupMessageEntity
+    with IonConnectEntity, ReplaceableEntity, _$EncryptedGroupMessageEntity {
+  const factory EncryptedGroupMessageEntity({
     required String id,
     required String pubkey,
     required String masterPubkey,
     required int createdAt,
-    required ReplaceablePrivateDirectMessageData data,
-  }) = _ReplaceablePrivateDirectMessageEntity;
+    required EncryptedGroupMessageData data,
+  }) = _EncryptedGroupMessageEntity;
 
-  const ReplaceablePrivateDirectMessageEntity._();
+  const EncryptedGroupMessageEntity._();
 
-  factory ReplaceablePrivateDirectMessageEntity.fromEventMessage(EventMessage eventMessage) {
-    return ReplaceablePrivateDirectMessageEntity(
+  factory EncryptedGroupMessageEntity.fromEventMessage(EventMessage eventMessage) {
+    return EncryptedGroupMessageEntity(
       id: eventMessage.id,
       pubkey: eventMessage.pubkey,
       createdAt: eventMessage.createdAt,
       masterPubkey: eventMessage.masterPubkey,
-      data: ReplaceablePrivateDirectMessageData.fromEventMessage(eventMessage),
+      data: EncryptedGroupMessageData.fromEventMessage(eventMessage),
     );
   }
 
@@ -63,13 +63,13 @@ class ReplaceablePrivateDirectMessageEntity
 }
 
 @freezed
-class ReplaceablePrivateDirectMessageData
+class EncryptedGroupMessageData
     with
         EntityDataWithEncryptedMediaContent,
         EntityDataWithRelatedEvents<RelatedReplaceableEvent>,
-        _$ReplaceablePrivateDirectMessageData
+        _$EncryptedGroupMessageData
     implements EventSerializable, ReplaceableEntityData {
-  const factory ReplaceablePrivateDirectMessageData({
+  const factory EncryptedGroupMessageData({
     required String content,
     required String messageId,
     required String masterPubkey,
@@ -81,15 +81,15 @@ class ReplaceablePrivateDirectMessageData
     String? groupImagePath,
     GroupSubject? groupSubject,
     List<RelatedReplaceableEvent>? relatedEvents,
-    List<RelatedPubkey>? relatedPubkeys,
+    List<GroupMemberRole>? members,
     QuotedImmutableEvent? quotedEvent,
     String? quotedEventKind,
     String? paymentRequested,
     String? paymentSent,
-  }) = _ReplaceablePrivateDirectMessageData;
+  }) = _EncryptedGroupMessageData;
 
-  factory ReplaceablePrivateDirectMessageData.fromRawContent(String content) {
-    return ReplaceablePrivateDirectMessageData(
+  factory EncryptedGroupMessageData.fromRawContent(String content) {
+    return EncryptedGroupMessageData(
       media: {},
       content: content,
       masterPubkey: '',
@@ -100,14 +100,14 @@ class ReplaceablePrivateDirectMessageData
     );
   }
 
-  factory ReplaceablePrivateDirectMessageData.fromEventMessage(EventMessage eventMessage) {
+  factory EncryptedGroupMessageData.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
 
     if (tags[ReplaceableEventIdentifier.tagName] == null) {
-      throw ReplaceablePrivateDirectMessageDecodeException(eventMessage.id);
+      throw EncryptedMessageDecodeException(eventMessage.id);
     }
 
-    return ReplaceablePrivateDirectMessageData(
+    return EncryptedGroupMessageData(
       content: eventMessage.content,
       masterPubkey: eventMessage.masterPubkey,
       media: EntityDataWithMediaContent.parseImeta(tags[MediaAttachment.tagName]),
@@ -117,7 +117,7 @@ class ReplaceablePrivateDirectMessageData
           .map(ReplaceableEventIdentifier.fromTag)
           .first
           .value,
-      relatedPubkeys: tags[RelatedPubkey.tagName]?.map(RelatedPubkey.fromTag).toList(),
+      members: tags[GroupMemberRole.tagName]?.map(GroupMemberRole.fromTag).toList(),
       relatedEvents:
           tags[RelatedReplaceableEvent.tagName]?.map(RelatedReplaceableEvent.fromTag).toList(),
       groupSubject: tags[GroupSubject.tagName]?.map(GroupSubject.fromTag).singleOrNull,
@@ -131,7 +131,7 @@ class ReplaceablePrivateDirectMessageData
     );
   }
 
-  const ReplaceablePrivateDirectMessageData._();
+  const EncryptedGroupMessageData._();
 
   @override
   FutureOr<EventMessage> toEventMessage(
@@ -143,7 +143,7 @@ class ReplaceablePrivateDirectMessageData
     return EventMessage.fromData(
       signer: signer,
       createdAt: createdAt ?? DateTime.now().microsecondsSinceEpoch,
-      kind: ReplaceablePrivateDirectMessageEntity.kind,
+      kind: EncryptedGroupMessageEntity.kind,
       content: content,
       tags: [
         ...tags,
@@ -153,7 +153,7 @@ class ReplaceablePrivateDirectMessageData
         if (quotedEvent != null) quotedEvent!.toTag(),
         if (groupSubject != null) groupSubject!.toTag(),
         if (relatedEvents != null) ...relatedEvents!.map((event) => event.toTag()),
-        if (relatedPubkeys != null) ...relatedPubkeys!.map((pubkey) => pubkey.toTag()),
+        if (members != null) ...members!.map((pubkey) => pubkey.toTag()),
         if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),
         if (paymentRequested != null) [paymentRequestedTagName, paymentRequested!],
         if (paymentSent != null) [paymentSentTagName, paymentSent!],
@@ -167,7 +167,7 @@ class ReplaceablePrivateDirectMessageData
   @override
   ReplaceableEventReference toReplaceableEventReference(String pubkey) {
     return ReplaceableEventReference(
-      kind: ReplaceablePrivateDirectMessageEntity.kind,
+      kind: EncryptedGroupMessageEntity.kind,
       dTag: messageId,
       masterPubkey: pubkey,
     );
@@ -183,12 +183,12 @@ class ReplaceablePrivateDirectMessageData
   static const quotedEventKindTagName = 'quoted-event-kind';
 }
 
-extension Pubkeys on ReplaceablePrivateDirectMessageEntity {
-  List<String> get allPubkeys => data.relatedPubkeys?.map((pubkey) => pubkey.value).toList() ?? []
+extension Pubkeys on EncryptedGroupMessageEntity {
+  List<String> get allPubkeys => data.members?.map((member) => member.masterPubkey).toList() ?? []
     ..sort();
 }
 
-extension MessageTypes on ReplaceablePrivateDirectMessageData {
+extension MessageTypes on EncryptedGroupMessageData {
   MessageType get messageType {
     if (primaryAudio != null) {
       return MessageType.audio;
@@ -220,20 +220,4 @@ extension MessageTypes on ReplaceablePrivateDirectMessageData {
 
     return MessageType.text;
   }
-}
-
-extension ConversationExtension on EventMessage {
-  List<String> get participantsMasterPubkeys {
-    final allTags = groupBy(tags, (tag) => tag[0]);
-    final masterPubkeys = allTags[RelatedPubkey.tagName]?.map(RelatedPubkey.fromTag).toList();
-
-    return masterPubkeys?.map((e) => e.value).toList() ?? [];
-  }
-
-  String? get sharedId =>
-      tags.firstWhereOrNull((tag) => tag.first == ReplaceableEventIdentifier.tagName)?.last;
-
-  int get publishedAt => EntityPublishedAt.fromTag(
-        tags.firstWhereOrNull((tag) => tag.first == EntityPublishedAt.tagName)!,
-      ).value;
 }

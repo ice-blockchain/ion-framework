@@ -7,7 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/hooks/use_has_reaction.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_item_wrapper/message_item_wrapper.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
@@ -108,7 +108,7 @@ class SharedStoryMessage extends HookConsumerWidget {
     );
 
     final replyEntity = useMemoized(
-      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(replyEventMessage),
+      () => EncryptedDirectMessageEntity.fromEventMessage(replyEventMessage),
       [replyEventMessage],
     );
 

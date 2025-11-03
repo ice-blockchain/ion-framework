@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/features/chat/community/models/entities/tags/conversation_identifier.f.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_group_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/group_metadata.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/group_subject.f.dart';
@@ -19,13 +19,12 @@ class EncryptedGroupMetadata extends _$EncryptedGroupMetadata {
         [GroupSubject.tagName],
         ConversationIdentifier(value: id).toTag(),
       ],
-      kinds: [ReplaceablePrivateDirectMessageEntity.kind],
+      kinds: [EncryptedGroupMessageEntity.kind],
     );
 
     final metadataEntities = results.map(
-      (eventMessages) =>
-          eventMessages.map(ReplaceablePrivateDirectMessageEntity.fromEventMessage).toList()
-            ..sort((a, b) => a.createdAt.compareTo(b.createdAt)),
+      (eventMessages) => eventMessages.map(EncryptedGroupMessageEntity.fromEventMessage).toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt)),
     );
 
     await for (final entities in metadataEntities) {
@@ -36,11 +35,9 @@ class EncryptedGroupMetadata extends _$EncryptedGroupMetadata {
       if (lastEntity != null) {
         yield GroupMetadata(
           id: id,
-          name: lastEntity.data.groupSubject?.value ?? '',
+          members: lastEntity.data.members ?? [],
+          name: lastEntity.data.groupSubject?.value ?? 'Q',
           avatar: (masterPubkey: lastEntity.masterPubkey, media: lastEntity.data.primaryMedia),
-          members: lastEntity.allPubkeys
-              .map((pubkey) => (masterPubkey: pubkey, role: GroupMemberRole.member))
-              .toList(),
         );
       }
     }

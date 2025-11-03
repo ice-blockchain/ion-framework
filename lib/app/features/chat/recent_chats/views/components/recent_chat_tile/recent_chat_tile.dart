@@ -7,7 +7,8 @@ import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_group_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/group/encrypted_group_metadata_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
@@ -63,7 +64,7 @@ class EncryptedDirectChatTile extends HookConsumerWidget {
 
     // Last message info
     final lastMessageEntity = useMemoized(
-      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(lastMessage),
+      () => EncryptedDirectMessageEntity.fromEventMessage(lastMessage),
       [lastMessage],
     );
     final isMe = lastMessage.masterPubkey == currentUserMasterPubkey;
@@ -248,12 +249,14 @@ class EncryptedGroupChatTile extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    print('QQQ ${groupMetadata.members}');
+
     final isEditMode = ref.watch(conversationsEditModeProvider);
     final selectedConversations = ref.watch(selectedConversationsProvider);
 
     // Last message info
     final lastMessageEntity = useMemoized(
-      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(lastMessage),
+      () => EncryptedGroupMessageEntity.fromEventMessage(lastMessage),
       [lastMessage],
     );
     final isMe = lastMessage.masterPubkey == currentUserMasterPubkey;

@@ -9,7 +9,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/community/view/components/community_member_count_tile.dart';
 import 'package:ion/app/features/chat/components/messaging_header/messaging_header.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/e2ee/views/components/e2ee_conversation_empty_view.dart';
 import 'package:ion/app/features/chat/e2ee/views/components/one_to_one_messages_list.dart';
@@ -60,7 +60,7 @@ class GroupMessagesPage extends HookConsumerWidget {
                   }
 
                   final privateMessageEntity =
-                      ReplaceablePrivateDirectMessageData.fromEventMessage(lastMessage);
+                      EncryptedDirectMessageData.fromEventMessage(lastMessage);
 
                   final conversationMessageManagementService =
                       ref.read(sendE2eeChatMessageServiceProvider);
@@ -69,7 +69,6 @@ class GroupMessagesPage extends HookConsumerWidget {
                     conversationId: conversationId,
                     content: content ?? '',
                     mediaFiles: mediaFiles ?? [],
-                    groupName: privateMessageEntity.groupSubject?.value,
                     participantsMasterPubkeys:
                         privateMessageEntity.relatedPubkeys?.map((e) => e.value).toList() ?? [],
                   );
@@ -89,7 +88,7 @@ class _Header extends HookConsumerWidget {
   final EventMessage lastMessage;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entity = ReplaceablePrivateDirectMessageData.fromEventMessage(lastMessage);
+    final entity = EncryptedDirectMessageData.fromEventMessage(lastMessage);
     final groupImageFile = entity.primaryMedia != null
         ? useFuture(
             ref.watch(mediaEncryptionServiceProvider).getEncryptedMedia(

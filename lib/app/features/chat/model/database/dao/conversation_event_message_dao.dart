@@ -32,7 +32,7 @@ class ConversationEventMessageDao extends DatabaseAccessor<ChatDatabase>
       return;
     }
 
-    final eventReference = ReplaceablePrivateDirectMessageEntity.fromEventMessage(event)
+    final eventReference = EncryptedDirectMessageEntity.fromEventMessage(event)
         .data
         .toReplaceableEventReference(event.masterPubkey);
 

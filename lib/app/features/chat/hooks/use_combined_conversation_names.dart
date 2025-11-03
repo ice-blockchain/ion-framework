@@ -4,7 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/community/providers/community_metadata_provider.r.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -21,7 +21,7 @@ String? useCombinedConversationNames(
       for (final conversation in conversations) {
         if (conversation.type == ConversationType.direct) {
           final latestMessageEntity =
-              ReplaceablePrivateDirectMessageData.fromEventMessage(conversation.latestMessage!);
+              EncryptedDirectMessageData.fromEventMessage(conversation.latestMessage!);
 
           final receiver = latestMessageEntity.relatedPubkeys!
               .firstWhere((pubkey) => pubkey.value != currentUserMasterPubkey)
@@ -37,7 +37,7 @@ String? useCombinedConversationNames(
           names.add(community.data.name);
         } else {
           final latestMessageEntity =
-              ReplaceablePrivateDirectMessageData.fromEventMessage(conversation.latestMessage!);
+              EncryptedDirectMessageData.fromEventMessage(conversation.latestMessage!);
           names.add(latestMessageEntity.groupSubject?.value ?? '');
         }
       }

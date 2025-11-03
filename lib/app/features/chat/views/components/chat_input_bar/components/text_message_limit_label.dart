@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 
 class TextMessageLimitLabel extends HookConsumerWidget {
   const TextMessageLimitLabel({
@@ -21,8 +21,8 @@ class TextMessageLimitLabel extends HookConsumerWidget {
     useEffect(
       () {
         void onTextChanged() {
-          exceededLimit.value = textEditingController.text.length -
-              ReplaceablePrivateDirectMessageData.textMessageLimit;
+          exceededLimit.value =
+              textEditingController.text.length - EncryptedDirectMessageData.textMessageLimit;
         }
 
         textEditingController.addListener(onTextChanged);

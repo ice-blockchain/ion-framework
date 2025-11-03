@@ -6,7 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/model/upload_limit_modal_type.dart';
 import 'package:ion/app/features/chat/views/pages/upload_limit_reached_modal/upload_limit_reached_modal.dart';
 import 'package:ion/app/features/core/permissions/data/models/permissions_types.dart';
@@ -50,7 +50,7 @@ class MoreContentView extends ConsumerWidget {
                     isNeedFilterVideoByFormat: false,
                     maxSelection: 10,
                     maxVideoDurationInSeconds:
-                        ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds,
+                        EncryptedDirectMessageData.videoDurationLimitInSeconds,
                   ).push<List<MediaFile>>(context);
                   if (mediaFiles != null && mediaFiles.isNotEmpty && context.mounted) {
                     final convertedMediaFiles = await ref
@@ -75,7 +75,7 @@ class MoreContentView extends ConsumerWidget {
                     isNeedFilterVideoByFormat: false,
                     maxSelection: 10,
                     maxVideoDurationInSeconds:
-                        ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds,
+                        EncryptedDirectMessageData.videoDurationLimitInSeconds,
                   ).push<List<MediaFile>>(context);
                   if (mediaFiles != null && mediaFiles.isNotEmpty && context.mounted) {
                     final convertedMediaFiles = await ref
@@ -138,7 +138,7 @@ class MoreContentView extends ConsumerWidget {
                   final firstFile = result?.files.first;
                   if (firstFile != null && context.mounted && firstFile.path != null) {
                     final mimeType = lookupMimeType(firstFile.path!);
-                    if (firstFile.size > ReplaceablePrivateDirectMessageData.fileMessageSizeLimit) {
+                    if (firstFile.size > EncryptedDirectMessageData.fileMessageSizeLimit) {
                       unawaited(
                         showModalBottomSheet(
                           context: context,

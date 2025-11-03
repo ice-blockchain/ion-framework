@@ -11,7 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
@@ -348,7 +348,7 @@ String? _extractCoinIdFromPaymentRequestedTag(EventMessage? decrypted) {
   if (decrypted == null) return null;
   try {
     final tag = decrypted.tags.firstWhere(
-      (t) => t.isNotEmpty && t.first == ReplaceablePrivateDirectMessageData.paymentRequestedTagName,
+      (t) => t.isNotEmpty && t.first == EncryptedDirectMessageData.paymentRequestedTagName,
       orElse: () => const [],
     );
     if (tag.length < 2) return null;

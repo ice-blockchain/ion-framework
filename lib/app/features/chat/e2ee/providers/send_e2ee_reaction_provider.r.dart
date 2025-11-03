@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_message_reaction_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
@@ -60,7 +60,7 @@ class SendE2eeReactionService {
     required String content,
     required EventMessage kind14Rumor,
   }) async {
-    final kind14Event = ReplaceablePrivateDirectMessageEntity.fromEventMessage(kind14Rumor);
+    final kind14Event = EncryptedDirectMessageEntity.fromEventMessage(kind14Rumor);
     final messageReactionEventMessage = await PrivateMessageReactionEntityData(
       content: content,
       masterPubkey: currentUserMasterPubkey,
@@ -72,8 +72,7 @@ class SendE2eeReactionService {
       reactionEvent: messageReactionEventMessage,
     );
 
-    final privateDirectMessageEntity =
-        ReplaceablePrivateDirectMessageData.fromEventMessage(kind14Rumor);
+    final privateDirectMessageEntity = EncryptedDirectMessageData.fromEventMessage(kind14Rumor);
 
     final participantsMasterPubkeys =
         privateDirectMessageEntity.relatedPubkeys?.map((tag) => tag.value).toList();

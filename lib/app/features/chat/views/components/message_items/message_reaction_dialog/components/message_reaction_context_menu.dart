@@ -10,7 +10,7 @@ import 'package:ion/app/components/overlay_menu/components/overlay_menu_item.dar
 import 'package:ion/app/components/overlay_menu/components/overlay_menu_item_separator.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/e2ee_delete_event_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
@@ -47,7 +47,7 @@ class MessageReactionContextMenu extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entityData = useMemoized(
-      () => ReplaceablePrivateDirectMessageData.fromEventMessage(messageItem.eventMessage),
+      () => EncryptedDirectMessageData.fromEventMessage(messageItem.eventMessage),
       [messageItem.eventMessage],
     );
 

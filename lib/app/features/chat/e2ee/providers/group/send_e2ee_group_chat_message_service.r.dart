@@ -11,8 +11,11 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/extensions/object.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_group_message_entity.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/group_member_role.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_chat_media_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/chat/model/group_subject.f.dart';
 import 'package:ion/app/features/chat/providers/conversation_pubkeys_provider.r.dart';
 import 'package:ion/app/features/chat/services/shared_chat_isolate.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
@@ -27,10 +30,8 @@ import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_event.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_event_marker.dart';
-import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
-import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_gift_wrap_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_seal_service.r.dart';
@@ -41,24 +42,40 @@ import 'package:ion/app/utils/date.dart';
 import 'package:nip44/nip44.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'send_e2ee_chat_message_service.r.g.dart';
+part 'send_e2ee_group_chat_message_service.r.g.dart';
 
 @riverpod
-SendE2eeChatMessageService sendE2eeChatMessageService(Ref ref) {
-  return SendE2eeChatMessageService(ref);
+SendE2eeGroupChatMessageService sendE2eeGroupChatMessageService(Ref ref) {
+  return SendE2eeGroupChatMessageService(ref);
 }
 
-class SendE2eeChatMessageService {
-  SendE2eeChatMessageService(this.ref);
+class SendE2eeGroupChatMessageService {
+  SendE2eeGroupChatMessageService(this.ref);
 
   final Ref ref;
 
+  Future<EventMessage> sendMetadataMessage({
+    required String groupId,
+    required String groupName,
+    required MediaFile? groupPicture,
+    required List<GroupMemberRole> members,
+  }) async {
+    return sendMessage(
+      content: '',
+      members: members,
+      groupId: groupId,
+      groupName: groupName,
+      mediaFiles: groupPicture != null ? [groupPicture] : [],
+    );
+  }
+
   Future<EventMessage> sendMessage({
     required String content,
-    required String conversationId,
-    required List<String> participantsMasterPubkeys,
+    required String groupId,
+    required List<GroupMemberRole> members,
     int? kind,
     List<List<String>>? tags,
+    String? groupName,
     String? quotedEventKind,
     EventMessage? editedMessage,
     EventMessage? repliedMessage,
@@ -71,6 +88,7 @@ class SendE2eeChatMessageService {
     ReplaceableEventReference? eventReference;
 
     final trimmedContent = content.trim();
+    final participantsMasterPubkeys = members.map((e) => e.masterPubkey).toList();
 
     final preparedMediaFiles =
         mediaFiles.map((e) => e.copyWith(originalMimeType: e.mimeType)).toList();
@@ -79,7 +97,7 @@ class SendE2eeChatMessageService {
     final sharedId = editedMessage?.sharedId ?? failedEventMessage?.sharedId ?? generateUuid();
 
     final editedMessageEntityData =
-        editedMessage != null ? EncryptedDirectMessageData.fromEventMessage(editedMessage) : null;
+        editedMessage != null ? EncryptedGroupMessageData.fromEventMessage(editedMessage) : null;
 
     final participantsPubkeysMap = failedParticipantsMasterPubkeys ??
         await ref
@@ -111,10 +129,10 @@ class SendE2eeChatMessageService {
       }
 
       final paymentRequested =
-          _getTagValue(EncryptedDirectMessageData.paymentRequestedTagName, tags);
-      final paymentSent = _getTagValue(EncryptedDirectMessageData.paymentSentTagName, tags);
+          _getTagValue(EncryptedGroupMessageData.paymentRequestedTagName, tags);
+      final paymentSent = _getTagValue(EncryptedGroupMessageData.paymentSentTagName, tags);
 
-      final localEventMessageData = EncryptedDirectMessageData(
+      final localEventMessageData = EncryptedGroupMessageData(
         // Message identifier to link edits and retries
         messageId: sharedId,
         // Core text content with metadata stored in tags
@@ -124,13 +142,13 @@ class SendE2eeChatMessageService {
         // Time when editing is no longer allowed
         editingEndedAt: editingEndedAt,
         // Conversation where the message belongs (direct or group)
-        conversationId: conversationId,
+        conversationId: groupId,
         // Sender master public key
         masterPubkey: currentUserMasterPubkey,
+        // Optional subject for group messages
+        groupSubject: groupName.isNotEmpty ? GroupSubject(groupName!) : null,
         // All participants master public keys
-        relatedPubkeys: participantsMasterPubkeys
-            .map((masterPubkey) => RelatedPubkey(value: masterPubkey))
-            .toList(),
+        members: members,
         // Payment info
         paymentSent: paymentSent,
         paymentRequested: paymentRequested,
@@ -176,13 +194,6 @@ class SendE2eeChatMessageService {
         return a.compareTo(b);
       });
 
-      // Used only for direct messages
-      final receiverMasterPubkey =
-          participantsMasterPubkeys.firstWhereOrNull((pubkey) => pubkey != currentUserMasterPubkey);
-
-      final isBlockedByReceiver = receiverMasterPubkey != null &&
-          await ref.read(isBlockedByNotifierProvider(receiverMasterPubkey).future);
-
       await Future.wait(
         participantsMasterPubkeys.map((masterPubkey) async {
           final pubkeyDevices = participantsPubkeysMap[masterPubkey];
@@ -195,39 +206,36 @@ class SendE2eeChatMessageService {
 
           for (final pubkey in pubkeyDevices) {
             try {
-              final remoteEventMessage = await EncryptedDirectMessageData(
+              final remoteEventMessage = await EncryptedGroupMessageData(
+                members: members,
                 content: trimmedContent,
                 paymentRequested: paymentRequested,
                 paymentSent: paymentSent,
                 messageId: sharedId,
                 publishedAt: publishedAt,
                 editingEndedAt: editingEndedAt,
-                conversationId: conversationId,
+                conversationId: groupId,
+                groupSubject: groupName.isNotEmpty ? GroupSubject(groupName!) : null,
                 media: {
                   for (final attachment in attachments) attachment.url: attachment,
                 },
                 masterPubkey: currentUserMasterPubkey,
                 quotedEvent: quotedEvent ?? editedMessageEntityData?.quotedEvent,
                 quotedEventKind: quotedEventKind,
-                relatedPubkeys: participantsMasterPubkeys
-                    .map((pubkey) => RelatedPubkey(value: pubkey))
-                    .toList(),
                 relatedEvents: editedMessageEntityData?.relatedEvents ??
                     _generateRelatedEvents(repliedMessage),
               ).toEventMessage(NoPrivateSigner(eventSigner.publicKey), createdAt: createdAt);
 
-              if (!isBlockedByReceiver) {
-                final messageKind = EncryptedDirectMessageEntity.kind.toString();
+              final messageKind = EncryptedGroupMessageEntity.kind.toString();
 
-                await sendWrappedMessage(
-                  pubkey: pubkey,
-                  eventSigner: eventSigner,
-                  masterPubkey: masterPubkey,
-                  randomCreatedAt: randomCreatedAt,
-                  wrappedKinds: kind != null ? [messageKind, kind.toString()] : [messageKind],
-                  eventMessage: remoteEventMessage,
-                );
-              }
+              await sendWrappedMessage(
+                pubkey: pubkey,
+                eventSigner: eventSigner,
+                masterPubkey: masterPubkey,
+                randomCreatedAt: randomCreatedAt,
+                wrappedKinds: kind != null ? [messageKind, kind.toString()] : [messageKind],
+                eventMessage: remoteEventMessage,
+              );
 
               if (eventReference != null) {
                 await ref.read(conversationMessageDataDaoProvider).addOrUpdateStatus(
@@ -282,7 +290,7 @@ class SendE2eeChatMessageService {
 
   List<RelatedReplaceableEvent> _generateRelatedEvents(EventMessage? repliedMessage) {
     if (repliedMessage != null) {
-      final entity = EncryptedDirectMessageEntity.fromEventMessage(repliedMessage);
+      final entity = EncryptedGroupMessageEntity.fromEventMessage(repliedMessage);
 
       final rootRelatedEvent = entity.data.rootRelatedEvent;
 
@@ -394,7 +402,7 @@ class SendE2eeChatMessageService {
   }
 
   Future<void> resendMessage({required EventMessage eventMessage}) async {
-    final entity = EncryptedDirectMessageEntity.fromEventMessage(eventMessage);
+    final entity = EncryptedGroupMessageEntity.fromEventMessage(eventMessage);
     final eventReference = entity.toEventReference();
 
     await ref
@@ -423,8 +431,8 @@ class SendE2eeChatMessageService {
       failedEventMessage: eventMessage,
       quotedEvent: entity.data.quotedEvent,
       quotedEventKind: entity.data.quotedEventKind,
-      conversationId: entity.data.conversationId,
-      participantsMasterPubkeys: entity.allPubkeys,
+      groupId: entity.data.conversationId,
+      members: entity.data.members ?? [],
       failedParticipantsMasterPubkeys:
           failedParticipantsMasterPubkeys.isNotEmpty ? failedParticipantsMasterPubkeys : null,
     );
