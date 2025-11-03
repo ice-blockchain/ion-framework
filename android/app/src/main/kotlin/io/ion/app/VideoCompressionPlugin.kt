@@ -10,12 +10,14 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
 import java.nio.ByteBuffer
+import java.util.concurrent.Semaphore
 
 class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
     companion object {
         private const val TAG = "VideoCompression"
         private const val DEFAULT_FRAME_RATE = 30
         private const val DEFAULT_I_FRAME_INTERVAL = 1
+        private val compressionSemaphore = Semaphore(2, true)
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -36,12 +38,17 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                 }
 
                 Thread {
+                    compressionSemaphore.acquire()
                     try {
+                        Log.d(TAG, "Starting compression: $inputPath (${compressionSemaphore.availablePermits()} slots remaining)")
                         compressVideo(inputPath, outputPath, destWidth, destHeight, codec, quality)
                         result.success(null)
                     } catch (e: Exception) {
                         Log.e(TAG, "Compression failed", e)
                         result.error("COMPRESSION_FAILED", e.message, null)
+                    } finally {
+                        compressionSemaphore.release()
+                        Log.d(TAG, "Compression completed: $inputPath (${compressionSemaphore.availablePermits()} slots available)")
                     }
                 }.start()
             }
