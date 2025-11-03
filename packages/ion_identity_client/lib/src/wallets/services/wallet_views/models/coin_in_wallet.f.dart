@@ -13,6 +13,5 @@ class CoinInWallet with _$CoinInWallet {
     String? walletId,
   }) = _CoinInWallet;
 
-  factory CoinInWallet.fromJson(Map<String, dynamic> json) =>
-      _$CoinInWalletFromJson(json);
+  factory CoinInWallet.fromJson(Map<String, dynamic> json) => _$CoinInWalletFromJson(json);
 }

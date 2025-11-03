@@ -64,6 +64,10 @@ jobs:
         run: |
           cd main-repo
           melos exec -- "flutter pub get"
+      - name: Check formatting
+        id: check-formatting
+        run: |
+          melos run 4mat
       - name: Generate code (parallel)
         id: generate-code
         run: |

@@ -36,5 +36,5 @@ scripts:
     run: |
       melos run generate_code
       melos run generate_locales
-  format:
-    run: ./scripts/format_code.sh
+  4mat:
+    exec: find lib test -type f -name '*.dart' -not \( -path 'lib/generated*' -o -path 'lib/l10n*' \) -not \( -name '*.freezed.dart' -o -name '*.g.dart' \) | tr '\n' ' ' | xargs asdf exec dart format --line-length=100 --set-exit-if-changed
