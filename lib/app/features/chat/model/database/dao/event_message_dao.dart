@@ -58,9 +58,7 @@ class EventMessageDao extends DatabaseAccessor<ChatDatabase> with _$EventMessage
               (table) => table.messageEventReference.equalsExp(db.eventMessageTable.eventReference),
             ),
         ),
-      )
-      ..orderBy([OrderingTerm.desc(db.eventMessageTable.createdAt)])
-      ..limit(100);
+      );
 
     final searchResults = await queryBuilder.get();
 
