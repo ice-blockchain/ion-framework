@@ -9,7 +9,7 @@ import 'package:ion/app/features/auth/providers/onboarding_complete_notifier.r.d
 import 'package:ion/app/features/auth/providers/onboarding_data_provider.m.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
-import 'package:ion/app/features/core/views/pages/language_selector_page.dart';
+import 'package:ion/app/features/core/views/pages/language_selector_page/content_language_selector_page.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
 import 'package:ion/app/hooks/use_selected_state.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -33,7 +33,7 @@ class SelectLanguages extends HookConsumerWidget {
 
     final userIdentity = ref.watch(currentUserIdentityProvider).valueOrNull;
 
-    return LanguageSelectorPage(
+    return ContentLanguageSelectorPage(
       title: context.i18n.common_select_languages,
       description: context.i18n.select_languages_description,
       toggleLanguageSelection: toggleLanguageSelection,
