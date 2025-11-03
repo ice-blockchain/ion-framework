@@ -78,6 +78,7 @@ jobs:
           ./scripts/generate_code.sh &
           wait
       - name: Verify localization
+        id: verify-localization
         run: |
           cd main-repo
           ./scripts/verify_locales.sh --strict
