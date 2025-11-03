@@ -15,14 +15,12 @@ class TopicsCategorySection extends HookConsumerWidget {
     required this.feedType,
     required this.category,
     this.searchQuery,
-    this.addTopPadding = true,
     super.key,
   });
 
   final FeedType feedType;
   final MapEntry<String, FeedInterestsCategory> category;
   final String? searchQuery;
-  final bool addTopPadding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -57,7 +55,6 @@ class TopicsCategorySection extends HookConsumerWidget {
       children: [
         CategoryHeader(
           categoryName: category.value.display,
-          addTopPadding: addTopPadding,
         ),
         Subcategories(
           subcategories: filteredSubcategories,
