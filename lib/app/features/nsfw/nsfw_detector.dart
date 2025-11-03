@@ -23,14 +23,7 @@ class NsfwResult {
 }
 
 class NsfwDetector {
-  NsfwDetector._(
-    this._interpreter, {
-    double blockThreshold = 0.60,
-  }) : _blockThreshold = blockThreshold;
-
-  /// Internal constructor for use by static helpers.
-  /// Allows external code to create detector with custom interpreter.
-  NsfwDetector.internal(
+  NsfwDetector(
     this._interpreter, {
     double blockThreshold = 0.60,
   }) : _blockThreshold = blockThreshold;
@@ -53,7 +46,7 @@ class NsfwDetector {
       );
     }
     final interpreter = await Interpreter.fromAsset('assets/ml/nsfw_int8.tflite', options: options);
-    return NsfwDetector._(interpreter, blockThreshold: blockThreshold);
+    return NsfwDetector(interpreter, blockThreshold: blockThreshold);
   }
 
   void dispose() => _interpreter.close();

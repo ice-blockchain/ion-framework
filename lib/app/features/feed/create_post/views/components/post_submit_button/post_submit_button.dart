@@ -26,7 +26,6 @@ import 'package:ion/app/features/nsfw/models/nsfw_check_result.f.dart';
 import 'package:ion/app/features/nsfw/providers/media_nsfw_checker.r.dart';
 import 'package:ion/app/features/nsfw/widgets/nsfw_blocked_sheet.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
 class PostSubmitButton extends HookConsumerWidget {
