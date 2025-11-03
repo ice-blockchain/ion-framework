@@ -246,9 +246,7 @@ FeedEntitiesDataSource buildStoriesDataSource({
     actionSource: actionSource,
     entityFilter: (entity) =>
         (authors == null || authors.contains(entity.masterPubkey)) &&
-        (entity is ModifiablePostEntity &&
-            entity.data.parentEvent == null &&
-            entity.data.expiration != null),
+        (entity is ModifiablePostEntity && entity.data.parentEvent == null && entity.isStory),
     requestFilter: RequestFilter(
       kinds: const [ModifiablePostEntity.kind],
       authors: authors,

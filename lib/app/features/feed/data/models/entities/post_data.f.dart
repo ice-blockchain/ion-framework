@@ -57,6 +57,8 @@ class PostEntity
 
   static const kind = 1;
 
+  bool get isStory => data.expiration != null;
+
   @override
   FutureOr<EventMessage> toEntityEventMessage() => toEventMessage(data);
 }
