@@ -13,7 +13,7 @@ class TagButton extends StatelessWidget {
     super.key,
   });
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   final String label;
 

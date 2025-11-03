@@ -10,13 +10,14 @@ import 'package:ion/app/features/core/views/pages/language_selector_page.dart';
 import 'package:ion/app/features/feed/providers/selected_entity_language_notifier.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
+import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
 
 class EntityLanguageModal extends HookConsumerWidget {
   const EntityLanguageModal({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedLanguage = useState(ref.watch(selectedEntityLanguageNotifierProvider));
+    final selectedLanguage = useState(ref.watch(selectedEntityLanguageNotifierProvider)?.value);
 
     return LanguageSelectorPage(
       title: context.i18n.common_select_language,
@@ -33,7 +34,9 @@ class EntityLanguageModal extends HookConsumerWidget {
         label: Text(context.i18n.button_continue),
         mainAxisSize: MainAxisSize.max,
         onPressed: () {
-          ref.read(selectedEntityLanguageNotifierProvider.notifier).lang = selectedLanguage.value;
+          final selected = selectedLanguage.value;
+          ref.read(selectedEntityLanguageNotifierProvider.notifier).langLabel =
+              selected != null ? ContentLanguage(value: selected) : null;
           context.pop();
         },
       ),

@@ -118,7 +118,7 @@ class PostSubmitButton extends HookConsumerWidget {
                 whoCanReply: whoCanReply,
                 topics: selectedTopics,
                 poll: PollUtils.pollDraftToPollData(draftPoll),
-                language: language,
+                language: language?.value,
               ),
             );
           } else {
@@ -131,7 +131,7 @@ class PostSubmitButton extends HookConsumerWidget {
                 whoCanReply: whoCanReply,
                 topics: selectedTopics,
                 poll: PollUtils.pollDraftToPollData(draftPoll),
-                language: language,
+                language: language?.value,
               ),
             );
           }

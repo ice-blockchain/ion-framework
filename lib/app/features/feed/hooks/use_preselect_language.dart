@@ -9,6 +9,7 @@ import 'package:ion/app/features/feed/providers/selected_entity_language_notifie
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
+import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
 
 void usePreselectLanguage(
   WidgetRef ref, {
@@ -20,14 +21,17 @@ void usePreselectLanguage(
         final modifiedEntity =
             ref.read(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
 
-        final language = switch (modifiedEntity) {
+        final languageLabel = switch (modifiedEntity) {
           ModifiablePostEntity() => modifiedEntity.data.language,
           ArticleEntity() => modifiedEntity.data.language,
           _ => throw UnsupportedEventReference(eventReference),
         };
+        final language = languageLabel != null && languageLabel.values.isNotEmpty
+            ? languageLabel.values.first
+            : null;
         WidgetsBinding.instance.addPostFrameCallback(
-          (_) => ref.read(selectedEntityLanguageNotifierProvider.notifier).lang =
-              language?.values.firstOrNull,
+          (_) => ref.read(selectedEntityLanguageNotifierProvider.notifier).langLabel =
+              language != null ? ContentLanguage(value: language) : null,
         );
       }
     },
