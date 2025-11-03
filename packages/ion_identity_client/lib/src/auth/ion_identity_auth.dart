@@ -6,8 +6,10 @@ import 'package:ion_identity_client/src/auth/services/credentials/create_recover
 import 'package:ion_identity_client/src/auth/services/credentials/get_credentials_service.dart';
 import 'package:ion_identity_client/src/auth/services/delegated_login/delegated_login_service.dart';
 import 'package:ion_identity_client/src/auth/services/delete/delete_service.dart';
+import 'package:ion_identity_client/src/auth/services/login/get_login_capabilities_service.dart';
 import 'package:ion_identity_client/src/auth/services/login/login_capabilities.dart';
-import 'package:ion_identity_client/src/auth/services/login/login_service.dart';
+import 'package:ion_identity_client/src/auth/services/login/login_user_service.dart';
+import 'package:ion_identity_client/src/auth/services/login/verify_user_login_flow_service.dart';
 import 'package:ion_identity_client/src/auth/services/logout/logout_service.dart';
 import 'package:ion_identity_client/src/auth/services/recover_user/recover_user_service.dart';
 import 'package:ion_identity_client/src/auth/services/register/register_service.dart';
@@ -31,7 +33,9 @@ class IONIdentityAuth {
     required this.username,
     required this.identitySigner,
     required this.registerService,
-    required this.loginService,
+    required this.verifyUserLoginFlowService,
+    required this.getLoginCapabilitiesService,
+    required this.loginUserService,
     required this.logoutService,
     required this.deleteService,
     required this.privateKeyStorage,
@@ -47,7 +51,9 @@ class IONIdentityAuth {
 
   final RegisterService registerService;
   final IdentitySigner identitySigner;
-  final LoginService loginService;
+  final VerifyUserLoginFlowService verifyUserLoginFlowService;
+  final GetLoginCapabilitiesService getLoginCapabilitiesService;
+  final LoginUserService loginUserService;
   final LogoutService logoutService;
   final DeleteService deleteService;
   final CreateRecoveryCredentialsService createRecoveryCredentialsService;
@@ -73,16 +79,17 @@ class IONIdentityAuth {
   Future<void> registerUserWithPassword(String password, String? earlyAccessEmail) =>
       registerService.registerWithPassword(password, earlyAccessEmail);
 
-  Future<void> verifyUserLoginFlow() => loginService.verifyUserLoginFlow();
+  Future<void> verifyUserLoginFlow() => verifyUserLoginFlowService.verifyUserLoginFlow();
 
-  Future<LoginCapabilities> getLoginCapabilities() => loginService.getLoginCapabilities();
+  Future<LoginCapabilities> getLoginCapabilities() =>
+      getLoginCapabilitiesService.getLoginCapabilities();
 
   Future<void> login({
     required AuthConfig config,
     required List<TwoFAType> twoFATypes,
     required bool localCredsOnly,
   }) =>
-      loginService.login(
+      loginUserService.login(
         config: config,
         twoFATypes: twoFATypes,
         localCredsOnly: localCredsOnly,

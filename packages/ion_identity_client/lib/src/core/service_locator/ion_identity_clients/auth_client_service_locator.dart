@@ -13,8 +13,10 @@ import 'package:ion_identity_client/src/auth/services/delete/delete_service.dart
 import 'package:ion_identity_client/src/auth/services/extract_user_id/extract_user_id_service.dart';
 import 'package:ion_identity_client/src/auth/services/key_service.dart';
 import 'package:ion_identity_client/src/auth/services/login/data_sources/login_data_source.dart';
-import 'package:ion_identity_client/src/auth/services/login/login_executors.dart';
-import 'package:ion_identity_client/src/auth/services/login/login_service.dart';
+import 'package:ion_identity_client/src/auth/services/login/get_login_capabilities_service.dart';
+import 'package:ion_identity_client/src/auth/services/login/login_executors/login_executor_factory.dart';
+import 'package:ion_identity_client/src/auth/services/login/login_user_service.dart';
+import 'package:ion_identity_client/src/auth/services/login/verify_user_login_flow_service.dart';
 import 'package:ion_identity_client/src/auth/services/logout/data_sources/logout_data_source.dart';
 import 'package:ion_identity_client/src/auth/services/logout/logout_service.dart';
 import 'package:ion_identity_client/src/auth/services/recover_user/data_sources/recover_user_data_source.dart';
@@ -50,7 +52,32 @@ class AuthClientServiceLocator {
         identitySigner: identitySigner,
       ),
       identitySigner: identitySigner,
-      loginService: login(username: username, config: config, identitySigner: identitySigner),
+      verifyUserLoginFlowService: VerifyUserLoginFlowService(
+        username: username,
+        dataSource: LoginDataSource(
+          networkClient: IONIdentityServiceLocator.networkClient(config: config),
+        ),
+        privateKeyStorage: IONIdentityServiceLocator.privateKeyStorage(),
+      ),
+      getLoginCapabilitiesService: GetLoginCapabilitiesService(
+        username: username,
+        dataSource: LoginDataSource(
+          networkClient: IONIdentityServiceLocator.networkClient(config: config),
+        ),
+        privateKeyStorage: IONIdentityServiceLocator.privateKeyStorage(),
+      ),
+      loginUserService: LoginUserService(
+        username: username,
+        dataSource: LoginDataSource(
+          networkClient: IONIdentityServiceLocator.networkClient(config: config),
+        ),
+        tokenStorage: IONIdentityServiceLocator.tokenStorage(),
+        loginExecutorFactory: LoginExecutorFactory(
+          identitySigner: identitySigner,
+          biometricsStateStorage: IONIdentityServiceLocator.biometricsStateStorage(),
+          privateKeyStorage: IONIdentityServiceLocator.privateKeyStorage(),
+        ),
+      ),
       logoutService: logout(username: username, config: config),
       deleteService: delete(username: username, config: config),
       createRecoveryCredentialsService: createRecoveryCredentials(
@@ -89,27 +116,6 @@ class AuthClientServiceLocator {
         networkClient: IONIdentityServiceLocator.networkClient(config: config),
       ),
       tokenStorage: IONIdentityServiceLocator.tokenStorage(),
-    );
-  }
-
-  LoginService login({
-    required String username,
-    required IONIdentityConfig config,
-    required IdentitySigner identitySigner,
-  }) {
-    return LoginService(
-      username: username,
-      dataSource: LoginDataSource(
-        networkClient: IONIdentityServiceLocator.networkClient(config: config),
-      ),
-      tokenStorage: IONIdentityServiceLocator.tokenStorage(),
-      privateKeyStorage: IONIdentityServiceLocator.privateKeyStorage(),
-      biometricsStateStorage: IONIdentityServiceLocator.biometricsStateStorage(),
-      loginExecutorFactory: LoginExecutorFactory(
-        identitySigner: identitySigner,
-        biometricsStateStorage: IONIdentityServiceLocator.biometricsStateStorage(),
-        privateKeyStorage: IONIdentityServiceLocator.privateKeyStorage(),
-      ),
     );
   }
 

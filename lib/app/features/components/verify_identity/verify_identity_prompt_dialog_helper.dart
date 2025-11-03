@@ -113,7 +113,6 @@ class RiverpodUserActionSignerRequestBuilder<T> extends HookConsumerWidget {
     required this.provider,
     required this.request,
     this.identityKeyName,
-    this.onPasswordCaptured,
     super.key,
   });
 
@@ -121,7 +120,6 @@ class RiverpodUserActionSignerRequestBuilder<T> extends HookConsumerWidget {
   final ProviderListenable<AsyncValue<T>> provider;
   final Future<void> Function(UserActionSignerNew signer) request;
   final String? identityKeyName;
-  final void Function(String password)? onPasswordCaptured;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -158,10 +156,7 @@ class RiverpodUserActionSignerRequestBuilder<T> extends HookConsumerWidget {
     final signer = await signerFactory.createSigner(
       localisedReasonForBiometrics: locale.verify_with_biometrics_title,
       localisedCancelForBiometrics: locale.button_cancel,
-      getPassword: () => onGetPassword(({required String password}) async {
-        onPasswordCaptured?.call(password);
-        return password;
-      }),
+      getPassword: () => onGetPassword(({required String password}) async => password),
     );
 
     await request(signer);
