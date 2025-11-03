@@ -465,6 +465,7 @@ class MainActivity : FlutterFragmentActivity() {
             e.stackTrace?.take(5)?.forEach { element ->
                 Log.e(TAG, "  at ${element.className}.${element.methodName}")
             }
+            
             // Note: Even catching here might not prevent the crash entirely,
             // but it logs the issue and may allow graceful degradation
         }
