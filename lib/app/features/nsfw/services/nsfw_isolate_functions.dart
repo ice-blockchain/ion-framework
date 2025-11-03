@@ -31,7 +31,7 @@ Future<NsfwDetector> _createDetector(
     options: options,
   );
 
-  return NsfwDetector.internal(
+  return NsfwDetector(
     interpreter,
     blockThreshold: blockThreshold,
   );

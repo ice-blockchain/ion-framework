@@ -51,10 +51,9 @@ class MediaNsfwChecker {
       return;
     }
 
-    final nsfwService = await ref.read(nsfwValidationServiceProvider.future);
-
     try {
       // Perform batch check
+      final nsfwService = await ref.read(nsfwValidationServiceProvider.future);
       final batchResults = await nsfwService.hasNsfwInMediaFiles(newMedia);
 
       // Complete completers
