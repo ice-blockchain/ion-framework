@@ -249,8 +249,6 @@ class EncryptedGroupChatTile extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    print('QQQ ${groupMetadata.members}');
-
     final isEditMode = ref.watch(conversationsEditModeProvider);
     final selectedConversations = ref.watch(selectedConversationsProvider);
 
