@@ -73,9 +73,16 @@ class _AvatarColorsTween extends Tween<AvatarColors> {
 
   @override
   AvatarColors lerp(double t) {
+    final beginValue = begin;
+    final endValue = end;
+
+    if (beginValue == null || endValue == null) {
+      return beginValue ?? endValue ?? useAvatarFallbackColors;
+    }
+
     return (
-      first: Color.lerp(begin!.first, end!.first, t)!,
-      second: Color.lerp(begin!.second, end!.second, t)!,
+      first: Color.lerp(beginValue.first, endValue.first, t) ?? beginValue.first,
+      second: Color.lerp(beginValue.second, endValue.second, t) ?? beginValue.second,
     );
   }
 }
