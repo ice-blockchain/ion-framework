@@ -58,8 +58,7 @@ class SendE2eeMessageStatusService {
     }
 
     final eventReference =
-        EncryptedDirectMessageEntity.fromEventMessage(messageEventMessage)
-            .toEventReference();
+        EncryptedDirectMessageEntity.fromEventMessage(messageEventMessage).toEventReference();
 
     if (status == MessageDeliveryStatus.read) {
       final currentStatus = await conversationMessageDataDaoProvider.checkMessageStatus(
