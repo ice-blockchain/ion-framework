@@ -67,6 +67,7 @@ jobs:
       - name: Check formatting
         id: check-formatting
         run: |
+          cd main-repo
           melos run 4mat
       - name: Generate code (parallel)
         id: generate-code
