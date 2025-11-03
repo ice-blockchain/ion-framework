@@ -174,7 +174,7 @@ class AddParticipantsToGroupModalRoute extends BaseRouteData
     with _$AddParticipantsToGroupModalRoute {
   AddParticipantsToGroupModalRoute()
       : super(
-          child: const AddGroupParticipantsModal(),
+          child: const InitGroupParticipantsModal(),
           type: IceRouteType.bottomSheet,
         );
 }
