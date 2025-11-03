@@ -7,8 +7,10 @@ import 'package:ion/app/components/inputs/search_input/search_input.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/components/following_users.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/components/searched_users.dart';
+import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion_connect_cache/ion_connect_cache.dart';
@@ -51,6 +53,15 @@ class UserPickerSheet extends HookConsumerWidget {
       ),
     );
 
+    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+    if (currentPubkey == null) {
+      // Should never happen because currentPubkeySelectorProvider is marked as keepAlive: true
+      return const SizedBox.shrink();
+    }
+
+    final followListState = ref.watch(userFollowListWithMetadataProvider(currentPubkey));
+    final showFollowingUsers = debouncedQuery.isEmpty;
+
     return LoadMoreBuilder(
       slivers: [
         SliverAppBar(
@@ -78,7 +89,7 @@ class UserPickerSheet extends HookConsumerWidget {
           ),
         ),
         if (header != null) header!,
-        if (debouncedQuery.isEmpty)
+        if (showFollowingUsers)
           FollowingUsers(
             selectable: selectable,
             onUserSelected: onUserSelected,
@@ -96,8 +107,12 @@ class UserPickerSheet extends HookConsumerWidget {
         SliverToBoxAdapter(child: SizedBox(height: 8.0.s)),
         if (footer != null) footer!,
       ],
-      onLoadMore: ref.read(searchUsersProvider(query: debouncedQuery).notifier).loadMore,
-      hasMore: searchResults.valueOrNull?.hasMore ?? false,
+      onLoadMore: showFollowingUsers
+          ? ref.read(userFollowListWithMetadataProvider(currentPubkey).notifier).fetchEntities
+          : ref.read(searchUsersProvider(query: debouncedQuery).notifier).loadMore,
+      hasMore: showFollowingUsers
+          ? followListState.valueOrNull?.hasMore ?? false
+          : searchResults.valueOrNull?.hasMore ?? false,
     );
   }
 }

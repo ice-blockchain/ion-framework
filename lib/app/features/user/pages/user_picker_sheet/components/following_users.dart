@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_items_loading_state/list_items_loading_state.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/components/selectable_user_list_item.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
@@ -26,10 +27,15 @@ class FollowingUsers extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final followListMasterPubkeys = ref.watch(currentUserFollowListWithMetadataProvider());
+    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+    if (currentPubkey == null) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+    final followListState = ref.watch(userFollowListWithMetadataProvider(currentPubkey));
 
-    return followListMasterPubkeys.maybeWhen(
-      data: (masterPubkeys) {
+    return followListState.maybeWhen(
+      data: (data) {
+        final masterPubkeys = data.pubkeys;
         if (masterPubkeys.isEmpty) return const _NoUserView();
 
         return SliverList.builder(
