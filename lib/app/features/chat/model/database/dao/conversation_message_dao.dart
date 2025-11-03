@@ -127,7 +127,7 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
     final deletedMessagesSubquery = selectOnly(messageStatusTable)
       ..addColumns([messageStatusTable.messageEventReference])
       ..where(messageStatusTable.status.equals(MessageDeliveryStatus.deleted.index));
-    
+
     final query = select(conversationMessageTable).join([
       innerJoin(
         eventMessageTable,
