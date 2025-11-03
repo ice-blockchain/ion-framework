@@ -8,10 +8,21 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/services/cloud_storage/cloud_storage_service.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 
 final class GoogleDriveStorageService extends CloudStorageService {
   static const appDataFolder = 'appDataFolder';
+
+  @override
+  Future<void> signOut() async {
+    try {
+      final googleSignIn = GoogleSignIn.standard();
+      await googleSignIn.signOut();
+    } catch (error) {
+      Logger.log('Error during Google sign out', error: error);
+    }
+  }
 
   @override
   Future<bool> isAvailable() async {
