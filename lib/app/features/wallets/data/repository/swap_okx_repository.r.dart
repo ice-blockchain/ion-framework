@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/wallets/data/models/swap_chain_data.m.dart';
 import 'package:ion/app/features/wallets/providers/okx_dio_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -16,12 +17,18 @@ class SwapOkxRepository {
   final Dio _dio;
   final String _baseUrl;
 
-  Future<void> getSupportedChains() async {
-    // TODO(ice-erebus): implement swap coins
-
-    await _dio.get<dynamic>(
+  Future<List<SwapChainData>> getSupportedChains() async {
+    final response = await _dio.get<dynamic>(
       '$_baseUrl/aggregator/supported/chain',
     );
+
+    final data = (response.data as Map<String, dynamic>)['data'] as List<dynamic>;
+
+    return data
+        .map(
+          (e) => SwapChainData.fromJson(e as Map<String, dynamic>),
+        )
+        .toList();
   }
 }
 
