@@ -43,12 +43,7 @@ fi
 
 # Format packages
 if [ -d "$PACKAGES_DIR" ]; then
-    for package_name in $(ls "$PACKAGES_DIR" 2>/dev/null); do
-        # Skip example directories
-        # if [[ "$package_name" == "example" ]]; then
-        #     continue
-        # fi
-        
+    for package_name in $(ls "$PACKAGES_DIR" 2>/dev/null); do        
         PACKAGE_DIR="$PACKAGES_DIR/$package_name"
         
         # Only format if it's a directory and has lib or test folder
