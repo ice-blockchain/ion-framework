@@ -140,15 +140,13 @@ class _OkxHeaderInterceptor implements Interceptor {
   }
 
   String _normalizeRequestPath(String path, Map<String, dynamic> queryParameters) {
-
     if (queryParameters.isEmpty) {
       return path;
     }
 
-    final queryString = queryParameters.entries
-        .map((entry) => '${entry.key}=${entry.value}')
-        .join('&');
-        
+    final queryString =
+        queryParameters.entries.map((entry) => '${entry.key}=${entry.value}').join('&');
+
     return '$path?$queryString';
   }
 }
