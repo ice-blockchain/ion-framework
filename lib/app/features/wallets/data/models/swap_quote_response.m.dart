@@ -11,5 +11,6 @@ class SwapQuoteResponse with _$SwapQuoteResponse {
     @JsonKey(name: 'data') required List<SwapQuoteData> quotes,
   }) = _SwapQuoteResponse;
 
-  factory SwapQuoteResponse.fromJson(Map<String, dynamic> json) => _$SwapQuoteResponseFromJson(json);
+  factory SwapQuoteResponse.fromJson(Map<String, dynamic> json) =>
+      _$SwapQuoteResponseFromJson(json);
 }
