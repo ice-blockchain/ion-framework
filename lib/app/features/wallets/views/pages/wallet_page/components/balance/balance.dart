@@ -23,7 +23,7 @@ class Balance extends ConsumerWidget {
 
   final WalletTabType tab;
 
-  static double get height => 154.0.s;
+  static double get height => 160.s;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

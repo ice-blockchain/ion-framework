@@ -86,7 +86,6 @@ class WalletCarousel extends StatelessWidget {
           ),
         ],
         autoPlay: true,
-        viewportFraction: 0.85.s,
         enlargeCenterPage: true,
         dotsSpacing: 4.s,
         dotsSize: 3.s,
