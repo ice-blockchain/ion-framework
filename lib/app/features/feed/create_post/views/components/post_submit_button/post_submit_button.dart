@@ -7,7 +7,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/core/views/pages/error_modal.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
 import 'package:ion/app/features/feed/create_post/views/hooks/use_can_submit_post.dart';
@@ -25,6 +24,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/nsfw/models/nsfw_check_result.f.dart';
 import 'package:ion/app/features/nsfw/providers/media_nsfw_checker.r.dart';
 import 'package:ion/app/features/nsfw/widgets/nsfw_blocked_sheet.dart';
+import 'package:ion/app/features/nsfw/widgets/nsfw_failed_sheet.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
@@ -117,8 +117,7 @@ class PostSubmitButton extends HookConsumerWidget {
           if (!context.mounted) return;
           loading.value = false;
           if (nsfwCheckResult is NsfwFailure) {
-            // TODO: Add bottom sheet for this case
-            showErrorModal(context, nsfwCheckResult.error);
+            showNsfwFailedSheet(context);
             return;
           }
 
