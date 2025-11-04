@@ -13,6 +13,8 @@ jobs:
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Enable auto-merge via gh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
