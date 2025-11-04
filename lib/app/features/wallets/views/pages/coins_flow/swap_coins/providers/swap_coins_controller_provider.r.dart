@@ -114,9 +114,10 @@ class SwapCoinsController extends _$SwapCoinsController {
           chainIndex: okxChain.chainIndex,
         );
 
+        // TODO(ice-erebus): implement actual amount
         final quotes = await swapOkxRepository.getQuotes(
           chainIndex: okxChain.chainIndex,
-          amount: '0.1', // TODO(ice-erebus): implement actual amount
+          amount: '0.1',
           fromTokenAddress: sellTokenAddress.isEmpty ? '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' : sellTokenAddress,
           toTokenAddress: buyTokenAddress.isEmpty ? '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' : buyTokenAddress,
         );
