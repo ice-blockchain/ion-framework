@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:collection/collection.dart';
-<<<<<<< HEAD
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
-=======
-import 'package:ion/app/features/wallets/data/models/swap_chain_data.m.dart';
->>>>>>> 045ab7765 (feat: add SwapQuoteData and SwapQuoteResponse models, enhance SwapOkxRepository with quote retrieval functionality)
-import 'package:ion/app/features/wallets/data/repository/swap_okx_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
