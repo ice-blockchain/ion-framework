@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
+import 'package:ion/app/features/wallets/data/models/swap_chain_data.m.dart';
 import 'package:ion/app/features/wallets/data/repository/swap_okx_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
@@ -87,20 +89,61 @@ class SwapCoinsController extends _$SwapCoinsController {
   Future<void> swapCoins() async {
     final sellNetwork = state.sellNetwork;
     final buyNetwork = state.buyNetwork;
+    final sellCoinGroup = state.sellCoin;
+    final buyCoinGroup = state.buyCoin;
 
-    if (sellNetwork?.id == buyNetwork?.id && sellNetwork != null) {
-      final isChainSupported = await _isChainSupported(sellNetwork);
+    if (sellCoinGroup == null || buyCoinGroup == null || sellNetwork == null || buyNetwork == null) {
+      return;
+    }
 
-      if (isChainSupported) {}
+    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final buyCoin = buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
+
+    if (sellCoin == null || buyCoin == null) {
+      return;
+    }
+
+    if (sellNetwork.id == buyNetwork.id) {
+      final okxChain = await _isOkxChainSupported(sellNetwork);
+      final sellTokenAddress = sellCoin.coin.contractAddress;
+      final buyTokenAddress = buyCoin.coin.contractAddress;
+
+      if (okxChain != null) {
+        final swapOkxRepository = await ref.read(swapOkxRepositoryProvider.future);
+        await swapOkxRepository.getTokens(
+          chainIndex: okxChain.chainIndex,
+        );
+
+        final quotes = await swapOkxRepository.getQuotes(
+          chainIndex: okxChain.chainIndex,
+          amount: '0.1', // TODO(ice-erebus): implement actual amount
+          fromTokenAddress: sellTokenAddress.isEmpty ? '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' : sellTokenAddress,
+          toTokenAddress: buyTokenAddress.isEmpty ? '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' : buyTokenAddress,
+        );
+
+        final responseCode = int.tryParse(quotes.code);
+
+        if (responseCode == 0) {
+          return;
+        }
+      }
     }
 
     return;
   }
 
-  Future<bool> _isChainSupported(NetworkData network) async {
+  Future<SwapChainData?> _isOkxChainSupported(NetworkData network) async {
     final swapOkxRepository = await ref.read(swapOkxRepositoryProvider.future);
-    final supportedChains = await swapOkxRepository.getSupportedChains();
+    final supportedChainsIds = await swapOkxRepository.getSupportedChainsIds();
+    final chainOkxIndex = supportedChainsIds.firstWhereOrNull(
+      (chain) => chain.keys.first.toLowerCase() == network.displayName.toLowerCase(),
+    );
 
-    return true;
+    final supportedChains = await swapOkxRepository.getSupportedChains();
+    final supportedChain = supportedChains.firstWhereOrNull(
+      (chain) => chain.chainIndex == chainOkxIndex?.values.first,
+    );
+
+    return supportedChain;
   }
 }
