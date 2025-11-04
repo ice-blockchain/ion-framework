@@ -53,6 +53,7 @@ class FollowersList extends HookConsumerWidget {
           itemCount: masterPubkeys.length,
           itemBuilder: (context, index) => ScreenSideOffset.small(
             child: FollowListItem(
+              key: ValueKey(masterPubkeys[index]),
               pubkey: masterPubkeys[index],
               follower: isCurrentUserFollowers ? true : null,
             ),

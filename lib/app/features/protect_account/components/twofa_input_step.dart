@@ -47,6 +47,7 @@ class TwoFAInputStep extends HookConsumerWidget {
               itemBuilder: (context, index) {
                 final twoFaType = twoFaTypes[index];
                 return Padding(
+                  key: ValueKey(twoFaType),
                   padding: EdgeInsetsDirectional.only(bottom: 22.0.s),
                   child: TwoFaCodeInput(
                     controller: controllers[twoFaType]!,

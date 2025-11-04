@@ -37,6 +37,7 @@ class NotificationsTab extends HookConsumerWidget {
             itemCount: paginatedState.notifications.length,
             itemBuilder: (context, index) {
               return NotificationItem(
+                key: ValueKey(paginatedState.notifications[index]),
                 notification: paginatedState.notifications[index],
                 onNotificationHidden: paginatedNotifier.registerHiddenNotification,
               );
