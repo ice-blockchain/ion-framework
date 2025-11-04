@@ -8,6 +8,7 @@ import 'package:ion/app/components/message_notification/providers/message_notifi
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/hooks/use_on_receive_funds_flow.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class BalanceActions extends HookConsumerWidget {
@@ -63,12 +64,9 @@ class BalanceActions extends HookConsumerWidget {
           child: TextIconButton(
             icon: Assets.svg.iconamoonSwap.icon(color: context.theme.appColors.primaryAccent),
             label: context.i18n.wallet_swap,
-            onPressed: () => ref.read(messageNotificationNotifierProvider.notifier).show(
-                  MessageNotification(
-                    message: context.i18n.wallet_swap_coming_soon,
-                    icon: Assets.svg.iconBlockTime.icon(size: 16.0.s),
-                  ),
-                ),
+            onPressed: () {
+              SwapCoinsRoute().push<void>(context);
+            },
             disabled: isLoading,
             type: ButtonType.outlined,
           ),

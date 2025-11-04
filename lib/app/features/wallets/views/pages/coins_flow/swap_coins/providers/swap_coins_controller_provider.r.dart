@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion/app/features/wallets/data/repository/swap_okx_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
@@ -80,5 +81,26 @@ class SwapCoinsController extends _$SwapCoinsController {
       coin: state.sellCoin,
       network: state.sellNetwork,
     );
+  }
+
+  // TODO(ice-erebus): implement bridge and CEX
+  Future<void> swapCoins() async {
+    final sellNetwork = state.sellNetwork;
+    final buyNetwork = state.buyNetwork;
+
+    if (sellNetwork?.id == buyNetwork?.id) {
+      final isChainSupported = await _isChainSupported();
+
+      if (isChainSupported) {}
+    }
+
+    return;
+  }
+
+  Future<bool> _isChainSupported() async {
+    final swapOkxRepository = await ref.read(swapOkxRepositoryProvider.future);
+    await swapOkxRepository.getSupportedChains();
+
+    return true;
   }
 }
