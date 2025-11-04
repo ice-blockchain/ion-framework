@@ -88,8 +88,8 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellNetwork = state.sellNetwork;
     final buyNetwork = state.buyNetwork;
 
-    if (sellNetwork?.id == buyNetwork?.id) {
-      final isChainSupported = await _isChainSupported();
+    if (sellNetwork?.id == buyNetwork?.id && sellNetwork != null) {
+      final isChainSupported = await _isChainSupported(sellNetwork);
 
       if (isChainSupported) {}
     }
@@ -97,9 +97,9 @@ class SwapCoinsController extends _$SwapCoinsController {
     return;
   }
 
-  Future<bool> _isChainSupported() async {
+  Future<bool> _isChainSupported(NetworkData network) async {
     final swapOkxRepository = await ref.read(swapOkxRepositoryProvider.future);
-    await swapOkxRepository.getSupportedChains();
+    final supportedChains = await swapOkxRepository.getSupportedChains();
 
     return true;
   }
