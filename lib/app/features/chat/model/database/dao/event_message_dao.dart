@@ -53,7 +53,7 @@ class EventMessageDao extends DatabaseAccessor<ChatDatabase> with _$EventMessage
       ),
     ])
       ..where(db.eventMessageTable.kind.equals(ReplaceablePrivateDirectMessageEntity.kind))
-      ..where(db.eventMessageTable.content.like('%$query%'))
+      ..where(db.eventMessageTable.content.lower().like('%${query.toLowerCase()}%'))
       ..where(
         db.eventMessageTable.eventReference.isNotInQuery(deletedMessagesSubquery),
       )

@@ -126,7 +126,15 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
   Stream<Map<DateTime, List<EventMessage>>> getMessages(String conversationId) {
     final deletedMessagesSubquery = selectOnly(messageStatusTable)
       ..addColumns([messageStatusTable.messageEventReference])
-      ..where(messageStatusTable.status.equals(MessageDeliveryStatus.deleted.index));
+      ..join([
+        innerJoin(
+          conversationMessageTable,
+          conversationMessageTable.messageEventReference
+              .equalsExp(messageStatusTable.messageEventReference),
+        ),
+      ])
+      ..where(messageStatusTable.status.equals(MessageDeliveryStatus.deleted.index))
+      ..where(conversationMessageTable.conversationId.equals(conversationId));
 
     final query = select(conversationMessageTable).join([
       innerJoin(

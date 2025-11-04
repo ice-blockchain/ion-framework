@@ -2,6 +2,10 @@
 
 part of '../chat_database.m.dart';
 
+@TableIndex(
+  name: 'idx_message_status_reference_status',
+  columns: {#messageEventReference, #status},
+)
 class MessageStatusTable extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get messageEventReference =>

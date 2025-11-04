@@ -12,6 +12,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chat_messages_search_provider.r.g.dart';
 
+String? _getReceiverPubkey(
+  ReplaceablePrivateDirectMessageEntity message,
+  String currentUserMasterPubkey,
+) =>
+    message.allPubkeys.firstWhereOrNull((key) => key != currentUserMasterPubkey);
+
 @riverpod
 Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) async {
   if (query.isEmpty) return null;
@@ -24,24 +30,15 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) as
 
   final searchResults = await eventMessageDao.search(caseInsensitiveQuery);
 
-  final entities = searchResults.map(ReplaceablePrivateDirectMessageEntity.fromEventMessage);
-
-  // Database already returns results sorted by createdAt DESC, no need to sort again
-  final messages = entities.toList();
+  final messages = searchResults.map(ReplaceablePrivateDirectMessageEntity.fromEventMessage);
 
   // Extract unique receiver pubkeys and filter out nulls early
-  final receiverMasterPubkeys = <String>{};
-  final messagePubkeyMap = <ReplaceablePrivateDirectMessageEntity, String>{};
-
-  for (final message in messages) {
-    final receiverMasterPubkey = message.allPubkeys.firstWhereOrNull(
-      (key) => key != currentUserMasterPubkey,
-    );
-    if (receiverMasterPubkey != null) {
-      receiverMasterPubkeys.add(receiverMasterPubkey);
-      messagePubkeyMap[message] = receiverMasterPubkey;
-    }
-  }
+  final messagePubkeyMap = <ReplaceablePrivateDirectMessageEntity, String>{
+    for (final message in messages)
+      if (_getReceiverPubkey(message, currentUserMasterPubkey) case final receiverPubkey?)
+        message: receiverPubkey,
+  };
+  final receiverMasterPubkeys = messagePubkeyMap.values.toSet();
 
   if (receiverMasterPubkeys.isEmpty) {
     return [];
@@ -53,7 +50,7 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) as
   // Load all user preview data upfront and cache in a map
   final userPreviewDataFutures = receiverMasterPubkeys.map(
     (pubkey) => ref
-        .watch(
+        .read(
           userPreviewDataProvider(
             pubkey,
             expirationDuration: Duration(minutes: metadataExpiration),
@@ -64,28 +61,22 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) as
 
   final userPreviewDataEntries = await Future.wait(userPreviewDataFutures);
 
-  final userPreviewDataMap = {
-    for (final entry in userPreviewDataEntries)
-      if (entry.value != null) entry.key: entry.value!,
-  };
+  final userPreviewDataMap = Map.fromEntries(
+    userPreviewDataEntries
+        .where((entry) => entry.value != null)
+        .map((entry) => MapEntry(entry.key, entry.value!)),
+  );
 
   // Build results using cached user preview data
-  final result = <ChatSearchResultItem>[];
-
-  for (final message in messages) {
-    final receiverMasterPubkey = messagePubkeyMap[message];
-    if (receiverMasterPubkey == null) continue;
-
-    final userPreviewData = userPreviewDataMap[receiverMasterPubkey];
-    if (userPreviewData == null) continue;
-
-    result.add(
-      ChatSearchResultItem(
-        masterPubkey: userPreviewData.masterPubkey,
-        lastMessageContent: message.data.content,
-      ),
-    );
-  }
-
-  return result;
+  final result = messages.map((message) {
+    if (messagePubkeyMap[message] case final receiverMasterPubkey?) {
+      if (userPreviewDataMap[receiverMasterPubkey] case final userPreviewData?) {
+        return ChatSearchResultItem(
+          masterPubkey: userPreviewData.masterPubkey,
+          lastMessageContent: message.data.content,
+        );
+      }
+    }
+  });
+  return result.nonNulls.toList();
 }

@@ -6,8 +6,8 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
-import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
+import 'package:ion/app/features/search/providers/chat_search/chat_privacy_cache_expiration_duration_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -35,7 +35,7 @@ Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) a
       .toList()
     ..sortBy((message) => message.createdAt.toDateTime);
 
-  final receiverMasterPubkeys = lastConversationEntities.reversed
+  final receiverMasterPubkeys = lastConversationEntities
       .map(
         (message) => message.allPubkeys.firstWhereOrNull(
           (key) => key != currentUserMasterPubkey,
@@ -43,16 +43,15 @@ Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) a
       )
       .nonNulls
       .toSet();
-  final metadataExpiration =
-      ref.read(envProvider.notifier).get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES);
+  final expirationDuration = ref.watch(chatPrivacyCacheExpirationDurationProvider);
 
   final userPreviews = await Future.wait(
     [
       for (final pubkey in receiverMasterPubkeys)
-        ref.watch(
+        ref.read(
           userPreviewDataProvider(
             pubkey,
-            expirationDuration: Duration(minutes: metadataExpiration),
+            expirationDuration: expirationDuration,
           ).future,
         ),
     ],

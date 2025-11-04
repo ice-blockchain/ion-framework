@@ -2,6 +2,8 @@
 
 part of '../chat_database.m.dart';
 
+@TableIndex(name: 'idx_conversation_message_conversation_id', columns: {#conversationId})
+@TableIndex(name: 'idx_conversation_message_event_reference', columns: {#messageEventReference})
 class ConversationMessageTable extends Table {
   late final conversationId = text().references(ConversationTable, #id)();
   late final messageEventReference =

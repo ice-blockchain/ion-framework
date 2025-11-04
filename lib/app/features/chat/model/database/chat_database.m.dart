@@ -156,39 +156,13 @@ class ChatDatabase extends _$ChatDatabase {
           await m.createTable(schema.processedGiftWrapTable);
         },
         from4To5: (m, schema) async {
-          // Add indexes to optimize queries
-          await Future.wait([
-            // Index for conversation_message joins
-            m.database.customStatement(
-              'CREATE INDEX IF NOT EXISTS idx_conversation_message_conversation_id '
-              'ON conversation_message_table(conversation_id)',
-            ),
-            // Index for event_message joins
-            m.database.customStatement(
-              'CREATE INDEX IF NOT EXISTS idx_conversation_message_event_reference '
-              'ON conversation_message_table(message_event_reference)',
-            ),
-            // Index for event_message ordering and filtering
-            m.database.customStatement(
-              'CREATE INDEX IF NOT EXISTS idx_event_message_created_at '
-              'ON event_message_table(created_at)',
-            ),
-            // Index for event_message kind filtering
-            m.database.customStatement(
-              'CREATE INDEX IF NOT EXISTS idx_event_message_kind '
-              'ON event_message_table(kind)',
-            ),
-            // Composite index for kind + created_at (for search queries)
-            m.database.customStatement(
-              'CREATE INDEX IF NOT EXISTS idx_event_message_kind_created_at '
-              'ON event_message_table(kind, created_at DESC)',
-            ),
-            // Index for message_status deleted check
-            m.database.customStatement(
-              'CREATE INDEX IF NOT EXISTS idx_message_status_reference_status '
-              'ON message_status_table(message_event_reference, status)',
-            ),
-          ]);
+          // Indexes are defined using @TableIndex annotations in table definitions
+          // The composite index with DESC ordering needs to be created manually
+          // as @TableIndex doesn't support ordering specification
+          await m.database.customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_event_message_kind_created_at '
+            'ON event_message_table(kind, created_at DESC)',
+          );
         },
       ),
     );
