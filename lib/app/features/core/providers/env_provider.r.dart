@@ -41,6 +41,10 @@ enum EnvVariable {
   INDEXER_BASE_URL,
   NFT_IDENTITY_BASE_URL,
   SHARE_APP_NAME,
+  OKX_API_KEY,
+  OKX_SIGN_KEY,
+  OKX_API_URL,
+  OKX_PASSPHRASE
 }
 
 @Riverpod(keepAlive: true)
@@ -125,6 +129,10 @@ class Env extends _$Env {
       EnvVariable.NFT_IDENTITY_BASE_URL =>
         const String.fromEnvironment('NFT_IDENTITY_BASE_URL') as T,
       EnvVariable.SHARE_APP_NAME => const String.fromEnvironment('SHARE_APP_NAME') as T,
+      EnvVariable.OKX_API_KEY => const String.fromEnvironment('OKX_API_KEY') as T,
+      EnvVariable.OKX_SIGN_KEY => const String.fromEnvironment('OKX_SIGN_KEY') as T,
+      EnvVariable.OKX_API_URL => const String.fromEnvironment('OKX_API_URL') as T,
+      EnvVariable.OKX_PASSPHRASE => const String.fromEnvironment('OKX_PASSPHRASE') as T,
     };
   }
 }
