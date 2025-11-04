@@ -18,7 +18,7 @@ class RecentTopicPill extends StatelessWidget {
     return GestureDetector(
       onTap: onPress,
       child: Container(
-        padding: EdgeInsetsDirectional.symmetric(horizontal: 12.s, vertical: 8.s),
+        padding: EdgeInsetsDirectional.symmetric(horizontal: 12.s),
         decoration: BoxDecoration(
           color: context.theme.appColors.onPrimaryAccent,
           borderRadius: BorderRadius.circular(16.s),
@@ -27,6 +27,7 @@ class RecentTopicPill extends StatelessWidget {
             color: context.theme.appColors.onTertiaryFill,
           ),
         ),
+        alignment: Alignment.center,
         child: Text(
           categoryName,
           style: context.theme.appTextThemes.body,
