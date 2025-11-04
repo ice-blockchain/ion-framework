@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/scroll_view/ion_pull_to_refresh_loading_indicator.dart';
@@ -52,11 +53,22 @@ class PullToRefreshBuilder extends HookWidget {
     return CustomMaterialIndicator(
       onRefresh: _onRefresh,
       edgeOffset: refreshIndicatorEdgeOffset,
+      useMaterialContainer: false,
       indicatorBuilder: (context, controller) {
-        return Padding(
-          padding: EdgeInsets.all(8.0.s),
-          child: IONLoadingIndicatorThemed(
-            size: Size.square(20.0.s),
+        final indicatorValue = controller.value.clamp(0.0, 1.0);
+
+        /// Prevent showing indicator when user just tap on the screen, see [https://github.com/gonuit/flutter-custom-refresh-indicator/issues/62]
+        if (indicatorValue == 0.0 && controller.state == IndicatorState.dragging) {
+          return const SizedBox.shrink();
+        }
+
+        return _IonMaterialIndicator(
+          indicator: Padding(
+            padding: EdgeInsets.all(8.0.s),
+            child: IONLoadingIndicatorThemed(
+              size: Size.square(20.0.s),
+              value: controller.isDragging ? indicatorValue : null,
+            ),
           ),
         );
       },
@@ -69,4 +81,25 @@ class PullToRefreshBuilder extends HookWidget {
 
   // Add some minimal delay to prevent the refresh indicator from hiding too quickly
   Future<void> _onRefresh() => (onRefresh(), Future<void>.delayed(const Duration(seconds: 1))).wait;
+}
+
+/// Custom material indicator, just extracted copy from [CustomMaterialIndicator]
+class _IonMaterialIndicator extends StatelessWidget {
+  const _IonMaterialIndicator({required this.indicator});
+
+  final Widget indicator;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 41,
+      height: 41,
+      child: Material(
+        type: MaterialType.circle,
+        color: Theme.of(context).canvasColor,
+        elevation: 2,
+        child: indicator,
+      ),
+    );
+  }
 }
