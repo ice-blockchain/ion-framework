@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:meta/meta.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
@@ -41,14 +40,10 @@ class NsfwDetector {
     final options = InterpreterOptions()
       ..threads = threads
       ..useNnApiForAndroid = false;
-    // Enable XNNPACK for better CPU performance when available
-    try {
+    if (Platform.isIOS) {
       options.addDelegate(
         XNNPackDelegate(options: XNNPackDelegateOptions(numThreads: threads)),
       );
-    } catch (e) {
-      Logger.warning("XNNPACK isn't available on the platform");
-      // Safe fallback: continue without the delegate
     }
     final interpreter = await Interpreter.fromAsset('assets/ml/nsfw_int8.tflite', options: options);
     return NsfwDetector._(interpreter, blockThreshold: blockThreshold);
