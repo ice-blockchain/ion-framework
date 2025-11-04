@@ -62,6 +62,7 @@ class TransactionDetailsPage extends ConsumerWidget {
           ),
           Flexible(
             child: transactionAsync.when(
+              skipLoadingOnReload: true,
               data: (transactionData) => transactionData == null
                   ? const Center(child: IONLoadingIndicator())
                   : _TransactionDetailsContent(
