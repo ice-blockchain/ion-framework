@@ -13,12 +13,16 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'media_nsfw_checker.r.g.dart';
 
 @Riverpod(keepAlive: true)
-MediaNsfwChecker mediaNsfwChecker(Ref ref) => MediaNsfwChecker(ref);
+Future<MediaNsfwChecker> mediaNsfwChecker(Ref ref) async => MediaNsfwChecker(
+      nsfwValidationService: await ref.read(nsfwValidationServiceProvider.future),
+    );
 
 class MediaNsfwChecker {
-  MediaNsfwChecker(this.ref);
+  MediaNsfwChecker({
+    required this.nsfwValidationService,
+  });
 
-  final Ref ref;
+  final NsfwValidationService nsfwValidationService;
 
   final Map<String, MediaCheckData> _mediaChecks = {};
 
@@ -53,8 +57,7 @@ class MediaNsfwChecker {
 
     try {
       // Perform batch check
-      final nsfwService = await ref.read(nsfwValidationServiceProvider.future);
-      final batchResults = await nsfwService.hasNsfwInMediaFiles(newMedia);
+      final batchResults = await nsfwValidationService.hasNsfwInMediaFiles(newMedia);
 
       // Complete completers
       for (final entry in batchResults.entries) {

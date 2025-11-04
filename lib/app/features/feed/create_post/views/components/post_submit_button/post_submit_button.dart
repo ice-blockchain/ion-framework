@@ -110,7 +110,9 @@ class PostSubmitButton extends HookConsumerWidget {
 
           if (!context.mounted) return;
 
-          final nsfwCheckResult = await ref.read(mediaNsfwCheckerProvider).hasNsfwMedia();
+          final nsfwCheckResult = await ref
+              .read(mediaNsfwCheckerProvider.future)
+              .then((mediaChecker) => mediaChecker.hasNsfwMedia());
 
           if (!context.mounted) return;
           loading.value = false;

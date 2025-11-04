@@ -17,7 +17,7 @@ void useNsfwValidation({
   useEffect(
     () {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        final mediaChecker = ref.read(mediaNsfwCheckerProvider);
+        final mediaChecker = await ref.read(mediaNsfwCheckerProvider.future);
 
         if (mediaFiles.isNotEmpty) {
           final convertedMediaFiles = await ref
@@ -41,7 +41,7 @@ void useNsfwValidation({
   useEffect(
     () {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        final mediaChecker = ref.read(mediaNsfwCheckerProvider);
+        final mediaChecker = await ref.read(mediaNsfwCheckerProvider.future);
 
         if (videoFile != null) {
           await mediaChecker.checkMediaForNsfw([videoFile]);
