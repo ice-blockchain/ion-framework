@@ -34,6 +34,7 @@ Dio okxDio(Ref ref) {
       apiKey: env.get<String>(EnvVariable.OKX_API_KEY),
       signKey: env.get<String>(EnvVariable.OKX_SIGN_KEY),
       passphrase: env.get<String>(EnvVariable.OKX_PASSPHRASE),
+      baseUrl: env.get<String>(EnvVariable.OKX_API_URL),
     ),
   );
 
@@ -48,11 +49,13 @@ class _OkxHeaderInterceptor implements Interceptor {
     required this.apiKey,
     required this.signKey,
     required this.passphrase,
+    required this.baseUrl,
   });
 
   final String apiKey;
   final String signKey;
   final String passphrase;
+  final String baseUrl;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -72,11 +75,14 @@ class _OkxHeaderInterceptor implements Interceptor {
     // Prepare request path (include query string if present)
     // Dio stores either a relative path or a full URL in `options.path`.
     // We normalize to just the path component, preserving the query string.
-    final requestUri = () {
-      final raw = options.path;
-      return raw.startsWith('http') ? Uri.parse(raw) : Uri.parse(options.uri.toString());
-    }();
-    final requestPath = requestUri.hasQuery ? '${requestUri.path}?${requestUri.query}' : requestUri.path;
+
+    // https://google.com
+    final pathToReplace = _getBaseUrl(baseUrl);
+    final requestPath = options.path.replaceFirst(pathToReplace, '/');
+    final requestPathWithQueryParams = _normalizeRequestPath(
+      requestPath,
+      options.queryParameters,
+    );
 
     // Prepare body (empty for GET or when no payload)
     final body = () {
@@ -89,7 +95,7 @@ class _OkxHeaderInterceptor implements Interceptor {
     options.headers['OK-ACCESS-SIGN'] = _generateSign(
       timestamp: timestamp,
       method: method,
-      path: requestPath,
+      path: requestPathWithQueryParams,
       body: body,
       secretKey: signKey,
     );
@@ -126,6 +132,24 @@ class _OkxHeaderInterceptor implements Interceptor {
       nonce: const <int>[],
     );
     return base64Encode(mac.bytes);
+  }
+
+  String _getBaseUrl(String url) {
+    final parts = url.split('/');
+    return '${parts[0]}//${parts[2]}/';
+  }
+
+  String _normalizeRequestPath(String path, Map<String, dynamic> queryParameters) {
+
+    if (queryParameters.isEmpty) {
+      return path;
+    }
+
+    final queryString = queryParameters.entries
+        .map((entry) => '${entry.key}=${entry.value}')
+        .join('&');
+        
+    return '$path?$queryString';
   }
 }
 
