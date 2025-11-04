@@ -37,13 +37,14 @@ class NsfwDetector {
   static Future<NsfwDetector> create({
     double blockThreshold = 0.50,
   }) async {
+    final threads = (Platform.numberOfProcessors / 2).ceil().clamp(1, 4);
     final options = InterpreterOptions()
-      ..threads = Platform.numberOfProcessors
+      ..threads = threads
       ..useNnApiForAndroid = false;
     // Enable XNNPACK for better CPU performance when available
     try {
       options.addDelegate(
-        XNNPackDelegate(options: XNNPackDelegateOptions(numThreads: Platform.numberOfProcessors)),
+        XNNPackDelegate(options: XNNPackDelegateOptions(numThreads: threads)),
       );
     } catch (e) {
       Logger.warning("XNNPACK isn't available on the platform");
