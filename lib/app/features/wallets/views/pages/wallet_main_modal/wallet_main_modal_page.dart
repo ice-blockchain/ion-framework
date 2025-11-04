@@ -81,7 +81,6 @@ class WalletMainModalPage extends HookConsumerWidget {
 
     final skipSelectCoinRoute = type == WalletMainModalListItem.send &&
         ref.read(sendAssetFormControllerProvider).assetData is CoinAssetToSendData;
-    ref.invalidate(sendAssetFormControllerProvider);
     context.pushReplacement(
       _getSubRouteLocation(type, skipSelectCoinRoute: skipSelectCoinRoute),
     );
