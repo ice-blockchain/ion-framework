@@ -4,7 +4,7 @@ printf "\e[33;1m%s\e[0m\n" 'Pre-Push'
 
 # Format Code
 printf "\e[33;1m%s\e[0m\n" '=== Format Code ==='
-scripts/format_code.sh
+melos run 4mat
 if [ $? -ne 0 ]; then
   printf "\e[31;1m%s\e[0m\n" '=== Format Code changes ==='
   exit 1

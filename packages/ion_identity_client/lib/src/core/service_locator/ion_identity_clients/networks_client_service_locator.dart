@@ -13,8 +13,7 @@ class NetworksClientServiceLocator {
 
   NetworksClientServiceLocator._internal();
 
-  static final NetworksClientServiceLocator _instance =
-  NetworksClientServiceLocator._internal();
+  static final NetworksClientServiceLocator _instance = NetworksClientServiceLocator._internal();
 
   IONIdentityNetworks networks({
     required String username,

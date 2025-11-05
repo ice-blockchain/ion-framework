@@ -36,5 +36,5 @@ scripts:
     run: |
       melos run generate_code
       melos run generate_locales
-  format:
+  4mat:
     run: ./scripts/format_code.sh
