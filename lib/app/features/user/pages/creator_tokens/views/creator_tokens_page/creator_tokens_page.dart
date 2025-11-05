@@ -21,6 +21,7 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/hooks/use_watch_once.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -81,8 +82,11 @@ class CreatorTokensPage extends HookConsumerWidget {
     );
 
     // Get avatar URL from selected pubkey's metadata
-    final selectedUserMetadata = ref.watch(userMetadataProvider(selectedPubkey.value));
-    final avatarUrl = selectedUserMetadata.valueOrNull?.data.avatarUrl;
+    final avatarUrl = useWatchOnce(
+      ref,
+      userPreviewDataProvider(selectedPubkey.value)
+          .select((value) => value.valueOrNull?.data.avatarUrl),
+    );
     final avatarColors = useAvatarColors(avatarUrl);
 
     final backgroundColor = context.theme.appColors.secondaryBackground;

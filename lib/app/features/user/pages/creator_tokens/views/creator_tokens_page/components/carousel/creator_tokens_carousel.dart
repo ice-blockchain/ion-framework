@@ -11,6 +11,7 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_back
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/user_name_tile/user_name_tile.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/hooks/use_watch_once.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -55,8 +56,10 @@ class _CarouselCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(pubkey));
-    final avatarUrl = userMetadata.valueOrNull?.data.avatarUrl;
+    final avatarUrl = useWatchOnce(
+      ref,
+      userPreviewDataProvider(pubkey).select((value) => value.valueOrNull?.data.avatarUrl),
+    );
     final colors = useAvatarColors(avatarUrl);
 
     return Container(
