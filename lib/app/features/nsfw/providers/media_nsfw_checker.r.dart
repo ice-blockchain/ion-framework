@@ -37,7 +37,8 @@ class MediaNsfwChecker {
 
   Future<void> checkMediaForNsfw(List<MediaFile> mediaFiles) async {
     // Remove media checks which are not in the new actual list
-    _mediaChecks.removeWhere((path, _) => !mediaFiles.any((file) => file.path == path));
+    final incomingPaths = mediaFiles.map((f) => f.path).toSet();
+    _mediaChecks.removeWhere((path, _) => !incomingPaths.contains(path));
 
     // Add new media files, which was not in the state, for validation purposes
     final newMedia = <MediaFile>[];
