@@ -45,6 +45,7 @@ class TabEntitiesList extends HookConsumerWidget {
             .toList(),
         displayParent: true,
         showNotInterested: false,
+        plainInlineStyles: true,
       ),
     );
   }
@@ -112,6 +113,7 @@ class TabEntitiesList extends HookConsumerWidget {
                     pubkey: pubkey,
                     tabEntityType: type,
                   ).push<void>(context),
+                  plainInlineStyles: true,
                 ),
       ],
       builder: (context, slivers) => PullToRefreshBuilder(
