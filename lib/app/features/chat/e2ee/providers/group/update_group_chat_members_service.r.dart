@@ -15,23 +15,34 @@ part 'update_group_chat_members_service.r.g.dart';
 
 @riverpod
 UpdateGroupChatMembersService updateGroupChatMembersService(Ref ref) {
-  return UpdateGroupChatMembersService(ref);
+  return UpdateGroupChatMembersService(
+    mediaEncryptionService: ref.read(mediaEncryptionServiceProvider),
+    sendE2eeGroupChatMessageService: ref.read(sendE2eeGroupChatMessageServiceProvider),
+    getGroupMetadata: (String groupId) async =>
+        await ref.read(encryptedGroupMetadataProvider(groupId).future),
+  );
 }
 
 class UpdateGroupChatMembersService {
-  UpdateGroupChatMembersService(this.ref);
+  UpdateGroupChatMembersService({
+    required this.mediaEncryptionService,
+    required this.sendE2eeGroupChatMessageService,
+    required this.getGroupMetadata,
+  });
 
-  final Ref ref;
+  final MediaEncryptionService mediaEncryptionService;
+  final SendE2eeGroupChatMessageService sendE2eeGroupChatMessageService;
+  final Future<GroupMetadata?> Function(String groupId) getGroupMetadata;
 
   Future<MediaFile?> _prepareGroupPicture(GroupMetadata groupMetadata) async {
     if (groupMetadata.avatar.media == null) {
       return null;
     }
 
-    final decryptedFile = await ref.read(mediaEncryptionServiceProvider).getEncryptedMedia(
-          groupMetadata.avatar.media!,
-          authorPubkey: groupMetadata.avatar.masterPubkey,
-        );
+    final decryptedFile = await mediaEncryptionService.getEncryptedMedia(
+      groupMetadata.avatar.media!,
+      authorPubkey: groupMetadata.avatar.masterPubkey,
+    );
 
     return MediaFile(
       path: decryptedFile.path,
@@ -44,7 +55,7 @@ class UpdateGroupChatMembersService {
     required String groupId,
     required List<String> participantMasterPubkeys,
   }) async {
-    final groupMetadata = ref.read(encryptedGroupMetadataProvider(groupId)).valueOrNull;
+    final groupMetadata = await getGroupMetadata(groupId);
 
     if (groupMetadata == null) {
       return;
@@ -70,12 +81,12 @@ class UpdateGroupChatMembersService {
     final groupPicture = await _prepareGroupPicture(groupMetadata);
 
     unawaited(
-      ref.read(sendE2eeGroupChatMessageServiceProvider).sendMetadataMessage(
-            members: newMembers,
-            groupPicture: groupPicture,
-            groupId: groupId,
-            groupName: groupMetadata.name,
-          ),
+      sendE2eeGroupChatMessageService.sendMetadataMessage(
+        members: newMembers,
+        groupPicture: groupPicture,
+        groupId: groupId,
+        groupName: groupMetadata.name,
+      ),
     );
   }
 
@@ -83,7 +94,7 @@ class UpdateGroupChatMembersService {
     required String groupId,
     required List<String> participantMasterPubkeys,
   }) async {
-    final groupMetadata = ref.read(encryptedGroupMetadataProvider(groupId)).valueOrNull;
+    final groupMetadata = await getGroupMetadata(groupId);
 
     if (groupMetadata == null) {
       return;
@@ -100,12 +111,12 @@ class UpdateGroupChatMembersService {
 
     // Send new metadata message with updated members (don't wait)
     unawaited(
-      ref.read(sendE2eeGroupChatMessageServiceProvider).sendMetadataMessage(
-            members: updatedMembers,
-            groupPicture: groupPicture,
-            groupId: groupId,
-            groupName: groupMetadata.name,
-          ),
+      sendE2eeGroupChatMessageService.sendMetadataMessage(
+        members: updatedMembers,
+        groupPicture: groupPicture,
+        groupId: groupId,
+        groupName: groupMetadata.name,
+      ),
     );
   }
 }
