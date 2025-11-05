@@ -3,6 +3,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/notifications/providers/unread_notifications_count_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_button/navigation_button.dart';
@@ -19,7 +20,14 @@ class FeedNotificationsButton extends ConsumerWidget {
       clipBehavior: Clip.none,
       children: [
         NavigationButton(
-          onPressed: () => NotificationsHistoryRoute().push<void>(context),
+          onPressed: () {
+            final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
+            if (currentUserMasterPubkey == null) {
+              return;
+            }
+
+            CreatorTokensRoute(masterPubkey: currentUserMasterPubkey).push<void>(context);
+          },
           icon: Assets.svg.iconHomeNotification.icon(
             color: context.theme.appColors.primaryText,
           ),
