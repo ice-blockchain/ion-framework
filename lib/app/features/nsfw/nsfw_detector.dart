@@ -34,6 +34,7 @@ class NsfwDetector {
   static const _size = 224;
 
   static Future<NsfwDetector> create({
+    String? modelFilePath,
     double blockThreshold = 0.50,
   }) async {
     final threads = (Platform.numberOfProcessors / 2).ceil().clamp(1, 4);
@@ -45,7 +46,14 @@ class NsfwDetector {
         XNNPackDelegate(options: XNNPackDelegateOptions(numThreads: threads)),
       );
     }
-    final interpreter = await Interpreter.fromAsset('assets/ml/nsfw_int8.tflite', options: options);
+
+    final Interpreter interpreter;
+    if (modelFilePath != null) {
+      interpreter = Interpreter.fromFile(File(modelFilePath), options: options);
+    } else {
+      interpreter = await Interpreter.fromAsset('assets/ml/nsfw_int8.tflite', options: options);
+    }
+
     return NsfwDetector(interpreter, blockThreshold: blockThreshold);
   }
 

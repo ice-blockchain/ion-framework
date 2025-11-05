@@ -7,7 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector_factory.r.dart';
 import 'package:ion/app/features/nsfw/services/nsfw_isolate_functions.dart';
-import 'package:ion/app/features/nsfw/services/nsfw_model_manager.dart';
+import 'package:ion/app/features/nsfw/services/nsfw_model_manager.r.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -21,6 +21,7 @@ Future<NsfwValidationService> nsfwValidationService(Ref ref) async => NsfwValida
       detectorFactory: await ref.read(nsfwDetectorFactoryProvider.future),
       videoCompressor: ref.read(videoCompressorProvider),
       videoInfoService: ref.read(videoInfoServiceProvider),
+      nsfwModelManager: ref.read(nsfwModelManagerProvider),
     );
 
 class NsfwValidationService {
@@ -28,11 +29,13 @@ class NsfwValidationService {
     required this.detectorFactory,
     required this.videoCompressor,
     required this.videoInfoService,
+    required this.nsfwModelManager,
   });
 
   final NsfwDetectorFactory detectorFactory;
   final VideoCompressor videoCompressor;
   final VideoInfoService videoInfoService;
+  final NsfwModelManager nsfwModelManager;
 
   /// Combined validation: images + videos in single isolate call
   /// Uses one-shot isolate (spawns new isolate per call)
@@ -84,7 +87,7 @@ class NsfwValidationService {
     }
 
     // 4. Single isolate call with all media (one-shot isolate)
-    final modelPath = await NsfwModelManager.getModelPath();
+    final modelPath = await nsfwModelManager.getModelPath();
     Map<String, NsfwResult> results;
     try {
       results = await compute(
@@ -155,8 +158,7 @@ class NsfwValidationService {
       return {};
     }
 
-    // Get model path for one-shot isolate
-    final modelPath = await NsfwModelManager.getModelPath();
+    final modelPath = await nsfwModelManager.getModelPath();
 
     Map<String, NsfwResult> results;
     try {
