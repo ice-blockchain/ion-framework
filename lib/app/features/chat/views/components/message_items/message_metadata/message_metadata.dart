@@ -5,7 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/message_status_provider.r.dart';
@@ -19,6 +19,7 @@ class MessageMetadata extends HookConsumerWidget {
     required this.eventMessage,
     this.displayTime = true,
     this.displayEdited = true,
+    this.updateCachedObjects = true,
     super.key,
     this.startPadding,
     this.deliveryStatusIconSize,
@@ -26,6 +27,7 @@ class MessageMetadata extends HookConsumerWidget {
 
   final bool displayTime;
   final bool displayEdited;
+  final bool updateCachedObjects;
   final double? startPadding;
   final double? deliveryStatusIconSize;
   final EventMessage eventMessage;
@@ -33,7 +35,7 @@ class MessageMetadata extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entity = useMemoized(
-      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
+      () => EncryptedDirectMessageEntity.fromEventMessage(eventMessage),
       [eventMessage],
     );
 
@@ -51,7 +53,7 @@ class MessageMetadata extends HookConsumerWidget {
           messageStatusProvider(eventReference).select((value) {
             final status = value.valueOrNull;
 
-            if (status != null) {
+            if (status != null && updateCachedObjects) {
               ListCachedObjects.updateObject<MessageStatusWithKey>(
                 context,
                 (key: eventReference.toString(), status: status),
@@ -94,7 +96,7 @@ class MessageMetadata extends HookConsumerWidget {
                     : context.theme.appColors.quaternaryText,
               ),
             ),
-          if (isMe)
+          if (isMe && entity.data.groupSubject == null)
             Padding(
               padding: EdgeInsetsDirectional.only(start: 2.0.s),
               child: deliveryStatus == MessageDeliveryStatus.created

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/shared_post_message_provider.r.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/post_message/shared_post_message.dart'
@@ -30,7 +30,7 @@ class PostMessage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sharedEntity = useMemoized(
-      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
+      () => EncryptedDirectMessageEntity.fromEventMessage(eventMessage),
       [eventMessage],
     );
 

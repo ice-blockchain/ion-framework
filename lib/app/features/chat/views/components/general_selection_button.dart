@@ -18,7 +18,7 @@ class GeneralSelectionButton extends StatelessWidget {
   final String iconAsset;
   final String title;
   final String? selectedValue;
-  final VoidCallback onPress;
+  final VoidCallback? onPress;
 
   @override
   Widget build(BuildContext context) {

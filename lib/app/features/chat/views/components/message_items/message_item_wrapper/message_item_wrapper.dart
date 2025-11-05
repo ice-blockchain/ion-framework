@@ -8,7 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/chat_medias_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_reaction_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/shared_post_message_provider.r.dart';
@@ -57,7 +57,7 @@ class MessageItemWrapper extends HookConsumerWidget {
     final messageItemKey = useMemoized(GlobalKey.new);
 
     final entity = useMemoized(
-      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(messageItem.eventMessage),
+      () => EncryptedDirectMessageEntity.fromEventMessage(messageItem.eventMessage),
       [messageItem.eventMessage],
     );
 
@@ -90,7 +90,7 @@ class MessageItemWrapper extends HookConsumerWidget {
 
           if (emoji != null) {
             final messageEventReference =
-                ReplaceablePrivateDirectMessageEntity.fromEventMessage(messageItem.eventMessage)
+                EncryptedDirectMessageEntity.fromEventMessage(messageItem.eventMessage)
                     .toEventReference();
             final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
             final isExist = await ref.read(conversationMessageReactionDaoProvider).isReactionExist(
@@ -182,7 +182,7 @@ class MessageItemWrapper extends HookConsumerWidget {
     required WidgetRef ref,
     required BuildContext context,
     required ChatMessageInfoItem messageItem,
-    required ReplaceablePrivateDirectMessageEntity entity,
+    required EncryptedDirectMessageEntity entity,
   }) {
     final eventReference = entity.toEventReference();
     final provider = messageItem is PostItem
@@ -218,7 +218,7 @@ ChatMessageInfoItem? getRepliedMessageListItem({
   }
 
   final repliedEntity = useMemoized(
-    () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(repliedEventMessage),
+    () => EncryptedDirectMessageEntity.fromEventMessage(repliedEventMessage),
     [repliedEventMessage],
   );
 
@@ -246,7 +246,7 @@ ChatMessageInfoItem? getRepliedMessageListItem({
     );
   } else if (repliedEntity.data.messageType == MessageType.sharedPost) {
     final sharedEntity = useMemoized(
-      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(repliedEventMessage),
+      () => EncryptedDirectMessageEntity.fromEventMessage(repliedEventMessage),
       [repliedEventMessage],
     );
 

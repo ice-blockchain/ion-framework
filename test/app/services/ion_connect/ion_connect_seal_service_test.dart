@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/services/ion_connect/ed25519_key_store.dart';
 import 'package:ion/app/services/ion_connect/encrypted_message_service.r.dart';
@@ -29,8 +29,8 @@ void main() {
 
   group('IonConnectSealService', () {
     test('creates seal from rumor on sender side', () async {
-      final rumor = await ReplaceablePrivateDirectMessageData.fromRawContent('test')
-          .toEventMessage(senderSigner);
+      final rumor =
+          await EncryptedDirectMessageData.fromRawContent('test').toEventMessage(senderSigner);
 
       final seal = await sealService.createSeal(
         rumor,
@@ -46,8 +46,8 @@ void main() {
     });
 
     test('decodes seal back to original event on senders side', () async {
-      final rumor = await ReplaceablePrivateDirectMessageData.fromRawContent('test')
-          .toEventMessage(senderSigner);
+      final rumor =
+          await EncryptedDirectMessageData.fromRawContent('test').toEventMessage(senderSigner);
 
       final seal = await sealService.createSeal(
         rumor,
@@ -61,14 +61,14 @@ void main() {
         senderSigner.privateKey,
       );
 
-      expect(decodedSeal.kind, equals(ReplaceablePrivateDirectMessageEntity.kind));
+      expect(decodedSeal.kind, equals(EncryptedDirectMessageEntity.kind));
       expect(decodedSeal.content, equals(rumor.content));
       expect(decodedSeal.tags, equals(rumor.tags));
     });
 
     test('decodes seal back to original event on receivers side', () async {
-      final rumor = await ReplaceablePrivateDirectMessageData.fromRawContent('test')
-          .toEventMessage(senderSigner);
+      final rumor =
+          await EncryptedDirectMessageData.fromRawContent('test').toEventMessage(senderSigner);
 
       final seal = await sealService.createSeal(
         rumor,
@@ -82,7 +82,7 @@ void main() {
         receiverSigner.privateKey,
       );
 
-      expect(decodedSeal.kind, equals(ReplaceablePrivateDirectMessageEntity.kind));
+      expect(decodedSeal.kind, equals(EncryptedDirectMessageEntity.kind));
       expect(decodedSeal.content, equals(rumor.content));
       expect(decodedSeal.tags, equals(rumor.tags));
     });

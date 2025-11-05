@@ -5,7 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/optimistic_ui/message_reactions_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/emoji_message/emoji_message.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
@@ -27,7 +27,7 @@ class MessageReactions extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentMasterPubkey = ref.watch(currentPubkeySelectorProvider);
     final eventReference = useMemoized(
-      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage).toEventReference(),
+      () => EncryptedDirectMessageEntity.fromEventMessage(eventMessage).toEventReference(),
       [eventMessage],
     );
 

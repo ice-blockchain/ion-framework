@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_message_status_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
@@ -43,13 +43,13 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
     required IonConnectGiftWrapEntity entity,
   }) {
     return entity.data.kinds.any(
-      (kinds) => kinds.contains(ReplaceablePrivateDirectMessageEntity.kind.toString()),
+      (kinds) => kinds.contains(EncryptedDirectMessageEntity.kind.toString()),
     );
   }
 
   @override
   Future<EventReference> handle(EventMessage rumor) async {
-    final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
+    final entity = EncryptedDirectMessageEntity.fromEventMessage(rumor);
     final eventReference = entity.toEventReference();
     // Check if the conversation was deleted earlier (needed only for recovery)
     if (await conversationDao.conversationIsNotDeleted(
@@ -70,7 +70,7 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
   }
 
   Future<void> _addMediaToDatabase(EventMessage rumor) async {
-    final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
+    final entity = EncryptedDirectMessageEntity.fromEventMessage(rumor);
     if (entity.data.media.isNotEmpty) {
       for (final media in entity.data.media.values) {
         await mediaEncryptionService.getEncryptedMedia(

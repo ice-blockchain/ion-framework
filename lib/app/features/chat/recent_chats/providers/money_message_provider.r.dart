@@ -7,7 +7,7 @@ import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/extensions/object.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/wallets/data/repository/request_assets_repository.r.dart';
@@ -49,7 +49,7 @@ Future<FundsRequestEntity?> fundsRequestEntityForEventMessage(
   // Try to extract 1755 (FundsRequestEntity) from "payment-requested" tag
   final requestEvent = _eventFromTag(
     eventMessage,
-    ReplaceablePrivateDirectMessageData.paymentRequestedTagName,
+    EncryptedDirectMessageData.paymentRequestedTagName,
   );
   if (requestEvent != null) {
     return FundsRequestEntity.fromEventMessage(requestEvent);
@@ -145,7 +145,7 @@ Future<MoneyDisplayData?> transactionDisplayData(
   // Try to extract 1756 (WalletAssetEntity) from "payment-sent" tag
   final walletAssetEvent = _eventFromTag(
     eventMessage,
-    ReplaceablePrivateDirectMessageData.paymentSentTagName,
+    EncryptedDirectMessageData.paymentSentTagName,
   );
   if (walletAssetEvent != null) {
     final walletAssetEntity = WalletAssetEntity.fromEventMessage(walletAssetEvent);
@@ -210,7 +210,7 @@ EventMessage? _eventFromTag(EventMessage source, String tagName) {
 String? _txHashFromPaymentSentTag(EventMessage eventMessage) {
   final walletAssetEvent = _eventFromTag(
     eventMessage,
-    ReplaceablePrivateDirectMessageData.paymentSentTagName,
+    EncryptedDirectMessageData.paymentSentTagName,
   );
 
   if (walletAssetEvent == null) {

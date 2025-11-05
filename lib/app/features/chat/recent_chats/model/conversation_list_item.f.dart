@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 
@@ -22,7 +23,7 @@ extension ConversationListItemX on ConversationListItem {
   String? receiverMasterPubkey(String? currentUserMasterPubkey) {
     if (latestMessage == null) return null;
 
-    return latestMessage!.participantsMasterPubkeys.singleWhere(
+    return latestMessage!.participantsMasterPubkeys.singleWhereOrNull(
       (masterPubkey) => masterPubkey != currentUserMasterPubkey,
     );
   }

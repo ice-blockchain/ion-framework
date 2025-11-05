@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/core/permissions/data/models/permissions_types.dart';
 import 'package:ion/app/features/core/permissions/views/components/permission_aware_widget.dart';
 import 'package:ion/app/features/core/permissions/views/components/permission_dialogs/permission_request_sheet.dart';
@@ -27,8 +27,7 @@ class ChatInputBarCameraButton extends ConsumerWidget {
         final mediaFiles = await MediaPickerRoute(
           maxSelection: 10,
           isNeedFilterVideoByFormat: false,
-          maxVideoDurationInSeconds:
-              ReplaceablePrivateDirectMessageData.videoDurationLimitInSeconds,
+          maxVideoDurationInSeconds: EncryptedDirectMessageData.videoDurationLimitInSeconds,
         ).push<List<MediaFile>>(context);
         if (mediaFiles != null && mediaFiles.isNotEmpty && context.mounted) {
           final convertedMediaFiles = await ref

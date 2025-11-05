@@ -4,7 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
@@ -26,7 +26,7 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) as
 
   final searchResults = await eventMessageDao.search(caseInsensitiveQuery);
 
-  final entities = searchResults.map(ReplaceablePrivateDirectMessageEntity.fromEventMessage);
+  final entities = searchResults.map(EncryptedDirectMessageEntity.fromEventMessage);
 
   final result = <ChatSearchResultItem>[];
 

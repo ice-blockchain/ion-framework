@@ -2,7 +2,7 @@
 
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_message_reaction_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
@@ -186,7 +186,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
         '#k': [
           // direct messages
           if (categories.contains(PushNotificationCategory.directMessages))
-            [ReplaceablePrivateDirectMessageEntity.kind.toString(), ''],
+            [EncryptedDirectMessageEntity.kind.toString(), ''],
           if (categories.contains(PushNotificationCategory.directMessages))
             // Using doubled kind 7 filter to take only the reactions (skipping statuses).
             [
@@ -197,13 +197,13 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
           // money request message
           if (categories.contains(PushNotificationCategory.messagePaymentRequest))
             [
-              ReplaceablePrivateDirectMessageEntity.kind.toString(),
+              EncryptedDirectMessageEntity.kind.toString(),
               FundsRequestEntity.kind.toString(),
             ],
           // money sent message
           if (categories.contains(PushNotificationCategory.messagePaymentReceived))
             [
-              ReplaceablePrivateDirectMessageEntity.kind.toString(),
+              EncryptedDirectMessageEntity.kind.toString(),
               WalletAssetEntity.kind.toString(),
             ],
         ],

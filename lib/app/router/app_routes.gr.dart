@@ -33,8 +33,8 @@ import 'package:ion/app/features/chat/views/pages/chat_main_page/chat_main_page.
 import 'package:ion/app/features/chat/views/pages/chat_media_page/chat_media_page.dart';
 import 'package:ion/app/features/chat/views/pages/conversation_page/conversation_page.dart';
 import 'package:ion/app/features/chat/views/pages/new_chat_modal/new_chat_modal.dart';
-import 'package:ion/app/features/chat/views/pages/new_group_modal/pages/add_group_participants_modal.dart';
 import 'package:ion/app/features/chat/views/pages/new_group_modal/pages/create_group_modal.dart';
+import 'package:ion/app/features/chat/views/pages/new_group_modal/pages/init_group_participants_modal.dart';
 import 'package:ion/app/features/chat/views/pages/send_profile_modal/send_profile_modal.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/share_via_message_modal.dart';
 import 'package:ion/app/features/core/views/pages/app_test_page/app_test_page.dart';

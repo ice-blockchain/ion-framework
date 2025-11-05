@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/conversation_to_delete.f.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_message_reaction_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
@@ -168,7 +168,7 @@ Future<void> _deleteMessages({
   final deleteRequest = DeletionRequest(
     events: messageEvents
         .map((event) {
-          final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(event);
+          final entity = EncryptedDirectMessageEntity.fromEventMessage(event);
 
           if (entity.data.quotedEvent != null) {
             return [

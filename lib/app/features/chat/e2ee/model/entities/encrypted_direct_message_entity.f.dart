@@ -28,30 +28,31 @@ import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_protocol_identifier_type.dart';
+import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:ion/app/utils/string.dart';
 
-part 'private_direct_message_data.f.freezed.dart';
+part 'encrypted_direct_message_entity.f.freezed.dart';
 
 @Freezed(equal: false)
-class ReplaceablePrivateDirectMessageEntity
-    with IonConnectEntity, ReplaceableEntity, _$ReplaceablePrivateDirectMessageEntity {
-  const factory ReplaceablePrivateDirectMessageEntity({
+class EncryptedDirectMessageEntity
+    with IonConnectEntity, ReplaceableEntity, _$EncryptedDirectMessageEntity {
+  const factory EncryptedDirectMessageEntity({
     required String id,
     required String pubkey,
     required String masterPubkey,
     required int createdAt,
-    required ReplaceablePrivateDirectMessageData data,
-  }) = _ReplaceablePrivateDirectMessageEntity;
+    required EncryptedDirectMessageData data,
+  }) = _EncryptedDirectMessageEntity;
 
-  const ReplaceablePrivateDirectMessageEntity._();
+  const EncryptedDirectMessageEntity._();
 
-  factory ReplaceablePrivateDirectMessageEntity.fromEventMessage(EventMessage eventMessage) {
-    return ReplaceablePrivateDirectMessageEntity(
+  factory EncryptedDirectMessageEntity.fromEventMessage(EventMessage eventMessage) {
+    return EncryptedDirectMessageEntity(
       id: eventMessage.id,
       pubkey: eventMessage.pubkey,
       createdAt: eventMessage.createdAt,
       masterPubkey: eventMessage.masterPubkey,
-      data: ReplaceablePrivateDirectMessageData.fromEventMessage(eventMessage),
+      data: EncryptedDirectMessageData.fromEventMessage(eventMessage),
     );
   }
 
@@ -62,13 +63,13 @@ class ReplaceablePrivateDirectMessageEntity
 }
 
 @freezed
-class ReplaceablePrivateDirectMessageData
+class EncryptedDirectMessageData
     with
         EntityDataWithEncryptedMediaContent,
         EntityDataWithRelatedEvents<RelatedReplaceableEvent>,
-        _$ReplaceablePrivateDirectMessageData
+        _$EncryptedDirectMessageData
     implements EventSerializable, ReplaceableEntityData {
-  const factory ReplaceablePrivateDirectMessageData({
+  const factory EncryptedDirectMessageData({
     required String content,
     required String messageId,
     required String masterPubkey,
@@ -85,16 +86,28 @@ class ReplaceablePrivateDirectMessageData
     String? quotedEventKind,
     String? paymentRequested,
     String? paymentSent,
-  }) = _ReplaceablePrivateDirectMessageData;
+  }) = _EncryptedDirectMessageData;
 
-  factory ReplaceablePrivateDirectMessageData.fromEventMessage(EventMessage eventMessage) {
+  factory EncryptedDirectMessageData.fromRawContent(String content) {
+    return EncryptedDirectMessageData(
+      media: {},
+      content: content,
+      masterPubkey: '',
+      messageId: generateUuid(),
+      conversationId: generateUuid(),
+      publishedAt: EntityPublishedAt(value: DateTime.now().microsecondsSinceEpoch),
+      editingEndedAt: EntityEditingEndedAt(value: DateTime.now().microsecondsSinceEpoch),
+    );
+  }
+
+  factory EncryptedDirectMessageData.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
 
     if (tags[ReplaceableEventIdentifier.tagName] == null) {
       throw EncryptedMessageDecodeException(eventMessage.id);
     }
 
-    return ReplaceablePrivateDirectMessageData(
+    return EncryptedDirectMessageData(
       content: eventMessage.content,
       masterPubkey: eventMessage.masterPubkey,
       media: EntityDataWithMediaContent.parseImeta(tags[MediaAttachment.tagName]),
@@ -118,7 +131,7 @@ class ReplaceablePrivateDirectMessageData
     );
   }
 
-  const ReplaceablePrivateDirectMessageData._();
+  const EncryptedDirectMessageData._();
 
   @override
   FutureOr<EventMessage> toEventMessage(
@@ -130,7 +143,7 @@ class ReplaceablePrivateDirectMessageData
     return EventMessage.fromData(
       signer: signer,
       createdAt: createdAt ?? DateTime.now().microsecondsSinceEpoch,
-      kind: ReplaceablePrivateDirectMessageEntity.kind,
+      kind: EncryptedDirectMessageEntity.kind,
       content: content,
       tags: [
         ...tags,
@@ -154,7 +167,7 @@ class ReplaceablePrivateDirectMessageData
   @override
   ReplaceableEventReference toReplaceableEventReference(String pubkey) {
     return ReplaceableEventReference(
-      kind: ReplaceablePrivateDirectMessageEntity.kind,
+      kind: EncryptedDirectMessageEntity.kind,
       dTag: messageId,
       masterPubkey: pubkey,
     );
@@ -170,12 +183,12 @@ class ReplaceablePrivateDirectMessageData
   static const quotedEventKindTagName = 'quoted-event-kind';
 }
 
-extension Pubkeys on ReplaceablePrivateDirectMessageEntity {
+extension Pubkeys on EncryptedDirectMessageEntity {
   List<String> get allPubkeys => data.relatedPubkeys?.map((pubkey) => pubkey.value).toList() ?? []
     ..sort();
 }
 
-extension MessageTypes on ReplaceablePrivateDirectMessageData {
+extension MessageTypes on EncryptedDirectMessageData {
   MessageType get messageType {
     if (primaryAudio != null) {
       return MessageType.audio;

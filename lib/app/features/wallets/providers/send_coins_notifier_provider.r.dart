@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message_service.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
@@ -334,7 +334,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
     final content = eventReference.encode();
     final tag = eventReference.toTag();
     final paymentSentTag = [
-      ReplaceablePrivateDirectMessageData.paymentSentTagName,
+      EncryptedDirectMessageData.paymentSentTagName,
       jsonEncode(event.jsonPayload),
     ];
 

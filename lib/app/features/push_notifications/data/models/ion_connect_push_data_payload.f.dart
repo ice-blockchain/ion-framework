@@ -5,7 +5,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
@@ -208,11 +208,11 @@ class IonConnectPushDataPayload {
     } else if (entity.data.kinds.any((list) => list.contains(WalletAssetEntity.kind.toString()))) {
       return PushNotificationType.paymentReceived;
     } else if (entity.data.kinds
-        .any((list) => list.contains(ReplaceablePrivateDirectMessageEntity.kind.toString()))) {
+        .any((list) => list.contains(EncryptedDirectMessageEntity.kind.toString()))) {
       if (decryptedEvent == null) return null;
       if (decryptedUserMetadata == null) return PushNotificationType.chatFirstContactMessage;
 
-      final message = ReplaceablePrivateDirectMessageEntity.fromEventMessage(decryptedEvent!);
+      final message = EncryptedDirectMessageEntity.fromEventMessage(decryptedEvent!);
       return _getChatMessageNotificationType(message);
     }
 
@@ -220,7 +220,7 @@ class IonConnectPushDataPayload {
   }
 
   Future<PushNotificationType> _getChatMessageNotificationType(
-    ReplaceablePrivateDirectMessageEntity message,
+    EncryptedDirectMessageEntity message,
   ) async {
     return switch (message.data.messageType) {
       MessageType.audio => PushNotificationType.chatVoiceMessage,
@@ -253,7 +253,7 @@ class IonConnectPushDataPayload {
   }
 
   Future<PushNotificationType> _getSharedPostNotificationType(
-    ReplaceablePrivateDirectMessageEntity message,
+    EncryptedDirectMessageEntity message,
   ) async {
     // If message has content, it's a reply to a shared story
     if (message.data.content.isNotEmpty) {
@@ -277,7 +277,7 @@ class IonConnectPushDataPayload {
   }
 
   PushNotificationType _getVisualMediaNotificationType(
-    ReplaceablePrivateDirectMessageEntity message,
+    EncryptedDirectMessageEntity message,
   ) {
     final mediaItems = message.data.media.values.toList();
 
@@ -343,8 +343,8 @@ class IonConnectPushDataPayload {
 
       if (entity is IonConnectGiftWrapEntity) {
         if (entity.data.kinds
-            .any((list) => list.contains(ReplaceablePrivateDirectMessageEntity.kind.toString()))) {
-          final message = ReplaceablePrivateDirectMessageEntity.fromEventMessage(decryptedEvent!);
+            .any((list) => list.contains(EncryptedDirectMessageEntity.kind.toString()))) {
+          final message = EncryptedDirectMessageEntity.fromEventMessage(decryptedEvent!);
 
           if (message.data.messageType == MessageType.requestFunds) {
             final fundsRequestData = await getFundsRequestData(decryptedEvent!);
@@ -396,9 +396,9 @@ class IonConnectPushDataPayload {
     final entity = mainEntity;
     if (entity is IonConnectGiftWrapEntity &&
         entity.data.kinds
-            .any((list) => list.contains(ReplaceablePrivateDirectMessageEntity.kind.toString())) &&
+            .any((list) => list.contains(EncryptedDirectMessageEntity.kind.toString())) &&
         decryptedEvent != null) {
-      final message = ReplaceablePrivateDirectMessageEntity.fromEventMessage(decryptedEvent!);
+      final message = EncryptedDirectMessageEntity.fromEventMessage(decryptedEvent!);
       if (message.data.messageType == MessageType.visualMedia &&
           message.data.visualMedias.isNotEmpty) {
         // Decrypt media

@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/chat_medias_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/chat_message_media_path_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_chat_media_provider.r.dart';
@@ -34,7 +34,7 @@ class VisualMediaContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entity = useMemoized(
-      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
+      () => EncryptedDirectMessageEntity.fromEventMessage(eventMessage),
       [eventMessage],
     );
 

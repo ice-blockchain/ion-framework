@@ -6,7 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_message_status_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
@@ -92,7 +92,7 @@ class OneToOneMessageList extends HookConsumerWidget {
     );
 
     final onTapReply = useCallback(
-      (ReplaceablePrivateDirectMessageEntity entity) {
+      (EncryptedDirectMessageEntity entity) {
         final replyMessage = entity.data.relatedEvents?.singleOrNull;
 
         if (replyMessage != null) {
@@ -134,7 +134,7 @@ class OneToOneMessageList extends HookConsumerWidget {
               extentEstimation: (index, dimensions) {
                 if (index == null || index >= allMessages.length) return 60.0.s; // Default height
                 final message = allMessages[index];
-                final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(message);
+                final entity = EncryptedDirectMessageEntity.fromEventMessage(message);
 
                 // Base height estimate for the message type
                 var estimatedHeight = _getEstimatedHeight(entity.data.messageType);
@@ -163,7 +163,7 @@ class OneToOneMessageList extends HookConsumerWidget {
               itemBuilder: (context, index) {
                 final message = allMessages[index];
 
-                final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(message);
+                final entity = EncryptedDirectMessageEntity.fromEventMessage(message);
 
                 final displayDate = dateHeaderLookup[message.id];
 

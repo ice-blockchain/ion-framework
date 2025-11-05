@@ -7,7 +7,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/conversation_identifier.f.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/master_pubkey_tag.f.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_reaction_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
@@ -59,7 +59,7 @@ class StoryReply extends _$StoryReply {
 
       final conversationId = existingConversationId ??
           generateConversationId(
-            conversationType: ConversationType.oneToOne,
+            conversationType: ConversationType.direct,
             receiverMasterPubkeys: [story.masterPubkey, currentUserMasterPubkey],
           );
 
@@ -167,7 +167,7 @@ class StoryReply extends _$StoryReply {
   }
 
   Future<void> resendReply(EventMessage kind30014Rumor) async {
-    final kind30014Entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(kind30014Rumor);
+    final kind30014Entity = EncryptedDirectMessageEntity.fromEventMessage(kind30014Rumor);
 
     await _resendKind16(kind30014Entity);
 
@@ -186,7 +186,7 @@ class StoryReply extends _$StoryReply {
     }
   }
 
-  Future<void> _resendKind16(ReplaceablePrivateDirectMessageEntity kind30014Entity) async {
+  Future<void> _resendKind16(EncryptedDirectMessageEntity kind30014Entity) async {
     final kind16Rumor = await ref
         .read(eventMessageDaoProvider)
         .getByReference(kind30014Entity.data.quotedEvent!.eventReference);

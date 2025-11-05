@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
@@ -12,10 +13,11 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/views/components/user_data_inputs/general_user_data_input.dart';
 import 'package:ion/app/features/chat/community/models/group_type.dart';
-import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_group_message_entity.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/group_member_role.f.dart';
+import 'package:ion/app/features/chat/e2ee/providers/group/send_e2ee_group_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/providers/create_group_form_controller_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/general_selection_button.dart';
-import 'package:ion/app/features/chat/views/components/type_selection_modal.dart';
 import 'package:ion/app/features/chat/views/pages/new_group_modal/componentes/group_participant_list_item.dart';
 import 'package:ion/app/features/components/avatar_picker/avatar_picker.dart';
 import 'package:ion/app/features/user/providers/image_proccessor_notifier.m.dart';
@@ -23,7 +25,6 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
-import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/services/media_service/image_proccessing_config.dart';
 import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:ion/app/utils/validators.dart';
@@ -34,6 +35,7 @@ class CreateGroupModal extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final loading = useState(false);
     final formKey = useMemoized(GlobalKey<FormState>.new);
     final currentMasterPubkey = ref.watch(currentPubkeySelectorProvider);
 
@@ -43,7 +45,7 @@ class CreateGroupModal extends HookConsumerWidget {
 
     final participantsMasterPubkeys = currentMasterPubkey != null
         ? [
-            ...createGroupForm.participantsMasterkeys,
+            ...createGroupForm.participantsMasterPubkeys,
             currentMasterPubkey,
           ]
         : <String>[];
@@ -93,6 +95,15 @@ class CreateGroupModal extends HookConsumerWidget {
                             labelText: context.i18n.group_create_name_label,
                             validator: (String? value) {
                               if (Validators.isEmpty(value)) return '';
+                              if (Validators.isInvalidLength(
+                                value,
+                                maxLength: EncryptedGroupMessageEntity.nameMaxLength,
+                              )) {
+                                return context.i18n.error_input_length_max(
+                                  EncryptedGroupMessageEntity.nameMaxLength,
+                                );
+                              }
+
                               return null;
                             },
                           ),
@@ -104,19 +115,7 @@ class CreateGroupModal extends HookConsumerWidget {
                       iconAsset: Assets.svg.iconChannelType,
                       title: context.i18n.group_create_type,
                       selectedValue: createGroupForm.type.getTitle(context),
-                      onPress: () {
-                        showSimpleBottomSheet<void>(
-                          context: context,
-                          child: TypeSelectionModal(
-                            title: context.i18n.group_create_type_title,
-                            values: GroupType.values,
-                            initiallySelectedType: createGroupForm.type,
-                            onUpdated: (type) {
-                              createGroupFormNotifier.type = type;
-                            },
-                          ),
-                        );
-                      },
+                      onPress: null,
                     ),
                     SizedBox(height: 24.0.s),
                     Row(
@@ -125,7 +124,7 @@ class CreateGroupModal extends HookConsumerWidget {
                         SizedBox(width: 6.0.s),
                         Text(
                           context.i18n
-                              .group_create_members_number(participantsMasterPubkeys.length),
+                              .group_create_members_number(participantsMasterPubkeys.length - 1),
                         ),
                         const Spacer(),
                         TextButton(
@@ -149,9 +148,12 @@ class CreateGroupModal extends HookConsumerWidget {
                         itemBuilder: (_, int i) {
                           final participantMasterkey = participantsMasterPubkeys[i];
 
+                          if (participantMasterkey == currentMasterPubkey) {
+                            return const SizedBox.shrink();
+                          }
+
                           return GroupParticipantsListItem(
                             participantMasterkey: participantMasterkey,
-                            isCurrentUser: participantMasterkey == currentMasterPubkey,
                             onRemove: () {
                               createGroupFormNotifier.toggleMember(participantMasterkey);
                             },
@@ -168,22 +170,17 @@ class CreateGroupModal extends HookConsumerWidget {
           SizedBox(height: 16.0.s),
           ScreenBottomOffset(
             margin: 32.0.s,
-            child: ScreenSideOffset.large(
+            child: ScreenSideOffset.medium(
               child: Button(
-                //TODO: handle loading state when creating group with different provider
-                // disabled: sendE2eeMessageNotifier.maybeWhen(
-                //   loading: () => true,
-                //   orElse: () => false,
-                // ),
-                // mainAxisSize: MainAxisSize.max,
-                // minimumSize: Size(56.0.s, 56.0.s),
-                // leadingIcon: sendE2eeMessageNotifier.maybeWhen(
-                //   loading: () => const IONLoadingIndicator(),
-                //   orElse: () => Assets.svg.iconPlusCreatechannel.icon(
-                //     color: context.theme.appColors.onPrimaryAccent,
-                //   ),
-                // ),
+                disabled: loading.value,
+                mainAxisSize: MainAxisSize.max,
                 label: Text(context.i18n.group_create_create_button),
+                leadingIcon: loading.value
+                    ? IONLoadingIndicator(size: Size(24.s, 24.s))
+                    : Assets.svg.iconPlusCreatechannel.icon(
+                        size: 32.s,
+                        color: context.theme.appColors.onPrimaryAccent,
+                      ),
                 onPressed: () async {
                   if (formKey.currentState!.validate()) {
                     if (createGroupForm.type == GroupType.encrypted) {
@@ -195,13 +192,24 @@ class CreateGroupModal extends HookConsumerWidget {
                         processed: (file) => file,
                       );
 
-                      await ref.read(sendE2eeChatMessageServiceProvider).sendMessage(
-                        conversationId: generateUuid(),
-                        content: '',
-                        participantsMasterPubkeys: participantsMasterPubkeys,
-                        subject: createGroupForm.name,
-                        mediaFiles: [groupPicture!],
-                      );
+                      loading.value = true;
+
+                      final members = participantsMasterPubkeys
+                          .map(
+                            (masterPubkey) => masterPubkey == currentMasterPubkey
+                                ? GroupMemberRole.owner(masterPubkey)
+                                : GroupMemberRole.member(masterPubkey),
+                          )
+                          .toList();
+
+                      await ref.read(sendE2eeGroupChatMessageServiceProvider).sendMetadataMessage(
+                            members: members,
+                            groupPicture: groupPicture,
+                            groupId: generateUuid(),
+                            groupName: createGroupForm.name!,
+                          );
+
+                      loading.value = false;
 
                       if (context.mounted) {
                         context.pop();

@@ -4,7 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
@@ -31,7 +31,7 @@ Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) a
       [];
 
   final lastConversationEntities = lastConversationMessages
-      .map(ReplaceablePrivateDirectMessageEntity.fromEventMessage)
+      .map(EncryptedDirectMessageEntity.fromEventMessage)
       .toList()
     ..sortBy((message) => message.createdAt.toDateTime);
 

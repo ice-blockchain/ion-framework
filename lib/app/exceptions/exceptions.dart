@@ -481,8 +481,8 @@ class FailedToGenerateMediaUrlFallback extends IONException {
   FailedToGenerateMediaUrlFallback() : super(10094, 'Failed to generate media fallback url');
 }
 
-class ReplaceablePrivateDirectMessageDecodeException extends IONException {
-  ReplaceablePrivateDirectMessageDecodeException(String id)
+class EncryptedMessageDecodeException extends IONException {
+  EncryptedMessageDecodeException(String id)
       : super(10096, 'Failed to convert event message with id $id');
 }
 

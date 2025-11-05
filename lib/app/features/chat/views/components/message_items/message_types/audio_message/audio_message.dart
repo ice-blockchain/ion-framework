@@ -7,7 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/chat_medias_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/chat_message_media_path_provider.r.dart';
 import 'package:ion/app/features/chat/hooks/use_audio_playback_controller.dart';
@@ -47,7 +47,7 @@ class AudioMessage extends HookConsumerWidget {
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
 
     final entity = useMemoized(
-      () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
+      () => EncryptedDirectMessageEntity.fromEventMessage(eventMessage),
       [eventMessage],
     );
 

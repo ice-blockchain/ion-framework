@@ -5,7 +5,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 
 part 'related_pubkey.f.freezed.dart';
 
-@freezed
+@Freezed(copyWith: false)
 class RelatedPubkey with _$RelatedPubkey {
   const factory RelatedPubkey({
     required String value,

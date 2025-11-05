@@ -7,85 +7,89 @@ import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_group_message_entity.f.dart';
+import 'package:ion/app/features/chat/e2ee/providers/group/encrypted_group_metadata_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
+import 'package:ion/app/features/chat/providers/unread_message_count_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_skeleton/recent_chat_skeleton.dart';
 import 'package:ion/app/features/chat/recent_chats/views/pages/recent_chat_overlay/recent_chat_overlay.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_item_wrapper/message_item_wrapper.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_metadata/message_metadata.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/emoji_message/emoji_message.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class RecentChatTile extends HookConsumerWidget {
-  const RecentChatTile({
-    required this.name,
-    required this.onTap,
-    required this.messageType,
-    required this.conversation,
-    required this.defaultAvatar,
-    required this.lastMessageAt,
-    required this.eventReference,
-    required this.lastMessageContent,
-    required this.unreadMessagesCount,
-    this.avatarUrl,
-    this.avatarWidget,
-    this.isVerified = false,
-    super.key,
-  });
+class EncryptedDirectChatTile extends HookConsumerWidget {
+  const EncryptedDirectChatTile({required this.conversation, super.key});
 
-  final String name;
-  final String? avatarUrl;
-  final Widget? defaultAvatar;
-  final EventReference? eventReference;
-  final DateTime lastMessageAt;
-  final int unreadMessagesCount;
-  final String lastMessageContent;
-  final VoidCallback? onTap;
-  final Widget? avatarWidget;
-  final MessageType messageType;
   final ConversationListItem conversation;
-  final bool isVerified;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final lastMessage = conversation.latestMessage;
+    final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
+    final receiverMasterPubkey = conversation.receiverMasterPubkey(currentUserMasterPubkey);
+
+    if (lastMessage == null || currentUserMasterPubkey == null || receiverMasterPubkey == null) {
+      return const SizedBox.shrink();
+    }
+
     final isEditMode = ref.watch(conversationsEditModeProvider);
     final selectedConversations = ref.watch(selectedConversationsProvider);
 
-    final isMuted = ref
+    // User info
+    final userPreviewData = ref.watch(userPreviewDataProvider(receiverMasterPubkey));
+    if (userPreviewData.isLoading && !userPreviewData.hasValue) {
+      return const RecentChatSkeletonItem();
+    }
+
+    final previewData = userPreviewData.valueOrNull;
+    final receiverName =
+        previewData?.data.trimmedDisplayName ?? context.i18n.common_deleted_account;
+    final receiverAvatarUrl = previewData?.data.avatarUrl ?? Assets.svg.iconProfileNoimage;
+    final isUserVerified = ref.watch(isUserVerifiedProvider(receiverMasterPubkey));
+
+    // Last message info
+    final lastMessageEntity = useMemoized(
+      () => EncryptedDirectMessageEntity.fromEventMessage(lastMessage),
+      [lastMessage],
+    );
+    final isMe = lastMessage.masterPubkey == currentUserMasterPubkey;
+
+    final lastMessageType = lastMessageEntity.data.messageType;
+    final lastMessageEventReference = lastMessageEntity.toEventReference();
+    final lastMessageContent = lastMessageEntity.data.messageType == MessageType.document
+        ? lastMessageEntity.data.primaryMedia?.alt ?? ''
+        : lastMessageEntity.data.content;
+    final lastMessageAt = lastMessage.createdAt.toDateTime;
+
+    // Conversation info
+    final conversationItemKey = useMemoized(GlobalKey.new);
+    final unreadMessagesCount =
+        ref.watch(getUnreadMessagesCountProvider(conversation.conversationId)).valueOrNull ?? 0;
+    final isConversationMuted = ref
             .watch(mutedConversationIdsProvider)
             .valueOrNull
             ?.contains(conversation.conversationId) ??
         false;
-
-    final messageItemKey = useMemoized(GlobalKey.new);
-
-    final isMe = conversation.latestMessage != null &&
-        ref.watch(isCurrentUserSelectorProvider(conversation.latestMessage!.masterPubkey));
-
-    final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
-
-    if (currentUserMasterPubkey == null) {
-      return const SizedBox.shrink();
-    }
-
-    final otherUserPubkey = conversation.latestMessage != null
-        ? conversation.receiverMasterPubkey(currentUserMasterPubkey)
-        : null;
-
-    final isBlockedBy = ref
+    final isConversationBlocked = ref
             .watch(
               isBlockedByNotifierProvider(
-                conversation.latestMessage!.participantsMasterPubkeys.singleWhere(
-                  (pubkey) => pubkey != currentUserMasterPubkey,
+                lastMessage.participantsMasterPubkeys.singleWhere(
+                  (masterPubkey) => masterPubkey != currentUserMasterPubkey,
                 ),
               ),
             )
@@ -94,41 +98,42 @@ class RecentChatTile extends HookConsumerWidget {
 
     final showRecentChatOverlay = useCallback(
       () {
-        showDialog<void>(
-          context: context,
-          barrierColor: Colors.transparent,
-          useSafeArea: false,
-          builder: (context) => RecentChatOverlay(
-            conversation: conversation,
-            renderObject: messageItemKey.currentContext!.findRenderObject()!,
-          ),
-        );
+        final renderObject = conversationItemKey.currentContext?.findRenderObject();
+        if (renderObject != null) {
+          showDialog<void>(
+            context: context,
+            barrierColor: Colors.transparent,
+            useSafeArea: false,
+            builder: (context) => RecentChatOverlay(
+              conversation: conversation,
+              renderObject: renderObject,
+            ),
+          );
+        }
       },
-      [messageItemKey],
+      [conversationItemKey],
     );
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onLongPress: showRecentChatOverlay,
       onTap: () {
         if (isEditMode) {
           ref.read(selectedConversationsProvider.notifier).toggle(conversation);
         } else {
-          onTap?.call();
+          ConversationRoute(receiverMasterPubkey: receiverMasterPubkey).push<void>(context);
         }
       },
-      onLongPress: showRecentChatOverlay,
-      behavior: HitTestBehavior.opaque,
       child: RepaintBoundary(
-        key: messageItemKey,
+        key: conversationItemKey,
         child: Container(
-          decoration: BoxDecoration(
-            color: context.theme.appColors.secondaryBackground,
-          ),
           padding: EdgeInsets.symmetric(vertical: 8.0.s),
+          decoration: BoxDecoration(color: context.theme.appColors.secondaryBackground),
           child: Row(
             children: [
               AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
                 width: isEditMode ? 40.0.s : 0,
+                duration: const Duration(milliseconds: 200),
                 child: Padding(
                   padding: EdgeInsetsDirectional.only(end: 10.0.s),
                   child: selectedConversations.contains(conversation)
@@ -139,23 +144,14 @@ class RecentChatTile extends HookConsumerWidget {
               Flexible(
                 child: Row(
                   children: [
-                    if (isBlockedBy)
+                    if (isConversationBlocked)
                       Avatar(size: 48.0.s)
-                    else if (otherUserPubkey != null)
-                      StoryColoredProfileAvatar(
-                        pubkey: otherUserPubkey,
-                        size: 48.0.s,
-                        imageUrl: avatarUrl,
-                        imageWidget: avatarWidget,
-                        defaultAvatar: defaultAvatar,
-                        useRandomGradient: true,
-                      )
                     else
-                      Avatar(
-                        imageUrl: avatarUrl,
-                        imageWidget: avatarWidget,
-                        defaultAvatar: defaultAvatar,
+                      StoryColoredProfileAvatar(
                         size: 48.0.s,
+                        useRandomGradient: true,
+                        imageUrl: receiverAvatarUrl,
+                        pubkey: receiverMasterPubkey,
                       ),
                     SizedBox(width: 12.0.s),
                     Expanded(
@@ -168,22 +164,22 @@ class RecentChatTile extends HookConsumerWidget {
                             children: [
                               Expanded(
                                 child: Row(
-                                  children: <Widget>[
+                                  children: [
                                     Flexible(
                                       child: Text(
-                                        name,
+                                        receiverName,
+                                        maxLines: 1,
                                         style: context.theme.appTextThemes.subtitle3.copyWith(
                                           color: context.theme.appColors.primaryText,
                                         ),
-                                        maxLines: 1,
                                       ),
                                     ),
-                                    if (isVerified)
+                                    if (isUserVerified)
                                       Padding(
                                         padding: EdgeInsetsDirectional.only(start: 4.0.s),
                                         child: Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
                                       ),
-                                    if (isMuted)
+                                    if (isConversationMuted)
                                       Padding(
                                         padding: EdgeInsetsDirectional.only(start: 4.0.s),
                                         child: Assets.svg.iconChannelfillMute.icon(size: 16.0.s),
@@ -200,22 +196,206 @@ class RecentChatTile extends HookConsumerWidget {
                             children: [
                               Expanded(
                                 child: ChatPreview(
-                                  messageType: messageType,
-                                  eventReference: eventReference,
+                                  lastMessage: lastMessage,
+                                  messageType: lastMessageType,
                                   lastMessageContent: lastMessageContent,
-                                  lastMessage: conversation.latestMessage,
+                                  eventReference: lastMessageEventReference,
                                 ),
                               ),
                               if (isMe)
                                 MessageMetadata(
                                   displayTime: false,
                                   displayEdited: false,
+                                  updateCachedObjects: false,
+                                  eventMessage: lastMessage,
                                   deliveryStatusIconSize: 16.0.s,
-                                  eventMessage: conversation.latestMessage!,
                                 ),
                               if (unreadMessagesCount > 0)
                                 UnreadCountBadge(
-                                  isMuted: isMuted,
+                                  isMuted: isConversationMuted,
+                                  unreadCount: unreadMessagesCount,
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class EncryptedGroupChatTile extends HookConsumerWidget {
+  const EncryptedGroupChatTile({required this.conversation, super.key});
+
+  final ConversationListItem conversation;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final groupMetadata =
+        ref.watch(encryptedGroupMetadataProvider(conversation.conversationId)).valueOrNull;
+
+    final lastMessage = conversation.latestMessage;
+
+    final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
+
+    if (lastMessage == null || groupMetadata == null || currentUserMasterPubkey == null) {
+      return const SizedBox.shrink();
+    }
+
+    final isEditMode = ref.watch(conversationsEditModeProvider);
+    final isSelected = ref.watch(
+      selectedConversationsProvider.select(
+        (conversations) => conversations.contains(conversation),
+      ),
+    );
+
+    // Last message info
+    final lastMessageEntity = useMemoized(
+      () => EncryptedGroupMessageEntity.fromEventMessage(lastMessage),
+      [lastMessage],
+    );
+    final isMe = lastMessage.masterPubkey == currentUserMasterPubkey;
+
+    final lastMessageType = lastMessageEntity.data.messageType;
+    final lastMessageEventReference = lastMessageEntity.toEventReference();
+    final lastMessageContent = lastMessageEntity.data.messageType == MessageType.document
+        ? lastMessageEntity.data.primaryMedia?.alt ?? ''
+        : lastMessageEntity.data.content;
+    final lastMessageAt = lastMessage.createdAt.toDateTime;
+
+    // Group info
+    final groupName = groupMetadata.name;
+    final avatarMedia = groupMetadata.avatar.media;
+    final avatarFuture = useMemoized(
+      () => avatarMedia != null
+          ? ref.read(mediaEncryptionServiceProvider).getEncryptedMedia(
+                avatarMedia,
+                authorPubkey: lastMessage.masterPubkey,
+              )
+          : null,
+      [avatarMedia?.url, lastMessage.masterPubkey],
+    );
+    final groupAvatarFile = useFuture(avatarFuture).data;
+
+    // Conversation info
+    final conversationItemKey = useMemoized(GlobalKey.new);
+    final unreadMessagesCount =
+        ref.watch(getUnreadMessagesCountProvider(conversation.conversationId)).valueOrNull ?? 0;
+    final isConversationMuted = ref
+            .watch(mutedConversationIdsProvider)
+            .valueOrNull
+            ?.contains(conversation.conversationId) ??
+        false;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        if (isEditMode) {
+          ref.read(selectedConversationsProvider.notifier).toggle(conversation);
+        } else {
+          ConversationRoute(conversationId: conversation.conversationId).push<void>(context);
+        }
+      },
+      child: RepaintBoundary(
+        key: conversationItemKey,
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 8.0.s),
+          decoration: BoxDecoration(color: context.theme.appColors.secondaryBackground),
+          child: Row(
+            children: [
+              AnimatedContainer(
+                width: isEditMode ? 40.0.s : 0,
+                duration: const Duration(milliseconds: 200),
+                child: Padding(
+                  padding: EdgeInsetsDirectional.only(end: 10.0.s),
+                  child: isSelected
+                      ? Assets.svg.iconBlockCheckboxOn.icon(size: 24.0.s)
+                      : Assets.svg.iconBlockCheckboxOff.icon(size: 24.0.s),
+                ),
+              ),
+              Flexible(
+                child: Row(
+                  children: [
+                    Avatar(
+                      size: 48.0.s,
+                      defaultAvatar: Container(
+                        width: 48.0.s,
+                        height: 48.0.s,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: context.theme.appColors.onTertiaryFill,
+                          borderRadius: BorderRadius.circular(12.0.s),
+                        ),
+                        child: Assets.svg.iconChannelEmptychannel.icon(
+                          size: 26.0.s,
+                          color: context.theme.appColors.secondaryBackground,
+                        ),
+                      ),
+                      imageWidget: groupAvatarFile != null ? Image.file(groupAvatarFile) : null,
+                    ),
+                    SizedBox(width: 12.0.s),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        groupName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: context.theme.appTextThemes.subtitle3.copyWith(
+                                          color: context.theme.appColors.primaryText,
+                                        ),
+                                      ),
+                                    ),
+                                    if (isConversationMuted)
+                                      Padding(
+                                        padding: EdgeInsetsDirectional.only(start: 4.0.s),
+                                        child: Assets.svg.iconChannelfillMute.icon(size: 16.0.s),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              ChatTimestamp(lastMessageAt),
+                            ],
+                          ),
+                          SizedBox(height: 2.0.s),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: ChatPreview(
+                                  lastMessage: lastMessage,
+                                  messageType: lastMessageType,
+                                  lastMessageContent: lastMessageContent,
+                                  eventReference: lastMessageEventReference,
+                                ),
+                              ),
+                              if (isMe)
+                                MessageMetadata(
+                                  displayTime: false,
+                                  displayEdited: false,
+                                  updateCachedObjects: false,
+                                  eventMessage: lastMessage,
+                                  deliveryStatusIconSize: 16.0.s,
+                                ),
+                              if (unreadMessagesCount > 0)
+                                UnreadCountBadge(
+                                  isMuted: isConversationMuted,
                                   unreadCount: unreadMessagesCount,
                                 ),
                             ],

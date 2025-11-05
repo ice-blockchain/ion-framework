@@ -8,7 +8,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/providers/draft_message_provider.r.dart';
 import 'package:ion/app/features/chat/providers/messaging_bottom_bar_state_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_edit_message_provider.r.dart';
@@ -79,8 +79,8 @@ class ChatInputBar extends HookConsumerWidget {
             ref.read(draftMessageProvider(conversationId!).notifier).draftMessage =
                 textFieldController.text;
           }
-          isTextLimitReached.value = textFieldController.text.length >
-              ReplaceablePrivateDirectMessageData.textMessageLimit;
+          isTextLimitReached.value =
+              textFieldController.text.length > EncryptedDirectMessageData.textMessageLimit;
         }
 
         WidgetsBinding.instance.addPostFrameCallback((_) {

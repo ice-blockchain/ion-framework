@@ -9,7 +9,7 @@ import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/views/pages/chat_media_page/components/chat_media_context_menu.dart';
 import 'package:ion/app/features/chat/views/pages/chat_media_page/components/chat_media_page_view.dart';
@@ -81,7 +81,7 @@ class ChatMediaPage extends HookConsumerWidget {
     }
 
     final eventMessage = eventMessageFuture.data!;
-    final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage);
+    final entity = EncryptedDirectMessageEntity.fromEventMessage(eventMessage);
     final medias = entity.data.visualMedias
         .where((e) => !entity.data.visualMedias.any((c) => c.thumb == e.url && c.url != e.url))
         .toList();
@@ -169,7 +169,7 @@ class _MediaBottomOverlay extends ConsumerWidget {
     required this.currentIndex,
   });
 
-  final ReplaceablePrivateDirectMessageEntity messageEntity;
+  final EncryptedDirectMessageEntity messageEntity;
   final List<MediaAttachment> medias;
   final int currentIndex;
 
