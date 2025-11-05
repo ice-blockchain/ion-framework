@@ -142,9 +142,7 @@ class Button extends StatelessWidget {
           minimumSize: minimumSize ?? Size(56.0.s, 56.0.s),
           padding: EdgeInsets.symmetric(horizontal: 16.0.s),
           backgroundColor: _getBackgroundColor(context, type),
-          side: BorderSide(
-            color: _getBorderColor(context, type),
-          ),
+          side: _getBorderSide(context, type),
         ),
       ),
       child: IconTheme(
@@ -189,9 +187,18 @@ class Button extends StatelessWidget {
         };
   }
 
+  BorderSide _getBorderSide(BuildContext context, ButtonType type) {
+    if (borderColor != null) {
+      return BorderSide(color: borderColor!);
+    }
+
+    return type == ButtonType.primary
+        ? BorderSide.none
+        : BorderSide(color: _getBorderColor(context, type));
+  }
+
   Color _getBorderColor(BuildContext context, ButtonType type) {
-    return borderColor ??
-        tintColor ??
+    return tintColor ??
         switch (type) {
           ButtonType.primary => context.theme.appColors.onPrimaryAccent,
           ButtonType.secondary => context.theme.appColors.tertiaryBackground,
