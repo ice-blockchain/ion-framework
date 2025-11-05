@@ -53,17 +53,22 @@ Future<VerifyIdentityType> verifyIdentityType(
   final ionIdentity = await ref.read(ionIdentityProvider.future);
 
   if (username != null) {
-    if (ionIdentity(username: username).auth.isPasswordFlowUser()) {
+    final loginCapabilities = await ionIdentity(username: username).auth.getLoginCapabilities();
+
+    if (loginCapabilities.passwordFlowAvailable) {
       final userBiometricsState =
           await ref.read(userBiometricsStateProvider(username: username).future);
+
       return userBiometricsState == BiometricsState.enabled
           ? VerifyIdentityType.biometrics
           : VerifyIdentityType.password;
     }
+
     return VerifyIdentityType.passkey;
   }
 
   final isPasskeyAvailable = await ref.read(isPasskeyAvailableProvider.future);
+
   return isPasskeyAvailable ? VerifyIdentityType.passkey : VerifyIdentityType.password;
 }
 

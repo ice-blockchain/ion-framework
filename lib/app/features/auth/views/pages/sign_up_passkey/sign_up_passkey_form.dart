@@ -8,9 +8,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/flows/run_sign_up_then_login.dart';
+import 'package:ion/app/features/auth/providers/auth_flow_action_notifier.r.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/auth/providers/register_action_notifier.r.dart';
 import 'package:ion/app/features/auth/views/components/identity_key_name_input/identity_key_name_input.dart';
+import 'package:ion/app/features/components/biometrics/hooks/use_on_suggest_biometrics.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -24,21 +26,23 @@ class SignUpPasskeyForm extends HookConsumerWidget {
     final identityKeyNameController = useTextEditingController();
     final formKey = useRef(GlobalKey<FormState>());
 
+    final onSuggestToAddBiometrics = useOnSuggestToAddBiometrics(ref);
+
     final authState = ref.watch(authProvider);
-    final registerActionState = ref.watch(registerActionNotifierProvider);
+    final authFlowState = ref.watch(authFlowActionNotifierProvider);
 
     useOnInit(
       () {
-        if (registerActionState.hasError && registerActionState.error is PlatformException) {
+        if (authFlowState.hasError && authFlowState.error is PlatformException) {
           context.pop(false);
         }
       },
-      [registerActionState.hasError, registerActionState.error],
+      [authFlowState.hasError, authFlowState.error],
     );
 
     ref.displayErrors(
-      registerActionNotifierProvider,
-      excludedExceptions: excludedPasskeyExceptions,
+      authFlowActionNotifierProvider,
+      excludedExceptions: {...excludedPasskeyExceptions, UserAlreadyExistsException},
     );
 
     return Form(
@@ -46,37 +50,33 @@ class SignUpPasskeyForm extends HookConsumerWidget {
       child: Column(
         children: [
           IdentityKeyNameInput(
-            errorText: switch (registerActionState.error) {
+            errorText: switch (authFlowState.error) {
               final PasskeyCancelledException _ => null,
+              final UserAlreadyExistsException _ => null,
               final IONIdentityException identityException => identityException.title(context),
-              _ => registerActionState.error?.toString()
+              _ => authFlowState.error?.toString()
             },
             controller: identityKeyNameController,
           ),
           SizedBox(height: 16.0.s),
           Button(
-            disabled: registerActionState.isLoading,
-            trailingIcon: registerActionState.isLoading ||
-                    (authState.valueOrNull?.isAuthenticated).falseOrValue
-                ? const IONLoadingIndicator()
-                : Assets.svg.iconButtonNext.icon(
-                    size: 24.0.s,
-                    color: context.theme.appColors.onPrimaryAccent,
-                  ),
-            onPressed: () {
+            disabled: authFlowState.isLoading,
+            trailingIcon:
+                authFlowState.isLoading || (authState.valueOrNull?.isAuthenticated).falseOrValue
+                    ? const IONLoadingIndicator()
+                    : Assets.svg.iconButtonNext.icon(
+                        size: 24.0.s,
+                        color: context.theme.appColors.onPrimaryAccent,
+                      ),
+            onPressed: () async {
               if (formKey.value.currentState!.validate()) {
                 FocusScope.of(context).unfocus();
-                guardPasskeyDialog(
-                  ref.context,
-                  (child) => RiverpodVerifyIdentityRequestBuilder(
-                    provider: registerActionNotifierProvider,
-                    requestWithVerifyIdentity: (_) {
-                      ref
-                          .read(registerActionNotifierProvider.notifier)
-                          .signUp(keyName: identityKeyNameController.text);
-                    },
-                    child: child,
-                  ),
+                await runSignUpThenLogin(
+                  context: ref.context,
+                  ref: ref,
+                  identityKeyName: identityKeyNameController.text,
+                  kind: SignUpKind.passkey,
+                  suggestBiometrics: onSuggestToAddBiometrics,
                 );
               }
             },

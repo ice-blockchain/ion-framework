@@ -24,7 +24,7 @@ class LoginActionNotifier extends _$LoginActionNotifier {
 
   Future<void> signIn({
     required String keyName,
-    required OnVerifyIdentity<AssertionRequestData> onVerifyIdentity,
+    required AuthConfig config,
     required bool localCredsOnly,
     Map<TwoFaType, String>? twoFaTypes,
   }) async {
@@ -38,8 +38,8 @@ class LoginActionNotifier extends _$LoginActionNotifier {
       ];
 
       try {
-        await ionIdentity(username: keyName).auth.loginUser(
-              onVerifyIdentity: onVerifyIdentity,
+        await ionIdentity(username: keyName).auth.login(
+              config: config,
               twoFATypes: twoFATypes,
               localCredsOnly: localCredsOnly,
             );

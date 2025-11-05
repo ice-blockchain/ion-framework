@@ -35,6 +35,78 @@ Future<void> guardPasskeyDialog(
   );
 }
 
+class RiverpodAuthConfigRequestBuilder<T> extends HookConsumerWidget {
+  const RiverpodAuthConfigRequestBuilder({
+    required this.child,
+    required this.request,
+    this.provider,
+    this.identityKeyName,
+    this.onPasswordCaptured,
+    super.key,
+  });
+
+  final Widget child;
+  final Future<void> Function(AuthConfig config) request;
+  final ProviderListenable<AsyncValue<T>>? provider;
+  final String? identityKeyName;
+  final void Function(String password)? onPasswordCaptured;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (provider != null) {
+      ref.listen(provider!, (prev, next) {
+        if (!next.isLoading && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      });
+    }
+    final onGetPassword = useOnGetPassword<String>();
+
+    useOnInit(
+      () async {
+        if (provider == null) {
+          try {
+            await _executeRequest(context, ref, onGetPassword);
+          } finally {
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
+          }
+        } else {
+          await _executeRequest(context, ref, onGetPassword);
+        }
+      },
+      <Object>[onGetPassword],
+    );
+
+    return child;
+  }
+
+  Future<void> _executeRequest(
+    BuildContext context,
+    WidgetRef ref,
+    Future<String> Function(OnPasswordFlow<String> onPasswordFlow) onGetPassword,
+  ) async {
+    final locale = context.i18n;
+    final username = identityKeyName ?? ref.read(currentIdentityKeyNameSelectorProvider)!;
+    final ionIdentity = await ref.read(ionIdentityProvider.future);
+    final capabilities = await ionIdentity(username: username).auth.getLoginCapabilities();
+
+    final config = AuthConfig(
+      localisedReasonForBiometrics: locale.verify_with_biometrics_title,
+      localisedCancelForBiometrics: locale.button_cancel,
+      getPassword: capabilities.passwordFlowAvailable
+          ? () => onGetPassword(({required String password}) async {
+                onPasswordCaptured?.call(password);
+                return password;
+              })
+          : null,
+    );
+
+    await request(config);
+  }
+}
+
 class RiverpodUserActionSignerRequestBuilder<T> extends HookConsumerWidget {
   const RiverpodUserActionSignerRequestBuilder({
     required this.child,
