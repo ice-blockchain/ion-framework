@@ -47,6 +47,7 @@ class NotificationIcons extends StatelessWidget {
                 fit: BoxFit.cover,
                 masterPubkey: pubkey,
                 borderRadius: BorderRadius.circular(10.0.s),
+                network: true,
               ),
             ),
           );
