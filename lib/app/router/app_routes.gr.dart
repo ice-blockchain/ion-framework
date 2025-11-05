@@ -22,6 +22,9 @@ import 'package:ion/app/features/auth/views/pages/turn_on_notifications/turn_on_
 import 'package:ion/app/features/chat/community/channel/views/pages/channel_detail_page/channel_detail_page.dart';
 import 'package:ion/app/features/chat/community/channel/views/pages/create_channel_modal/create_channel_modal.dart';
 import 'package:ion/app/features/chat/community/channel/views/pages/edit_channel_page/edit_channel_page.dart';
+import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page.dart';
+import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/add_group_participants_modal.dart';
+import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/leave_group_confirm_modal.dart';
 import 'package:ion/app/features/chat/recent_chats/views/pages/delete_conversation_modal/delete_conversation_modal.dart';
 import 'package:ion/app/features/chat/recent_chats/views/pages/delete_message_modal/delete_message_modal.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/money_message/components/address_not_found_chat_modal.dart';

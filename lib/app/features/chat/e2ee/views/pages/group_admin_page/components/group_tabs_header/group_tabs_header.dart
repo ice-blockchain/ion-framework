@@ -2,18 +2,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/chat/e2ee/model/group_admin_tab.dart';
 import 'package:ion/app/features/components/tabs/tabs_header.dart';
-import 'package:ion/app/features/user/model/user_content_type.dart';
 
-class ProfileTabsHeader extends ConsumerWidget {
-  const ProfileTabsHeader({
+class GroupTabsHeader extends ConsumerWidget {
+  const GroupTabsHeader({
     super.key,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const TabsHeader<UserContentType>(
-      tabTypes: UserContentType.values,
+    return const TabsHeader<GroupAdminTab>(
+      tabTypes: GroupAdminTab.values,
     );
   }
 }

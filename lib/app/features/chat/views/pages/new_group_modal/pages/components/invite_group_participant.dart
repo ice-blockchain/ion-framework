@@ -18,14 +18,16 @@ class InviteGroupParticipant extends StatelessWidget {
     required this.onAddPressed,
     required this.buttonLabel,
     this.navigationTitle,
+    this.disabled = false,
     super.key,
   });
 
   final List<String> selectedPubkeys;
   final void Function(String masterPubkey) onUserSelected;
-  final VoidCallback onAddPressed;
+  final VoidCallback? onAddPressed;
   final String buttonLabel;
   final String? navigationTitle;
+  final bool disabled;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +56,7 @@ class InviteGroupParticipant extends StatelessWidget {
             child: ScreenSideOffset.medium(
               child: Button(
                 onPressed: onAddPressed,
+                disabled: disabled,
                 label: Text(buttonLabel),
                 mainAxisSize: MainAxisSize.max,
                 trailingIcon: Assets.svg.iconButtonNext.icon(

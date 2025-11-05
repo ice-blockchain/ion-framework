@@ -2,15 +2,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/build_context.dart';
+import 'package:ion/app/features/components/tabs/tab_type.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-enum NotificationsTabType {
+enum NotificationsTabType implements TabType {
   all,
   comments,
   followers,
   likes,
   ;
 
+  @override
   String get iconAsset {
     return switch (this) {
       NotificationsTabType.all => Assets.svg.iconTabAll,
@@ -20,6 +22,7 @@ enum NotificationsTabType {
     };
   }
 
+  @override
   String getTitle(BuildContext context) => switch (this) {
         NotificationsTabType.all => context.i18n.core_all,
         NotificationsTabType.comments => context.i18n.notifications_type_comments,
