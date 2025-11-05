@@ -124,6 +124,18 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
   }
 
   Stream<Map<DateTime, List<EventMessage>>> getMessages(String conversationId) {
+    final deletedMessagesSubquery = selectOnly(messageStatusTable)
+      ..addColumns([messageStatusTable.messageEventReference])
+      ..join([
+        innerJoin(
+          conversationMessageTable,
+          conversationMessageTable.messageEventReference
+              .equalsExp(messageStatusTable.messageEventReference),
+        ),
+      ])
+      ..where(messageStatusTable.status.equals(MessageDeliveryStatus.deleted.index))
+      ..where(conversationMessageTable.conversationId.equals(conversationId));
+
     final query = select(conversationMessageTable).join([
       innerJoin(
         eventMessageTable,
@@ -132,13 +144,7 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
     ])
       ..where(conversationMessageTable.conversationId.equals(conversationId))
       ..where(
-        notExistsQuery(
-          select(messageStatusTable)
-            ..where((tbl) => tbl.status.equals(MessageDeliveryStatus.deleted.index))
-            ..where(
-              (table) => table.messageEventReference.equalsExp(eventMessageTable.eventReference),
-            ),
-        ),
+        conversationMessageTable.messageEventReference.isNotInQuery(deletedMessagesSubquery),
       );
 
     return query.watch().map((List<TypedResult> rows) {

@@ -41,10 +41,31 @@ class EventMessageDao extends DatabaseAccessor<ChatDatabase> with _$EventMessage
   Future<List<EventMessage>> search(String query) async {
     if (query.isEmpty) return [];
 
-    final searchResults =
-        await (select(db.eventMessageTable)..where((tbl) => tbl.content.like('%$query%'))).get();
+    final deletedMessagesSubquery = selectOnly(db.messageStatusTable)
+      ..addColumns([db.messageStatusTable.messageEventReference])
+      ..where(db.messageStatusTable.status.equals(MessageDeliveryStatus.deleted.index));
 
-    return searchResults.map((row) => row.toEventMessage()).toList();
+    final queryBuilder = select(db.eventMessageTable).join([
+      innerJoin(
+        db.conversationMessageTable,
+        db.conversationMessageTable.messageEventReference
+            .equalsExp(db.eventMessageTable.eventReference),
+      ),
+    ])
+      ..where(db.eventMessageTable.kind.equals(ReplaceablePrivateDirectMessageEntity.kind))
+      ..where(db.eventMessageTable.content.lower().like('%${query.toLowerCase()}%'))
+      ..where(
+        db.eventMessageTable.eventReference.isNotInQuery(deletedMessagesSubquery),
+      )
+      ..orderBy([
+        OrderingTerm.desc(db.eventMessageTable.createdAt),
+      ]);
+
+    final searchResults = await queryBuilder.get();
+
+    return searchResults
+        .map((row) => row.readTable(db.eventMessageTable).toEventMessage())
+        .toList();
   }
 
   Future<EventMessage> getByReference(EventReference eventReference) async {

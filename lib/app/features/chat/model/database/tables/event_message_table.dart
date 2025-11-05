@@ -3,6 +3,8 @@
 part of '../chat_database.m.dart';
 
 @DataClassName('EventMessageDbModel')
+@TableIndex(name: 'idx_event_message_created_at', columns: {#createdAt})
+@TableIndex(name: 'idx_event_message_kind', columns: {#kind})
 class EventMessageTable extends Table {
   TextColumn get id => text()();
   IntColumn get kind => integer()();

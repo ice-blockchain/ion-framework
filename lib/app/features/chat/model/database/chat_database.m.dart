@@ -118,7 +118,14 @@ class ChatDatabase extends _$ChatDatabase {
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
-      onCreate: (m) => m.createAll(),
+      onCreate: (m) async {
+        await m.createAll();
+        // Create composite index with DESC ordering (not supported by @TableIndex)
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_event_message_kind_created_at '
+          'ON event_message_table(kind, created_at DESC)',
+        );
+      },
       onUpgrade: stepByStep(
         from1To2: (m, schema) async {
           await Future.wait(

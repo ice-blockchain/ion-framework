@@ -6,8 +6,8 @@ import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_options.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_send_button.dart';
-import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/search/providers/chat_search/chat_privacy_cache_expiration_duration_provider.r.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/user_picker_sheet.dart';
 import 'package:ion/app/hooks/use_selected_state.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -30,10 +30,7 @@ class ShareViaMessageModal extends HookConsumerWidget {
   ) {
     final (selectedPubkeys, togglePubkeySelection) = useSelectedState<String>();
 
-    final env = ref.read(envProvider.notifier);
-    final expirationDuration = Duration(
-      minutes: env.get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES),
-    );
+    final expirationDuration = ref.watch(chatPrivacyCacheExpirationDurationProvider);
 
     return SheetContent(
       body: Column(

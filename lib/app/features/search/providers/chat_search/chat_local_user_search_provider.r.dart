@@ -6,8 +6,8 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
-import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
+import 'package:ion/app/features/search/providers/chat_search/chat_privacy_cache_expiration_duration_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -35,6 +35,27 @@ Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) a
       .toList()
     ..sortBy((message) => message.createdAt.toDateTime);
 
+  final receiverMasterPubkeys = lastConversationEntities
+      .map(
+        (message) => message.allPubkeys.firstWhereOrNull(
+          (key) => key != currentUserMasterPubkey,
+        ),
+      )
+      .nonNulls
+      .toSet();
+  final expirationDuration = ref.watch(chatPrivacyCacheExpirationDurationProvider);
+
+  final userPreviews = await Future.wait(
+    [
+      for (final pubkey in receiverMasterPubkeys)
+        ref.read(
+          userPreviewDataProvider(
+            pubkey,
+            expirationDuration: expirationDuration,
+          ).future,
+        ),
+    ],
+  );
   final result = <ChatSearchResultItem>[];
 
   for (final message in lastConversationEntities.reversed) {
@@ -44,14 +65,8 @@ Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) a
 
     if (receiverMasterPubkey == null) continue;
 
-    final metadataExpiration =
-        ref.read(envProvider.notifier).get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES);
-
-    final userPreviewData = await ref.watch(
-      userPreviewDataProvider(
-        receiverMasterPubkey,
-        expirationDuration: Duration(minutes: metadataExpiration),
-      ).future,
+    final userPreviewData = userPreviews.firstWhereOrNull(
+      (userPreview) => userPreview?.masterPubkey == receiverMasterPubkey,
     );
 
     if (userPreviewData == null) continue;

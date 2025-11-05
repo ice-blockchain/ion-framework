@@ -10,10 +10,10 @@ import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/core/providers/env_provider.r.dart';
-import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
+import 'package:ion/app/features/search/providers/chat_search/chat_advanced_search_all_results_provider.r.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_local_user_search_provider.r.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_messages_search_provider.r.dart';
+import 'package:ion/app/features/search/providers/chat_search/chat_privacy_cache_expiration_duration_provider.r.dart';
 import 'package:ion/app/features/search/views/pages/chat/components/chat_no_results_found.dart';
 import 'package:ion/app/features/search/views/pages/chat/components/chat_search_results_list_item.dart';
 import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
@@ -29,34 +29,24 @@ class ChatAdvancedSearchAll extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     useAutomaticKeepAlive();
 
-    final env = ref.read(envProvider.notifier);
-    final expirationDuration = Duration(
-      minutes: env.get<int>(EnvVariable.CHAT_PRIVACY_CACHE_MINUTES),
-    );
+    final debouncedQuery = useDebounced(query, const Duration(milliseconds: 300)) ?? '';
+
+    final expirationDuration = ref.watch(chatPrivacyCacheExpirationDurationProvider);
 
     final remoteUserSearch = ref.watch(
       searchUsersProvider(
-        query: query,
+        query: debouncedQuery,
         expirationDuration: expirationDuration,
       ),
     );
-    final localUserSearch = ref.watch(chatLocalUserSearchProvider(query));
-    final localMessageSearch = ref.watch(chatMessagesSearchProvider(query));
+
+    final searchResultsAsync = ref.watch(chatAdvancedSearchAllResultsProvider(debouncedQuery));
+    final searchResults = searchResultsAsync.valueOrNull ?? [];
 
     final hasMore = remoteUserSearch.valueOrNull?.hasMore ?? true;
-
-    final isLoading = (hasMore && (remoteUserSearch.valueOrNull?.masterPubkeys ?? []).isEmpty) ||
-        localUserSearch.isLoading ||
-        localMessageSearch.isLoading;
-
-    final searchResults = [
-      ...?localMessageSearch.valueOrNull,
-      ...?localUserSearch.valueOrNull,
-      if (remoteUserSearch.valueOrNull?.masterPubkeys != null)
-        ...remoteUserSearch.value!.masterPubkeys!.map(
-          (masterPubkey) => ChatSearchResultItem(masterPubkey: masterPubkey),
-        ),
-    ].distinctBy((item) => item.masterPubkey).toList();
+    final isLoading = remoteUserSearch.isLoading ||
+        searchResultsAsync.isLoading ||
+        (hasMore && (remoteUserSearch.valueOrNull?.masterPubkeys ?? []).isEmpty);
 
     return PullToRefreshBuilder(
       slivers: [
@@ -97,21 +87,23 @@ class ChatAdvancedSearchAll extends HookConsumerWidget {
           ref
               .read(
                 searchUsersProvider(
-                  query: query,
+                  query: debouncedQuery,
                   expirationDuration: expirationDuration,
                 ).notifier,
               )
               .refresh(),
         );
         ref
-          ..invalidate(chatLocalUserSearchProvider(query))
-          ..invalidate(chatMessagesSearchProvider(query));
+          ..invalidate(chatAdvancedSearchAllResultsProvider(debouncedQuery))
+          ..invalidate(chatLocalUserSearchProvider(debouncedQuery))
+          ..invalidate(chatMessagesSearchProvider(debouncedQuery));
       },
       builder: (context, slivers) => LoadMoreBuilder(
         slivers: slivers,
         onLoadMore: ref
             .read(
-              searchUsersProvider(query: query, expirationDuration: expirationDuration).notifier,
+              searchUsersProvider(query: debouncedQuery, expirationDuration: expirationDuration)
+                  .notifier,
             )
             .loadMore,
         hasMore: remoteUserSearch.valueOrNull?.hasMore ?? false,
