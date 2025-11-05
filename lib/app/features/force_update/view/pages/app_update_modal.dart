@@ -64,7 +64,19 @@ class ShowInAppUpdateModalEvent extends UiEvent {
               ref.read(messageNotificationNotifierProvider.notifier).show(
                     MessageNotification(
                       message: context.i18n.update_inapp_notification_loading,
-                      icon: null,
+                      icon: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0.s),
+                        child: ColoredBox(
+                          color: context.theme.appColors.onPrimaryAccent,
+                          child: Padding(
+                            padding: EdgeInsets.all(6.0.s),
+                            child: Assets.svg.iconBlockTime.icon(
+                              color: context.theme.appColors.primaryAccent,
+                              size: 16.0.s,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   );
             }

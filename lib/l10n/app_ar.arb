@@ -877,7 +877,7 @@
   "update_uptodate_title": "أنت محدث",
   "update_inapp_update_title": "تحديث التطبيق",
   "update_inapp_update_desc": "يتوفر إصدار جديد من Online+. يرجى تحديث التطبيق للوصول إلى أحدث الميزات.",
-  "update_inapp_notification_loading": "جارٍ تحديث التطبيق",
+  "update_inapp_notification_loading": "...يتم تحديث Online+",
   "upload_limit_error_title": "تم الوصول إلى الحد الأقصى للتحميل",
   "users_search": "ابحث أعلاه عن المستخدمين",
   "verify_with_biometrics_title": "تحقق باستخدام البيومتريك",
