@@ -23,8 +23,8 @@ class EncryptedGroupMetadata extends _$EncryptedGroupMetadata {
     );
 
     final metadataEntities = results.map(
-      (eventMessages) => eventMessages.map(EncryptedGroupMessageEntity.fromEventMessage).toList()
-        ..sort((a, b) => a.createdAt.compareTo(b.createdAt)),
+      (eventMessages) =>
+          eventMessages.map(EncryptedGroupMessageEntity.fromEventMessage).toList()..sort(),
     );
 
     await for (final entities in metadataEntities) {
@@ -36,7 +36,7 @@ class EncryptedGroupMetadata extends _$EncryptedGroupMetadata {
         yield GroupMetadata(
           id: id,
           members: lastEntity.data.members ?? [],
-          name: lastEntity.data.groupSubject?.value ?? 'Q',
+          name: lastEntity.data.groupSubject?.value ?? '',
           avatar: (masterPubkey: lastEntity.masterPubkey, media: lastEntity.data.primaryMedia),
         );
       }

@@ -13,6 +13,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/views/components/user_data_inputs/general_user_data_input.dart';
 import 'package:ion/app/features/chat/community/models/group_type.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_group_message_entity.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/group_member_role.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/group/send_e2ee_group_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/providers/create_group_form_controller_provider.r.dart';
@@ -34,7 +35,6 @@ class CreateGroupModal extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const nameMaxLength = 100;
     final loading = useState(false);
     final formKey = useMemoized(GlobalKey<FormState>.new);
     final currentMasterPubkey = ref.watch(currentPubkeySelectorProvider);
@@ -95,8 +95,13 @@ class CreateGroupModal extends HookConsumerWidget {
                             labelText: context.i18n.group_create_name_label,
                             validator: (String? value) {
                               if (Validators.isEmpty(value)) return '';
-                              if (Validators.isInvalidLength(value, maxLength: nameMaxLength)) {
-                                return context.i18n.error_input_length_max(nameMaxLength);
+                              if (Validators.isInvalidLength(
+                                value,
+                                maxLength: EncryptedGroupMessageEntity.nameMaxLength,
+                              )) {
+                                return context.i18n.error_input_length_max(
+                                  EncryptedGroupMessageEntity.nameMaxLength,
+                                );
                               }
 
                               return null;
@@ -110,7 +115,7 @@ class CreateGroupModal extends HookConsumerWidget {
                       iconAsset: Assets.svg.iconChannelType,
                       title: context.i18n.group_create_type,
                       selectedValue: createGroupForm.type.getTitle(context),
-                      onPress: () {},
+                      onPress: null,
                     ),
                     SizedBox(height: 24.0.s),
                     Row(
