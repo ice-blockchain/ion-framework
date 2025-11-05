@@ -519,6 +519,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
               modifier: modifier,
               pageFetchContext: pageFetchContext,
             )) {
+              await _markAsSeen(entity);
               resultsController.add(entity);
             }
             // Even when we don't add an entity to the results (to not count this entity as "fetched"),
@@ -615,6 +616,18 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
 
     return true;
+  }
+
+  /// Marks the given entity as seen in the seen events repository.
+  ///
+  /// We don't mark stories and trending videos as seen, as they are handled separately when
+  /// they are actually seen through stories viewer.
+  Future<void> _markAsSeen(IonConnectEntity entity) async {
+    final isTrendingVideo = feedType == FeedType.video && feedModifier is FeedModifierTrending;
+    if (feedType != FeedType.story && !isTrendingVideo) {
+      final seenEventsRepository = ref.read(followingFeedSeenEventsRepositoryProvider);
+      await seenEventsRepository.save(entity, feedType: feedType, feedModifier: feedModifier);
+    }
   }
 
   Future<bool> _isNsfwAccount(String pubkey) async {
