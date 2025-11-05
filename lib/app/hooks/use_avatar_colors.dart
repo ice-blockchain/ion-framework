@@ -4,16 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:palette_generator/palette_generator.dart';
 
-const Color _useAvatarFallbackColor1 = Color(0xFFB43C4B);
-const Color _useAvatarFallbackColor2 = Color(0xFF3EB0FF);
+typedef AvatarColors = ({Color first, Color second});
+
+const AvatarColors useAvatarFallbackColors = (first: Color(0xFFB43C4B), second: Color(0xFF3EB0FF));
 
 /// Global cache for avatar colors to prevent expensive palette generation during scroll
 /// Key: avatar URL, Value: (color1, color2)
-final Map<String, (Color, Color)> _avatarColorsCache = {};
+final Map<String, AvatarColors> _avatarColorsCache = {};
 
 /// Hook to extract two colors from the user's avatar using PaletteGenerator
 /// Returns null colors while loading, then returns extracted colors
-(Color?, Color?) useAvatarColors(String? avatarUrl) {
+AvatarColors? useAvatarColors(String? avatarUrl) {
   final paletteState = useState<PaletteGenerator?>(null);
   final isLoadingState = useState<bool>(false);
 
@@ -67,14 +68,14 @@ final Map<String, (Color, Color)> _avatarColorsCache = {};
 
   // Check cache first for instant return
   if (avatarUrl != null && _avatarColorsCache.containsKey(avatarUrl)) {
-    return _avatarColorsCache[avatarUrl]!;
+    return _avatarColorsCache[avatarUrl];
   }
 
   final palette = paletteState.value;
 
   // Return fallback while loading
   if (isLoadingState.value || palette == null) {
-    return (_useAvatarFallbackColor1, _useAvatarFallbackColor2);
+    return useAvatarFallbackColors;
   }
 
   // Extract two visually distinct colors that work well for gradients
@@ -82,7 +83,7 @@ final Map<String, (Color, Color)> _avatarColorsCache = {};
   final color1 = palette.vibrantColor?.color ??
       palette.dominantColor?.color ??
       palette.lightVibrantColor?.color ??
-      _useAvatarFallbackColor1;
+      useAvatarFallbackColors.first;
 
   Color? color2;
 
@@ -102,9 +103,9 @@ final Map<String, (Color, Color)> _avatarColorsCache = {};
         palette.mutedColor?.color;
   }
 
-  color2 ??= _useAvatarFallbackColor2;
+  color2 ??= useAvatarFallbackColors.second;
 
-  final result = (color1, color2);
+  final result = (first: color1, second: color2);
 
   // Cache the result for future use
   if (avatarUrl != null) {

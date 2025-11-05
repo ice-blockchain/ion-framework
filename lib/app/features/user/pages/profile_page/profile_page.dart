@@ -8,6 +8,7 @@ import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_sig
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/separated/separator.dart';
+import 'package:ion/app/components/tabs_header/tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
@@ -28,7 +29,6 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_deta
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_details.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_main_action.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/tab_entities_list.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/tabs/tabs_header/tabs_header.dart';
 import 'package:ion/app/features/user/pages/profile_page/profile_skeleton.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -166,8 +166,7 @@ class ProfilePage extends HookConsumerWidget {
                               if (profileMode == ProfileMode.dark)
                                 Positioned.fill(
                                   child: ProfileBackground(
-                                    color1: avatarColors.$1,
-                                    color2: avatarColors.$2,
+                                    colors: avatarColors,
                                   ),
                                 ),
                               Column(
@@ -218,7 +217,9 @@ class ProfilePage extends HookConsumerWidget {
                             color: profileMode == ProfileMode.dark
                                 ? context.theme.appColors.primaryText
                                 : backgroundColor,
-                            child: const ProfileTabsHeader(),
+                            child: const TabsHeader(
+                              tabs: UserContentType.values,
+                            ),
                           ),
                         ),
                         const SliverToBoxAdapter(child: SectionSeparator()),
@@ -257,8 +258,7 @@ class ProfilePage extends HookConsumerWidget {
                   horizontalPadding: 0,
                   backgroundBuilder: profileMode == ProfileMode.dark
                       ? () => ProfileBackground(
-                            color1: avatarColors.$1,
-                            color2: avatarColors.$2,
+                            colors: avatarColors,
                             disableDarkGradient: true,
                           )
                       : null,

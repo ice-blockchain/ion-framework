@@ -1021,5 +1021,7 @@
   "who_can_reply_settings_title_story": "Who can reply to this story",
   "who_can_reply_settings_title_video": "Who can reply to this video",
   "who_can_reply_settings_verified_accounts": "Verified accounts",
-  "write_a_message": "Write a message..."
+  "write_a_message": "Write a message...",
+  "tokenized_communities_trending_tokens" : "Trending Tokens",
+  "tokenized_communities_top_tokens" : "Top Tokens"
 }
