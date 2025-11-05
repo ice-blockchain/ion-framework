@@ -12,7 +12,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'media_nsfw_checker.r.g.dart';
 
-@Riverpod(keepAlive: true)
+@riverpod
 Future<MediaNsfwChecker> mediaNsfwChecker(Ref ref) async => MediaNsfwChecker(
       nsfwValidationService: await ref.read(nsfwValidationServiceProvider.future),
     );
