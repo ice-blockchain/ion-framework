@@ -21,11 +21,11 @@ class BlockedUserListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final displayName = ref.watch(
-      userPreviewDataProvider(pubkey, network: false).select(userPreviewDisplayNameSelector),
+      userPreviewDataProvider(pubkey).select(userPreviewDisplayNameSelector),
     );
 
     final username = ref.watch(
-      userPreviewDataProvider(pubkey, network: false).select(userPreviewNameSelector),
+      userPreviewDataProvider(pubkey).select(userPreviewNameSelector),
     );
 
     return BadgesUserListItem(
