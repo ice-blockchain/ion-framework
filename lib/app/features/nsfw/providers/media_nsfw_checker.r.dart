@@ -27,12 +27,9 @@ class MediaNsfwChecker {
   final Map<String, MediaCheckData> _mediaChecks = {};
 
   bool get isEmpty => _mediaChecks.isEmpty;
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
 
   void reset() {
     _mediaChecks.clear();
-    _isLoading = false;
   }
 
   Future<void> checkMediaForNsfw(List<MediaFile> mediaFiles) async {
@@ -81,8 +78,6 @@ class MediaNsfwChecker {
   }
 
   Future<NsfwCheckResult> hasNsfwMedia() async {
-    _isLoading = true;
-
     final futures = _mediaChecks.values.map((c) => c.completer.future).toList();
 
     try {
@@ -95,8 +90,6 @@ class MediaNsfwChecker {
       unawaited(_retryNsfwCheck());
 
       return NsfwCheckResult.failure(error: e);
-    } finally {
-      _isLoading = false;
     }
   }
 
