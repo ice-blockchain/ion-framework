@@ -90,7 +90,7 @@ class ChatDatabase extends _$ChatDatabase {
   final String? appGroupId;
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 4;
 
   static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
     final databaseName = 'conversation_database_$pubkey';
@@ -118,7 +118,14 @@ class ChatDatabase extends _$ChatDatabase {
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
-      onCreate: (m) => m.createAll(),
+      onCreate: (m) async {
+        await m.createAll();
+        // Create composite index with DESC ordering (not supported by @TableIndex)
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_event_message_kind_created_at '
+          'ON event_message_table(kind, created_at DESC)',
+        );
+      },
       onUpgrade: stepByStep(
         from1To2: (m, schema) async {
           await Future.wait(
@@ -154,15 +161,6 @@ class ChatDatabase extends _$ChatDatabase {
         },
         from3To4: (m, schema) async {
           await m.createTable(schema.processedGiftWrapTable);
-        },
-        from4To5: (m, schema) async {
-          // Indexes are defined using @TableIndex annotations in table definitions
-          // The composite index with DESC ordering needs to be created manually
-          // as @TableIndex doesn't support ordering specification
-          await m.database.customStatement(
-            'CREATE INDEX IF NOT EXISTS idx_event_message_kind_created_at '
-            'ON event_message_table(kind, created_at DESC)',
-          );
         },
       ),
     );
