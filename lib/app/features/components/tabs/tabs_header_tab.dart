@@ -2,15 +2,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/feed/notifications/data/model/notifications_tab_type.dart';
+import 'package:ion/app/features/components/tabs/tab_type.dart';
 
-class NotificationsHistoryTab extends StatelessWidget {
-  const NotificationsHistoryTab({
+class TabsHeaderTab extends StatelessWidget {
+  const TabsHeaderTab({
     required this.tabType,
     super.key,
   });
 
-  final NotificationsTabType tabType;
+  final TabType tabType;
 
   @override
   Widget build(BuildContext context) {

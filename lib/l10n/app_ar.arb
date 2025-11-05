@@ -447,6 +447,24 @@
   "group_create_type_public_desc": "المجموعات العامة قابلة للبحث ومفتوحة لجميع المستخدمين.",
   "group_create_type_title": "اختر نوع المجموعة",
   "group_created_message": "تم إنشاء المجموعة",
+  "group_admin_tab_members": "الأعضاء",
+  "group_add_members_button": "إضافة أعضاء",
+  "group_add_members_title": "إضافة أعضاء",
+  "group_edit_button": "تعديل المجموعة",
+  "group_clear_messages": "مسح الرسائل",
+  "group_delete_group": "حذف المجموعة",
+  "group_leave": "مغادرة",
+  "group_leave_confirm_title": "مغادرة المجموعة؟",
+  "group_leave_confirm_description": "هل أنت متأكد أنك تريد مغادرة المجموعة؟",
+  "group_no_members": "لا يوجد أعضاء",
+  "group_tab_coming_soon": "{tabName} - قريباً",
+  "@group_tab_coming_soon": {
+    "placeholders": {
+      "tabName": {
+        "type": "String"
+      }
+    }
+  },
   "hour": "{count, plural, =1{ساعة} other{ساعات}}",
   "identity_key_name_description": "اعتبر اسم مفتاح هويتك كمعرف فريد لحسابك. ستحتاجه لتسجيل الدخول واستعادة حسابك، لذا احفظه جيداً ولا تنساه",
   "identity_key_name_usage": "استخدمه لتسجيل الدخول على أي تطبيق مؤمن بواسطة",

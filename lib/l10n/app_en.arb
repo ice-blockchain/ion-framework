@@ -511,6 +511,24 @@
   "group_create_type_public_desc": "Public channels are searchable and open to all users.",
   "group_create_type_title": "Choose group type",
   "group_created_message": "The group has been created",
+  "group_admin_tab_members": "Members",
+  "group_add_members_button": "Add members",
+  "group_add_members_title": "Add members",
+  "group_edit_button": "Edit Group",
+  "group_clear_messages": "Clear messages",
+  "group_delete_group": "Delete group",
+  "group_leave": "Leave",
+  "group_leave_confirm_title": "Leave the Group?",
+  "group_leave_confirm_description": "Are you sure you want to leave the group?",
+  "group_no_members": "No members",
+  "group_tab_coming_soon": "{tabName} Tab - Coming soon",
+  "@group_tab_coming_soon": {
+    "placeholders": {
+      "tabName": {
+        "type": "String"
+      }
+    }
+  },
   "hodl_for": "HODL for {time}",
   "hour": "{count, plural, =1{hour} other{hours}}",
   "identity_key_name_description": "Think of your identity key name as a unique identifier of your account. You'll need it to log in and recover your account, so keep it safe and don't forget it",

@@ -510,6 +510,24 @@
   "group_create_type_public_desc": "Öffentliche Gruppen sind durchsuchbar und für alle Nutzer offen.",
   "group_create_type_title": "Gruppentyp auswählen",
   "group_created_message": "Die Gruppe wurde erstellt",
+  "group_admin_tab_members": "Mitglieder",
+  "group_add_members_button": "Mitglieder hinzufügen",
+  "group_add_members_title": "Mitglieder hinzufügen",
+  "group_edit_button": "Gruppe bearbeiten",
+  "group_clear_messages": "Nachrichten löschen",
+  "group_delete_group": "Gruppe löschen",
+  "group_leave": "Verlassen",
+  "group_leave_confirm_title": "Gruppe verlassen?",
+  "group_leave_confirm_description": "Möchtest du die Gruppe wirklich verlassen?",
+  "group_no_members": "Keine Mitglieder",
+  "group_tab_coming_soon": "{tabName} Tab - Kommt bald",
+  "@group_tab_coming_soon": {
+    "placeholders": {
+      "tabName": {
+        "type": "String"
+      }
+    }
+  },
   "hour": "{count, plural, =1{Stunde} other{Stunden}}",
   "identity_key_name_description": "Betrachte den Namen deines Identitätsschlüssels als eindeutige Kennung deines Kontos. Du benötigst ihn, um dich anzumelden und dein Konto wiederherzustellen; bewahre ihn daher sicher auf und vergiss ihn nicht.",
   "identity_key_name_usage": "Verwende ihn, um dich in jeder App anzumelden, die gesichert ist durch",

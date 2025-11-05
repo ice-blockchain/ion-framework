@@ -2,15 +2,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/user/model/user_content_type.dart';
+import 'package:ion/app/features/chat/e2ee/model/group_admin_tab.dart';
 
-class ProfileTabsHeaderTab extends StatelessWidget {
-  const ProfileTabsHeaderTab({
+class GroupTabsTab extends StatelessWidget {
+  const GroupTabsTab({
     required this.tabType,
     super.key,
   });
 
-  final UserContentType tabType;
+  final GroupAdminTab tabType;
 
   @override
   Widget build(BuildContext context) {

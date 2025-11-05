@@ -13,6 +13,7 @@ class ChatRoutes {
       routes: [
         TypedGoRoute<ChannelDetailRoute>(path: 'channel-detail'),
         TypedGoRoute<EditChannelRoute>(path: 'edit-channel'),
+        TypedGoRoute<GroupAdminPageRoute>(path: 'group-admin/:conversationId'),
       ],
     ),
     TypedShellRoute<ModalShellRouteData>(
@@ -26,7 +27,11 @@ class ChatRoutes {
         TypedGoRoute<ChatAddPollModalRoute>(path: 'add-poll'),
         TypedGoRoute<SearchEmojiRoute>(path: 'search-emoji'),
         TypedGoRoute<AddParticipantsToGroupModalRoute>(path: 'add-participants-to-group'),
+        TypedGoRoute<AddGroupParticipantsModalRoute>(
+          path: 'add-group-participants/:conversationId',
+        ),
         TypedGoRoute<CreateGroupModalRoute>(path: 'create-group'),
+        TypedGoRoute<LeaveGroupConfirmRoute>(path: 'leave-group-confirm'),
         TypedGoRoute<ShareViaMessageModalRoute>(path: 'share-via-message/:eventReference'),
         TypedGoRoute<PaymentSelectionChatRoute>(path: 'select-payment-type'),
         TypedGoRoute<SelectCoinChatRoute>(path: 'coin-selector-chat'),
@@ -78,6 +83,15 @@ class EditChannelRoute extends BaseRouteData with _$EditChannelRoute {
         );
 
   final String uuid;
+}
+
+class GroupAdminPageRoute extends BaseRouteData with _$GroupAdminPageRoute {
+  GroupAdminPageRoute({required this.conversationId})
+      : super(
+          child: GroupAdminPage(conversationId: conversationId),
+        );
+
+  final String conversationId;
 }
 
 class AppTestRoute extends BaseRouteData with _$AppTestRoute {
@@ -175,6 +189,24 @@ class AddParticipantsToGroupModalRoute extends BaseRouteData
   AddParticipantsToGroupModalRoute()
       : super(
           child: const InitGroupParticipantsModal(),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class AddGroupParticipantsModalRoute extends BaseRouteData with _$AddGroupParticipantsModalRoute {
+  AddGroupParticipantsModalRoute({required this.conversationId})
+      : super(
+          child: AddGroupParticipantsModal(conversationId: conversationId),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String conversationId;
+}
+
+class LeaveGroupConfirmRoute extends BaseRouteData with _$LeaveGroupConfirmRoute {
+  LeaveGroupConfirmRoute()
+      : super(
+          child: const LeaveGroupConfirmModal(),
           type: IceRouteType.bottomSheet,
         );
 }
