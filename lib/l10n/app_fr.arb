@@ -864,7 +864,7 @@
   "update_uptodate_title": "Vous êtes à jour",
   "update_inapp_update_desc": "Une nouvelle version d'Online+ est disponible, veuillez mettre à jour pour accéder aux dernières fonctionnalités.",
   "update_inapp_update_title": "Mettre à jour l'application",
-  "update_inapp_notification_loading": "Mise à jour de l'application",
+  "update_inapp_notification_loading": "Online+ est en cours de mise à jour…",
   "upload_limit_error_title": "Limite de téléchargement atteinte",
   "users_search": "Recherchez ci-dessus des utilisateurs",
   "verify_with_biometrics_title": "Vérifier avec les biométries",

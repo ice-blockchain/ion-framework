@@ -864,7 +864,7 @@
   "update_uptodate_title": "Вы обновлены",
   "update_inapp_update_desc": "Доступна новая версия Online+, пожалуйста, обновите, чтобы получить доступ к последним функциям.",
   "update_inapp_update_title": "Обновить приложение",
-  "update_inapp_notification_loading": "Обновление приложения",
+  "update_inapp_notification_loading": "Обновляется Online+…",
   "upload_limit_error_title": "Достигнут лимит загрузки",
   "users_search": "Ищите выше пользователей",
   "verify_with_biometrics_title": "Подтвердить с помощью биометрии",

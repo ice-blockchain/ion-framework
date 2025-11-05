@@ -856,7 +856,7 @@
     "two_fa_success_warning_desc": "密钥恢复后，所有以前的备份都将被永久删除。为确保账户安全，请重新创建密钥备份",
     "two_fa_title": "2FA 验证",
     "two_fa_warning": "如果您删除两步验证，可能会使您的数据安全面临风险。",
-    "update_inapp_notification_loading": "正在更新应用",
+    "update_inapp_notification_loading": "Online+ 正在更新…",
     "update_inapp_update_desc": "新版本的 Online+ 已可用，请更新以访问最新功能。",
     "update_inapp_update_title": "更新应用",
     "update_update_action": "立即更新",

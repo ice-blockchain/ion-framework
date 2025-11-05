@@ -864,7 +864,7 @@
   "update_uptodate_title": "Jesteś na bieżąco",
   "update_inapp_update_desc": "Dostępna jest nowa wersja Online+, proszę zaktualizować, aby uzyskać dostęp do najnowszych funkcji.",
   "update_inapp_update_title": "Aktualizuj aplikację",
-  "update_inapp_notification_loading": "Aktualizowanie aplikacji",
+  "update_inapp_notification_loading": "Online+ jest aktualizowane…",
   "upload_limit_error_title": "Osiągnięto limit przesyłania",
   "users_search": "Szukaj powyżej użytkowników",
   "verify_with_biometrics_title": "Zweryfikuj za pomocą biometrii",

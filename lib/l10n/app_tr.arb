@@ -864,7 +864,7 @@
   "update_uptodate_title": "Güncelsiniz",
   "update_inapp_update_desc": "Yeni bir Online+ sürümü mevcut, lütfen en yeni özelliklere erişmek için güncelleyin.",
   "update_inapp_update_title": "Uygulamayı güncelle",
-  "update_inapp_notification_loading": "Uygulama güncelleniyor",
+  "update_inapp_notification_loading": "Online+ güncelleniyor…",
   "upload_limit_error_title": "Yükleme limiti aşıldı",
   "users_search": "Yukarıda kullanıcılar için arayın",
   "verify_with_biometrics_title": "Biyometri ile doğrula",

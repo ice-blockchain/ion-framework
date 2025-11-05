@@ -856,7 +856,7 @@
     "two_fa_success_warning_desc": "Todas las copias de seguridad anteriores se eliminan permanentemente después de la recuperación de la clave. Para mantener tu cuenta segura, vuelve a crear una copia de seguridad de tus claves",
     "two_fa_title": "Verificación 2FA",
     "two_fa_warning": "Si eliminas la autenticación de dos pasos, puede poner en riesgo la seguridad de tus datos.",
-    "update_inapp_notification_loading": "Actualizando la aplicación",
+    "update_inapp_notification_loading": "Online+ se está actualizando…",
     "update_inapp_update_desc": "Está disponible una nueva versión de Online+, por favor actualiza para acceder a las últimas funciones.",
     "update_inapp_update_title": "Actualizar aplicación",
     "update_update_action": "Actualizar ahora",

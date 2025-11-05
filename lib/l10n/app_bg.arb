@@ -864,7 +864,7 @@
   "update_uptodate_title": "Вие сте актуализирани",
   "update_inapp_update_desc": "Налична е нова версия на Online+, моля актуализирайте, за да получите достъп до последните функции.",
   "update_inapp_update_title": "Актуализирай приложението",
-  "update_inapp_notification_loading": "Актуализиране на приложението",
+  "update_inapp_notification_loading": "Online+ се актуализира…",
   "upload_limit_error_title": "Достигнат лимит за качване",
   "users_search": "Търсете по-горе потребители",
   "verify_with_biometrics_title": "Потвърди с биометрика",
