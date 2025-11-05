@@ -435,13 +435,20 @@ final class DeepLinkService {
       return null;
     }
 
+    // https://support.appsflyer.com/hc/en-us/articles/207447163-About-link-structure-and-parameters#af_og_title
+    const maxOpenGraphTitleLength = 40;
+    // https://support.appsflyer.com/hc/en-us/articles/207447163-About-link-structure-and-parameters#af_og_description
+    const maxOpenGraphDescriptionLength = 300;
+
     // AppsFlyer requires a non-null or empty description because otherwise all og params will be not set at all
-    final description = ogDescription.isEmpty ? ' ' : _truncateText(ogDescription!);
+    final description = ogDescription.isEmpty
+        ? ' '
+        : _truncateText(text: ogDescription!, maxLength: maxOpenGraphDescriptionLength);
     final image = ogImageUrl.isEmpty ? ' ' : ogImageUrl!;
 
     if (ogTitle case final title?) {
       return {
-        'af_og_title': _truncateText(title),
+        'af_og_title': _truncateText(text: title, maxLength: maxOpenGraphTitleLength),
         'af_og_description': description,
         'af_og_image': image,
       };
@@ -450,10 +457,9 @@ final class DeepLinkService {
     return null;
   }
 
-  String _truncateText(String text) {
-    const maxOpenGraphTextLength = 1080;
-    if (text.length > maxOpenGraphTextLength) {
-      return text.substring(0, maxOpenGraphTextLength - 1);
+  String _truncateText({required String text, required int maxLength}) {
+    if (text.length > maxLength) {
+      return text.substring(0, maxLength);
     }
     return text;
   }
