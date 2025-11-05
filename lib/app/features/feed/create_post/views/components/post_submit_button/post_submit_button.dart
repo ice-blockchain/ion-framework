@@ -115,7 +115,7 @@ class PostSubmitButton extends HookConsumerWidget {
               .then((mediaChecker) => mediaChecker.hasNsfwMedia());
 
           if (!context.mounted) return;
-          loading.value = false;
+
           if (nsfwCheckResult is NsfwFailure) {
             showErrorModal(context, nsfwCheckResult.error);
             return;
