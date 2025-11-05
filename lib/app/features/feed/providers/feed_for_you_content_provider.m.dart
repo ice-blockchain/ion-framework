@@ -605,7 +605,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
 
     // We attempt to show only unseen entities.
-    if (!pageFetchContext.seenSkipsCounter.isReached && await _isSeen(entity, modifier: modifier)) {
+    if (!pageFetchContext.seenSkipsCounter.isReached && await _isSeen(entity)) {
       pageFetchContext.seenSkipsCounter.increment();
       pageFetchContext.skippedSeenEntities.putIfAbsent(modifier, () => []).add(entity);
       Logger.info(
@@ -631,11 +631,9 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
   }
 
-  Future<bool> _isSeen(IonConnectEntity entity, {required FeedModifier modifier}) async {
+  Future<bool> _isSeen(IonConnectEntity entity) async {
     final seenEventsRepository = ref.read(followingFeedSeenEventsRepositoryProvider);
-    final res = await seenEventsRepository.isSeen(eventReference: entity.toEventReference());
-
-    return res;
+    return seenEventsRepository.isSeen(eventReference: entity.toEventReference());
   }
 
   Future<String?> _getRequestInterest({
