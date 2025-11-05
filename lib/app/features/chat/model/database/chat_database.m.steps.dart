@@ -537,7 +537,6 @@ i1.GeneratedColumn<String> _column_21(String aliasedName) =>
     i1.GeneratedColumn<String>('gift_wrap_id', aliasedName, false,
         type: i1.DriftSqlType.string,
         defaultConstraints: i1.GeneratedColumn.constraintIsAlways('UNIQUE'));
-
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
