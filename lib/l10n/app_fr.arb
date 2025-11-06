@@ -792,6 +792,8 @@
   "story_share_sender": "Vous avez partagé cette histoire",
   "suggestions_empty_description": "Nous n'avons rien trouvé correspondant à votre recherche",
   "suggestions_loading_description": "Recherchez l'utilisateur que vous souhaitez mentionner",
+  "tokenized_communities_top_tokens": "Meilleurs jetons",
+  "tokenized_communities_trending_tokens": "Jetons tendance",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Ajouter un lien",
   "topics_add": "Ajouter",

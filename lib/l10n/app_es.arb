@@ -792,6 +792,8 @@
     "story_share_sender": "Compartiste esta historia",
     "suggestions_empty_description": "No pudimos encontrar nada que coincida con tu búsqueda",
     "suggestions_loading_description": "Busca el usuario que quieres mencionar",
+    "tokenized_communities_top_tokens": "Principales tokens",
+    "tokenized_communities_trending_tokens": "Tokens en tendencia",
     "toolbar_link_placeholder": "https://example.com",
     "toolbar_link_title": "Agregar un enlace",
     "topics_add": "Agregar",

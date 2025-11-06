@@ -160,14 +160,16 @@ jobs:
         run: |
           cd main-repo
           melos exec -- "flutter pub get"
-      - name: Generate code (parallel)
+      - name: Generate locales
+        id: generate-locales
+        run: |
+          cd main-repo
+          ./scripts/generate_locales.sh
+      - name: Generate code
         id: generate-code
         run: |
           cd main-repo
-          # Run locale generation and code generation in parallel
-          ./scripts/generate_locales.sh &
-          ./scripts/generate_code.sh &
-          wait
+          ./scripts/generate_code.sh
       - name: Analyze code
         id: analyze-code
         if: inputs.run_checks
