@@ -156,7 +156,7 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     if (currentUserMasterPubkey == null) return;
 
     final participantsMasterPubkeys = conversations
-        .where((c) => c.type == ConversationType.direct)
+        .where((c) => c.type == ConversationType.directEncrypted)
         .map((c) => c.receiverMasterPubkey(currentUserMasterPubkey))
         .toSet()
         .nonNulls;
@@ -187,12 +187,12 @@ class ConversationList extends ConsumerWidget {
           final conversation = conversations[index];
           return Column(
             children: [
-              if (conversation.type == ConversationType.direct)
+              if (conversation.type == ConversationType.directEncrypted)
                 EncryptedDirectChatTile(
                   conversation: conversation,
                   key: ValueKey(conversation.conversationId),
                 )
-              else if (conversation.type == ConversationType.group)
+              else if (conversation.type == ConversationType.groupEncrypted)
                 EncryptedGroupChatTile(
                   conversation: conversation,
                   key: ValueKey(conversation.conversationId),

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
@@ -50,6 +51,16 @@ class CreateGroupModal extends HookConsumerWidget {
           ]
         : <String>[];
 
+    ref.listen(imageProcessorNotifierProvider(ImageProcessingType.avatar),
+        (_, avatarProcessorState) {
+      final avatarFile = avatarProcessorState.whenOrNull(
+        cropped: (file) => file,
+        processed: (file) => file,
+      );
+
+      createGroupFormNotifier.groupPicture = avatarFile;
+    });
+
     useEffect(
       () {
         void updateTitle() {
@@ -68,7 +79,7 @@ class CreateGroupModal extends HookConsumerWidget {
         children: [
           NavigationAppBar.modal(
             showBackButton: false,
-            title: Text(context.i18n.group_create_title),
+            title: Text(context.i18n.group_create_title('1')),
             actions: const [
               NavigationCloseButton(),
             ],
@@ -86,6 +97,9 @@ class CreateGroupModal extends HookConsumerWidget {
                           avatarSize: 58.0.s,
                           iconSize: 14.0.s,
                           iconBackgroundSize: 21.0.s,
+                          avatarWidget: createGroupForm.groupPicture != null
+                              ? Image.file(File(createGroupForm.groupPicture!.path))
+                              : null,
                         ),
                         SizedBox(width: 16.0.s),
                         Expanded(
@@ -124,7 +138,7 @@ class CreateGroupModal extends HookConsumerWidget {
                         SizedBox(width: 6.0.s),
                         Text(
                           context.i18n
-                              .group_create_members_number(participantsMasterPubkeys.length - 1),
+                              .group_create_members_number(participantsMasterPubkeys.length),
                         ),
                         const Spacer(),
                         TextButton(
@@ -184,14 +198,6 @@ class CreateGroupModal extends HookConsumerWidget {
                 onPressed: () async {
                   if (formKey.currentState!.validate()) {
                     if (createGroupForm.type == GroupType.encrypted) {
-                      final avatarProcessorState =
-                          ref.read(imageProcessorNotifierProvider(ImageProcessingType.avatar));
-
-                      final groupPicture = avatarProcessorState.whenOrNull(
-                        cropped: (file) => file,
-                        processed: (file) => file,
-                      );
-
                       loading.value = true;
 
                       final members = participantsMasterPubkeys
@@ -202,17 +208,19 @@ class CreateGroupModal extends HookConsumerWidget {
                           )
                           .toList();
 
+                      final groupId = generateUuid();
+
                       await ref.read(sendE2eeGroupChatMessageServiceProvider).sendMetadataMessage(
                             members: members,
-                            groupPicture: groupPicture,
-                            groupId: generateUuid(),
+                            groupId: groupId,
                             groupName: createGroupForm.name!,
+                            groupPicture: createGroupForm.groupPicture,
                           );
 
                       loading.value = false;
 
                       if (context.mounted) {
-                        context.pop();
+                        ConversationRoute(conversationId: groupId).replace(context);
                       }
                     } else {
                       throw UnimplementedError();

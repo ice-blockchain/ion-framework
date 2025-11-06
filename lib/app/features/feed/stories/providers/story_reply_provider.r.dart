@@ -59,7 +59,7 @@ class StoryReply extends _$StoryReply {
 
       final conversationId = existingConversationId ??
           generateConversationId(
-            conversationType: ConversationType.direct,
+            conversationType: ConversationType.directEncrypted,
             receiverMasterPubkeys: [story.masterPubkey, currentUserMasterPubkey],
           );
 

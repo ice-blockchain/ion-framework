@@ -11,9 +11,9 @@ String generateConversationId({
 
   // For one-to-one conversations, we use v5 UUID to ensure the same conversation ID for the same participants.
   switch (conversationType) {
-    case ConversationType.direct:
+    case ConversationType.directEncrypted:
       return const Uuid().v5(Namespace.nil.value, sorted.join());
-    case ConversationType.group:
+    case ConversationType.groupEncrypted:
     case ConversationType.community:
       return const Uuid().v7();
   }

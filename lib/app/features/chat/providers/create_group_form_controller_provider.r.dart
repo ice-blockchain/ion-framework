@@ -2,6 +2,7 @@
 
 import 'package:ion/app/features/chat/community/models/create_group_form_data.f.dart';
 import 'package:ion/app/features/chat/community/models/group_type.dart';
+import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'create_group_form_controller_provider.r.g.dart';
@@ -18,11 +19,18 @@ class CreateGroupFormController extends _$CreateGroupFormController {
   set members(Iterable<String> value) =>
       state = state.copyWith(participantsMasterPubkeys: value.toSet());
 
+  set groupPicture(MediaFile? value) => state = state.copyWith(groupPicture: value);
+
   void toggleMember(String participant) {
     final updatedMembers = state.participantsMasterPubkeys.toSet();
-    updatedMembers.contains(participant)
-        ? updatedMembers.remove(participant)
-        : updatedMembers.add(participant);
+
+    final maxMembers = state.type.maxMembers;
+
+    if (updatedMembers.contains(participant)) {
+      updatedMembers.remove(participant);
+    } else if (maxMembers == null || updatedMembers.length + 1 < maxMembers) {
+      updatedMembers.add(participant);
+    }
 
     state = state.copyWith(participantsMasterPubkeys: updatedMembers);
   }

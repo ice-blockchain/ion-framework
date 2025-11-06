@@ -502,7 +502,7 @@
   "group_create_first_message": "Gruppe wurde erstellt",
   "group_create_members_number": "Gruppenmitglieder ({members})",
   "group_create_name_label": "Gruppenname",
-  "group_create_title": "Neue Gruppe",
+  "group_create_title": "Neue Gruppe{members, select, 1{} other{ ({members})}}",
   "group_create_type": "Gruppentyp",
   "group_create_type_encrypted": "Verschlüsselt",
   "group_create_type_encrypted_desc": "Es wird Ende-zu-Ende-Verschlüsselung verwendet. Nur du und die Personen, mit denen du kommunizierst, können die Nachrichten sehen.",

@@ -134,7 +134,7 @@ class GroupContextMenu extends HookConsumerWidget {
             closeMenu();
             final messages = ref
                 .read(
-                  conversationMessagesProvider(conversationId, ConversationType.group),
+                  conversationMessagesProvider(conversationId, ConversationType.groupEncrypted),
                 )
                 .valueOrNull;
             final lastMessage = messages?.entries.lastOrNull?.value.last;

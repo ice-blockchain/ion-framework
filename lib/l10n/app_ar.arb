@@ -439,7 +439,7 @@
   "group_create_first_message": "تم إنشاء المجموعة",
   "group_create_members_number": "أعضاء المجموعة ({members})",
   "group_create_name_label": "اسم المجموعة",
-  "group_create_title": "مجموعة جديدة",
+  "group_create_title": "مجموعة جديدة {members, select, 1{} other{ ({members})}}",
   "group_create_type": "نوع المجموعة",
   "group_create_type_encrypted": "مشفر",
   "group_create_type_encrypted_desc": "يتم استخدام التشفير من الطرف إلى الطرف. فقط أنت والأشخاص الذين تتواصل معهم يمكنهم رؤية الرسائل.",
