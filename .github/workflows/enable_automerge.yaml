@@ -3,6 +3,9 @@ name: Auto-enable PR auto-merge
 on:
   pull_request_target:
     types: [opened, reopened, ready_for_review]
+    branches:
+      - release_candidate
+      - master
 
 permissions:
   contents: write
@@ -19,4 +22,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: gh pr merge --auto --squash "$PR_NUMBER"
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        run: |
+          if [ "$BASE_BRANCH" == "release_candidate" ]; then
+            gh pr merge --auto --rebase "$PR_NUMBER"
+          else
+            gh pr merge --auto --squash "$PR_NUMBER"
+          fi
