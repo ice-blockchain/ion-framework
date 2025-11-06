@@ -69,18 +69,14 @@ jobs:
         run: |
           cd main-repo
           melos run 4mat
-      - name: Generate locales
-        id: generate-locales
-        run: |
-          cd main-repo
-          # Run locale generation with verification
-          ./scripts/generate_locales.sh
-      - name: Generate code
+      - name: Generate code (parallel)
         id: generate-code
         run: |
           cd main-repo
-          # Run code generation
-          ./scripts/generate_code.sh
+          # Run locale generation and code generation in parallel
+          ./scripts/generate_locales.sh &
+          ./scripts/generate_code.sh &
+          wait
       - name: Analyze code
         id: analyze-code
         run: |

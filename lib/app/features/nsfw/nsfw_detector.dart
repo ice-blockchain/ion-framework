@@ -23,7 +23,7 @@ class NsfwResult {
 }
 
 class NsfwDetector {
-  NsfwDetector(
+  NsfwDetector._(
     this._interpreter, {
     double blockThreshold = 0.60,
   }) : _blockThreshold = blockThreshold;
@@ -34,19 +34,19 @@ class NsfwDetector {
   static const _size = 224;
 
   static Future<NsfwDetector> create({
-    Interpreter? interpreter,
     double blockThreshold = 0.50,
   }) async {
-    if (interpreter != null) {
-      return NsfwDetector(interpreter, blockThreshold: blockThreshold);
+    final threads = (Platform.numberOfProcessors / 2).ceil().clamp(1, 4);
+    final options = InterpreterOptions()
+      ..threads = threads
+      ..useNnApiForAndroid = false;
+    if (Platform.isIOS) {
+      options.addDelegate(
+        XNNPackDelegate(options: XNNPackDelegateOptions(numThreads: threads)),
+      );
     }
-
-    interpreter = await Interpreter.fromAsset(
-      'assets/ml/nsfw_int8.tflite',
-      options: defaultInterpreterOptions,
-    );
-
-    return NsfwDetector(interpreter, blockThreshold: blockThreshold);
+    final interpreter = await Interpreter.fromAsset('assets/ml/nsfw_int8.tflite', options: options);
+    return NsfwDetector._(interpreter, blockThreshold: blockThreshold);
   }
 
   void dispose() => _interpreter.close();
@@ -109,22 +109,5 @@ class NsfwDetector {
     final out = rgb.getBytes(order: img.ChannelOrder.rgb);
     // Model expects [1,224,224,3] uint8 RGB (NHWC).
     return out;
-  }
-
-  static InterpreterOptions get defaultInterpreterOptions {
-    final threads = (Platform.numberOfProcessors / 2).ceil().clamp(1, 4);
-    final options = InterpreterOptions()
-      ..threads = threads
-      ..useNnApiForAndroid = false;
-
-    if (Platform.isIOS) {
-      options.addDelegate(
-        XNNPackDelegate(
-          options: XNNPackDelegateOptions(numThreads: threads),
-        ),
-      );
-    }
-
-    return options;
   }
 }

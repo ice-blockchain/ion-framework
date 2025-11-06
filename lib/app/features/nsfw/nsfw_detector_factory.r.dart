@@ -8,7 +8,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'nsfw_detector_factory.r.g.dart';
 
 abstract class NsfwDetectorFactory {
-  double get blockThreshold;
   Future<NsfwDetector> create();
 }
 
@@ -17,7 +16,6 @@ class DefaultNsfwDetectorFactory implements NsfwDetectorFactory {
     required this.blockThreshold,
   });
 
-  @override
   final double blockThreshold;
 
   @override

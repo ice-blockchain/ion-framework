@@ -1,11 +1,8 @@
 name: CI/CD
 on:
-  pull_request:
-    branches:
-      - release_candidate
   push:
     branches:
-      - release_candidate
+      - master
       - release/v*
   workflow_dispatch:
     inputs:
@@ -37,10 +34,11 @@ on:
 
 permissions:
   actions: write
-  contents: write
+  contents: read
 
 env:
-  APP_ENV: ${{ inputs.environment || 'production' }}
+  APP_ENV: ${{ inputs.environment || (startsWith(github.ref, 'refs/heads/release/') && 'production') || 'staging' }}
+  DEPLOYMENT_TYPE: ${{ inputs.deployment || (startsWith(github.ref, 'refs/heads/release/') && 'store') || 'firebase' }}
 
 jobs:
   flutter:
@@ -81,12 +79,12 @@ jobs:
         id: setup-env
         run: |
           cd main-repo
-          scripts/configure_env.sh $APP_ENV
+          scripts/configure_env.sh $APP_ENV $DEPLOYMENT_TYPE
       - name: Fetch coins data using ION_ORIGIN
         run: |
           cd main-repo
           set -a
-          source ./.app.env
+          source ./.merged.app.env
           set +a
 
           mkdir -p ./assets/ion_identity
@@ -112,7 +110,7 @@ jobs:
         run: |
           cd main-repo
           set -a
-          source ./.app.env
+          source ./.merged.app.env
           set +a
 
           mkdir -p ./assets/ion_identity
@@ -162,16 +160,14 @@ jobs:
         run: |
           cd main-repo
           melos exec -- "flutter pub get"
-      - name: Generate locales
-        id: generate-locales
-        run: |
-          cd main-repo
-          ./scripts/generate_locales.sh
-      - name: Generate code
+      - name: Generate code (parallel)
         id: generate-code
         run: |
           cd main-repo
-          ./scripts/generate_code.sh
+          # Run locale generation and code generation in parallel
+          ./scripts/generate_locales.sh &
+          ./scripts/generate_code.sh &
+          wait
       - name: Analyze code
         id: analyze-code
         if: inputs.run_checks
@@ -190,15 +186,6 @@ jobs:
         run: |
           cd main-repo
           ./scripts/license_check.sh
-      - name: Create Release tag
-        if: ${{ startsWith(github.ref, 'refs/heads/release/') }}
-        run: |
-          cd main-repo
-          new_tag="${{ steps.set_version.outputs.version }}.${{ github.run_number }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag "$new_tag"
-          git push origin "$new_tag"
       - uses: actions/cache/save@v3
         id: cache_all
         with:
@@ -217,17 +204,13 @@ jobs:
           status: ${{ job.status }}
           steps: ${{ '{}' }}
   ios-cicd:
-    name: iOS -- build, deploy (${{ matrix.deployment_target }})
+    name: iOS -- build, deploy
     needs: [flutter]
     runs-on: macos-15
-    strategy:
-      matrix:
-        deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('[""{0}""]', inputs.deployment)) || fromJSON('["firebase", "store"]') }}
     env:
       FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 180
       FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 10
       APP_VERSION: ${{ needs.flutter.outputs.app_version }}
-      DEPLOYMENT_TYPE: ${{ matrix.deployment_target }}
     steps:
       - uses: actions/cache@v3
         id: cache_all
@@ -275,11 +258,9 @@ jobs:
               echo "IOS_SIGN_TYPE=adhoc" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=firebase" >> $GITHUB_ENV
               echo "RELEASE_NOTES=${{ env.APP_ENV }}_${{ github.ref_name }}" >> $GITHUB_ENV
-              echo "ENV_FILE=.app.env" >> $GITHUB_ENV
             else
               echo "IOS_SIGN_TYPE=appstore" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=testflight" >> $GITHUB_ENV
-              echo "ENV_FILE=.merged.store.app.env" >> $GITHUB_ENV
           fi
           echo "BUILD_NUMBER=$(echo $((GITHUB_RUN_NUMBER)))" >> $GITHUB_ENV
       - name: Fetch code signing identity (${{env.IOS_SIGN_TYPE}})
@@ -295,7 +276,7 @@ jobs:
           source .env
           set +a
           ./scripts/generate_ios_export_options.sh --signType $IOS_SIGN_TYPE --bundleId $APP_ID --outputPath ios/ExportOptions.plist
-          flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=$ENV_FILE
+          flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=.merged.app.env
       - name: Deploy iOS App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         run: |
@@ -312,15 +293,11 @@ jobs:
           status: ${{ job.status }}
           steps: ${{ '{}' }}
   android-cicd:
-    name: Android -- build, deploy (${{ matrix.deployment_target }})
+    name: Android -- build, deploy
     needs: [flutter]
     runs-on: macos-15
-    strategy:
-      matrix:
-        deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('[""{0}""]', inputs.deployment)) || fromJSON('["firebase", "store"]') }}
     env:
       APP_VERSION: ${{ needs.flutter.outputs.app_version }}
-      DEPLOYMENT_TYPE: ${{ matrix.deployment_target }}
     steps:
       - uses: actions/cache@v3
         id: cache_all
@@ -375,24 +352,16 @@ jobs:
               echo "ANDROID_ARCHIVE_TYPE=apk" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=firebase" >> $GITHUB_ENV
               echo "RELEASE_NOTES=${{ env.APP_ENV }}_${{ github.ref_name }}" >> $GITHUB_ENV
-              echo "ENV_FILE=.app.env" >> $GITHUB_ENV
             else
               echo "ANDROID_ARCHIVE_TYPE=appbundle" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=playstore" >> $GITHUB_ENV
-              echo "ENV_FILE=.merged.store.app.env" >> $GITHUB_ENV
           fi
-
           if [[ ${{ env.APP_ENV == 'production' }} == true ]]
             then
               echo "APP_FLAVOR=production" >> $GITHUB_ENV
-            else
-              echo "APP_FLAVOR=staging" >> $GITHUB_ENV
-          fi
-
-          if [[ "${{ startsWith(github.ref, 'refs/heads/release/') }}" == 'true' ]]
-            then
               echo "RELEASE_STATUS=completed" >> $GITHUB_ENV
             else
+              echo "APP_FLAVOR=staging" >> $GITHUB_ENV
               echo "RELEASE_STATUS=draft" >> $GITHUB_ENV
           fi
           echo "BUILD_NUMBER=$(echo $((GITHUB_RUN_NUMBER)))" >> $GITHUB_ENV
@@ -400,7 +369,7 @@ jobs:
         id: build-app
         run: |
           cd main-repo
-          flutter build $ANDROID_ARCHIVE_TYPE --release --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --dart-define-from-file=$ENV_FILE
+          flutter build $ANDROID_ARCHIVE_TYPE --release --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --dart-define-from-file=.merged.app.env
       - name: Deploy Android App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         run: |
