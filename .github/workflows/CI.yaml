@@ -76,7 +76,7 @@ jobs:
           # Run locale generation and code generation in parallel
           ./scripts/generate_locales.sh &
           ./scripts/generate_code.sh &
-          wait
+          wait || exit $?
       - name: Analyze code
         id: analyze-code
         run: |
