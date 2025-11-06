@@ -792,6 +792,8 @@
   "story_share_sender": "You shared this story",
   "suggestions_empty_description": "We couldn’t find anything matching your search",
   "suggestions_loading_description": "Search for the user you want to mention",
+  "tokenized_communities_top_tokens": "Top Tokens",
+  "tokenized_communities_trending_tokens": "Trending Tokens",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Add a link",
   "topics_add": "Add",
@@ -1021,7 +1023,5 @@
   "who_can_reply_settings_title_story": "Who can reply to this story",
   "who_can_reply_settings_title_video": "Who can reply to this video",
   "who_can_reply_settings_verified_accounts": "Verified accounts",
-  "write_a_message": "Write a message...",
-  "tokenized_communities_trending_tokens" : "Trending Tokens",
-  "tokenized_communities_top_tokens" : "Top Tokens"
+  "write_a_message": "Write a message..."
 }

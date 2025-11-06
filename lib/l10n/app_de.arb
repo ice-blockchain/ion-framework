@@ -792,6 +792,8 @@
   "story_share_sender": "Du hast diese Story geteilt",
   "suggestions_empty_description": "Wir konnten nichts finden, das deiner Suche entspricht.",
   "suggestions_loading_description": "Suche nach dem Benutzer, den du erwähnen möchtest",
+  "tokenized_communities_top_tokens": "Top Tokens",
+  "tokenized_communities_trending_tokens": "Trending Tokens",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Link hinzufügen",
   "topics_add": "Hinzufügen",
@@ -1021,7 +1023,5 @@
   "who_can_reply_settings_title_story": "Wer kann auf diese Story antworten",
   "who_can_reply_settings_title_video": "Wer kann auf dieses Video antworten",
   "who_can_reply_settings_verified_accounts": "Verifizierte Konten",
-  "write_a_message": "Nachricht schreiben …",
-  "tokenized_communities_trending_tokens": "Trending Tokens",
-  "tokenized_communities_top_tokens": "Top Tokens"
+  "write_a_message": "Nachricht schreiben …"
 }

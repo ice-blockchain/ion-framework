@@ -792,6 +792,8 @@
   "story_share_sender": "Вы поделились этой историей",
   "suggestions_empty_description": "Мы не смогли найти ничего, соответствующего вашему поиску",
   "suggestions_loading_description": "Ищите пользователя, которого хотите упомянуть",
+  "tokenized_communities_top_tokens": "Топ токенов",
+  "tokenized_communities_trending_tokens": "Популярные токены",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Добавить ссылку",
   "topics_add": "Добавить",
