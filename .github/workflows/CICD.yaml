@@ -34,7 +34,7 @@ on:
 
 permissions:
   actions: write
-  contents: read
+  contents: write
 
 env:
   APP_ENV: ${{ inputs.environment || (startsWith(github.ref, 'refs/heads/release/') && 'production') || 'staging' }}
@@ -188,6 +188,15 @@ jobs:
         run: |
           cd main-repo
           ./scripts/license_check.sh
+      - name: Create Release tag
+        if: ${{ env.DEPLOYMENT_TYPE == 'store' && startsWith(github.ref, 'refs/heads/release/') }}
+        run: |
+          cd main-repo
+          new_tag="${{ steps.set_version.outputs.version }}.${{ github.run_number }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "$new_tag"
+          git push origin "$new_tag"
       - uses: actions/cache/save@v3
         id: cache_all
         with:
