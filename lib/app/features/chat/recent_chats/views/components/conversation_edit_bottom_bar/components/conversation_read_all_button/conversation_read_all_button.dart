@@ -34,7 +34,6 @@ class ConversationReadAllButton extends ConsumerWidget {
 
         await Future.wait(
           conversationsToManage.map((conversation) async {
-            print('QQQ Marking conversation ${conversation.conversationId} as read');
             if (conversation.latestMessage != null) {
               await (await ref.read(sendE2eeMessageStatusServiceProvider.future)).sendMessageStatus(
                 status: MessageDeliveryStatus.read,
