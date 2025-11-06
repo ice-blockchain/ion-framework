@@ -9,8 +9,10 @@ import 'package:ion/app/components/video_preview/video_preview.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/aspect_ratio.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/utils/image_path.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class ImageBlockLocalImage extends HookConsumerWidget {
@@ -44,16 +46,28 @@ class ImageBlockLocalImage extends HookConsumerWidget {
 
               isVideo.value = assetEntity.type == AssetType.video;
               duration.value = assetEntity.videoDuration;
-              final originFile = await assetEntity.originFile;
-              final thumbnail = await ref
-                  .read(videoCompressorProvider)
-                  .getThumbnail(MediaFile(path: originFile!.path));
 
-              if (context.mounted) {
-                file.value = originFile;
-                thumbnailUrl.value = thumbnail.path;
+              final mediaFile = await getAssetFile(assetEntity);
+              final originFile = isVideo.value ? await assetEntity.originFile : mediaFile;
+
+              if (context.mounted && mediaFile != null) {
+                file.value = mediaFile;
+                if (isVideo.value && originFile != null) {
+                  final thumbnail = await ref
+                      .read(videoCompressorProvider)
+                      .getThumbnail(MediaFile(path: originFile.path));
+                  if (context.mounted) {
+                    thumbnailUrl.value = thumbnail.path;
+                  }
+                }
               }
             }
+          } catch (e, st) {
+            Logger.error(
+              e,
+              stackTrace: st,
+              message: 'Error while loading media data: from ImageBlockLocalImage',
+            );
           } finally {
             if (context.mounted) {
               isLoading.value = false;
