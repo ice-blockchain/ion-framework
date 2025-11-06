@@ -237,7 +237,9 @@ class VideoController extends _$VideoController {
   Future<void> _seekToSavedPosition(VideoPlayerController controller, String sourcePath) async {
     final savedPosition =
         ref.watch(videoPlayerPositionDataProvider.notifier).getPosition(sourcePath);
-    if (savedPosition != null && savedPosition != controller.value.position.inMilliseconds) {
+    final videoDuration =
+        controller.value.duration.inMilliseconds - _scrubbedDuration.inMilliseconds;
+    if (savedPosition != null && savedPosition < videoDuration && controller.value.isLooping) {
       await controller.seekTo(Duration(milliseconds: savedPosition));
     }
   }
