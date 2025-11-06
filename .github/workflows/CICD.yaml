@@ -222,7 +222,7 @@ jobs:
     runs-on: macos-15
     strategy:
       matrix:
-        deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('[""{0}""]', inputs.deployment)) || fromJSON('["firebase", "store"]') }}
+        deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.deployment)) || fromJSON('["firebase", "store"]') }}
     env:
       FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 180
       FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 10
@@ -317,7 +317,7 @@ jobs:
     runs-on: macos-15
     strategy:
       matrix:
-        deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('[""{0}""]', inputs.deployment)) || fromJSON('["firebase", "store"]') }}
+        deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.deployment)) || fromJSON('["firebase", "store"]') }}
     env:
       APP_VERSION: ${{ needs.flutter.outputs.app_version }}
       DEPLOYMENT_TYPE: ${{ matrix.deployment_target }}
