@@ -7,6 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/core/views/pages/error_modal.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
 import 'package:ion/app/features/feed/create_post/views/hooks/use_can_submit_post.dart';
@@ -21,7 +22,9 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
+import 'package:ion/app/features/nsfw/models/nsfw_check_result.f.dart';
+import 'package:ion/app/features/nsfw/providers/media_nsfw_checker.r.dart';
+import 'package:ion/app/features/nsfw/widgets/nsfw_blocked_sheet.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
@@ -78,15 +81,17 @@ class PostSubmitButton extends HookConsumerWidget {
       modifiedEvent: modifiedEntity,
     );
 
+    final loading = useState(false);
+
     return ToolbarSendButton(
       enabled: isSubmitButtonEnabled,
+      loading: loading.value,
       onPressed: () async {
         if (!shownTooltip.value && selectedTopics.isEmpty) {
           shownTooltip.value = true;
           ref.read(topicTooltipVisibilityNotifierProvider.notifier).show();
           return;
         }
-
         // Do not set language for replies.
         final language =
             parentEvent == null ? ref.read(selectedEntityLanguageNotifierProvider) : null;
@@ -95,51 +100,76 @@ class PostSubmitButton extends HookConsumerWidget {
           return;
         }
 
-        final filesToUpload = createOption == CreatePostOption.video
-            ? mediaFiles
-            : await ref
-                .read(mediaServiceProvider)
-                .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
+        loading.value = true;
+        try {
+          final filesToUpload = createOption == CreatePostOption.video
+              ? mediaFiles
+              : await ref
+                  .read(mediaServiceProvider)
+                  .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
 
-        // NSFW validation: block posting if any selected image is NSFW
-        final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, filesToUpload);
-        if (isBlocked) return;
+          if (!context.mounted) return;
 
-        if (context.mounted) {
-          final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
+          final nsfwCheckResult = await ref
+              .read(mediaNsfwCheckerProvider.future)
+              .then((mediaChecker) => mediaChecker.hasNsfwMedia());
 
-          if (modifiedEvent != null) {
-            unawaited(
-              notifier.modify(
-                content: textEditorController.document.toDelta(),
-                mediaFiles: filesToUpload,
-                mediaAttachments: mediaAttachments,
-                eventReference: modifiedEvent!,
-                whoCanReply: whoCanReply,
-                topics: selectedTopics,
-                poll: PollUtils.pollDraftToPollData(draftPoll),
-                language: language?.value,
-              ),
-            );
-          } else {
-            unawaited(
-              notifier.create(
-                content: textEditorController.document.toDelta(),
-                parentEvent: parentEvent,
-                quotedEvent: quotedEvent,
-                mediaFiles: filesToUpload,
-                whoCanReply: whoCanReply,
-                topics: selectedTopics,
-                poll: PollUtils.pollDraftToPollData(draftPoll),
-                language: language?.value,
-              ),
-            );
+          if (!context.mounted) return;
+
+          if (nsfwCheckResult is NsfwFailure) {
+            showErrorModal(context, nsfwCheckResult.error);
+            return;
           }
 
-          if (onSubmitted != null) {
-            onSubmitted!();
-          } else if (context.mounted) {
-            ref.context.maybePop(true);
+          // NSFW validation: block posting if any selected image is NSFW
+          if (nsfwCheckResult is NsfwSuccess && nsfwCheckResult.hasNsfw) {
+            if (context.mounted) {
+              await showNsfwBlockedSheet(context);
+            }
+
+            return;
+          }
+
+          if (context.mounted) {
+            final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
+
+            if (modifiedEvent != null) {
+              unawaited(
+                notifier.modify(
+                  content: textEditorController.document.toDelta(),
+                  mediaFiles: filesToUpload,
+                  mediaAttachments: mediaAttachments,
+                  eventReference: modifiedEvent!,
+                  whoCanReply: whoCanReply,
+                  topics: selectedTopics,
+                  poll: PollUtils.pollDraftToPollData(draftPoll),
+                  language: language?.value,
+                ),
+              );
+            } else {
+              unawaited(
+                notifier.create(
+                  content: textEditorController.document.toDelta(),
+                  parentEvent: parentEvent,
+                  quotedEvent: quotedEvent,
+                  mediaFiles: filesToUpload,
+                  whoCanReply: whoCanReply,
+                  topics: selectedTopics,
+                  poll: PollUtils.pollDraftToPollData(draftPoll),
+                  language: language?.value,
+                ),
+              );
+            }
+
+            if (onSubmitted != null) {
+              onSubmitted!();
+            } else if (context.mounted) {
+              ref.context.maybePop(true);
+            }
+          }
+        } finally {
+          if (context.mounted) {
+            loading.value = false;
           }
         }
       },

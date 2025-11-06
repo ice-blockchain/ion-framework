@@ -7,6 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
@@ -69,7 +70,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
     final whoCanReply = ref.watch(selectedWhoCanReplyOptionProvider);
     final selectedTopics = ref.watch(selectedInterestsNotifierProvider);
     final shownTooltip = useRef(false);
-    final isProcessing = useRef(false);
+    final isProcessing = useState(false);
 
     usePreselectTopics(ref, eventReference: modifiedEvent);
 
@@ -109,6 +110,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
                 SizedBox(height: 16.0.s),
                 ScreenSideOffset.large(
                   child: Button(
+                    trailingIcon: isProcessing.value ? const IONLoadingIndicator() : null,
                     leadingIcon: Assets.svg.iconFeedArticles.icon(
                       color: context.theme.appColors.onPrimaryAccent,
                     ),
