@@ -1,5 +1,8 @@
 name: CI/CD
 on:
+  pull_request:
+    branches:
+      - release_candidate
   push:
     branches:
       - release_candidate
@@ -37,8 +40,8 @@ permissions:
   contents: write
 
 env:
-  APP_ENV: ${{ inputs.environment || (startsWith(github.ref, 'refs/heads/release/') && 'production') || 'staging' }}
-  DEPLOYMENT_TYPE: ${{ inputs.deployment || (startsWith(github.ref, 'refs/heads/release/') && 'store') || 'firebase' }}
+  APP_ENV: ${{ inputs.environment || 'production' }}
+  DEPLOYMENT_TYPE: ${{ inputs.deployment || 'store' }}
 
 jobs:
   flutter:
