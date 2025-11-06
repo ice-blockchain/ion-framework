@@ -3,6 +3,8 @@ name: Auto-enable PR auto-merge
 on:
   pull_request_target:
     types: [opened, reopened, ready_for_review]
+    branches:
+      - release_candidate
 
 permissions:
   contents: write
