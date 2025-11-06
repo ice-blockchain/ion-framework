@@ -34,25 +34,17 @@ class NsfwDetector {
   static const _size = 224;
 
   static Future<NsfwDetector> create({
-    String? modelFilePath,
+    Interpreter? interpreter,
     double blockThreshold = 0.50,
   }) async {
-    final threads = (Platform.numberOfProcessors / 2).ceil().clamp(1, 4);
-    final options = InterpreterOptions()
-      ..threads = threads
-      ..useNnApiForAndroid = false;
-    if (Platform.isIOS) {
-      options.addDelegate(
-        XNNPackDelegate(options: XNNPackDelegateOptions(numThreads: threads)),
-      );
+    if (interpreter != null) {
+      return NsfwDetector(interpreter, blockThreshold: blockThreshold);
     }
 
-    final Interpreter interpreter;
-    if (modelFilePath != null) {
-      interpreter = Interpreter.fromFile(File(modelFilePath), options: options);
-    } else {
-      interpreter = await Interpreter.fromAsset('assets/ml/nsfw_int8.tflite', options: options);
-    }
+    interpreter = await Interpreter.fromAsset(
+      'assets/ml/nsfw_int8.tflite',
+      options: defaultInterpreterOptions,
+    );
 
     return NsfwDetector(interpreter, blockThreshold: blockThreshold);
   }
@@ -117,5 +109,22 @@ class NsfwDetector {
     final out = rgb.getBytes(order: img.ChannelOrder.rgb);
     // Model expects [1,224,224,3] uint8 RGB (NHWC).
     return out;
+  }
+
+  static InterpreterOptions get defaultInterpreterOptions {
+    final threads = (Platform.numberOfProcessors / 2).ceil().clamp(1, 4);
+    final options = InterpreterOptions()
+      ..threads = threads
+      ..useNnApiForAndroid = false;
+
+    if (Platform.isIOS) {
+      options.addDelegate(
+        XNNPackDelegate(
+          options: XNNPackDelegateOptions(numThreads: threads),
+        ),
+      );
+    }
+
+    return options;
   }
 }

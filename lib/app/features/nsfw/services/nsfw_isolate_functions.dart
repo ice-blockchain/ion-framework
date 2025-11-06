@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:ion/app/features/nsfw/nsfw_detector.dart';
+import 'package:tflite_flutter/tflite_flutter.dart';
 
 // One-shot isolate function which creates detector and checks all media in single isolate
 @pragma('vm:entry-point')
@@ -12,8 +14,13 @@ Future<Map<String, NsfwResult>> nsfwCheckAllMediaOneShotFn(List<dynamic> params)
   final pathToBytes = params[2] as Map<String, Uint8List>;
   final results = <String, NsfwResult>{};
 
+  final interpreter = Interpreter.fromFile(
+    File(modelPath),
+    options: NsfwDetector.defaultInterpreterOptions,
+  );
+
   final detector = await NsfwDetector.create(
-    modelFilePath: modelPath,
+    interpreter: interpreter,
     blockThreshold: blockThreshold,
   );
 
