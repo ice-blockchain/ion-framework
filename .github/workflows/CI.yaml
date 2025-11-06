@@ -75,14 +75,12 @@ jobs:
           cd main-repo
           # Run locale generation with verification
           ./scripts/generate_locales.sh
-          wait
       - name: Generate code
         id: generate-code
         run: |
           cd main-repo
           # Run code generation
           ./scripts/generate_code.sh
-          wait
       - name: Analyze code
         id: analyze-code
         run: |
