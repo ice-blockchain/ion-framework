@@ -2,6 +2,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/chat/community/models/group_type.dart';
+import 'package:ion/app/services/media_service/media_service.m.dart';
 
 part 'create_group_form_data.f.freezed.dart';
 
@@ -9,6 +10,7 @@ part 'create_group_form_data.f.freezed.dart';
 class CreateGroupFormData with _$CreateGroupFormData {
   const factory CreateGroupFormData({
     String? name,
+    MediaFile? groupPicture,
     @Default(GroupType.encrypted) GroupType type,
     @Default({}) Set<String> participantsMasterPubkeys,
   }) = _CreateGroupFormData;
