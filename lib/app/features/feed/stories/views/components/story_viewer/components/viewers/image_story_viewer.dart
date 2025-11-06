@@ -68,7 +68,7 @@ class ImageStoryViewer extends HookConsumerWidget {
             : context.i18n.story_see_post;
 
         return ColoredBox(
-          color: context.theme.appColors.attentionBlock,
+          color: context.theme.appColors.primaryText,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 20.0.s),
             child: TapToSeeHint(
