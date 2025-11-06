@@ -2,6 +2,8 @@ package io.ion.app
 
 import android.content.Context
 import android.content.Intent
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.Log
@@ -95,6 +97,29 @@ class MainActivity : FlutterFragmentActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             "ion/video_compression"
         ).setMethodCallHandler(videoCompressionPlugin)
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "ion/video_codec"
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "getVideoCodec" -> {
+                    val videoPath = call.argument<String>("videoPath")
+                    if (videoPath == null) {
+                        result.error("INVALID_ARGUMENT", "videoPath is required", null)
+                        return@setMethodCallHandler
+                    }
+
+                    try {
+                        val codec = getVideoCodecFromPath(videoPath)
+                        result.success(codec)
+                    } catch (e: Exception) {
+                        result.error("CODEC_DETECTION_FAILED", e.message, null)
+                    }
+                }
+                else -> result.notImplemented()
+            }
+        }
 
         // Set up your MethodChannel here after registration
         banubaSdkChannel = MethodChannel(
@@ -369,6 +394,31 @@ class MainActivity : FlutterFragmentActivity() {
             // Checking the license might take around 1 sec in the worst case.
             // Please optimize use if this method in your application for the best user experience
             sdk.getLicenseState(callback)
+        }
+    }
+
+    private fun getVideoCodecFromPath(videoPath: String): String? {
+        val extractor = MediaExtractor()
+        return try {
+            extractor.setDataSource(videoPath)
+
+            for (i in 0 until extractor.trackCount) {
+                val format = extractor.getTrackFormat(i)
+                val mime = format.getString(MediaFormat.KEY_MIME)
+
+                if (mime?.startsWith("video/") == true) {
+                    Log.d(TAG, "Video codec for $videoPath: $mime")
+                    return mime
+                }
+            }
+
+            Log.w(TAG, "No video track found in $videoPath")
+            null
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to extract video codec from $videoPath", e)
+            null
+        } finally {
+            extractor.release()
         }
     }
 
