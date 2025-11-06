@@ -2,7 +2,7 @@ name: CI/CD
 on:
   push:
     branches:
-      - master
+      - release_candidate
       - release/v*
   workflow_dispatch:
     inputs:
