@@ -4,16 +4,8 @@
 merge_app_env() {
     base_env=".app.env"
     modifier="$1"
-    output_env=".merged.app.env"
-
-    # If modifier is not provided, just keep base_env as is
-    if [ -z "$modifier" ]; then
-        echo "No modifier provided, using $base_env as is for $output_env."
-        cp "$base_env" "$output_env"
-        return
-    fi
-
     modifier_env=".$modifier.app.env"
+    output_env=".merged$modifier_env"
 
     if [ ! -f "$modifier_env" ]; then
         echo "Modifier env file '$modifier_env' does not exist. Using $base_env as is for $output_env."
@@ -63,7 +55,6 @@ EOF
 # --- Main Script Starts Here ---
 
 environment="$1"
-modifier="${2:-}"
 
 if [ -z "$environment" ]; then
     echo "Please pass environment as argument (staging / production / testnet)"
@@ -71,17 +62,14 @@ if [ -z "$environment" ]; then
 elif [[ "$environment" != "production" && "$environment" != "staging" && "$environment" != "testnet" ]]; then
     echo "Please pass a valid environment (staging / production / testnet)"
     exit 1
-elif [ -n "$modifier" ] && [ "$modifier" != "store" ] && [ "$modifier" != "firebase" ]; then
-    echo "Please pass a valid modifier (store / firebase)"
-    exit 1
 fi
 
 # Copy secrets
 cp -rf "../flutter-app-secrets/$environment/"* ./
 cp -a "../flutter-app-secrets/$environment/" ./
 
-# Merge env files
-merge_app_env "$modifier"
+# Merge store env files
+merge_app_env "store"
 
 # Generate iOS config
 generate_ios_extension_config
