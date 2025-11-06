@@ -12,6 +12,7 @@ class SettingsRoutes {
     TypedGoRoute<ContentLanguagesRoute>(path: 'content-language'),
     TypedGoRoute<BlockedUsersRoute>(path: 'blocked-users'),
     TypedGoRoute<ConfirmLogoutRoute>(path: 'confirm-logout'),
+    TypedGoRoute<DelegateAccessRoute>(path: 'delegate-access'),
     ...ProtectAccountRoutes.routes,
   ];
 }
@@ -80,4 +81,12 @@ class ConfirmLogoutRoute extends BaseRouteData with _$ConfirmLogoutRoute {
         );
 
   final String pubkey;
+}
+
+class DelegateAccessRoute extends BaseRouteData with _$DelegateAccessRoute {
+  DelegateAccessRoute()
+      : super(
+          child: const DelegateAccessModal(),
+          type: IceRouteType.bottomSheet,
+        );
 }

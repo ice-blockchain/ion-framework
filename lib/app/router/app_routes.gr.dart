@@ -110,6 +110,7 @@ import 'package:ion/app/features/settings/views/account_settings_modal.dart';
 import 'package:ion/app/features/settings/views/app_language_modal.dart';
 import 'package:ion/app/features/settings/views/blocked_users_modal.dart';
 import 'package:ion/app/features/settings/views/content_language_modal.dart';
+import 'package:ion/app/features/settings/views/delegate_access_modal.dart';
 import 'package:ion/app/features/settings/views/logout_confirm_modal.dart';
 import 'package:ion/app/features/settings/views/privacy_settings_modal.dart';
 import 'package:ion/app/features/settings/views/push_notifications_settings.dart';

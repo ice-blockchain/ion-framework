@@ -61,6 +61,12 @@ class AccountSettingsModal extends HookConsumerWidget {
                     onTap: () => ProfileEditRoute().go(context),
                   ),
                   ModalActionButton(
+                    icon: Assets.svg.iconProfileDelegateaccess.icon(color: primaryColor),
+                    // TODO: add i18n
+                    label: 'Delegate access',
+                    onTap: () => popIfNull(() => DelegateAccessRoute().push<bool>(context)),
+                  ),
+                  ModalActionButton(
                     icon: Assets.svg.iconProfileBlockUser.icon(color: primaryColor),
                     label: context.i18n.settings_blocked_users,
                     onTap: () => popIfNull(() => BlockedUsersRoute().push<bool>(context)),
