@@ -792,6 +792,8 @@
   "story_share_sender": "Bu hikayeyi paylaştınız",
   "suggestions_empty_description": "Aramanıza uyan hiçbir şey bulamadık",
   "suggestions_loading_description": "Bahsetmek istediğiniz kullanıcıyı arayın",
+  "tokenized_communities_top_tokens": "En iyi tokenler",
+  "tokenized_communities_trending_tokens": "Trend tokenler",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Bağlantı ekle",
   "topics_add": "Ekle",
