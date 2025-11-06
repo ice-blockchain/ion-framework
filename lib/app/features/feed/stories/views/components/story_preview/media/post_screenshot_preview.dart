@@ -23,7 +23,7 @@ class PostScreenshotPreview extends StatelessWidget {
       child: AspectRatio(
         aspectRatio: MediaAspectRatio.portrait,
         child: ColoredBox(
-          color: colors.attentionBlock,
+          color: colors.primaryText,
           child: Center(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.0.s),
