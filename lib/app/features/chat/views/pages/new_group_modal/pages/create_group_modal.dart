@@ -79,7 +79,8 @@ class CreateGroupModal extends HookConsumerWidget {
         children: [
           NavigationAppBar.modal(
             showBackButton: false,
-            title: Text(context.i18n.group_create_title),
+            title:
+                Text(context.i18n.group_create_title('1')),
             actions: const [
               NavigationCloseButton(),
             ],
@@ -138,7 +139,7 @@ class CreateGroupModal extends HookConsumerWidget {
                         SizedBox(width: 6.0.s),
                         Text(
                           context.i18n
-                              .group_create_members_number(participantsMasterPubkeys.length - 1),
+                              .group_create_members_number(participantsMasterPubkeys.length),
                         ),
                         const Spacer(),
                         TextButton(

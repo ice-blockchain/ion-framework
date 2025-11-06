@@ -40,7 +40,9 @@ class InviteGroupParticipant extends StatelessWidget {
             selectedPubkeys: selectedPubkeys,
             onUserSelected: onUserSelected,
             navigationBar: NavigationAppBar.modal(
-              title: Text(navigationTitle ?? context.i18n.group_create_title),
+              title: Text(
+                navigationTitle ?? context.i18n.group_create_title((selectedPubkeys.length + 1).toString()),
+              ),
               showBackButton: false,
               actions: const [
                 NavigationCloseButton(),

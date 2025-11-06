@@ -503,7 +503,7 @@
   "group_create_first_message": "Group has been created",
   "group_create_members_number": "Group members ({members})",
   "group_create_name_label": "Group Name",
-  "group_create_title": "New Group",
+  "group_create_title": "New Group{members, select, 1{} other{ ({members})}}",
   "group_create_type": "Group type",
   "group_create_type_encrypted": "Encrypted",
   "group_create_type_encrypted_desc": "End-to-end encryption is used. Only you and the people you communicate with can see the messages.",

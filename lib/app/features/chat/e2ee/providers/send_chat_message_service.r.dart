@@ -57,7 +57,7 @@ class SendChatMessageService {
 
     final conversationId = existingConversationId ??
         generateConversationId(
-          conversationType: ConversationType.direct,
+          conversationType: ConversationType.directEncrypted,
           receiverMasterPubkeys: [receiverPubkey, currentPubkey],
         );
 

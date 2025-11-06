@@ -106,7 +106,7 @@ class _MessagesList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final messages =
-        ref.watch(conversationMessagesProvider(conversationId, ConversationType.group));
+        ref.watch(conversationMessagesProvider(conversationId, ConversationType.groupEncrypted));
     return Expanded(
       child: messages.maybeWhen(
         data: (messages) {

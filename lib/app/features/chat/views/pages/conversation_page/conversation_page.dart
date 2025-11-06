@@ -29,11 +29,11 @@ class ConversationPage extends HookConsumerWidget {
     return conversationType.maybeWhen(
       data: (conversationType) {
         switch (conversationType) {
-          case ConversationType.group:
+          case ConversationType.groupEncrypted:
             return GroupMessagesPage(conversationId: conversationId!);
           case ConversationType.community:
             return ChannelMessagingPage(communityId: conversationId!);
-          case ConversationType.direct:
+          case ConversationType.directEncrypted:
             return OneToOneMessagesPage(
               receiverMasterPubkey: receiverMasterPubkey!,
             );

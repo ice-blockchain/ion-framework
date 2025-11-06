@@ -30,4 +30,10 @@ enum GroupType implements SelectableType {
         GroupType.private => Assets.svg.iconChannelPrivatetype,
         GroupType.encrypted => Assets.svg.iconLoginIdentity,
       };
+
+  int? get maxMembers => switch (this) {
+        GroupType.public => null,
+        GroupType.private => 200,
+        GroupType.encrypted => 5,
+      };
 }

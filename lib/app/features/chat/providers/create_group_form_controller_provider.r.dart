@@ -23,9 +23,14 @@ class CreateGroupFormController extends _$CreateGroupFormController {
 
   void toggleMember(String participant) {
     final updatedMembers = state.participantsMasterPubkeys.toSet();
-    updatedMembers.contains(participant)
-        ? updatedMembers.remove(participant)
-        : updatedMembers.add(participant);
+
+    final maxMembers = state.type.maxMembers;
+
+    if (updatedMembers.contains(participant)) {
+      updatedMembers.remove(participant);
+    } else if (maxMembers == null || updatedMembers.length + 1 < maxMembers) {
+      updatedMembers.add(participant);
+    }
 
     state = state.copyWith(participantsMasterPubkeys: updatedMembers);
   }

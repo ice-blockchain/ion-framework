@@ -19,7 +19,7 @@ String? useCombinedConversationNames(
 
       final names = <String>[];
       for (final conversation in conversations) {
-        if (conversation.type == ConversationType.direct) {
+        if (conversation.type == ConversationType.directEncrypted) {
           final latestMessageEntity =
               EncryptedDirectMessageData.fromEventMessage(conversation.latestMessage!);
 

@@ -93,7 +93,11 @@ class ToggleArchivedConversations extends _$ToggleArchivedConversations {
     var updatedBookmarkSet = initialBookmarkSet;
 
     final e2eeConversations = conversations
-        .where((conversation) => conversation.type == ConversationType.direct)
+        .where(
+          (conversation) =>
+              conversation.type == ConversationType.directEncrypted ||
+              conversation.type == ConversationType.groupEncrypted,
+        )
         .toList();
 
     final communityConversations = conversations

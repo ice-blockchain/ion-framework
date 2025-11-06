@@ -14,7 +14,7 @@ Future<ConversationType> conversationType(
   String? receiverPubKey,
 ) async {
   if (receiverPubKey != null) {
-    return ConversationType.direct;
+    return ConversationType.directEncrypted;
   }
 
   if (conversationId == null) {
