@@ -28,24 +28,26 @@ class ProfileAvatar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
+    final avatarUrl = userPreviewData?.data.avatarUrl;
+
     return showAvatarPicker
         ? AvatarPicker(
-            avatarUrl: userPreviewData?.data.avatarUrl,
+            avatarUrl: avatarUrl,
             avatarSize: pictureSize,
             borderRadius: borderRadius,
             iconSize: 20.0.s,
             iconBackgroundSize: 30.0.s,
           )
         : GestureDetector(
-            onTap: () {
-              AvatarOverlayRoute(pubkey: pubkey).push<void>(context);
-            },
+            onTap: avatarUrl == null
+                ? null
+                : () => AvatarOverlayRoute(pubkey: pubkey).push<void>(context),
             child: StoryColoredProfileAvatar(
               pubkey: pubkey,
               size: pictureSize,
               borderRadius: borderRadius,
               fit: BoxFit.cover,
-              imageUrl: userPreviewData?.data.avatarUrl,
+              imageUrl: avatarUrl,
               profileMode: profileMode,
             ),
           );
