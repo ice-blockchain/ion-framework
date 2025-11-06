@@ -41,7 +41,6 @@ permissions:
 
 env:
   APP_ENV: ${{ inputs.environment || 'production' }}
-  DEPLOYMENT_TYPE: ${{ inputs.deployment || 'store' }}
 
 jobs:
   flutter:
@@ -82,12 +81,12 @@ jobs:
         id: setup-env
         run: |
           cd main-repo
-          scripts/configure_env.sh $APP_ENV $DEPLOYMENT_TYPE
+          scripts/configure_env.sh $APP_ENV
       - name: Fetch coins data using ION_ORIGIN
         run: |
           cd main-repo
           set -a
-          source ./.merged.app.env
+          source ./app.env
           set +a
 
           mkdir -p ./assets/ion_identity
@@ -113,7 +112,7 @@ jobs:
         run: |
           cd main-repo
           set -a
-          source ./.merged.app.env
+          source ./.app.env
           set +a
 
           mkdir -p ./assets/ion_identity
@@ -192,7 +191,7 @@ jobs:
           cd main-repo
           ./scripts/license_check.sh
       - name: Create Release tag
-        if: ${{ env.DEPLOYMENT_TYPE == 'store' && startsWith(github.ref, 'refs/heads/release/') }}
+        if: ${{ startsWith(github.ref, 'refs/heads/release/') }}
         run: |
           cd main-repo
           new_tag="${{ steps.set_version.outputs.version }}.${{ github.run_number }}"
@@ -218,13 +217,16 @@ jobs:
           status: ${{ job.status }}
           steps: ${{ '{}' }}
   ios-cicd:
-    name: iOS -- build, deploy
+    name: iOS -- build, deploy (${{ matrix.deployment_target }})
     needs: [flutter]
     runs-on: macos-15
-    env:
+    strategy:
+      matrix:
+        deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON('["' + inputs.deployment + '"]') || fromJSON('["firebase", "store"]') }}
       FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 180
       FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 10
       APP_VERSION: ${{ needs.flutter.outputs.app_version }}
+      DEPLOYMENT_TYPE: ${{ matrix.deployment_target }}
     steps:
       - uses: actions/cache@v3
         id: cache_all
@@ -272,9 +274,11 @@ jobs:
               echo "IOS_SIGN_TYPE=adhoc" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=firebase" >> $GITHUB_ENV
               echo "RELEASE_NOTES=${{ env.APP_ENV }}_${{ github.ref_name }}" >> $GITHUB_ENV
+              echo "ENV_FILE=.app.env" >> $GITHUB_ENV
             else
               echo "IOS_SIGN_TYPE=appstore" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=testflight" >> $GITHUB_ENV
+              echo "ENV_FILE=.merged.store.app.env" >> $GITHUB_ENV
           fi
           echo "BUILD_NUMBER=$(echo $((GITHUB_RUN_NUMBER)))" >> $GITHUB_ENV
       - name: Fetch code signing identity (${{env.IOS_SIGN_TYPE}})
@@ -290,7 +294,7 @@ jobs:
           source .env
           set +a
           ./scripts/generate_ios_export_options.sh --signType $IOS_SIGN_TYPE --bundleId $APP_ID --outputPath ios/ExportOptions.plist
-          flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=.merged.app.env
+          flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=$ENV_FILE
       - name: Deploy iOS App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         run: |
@@ -307,11 +311,15 @@ jobs:
           status: ${{ job.status }}
           steps: ${{ '{}' }}
   android-cicd:
-    name: Android -- build, deploy
+    name: Android -- build, deploy (${{ matrix.deployment_target }})
     needs: [flutter]
     runs-on: macos-15
+    strategy:
+      matrix:
+        deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON('["' + inputs.deployment + '"]') || fromJSON('["firebase", "store"]') }}
     env:
       APP_VERSION: ${{ needs.flutter.outputs.app_version }}
+      DEPLOYMENT_TYPE: ${{ matrix.deployment_target }}
     steps:
       - uses: actions/cache@v3
         id: cache_all
@@ -366,9 +374,11 @@ jobs:
               echo "ANDROID_ARCHIVE_TYPE=apk" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=firebase" >> $GITHUB_ENV
               echo "RELEASE_NOTES=${{ env.APP_ENV }}_${{ github.ref_name }}" >> $GITHUB_ENV
+              echo "ENV_FILE=.app.env" >> $GITHUB_ENV
             else
               echo "ANDROID_ARCHIVE_TYPE=appbundle" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=playstore" >> $GITHUB_ENV
+              echo "ENV_FILE=.merged.store.app.env" >> $GITHUB_ENV
           fi
 
           if [[ ${{ env.APP_ENV == 'production' }} == true ]]
@@ -389,7 +399,7 @@ jobs:
         id: build-app
         run: |
           cd main-repo
-          flutter build $ANDROID_ARCHIVE_TYPE --release --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --dart-define-from-file=.merged.app.env
+          flutter build $ANDROID_ARCHIVE_TYPE --release --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --dart-define-from-file=$ENV_FILE
       - name: Deploy Android App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         run: |
