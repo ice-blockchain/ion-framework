@@ -23,6 +23,7 @@ class ReactionEntity with _$ReactionEntity, IonConnectEntity, ImmutableEntity, C
     required String signature,
     required int createdAt,
     required ReactionData data,
+    EventMessage? eventMessage,
   }) = _ReactionEntity;
 
   const ReactionEntity._();
@@ -40,6 +41,7 @@ class ReactionEntity with _$ReactionEntity, IonConnectEntity, ImmutableEntity, C
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: ReactionData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

@@ -23,6 +23,7 @@ class FileMetadataEntity
     required String signature,
     required int createdAt,
     required FileMetadata data,
+    EventMessage? eventMessage,
   }) = _FileMetadataEntity;
 
   const FileMetadataEntity._();
@@ -40,13 +41,14 @@ class FileMetadataEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: FileMetadata.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 
   static const int kind = 1063;
 
   @override
-  FutureOr<EventMessage> toEntityEventMessage() => toEventMessage(data);
+  FutureOr<EventMessage> toEntityEventMessage() => eventMessage ?? toEventMessage(data);
 }
 
 @freezed

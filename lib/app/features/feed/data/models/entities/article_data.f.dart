@@ -43,6 +43,7 @@ class ArticleEntity
     required String signature,
     required int createdAt,
     required ArticleData data,
+    EventMessage? eventMessage,
   }) = _ArticleEntity;
 
   const ArticleEntity._();
@@ -59,13 +60,14 @@ class ArticleEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: ArticleData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 
   static const kind = 30023;
 
   @override
-  FutureOr<EventMessage> toEntityEventMessage() => toEventMessage(data);
+  FutureOr<EventMessage> toEntityEventMessage() => eventMessage ?? toEventMessage(data);
 }
 
 @freezed

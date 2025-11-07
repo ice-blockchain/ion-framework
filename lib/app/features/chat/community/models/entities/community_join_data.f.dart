@@ -24,6 +24,7 @@ class CommunityJoinEntity with _$CommunityJoinEntity, IonConnectEntity, Immutabl
     required String signature,
     required int createdAt,
     required CommunityJoinData data,
+    EventMessage? eventMessage,
   }) = _CommunityJoinEntity;
 
   const CommunityJoinEntity._();
@@ -36,6 +37,7 @@ class CommunityJoinEntity with _$CommunityJoinEntity, IonConnectEntity, Immutabl
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: CommunityJoinData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

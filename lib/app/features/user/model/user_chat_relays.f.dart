@@ -24,6 +24,7 @@ class UserChatRelaysEntity
     required String masterPubkey,
     required int createdAt,
     required UserChatRelaysData data,
+    EventMessage? eventMessage,
   }) = _UserChatRelaysEntity;
 
   const UserChatRelaysEntity._();
@@ -41,6 +42,7 @@ class UserChatRelaysEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: UserChatRelaysData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

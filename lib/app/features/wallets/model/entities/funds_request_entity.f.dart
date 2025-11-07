@@ -26,6 +26,7 @@ class FundsRequestEntity with IonConnectEntity, ImmutableEntity, _$FundsRequestE
     required String masterPubkey,
     required int createdAt,
     required FundsRequestData data,
+    EventMessage? eventMessage,
   }) = _FundsRequestEntity;
 
   const FundsRequestEntity._();
@@ -41,6 +42,7 @@ class FundsRequestEntity with IonConnectEntity, ImmutableEntity, _$FundsRequestE
       masterPubkey: eventMessage.masterPubkey,
       createdAt: eventMessage.createdAt,
       data: FundsRequestData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
 
     return parsed;

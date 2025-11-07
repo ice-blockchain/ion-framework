@@ -43,6 +43,7 @@ class EventCountResultEntity
     required String signature,
     required int createdAt,
     required EventCountResultSummary data,
+    EventMessage? eventMessage,
   }) = _EventCountResultEntity;
 
   const EventCountResultEntity._();
@@ -74,6 +75,7 @@ class EventCountResultEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: summary,
+      eventMessage: eventMessage,
     );
 
     return entity;

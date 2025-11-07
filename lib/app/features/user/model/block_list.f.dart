@@ -22,6 +22,7 @@ class BlockListEntity with IonConnectEntity, CacheableEntity, ReplaceableEntity,
     required String signature,
     required int createdAt,
     required BlockListData data,
+    EventMessage? eventMessage,
   }) = _BlockListEntity;
 
   const BlockListEntity._();
@@ -39,6 +40,7 @@ class BlockListEntity with IonConnectEntity, CacheableEntity, ReplaceableEntity,
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: BlockListData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

@@ -23,6 +23,7 @@ class BookmarksEntity with IonConnectEntity, CacheableEntity, ReplaceableEntity,
     required String signature,
     required int createdAt,
     required BookmarksData data,
+    EventMessage? eventMessage,
   }) = _BookmarksEntity;
 
   const BookmarksEntity._();
@@ -40,6 +41,7 @@ class BookmarksEntity with IonConnectEntity, CacheableEntity, ReplaceableEntity,
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: BookmarksData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

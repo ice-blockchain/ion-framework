@@ -20,6 +20,7 @@ class CommunityBanUserEntity with _$CommunityBanUserEntity, IonConnectEntity, Im
     required String signature,
     required int createdAt,
     required CommunityBanUserData data,
+    EventMessage? eventMessage,
   }) = _CommunityBanUserEntity;
 
   const CommunityBanUserEntity._();
@@ -36,6 +37,7 @@ class CommunityBanUserEntity with _$CommunityBanUserEntity, IonConnectEntity, Im
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: CommunityBanUserData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

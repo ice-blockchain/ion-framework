@@ -30,6 +30,7 @@ class PushSubscriptionEntity
     required String signature,
     required int createdAt,
     required PushSubscriptionData data,
+    EventMessage? eventMessage,
   }) = _PushSubscriptionEntity;
 
   const PushSubscriptionEntity._();
@@ -47,6 +48,7 @@ class PushSubscriptionEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: PushSubscriptionData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

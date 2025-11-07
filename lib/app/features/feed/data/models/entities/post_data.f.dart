@@ -35,6 +35,7 @@ class PostEntity
     required String signature,
     required int createdAt,
     required PostData data,
+    EventMessage? eventMessage,
   }) = _PostEntity;
 
   const PostEntity._();
@@ -52,6 +53,7 @@ class PostEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: PostData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 
@@ -60,7 +62,7 @@ class PostEntity
   bool get isStory => data.expiration != null;
 
   @override
-  FutureOr<EventMessage> toEntityEventMessage() => toEventMessage(data);
+  FutureOr<EventMessage> toEntityEventMessage() => eventMessage ?? toEventMessage(data);
 }
 
 @freezed
