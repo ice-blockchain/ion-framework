@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Enable auto-merge via gh
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ICE_CI_CD_BOT_GH_PAT }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         run: |
