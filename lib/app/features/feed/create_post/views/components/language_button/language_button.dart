@@ -5,13 +5,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/tag_button.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/language.dart';
+import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/providers/selected_entity_language_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class LanguageButton extends ConsumerWidget {
-  const LanguageButton({super.key});
+  const LanguageButton({required this.createOption, super.key});
+  final CreatePostOption createOption;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,8 +23,9 @@ class LanguageButton extends ConsumerWidget {
         : null;
 
     return TagButton(
-      onPressed: selectedEntityLanguageCode is DetectedContentLanguage &&
-              selectedEntityLanguageCode.confident
+      onPressed: (selectedEntityLanguageCode is DetectedContentLanguage &&
+                  selectedEntityLanguageCode.confident) ||
+              createOption == CreatePostOption.modify
           ? null
           : () => EntityLanguageRoute().push<void>(context),
       label: selectedEntityLanguage != null

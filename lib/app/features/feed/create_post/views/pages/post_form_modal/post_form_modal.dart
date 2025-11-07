@@ -178,7 +178,11 @@ class PostFormModal extends HookConsumerWidget {
 
     usePreselectTopics(ref, eventReference: modifiedEvent);
     usePreselectLanguage(ref, eventReference: modifiedEvent);
-    useDetectLanguage(ref, enabled: parentEvent == null, quillController: textEditorController);
+    useDetectLanguage(
+      ref,
+      enabled: parentEvent == null && createOption != CreatePostOption.modify,
+      quillController: textEditorController,
+    );
 
     useNsfwValidation(
       ref: ref,
