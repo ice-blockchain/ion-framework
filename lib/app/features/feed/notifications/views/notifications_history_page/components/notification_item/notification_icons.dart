@@ -39,6 +39,7 @@ class NotificationIcons extends StatelessWidget {
         ),
         ...notification.pubkeys.take(iconsCount - 1).map((pubkey) {
           return Padding(
+            key: ValueKey(pubkey),
             padding: EdgeInsetsDirectional.only(start: separator),
             child: GestureDetector(
               onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),

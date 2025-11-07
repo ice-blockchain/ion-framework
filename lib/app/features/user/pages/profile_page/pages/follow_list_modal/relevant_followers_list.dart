@@ -37,7 +37,10 @@ class RelevantFollowersList extends ConsumerWidget {
         SliverList.builder(
           itemCount: entities.length,
           itemBuilder: (context, index) => ScreenSideOffset.small(
-            child: FollowListItem(pubkey: entities[index].masterPubkey),
+            child: FollowListItem(
+              key: ValueKey(entities[index].masterPubkey),
+              pubkey: entities[index].masterPubkey,
+            ),
           ),
         )
       else

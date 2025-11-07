@@ -84,6 +84,7 @@ class FeedSimpleSearchPage extends HookConsumerWidget {
                         sliver: SliverList.builder(
                           itemCount: masterPubkeys.length,
                           itemBuilder: (context, index) => FeedSimpleSearchListItem(
+                            key: ValueKey(masterPubkeys[index]),
                             masterPubkey: masterPubkeys[index],
                           ),
                         ),

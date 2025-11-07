@@ -26,6 +26,7 @@ class TrendingVideosList extends StatelessWidget {
       sliver: SliverList.builder(
         itemCount: videos.length,
         itemBuilder: (BuildContext context, int index) => TrendingVideoListItem(
+          key: ValueKey(videos[index].id),
           video: videos[index],
           itemSize: listOverlay.itemSize,
         ),
