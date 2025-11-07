@@ -20,14 +20,17 @@ part 'transaction_provider.r.g.dart';
 @riverpod
 class TransactionNotifier extends _$TransactionNotifier {
   StreamSubscription<List<TransactionData>>? _subscription;
+  Completer<TransactionDetails>? _completer;
 
   @override
-  Future<TransactionDetails?> build({
+  Future<TransactionDetails> build({
     required String walletViewId,
     required String txHash,
   }) async {
     final repository = await ref.watch(transactionsRepositoryProvider.future);
     final walletData = await ref.watch(walletViewByIdProvider(id: walletViewId).future);
+
+    _completer = Completer<TransactionDetails>();
 
     _subscription = repository
         .watchTransactions(
@@ -54,7 +57,7 @@ class TransactionNotifier extends _$TransactionNotifier {
       _subscription?.cancel();
     });
 
-    return null;
+    return _completer!.future;
   }
 
   Future<void> _handleTransactions(
@@ -63,7 +66,12 @@ class TransactionNotifier extends _$TransactionNotifier {
   ) async {
     try {
       if (transactions.isEmpty) {
-        state = AsyncValue.error(Exception('No transaction was found'), StackTrace.current);
+        _updateState(
+          AsyncValue.error(
+            Exception('No transaction was found'),
+            StackTrace.current,
+          ),
+        );
         return;
       }
 
@@ -79,16 +87,27 @@ class TransactionNotifier extends _$TransactionNotifier {
         walletViewName: walletViewName,
       );
 
-      state = AsyncValue.data(transactionDetails);
+      _updateState(AsyncValue.data(transactionDetails));
     } catch (error, stackTrace) {
       Logger.error('[TransactionNotifier] Error processing transaction: $error');
-      state = AsyncValue.error(error, stackTrace);
+      _updateState(AsyncValue.error(error, stackTrace));
       await SentryService.logException(
         error,
         stackTrace: stackTrace,
         tag: 'resolve_transaction_failure',
       );
     }
+  }
+
+  void _updateState(AsyncValue<TransactionDetails> newState) {
+    if (_completer != null && !_completer!.isCompleted) {
+      newState.when(
+        data: _completer!.complete,
+        error: _completer!.completeError,
+        loading: () {},
+      );
+    }
+    state = newState;
   }
 
   CoinsGroup? _buildCoinsGroup(TransactionData transaction) {
