@@ -50,6 +50,7 @@ class SearchedUsers extends ConsumerWidget {
           canSendMessage = true;
         }
         return SelectableUserListItem(
+          key: ValueKey(masterPubkey),
           selectable: selectable,
           masterPubkey: masterPubkey,
           canSendMessage: canSendMessage,

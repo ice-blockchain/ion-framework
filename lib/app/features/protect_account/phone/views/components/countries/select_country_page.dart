@@ -43,6 +43,7 @@ class SelectCountryPage extends HookConsumerWidget {
                     itemBuilder: (BuildContext context, int index) {
                       final country = filteredCountries[index];
                       return CountryListItem(
+                        key: ValueKey(country),
                         country: country,
                         onTap: () => context.pop(country),
                       );
