@@ -11,11 +11,13 @@ class ArticleListItem extends ConsumerWidget {
   const ArticleListItem({
     required this.article,
     this.showNotInterested = true,
+    this.network = false,
     super.key,
   });
 
   final ArticleEntity article;
   final bool showNotInterested;
+  final bool network;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,7 +32,7 @@ class ArticleListItem extends ConsumerWidget {
         child: Article(
           eventReference: eventReference,
           showNotInterested: showNotInterested,
-          network: false,
+          network: network,
         ),
       ),
     );
