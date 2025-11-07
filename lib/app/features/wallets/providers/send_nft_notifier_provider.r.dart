@@ -9,6 +9,7 @@ import 'package:ion/app/features/wallets/model/nft_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
+import 'package:ion/app/features/wallets/providers/current_nfts_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/send_nft_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -92,6 +93,8 @@ class SendNftNotifier extends _$SendNftNotifier {
       await ref
           .read(transactionsRepositoryProvider.future)
           .then((repo) => repo.saveTransactionDetails(details));
+
+      ref.read(currentNftsNotifierProvider.notifier).enableIncrementalSync();
 
       return details;
     });
