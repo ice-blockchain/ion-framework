@@ -45,31 +45,17 @@ class TransactionResultSheet extends HookConsumerWidget {
       ),
     );
 
-    final cachedData = useState(transactionData.valueOrNull);
-
-    final currentValue = transactionData.valueOrNull;
-    if (currentValue != null) {
-      cachedData.value = currentValue;
-    }
-
-    final stableTransactionData = transactionData.whenOrNull(
-          data: (data) => data != null ? transactionData : AsyncValue.data(cachedData.value),
-        ) ??
-        transactionData;
-
-    final assetAbbreviation = stableTransactionData.valueOrNull?.assetData
+    final assetAbbreviation = transactionData.valueOrNull?.assetData
         .mapOrNull(coin: (coin) => coin.coinsGroup)
         ?.abbreviation;
 
     final disableShareButton = abbreviationsToExclude.contains(assetAbbreviation) &&
-        stableTransactionData.valueOrNull?.status != TransactionStatus.confirmed;
+        transactionData.valueOrNull?.status != TransactionStatus.confirmed;
 
     final colors = context.theme.appColors;
     final textTheme = context.theme.appTextThemes;
     final locale = context.i18n;
     const icons = Assets.svg;
-
-    const loadingContent = Center(child: IONLoadingIndicator());
 
     final nftsProvider = ref.watch(currentNftsNotifierProvider.notifier);
     useEffect(() => nftsProvider.resetToFullSync, []);
@@ -83,10 +69,10 @@ class TransactionResultSheet extends HookConsumerWidget {
             actions: const [NavigationCloseButton()],
           ),
           ScreenSideOffset.small(
-            child: stableTransactionData.when(
+            child: transactionData.when(
               skipLoadingOnReload: true,
               skipLoadingOnRefresh: true,
-              loading: () => loadingContent,
+              loading: () => const Center(child: IONLoadingIndicator()),
               error: (_, __) => Column(
                 children: [
                   icons.actionContactsendError.iconWithDimensions(
@@ -123,10 +109,6 @@ class TransactionResultSheet extends HookConsumerWidget {
                 ],
               ),
               data: (transactionData) {
-                if (transactionData == null) {
-                  return loadingContent;
-                }
-
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
