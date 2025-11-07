@@ -45,12 +45,24 @@ class TransactionResultSheet extends HookConsumerWidget {
       ),
     );
 
-    final assetAbbreviation = transactionData.valueOrNull?.assetData
+    final cachedData = useState(transactionData.valueOrNull);
+
+    final currentValue = transactionData.valueOrNull;
+    if (currentValue != null) {
+      cachedData.value = currentValue;
+    }
+
+    final stableTransactionData = transactionData.whenOrNull(
+          data: (data) => data != null ? transactionData : AsyncValue.data(cachedData.value),
+        ) ??
+        transactionData;
+
+    final assetAbbreviation = stableTransactionData.valueOrNull?.assetData
         .mapOrNull(coin: (coin) => coin.coinsGroup)
         ?.abbreviation;
 
     final disableShareButton = abbreviationsToExclude.contains(assetAbbreviation) &&
-        transactionData.valueOrNull?.status != TransactionStatus.confirmed;
+        stableTransactionData.valueOrNull?.status != TransactionStatus.confirmed;
 
     final colors = context.theme.appColors;
     final textTheme = context.theme.appTextThemes;
@@ -60,7 +72,7 @@ class TransactionResultSheet extends HookConsumerWidget {
     const loadingContent = Center(child: IONLoadingIndicator());
 
     final nftsProvider = ref.watch(currentNftsNotifierProvider.notifier);
-    useEffect(() => nftsProvider.allowRefresh, []);
+    useEffect(() => nftsProvider.resetToFullSync, []);
 
     return SheetContent(
       body: Column(
@@ -71,48 +83,49 @@ class TransactionResultSheet extends HookConsumerWidget {
             actions: const [NavigationCloseButton()],
           ),
           ScreenSideOffset.small(
-            child: transactionData.when(
+            child: stableTransactionData.when(
               skipLoadingOnReload: true,
+              skipLoadingOnRefresh: true,
               loading: () => loadingContent,
-              error: (_, __) {
-                return Column(
-                  children: [
-                    icons.actionContactsendError.iconWithDimensions(
-                      width: 74.0.s,
-                      height: 76.0.s,
+              error: (_, __) => Column(
+                children: [
+                  icons.actionContactsendError.iconWithDimensions(
+                    width: 74.0.s,
+                    height: 76.0.s,
+                  ),
+                  SizedBox(height: 10.s),
+                  Text(
+                    locale.error_general_title,
+                    style: textTheme.title,
+                  ),
+                  SizedBox(height: 12.s),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: colors.tertiaryBackground,
+                      borderRadius: BorderRadius.circular(16.0.s),
+                      border: Border.all(color: colors.onTertiaryFill),
                     ),
-                    SizedBox(height: 10.s),
-                    Text(
-                      locale.error_general_title,
-                      style: textTheme.title,
-                    ),
-                    SizedBox(height: 12.s),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colors.tertiaryBackground,
-                        borderRadius: BorderRadius.circular(16.0.s),
-                        border: Border.all(color: colors.onTertiaryFill),
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: 12.s, horizontal: 16.s),
-                      child: Text(
-                        locale.wallet_transaction_general_error_desc,
-                        textAlign: TextAlign.center,
-                        style: textTheme.body2.copyWith(
-                          color: colors.secondaryText,
-                        ),
+                    padding: EdgeInsets.symmetric(vertical: 12.s, horizontal: 16.s),
+                    child: Text(
+                      locale.wallet_transaction_general_error_desc,
+                      textAlign: TextAlign.center,
+                      style: textTheme.body2.copyWith(
+                        color: colors.secondaryText,
                       ),
                     ),
-                    SizedBox(height: 24.0.s),
-                    Button(
-                      label: Text(locale.wallet_back_to_wallet),
-                      mainAxisSize: MainAxisSize.max,
-                      onPressed: Navigator.of(context, rootNavigator: true).pop,
-                    ),
-                  ],
-                );
-              },
+                  ),
+                  SizedBox(height: 24.0.s),
+                  Button(
+                    label: Text(locale.wallet_back_to_wallet),
+                    mainAxisSize: MainAxisSize.max,
+                    onPressed: Navigator.of(context, rootNavigator: true).pop,
+                  ),
+                ],
+              ),
               data: (transactionData) {
-                if (transactionData == null) return loadingContent;
+                if (transactionData == null) {
+                  return loadingContent;
+                }
 
                 return Column(
                   mainAxisSize: MainAxisSize.min,
