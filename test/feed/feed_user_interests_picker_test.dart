@@ -37,6 +37,7 @@ void main() {
         nsfwBlockThreshold: 0.5,
         langDetectScoreThreshold: 0.9,
         cdnBaseUrl: '',
+        forYouSeenSkipsMultiplier: 0.5,
       );
       interests = FeedInterests.fromJson({
         'music': {
