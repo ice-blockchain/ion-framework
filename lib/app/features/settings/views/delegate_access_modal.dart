@@ -20,6 +20,11 @@ class DelegateAccessModal extends HookWidget {
   Widget build(BuildContext context) {
     final isChecked = useState(false);
 
+    void selectAndConfirmUser() {
+      if (!context.mounted) return;
+      SelectDelegateUserRoute().pushReplacement(context);
+    }
+
     return SheetContent(
       body: SingleChildScrollView(
         child: Column(
@@ -67,14 +72,9 @@ class DelegateAccessModal extends HookWidget {
             SizedBox(height: 20.0.s),
             ScreenSideOffset.small(
               child: Button.compact(
-                onPressed: () async {
+                onPressed: () {
                   if (isChecked.value) {
-                    final selectedUserPubkey =
-                        await SelectDelegateUserRoute().push<String>(context);
-                    if (selectedUserPubkey != null && context.mounted) {
-                      await DelegateUserSelectedRoute(selectedUserPubkey: selectedUserPubkey)
-                          .push<void>(context);
-                    }
+                    selectAndConfirmUser();
                   }
                 },
                 label: Text(context.i18n.button_continue),

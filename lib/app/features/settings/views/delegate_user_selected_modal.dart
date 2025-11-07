@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
@@ -27,9 +29,13 @@ class DelegateUserSelectedModal extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             NavigationAppBar.modal(
-              onBackPress: () => context.maybePop(),
+              onBackPress: () => context.pop(),
               title: const Text('Access rights'), // TODO: add i18n
-              actions: const [NavigationCloseButton()],
+              actions: [
+                NavigationCloseButton(
+                  onPressed: () => rootNavigatorKey.currentState?.pop(),
+                ),
+              ],
             ),
             ScreenSideOffset.small(
               child: Column(
@@ -49,8 +55,7 @@ class DelegateUserSelectedModal extends ConsumerWidget {
                   SizedBox(height: 20.0.s),
                   Button.compact(
                     onPressed: () {
-                      // TODO: implement delegate access logic
-                      context.maybePop();
+                      context.pop(true);
                     },
                     label: const Text('Confirm'), // TODO: add i18n
                     minimumSize: Size(double.infinity, 56.0.s),
