@@ -3,8 +3,10 @@
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/wallets/data/models/approve_transaction_data.m.dart';
+import 'package:ion/app/features/wallets/data/models/okx_api_response.m.dart';
 import 'package:ion/app/features/wallets/data/models/swap_chain_data.m.dart';
-import 'package:ion/app/features/wallets/data/models/swap_quote_response.m.dart';
+import 'package:ion/app/features/wallets/data/models/swap_quote_data.m.dart';
 import 'package:ion/app/features/wallets/providers/okx_dio_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -35,32 +37,24 @@ class SwapOkxRepository {
     ];
   }
 
-  Future<List<SwapChainData>> getSupportedChains() async {
+  Future<OkxApiResponse<List<SwapChainData>>> getSupportedChains() async {
     final response = await _dio.get<dynamic>(
       '$_baseUrl/aggregator/supported/chain',
     );
 
-    final data = (response.data as Map<String, dynamic>)['data'] as List<dynamic>;
-
-    return data
-        .map(
-          (e) => SwapChainData.fromJson(e as Map<String, dynamic>),
-        )
-        .toList();
-  }
-
-  Future<void> getTokens({
-    required int chainIndex,
-  }) async {
-    await _dio.get<dynamic>(
-      '$_baseUrl/aggregator/all-tokens',
-      queryParameters: {
-        'chainIndex': chainIndex,
-      },
+    return OkxApiResponse.fromJson(
+      response.data as Map<String, dynamic>,
+      (json) =>
+          (json as List<dynamic>?)
+              ?.map(
+                (e) => SwapChainData.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
     );
   }
 
-  Future<SwapQuoteResponse> getQuotes({
+  Future<OkxApiResponse<List<SwapQuoteData>>> getQuotes({
     required int chainIndex,
     required String amount,
     required String fromTokenAddress,
@@ -70,15 +64,44 @@ class SwapOkxRepository {
       '$_baseUrl/aggregator/quote',
       queryParameters: {
         'chainIndex': chainIndex,
-        'amount': 1,
+        'amount': amount,
         'swapMode': 'exactIn',
         'fromTokenAddress': fromTokenAddress,
         'toTokenAddress': toTokenAddress,
       },
     );
 
-    return SwapQuoteResponse.fromJson(
+    return OkxApiResponse.fromJson(
       response.data as Map<String, dynamic>,
+      (json) =>
+          (json as List<dynamic>?)
+              ?.map(
+                (e) => SwapQuoteData.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
+    );
+  }
+
+  Future<OkxApiResponse<List<ApproveTransactionData>>> approveTransaction({
+    required String chainIndex,
+    required String tokenContractAddress,
+    required String amount,
+  }) async {
+    final response = await _dio.get<dynamic>(
+      '$_baseUrl/aggregator/approve-transaction',
+      queryParameters: {
+        'chainIndex': chainIndex,
+        'approveAmount': amount,
+        'tokenContractAddress': tokenContractAddress,
+      },
+    );
+
+    return OkxApiResponse.fromJson(
+      response.data as Map<String, dynamic>,
+      (json) =>
+          (json as List<dynamic>?)?.map((e) => ApproveTransactionData.fromJson(e as Map<String, dynamic>)).toList() ??
+          [],
     );
   }
 }
