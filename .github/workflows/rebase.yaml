@@ -1,18 +1,29 @@
 name: Rebase
 on:
   push:
-    branches: [master]
+    branches: [master, release_candidate]
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  rebase:
+  rebase-master:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - uses: peter-evans/rebase@v3
         with:
           base: master
+          token: ${{ secrets.ICE_CI_CD_BOT_GH_PAT }}
+          exclude-drafts: true
+
+  rebase-release-candidate:
+    if: github.ref == 'refs/heads/release_candidate'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: peter-evans/rebase@v3
+        with:
+          base: release_candidate
           token: ${{ secrets.ICE_CI_CD_BOT_GH_PAT }}
           exclude-drafts: true
