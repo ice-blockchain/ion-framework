@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/community/providers/community_metadata_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_message_entity.f.dart';
+import 'package:ion/app/features/chat/e2ee/providers/group/encrypted_group_metadata_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -31,6 +32,10 @@ String? useCombinedConversationNames(
           if (userPreviewData != null) {
             names.add(userPreviewData.data.trimmedDisplayName);
           }
+        } else if (conversation.type == ConversationType.groupEncrypted) {
+          final groupMetadata =
+              await ref.read(encryptedGroupMetadataProvider(conversation.conversationId).future);
+          names.add(groupMetadata.name);
         } else if (conversation.type == ConversationType.community) {
           final community =
               await ref.read(communityMetadataProvider(conversation.conversationId).future);
