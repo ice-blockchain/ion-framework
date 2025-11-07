@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/user_notifications_type.dart';
-import 'package:ion/app/features/user/providers/user_specific_notifications_provider.r.dart';
+import 'package:ion/app/features/user/optimistic_ui/account_notifications_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class AccountNotificationsModal extends HookConsumerWidget {
+class AccountNotificationsModal extends ConsumerWidget {
   const AccountNotificationsModal({
     required this.userPubkey,
     super.key,
@@ -25,92 +24,9 @@ class AccountNotificationsModal extends HookConsumerWidget {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
 
-    final selectedOptions = useState<Set<UserNotificationsType>?>(null);
-    final isLoading = useState(false);
-
-    useEffect(
-      () {
-        Future.microtask(() async {
-          try {
-            final initialNotifications =
-                await ref.refresh(userSpecificNotificationsProvider(userPubkey).future);
-            selectedOptions.value = initialNotifications.toSet();
-          } catch (error) {
-            selectedOptions.value = <UserNotificationsType>{};
-          }
-        });
-        return null;
-      },
-      [userPubkey],
-    );
-
-    final handleOptionSelection = useCallback(
-      (UserNotificationsType option) async {
-        if (selectedOptions.value == null || isLoading.value) return;
-
-        isLoading.value = true;
-
-        try {
-          final currentSet = Set<UserNotificationsType>.from(selectedOptions.value!);
-
-          if (option == UserNotificationsType.none) {
-            if (currentSet.contains(UserNotificationsType.none)) {
-              currentSet.remove(UserNotificationsType.none);
-            } else {
-              currentSet
-                ..clear()
-                ..add(UserNotificationsType.none);
-            }
-          } else {
-            if (currentSet.contains(UserNotificationsType.none)) {
-              currentSet.remove(UserNotificationsType.none);
-            }
-
-            if (currentSet.contains(option)) {
-              currentSet.remove(option);
-            } else {
-              currentSet.add(option);
-            }
-          }
-
-          selectedOptions.value = currentSet;
-
-          await ref
-              .read(userSpecificNotificationsProvider(userPubkey).notifier)
-              .updateNotificationsForUser(userPubkey, selectedOptions.value!.toList());
-        } catch (error) {
-          try {
-            final currentNotifications = await ref.read(
-              userSpecificNotificationsProvider(userPubkey).future,
-            );
-            selectedOptions.value = currentNotifications.toSet();
-          } catch (revertError) {
-            selectedOptions.value = <UserNotificationsType>{UserNotificationsType.none};
-          }
-        } finally {
-          isLoading.value = false;
-        }
-      },
-      [selectedOptions, isLoading, ref, userPubkey],
-    );
-
-    if (selectedOptions.value == null) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          NavigationAppBar.modal(
-            showBackButton: false,
-            title: Text(context.i18n.profile_notifications_popup_title),
-          ),
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(32),
-              child: CircularProgressIndicator(),
-            ),
-          ),
-        ],
-      );
-    }
+    final accountNotifications =
+        ref.watch(accountNotificationsWatchProvider(userPubkey)).valueOrNull;
+    final selectedOptions = accountNotifications?.selected ?? {UserNotificationsType.none};
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -122,7 +38,7 @@ class AccountNotificationsModal extends HookConsumerWidget {
         ListView.builder(
           itemBuilder: (BuildContext context, int index) {
             final option = UserNotificationsType.values[index];
-            final isSelected = selectedOptions.value!.contains(option);
+            final isSelected = selectedOptions.contains(option);
 
             return Column(
               children: [
@@ -131,7 +47,9 @@ class AccountNotificationsModal extends HookConsumerWidget {
                   backgroundColor: colors.secondaryBackground,
                   contentPadding: EdgeInsets.symmetric(horizontal: 16.0.s, vertical: 12.0.s),
                   constraints: const BoxConstraints(),
-                  onTap: isLoading.value ? null : () => handleOptionSelection(option),
+                  onTap: () => ref
+                      .read(toggleAccountNotificationsNotifierProvider.notifier)
+                      .toggle(userPubkey: userPubkey, option: option),
                   title: Text(option.getTitle(context), style: textStyles.body),
                   leading: ButtonIconFrame(
                     containerSize: 36.0.s,
