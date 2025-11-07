@@ -13,6 +13,8 @@ class SettingsRoutes {
     TypedGoRoute<BlockedUsersRoute>(path: 'blocked-users'),
     TypedGoRoute<ConfirmLogoutRoute>(path: 'confirm-logout'),
     TypedGoRoute<DelegateAccessRoute>(path: 'delegate-access'),
+    TypedGoRoute<SelectDelegateUserRoute>(path: 'select-delegate-user'),
+    TypedGoRoute<DelegateUserSelectedRoute>(path: 'delegate-user-selected/:selectedUserPubkey'),
     ...ProtectAccountRoutes.routes,
   ];
 }
@@ -89,4 +91,22 @@ class DelegateAccessRoute extends BaseRouteData with _$DelegateAccessRoute {
           child: const DelegateAccessModal(),
           type: IceRouteType.bottomSheet,
         );
+}
+
+class SelectDelegateUserRoute extends BaseRouteData with _$SelectDelegateUserRoute {
+  SelectDelegateUserRoute()
+      : super(
+          child: const SelectDelegateUserModal(),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class DelegateUserSelectedRoute extends BaseRouteData with _$DelegateUserSelectedRoute {
+  DelegateUserSelectedRoute({required this.selectedUserPubkey})
+      : super(
+          child: DelegateUserSelectedModal(selectedUserPubkey: selectedUserPubkey),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String selectedUserPubkey;
 }

@@ -8,6 +8,7 @@ import 'package:ion/app/components/checkbox/labeled_checkbox.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
@@ -66,7 +67,16 @@ class DelegateAccessModal extends HookWidget {
             SizedBox(height: 20.0.s),
             ScreenSideOffset.small(
               child: Button.compact(
-                onPressed: () => context.pop(true),
+                onPressed: () async {
+                  if (isChecked.value) {
+                    final selectedUserPubkey =
+                        await SelectDelegateUserRoute().push<String>(context);
+                    if (selectedUserPubkey != null && context.mounted) {
+                      await DelegateUserSelectedRoute(selectedUserPubkey: selectedUserPubkey)
+                          .push<void>(context);
+                    }
+                  }
+                },
                 label: Text(context.i18n.button_continue),
                 type: isChecked.value ? ButtonType.primary : ButtonType.disabled,
                 disabled: !isChecked.value,
