@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
@@ -71,29 +72,31 @@ class SharedStoryWrapper extends HookConsumerWidget {
 
     return sharedPostMessageStatus == MessageDeliveryStatus.deleted
         ? const SizedBox.shrink()
-        : Align(
-            alignment: isMe ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
-            child: GestureDetector(
-              onLongPress: showReactDialog,
-              child: RepaintBoundary(
-                key: messageItemKey,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    child,
-                    if (sharedPostMessageStatus == MessageDeliveryStatus.failed)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(width: 6.0.s),
-                          Assets.svg.iconMessageFailed.icon(
-                            color: context.theme.appColors.attentionRed,
-                            size: 16.0.s,
-                          ),
-                        ],
-                      ),
-                  ],
+        : ScreenSideOffset.small(
+            child: Align(
+              alignment: isMe ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+              child: GestureDetector(
+                onLongPress: showReactDialog,
+                child: RepaintBoundary(
+                  key: messageItemKey,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      child,
+                      if (sharedPostMessageStatus == MessageDeliveryStatus.failed)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(width: 6.0.s),
+                            Assets.svg.iconMessageFailed.icon(
+                              color: context.theme.appColors.attentionRed,
+                              size: 16.0.s,
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
