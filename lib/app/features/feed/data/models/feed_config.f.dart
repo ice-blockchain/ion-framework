@@ -16,6 +16,7 @@ class FeedConfig with _$FeedConfig implements AppConfigWithVersion {
     required int concurrentMediaDownloadsLimit,
     required int concurrentBigFileUploadChunks,
     required double forYouOverflowMultiplier,
+    required double forYouSeenSkipsMultiplier,
     @DurationMillisecondsConverter() required Duration followingReqMaxAge,
     @DurationMillisecondsConverter() required Duration followingCacheMaxAge,
     @DurationMillisecondsConverter() required Duration topMaxAge,
