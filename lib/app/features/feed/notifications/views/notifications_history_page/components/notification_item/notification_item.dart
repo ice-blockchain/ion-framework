@@ -84,6 +84,7 @@ class NotificationItem extends HookConsumerWidget {
                   children: [
                     ScreenSideOffset.small(
                       child: NotificationInfo(
+                        key: ValueKey(notification),
                         notification: notification,
                       ),
                     ),

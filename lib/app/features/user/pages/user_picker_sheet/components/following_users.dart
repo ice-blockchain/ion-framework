@@ -53,6 +53,7 @@ class FollowingUsers extends ConsumerWidget {
 
             return canSendMessage
                 ? SelectableUserListItem(
+                    key: ValueKey(masterPubkey),
                     masterPubkey: masterPubkey,
                     selectable: selectable,
                     onUserSelected: onUserSelected,
