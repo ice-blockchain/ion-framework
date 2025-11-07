@@ -12,6 +12,7 @@ class PostListItem extends StatelessWidget {
     required this.eventReference,
     this.displayParent = false,
     this.showNotInterested = true,
+    this.network = false,
     this.onVideoTap,
     this.plainInlineStyles = false,
     super.key,
@@ -27,6 +28,8 @@ class PostListItem extends StatelessWidget {
 
   final bool plainInlineStyles;
 
+  final bool network;
+
   @override
   Widget build(BuildContext context) {
     // TODO: process 20002 in the feed provider to fetch 10002
@@ -40,7 +43,7 @@ class PostListItem extends StatelessWidget {
         displayParent: displayParent,
         onVideoTap: onVideoTap,
         headerOffset: 12.0.s,
-        network: false,
+        network: network,
         plainInlineStyles: plainInlineStyles,
       ),
     );

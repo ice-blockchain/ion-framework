@@ -63,7 +63,7 @@ class BookmarksPage extends HookConsumerWidget {
                 return [
                   EntitiesList(
                     items: refs.map((ref) => IonEntityListItem.event(eventReference: ref)).toList(),
-                    readFromDB: true,
+                    network: true,
                   ),
                 ];
               }
