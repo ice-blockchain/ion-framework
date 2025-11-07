@@ -50,8 +50,7 @@ class Followers extends _$Followers {
           return switch (item) {
             final EventsMetadataEntity eventMetadata
                 when eventMetadata.data.metadata.kind == FollowListEntity.kind =>
-              eventMetadata.data.metadataEventReference?.masterPubkey ??
-                  eventMetadata.data.eventReferences.firstOrNull?.masterPubkey,
+              eventMetadata.data.eventReferences.firstOrNull?.masterPubkey,
             _ => null
           };
         })
