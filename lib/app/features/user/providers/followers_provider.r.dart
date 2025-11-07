@@ -2,7 +2,6 @@
 
 import 'dart:async';
 
-import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/paged.f.dart';
 import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
@@ -51,7 +50,7 @@ class Followers extends _$Followers {
           return switch (item) {
             final EventsMetadataEntity eventMetadata
                 when eventMetadata.data.metadata.kind == FollowListEntity.kind =>
-              eventMetadata.data.metadata.masterPubkey,
+              eventMetadata.data.eventReferences.firstOrNull?.masterPubkey,
             _ => null
           };
         })
