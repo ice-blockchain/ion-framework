@@ -20,17 +20,35 @@ part 'transaction_provider.r.g.dart';
 @riverpod
 class TransactionNotifier extends _$TransactionNotifier {
   StreamSubscription<List<TransactionData>>? _subscription;
-  Completer<TransactionDetails>? _completer;
 
   @override
   Future<TransactionDetails> build({
     required String walletViewId,
     required String txHash,
   }) async {
+    await _subscription?.cancel();
+
     final repository = await ref.watch(transactionsRepositoryProvider.future);
     final walletData = await ref.watch(walletViewByIdProvider(id: walletViewId).future);
 
-    _completer = Completer<TransactionDetails>();
+    final externalHashTransactions = await repository.getTransactions(
+      externalHashes: [txHash],
+      walletViewIds: [walletViewId],
+      limit: 1,
+    );
+
+    final directHashTransactions = await repository.getTransactions(
+      txHashes: [txHash],
+      walletViewIds: [walletViewId],
+      limit: 1,
+    );
+
+    final initialTransactions =
+        externalHashTransactions.isNotEmpty ? externalHashTransactions : directHashTransactions;
+
+    if (initialTransactions.isEmpty) {
+      throw Exception('No transaction was found');
+    }
 
     _subscription = repository
         .watchTransactions(
@@ -57,7 +75,21 @@ class TransactionNotifier extends _$TransactionNotifier {
       _subscription?.cancel();
     });
 
-    return _completer!.future;
+    return _processTransaction(initialTransactions.first, walletData.name);
+  }
+
+  Future<TransactionDetails> _processTransaction(
+    TransactionData transaction,
+    String walletViewName,
+  ) async {
+    final resolvedTransaction = await _resolveNftTransaction(transaction);
+    final coinsGroup = _buildCoinsGroup(resolvedTransaction);
+
+    return TransactionDetails.fromTransactionData(
+      resolvedTransaction,
+      coinsGroup: coinsGroup,
+      walletViewName: walletViewName,
+    );
   }
 
   Future<void> _handleTransactions(
@@ -66,48 +98,24 @@ class TransactionNotifier extends _$TransactionNotifier {
   ) async {
     try {
       if (transactions.isEmpty) {
-        _updateState(
-          AsyncValue.error(
-            Exception('No transaction was found'),
-            StackTrace.current,
-          ),
+        state = AsyncValue.error(
+          Exception('No transaction was found'),
+          StackTrace.current,
         );
         return;
       }
 
-      final transaction = transactions.first;
-
-      // Handle NFT identifier resolution if needed
-      final resolvedTransaction = await _resolveNftTransaction(transaction);
-      final coinsGroup = _buildCoinsGroup(resolvedTransaction);
-
-      final transactionDetails = TransactionDetails.fromTransactionData(
-        resolvedTransaction,
-        coinsGroup: coinsGroup,
-        walletViewName: walletViewName,
-      );
-
-      _updateState(AsyncValue.data(transactionDetails));
+      final transactionDetails = await _processTransaction(transactions.first, walletViewName);
+      state = AsyncValue.data(transactionDetails);
     } catch (error, stackTrace) {
       Logger.error('[TransactionNotifier] Error processing transaction: $error');
-      _updateState(AsyncValue.error(error, stackTrace));
+      state = AsyncValue.error(error, stackTrace);
       await SentryService.logException(
         error,
         stackTrace: stackTrace,
         tag: 'resolve_transaction_failure',
       );
     }
-  }
-
-  void _updateState(AsyncValue<TransactionDetails> newState) {
-    if (_completer != null && !_completer!.isCompleted) {
-      newState.when(
-        data: _completer!.complete,
-        error: _completer!.completeError,
-        loading: () {},
-      );
-    }
-    state = newState;
   }
 
   CoinsGroup? _buildCoinsGroup(TransactionData transaction) {
