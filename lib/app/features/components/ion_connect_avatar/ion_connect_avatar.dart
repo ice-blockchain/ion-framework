@@ -12,6 +12,7 @@ class IonConnectAvatar extends HookConsumerWidget {
   const IonConnectAvatar({
     required this.size,
     required this.masterPubkey,
+    this.network = false,
     this.borderRadius,
     this.fit,
     this.shadow,
@@ -23,6 +24,7 @@ class IonConnectAvatar extends HookConsumerWidget {
   final BorderRadiusGeometry? borderRadius;
   final BoxFit? fit;
   final BoxShadow? shadow;
+  final bool network;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,7 +32,7 @@ class IonConnectAvatar extends HookConsumerWidget {
     // So taking the first value only to avoid fetching both original image and it's thumbnail.
     final avatarUrl = useWatchOnce(
       ref,
-      userPreviewDataProvider(masterPubkey, network: false)
+      userPreviewDataProvider(masterPubkey, network: network)
           .select((value) => value.valueOrNull?.data.avatarUrl),
     );
 
