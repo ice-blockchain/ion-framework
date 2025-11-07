@@ -18,7 +18,7 @@ class NftsTabHeader extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentNftsState = ref.watch(currentNftsProvider);
+    final currentNftsState = ref.watch(currentNftsNotifierProvider);
     final isLoading = currentNftsState.isLoading;
 
     if (isLoading) {

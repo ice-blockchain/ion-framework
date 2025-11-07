@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
@@ -12,6 +13,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
+import 'package:ion/app/features/wallets/providers/current_nfts_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/transaction_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/nft_item.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/confirmation/transaction_amount_summary.dart';
@@ -22,7 +24,7 @@ import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/share/share.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class TransactionResultSheet extends ConsumerWidget {
+class TransactionResultSheet extends HookConsumerWidget {
   const TransactionResultSheet({
     required this.walletViewId,
     required this.txHash,
@@ -56,6 +58,9 @@ class TransactionResultSheet extends ConsumerWidget {
     const icons = Assets.svg;
 
     const loadingContent = Center(child: IONLoadingIndicator());
+
+    final nftsProvider = ref.watch(currentNftsNotifierProvider.notifier);
+    useEffect(() => nftsProvider.allowRefresh, []);
 
     return SheetContent(
       body: Column(
