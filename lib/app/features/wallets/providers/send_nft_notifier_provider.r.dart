@@ -94,6 +94,8 @@ class SendNftNotifier extends _$SendNftNotifier {
           .read(transactionsRepositoryProvider.future)
           .then((repo) => repo.saveTransactionDetails(details));
 
+      // Incremental sync does not remove NFT from the database,
+      // which was sent to be able to use this information in the transaction details.
       ref.read(currentNftsNotifierProvider.notifier).enableIncrementalSync();
 
       return details;
