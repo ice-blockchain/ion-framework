@@ -104,17 +104,12 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellCoinGroup = state.sellCoin;
     final buyCoinGroup = state.buyCoin;
 
-    if (sellCoinGroup == null ||
-        buyCoinGroup == null ||
-        sellNetwork == null ||
-        buyNetwork == null) {
+    if (sellCoinGroup == null || buyCoinGroup == null || sellNetwork == null || buyNetwork == null) {
       return;
     }
 
-    final sellCoin =
-        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-    final buyCoin =
-        buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
+    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final buyCoin = buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
 
     if (sellCoin == null || buyCoin == null) {
       return;
@@ -213,5 +208,24 @@ class SwapCoinsController extends _$SwapCoinsController {
         ),
       ),
     );
+  }
+
+  // TODO(ice-erebus): implement actual logic
+  SwapQuoteData _pickBestOkxQuote(List<SwapQuoteData> quotes) {
+    return quotes.first;
+  }
+
+  String _getTokenAddress(String contractAddress) {
+    return contractAddress.isEmpty ? '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' : contractAddress;
+  }
+
+  T _processOkxResponse<T>(OkxApiResponse<T> response) {
+    final responseCode = int.tryParse(response.code);
+    if (responseCode == 0) {
+      return response.data;
+    }
+
+    // TODO(ice-erebus): implement actual error handling
+    throw Exception('Failed to process OKX response: $responseCode');
   }
 }
