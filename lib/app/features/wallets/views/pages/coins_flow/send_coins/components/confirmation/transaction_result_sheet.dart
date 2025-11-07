@@ -71,7 +71,6 @@ class TransactionResultSheet extends HookConsumerWidget {
           ScreenSideOffset.small(
             child: transactionData.when(
               skipLoadingOnReload: true,
-              skipLoadingOnRefresh: true,
               loading: () => const Center(child: IONLoadingIndicator()),
               error: (_, __) => Column(
                 children: [
