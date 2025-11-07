@@ -22,6 +22,8 @@ class SwapOkxRepository {
   final Dio _dio;
   final String _baseUrl;
 
+  String get _aggregatorBaseUrl => '$_baseUrl/aggregator';
+
   // TODO(ice-erebus): implement actual data
   Future<List<Map<String, int>>> getSupportedChainsIds() async {
     return [
@@ -39,7 +41,7 @@ class SwapOkxRepository {
 
   Future<OkxApiResponse<List<SwapChainData>>> getSupportedChains() async {
     final response = await _dio.get<dynamic>(
-      '$_baseUrl/aggregator/supported/chain',
+      '$_aggregatorBaseUrl/supported/chain',
     );
 
     return OkxApiResponse.fromJson(
@@ -61,7 +63,7 @@ class SwapOkxRepository {
     required String toTokenAddress,
   }) async {
     final response = await _dio.get<dynamic>(
-      '$_baseUrl/aggregator/quote',
+      '$_aggregatorBaseUrl/quote',
       queryParameters: {
         'chainIndex': chainIndex,
         'amount': amount,
@@ -89,7 +91,7 @@ class SwapOkxRepository {
     required String amount,
   }) async {
     final response = await _dio.get<dynamic>(
-      '$_baseUrl/aggregator/approve-transaction',
+      '$_aggregatorBaseUrl/approve-transaction',
       queryParameters: {
         'chainIndex': chainIndex,
         'approveAmount': amount,
@@ -102,6 +104,28 @@ class SwapOkxRepository {
       (json) =>
           (json as List<dynamic>?)?.map((e) => ApproveTransactionData.fromJson(e as Map<String, dynamic>)).toList() ??
           [],
+    );
+  }
+
+  Future<void> swap({
+    required String chainIndex,
+    required String amount,
+    required String toTokenAddress,
+    required String fromTokenAddress,
+    required String userWalletAddress,
+  }) async {
+    await _dio.get<dynamic>(
+      '$_aggregatorBaseUrl/swap',
+      queryParameters: {
+        'chainIndex': chainIndex,
+        'amount': amount,
+        'swapMode': 'exactIn',
+        'fromTokenAddress': fromTokenAddress,
+        'toTokenAddress': toTokenAddress,
+        'userWalletAddress': userWalletAddress,
+        // TODO(ice-erebus): ask for this data
+        'slippagePercent': '0.5',
+      },
     );
   }
 }

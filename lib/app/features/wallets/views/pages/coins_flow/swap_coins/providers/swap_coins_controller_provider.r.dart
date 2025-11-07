@@ -88,7 +88,10 @@ class SwapCoinsController extends _$SwapCoinsController {
   }
 
   // TODO(ice-erebus): implement bridge and CEX
-  Future<void> swapCoins() async {
+  Future<void> swapCoins({
+    required String userSellAddress,
+    required String userBuyAddress,
+  }) async {
     final sellNetwork = state.sellNetwork;
     final buyNetwork = state.buyNetwork;
     final sellCoinGroup = state.sellCoin;
@@ -128,14 +131,18 @@ class SwapCoinsController extends _$SwapCoinsController {
         if (quotes.isNotEmpty) {
           final quote = _pickBestOkxQuote(quotes);
 
-          final approveTransactionResponse = await swapOkxRepository.approveTransaction(
+          await swapOkxRepository.approveTransaction(
             chainIndex: quote.chainIndex,
             tokenContractAddress: sellTokenAddress,
             amount: amount,
           );
 
-          final approveTransaction = _processOkxResponse(
-            approveTransactionResponse,
+          await swapOkxRepository.swap(
+            chainIndex: quote.chainIndex,
+            amount: amount,
+            toTokenAddress: buyTokenAddress,
+            fromTokenAddress: sellTokenAddress,
+            userWalletAddress: userSellAddress,
           );
 
           return;
