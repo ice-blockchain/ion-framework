@@ -53,6 +53,10 @@ class MainActivity : FlutterFragmentActivity() {
         private const val ARG_EXPORTED_VIDEO_FILE = "argExportedVideoFilePath"
         private const val ARG_EXPORTED_VIDEO_COVER = "argExportedVideoCoverPreviewPath"
 
+        // For Video Codec Detection
+        private const val VIDEO_CODEC_CHANNEL = "ion/video_codec"
+        private const val METHOD_GET_VIDEO_CODEC = "getVideoCodec"
+
         // Errors code
         private const val ERR_CODE_SDK_NOT_INITIALIZED = "ERR_SDK_NOT_INITIALIZED"
         private const val ERR_CODE_SDK_LICENSE_REVOKED = "ERR_SDK_LICENSE_REVOKED"
@@ -79,6 +83,7 @@ class MainActivity : FlutterFragmentActivity() {
     )
 
     private var banubaSdkChannel: MethodChannel? = null
+    private var videoCodecChannel: MethodChannel? = null
 
     private lateinit var volumeKeyChannel: MethodChannel
 
@@ -98,12 +103,13 @@ class MainActivity : FlutterFragmentActivity() {
             "ion/video_compression"
         ).setMethodCallHandler(videoCompressionPlugin)
 
-        MethodChannel(
+        videoCodecChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
-            "ion/video_codec"
-        ).setMethodCallHandler { call, result ->
+            VIDEO_CODEC_CHANNEL
+        )
+        videoCodecChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
-                "getVideoCodec" -> {
+                METHOD_GET_VIDEO_CODEC -> {
                     val videoPath = call.argument<String>("videoPath")
                     if (videoPath == null) {
                         result.error("INVALID_ARGUMENT", "videoPath is required", null)
@@ -469,6 +475,8 @@ class MainActivity : FlutterFragmentActivity() {
             try {
                 banubaSdkChannel?.setMethodCallHandler(null)
                 banubaSdkChannel = null
+                videoCodecChannel?.setMethodCallHandler(null)
+                videoCodecChannel = null
                 videoCompressionPlugin = null
             } catch (e: Exception) {
                 Log.e(TAG, "Error cleaning up MethodChannels", e)

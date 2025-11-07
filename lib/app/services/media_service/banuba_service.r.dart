@@ -13,7 +13,7 @@ import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/utils/url.dart';
-import 'package:ion/app/utils/video_codec_detector.dart';
+import 'package:ion/app/utils/video_codec_detector.r.dart';
 import 'package:path/path.dart' as path;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uri_to_file/uri_to_file.dart';
@@ -173,9 +173,8 @@ Future<MediaFile?> editMedia(
       return mediaFile.copyWith(path: newPath);
     case MediaType.video:
       if (Platform.isAndroid) {
-        final codec = await VideoCodecDetector.getVideoCodec(filePath);
-        Logger.log('Detected codec: $codec');
-        final isAV1 = await VideoCodecDetector.isAV1Video(filePath);
+        final codecDetector = ref.read(videoCodecDetectorProvider);
+        final isAV1 = await codecDetector.isAV1Video(filePath);
 
         if (isAV1) {
           Logger.log('AV1 video detected, bypassing Banuba editor');
