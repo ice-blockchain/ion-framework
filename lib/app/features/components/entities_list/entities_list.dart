@@ -26,10 +26,10 @@ class EntitiesList extends HookWidget {
     this.displayParent = false,
     this.separatorHeight,
     this.onVideoTap,
-    this.readFromDB = false,
     this.showMuted = false,
     this.showNotInterested = true,
     this.plainInlineStyles = false,
+    this.network = false,
     super.key,
   });
 
@@ -37,10 +37,10 @@ class EntitiesList extends HookWidget {
   final double? separatorHeight;
   final bool displayParent;
   final OnVideoTapCallback? onVideoTap;
-  final bool readFromDB;
   final bool showMuted;
   final bool showNotInterested;
   final bool plainInlineStyles;
+  final bool network;
 
   @override
   Widget build(BuildContext context) {
@@ -58,8 +58,8 @@ class EntitiesList extends HookWidget {
                 displayParent: displayParent,
                 separatorHeight: separatorHeight,
                 onVideoTap: onVideoTap,
-                readFromDB: readFromDB,
                 showMuted: showMuted,
+                network: network,
                 showNotInterested: showNotInterested,
                 plainInlineStyles: plainInlineStyles,
               ),
@@ -75,9 +75,9 @@ class _EntityListItem extends ConsumerWidget {
   _EntityListItem({
     required this.eventReference,
     required this.displayParent,
-    required this.readFromDB,
     required this.showMuted,
     required this.showNotInterested,
+    required this.network,
     this.onVideoTap,
     this.plainInlineStyles = false,
     double? separatorHeight,
@@ -87,11 +87,11 @@ class _EntityListItem extends ConsumerWidget {
   final EventReference eventReference;
   final double separatorHeight;
   final bool displayParent;
-  final bool readFromDB;
   final OnVideoTapCallback? onVideoTap;
   final bool showMuted;
   final bool showNotInterested;
   final bool plainInlineStyles;
+  final bool network;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -122,10 +122,12 @@ class _EntityListItem extends ConsumerWidget {
             displayParent: displayParent,
             onVideoTap: onVideoTap,
             plainInlineStyles: plainInlineStyles,
+            network: network,
           ),
         final ArticleEntity article => ArticleListItem(
             article: article,
             showNotInterested: showNotInterested,
+            network: network,
           ),
         GenericRepostEntity() || RepostEntity() => RepostListItem(
             eventReference: entity.toEventReference(),
