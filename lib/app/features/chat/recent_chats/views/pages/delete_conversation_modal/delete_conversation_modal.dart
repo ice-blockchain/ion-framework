@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/card/info_card.dart';
+import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/e2ee/providers/e2ee_delete_event_provider.r.dart';
@@ -78,7 +79,7 @@ class DeleteConversationModal extends ConsumerWidget {
                 ),
               ],
             ),
-            SizedBox(height: MediaQuery.paddingOf(context).bottom + 16.0.s),
+            ScreenBottomOffset(),
           ],
         ),
       ),
