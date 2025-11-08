@@ -56,7 +56,7 @@ class GetWalletHistoryDataSource {
         }
       }
       if (e is DecodeException) {
-        throw FailedToParseResponseException(e.message);
+        rethrow;
       }
       throw const UnknownIONIdentityException();
     }

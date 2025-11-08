@@ -286,7 +286,3 @@ class InvalidEmailException extends IONIdentityException {
     }
   }
 }
-
-class FailedToParseResponseException extends IONIdentityException {
-  const FailedToParseResponseException([super.message]);
-}

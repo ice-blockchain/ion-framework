@@ -75,6 +75,13 @@ class TransactionLoader {
       }
 
       return true;
+    } on DecodeException catch (e) {
+      await SentryService.logException(
+        e.error,
+        stackTrace: e.stackTrace, // Origin stacktrace
+        tag: 'load_transactions_failure',
+      );
+      return false;
     } catch (e, stack) {
       Logger.error(
         e,
