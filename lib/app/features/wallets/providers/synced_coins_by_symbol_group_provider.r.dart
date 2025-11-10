@@ -56,62 +56,29 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
     final cachedData = state.value?[symbolGroup];
 
     if (cachedData != null) {
-      if (_canMakeRequest(symbolGroup)) {
-        // Trigger background refresh
-        final activeRequest = _activeRequests[symbolGroup];
-        if (activeRequest == null) {
-          unawaited(_triggerBackgroundRefresh(symbolGroup));
-        }
+      if (_canMakeRequest(symbolGroup) && _activeRequests[symbolGroup] == null) {
+        // Trigger the request in background
+        unawaited(
+          _executeRequest(symbolGroup),
+        );
       }
 
-      // Always return cached data immediately if available
       return cachedData;
     }
 
-    // No cache - must wait for first load
-    final activeRequest = _activeRequests[symbolGroup];
-    if (activeRequest != null) {
-      return activeRequest;
-    }
-
-    final requestFuture = _fetchAndProcessCoins(symbolGroup);
-    _activeRequests[symbolGroup] = requestFuture;
-
-    try {
-      final updatedCoins = await requestFuture;
-      _updateRequestTime(symbolGroup);
-      _updateCache({symbolGroup: updatedCoins});
-      return updatedCoins;
-    } finally {
-      unawaited(_activeRequests.remove(symbolGroup));
-    }
-  }
-
-  Future<void> _triggerBackgroundRefresh(String symbolGroup) async {
-    final requestFuture = _fetchAndProcessCoins(symbolGroup);
-    _activeRequests[symbolGroup] = requestFuture;
-
-    try {
-      final updatedCoins = await requestFuture;
-      _updateRequestTime(symbolGroup);
-      _updateCache({symbolGroup: updatedCoins});
-    } finally {
-      unawaited(_activeRequests.remove(symbolGroup));
-    }
+    return _getOrExecuteRequest(symbolGroup);
   }
 
   Future<void> refresh({List<String>? symbolGroups, bool force = false}) async {
     final currentCache = state.valueOrNull ?? {};
     final groupsToUpdate = symbolGroups ?? currentCache.keys.toList();
 
-    // Skip refresh if cache is empty and no specific symbol groups provided
     if (symbolGroups == null && currentCache.isEmpty) {
       return;
     }
 
     final updates = await Future.wait(
       groupsToUpdate.map((group) async {
-        // Skip request if we can't make a request (throttled) and force is false
         if (!force && !_canMakeRequest(group)) {
           final cachedData = currentCache[group];
           if (cachedData != null) {
@@ -119,31 +86,14 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
           }
         }
 
-        // Force refresh: bypass deduplication and debounce
         if (force) {
           unawaited(_activeRequests.remove(group));
-          final coins = await _fetchAndProcessCoins(group);
-          _updateRequestTime(group);
+          final coins = await _executeRequest(group, updateCache: false);
           return MapEntry(group, coins);
         }
 
-        // Regular refresh: check for active requests to prevent duplicates
-        final activeRequest = _activeRequests[group];
-        if (activeRequest != null) {
-          return MapEntry(group, await activeRequest);
-        }
-
-        // Start new request and track it
-        final requestFuture = _fetchAndProcessCoins(group);
-        _activeRequests[group] = requestFuture;
-
-        try {
-          final coins = await requestFuture;
-          _updateRequestTime(group);
-          return MapEntry(group, coins);
-        } finally {
-          unawaited(_activeRequests.remove(group));
-        }
+        final coins = await _getOrExecuteRequest(group);
+        return MapEntry(group, coins);
       }),
     );
 
@@ -174,6 +124,34 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
     }).toList();
 
     return result..sort(_coinsComparator.compareCoins);
+  }
+
+  Future<List<CoinInWalletData>> _executeRequest(
+    String symbolGroup, {
+    bool updateCache = true,
+  }) async {
+    final requestFuture = _fetchAndProcessCoins(symbolGroup);
+    _activeRequests[symbolGroup] = requestFuture;
+
+    try {
+      final updatedCoins = await requestFuture;
+      _updateRequestTime(symbolGroup);
+      if (updateCache) {
+        _updateCache({symbolGroup: updatedCoins});
+      }
+      return updatedCoins;
+    } finally {
+      await _activeRequests.remove(symbolGroup);
+    }
+  }
+
+  Future<List<CoinInWalletData>> _getOrExecuteRequest(String symbolGroup) async {
+    final activeRequest = _activeRequests[symbolGroup];
+    if (activeRequest != null) {
+      return activeRequest;
+    }
+
+    return _executeRequest(symbolGroup);
   }
 
   bool _canMakeRequest(String symbolGroup) {
