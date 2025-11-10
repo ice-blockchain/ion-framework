@@ -760,6 +760,7 @@
   "settings_delegate_access_agree_risks": "I understand and agree with the risks",
   "settings_delegate_access_confirm_user": "Double-check yourself! Are you sure you have selected the right user?",
   "settings_delegate_access_description": "Delegated access will allow another user to manage your account, post messages, replies, and comments on your behalf.\nBe careful, this action involves risks.",
+  "settings_delegate_access_select_user": "Select user",
   "settings_delete": "Delete account",
   "settings_leave_feedback": "Leave your feedback",
   "settings_logout": "Logout",

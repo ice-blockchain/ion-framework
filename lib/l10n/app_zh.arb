@@ -760,6 +760,7 @@
     "settings_delegate_access_agree_risks": "我理解并同意相关风险",
     "settings_delegate_access_confirm_user": "请再次确认！您确定选择了正确的用户吗？",
     "settings_delegate_access_description": "委托访问将允许其他用户管理您的账户，以您的名义发布消息、回复和评论。\n请注意，此操作涉及风险。",
+    "settings_delegate_access_select_user": "选择用户",
     "settings_delete": "删除账户",
     "settings_leave_feedback": "留下您的反馈",
     "settings_logout": "登出",

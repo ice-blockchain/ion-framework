@@ -760,6 +760,7 @@
   "settings_delegate_access_agree_risks": "Я понимаю и согласен с рисками",
   "settings_delegate_access_confirm_user": "Проверьте еще раз! Вы уверены, что выбрали правильного пользователя?",
   "settings_delegate_access_description": "Делегированный доступ позволит другому пользователю управлять вашим аккаунтом, публиковать сообщения, ответы и комментарии от вашего имени.\nБудьте осторожны, это действие сопряжено с рисками.",
+  "settings_delegate_access_select_user": "Выбрать пользователя",
   "settings_delete": "Удалить аккаунт",
   "settings_leave_feedback": "Оставить отзыв",
   "settings_logout": "Выйти",

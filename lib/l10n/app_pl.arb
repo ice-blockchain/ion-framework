@@ -760,6 +760,7 @@
   "settings_delegate_access_agree_risks": "Rozumiem i akceptuję ryzyko",
   "settings_delegate_access_confirm_user": "Sprawdź jeszcze raz! Czy na pewno wybrałeś właściwego użytkownika?",
   "settings_delegate_access_description": "Delegowany dostęp pozwoli innemu użytkownikowi zarządzać Twoim kontem, publikować wiadomości, odpowiedzi i komentarze w Twoim imieniu.\nUważaj, ta akcja wiąże się z ryzykiem.",
+  "settings_delegate_access_select_user": "Wybierz użytkownika",
   "settings_delete": "Usuń konto",
   "settings_leave_feedback": "Zostaw swoją opinię",
   "settings_logout": "Wyloguj się",
