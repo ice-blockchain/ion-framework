@@ -73,7 +73,7 @@ class CreatePostContent extends StatelessWidget {
                       parentEvent: parentEvent,
                       quotedEvent: quotedEvent,
                     ),
-                  const LanguageButton(),
+                  LanguageButton(createOption: createOption),
                 ],
               ),
             if (parentEvent != null) _ParentEntitySection(eventReference: parentEvent!),
