@@ -1,5 +1,3 @@
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+// SPDX-License-Identifier: ice License 1.0
+
+library ion_swap_client;
