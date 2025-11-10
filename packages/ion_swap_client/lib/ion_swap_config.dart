@@ -32,4 +32,5 @@ class IONSwapConfig {
   final String letsExchangeAffiliateId;
 
   final List<Interceptor> interceptors;
+  final String relayBaseUrl;
 }
