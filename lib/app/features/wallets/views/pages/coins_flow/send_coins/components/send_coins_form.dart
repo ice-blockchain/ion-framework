@@ -63,7 +63,8 @@ class SendCoinsForm extends HookConsumerWidget {
 
     final amount = coin?.amount ?? 0.0;
     final amountController = useTextEditingController();
-    final usdAmount = (parseAmount(amountController.text) ?? 0) * (coin?.selectedOption?.coin.priceUSD ?? 0);
+    final usdAmount =
+        (parseAmount(amountController.text) ?? 0) * (coin?.selectedOption?.coin.priceUSD ?? 0);
 
     useOnInit(() => amountController.text = amount == 0.0 ? '' : formatCrypto(amount), []);
 
@@ -99,8 +100,10 @@ class SendCoinsForm extends HookConsumerWidget {
         !exceedsMaxAmount;
 
     final feeSectionSpacing = SizedBox(height: 20.0.s);
-    final isContactSelected = formController.isContactPreselected && formController.contactPubkey != null;
-    final isMemoAvailable = (network.value?.isMemoSupported ?? false) && formController.contactPubkey == null;
+    final isContactSelected =
+        formController.isContactPreselected && formController.contactPubkey != null;
+    final isMemoAvailable =
+        (network.value?.isMemoSupported ?? false) && formController.contactPubkey == null;
 
     return SheetContent(
       body: KeyboardDismissOnTap(
@@ -186,7 +189,8 @@ class SendCoinsForm extends HookConsumerWidget {
                         balanceUSD: usdAmount,
                         controller: amountController,
                         coin: coin?.selectedOption?.coin,
-                        errorText: exceedsMaxAmount ? locale.wallet_coin_amount_insufficient_funds : null,
+                        errorText:
+                            exceedsMaxAmount ? locale.wallet_coin_amount_insufficient_funds : null,
                       ),
                       CoinsNetworkFeeSelector(
                         padding: EdgeInsetsDirectional.only(top: 17.0.s),
