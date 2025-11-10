@@ -15,21 +15,6 @@ class SwapOkxRepository {
 
   String get _aggregatorBaseUrl => '/aggregator';
 
-  // TODO(ice-erebus): implement actual data
-  Future<List<Map<String, int>>> getSupportedChainsIds() async {
-    return [
-      {'Avalanche': 43114},
-      {'Arbitrum One': 42161},
-      {'Optimism': 10},
-      {'Polygon': 137},
-      {'Solana': 501},
-      {'Base': 8453},
-      {'Ton': 607},
-      {'Tron': 195},
-      {'Ethereum': 1},
-    ];
-  }
-
   Future<OkxApiResponse<List<SwapChainData>>> getSupportedChains() async {
     final response = await _dio.get<dynamic>(
       '$_aggregatorBaseUrl/supported/chain',

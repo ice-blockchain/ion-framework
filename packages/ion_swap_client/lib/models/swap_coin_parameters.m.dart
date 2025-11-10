@@ -19,6 +19,8 @@ class SwapCoinParameters with _$SwapCoinParameters {
     required String buyCoinNetworkName,   
 
     required String amount,
+
+    required bool isBridge,
   }) = _SwapCoinParameters;
 
   factory SwapCoinParameters.fromJson(Map<String, dynamic> json) => _$SwapCoinParametersFromJson(json);
