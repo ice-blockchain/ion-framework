@@ -12,7 +12,8 @@ class OkxApiResponse<T> with _$OkxApiResponse<T> {
     @JsonKey(name: 'data') required T data,
   }) = _OkxApiResponse<T>;
 
-  factory OkxApiResponse.fromJson(Map<String, dynamic> json, T Function(Object?) fromJsonT) => _$OkxApiResponseFromJson(
+  factory OkxApiResponse.fromJson(Map<String, dynamic> json, T Function(Object?) fromJsonT) =>
+      _$OkxApiResponseFromJson(
         json,
         fromJsonT,
       );
