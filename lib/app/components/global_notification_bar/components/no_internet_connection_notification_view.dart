@@ -28,12 +28,10 @@ class NoInternetConnectionNotificationView extends StatelessWidget {
                 child: Assets.svg.linearessentionaluidangertriangle.icon(size: 16.0.s),
               ),
               SizedBox(width: 8.0.s),
-              Expanded(
-                child: Text(
-                  locale.common_no_internet_connection,
-                  style: context.theme.appTextThemes.body2.copyWith(
-                    color: context.theme.appColors.onPrimaryAccent,
-                  ),
+              Text(
+                locale.common_no_internet_connection,
+                style: context.theme.appTextThemes.body2.copyWith(
+                  color: context.theme.appColors.onPrimaryAccent,
                 ),
               ),
             ],
