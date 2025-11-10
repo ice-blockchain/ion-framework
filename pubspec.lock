@@ -1704,6 +1704,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  ion_swap_client:
+    dependency: "direct main"
+    description:
+      path: "packages/ion_swap_client"
+      relative: true
+    source: path
+    version: "0.0.1"
   isolate_manager:
     dependency: "direct main"
     description:

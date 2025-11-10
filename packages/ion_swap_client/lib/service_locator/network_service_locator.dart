@@ -1,47 +1,43 @@
-// SPDX-License-Identifier: ice License 1.0
-
 import 'dart:convert';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:dio/dio.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:ion/app/features/core/providers/dio_provider.r.dart';
-import 'package:ion/app/features/core/providers/env_provider.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:ion_swap_client/ion_swap_config.dart';
 
-part 'okx_dio_provider.r.g.dart';
+class NetworkServiceLocator with _OkxDio {
+  factory NetworkServiceLocator() {
+    return _instance;
+  }
 
-@Riverpod(keepAlive: true)
-Dio okxDio(Ref ref) {
-  final dio = Dio();
-  final env = ref.watch(envProvider.notifier);
+  NetworkServiceLocator._internal();
 
-  final logger = Logger.talkerDioLogger!;
-  logger.settings = logger.settings.copyWith(
-    errorFilter: (exception) {
-      final status = exception.response?.statusCode;
-      if (status == 404) {
-        return false;
-      }
-      return true;
-    },
-  );
-  dio.interceptors.add(logger);
-  dio.interceptors.add(
-    _OkxHeaderInterceptor(
-      apiKey: env.get<String>(EnvVariable.OKX_API_KEY),
-      signKey: env.get<String>(EnvVariable.OKX_SIGN_KEY),
-      passphrase: env.get<String>(EnvVariable.OKX_PASSPHRASE),
-      baseUrl: env.get<String>(EnvVariable.OKX_API_URL),
-    ),
-  );
+  static final NetworkServiceLocator _instance = NetworkServiceLocator._internal();
+}
 
-  final retry = configureDioRetryInterceptor(dio);
-  dio.interceptors.add(retry);
+mixin _OkxDio {
+  Dio? _okxDioInstance;
 
-  return dio;
+  Dio okxDio({
+    required IONSwapConfig config,
+  }) {
+    if (_okxDioInstance != null) {
+      return _okxDioInstance!;
+    }
+    final dio = Dio();
+
+    dio.interceptors.add(
+      _OkxHeaderInterceptor(
+        apiKey: config.okxApiKey,
+        signKey: config.okxSignKey,
+        passphrase: config.okxPassphrase,
+        baseUrl: config.okxApiUrl,
+      ),
+    );
+
+    _okxDioInstance = dio;
+    return dio;
+  }
 }
 
 class _OkxHeaderInterceptor implements Interceptor {
@@ -144,8 +140,7 @@ class _OkxHeaderInterceptor implements Interceptor {
       return path;
     }
 
-    final queryString =
-        queryParameters.entries.map((entry) => '${entry.key}=${entry.value}').join('&');
+    final queryString = queryParameters.entries.map((entry) => '${entry.key}=${entry.value}').join('&');
 
     return '$path?$queryString';
   }
