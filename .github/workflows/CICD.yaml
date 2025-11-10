@@ -222,7 +222,7 @@ jobs:
     runs-on: macos-15
     strategy:
       matrix:
-        deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.deployment)) || fromJSON('["firebase", "store"]') }}
+        deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.deployment)) || (github.event_name == 'pull_request' && fromJSON('["firebase"]')) || fromJSON('["firebase", "store"]') }}
     env:
       FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 180
       FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 10
@@ -298,6 +298,7 @@ jobs:
           flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=$ENV_FILE
       - name: Deploy iOS App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
+        if: ${{ github.event_name != 'pull_request' }}
         run: |
           cd main-repo
           bundle exec fastlane ios deploy target:$DEPLOYMENT_TARGET release_notes:$RELEASE_NOTES
@@ -317,7 +318,7 @@ jobs:
     runs-on: macos-15
     strategy:
       matrix:
-        deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.deployment)) || fromJSON('["firebase", "store"]') }}
+        deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.deployment)) || (github.event_name == 'pull_request' && fromJSON('["firebase"]')) || fromJSON('["firebase", "store"]') }}
     env:
       APP_VERSION: ${{ needs.flutter.outputs.app_version }}
       DEPLOYMENT_TYPE: ${{ matrix.deployment_target }}
@@ -403,6 +404,7 @@ jobs:
           flutter build $ANDROID_ARCHIVE_TYPE --release --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --dart-define-from-file=$ENV_FILE
       - name: Deploy Android App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
+        if: ${{ github.event_name != 'pull_request' }}
         run: |
           cd main-repo
           bundle exec fastlane android deploy target:$DEPLOYMENT_TARGET release_status:$RELEASE_STATUS release_notes:$RELEASE_NOTES
