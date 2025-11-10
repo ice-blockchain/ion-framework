@@ -37,14 +37,13 @@ class TransactionNotifier extends _$TransactionNotifier {
       limit: 1,
     );
 
-    final directHashTransactions = await repository.getTransactions(
-      txHashes: [txHash],
-      walletViewIds: [walletViewId],
-      limit: 1,
-    );
-
-    final initialTransactions =
-        externalHashTransactions.isNotEmpty ? externalHashTransactions : directHashTransactions;
+    final initialTransactions = externalHashTransactions.isNotEmpty
+        ? externalHashTransactions
+        : await repository.getTransactions(
+            txHashes: [txHash],
+            walletViewIds: [walletViewId],
+            limit: 1,
+          );
 
     if (initialTransactions.isEmpty) {
       throw Exception('No transaction was found');
