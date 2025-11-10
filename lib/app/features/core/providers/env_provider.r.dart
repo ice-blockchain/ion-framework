@@ -43,7 +43,8 @@ enum EnvVariable {
   OKX_API_KEY,
   OKX_SIGN_KEY,
   OKX_API_URL,
-  OKX_PASSPHRASE
+  OKX_PASSPHRASE,
+  RELAY_BASE_URL,
 }
 
 @Riverpod(keepAlive: true)
@@ -126,6 +127,7 @@ class Env extends _$Env {
       EnvVariable.OKX_SIGN_KEY => const String.fromEnvironment('OKX_SIGN_KEY') as T,
       EnvVariable.OKX_API_URL => const String.fromEnvironment('OKX_API_URL') as T,
       EnvVariable.OKX_PASSPHRASE => const String.fromEnvironment('OKX_PASSPHRASE') as T,
+      EnvVariable.RELAY_BASE_URL => const String.fromEnvironment('RELAY_BASE_URL') as T,
     };
   }
 }

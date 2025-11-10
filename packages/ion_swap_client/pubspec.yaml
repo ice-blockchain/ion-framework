@@ -23,6 +23,10 @@ dependencies:
   json_annotation: ^4.9.0
   rxdart: ^0.28.0
 
+flutter:
+  assets:
+    - assets/json/okx_ids.json
+
 dev_dependencies:
   build_runner: ^2.4.13
   custom_lint: ^0.7.2
