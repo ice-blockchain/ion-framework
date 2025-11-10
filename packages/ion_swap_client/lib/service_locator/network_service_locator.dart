@@ -24,7 +24,12 @@ mixin _OkxDio {
     if (_okxDioInstance != null) {
       return _okxDioInstance!;
     }
-    final dio = Dio();
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: config.okxApiUrl,
+      ),
+    );
+    dio.interceptors.addAll(config.interceptors);
 
     dio.interceptors.add(
       _OkxHeaderInterceptor(
@@ -72,9 +77,12 @@ class _OkxHeaderInterceptor implements Interceptor {
     // Dio stores either a relative path or a full URL in `options.path`.
     // We normalize to just the path component, preserving the query string.
 
-    // https://google.com
-    final pathToReplace = _getBaseUrl(baseUrl);
-    final requestPath = options.path.replaceFirst(pathToReplace, '/');
+
+    final fullUrl = options.baseUrl + options.path;
+    final pathToReplace = _getBaseUrl(
+      fullUrl,
+    );
+    final requestPath = fullUrl.replaceFirst(pathToReplace, '/');
     final requestPathWithQueryParams = _normalizeRequestPath(
       requestPath,
       options.queryParameters,
