@@ -62,8 +62,7 @@ class AccountSettingsModal extends HookConsumerWidget {
                   ),
                   ModalActionButton(
                     icon: Assets.svg.iconProfileDelegateaccess.icon(color: primaryColor),
-                    // TODO: add i18n
-                    label: 'Delegate access',
+                    label: context.i18n.settings_delegate_access,
                     onTap: () => popIfNull(() => DelegateAccessRoute().push<bool>(context)),
                   ),
                   ModalActionButton(

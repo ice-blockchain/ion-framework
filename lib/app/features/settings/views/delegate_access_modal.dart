@@ -12,6 +12,7 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion/generated/assets.gen.dart';
 
 class DelegateAccessModal extends HookWidget {
   const DelegateAccessModal({super.key});
@@ -39,20 +40,15 @@ class DelegateAccessModal extends HookWidget {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Placeholder(
-                    fallbackHeight: 80.0.s,
-                    fallbackWidth: 80.0.s,
-                  ),
+                  Assets.svg.actionSettingsDelegate.icon(size: 80.0.s),
                   SizedBox(height: 8.0.s),
                   Text(
-                    // TODO: add i18n
-                    'Delegate access',
+                    context.i18n.settings_delegate_access,
                     style: context.theme.appTextThemes.title,
                   ),
                   SizedBox(height: 12.0.s),
                   Text(
-                    // TODO: add i18n
-                    'Delegated access will allow another user to manage your account, post messages, replies, and comments on your behalf.\nBe careful, this action involves risks.',
+                    context.i18n.settings_delegate_access_description,
                     style: context.theme.appTextThemes.body2.copyWith(
                       color: context.theme.appColors.secondaryText,
                     ),
@@ -62,8 +58,7 @@ class DelegateAccessModal extends HookWidget {
                   LabeledCheckbox(
                     isChecked: isChecked.value,
                     onChanged: (value) => isChecked.value = value,
-                    label: // TODO: add i18n
-                        'I understand and agree with the risks',
+                    label: context.i18n.settings_delegate_access_agree_risks,
                     textStyle: context.theme.appTextThemes.body,
                   ),
                 ],

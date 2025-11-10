@@ -17,6 +17,7 @@ import 'package:ion/app/features/feed/data/models/entities/event_count_result_da
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/user/extensions/user_metadata.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/tab_entity_type.dart';
 import 'package:ion/app/features/user/model/user_content_type.dart';
@@ -286,6 +287,14 @@ class ProfilePage extends HookConsumerWidget {
                         ProfileActions(
                           pubkey: masterPubkey,
                           profileMode: profileMode,
+                        ),
+                        SizedBox(width: 8.0.s),
+                      ],
+                      if (true) ...[
+                        GestureDetector(
+                          onTap: () => SwitchUserAccountRoute(selectedUserPubkey: masterPubkey)
+                              .push<void>(context),
+                          child: Assets.svg.iconSwitchProfile.icon(size: 24.0.s),
                         ),
                         SizedBox(width: 8.0.s),
                       ],
