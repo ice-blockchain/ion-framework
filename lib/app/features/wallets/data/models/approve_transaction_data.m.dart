@@ -12,5 +12,6 @@ class ApproveTransactionData with _$ApproveTransactionData {
     required String gasPrice,
   }) = _ApproveTransactionData;
 
-  factory ApproveTransactionData.fromJson(Map<String, dynamic> json) => _$ApproveTransactionDataFromJson(json);
+  factory ApproveTransactionData.fromJson(Map<String, dynamic> json) =>
+      _$ApproveTransactionDataFromJson(json);
 }
