@@ -136,6 +136,10 @@ class ProfilePage extends HookConsumerWidget {
       color: profileMode == ProfileMode.dark ? context.theme.appColors.onPrimaryAccent : null,
     );
 
+    final isDelegateAccessEnabled = ref
+        .watch(featureFlagsProvider.notifier)
+        .get(DelegateAccessFeatureFlag.delegateAccessEnabled);
+
     return Scaffold(
       backgroundColor: backgroundColor,
       extendBodyBehindAppBar: profileMode == ProfileMode.dark,
@@ -290,7 +294,7 @@ class ProfilePage extends HookConsumerWidget {
                         ),
                         SizedBox(width: 8.0.s),
                       ],
-                      if (true) ...[
+                      if (isDelegateAccessEnabled) ...[
                         GestureDetector(
                           onTap: () => SwitchUserAccountRoute(selectedUserPubkey: masterPubkey)
                               .push<void>(context),

@@ -10,8 +10,10 @@ import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separated_column.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/model/language.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
+import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/optimistic_ui/features/language/language_sync_strategy_provider.r.dart';
 import 'package:ion/app/features/settings/providers/video_settings_provider.m.dart';
 import 'package:ion/app/features/settings/views/delete_confirm_modal.dart';
@@ -40,6 +42,10 @@ class AccountSettingsModal extends HookConsumerWidget {
 
     final popIfNull = usePopIfReturnedNull<bool>();
 
+    final isDelegateAccessEnabled = ref
+        .watch(featureFlagsProvider.notifier)
+        .get(DelegateAccessFeatureFlag.delegateAccessEnabled);
+
     return SheetContent(
       body: SingleChildScrollView(
         child: Column(
@@ -60,11 +66,12 @@ class AccountSettingsModal extends HookConsumerWidget {
                     label: context.i18n.settings_profile_edit,
                     onTap: () => ProfileEditRoute().go(context),
                   ),
-                  ModalActionButton(
-                    icon: Assets.svg.iconProfileDelegateaccess.icon(color: primaryColor),
-                    label: context.i18n.settings_delegate_access,
-                    onTap: () => popIfNull(() => DelegateAccessRoute().push<bool>(context)),
-                  ),
+                  if (isDelegateAccessEnabled)
+                    ModalActionButton(
+                      icon: Assets.svg.iconProfileDelegateaccess.icon(color: primaryColor),
+                      label: context.i18n.settings_delegate_access,
+                      onTap: () => popIfNull(() => DelegateAccessRoute().push<bool>(context)),
+                    ),
                   ModalActionButton(
                     icon: Assets.svg.iconProfileBlockUser.icon(color: primaryColor),
                     label: context.i18n.settings_blocked_users,

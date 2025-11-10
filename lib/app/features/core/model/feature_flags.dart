@@ -42,3 +42,9 @@ final class TokenizedCommunitiesFeatureFlag extends FeatureFlag {
   static const tokenizedCommunitiesEnabled =
       TokenizedCommunitiesFeatureFlag._(key: 'tokenizedCommunitiesEnabled');
 }
+
+final class DelegateAccessFeatureFlag extends FeatureFlag {
+  const DelegateAccessFeatureFlag._({required super.key});
+
+  static const delegateAccessEnabled = DelegateAccessFeatureFlag._(key: 'delegateAccessEnabled');
+}
