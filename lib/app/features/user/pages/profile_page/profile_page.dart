@@ -17,7 +17,6 @@ import 'package:ion/app/features/feed/data/models/entities/event_count_result_da
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/user/extensions/user_metadata.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/tab_entity_type.dart';
 import 'package:ion/app/features/user/model/user_content_type.dart';
@@ -37,6 +36,7 @@ import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';

@@ -46,7 +46,7 @@ class SwitchUserAccountModal extends ConsumerWidget {
                     icon: Assets.svg.iconChannelType
                         .icon(color: context.theme.appColors.primaryAccent),
                     child: Text(
-                      'Login with new account',
+                      context.i18n.profile_login_with_new_account,
                       style: context.theme.appTextThemes.body,
                     ),
                   ),
