@@ -145,6 +145,8 @@ class SwapCoinsController extends _$SwapCoinsController {
             userWalletAddress: userSellAddress,
           );
 
+          await swapOkxRepository.simulateSwap();
+
           return;
         }
       }

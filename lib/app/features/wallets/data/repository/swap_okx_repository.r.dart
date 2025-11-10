@@ -128,6 +128,20 @@ class SwapOkxRepository {
       },
     );
   }
+
+  Future<void> simulateSwap() async {
+    await _dio.get<dynamic>(
+      '$_baseUrl/pre-transaction/simulate',
+      queryParameters: {
+        'fromAddress': '',
+        'toAddress': '',
+        'chainIndex': '',
+        'extJson': {
+          'inputData': '',
+        },
+      },
+    );
+  }
 }
 
 @Riverpod(keepAlive: true)

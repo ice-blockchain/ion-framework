@@ -6,10 +6,12 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/wallets/hooks/use_check_wallet_address_available.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -26,6 +28,9 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
     final buyCoins = ref.watch(swapCoinsControllerProvider).buyCoin;
     final buyNetwork = ref.watch(swapCoinsControllerProvider).buyNetwork;
 
+    final sellAddress = useState<String?>(null);
+    final buyAddress = useState<String?>(null);
+
     if (sellCoins == null || buyCoins == null || sellNetwork == null || buyNetwork == null) {
       return const Scaffold(
         body: Center(
@@ -33,6 +38,24 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
         ),
       );
     }
+
+    useCheckWalletAddressAvailable(
+      ref,
+      network: sellNetwork,
+      coinsGroup: sellCoins,
+      onAddressFound: (address) => sellAddress.value = address,
+      onAddressMissing: () => AddressNotFoundRoute().push<void>(ref.context),
+      keys: [sellNetwork, sellCoins],
+    );
+
+    useCheckWalletAddressAvailable(
+      ref,
+      network: buyNetwork,
+      coinsGroup: buyCoins,
+      onAddressFound: (address) => buyAddress.value = address,
+      onAddressMissing: () => AddressNotFoundRoute().push<void>(ref.context),
+      keys: [buyNetwork, buyCoins],
+    );
 
     return SheetContent(
       body: SingleChildScrollView(
@@ -66,7 +89,10 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
               },
             ),
             SizedBox(height: 32.0.s),
-            _SwapButton(),
+            _SwapButton(
+              userSellAddress: sellAddress.value,
+              userBuyAddress: buyAddress.value,
+            ),
             SizedBox(height: 16.0.s),
           ],
         ),
@@ -380,6 +406,14 @@ class _Divider extends StatelessWidget {
 }
 
 class _SwapButton extends ConsumerWidget {
+  const _SwapButton({
+    this.userSellAddress,
+    this.userBuyAddress,
+  });
+
+  final String? userSellAddress;
+  final String? userBuyAddress;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.appColors;
@@ -389,8 +423,20 @@ class _SwapButton extends ConsumerWidget {
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
         onPressed: () {
+          final sellAddress = userSellAddress;
+          final buyAddress = userBuyAddress;
+
+          // TODO(ice-erebus): add actual error handling
+          if (sellAddress == null || buyAddress == null) {
+            return;
+          }
+
           // TODO(ice-erebus): implement swap action
-          ref.read(swapCoinsControllerProvider.notifier).swapCoins();
+          ref.read(swapCoinsControllerProvider.notifier).swapCoins(
+                userBuyAddress: buyAddress,
+                userSellAddress: sellAddress,
+              );
+
           if (context.mounted) {
             context.pop(true);
           }
