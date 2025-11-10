@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:collection/collection.dart';
-import 'package:ion/app/features/wallets/data/models/okx_api_response.m.dart';
-import 'package:ion/app/features/wallets/data/models/swap_chain_data.m.dart';
-import 'package:ion/app/features/wallets/data/models/swap_quote_data.m.dart';
-import 'package:ion/app/features/wallets/data/repository/swap_okx_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
+import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
+import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'swap_coins_controller_provider.r.g.dart';
@@ -87,7 +85,6 @@ class SwapCoinsController extends _$SwapCoinsController {
     );
   }
 
-  // TODO(ice-erebus): implement bridge and CEX
   Future<void> swapCoins({
     required String userSellAddress,
     required String userBuyAddress,
@@ -97,101 +94,31 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellCoinGroup = state.sellCoin;
     final buyCoinGroup = state.buyCoin;
 
-    if (sellCoinGroup == null ||
-        buyCoinGroup == null ||
-        sellNetwork == null ||
-        buyNetwork == null) {
+    if (sellCoinGroup == null || buyCoinGroup == null || sellNetwork == null || buyNetwork == null) {
       return;
     }
 
-    final sellCoin =
-        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-    final buyCoin =
-        buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
+    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final buyCoin = buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
 
     if (sellCoin == null || buyCoin == null) {
       return;
     }
 
-    if (sellNetwork.id == buyNetwork.id) {
-      final okxChain = await _isOkxChainSupported(sellNetwork);
-      final sellTokenAddress = _getTokenAddress(sellCoin.coin.contractAddress);
-      final buyTokenAddress = _getTokenAddress(buyCoin.coin.contractAddress);
-
-      if (okxChain != null) {
-        final swapOkxRepository = await ref.read(swapOkxRepositoryProvider.future);
-
-        // TODO(ice-erebus): implement actual amount
-        const amount = '1000';
-
-        final quotesResponse = await swapOkxRepository.getQuotes(
-          chainIndex: okxChain.chainIndex,
-          amount: amount,
-          fromTokenAddress: sellTokenAddress,
-          toTokenAddress: buyTokenAddress,
-        );
-
-        final quotes = _processOkxResponse(quotesResponse);
-
-        if (quotes.isNotEmpty) {
-          final quote = _pickBestOkxQuote(quotes);
-
-          await swapOkxRepository.approveTransaction(
-            chainIndex: quote.chainIndex,
-            tokenContractAddress: sellTokenAddress,
-            amount: amount,
-          );
-
-          await swapOkxRepository.swap(
-            chainIndex: quote.chainIndex,
-            amount: amount,
-            toTokenAddress: buyTokenAddress,
-            fromTokenAddress: sellTokenAddress,
-            userWalletAddress: userSellAddress,
-          );
-
-          await swapOkxRepository.simulateSwap();
-
-          return;
-        }
-      }
-    }
-
-    return;
-  }
-
-  Future<SwapChainData?> _isOkxChainSupported(NetworkData network) async {
-    final swapOkxRepository = await ref.read(swapOkxRepositoryProvider.future);
-    final supportedChainsIds = await swapOkxRepository.getSupportedChainsIds();
-    final chainOkxIndex = supportedChainsIds.firstWhereOrNull(
-      (chain) => chain.keys.first.toLowerCase() == network.displayName.toLowerCase(),
+    final swapController = await ref.read(ionSwapClientProvider.future);
+    await swapController.swapCoins(
+      // TODO(ice-erebus): add amount
+      swapCoinData: SwapCoinParameters(
+        amount: '1000',
+        buyCoinContractAddress: buyCoin.coin.contractAddress,
+        sellCoinContractAddress: sellCoin.coin.contractAddress,
+        buyCoinNetworkName: buyNetwork.displayName,
+        sellCoinNetworkName: sellNetwork.displayName,
+        buyNetworkId: buyNetwork.id,
+        sellNetworkId: sellNetwork.id,
+        userBuyAddress: userBuyAddress,
+        userSellAddress: userSellAddress,
+      ),
     );
-
-    final supportedChainsResponse = await swapOkxRepository.getSupportedChains();
-    final supportedChains = _processOkxResponse(supportedChainsResponse);
-    final supportedChain = supportedChains.firstWhereOrNull(
-      (chain) => chain.chainIndex == chainOkxIndex?.values.first,
-    );
-
-    return supportedChain;
-  }
-
-  // TODO(ice-erebus): implement actual logic
-  SwapQuoteData _pickBestOkxQuote(List<SwapQuoteData> quotes) {
-    return quotes.first;
-  }
-
-  String _getTokenAddress(String contractAddress) {
-    return contractAddress.isEmpty ? '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' : contractAddress;
-  }
-
-  T _processOkxResponse<T>(OkxApiResponse<T> response) {
-    final responseCode = int.tryParse(response.code);
-    if (responseCode == 0) {
-      return response.data;
-    }
-
-    // TODO(ice-erebus): implement actual error handling
-    throw Exception('Failed to process OKX response: $responseCode');
   }
 }
