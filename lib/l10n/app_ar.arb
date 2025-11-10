@@ -770,6 +770,7 @@
   "settings_content_language": "لغة المحتوى",
   "settings_delegate_access": "تفويض الوصول",
   "settings_delegate_access_agree_risks": "أفهم المخاطر وأوافق عليها",
+  "settings_delegate_access_confirm_user": "تحقق من نفسك مرة أخرى! هل أنت متأكد من أنك اخترت المستخدم الصحيح؟",
   "settings_delegate_access_description": "سيسمح الوصول المفوض لمستخدم آخر بإدارة حسابك ونشر الرسائل والردود والتعليقات نيابة عنك.\nكن حذرًا، هذا الإجراء ينطوي على مخاطر.",
   "settings_delete": "حذف الحساب",
   "settings_leave_feedback": "اترك ملاحظاتك",

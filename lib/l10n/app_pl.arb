@@ -758,6 +758,7 @@
   "settings_content_language": "Język treści",
   "settings_delegate_access": "Deleguj dostęp",
   "settings_delegate_access_agree_risks": "Rozumiem i akceptuję ryzyko",
+  "settings_delegate_access_confirm_user": "Sprawdź jeszcze raz! Czy na pewno wybrałeś właściwego użytkownika?",
   "settings_delegate_access_description": "Delegowany dostęp pozwoli innemu użytkownikowi zarządzać Twoim kontem, publikować wiadomości, odpowiedzi i komentarze w Twoim imieniu.\nUważaj, ta akcja wiąże się z ryzykiem.",
   "settings_delete": "Usuń konto",
   "settings_leave_feedback": "Zostaw swoją opinię",

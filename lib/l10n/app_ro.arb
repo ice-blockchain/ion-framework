@@ -758,6 +758,7 @@
   "settings_content_language": "Limba conținutului",
   "settings_delegate_access": "Delegează accesul",
   "settings_delegate_access_agree_risks": "Înțeleg și accept riscurile",
+  "settings_delegate_access_confirm_user": "Verifică-te din nou! Ești sigur că ai selectat utilizatorul corect?",
   "settings_delegate_access_description": "Accesul delegat va permite altui utilizator să-ți gestioneze contul, să publice mesaje, răspunsuri și comentarii în numele tău.\nAi grijă, această acțiune implică riscuri.",
   "settings_delete": "Șterge contul",
   "settings_leave_feedback": "Lasă feedback-ul tău",

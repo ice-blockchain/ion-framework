@@ -49,7 +49,7 @@ class DelegateUserSelectedModal extends ConsumerWidget {
                   ),
                   SizedBox(height: 12.0.s),
                   Text(
-                    'Double-check yourself! Are you sure you have selected the right user?',
+                    context.i18n.settings_delegate_access_confirm_user,
                     style: context.theme.appTextThemes.body2.copyWith(
                       color: context.theme.appColors.secondaryText,
                     ),

@@ -758,6 +758,7 @@
   "settings_content_language": "Език на съдържанието",
   "settings_delegate_access": "Делегирай достъп",
   "settings_delegate_access_agree_risks": "Разбирам и приемам рисковете",
+  "settings_delegate_access_confirm_user": "Проверете отново! Сигурни ли сте, че сте избрали правилния потребител?",
   "settings_delegate_access_description": "Делегираният достъп ще позволи на друг потребител да управлява вашия акаунт, да публикува съобщения, отговори и коментари от ваше име.\nБъдете внимателни, това действие включва рискове.",
   "settings_delete": "Изтрий акаунт",
   "settings_leave_feedback": "Остави вашето мнение",
