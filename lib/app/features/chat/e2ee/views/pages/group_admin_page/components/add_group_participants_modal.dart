@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/e2ee/providers/group/encrypted_group_metadata_provider.r.dart';
-import 'package:ion/app/features/chat/e2ee/providers/group/update_group_chat_members_service.r.dart';
+import 'package:ion/app/features/chat/e2ee/providers/group/update_group_metadata_service.r.dart';
 import 'package:ion/app/features/chat/views/pages/new_group_modal/pages/components/invite_group_participant.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 
@@ -72,7 +72,7 @@ class AddGroupParticipantsModal extends HookConsumerWidget {
             return;
           }
 
-          ref.read(updateGroupChatMembersServiceProvider).addMembers(
+          ref.read(updateGroupMetaDataServiceProvider).addMembers(
                 groupId: conversationId,
                 participantMasterPubkeys: newParticipantPubkeys,
               );

@@ -4,18 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class EditGroupButton extends ConsumerWidget {
   const EditGroupButton({
+    required this.conversationId,
     super.key,
   });
+
+  final String conversationId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Button(
       onPressed: () {
-        // TODO: Navigate to edit group page
+        GroupEditPageRoute(conversationId: conversationId).push<void>(context);
       },
       leadingIcon: Assets.svg.iconEditLink.icon(
         color: context.theme.appColors.onPrimaryAccent,

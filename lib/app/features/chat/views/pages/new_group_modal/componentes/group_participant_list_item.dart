@@ -13,17 +13,19 @@ class GroupParticipantsListItem extends ConsumerWidget {
   const GroupParticipantsListItem({
     required this.participantMasterkey,
     this.role,
-    this.onRemove,
-    this.showRemoveButton = true,
+    this.onActionTap,
     this.onTap,
+    this.actionType,
+    this.disabled = false,
     super.key,
   });
 
   final String participantMasterkey;
   final GroupMemberRole? role;
-  final VoidCallback? onRemove;
-  final bool showRemoveButton;
+  final VoidCallback? onActionTap;
   final VoidCallback? onTap;
+  final ActionType? actionType;
+  final bool disabled;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,7 +35,24 @@ class GroupParticipantsListItem extends ConsumerWidget {
       data: (userPreviewData) {
         if (userPreviewData == null) return const SizedBox.shrink();
 
-        return BadgesUserListItem(
+        Widget? trailing;
+        if (role is GroupMemberRoleOwner ||
+            role is GroupMemberRoleAdmin ||
+            role is GroupMemberRoleModerator) {
+          trailing = _RoleBadge(role: role!);
+        } else if (actionType == ActionType.select) {
+          trailing = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Assets.svg.iconArrowRight.icon(
+                size: 24.0.s,
+                color: context.theme.appColors.tertiaryText,
+              ),
+            ],
+          );
+        }
+
+        final item = BadgesUserListItem(
           title: Text(userPreviewData.data.trimmedDisplayName),
           subtitle: Text(
             prefixUsername(username: userPreviewData.data.name, context: context),
@@ -44,31 +63,42 @@ class GroupParticipantsListItem extends ConsumerWidget {
           masterPubkey: userPreviewData.masterPubkey,
           contentPadding: EdgeInsets.zero,
           constraints: BoxConstraints(maxHeight: 39.0.s),
-          onTap: onTap,
-          trailing: role is GroupMemberRoleOwner
-              ? const _OwnerBadge()
-              : showRemoveButton
-                  ? GestureDetector(
-                      onTap: onRemove,
-                      behavior: HitTestBehavior.opaque,
-                      child: Assets.svg.iconBlockDelete.icon(
-                        size: 24.0.s,
-                        color: context.theme.appColors.sheetLine,
-                      ),
-                    )
-                  : null,
+          onTap: disabled ? null : onTap,
+          trailing: trailing,
         );
+
+        return disabled
+            ? Opacity(
+                opacity: 0.5,
+                child: item,
+              )
+            : item;
       },
       orElse: () => const SizedBox.shrink(),
     );
   }
 }
 
-class _OwnerBadge extends StatelessWidget {
-  const _OwnerBadge();
+class _RoleBadge extends StatelessWidget {
+  const _RoleBadge({
+    required this.role,
+  });
+
+  final GroupMemberRole role;
 
   @override
   Widget build(BuildContext context) {
+    final roleText = switch (role) {
+      GroupMemberRoleOwner() => context.i18n.channel_create_admin_type_owner,
+      GroupMemberRoleAdmin() => context.i18n.channel_create_admin_type_admin,
+      GroupMemberRoleModerator() => context.i18n.channel_create_admin_type_moderator,
+      GroupMemberRoleMember() => '',
+    };
+
+    if (roleText.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 2.0.s),
       decoration: ShapeDecoration(
@@ -78,7 +108,7 @@ class _OwnerBadge extends StatelessWidget {
         ),
       ),
       child: Text(
-        context.i18n.channel_create_admin_type_owner,
+        roleText,
         style: context.theme.appTextThemes.caption3.copyWith(
           color: context.theme.appColors.primaryAccent,
         ),
@@ -86,3 +116,5 @@ class _OwnerBadge extends StatelessWidget {
     );
   }
 }
+
+enum ActionType { remove, select }

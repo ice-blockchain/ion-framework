@@ -22,6 +22,7 @@ class GeneralUserDataInput extends HookWidget {
     this.initialValue,
     this.isLive = false,
     this.showNoErrorsIndicator = false,
+    this.initialVerification = true,
     this.prefix,
     this.keyboardType,
     this.inputFormatters,
@@ -40,6 +41,7 @@ class GeneralUserDataInput extends HookWidget {
   final String? initialValue;
   final bool isLive;
   final bool showNoErrorsIndicator;
+  final bool initialVerification;
   final Widget? prefix;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
@@ -49,6 +51,7 @@ class GeneralUserDataInput extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final isValid = useState(false);
+    final hasInteracted = useState(false);
 
     return TextInput(
       prefixIcon: TextInputIcons(
@@ -69,15 +72,22 @@ class GeneralUserDataInput extends HookWidget {
       minLines: minLines,
       initialValue: initialValue,
       isLive: isLive,
-      verified: isValid.value,
+      verified: initialVerification ? isValid.value : hasInteracted.value && isValid.value,
       onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-      suffixIcon: isValid.value && showNoErrorsIndicator && errorText == null
+      suffixIcon: (initialVerification ? isValid.value : hasInteracted.value && isValid.value) &&
+              showNoErrorsIndicator &&
+              errorText == null
           ? TextInputIcons(
               icons: [Assets.svg.iconBlockCheckboxOn.icon()],
             )
           : null,
       errorText: errorText,
-      onFocused: onFocused,
+      onFocused: (focused) {
+        if (focused) {
+          hasInteracted.value = true;
+        }
+        onFocused?.call(focused);
+      },
     );
   }
 }

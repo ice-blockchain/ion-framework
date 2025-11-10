@@ -10,6 +10,7 @@ class TextInputIcons extends StatelessWidget {
     super.key,
     this.hasLeftDivider = false,
     this.hasRightDivider = false,
+    this.minWidth,
   });
 
   final List<Widget> icons;
@@ -17,6 +18,8 @@ class TextInputIcons extends StatelessWidget {
   final bool hasLeftDivider;
 
   final bool hasRightDivider;
+
+  final double? minWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +33,7 @@ class TextInputIcons extends StatelessWidget {
           ),
         ConstrainedBox(
           constraints: BoxConstraints(
-            minWidth: 56.0.s,
+            minWidth: minWidth ?? 56.0.s,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

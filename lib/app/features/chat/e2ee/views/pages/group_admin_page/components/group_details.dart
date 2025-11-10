@@ -33,9 +33,9 @@ class GroupDetails extends ConsumerWidget {
             style: context.theme.appTextThemes.title,
             textAlign: TextAlign.center,
           ),
-          if (currentUserRole?.canRemoveMembers ?? false) ...[
+          if (currentUserRole?.canEditGroup ?? false) ...[
             SizedBox(height: 12.0.s),
-            const EditGroupButton(),
+            EditGroupButton(conversationId: conversationId),
             SizedBox(height: 14.0.s),
           ],
           SizedBox(height: 2.0.s),

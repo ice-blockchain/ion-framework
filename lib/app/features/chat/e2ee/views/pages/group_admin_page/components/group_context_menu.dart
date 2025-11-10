@@ -103,7 +103,7 @@ class GroupContextMenu extends HookConsumerWidget {
             iconAsset: Assets.svg.iconPopupClear,
             onPressed: () {
               closeMenu();
-              // TODO: Clear messages for group
+              ClearGroupMessagesConfirmRoute(conversationId: conversationId).push<void>(context);
             },
           ),
         )
@@ -119,7 +119,7 @@ class GroupContextMenu extends HookConsumerWidget {
             iconColor: context.theme.appColors.attentionRed,
             onPressed: () {
               closeMenu();
-              DeleteConversationRoute(conversationIds: [conversationId]).push<bool>(context);
+              DeleteGroupConfirmRoute(conversationId: conversationId).push<void>(context);
             },
           ),
         );

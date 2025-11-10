@@ -9,21 +9,17 @@ import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.d
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/group_member_role.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/group_admin_tab.dart';
-import 'package:ion/app/features/chat/e2ee/model/group_metadata.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/group/encrypted_group_metadata_provider.r.dart';
-import 'package:ion/app/features/chat/e2ee/providers/group/update_group_chat_members_service.r.dart';
-import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/add_members_button.dart';
 import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_avatar.dart'
     show GroupAvatar;
 import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_context_menu.dart';
 import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_details.dart';
+import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_media_tab.dart';
+import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_members_tab.dart';
 import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_tabs_header/group_tabs_header.dart';
-import 'package:ion/app/features/chat/views/pages/new_group_modal/componentes/group_participant_list_item.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -247,7 +243,11 @@ class _GroupTabContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (tab == GroupAdminTab.members) {
-      return _GroupMembersTab(conversationId: conversationId);
+      return GroupMembersTab(conversationId: conversationId);
+    }
+
+    if (tab == GroupAdminTab.media) {
+      return GroupMediaTab(conversationId: conversationId);
     }
 
     return Center(
@@ -255,98 +255,6 @@ class _GroupTabContent extends ConsumerWidget {
         context.i18n.group_tab_coming_soon(tab.getTitle(context)),
         style: context.theme.appTextThemes.body,
       ),
-    );
-  }
-}
-
-class _GroupMembersTab extends HookConsumerWidget {
-  const _GroupMembersTab({
-    required this.conversationId,
-  });
-
-  final String conversationId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final groupMetadata = ref.watch(encryptedGroupMetadataProvider(conversationId)).valueOrNull;
-
-    if (groupMetadata == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final members = groupMetadata.members;
-
-    if (members.isEmpty) {
-      return Center(
-        child: Text(
-          context.i18n.group_no_members,
-          style: context.theme.appTextThemes.body,
-        ),
-      );
-    }
-
-    final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
-    final currentUserRole = currentUserMasterPubkey != null
-        ? groupMetadata.currentUserRole(currentUserMasterPubkey)
-        : null;
-
-    final canRemoveMembers = currentUserRole?.canRemoveMembers ?? false;
-    final isOwner = currentUserRole is GroupMemberRoleOwner;
-
-    // Sort members so that owner comes first
-    final sortedMembers = [...members]..sort((a, b) {
-        final aIsOwner = a is GroupMemberRoleOwner;
-        final bIsOwner = b is GroupMemberRoleOwner;
-        if (aIsOwner && !bIsOwner) {
-          return -1;
-        }
-        if (!aIsOwner && bIsOwner) {
-          return 1;
-        }
-        return 0;
-      });
-
-    return ListView.separated(
-      padding: EdgeInsets.symmetric(vertical: 8.0.s, horizontal: 16.0.s),
-      itemCount: sortedMembers.length + (isOwner ? 1 : 0),
-      separatorBuilder: (_, int index) {
-        return SizedBox(height: 12.0.s);
-      },
-      itemBuilder: (_, int i) {
-        // Show AddMembersButton first if user is owner
-        if (isOwner && i == 0) {
-          return Padding(
-            padding: EdgeInsetsGeometry.only(
-              top: 10.0.s,
-            ),
-            child: AddMembersButton(
-              onTap: () {
-                AddGroupParticipantsModalRoute(conversationId: conversationId).push<void>(context);
-              },
-            ),
-          );
-        }
-
-        // Adjust index for member items when AddMembersButton is present
-        final memberIndex = isOwner ? i - 1 : i;
-        final memberRole = sortedMembers[memberIndex];
-        final participantMasterkey = memberRole.masterPubkey;
-
-        return GroupParticipantsListItem(
-          participantMasterkey: participantMasterkey,
-          role: memberRole,
-          showRemoveButton: canRemoveMembers,
-          onRemove: () {
-            ref.read(updateGroupChatMembersServiceProvider).removeMembers(
-              groupId: conversationId,
-              participantMasterPubkeys: [participantMasterkey],
-            );
-          },
-          onTap: () {
-            ProfileRoute(pubkey: participantMasterkey).push<void>(context);
-          },
-        );
-      },
     );
   }
 }

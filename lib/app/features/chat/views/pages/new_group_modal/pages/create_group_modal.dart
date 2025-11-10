@@ -129,7 +129,6 @@ class CreateGroupModal extends HookConsumerWidget {
                       iconAsset: Assets.svg.iconChannelType,
                       title: context.i18n.group_create_type,
                       selectedValue: createGroupForm.type.getTitle(context),
-                      onPress: null,
                     ),
                     SizedBox(height: 24.0.s),
                     Row(
@@ -168,7 +167,7 @@ class CreateGroupModal extends HookConsumerWidget {
 
                           return GroupParticipantsListItem(
                             participantMasterkey: participantMasterkey,
-                            onRemove: () {
+                            onActionTap: () {
                               createGroupFormNotifier.toggleMember(participantMasterkey);
                             },
                           );

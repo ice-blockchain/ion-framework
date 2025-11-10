@@ -450,12 +450,38 @@
   "group_admin_tab_members": "الأعضاء",
   "group_add_members_button": "إضافة أعضاء",
   "group_add_members_title": "إضافة أعضاء",
+  "group_admins_modal_title": "الإدارة",
+  "select_administrator_title": "اختر المدير",
+  "add_administrator_title": "إضافة مدير",
+  "selected_user_label": "المستخدم المحدد",
+  "what_can_admin_do_label": "ماذا يمكن لهذا المدير أن يفعل",
+  "admin_permission_delete_messages": "حذف الرسائل",
+  "admin_permission_pin_messages": "تثبيت الرسائل",
+  "admin_permission_delete_users": "حذف المستخدمين",
+  "admin_permission_add_new_users": "إضافة مستخدمين جدد",
+  "admin_permission_add_new_admins": "إضافة مدراء جدد",
+  "admin_permission_change_group_info": "تغيير معلومات المجموعة",
+  "admin_permission_clear_group": "مسح المجموعة",
   "group_edit_button": "تعديل المجموعة",
+  "group_edit_title": "تعديل مجموعة",
   "group_clear_messages": "مسح الرسائل",
+  "group_clear_messages_confirm_title": "مسح جميع الرسائل؟",
+  "group_clear_messages_confirm_description": "هل أنت متأكد أنك تريد مسح جميع الرسائل من هذه المجموعة؟",
   "group_delete_group": "حذف المجموعة",
+  "group_delete_group_confirm_title": "حذف المجموعة؟",
+  "group_delete_group_confirm_description": "هل أنت متأكد أنك تريد حذف جميع المحتويات والأعضاء والمجموعة نفسها؟",
   "group_leave": "مغادرة",
   "group_leave_confirm_title": "مغادرة المجموعة؟",
   "group_leave_confirm_description": "هل أنت متأكد أنك تريد مغادرة المجموعة؟",
+  "group_delete_user_confirm_title": "حذف المستخدم؟",
+  "group_delete_user_confirm_description": "هل أنت متأكد أنك تريد حذف {userNickname} من هذه المجموعة؟",
+  "@group_delete_user_confirm_description": {
+    "placeholders": {
+      "userNickname": {
+        "type": "String"
+      }
+    }
+  },
   "group_no_members": "لا يوجد أعضاء",
   "group_tab_coming_soon": "{tabName} - قريباً",
   "@group_tab_coming_soon": {

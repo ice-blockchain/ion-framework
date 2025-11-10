@@ -36,4 +36,10 @@ enum GroupType implements SelectableType {
         GroupType.private => 200,
         GroupType.encrypted => 5,
       };
+
+  int? get maxAdmins => switch (this) {
+        GroupType.public => null,
+        GroupType.private => null,
+        GroupType.encrypted => 2,
+      };
 }
