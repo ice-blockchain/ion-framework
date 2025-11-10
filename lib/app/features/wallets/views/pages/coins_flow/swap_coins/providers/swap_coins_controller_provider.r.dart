@@ -109,6 +109,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     await swapController.swapCoins(
       // TODO(ice-erebus): add amount
       swapCoinData: SwapCoinParameters(
+        isBridge: buyCoinGroup == sellCoinGroup,
         amount: '1000',
         buyCoinContractAddress: buyCoin.coin.contractAddress,
         sellCoinContractAddress: sellCoin.coin.contractAddress,

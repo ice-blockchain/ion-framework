@@ -1,29 +1,46 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:collection/collection.dart';
+import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/models/okx_api_response.m.dart';
 import 'package:ion_swap_client/models/swap_chain_data.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_data.m.dart';
+import 'package:ion_swap_client/repositories/chains_ids_repository.dart';
+import 'package:ion_swap_client/repositories/relay_api_repository.dart';
 import 'package:ion_swap_client/repositories/swap_okx_repository.dart';
 
 class SwapController {
   SwapController({
     required SwapOkxRepository swapOkxRepository,
-  }) : _swapOkxRepository = swapOkxRepository;
+    required RelayApiRepository relayApiRepository,
+    required ChainsIdsRepository chainsIdsRepository,
+  })  : _swapOkxRepository = swapOkxRepository,
+        _chainsIdsRepository = chainsIdsRepository,
+        _relayApiRepository = relayApiRepository;
 
   final SwapOkxRepository _swapOkxRepository;
+  final RelayApiRepository _relayApiRepository;
+  final ChainsIdsRepository _chainsIdsRepository;
 
   Future<void> swapCoins({
     required SwapCoinParameters swapCoinData,
   }) async {
-    if (swapCoinData.sellNetworkId == swapCoinData.buyNetworkId) {
-      final result = await _tryToSwapOnSameNetwork(swapCoinData);
-
-      // TODO(ice-erebus): implement bridge and CEX
-      if (result) {
+    try {
+      if (swapCoinData.isBridge) {
+        await _tryToBridge(swapCoinData);
         return;
       }
+
+      if (swapCoinData.sellNetworkId == swapCoinData.buyNetworkId) {
+        await _tryToSwapOnSameNetwork(swapCoinData);
+        // TODO(ice-erebus): implement CEX
+        return;
+      }
+    } catch (e) {
+      throw IonSwapException(
+        'Failed to swap coins: $e',
+      );
     }
   }
 
@@ -70,15 +87,15 @@ class SwapController {
   }
 
   Future<SwapChainData?> _isOkxChainSupported(String networkName) async {
-    final supportedChainsIds = await _swapOkxRepository.getSupportedChainsIds();
+    final supportedChainsIds = await _chainsIdsRepository.getOkxChainsIds();
     final chainOkxIndex = supportedChainsIds.firstWhereOrNull(
-      (chain) => chain.keys.first.toLowerCase() == networkName.toLowerCase(),
+      (chain) => chain.name.toLowerCase() == networkName.toLowerCase(),
     );
 
     final supportedChainsResponse = await _swapOkxRepository.getSupportedChains();
     final supportedChains = _processOkxResponse(supportedChainsResponse);
     final supportedChain = supportedChains.firstWhereOrNull(
-      (chain) => chain.chainIndex == chainOkxIndex?.values.first,
+      (chain) => chain.chainIndex == chainOkxIndex?.networkId,
     );
 
     return supportedChain;
@@ -101,5 +118,9 @@ class SwapController {
 
     // TODO(ice-erebus): implement actual error handling
     throw Exception('Failed to process OKX response: $responseCode');
+  }
+
+  Future<void> _tryToBridge(SwapCoinParameters swapCoinData) async {
+    await _relayApiRepository.getQuote();
   }
 }
