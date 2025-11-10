@@ -27,7 +27,7 @@ class TransferOwnershipConfirmModal extends ConsumerWidget {
     final buttonMinimalSize = Size(56.0.s, 56.0.s);
 
     return SimpleModalSheet.alert(
-      iconAsset: Assets.svg.actionCreatepostDeleterole,
+      iconAsset: Assets.svg.actionCreatepostTransferrole,
       title: context.i18n.transfer_group_ownership_title,
       description: context.i18n.transfer_group_ownership_desc,
       button: ScreenSideOffset.small(
