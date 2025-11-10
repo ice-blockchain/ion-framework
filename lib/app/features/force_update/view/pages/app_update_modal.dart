@@ -187,6 +187,8 @@ class AndroidInAppUpdateButton extends ConsumerWidget {
         if (updateState == AndroidUpdateState.initial) {
           await ref.read(androidSoftUpdateProvider.notifier).tryToStartUpdate();
         }
+
+        if (context.mounted) context.pop();
       },
       label: _AndroidUpdateButtonLabel(state: updateState),
       mainAxisSize: MainAxisSize.max,
