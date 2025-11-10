@@ -21,7 +21,7 @@ class ChatMainModalPage extends ConsumerWidget {
     // Always hide channels (not implemented yet)
     // Always show direct messages
     // Show groups only if hideCommunity is false
-    final menuItems = ConversationType.values.where((type) {
+    final menuItems = ConversationTypeItem.values.where((type) {
       if (type.isDirect) return true;
       if (!hideGroup && type.isGroup) return true;
       return false;

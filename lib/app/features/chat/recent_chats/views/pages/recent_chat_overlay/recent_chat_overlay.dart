@@ -8,8 +8,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
-import 'package:ion/app/features/chat/recent_chats/views/pages/recent_chat_overlay/components/recent_chat_overlay_context_menu.dart';
+import 'package:ion/app/features/chat/recent_chats/views/pages/recent_chat_overlay/components/encrypted_direct_chat_overlay_context_menu.dart';
+import 'package:ion/app/features/chat/recent_chats/views/pages/recent_chat_overlay/components/encrypted_group_chat_overlay_context_menu.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
 class RecentChatOverlay extends HookConsumerWidget {
@@ -36,11 +38,15 @@ class RecentChatOverlay extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    final isDirectEncrypted = conversation.type == ConversationType.directEncrypted;
+
     final (:imageBytes, :position, :size) = capturedImage.data!;
 
     /// The available height for the message content in the dialog
     final availableHeight = MediaQuery.sizeOf(context).height -
-        RecentChatOverlayContextMenu.height -
+        (isDirectEncrypted
+            ? EncryptedDirectChatOverlayContextMenu.height
+            : EncryptedGroupChatOverlayContextMenu.height) -
         MediaQuery.paddingOf(context).bottom -
         MediaQuery.paddingOf(context).top;
 
@@ -57,7 +63,9 @@ class RecentChatOverlay extends HookConsumerWidget {
     final overflowBottomSize = MediaQuery.sizeOf(context).height -
         // bottomdY -
         (position.dy > 0 ? (isHugeComponent ? 0 : bottomdY) : bottomdY) -
-        RecentChatOverlayContextMenu.height -
+        (isDirectEncrypted
+            ? EncryptedDirectChatOverlayContextMenu.height
+            : EncryptedGroupChatOverlayContextMenu.height) -
         MediaQuery.paddingOf(context).bottom;
 
     /// The y-coordinate of the top of the message content in the dialog
@@ -105,7 +113,9 @@ class RecentChatOverlay extends HookConsumerWidget {
                   ),
                 ),
                 IntrinsicWidth(
-                  child: RecentChatOverlayContextMenu(conversation: conversation),
+                  child: isDirectEncrypted
+                      ? EncryptedDirectChatOverlayContextMenu(conversation: conversation)
+                      : EncryptedGroupChatOverlayContextMenu(conversation: conversation),
                 ),
               ],
             ),

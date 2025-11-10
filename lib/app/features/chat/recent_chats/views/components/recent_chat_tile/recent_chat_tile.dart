@@ -294,8 +294,27 @@ class EncryptedGroupChatTile extends HookConsumerWidget {
             ?.contains(conversation.conversationId) ??
         false;
 
+    final showRecentChatOverlay = useCallback(
+      () {
+        final renderObject = conversationItemKey.currentContext?.findRenderObject();
+        if (renderObject != null) {
+          showDialog<void>(
+            context: context,
+            barrierColor: Colors.transparent,
+            useSafeArea: false,
+            builder: (context) => RecentChatOverlay(
+              conversation: conversation,
+              renderObject: renderObject,
+            ),
+          );
+        }
+      },
+      [conversationItemKey],
+    );
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
+      onLongPress: showRecentChatOverlay,
       onTap: () {
         if (isEditMode) {
           ref.read(selectedConversationsProvider.notifier).toggle(conversation);

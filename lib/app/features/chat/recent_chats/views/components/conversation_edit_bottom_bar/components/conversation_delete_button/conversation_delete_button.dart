@@ -3,7 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/providers/archive_state_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -16,11 +18,20 @@ class ConversationDeleteButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final archiveOpened = ref.watch(archiveStateProvider).falseOrValue;
     final selectedConversations = ref.watch(selectedConversationsProvider);
 
-    final conversationsToManage = selectedConversations.isEmpty
+    final allConversations = selectedConversations.isEmpty
         ? (ref.read(conversationsProvider).value ?? [])
         : selectedConversations;
+    // Delete only direct encrypted conversations
+    final conversationsToManage = allConversations
+        .where(
+          (conversation) =>
+              conversation.type == ConversationType.directEncrypted &&
+              conversation.isArchived == archiveOpened,
+        )
+        .toList();
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

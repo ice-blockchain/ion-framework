@@ -7,56 +7,56 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/model/main_modal_list_item.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-enum ConversationType implements MainModalListItem {
-  direct,
-  group,
+enum ConversationTypeItem implements MainModalListItem {
+  directEncrypted,
+  groupEncrypted,
   channel;
 
   @override
   String getDisplayName(BuildContext context) {
     return switch (this) {
-      ConversationType.direct => context.i18n.common_chat,
-      ConversationType.group => context.i18n.new_chat_modal_new_group_button,
-      ConversationType.channel => context.i18n.new_chat_modal_new_channel_button,
+      ConversationTypeItem.directEncrypted => context.i18n.common_chat,
+      ConversationTypeItem.groupEncrypted => context.i18n.new_chat_modal_new_group_button,
+      ConversationTypeItem.channel => context.i18n.new_chat_modal_new_channel_button,
     };
   }
 
   @override
   String getDescription(BuildContext context) {
     return switch (this) {
-      ConversationType.direct => context.i18n.chat_modal_private_description,
-      ConversationType.group => context.i18n.chat_modal_group_description,
-      ConversationType.channel => context.i18n.chat_modal_channel_description,
+      ConversationTypeItem.directEncrypted => context.i18n.chat_modal_private_description,
+      ConversationTypeItem.groupEncrypted => context.i18n.chat_modal_group_description,
+      ConversationTypeItem.channel => context.i18n.chat_modal_channel_description,
     };
   }
 
   @override
   Color getIconColor(BuildContext context) {
     return switch (this) {
-      ConversationType.direct => context.theme.appColors.orangePeel,
-      ConversationType.group => context.theme.appColors.raspberry,
-      ConversationType.channel => context.theme.appColors.success,
+      ConversationTypeItem.directEncrypted => context.theme.appColors.orangePeel,
+      ConversationTypeItem.groupEncrypted => context.theme.appColors.raspberry,
+      ConversationTypeItem.channel => context.theme.appColors.success,
     };
   }
 
   @override
   String get iconAsset {
     return switch (this) {
-      ConversationType.direct => Assets.svg.iconChatCreatenew,
-      ConversationType.group => Assets.svg.iconSearchGroups,
-      ConversationType.channel => Assets.svg.iconSearchChannel,
+      ConversationTypeItem.directEncrypted => Assets.svg.iconChatCreatenew,
+      ConversationTypeItem.groupEncrypted => Assets.svg.iconSearchGroups,
+      ConversationTypeItem.channel => Assets.svg.iconSearchChannel,
     };
   }
 
   String get subRouteLocation {
     return switch (this) {
-      ConversationType.direct => NewChatModalRoute().location,
-      ConversationType.group => AddParticipantsToGroupModalRoute().location,
-      ConversationType.channel => NewChannelModalRoute().location,
+      ConversationTypeItem.directEncrypted => NewChatModalRoute().location,
+      ConversationTypeItem.groupEncrypted => AddParticipantsToGroupModalRoute().location,
+      ConversationTypeItem.channel => NewChannelModalRoute().location,
     };
   }
 
-  bool get isDirect => this == ConversationType.direct;
-  bool get isGroup => this == ConversationType.group;
-  bool get isChannel => this == ConversationType.channel;
+  bool get isDirect => this == ConversationTypeItem.directEncrypted;
+  bool get isGroup => this == ConversationTypeItem.groupEncrypted;
+  bool get isChannel => this == ConversationTypeItem.channel;
 }

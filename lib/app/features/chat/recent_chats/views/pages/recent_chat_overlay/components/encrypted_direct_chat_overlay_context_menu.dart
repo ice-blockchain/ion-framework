@@ -21,8 +21,8 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class RecentChatOverlayContextMenu extends ConsumerWidget {
-  const RecentChatOverlayContextMenu({
+class EncryptedDirectChatOverlayContextMenu extends ConsumerWidget {
+  const EncryptedDirectChatOverlayContextMenu({
     required this.conversation,
     super.key,
   });

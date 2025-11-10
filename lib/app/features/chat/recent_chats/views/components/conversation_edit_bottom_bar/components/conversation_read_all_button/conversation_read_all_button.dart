@@ -9,6 +9,7 @@ import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_message_status_pr
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
+import 'package:ion/app/features/chat/recent_chats/providers/archive_state_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
 import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
@@ -21,14 +22,19 @@ class ConversationReadAllButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final archiveOpened = ref.watch(archiveStateProvider).falseOrValue;
     final selectedConversations = ref.watch(selectedConversationsProvider);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
-        final conversationsToManage = selectedConversations.isEmpty
+        final allConversations = selectedConversations.isEmpty
             ? (ref.read(conversationsProvider).value ?? [])
             : selectedConversations;
+
+        final conversationsToManage = allConversations
+            .where((conversation) => conversation.isArchived == archiveOpened)
+            .toList();
 
         unawaited(_cleanConversationNotifications(conversationsToManage, ref));
 
