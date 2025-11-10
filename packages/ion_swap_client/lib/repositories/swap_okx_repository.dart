@@ -1,28 +1,19 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:dio/dio.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/core/providers/env_provider.r.dart';
-import 'package:ion/app/features/wallets/data/models/approve_transaction_data.m.dart';
-import 'package:ion/app/features/wallets/data/models/okx_api_response.m.dart';
-import 'package:ion/app/features/wallets/data/models/swap_chain_data.m.dart';
-import 'package:ion/app/features/wallets/data/models/swap_quote_data.m.dart';
-import 'package:ion/app/features/wallets/providers/okx_dio_provider.r.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-part 'swap_okx_repository.r.g.dart';
+import 'package:ion_swap_client/models/approve_transaction_data.m.dart';
+import 'package:ion_swap_client/models/okx_api_response.m.dart';
+import 'package:ion_swap_client/models/swap_chain_data.m.dart';
+import 'package:ion_swap_client/models/swap_quote_data.m.dart';
 
 class SwapOkxRepository {
   SwapOkxRepository({
     required Dio dio,
-    required String baseUrl,
-  })  : _dio = dio,
-        _baseUrl = baseUrl;
+  }) : _dio = dio;
 
   final Dio _dio;
-  final String _baseUrl;
 
-  String get _aggregatorBaseUrl => '$_baseUrl/aggregator';
+  String get _aggregatorBaseUrl => '/aggregator';
 
   // TODO(ice-erebus): implement actual data
   Future<List<Map<String, int>>> getSupportedChainsIds() async {
@@ -102,9 +93,7 @@ class SwapOkxRepository {
     return OkxApiResponse.fromJson(
       response.data as Map<String, dynamic>,
       (json) =>
-          (json as List<dynamic>?)
-              ?.map((e) => ApproveTransactionData.fromJson(e as Map<String, dynamic>))
-              .toList() ??
+          (json as List<dynamic>?)?.map((e) => ApproveTransactionData.fromJson(e as Map<String, dynamic>)).toList() ??
           [],
     );
   }
@@ -133,7 +122,7 @@ class SwapOkxRepository {
 
   Future<void> simulateSwap() async {
     await _dio.get<dynamic>(
-      '$_baseUrl/pre-transaction/simulate',
+      '/pre-transaction/simulate',
       queryParameters: {
         'fromAddress': '',
         'toAddress': '',
@@ -144,17 +133,4 @@ class SwapOkxRepository {
       },
     );
   }
-}
-
-@Riverpod(keepAlive: true)
-Future<SwapOkxRepository> swapOkxRepository(Ref ref) async {
-  final env = ref.watch(envProvider.notifier);
-
-  final dio = ref.watch(okxDioProvider);
-  final baseUrl = env.get<String>(EnvVariable.OKX_API_URL);
-
-  return SwapOkxRepository(
-    dio: dio,
-    baseUrl: baseUrl,
-  );
 }
