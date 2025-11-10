@@ -57,6 +57,7 @@ class AddBookmarkModal extends ConsumerWidget {
                   separatorBuilder: (BuildContext context, int index) => SizedBox(height: 16.0.s),
                   itemBuilder: (BuildContext context, int index) {
                     return BookmarksCollectionTile(
+                      key: ValueKey(collectionsDTags[index]),
                       eventReference: eventReference,
                       collectionDTag: collectionsDTags[index],
                     );
