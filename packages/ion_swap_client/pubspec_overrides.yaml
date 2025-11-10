@@ -1,0 +1,2 @@
+dependency_overrides:
+  analyzer_plugin: ^0.13.1
