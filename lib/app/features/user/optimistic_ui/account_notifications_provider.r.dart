@@ -28,29 +28,36 @@ Future<List<AccountNotificationsOption>> loadInitialNotifications(
   }
 
   final notificationTypes = <UserNotificationsType>[];
+  final fetches = <Future<UserNotificationsType?>>[];
 
   for (final type in UserNotificationsType.values) {
     if (type == UserNotificationsType.none) continue;
 
     final setType = AccountNotificationSetType.fromUserNotificationType(type);
-    if (setType == null) {
-      continue;
-    }
+    if (setType == null) continue;
 
-    final accountNotificationSet = await ref.read(
-      ionConnectEntityProvider(
-        eventReference: ReplaceableEventReference(
-          masterPubkey: currentMasterPubkey,
-          kind: AccountNotificationSetEntity.kind,
-          dTag: setType.dTagName,
-        ),
-      ).future,
-    );
+    fetches.add(() async {
+      final accountNotificationSet = await ref.read(
+        ionConnectEntityProvider(
+          eventReference: ReplaceableEventReference(
+            masterPubkey: currentMasterPubkey,
+            kind: AccountNotificationSetEntity.kind,
+            dTag: setType.dTagName,
+          ),
+        ).future,
+      );
 
-    if (accountNotificationSet is AccountNotificationSetEntity &&
-        accountNotificationSet.data.userPubkeys.contains(userPubkey)) {
-      notificationTypes.add(type);
-    }
+      if (accountNotificationSet is AccountNotificationSetEntity &&
+          accountNotificationSet.data.userPubkeys.contains(userPubkey)) {
+        return type;
+      }
+      return null;
+    }());
+  }
+
+  if (fetches.isNotEmpty) {
+    final resolvedTypes = await Future.wait(fetches);
+    notificationTypes.addAll(resolvedTypes.whereType<UserNotificationsType>());
   }
 
   final selected =
