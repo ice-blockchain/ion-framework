@@ -40,7 +40,7 @@ class GroupAdminPage extends HookConsumerWidget {
 
     if (groupMetadata == null) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: SizedBox.shrink(),
       );
     }
 

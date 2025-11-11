@@ -25,10 +25,7 @@ class SelectOwnerModal extends ConsumerWidget {
     final groupMetadata = ref.watch(encryptedGroupMetadataProvider(conversationId)).valueOrNull;
 
     if (groupMetadata == null) {
-      return const SizedBox(
-        height: 200,
-        child: Center(child: CircularProgressIndicator()),
-      );
+      return const SizedBox.shrink();
     }
 
     final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);

@@ -26,7 +26,7 @@ class GroupMembersTab extends HookConsumerWidget {
     final groupMetadata = ref.watch(encryptedGroupMetadataProvider(conversationId)).valueOrNull;
 
     if (groupMetadata == null) {
-      return const Center(child: CircularProgressIndicator());
+      return const SizedBox.shrink();
     }
 
     final members = groupMetadata.members;

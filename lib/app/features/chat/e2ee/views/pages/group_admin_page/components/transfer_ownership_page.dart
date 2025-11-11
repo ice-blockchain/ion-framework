@@ -38,7 +38,7 @@ class TransferOwnershipPage extends HookConsumerWidget {
         : null;
     if (groupMetadata == null || currentUserRole == null) {
       return const SheetContent(
-        body: Center(child: CircularProgressIndicator()),
+        body: SizedBox.shrink(),
       );
     }
 
