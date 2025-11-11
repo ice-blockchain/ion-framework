@@ -10,8 +10,9 @@ class GeneralSelectionButton extends StatelessWidget {
   const GeneralSelectionButton({
     required this.iconAsset,
     required this.title,
-    required this.onPress,
+    this.onPress,
     this.selectedValue,
+    this.enabled = true,
     super.key,
   });
 
@@ -19,6 +20,7 @@ class GeneralSelectionButton extends StatelessWidget {
   final String title;
   final String? selectedValue;
   final VoidCallback? onPress;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -29,14 +31,17 @@ class GeneralSelectionButton extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        border: Border.all(color: colors.strokeElements),
+        border: enabled ? Border.all(color: colors.strokeElements) : null,
         borderRadius: BorderRadius.circular(16.0.s),
-        color: colors.secondaryBackground,
+        color: enabled ? colors.secondaryBackground : colors.primaryBackground,
       ),
       child: ListItem(
         contentPadding: EdgeInsetsDirectional.only(
-          end: 8.0.s,
+          end: enabled ? 8.0.s : 16.0.s,
         ),
+        leadingPadding: enabled
+            ? ListItem.defaultLeadingPadding
+            : EdgeInsetsDirectional.only(start: 16.0.s, end: 5.0.s),
         title: Text(
           title,
           style: textTheme.body
@@ -44,27 +49,36 @@ class GeneralSelectionButton extends StatelessWidget {
         ),
         backgroundColor: Colors.transparent,
         leading: TextInputIcons(
-          hasRightDivider: true,
+          hasRightDivider: enabled,
           icons: [iconAsset.icon(color: colors.secondaryText)],
+          minWidth: enabled ? null : 24.0.s,
         ),
-        onTap: onPress,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (selectedValue != null)
-              Text(
-                selectedValue!,
-                style: textTheme.body.copyWith(color: colors.primaryAccent),
-              ),
-            GestureDetector(
-              onTap: onPress,
-              child: Padding(
-                padding: EdgeInsets.all(4.0.s),
-                child: Assets.svg.iconArrowRight.icon(color: colors.secondaryText),
-              ),
-            ),
-          ],
-        ),
+        onTap: enabled ? onPress : null,
+        trailing: enabled
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (selectedValue != null)
+                    Text(
+                      selectedValue!,
+                      style: textTheme.body.copyWith(color: colors.primaryAccent),
+                    ),
+                  GestureDetector(
+                    onTap: onPress,
+                    child: Padding(
+                      padding: EdgeInsets.all(4.0.s),
+                      child: Assets.svg.iconArrowRight.icon(color: colors.secondaryText),
+                    ),
+                  ),
+                ],
+              )
+            : selectedValue != null
+                ? Text(
+                    selectedValue!,
+                    textAlign: TextAlign.right,
+                    style: textTheme.caption.copyWith(color: colors.primaryAccent),
+                  )
+                : null,
       ),
     );
   }

@@ -8,7 +8,9 @@ import 'package:ion/generated/assets.gen.dart';
 enum GroupAdminTab implements TabType {
   members,
   media,
-  links;
+  links,
+  voice,
+  files;
 
   @override
   String get iconAsset {
@@ -16,6 +18,8 @@ enum GroupAdminTab implements TabType {
       GroupAdminTab.members => Assets.svg.iconSearchFollowers,
       GroupAdminTab.media => Assets.svg.iconGalleryOpen,
       GroupAdminTab.links => Assets.svg.iconArticleLink,
+      GroupAdminTab.voice => Assets.svg.iconChatVoicemessage,
+      GroupAdminTab.files => Assets.svg.iconChatFile,
     };
   }
 
@@ -28,6 +32,10 @@ enum GroupAdminTab implements TabType {
         return context.i18n.common_media;
       case GroupAdminTab.links:
         return context.i18n.common_links;
+      case GroupAdminTab.voice:
+        return context.i18n.common_voice;
+      case GroupAdminTab.files:
+        return context.i18n.common_files;
     }
   }
 }

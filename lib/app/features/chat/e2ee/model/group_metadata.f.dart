@@ -23,11 +23,32 @@ class GroupMetadata with _$GroupMetadata {
       (member) => member.masterPubkey == currentUserMasterPubkey,
     );
   }
+
+  /// Returns members sorted with owner first, then other members
+  List<GroupMemberRole> get membersSorted {
+    return [...members]..sort((a, b) {
+        final aIsOwner = a is GroupMemberRoleOwner;
+        final bIsOwner = b is GroupMemberRoleOwner;
+        if (aIsOwner && !bIsOwner) {
+          return -1;
+        }
+        if (!aIsOwner && bIsOwner) {
+          return 1;
+        }
+        return 0;
+      });
+  }
 }
 
 extension GroupMemberRoleExtension on GroupMemberRole {
   bool get canRemoveMembers => switch (this) {
         GroupMemberRoleAdmin() => true,
+        GroupMemberRoleOwner() => true,
+        _ => false,
+      };
+
+  bool get canEditGroup => switch (this) {
+        GroupMemberRoleAdmin() => false,
         GroupMemberRoleOwner() => true,
         _ => false,
       };

@@ -31,7 +31,27 @@ class ChatRoutes {
           path: 'add-group-participants/:conversationId',
         ),
         TypedGoRoute<CreateGroupModalRoute>(path: 'create-group'),
+        TypedGoRoute<GroupEditPageRoute>(path: 'group-edit/:conversationId'),
         TypedGoRoute<LeaveGroupConfirmRoute>(path: 'leave-group-confirm'),
+        TypedGoRoute<DeleteGroupUserConfirmRoute>(path: 'delete-group-user-confirm'),
+        TypedGoRoute<DeleteGroupConfirmRoute>(path: 'delete-group-confirm'),
+        TypedGoRoute<ClearGroupMessagesConfirmRoute>(path: 'clear-group-messages-confirm'),
+        TypedGoRoute<GroupAdminsModalRoute>(path: 'group-admins/:conversationId'),
+        TypedGoRoute<SelectAdministratorModalRoute>(path: 'select-administrator/:conversationId'),
+        TypedGoRoute<ConfirmAdminRoleAssignModalRoute>(
+          path: 'confirm-admin-role-assign/:conversationId/:participantMasterkey',
+        ),
+        TypedGoRoute<ManageAdminRoleModalRoute>(
+          path: 'manage-admin-role/:conversationId/:participantMasterkey',
+        ),
+        TypedGoRoute<RemoveAdminRoleConfirmModalRoute>(path: 'remove-admin-role-confirm'),
+        TypedGoRoute<ManageOwnerRoleModalRoute>(path: 'manage-owner-role/:conversationId'),
+        TypedGoRoute<TransferOwnershipPageRoute>(path: 'transfer-ownership/:conversationId'),
+        TypedGoRoute<SelectOwnerModalRoute>(path: 'select-owner/:conversationId'),
+        TypedGoRoute<TransferOwnershipConfirmModalRoute>(
+          path:
+              'transfer-ownership-confirm/:conversationId/:newOwnerMasterPubkey/:currentOwnerMasterPubkey',
+        ),
         TypedGoRoute<ShareViaMessageModalRoute>(path: 'share-via-message/:eventReference'),
         TypedGoRoute<PaymentSelectionChatRoute>(path: 'select-payment-type'),
         TypedGoRoute<SelectCoinChatRoute>(path: 'coin-selector-chat'),
@@ -89,6 +109,16 @@ class GroupAdminPageRoute extends BaseRouteData with _$GroupAdminPageRoute {
   GroupAdminPageRoute({required this.conversationId})
       : super(
           child: GroupAdminPage(conversationId: conversationId),
+        );
+
+  final String conversationId;
+}
+
+class GroupEditPageRoute extends BaseRouteData with _$GroupEditPageRoute {
+  GroupEditPageRoute({required this.conversationId})
+      : super(
+          child: GroupEditPage(conversationId: conversationId),
+          type: IceRouteType.bottomSheet,
         );
 
   final String conversationId;
@@ -209,6 +239,172 @@ class LeaveGroupConfirmRoute extends BaseRouteData with _$LeaveGroupConfirmRoute
           child: const LeaveGroupConfirmModal(),
           type: IceRouteType.bottomSheet,
         );
+}
+
+class DeleteGroupUserConfirmRoute extends BaseRouteData with _$DeleteGroupUserConfirmRoute {
+  DeleteGroupUserConfirmRoute({
+    required this.userNickname,
+    required this.conversationId,
+    required this.participantMasterPubkey,
+  }) : super(
+          child: DeleteGroupUserConfirmModal(
+            userNickname: userNickname,
+            conversationId: conversationId,
+            participantMasterPubkey: participantMasterPubkey,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String userNickname;
+  final String conversationId;
+  final String participantMasterPubkey;
+}
+
+class DeleteGroupConfirmRoute extends BaseRouteData with _$DeleteGroupConfirmRoute {
+  DeleteGroupConfirmRoute({
+    required this.conversationId,
+  }) : super(
+          child: DeleteGroupConfirmModal(conversationId: conversationId),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String conversationId;
+}
+
+class ClearGroupMessagesConfirmRoute extends BaseRouteData with _$ClearGroupMessagesConfirmRoute {
+  ClearGroupMessagesConfirmRoute({
+    required this.conversationId,
+  }) : super(
+          child: ClearGroupMessagesConfirmModal(conversationId: conversationId),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String conversationId;
+}
+
+class GroupAdminsModalRoute extends BaseRouteData with _$GroupAdminsModalRoute {
+  GroupAdminsModalRoute({
+    required this.conversationId,
+  }) : super(
+          child: GroupAdminsModal(conversationId: conversationId),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String conversationId;
+}
+
+class SelectAdministratorModalRoute extends BaseRouteData with _$SelectAdministratorModalRoute {
+  SelectAdministratorModalRoute({
+    required this.conversationId,
+  }) : super(
+          child: SelectAdministratorModal(conversationId: conversationId),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String conversationId;
+}
+
+class ConfirmAdminRoleAssignModalRoute extends BaseRouteData
+    with _$ConfirmAdminRoleAssignModalRoute {
+  ConfirmAdminRoleAssignModalRoute({
+    required this.conversationId,
+    required this.participantMasterkey,
+  }) : super(
+          child: ConfirmAdminRoleAssignModal(
+            conversationId: conversationId,
+            participantMasterkey: participantMasterkey,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String conversationId;
+  final String participantMasterkey;
+}
+
+class ManageAdminRoleModalRoute extends BaseRouteData with _$ManageAdminRoleModalRoute {
+  ManageAdminRoleModalRoute({
+    required this.conversationId,
+    required this.participantMasterkey,
+  }) : super(
+          child: ManageAdminRoleModal(
+            conversationId: conversationId,
+            participantMasterkey: participantMasterkey,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String conversationId;
+  final String participantMasterkey;
+}
+
+class RemoveAdminRoleConfirmModalRoute extends BaseRouteData
+    with _$RemoveAdminRoleConfirmModalRoute {
+  RemoveAdminRoleConfirmModalRoute({
+    required this.conversationId,
+    required this.participantMasterPubkey,
+  }) : super(
+          child: RemoveAdminRoleConfirmModal(
+            conversationId: conversationId,
+            participantMasterPubkey: participantMasterPubkey,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String conversationId;
+  final String participantMasterPubkey;
+}
+
+class ManageOwnerRoleModalRoute extends BaseRouteData with _$ManageOwnerRoleModalRoute {
+  ManageOwnerRoleModalRoute({
+    required this.conversationId,
+  }) : super(
+          child: ManageOwnerRoleModal(conversationId: conversationId),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String conversationId;
+}
+
+class TransferOwnershipPageRoute extends BaseRouteData with _$TransferOwnershipPageRoute {
+  TransferOwnershipPageRoute({
+    required this.conversationId,
+  }) : super(
+          child: TransferOwnershipPage(conversationId: conversationId),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String conversationId;
+}
+
+class SelectOwnerModalRoute extends BaseRouteData with _$SelectOwnerModalRoute {
+  SelectOwnerModalRoute({
+    required this.conversationId,
+  }) : super(
+          child: SelectOwnerModal(conversationId: conversationId),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String conversationId;
+}
+
+class TransferOwnershipConfirmModalRoute extends BaseRouteData
+    with _$TransferOwnershipConfirmModalRoute {
+  TransferOwnershipConfirmModalRoute({
+    required this.conversationId,
+    required this.newOwnerMasterPubkey,
+    required this.currentOwnerMasterPubkey,
+  }) : super(
+          child: TransferOwnershipConfirmModal(
+            conversationId: conversationId,
+            newOwnerMasterPubkey: newOwnerMasterPubkey,
+            currentOwnerMasterPubkey: currentOwnerMasterPubkey,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String conversationId;
+  final String newOwnerMasterPubkey;
+  final String currentOwnerMasterPubkey;
 }
 
 class CreateGroupModalRoute extends BaseRouteData with _$CreateGroupModalRoute {

@@ -279,7 +279,9 @@
   "common_unarchive": "Alle entarchivieren",
   "common_unarchive_single": "Entarchivieren",
   "common_video": "Video",
+  "common_voice": "Stimme",
   "common_voice_message": "Sprachnachricht",
+  "common_files": "Dateien",
   "common_you": "Du",
   "confirm_delete_description": "Alle deine sozialen Daten gehen dauerhaft verloren. Bist du sicher, dass du dein Konto löschen möchtest?",
   "confirm_delete_title": "Dein Konto löschen?",
@@ -513,12 +515,38 @@
   "group_admin_tab_members": "Mitglieder",
   "group_add_members_button": "Mitglieder hinzufügen",
   "group_add_members_title": "Mitglieder hinzufügen",
+  "group_admins_modal_title": "Verwaltung",
+  "select_administrator_title": "Administrator auswählen",
+  "add_administrator_title": "Administrator hinzufügen",
+  "selected_user_label": "Ausgewählter Benutzer",
+  "what_can_admin_do_label": "Was kann dieser Administrator tun",
+  "admin_permission_delete_messages": "Nachrichten löschen",
+  "admin_permission_pin_messages": "Nachrichten anheften",
+  "admin_permission_delete_users": "Benutzer löschen",
+  "admin_permission_add_new_users": "Neue Benutzer hinzufügen",
+  "admin_permission_add_new_admins": "Neue Administratoren hinzufügen",
+  "admin_permission_change_group_info": "Gruppeninformationen ändern",
+  "admin_permission_clear_group": "Gruppe löschen",
   "group_edit_button": "Gruppe bearbeiten",
+  "group_edit_title": "Gruppe bearbeiten",
   "group_clear_messages": "Nachrichten löschen",
+  "group_clear_messages_confirm_title": "Alle Nachrichten löschen?",
+  "group_clear_messages_confirm_description": "Möchtest du wirklich alle Nachrichten aus dieser Gruppe löschen?",
   "group_delete_group": "Gruppe löschen",
+  "group_delete_group_confirm_title": "Gruppe löschen?",
+  "group_delete_group_confirm_description": "Möchtest du wirklich alle Inhalte, Mitglieder und die Gruppe selbst löschen?",
   "group_leave": "Verlassen",
   "group_leave_confirm_title": "Gruppe verlassen?",
   "group_leave_confirm_description": "Möchtest du die Gruppe wirklich verlassen?",
+  "group_delete_user_confirm_title": "Benutzer löschen?",
+  "group_delete_user_confirm_description": "Möchtest du {userNickname} wirklich aus dieser Gruppe entfernen?",
+  "@group_delete_user_confirm_description": {
+    "placeholders": {
+      "userNickname": {
+        "type": "String"
+      }
+    }
+  },
   "group_no_members": "Keine Mitglieder",
   "group_tab_coming_soon": "{tabName} Tab - Kommt bald",
   "@group_tab_coming_soon": {

@@ -11,6 +11,7 @@ import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_direct_messa
 import 'package:ion/app/features/chat/e2ee/providers/chat_medias_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/chat_message_media_path_provider.r.dart';
 import 'package:ion/app/features/chat/hooks/use_audio_playback_controller.dart';
+import 'package:ion/app/features/chat/hooks/use_audio_playback_setup.dart';
 import 'package:ion/app/features/chat/hooks/use_has_reaction.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
@@ -23,7 +24,6 @@ import 'package:ion/app/features/chat/views/components/message_items/message_typ
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
-import 'package:ion/app/services/audio_wave_playback_service/audio_wave_playback_service.r.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -100,84 +100,21 @@ class AudioMessage extends HookConsumerWidget {
       return const SizedBox();
     }
 
-    final audioPlaybackState = useState<PlayerState?>(null);
     final audioPlaybackController = useAudioWavePlaybackController()
       ..setFinishMode(finishMode: FinishMode.pause);
 
-    final playerWaveStyle = useMemoized(
-      () => PlayerWaveStyle(
-        spacing: 2.0.s,
-        waveThickness: 1.0.s,
-        seekLineColor: Colors.transparent,
-        fixedWaveColor: context.theme.appColors.sheetLine,
-        liveWaveColor:
-            isMe ? context.theme.appColors.onPrimaryAccent : context.theme.appColors.primaryText,
-      ),
-      [isMe],
+    final audioPlayback = useAudioPlaybackSetup(
+      eventMessageId: eventMessage.id,
+      eventReference: eventReference,
+      localMediaPath: localMediaPath,
+      audioPlaybackController: audioPlaybackController,
+      liveWaveColor:
+          isMe ? context.theme.appColors.onPrimaryAccent : context.theme.appColors.primaryText,
+      context: context,
+      ref: ref,
     );
-
-    useEffect(
-      () {
-        ref.read(audioWavePlaybackServiceProvider).initializePlayer(
-              eventMessage.id,
-              localMediaPath,
-              audioPlaybackController,
-              playerWaveStyle,
-            );
-
-        final stateSubscription = audioPlaybackController.onPlayerStateChanged.listen((event) {
-          if (context.mounted) {
-            if (event != PlayerState.stopped) {
-              audioPlaybackState.value = event;
-            }
-          }
-        });
-
-        final completionSubscription = audioPlaybackController.onCompletion.listen((event) {
-          if (context.mounted) {
-            ref.read(activeAudioMessageProvider.notifier).activeAudioMessage = null;
-          }
-        });
-
-        return () {
-          stateSubscription.cancel();
-          completionSubscription.cancel();
-        };
-      },
-      [localMediaPath],
-    );
-
-    useEffect(
-      () {
-        final stateSubscription = audioPlaybackController.onPlayerStateChanged.listen((event) {
-          if (context.mounted) {
-            if (event != PlayerState.stopped) {
-              audioPlaybackState.value = event;
-            }
-          }
-        });
-
-        final completionSubscription = audioPlaybackController.onCompletion.listen((event) {
-          if (context.mounted) {
-            ref.read(activeAudioMessageProvider.notifier).activeAudioMessage = null;
-          }
-        });
-
-        return () {
-          stateSubscription.cancel();
-          completionSubscription.cancel();
-        };
-      },
-      [localMediaPath],
-    );
-
-    ref.listen(activeAudioMessageProvider, (previous, next) {
-      if (next == eventMessage.id) {
-        audioPlaybackController.startPlayer();
-      } else {
-        audioPlaybackController.pausePlayer();
-      }
-    });
+    final audioPlaybackState = audioPlayback.audioPlaybackState;
+    final playerWaveStyle = audioPlayback.playerWaveStyle;
 
     final metadataWidth = useState<double>(0);
     final metadataKey = useMemoized(GlobalKey.new);

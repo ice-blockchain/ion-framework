@@ -8,6 +8,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/conversation_identifier.f.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/master_pubkey_tag.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_message_entity_interface.dart';
 import 'package:ion/app/features/chat/model/group_subject.f.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
@@ -35,7 +36,8 @@ part 'encrypted_direct_message_entity.f.freezed.dart';
 
 @Freezed(equal: false)
 class EncryptedDirectMessageEntity
-    with IonConnectEntity, ReplaceableEntity, _$EncryptedDirectMessageEntity {
+    with IonConnectEntity, ReplaceableEntity, _$EncryptedDirectMessageEntity
+    implements EncryptedMessageEntityWithMedia {
   const factory EncryptedDirectMessageEntity({
     required String id,
     required String pubkey,
