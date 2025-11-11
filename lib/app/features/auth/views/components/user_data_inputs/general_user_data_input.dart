@@ -72,15 +72,14 @@ class GeneralUserDataInput extends HookWidget {
       minLines: minLines,
       initialValue: initialValue,
       isLive: isLive,
-      verified: initialVerification ? isValid.value : hasInteracted.value && isValid.value,
+      verified: _isVerified(isValid, hasInteracted),
       onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-      suffixIcon: (initialVerification ? isValid.value : hasInteracted.value && isValid.value) &&
-              showNoErrorsIndicator &&
-              errorText == null
-          ? TextInputIcons(
-              icons: [Assets.svg.iconBlockCheckboxOn.icon()],
-            )
-          : null,
+      suffixIcon:
+          (_isVerified(isValid, hasInteracted)) && showNoErrorsIndicator && errorText == null
+              ? TextInputIcons(
+                  icons: [Assets.svg.iconBlockCheckboxOn.icon()],
+                )
+              : null,
       errorText: errorText,
       onFocused: (focused) {
         if (focused) {
@@ -90,4 +89,7 @@ class GeneralUserDataInput extends HookWidget {
       },
     );
   }
+
+  bool _isVerified(ValueNotifier<bool> isValid, ValueNotifier<bool> hasInteracted) =>
+      initialVerification ? isValid.value : hasInteracted.value && isValid.value;
 }

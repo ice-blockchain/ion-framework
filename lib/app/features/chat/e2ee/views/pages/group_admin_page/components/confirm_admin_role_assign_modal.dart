@@ -31,10 +31,7 @@ class ConfirmAdminRoleAssignModal extends ConsumerWidget {
     final userPreviewData = ref.watch(userPreviewDataProvider(participantMasterkey)).valueOrNull;
 
     if (userPreviewData == null) {
-      return const SizedBox(
-        height: 200,
-        child: Center(child: CircularProgressIndicator()),
-      );
+      return const SizedBox.shrink();
     }
 
     return Container(
@@ -59,34 +56,7 @@ class ConfirmAdminRoleAssignModal extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Navigation bar
-          SizedBox(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () => context.pop(),
-                  child: Assets.svg.iconBackArrow.icon(
-                    size: 24.0.s,
-                    flipForRtl: true,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    context.i18n.add_administrator_title,
-                    textAlign: TextAlign.center,
-                    style: context.theme.appTextThemes.subtitle.copyWith(
-                      color: context.theme.appColors.primaryText,
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 24.0.s,
-                  height: 24.0.s,
-                ),
-              ],
-            ),
-          ),
+          const _AppBar(),
           SizedBox(height: 16.0.s),
           // Selected user section
           Column(
@@ -122,7 +92,7 @@ class ConfirmAdminRoleAssignModal extends ConsumerWidget {
           // Confirm button
           Button(
             mainAxisSize: MainAxisSize.max,
-            minimumSize: Size(56.0.s, 56.0.s),
+            minimumSize: Size.square(56.0.s),
             label: Text(context.i18n.button_confirm),
             onPressed: () async {
               unawaited(
@@ -140,6 +110,41 @@ class ConfirmAdminRoleAssignModal extends ConsumerWidget {
             },
           ),
           SizedBox(height: 16.0.s),
+        ],
+      ),
+    );
+  }
+}
+
+class _AppBar extends StatelessWidget {
+  const _AppBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: () => context.pop(),
+            child: Assets.svg.iconBackArrow.icon(
+              size: 24.0.s,
+              flipForRtl: true,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              context.i18n.add_administrator_title,
+              textAlign: TextAlign.center,
+              style: context.theme.appTextThemes.subtitle.copyWith(
+                color: context.theme.appColors.primaryText,
+              ),
+            ),
+          ),
+          SizedBox.square(
+            dimension: 24.0.s,
+          ),
         ],
       ),
     );

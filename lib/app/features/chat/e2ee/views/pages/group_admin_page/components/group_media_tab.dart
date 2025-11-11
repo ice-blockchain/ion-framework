@@ -77,7 +77,7 @@ class GroupMediaTab extends HookConsumerWidget {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const SizedBox.shrink(),
       error: (Object error, StackTrace stack) => Center(
         child: Text(
           context.i18n.common_error,
@@ -154,9 +154,8 @@ class _GroupMediaCell extends HookConsumerWidget {
                             await ref.read(globalMuteNotifierProvider.notifier).toggle();
                           }
                         },
-                        child: SizedBox(
-                          width: 28.0.s,
-                          height: 28.0.s,
+                        child: SizedBox.square(
+                          dimension: 28.0.s,
                           child: Container(
                             decoration: BoxDecoration(
                               color: context.theme.appColors.backgroundSheet.withValues(alpha: 0.7),

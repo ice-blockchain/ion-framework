@@ -30,19 +30,16 @@ class GroupAdminsModal extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final groupMetadata = ref.watch(encryptedGroupMetadataProvider(conversationId)).valueOrNull;
 
-    if (groupMetadata == null) {
-      return const SizedBox(
-        height: 200,
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    final adminsAndOwners = groupMetadata.members
+    final adminsAndOwners = groupMetadata?.members
         .where((member) => member is GroupMemberRoleOwner || member is GroupMemberRoleAdmin)
         .toList();
 
+    if (adminsAndOwners == null || adminsAndOwners.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     // Count admins (excluding owner)
-    final adminCount = groupMetadata.members.whereType<GroupMemberRoleAdmin>().length;
+    final adminCount = adminsAndOwners.length - 1;
     // Check if we've reached the max admin limit for encrypted groups
     final maxAdmins = GroupType.encrypted.maxAdmins;
     final isMaxAdminsReached = maxAdmins != null && adminCount >= maxAdmins;
