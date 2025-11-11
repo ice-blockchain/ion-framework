@@ -55,6 +55,9 @@ class GetWalletHistoryDataSource {
           throw const WalletNotFoundException();
         }
       }
+      if (e is DecodeException) {
+        rethrow;
+      }
       throw const UnknownIONIdentityException();
     }
   }
