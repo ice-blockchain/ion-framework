@@ -46,7 +46,7 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
 
     final initialCache = <String, List<CoinInWalletData>>{};
     for (final group in walletViewData.coinGroups) {
-      initialCache[group.symbolGroup] = group.coins;
+      initialCache[group.symbolGroup] = group.coins.toList()..sort(_coinsComparator.compareCoins);
     }
 
     return initialCache;
