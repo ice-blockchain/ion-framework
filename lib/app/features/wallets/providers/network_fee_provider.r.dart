@@ -84,6 +84,31 @@ ion.WalletAsset? _getSendableAsset(List<ion.WalletAsset> assets, CoinData? trans
     return nativeAsset();
   }
 
+  final contractAddress = transferredCoin.contractAddress;
+
+  if (contractAddress.isNotEmpty) {
+    final result = assets.firstWhereOrNull((asset) {
+      final assetIdentifier = asset.maybeMap(
+        erc20: (a) => a.contract,
+        trc20: (a) => a.contract,
+        trc10: (a) => a.tokenId,
+        asa: (a) => a.assetId,
+        spl: (a) => a.mint,
+        spl2022: (a) => a.mint,
+        sep41: (a) => a.issuer,
+        tep74: (a) => a.master,
+        aip21: (a) => a.metadata,
+        unknown: (a) => a.contract,
+        orElse: () => null,
+      );
+      return assetIdentifier != null && assetIdentifier == contractAddress;
+    });
+
+    if (result != null) {
+      return result;
+    }
+  }
+
   final result = assets.firstWhereOrNull(
     (asset) => asset.symbol.toLowerCase() == transferredCoin.abbreviation.toLowerCase(),
   );
