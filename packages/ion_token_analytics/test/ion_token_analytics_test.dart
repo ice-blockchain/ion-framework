@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:ion_token_analytics/ion_token_analytics.dart';
+import 'package:ion_token_analytics/main.dart';
 
 void main() {
   test('adds one to input values', () {
