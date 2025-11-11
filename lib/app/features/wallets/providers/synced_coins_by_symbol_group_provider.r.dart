@@ -73,6 +73,7 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
     final currentCache = state.valueOrNull ?? {};
     final groupsToUpdate = symbolGroups ?? currentCache.keys.toList();
 
+    // Skip refresh if cache is empty and no specific symbol groups provided
     if (symbolGroups == null && currentCache.isEmpty) {
       return;
     }
