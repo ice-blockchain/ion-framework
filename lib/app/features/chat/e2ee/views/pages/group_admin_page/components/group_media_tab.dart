@@ -8,7 +8,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/encrypted_group_message_entity.f.dart';
-import 'package:ion/app/features/chat/e2ee/providers/group/group_media_provider.r.dart';
+import 'package:ion/app/features/chat/e2ee/providers/group/group_media_provider.r.dart'
+    show GroupMediaItem, groupMediaItemsProvider;
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/providers/mute_provider.r.dart';
@@ -35,8 +36,9 @@ class GroupMediaTab extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mediaAsync =
-        ref.watch<AsyncValue<List<GroupMediaItem>>>(groupMediaProvider(conversationId));
+    final mediaAsync = ref.watch<AsyncValue<List<GroupMediaItem>>>(
+      groupMediaItemsProvider(conversationId),
+    );
 
     return mediaAsync.when(
       data: (List<GroupMediaItem> mediaItems) {
@@ -60,11 +62,15 @@ class GroupMediaTab extends HookConsumerWidget {
           itemBuilder: (context, int index) {
             final mediaItem = mediaItems[index];
             return _GroupMediaCell(
-              mediaItem: mediaItem,
+              media: mediaItem.media,
+              eventReference: mediaItem.eventReference,
               onTap: () {
                 // Find all media items from the same event reference
                 final sameEventMedia = mediaItems
-                    .where((GroupMediaItem item) => item.eventReference == mediaItem.eventReference)
+                    .where(
+                      (item) =>
+                          item.eventReference == mediaItem.eventReference && item.isVisualMedia,
+                    )
                     .toList();
                 final mediaIndex = sameEventMedia.indexOf(mediaItem);
 
@@ -90,18 +96,19 @@ class GroupMediaTab extends HookConsumerWidget {
 
 class _GroupMediaCell extends HookConsumerWidget {
   const _GroupMediaCell({
-    required this.mediaItem,
+    required this.media,
+    required this.eventReference,
     required this.onTap,
   });
 
   static const _cornerRadius = 16.0;
 
-  final GroupMediaItem mediaItem;
+  final MediaAttachment media;
+  final EventReference eventReference;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final media = mediaItem.media;
     final isVideo = media.mediaTypeEncrypted == MediaType.video;
 
     return GestureDetector(
@@ -115,7 +122,7 @@ class _GroupMediaCell extends HookConsumerWidget {
             children: [
               _MediaThumbnail(
                 media: media,
-                eventReference: mediaItem.eventReference,
+                eventReference: eventReference,
               ),
               if (isVideo && media.duration != null)
                 PositionedDirectional(

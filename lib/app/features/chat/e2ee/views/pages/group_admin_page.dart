@@ -15,9 +15,12 @@ import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/componen
     show GroupAvatar;
 import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_context_menu.dart';
 import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_details.dart';
+import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_files_tab.dart';
+import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_links_tab.dart';
 import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_media_tab.dart';
 import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_members_tab.dart';
 import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_tabs_header/group_tabs_header.dart';
+import 'package:ion/app/features/chat/e2ee/views/pages/group_admin_page/components/group_voice_tab.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -242,20 +245,18 @@ class _GroupTabContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (tab == GroupAdminTab.members) {
-      return GroupMembersTab(conversationId: conversationId);
+    switch (tab) {
+      case GroupAdminTab.members:
+        return GroupMembersTab(conversationId: conversationId);
+      case GroupAdminTab.media:
+        return GroupMediaTab(conversationId: conversationId);
+      case GroupAdminTab.links:
+        return GroupLinksTab(conversationId: conversationId);
+      case GroupAdminTab.voice:
+        return GroupVoiceTab(conversationId: conversationId);
+      case GroupAdminTab.files:
+        return GroupFilesTab(conversationId: conversationId);
     }
-
-    if (tab == GroupAdminTab.media) {
-      return GroupMediaTab(conversationId: conversationId);
-    }
-
-    return Center(
-      child: Text(
-        context.i18n.group_tab_coming_soon(tab.getTitle(context)),
-        style: context.theme.appTextThemes.body,
-      ),
-    );
   }
 }
 
