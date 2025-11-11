@@ -474,6 +474,15 @@ class GlobalSubscriptionNotifier extends _$GlobalSubscriptionNotifier {
     required void Function(EventMessage) onEvent,
     void Function()? onEndOfStoredEvents,
   }) {
+    /// We subtract 1 minute from the since timestamp to avoid missing events.
+    /// Because event's createdAt is set on client side.
+    final sinceOverlap = const Duration(minutes: 1).inMicroseconds;
+    final modifiedRequestMessage = requestMessage
+      ..filters.map((filter) {
+        return filter.copyWith(
+          since: () => filter.since != null ? filter.since! - sinceOverlap : null,
+        );
+      }).toList();
     final appState = ref.watch(appLifecycleProvider);
     if (appState != AppLifecycleState.resumed) {
       // Do not subscribe to the stream if the app is in the background.
@@ -487,7 +496,7 @@ class GlobalSubscriptionNotifier extends _$GlobalSubscriptionNotifier {
 
     final stream = ref.watch(
       ionConnectEventsSubscriptionProvider(
-        requestMessage,
+        modifiedRequestMessage,
         onEndOfStoredEvents: onEndOfStoredEvents,
       ),
     );
