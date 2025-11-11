@@ -8,6 +8,7 @@ import 'package:ion/app/features/wallets/domain/networks/networks_initializer.r.
 import 'package:ion/app/features/wallets/domain/transactions/periodic_transactions_sync_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/undefined_transactions_binder.r.dart';
+import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'wallets_initializer_provider.r.g.dart';
@@ -45,6 +46,8 @@ class WalletsInitializerNotifier extends _$WalletsInitializerNotifier {
         periodicSyncServiceFuture,
         undefinedTransactionsBinderFuture,
       ).wait;
+
+      ref.read(syncedCoinsBySymbolGroupNotifierProvider);
 
       unawaited(
         syncService.syncAll(),
