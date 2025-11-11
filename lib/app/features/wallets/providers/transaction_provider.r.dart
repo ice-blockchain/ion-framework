@@ -22,12 +22,32 @@ class TransactionNotifier extends _$TransactionNotifier {
   StreamSubscription<List<TransactionData>>? _subscription;
 
   @override
-  Future<TransactionDetails?> build({
+  Future<TransactionDetails> build({
     required String walletViewId,
     required String txHash,
   }) async {
+    await _subscription?.cancel();
+
     final repository = await ref.watch(transactionsRepositoryProvider.future);
     final walletData = await ref.watch(walletViewByIdProvider(id: walletViewId).future);
+
+    final externalHashTransactions = await repository.getTransactions(
+      externalHashes: [txHash],
+      walletViewIds: [walletViewId],
+      limit: 1,
+    );
+
+    final initialTransactions = externalHashTransactions.isNotEmpty
+        ? externalHashTransactions
+        : await repository.getTransactions(
+            txHashes: [txHash],
+            walletViewIds: [walletViewId],
+            limit: 1,
+          );
+
+    if (initialTransactions.isEmpty) {
+      throw Exception('No transaction was found');
+    }
 
     _subscription = repository
         .watchTransactions(
@@ -54,7 +74,21 @@ class TransactionNotifier extends _$TransactionNotifier {
       _subscription?.cancel();
     });
 
-    return null;
+    return _processTransaction(initialTransactions.first, walletData.name);
+  }
+
+  Future<TransactionDetails> _processTransaction(
+    TransactionData transaction,
+    String walletViewName,
+  ) async {
+    final resolvedTransaction = await _resolveNftTransaction(transaction);
+    final coinsGroup = _buildCoinsGroup(resolvedTransaction);
+
+    return TransactionDetails.fromTransactionData(
+      resolvedTransaction,
+      coinsGroup: coinsGroup,
+      walletViewName: walletViewName,
+    );
   }
 
   Future<void> _handleTransactions(
@@ -63,22 +97,14 @@ class TransactionNotifier extends _$TransactionNotifier {
   ) async {
     try {
       if (transactions.isEmpty) {
-        state = AsyncValue.error(Exception('No transaction was found'), StackTrace.current);
+        state = AsyncValue.error(
+          Exception('No transaction was found'),
+          StackTrace.current,
+        );
         return;
       }
 
-      final transaction = transactions.first;
-
-      // Handle NFT identifier resolution if needed
-      final resolvedTransaction = await _resolveNftTransaction(transaction);
-      final coinsGroup = _buildCoinsGroup(resolvedTransaction);
-
-      final transactionDetails = TransactionDetails.fromTransactionData(
-        resolvedTransaction,
-        coinsGroup: coinsGroup,
-        walletViewName: walletViewName,
-      );
-
+      final transactionDetails = await _processTransaction(transactions.first, walletViewName);
       state = AsyncValue.data(transactionDetails);
     } catch (error, stackTrace) {
       Logger.error('[TransactionNotifier] Error processing transaction: $error');
