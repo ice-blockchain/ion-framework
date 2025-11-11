@@ -17,20 +17,15 @@ class SelectDelegateUserModal extends StatelessWidget {
       topPadding: 0,
       body: UserPickerSheet(
         navigationBar: NavigationAppBar.modal(
-          onBackPress: () => context.maybePop(),
           title: Text(context.i18n.settings_delegate_access_select_user),
           actions: const [NavigationCloseButton()],
         ),
         onUserSelected: (masterPubkey) async {
           if (!context.mounted) return;
 
-          final confirmed = await DelegateUserSelectedRoute(
+          await DelegateUserSelectedRoute(
             selectedUserPubkey: masterPubkey,
           ).push<bool>(context);
-
-          if (confirmed == null && context.mounted) {
-            return;
-          }
         },
       ),
     );

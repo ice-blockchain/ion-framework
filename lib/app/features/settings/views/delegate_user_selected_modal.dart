@@ -9,7 +9,6 @@ import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
@@ -32,9 +31,10 @@ class DelegateUserSelectedModal extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             NavigationAppBar.modal(
-              onBackPress: () => context.pop(),
               actions: [
-                NavigationCloseButton(onPressed: () => rootNavigatorKey.currentState?.pop()),
+                NavigationCloseButton(
+                  onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+                ),
               ],
             ),
             ScreenSideOffset.medium(
