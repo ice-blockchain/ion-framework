@@ -59,7 +59,7 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
       if (_canMakeRequest(symbolGroup) && _activeRequests[symbolGroup] == null) {
         // Trigger the request in background
         unawaited(
-          _executeRequest(symbolGroup),
+          _executeUpdateRequest(symbolGroup),
         );
       }
 
@@ -86,9 +86,10 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
           }
         }
 
+        // Force refresh: bypass deduplication and debounce
         if (force) {
           unawaited(_activeRequests.remove(group));
-          final coins = await _executeRequest(group, updateCache: false);
+          final coins = await _executeUpdateRequest(group, updateCache: false);
           return MapEntry(group, coins);
         }
 
@@ -126,7 +127,7 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
     return result..sort(_coinsComparator.compareCoins);
   }
 
-  Future<List<CoinInWalletData>> _executeRequest(
+  Future<List<CoinInWalletData>> _executeUpdateRequest(
     String symbolGroup, {
     bool updateCache = true,
   }) async {
@@ -151,7 +152,7 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
       return activeRequest;
     }
 
-    return _executeRequest(symbolGroup);
+    return _executeUpdateRequest(symbolGroup);
   }
 
   bool _canMakeRequest(String symbolGroup) {
