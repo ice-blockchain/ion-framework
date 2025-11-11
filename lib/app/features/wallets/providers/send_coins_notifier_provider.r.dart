@@ -8,6 +8,8 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message_service.r.dart';
+import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
@@ -111,7 +113,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       );
 
       try {
-        await _saveTransaction(
+        await _finalizeTransaction(
           details: details,
           transferResult: result,
           sendableAsset: sendableAsset,
@@ -265,7 +267,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
     }
   }
 
-  Future<void> _saveTransaction({
+  Future<void> _finalizeTransaction({
     required WalletAsset sendableAsset,
     required TransactionDetails details,
     required TransferResult transferResult,
@@ -275,35 +277,68 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
     required String? receiverAddress,
   }) async {
     final transactionsRepository = await ref.read(transactionsRepositoryProvider.future);
-    // Save transaction into DB
-    await transactionsRepository.saveTransactionDetails(details);
+
+    await _persistTransactionDetails(
+      transactionsRepository: transactionsRepository,
+      details: details,
+    );
 
     if (details.participantPubkey == null || senderAddress == null || receiverAddress == null) {
       return;
     }
 
-    // Send transaction to the relay
+    final (event, currentUserPubkey) = await _sendTransactionToRelay(
+      sendableAsset: sendableAsset,
+      details: details,
+      transferResult: transferResult,
+      coinAssetData: coinAssetData,
+      requestEntity: requestEntity,
+      senderAddress: senderAddress,
+      receiverAddress: receiverAddress,
+    );
+
+    await _maybeSendChatNotification(
+      receiverPubkey: details.participantPubkey!,
+      event: event,
+      senderPubkey: currentUserPubkey,
+    );
+
+    await _updateTransactionWithEvent(
+      transactionsRepository: transactionsRepository,
+      details: details,
+      event: event,
+    );
+  }
+
+  Future<void> _persistTransactionDetails({
+    required TransactionsRepository transactionsRepository,
+    required TransactionDetails details,
+  }) async {
+    await transactionsRepository.saveTransactionDetails(details);
+  }
+
+  Future<(EventMessage event, String currentUserPubkey)> _sendTransactionToRelay({
+    required WalletAsset sendableAsset,
+    required TransactionDetails details,
+    required TransferResult transferResult,
+    required CoinAssetToSendData coinAssetData,
+    required FundsRequestEntity? requestEntity,
+    required String senderAddress,
+    required String receiverAddress,
+  }) async {
     final receiverDelegation = await ref.read(
       userDelegationProvider(details.participantPubkey!).future,
     );
     final currentUserDelegation = await ref.read(currentUserDelegationProvider.future);
     final currentUserPubkey = ref.read(currentPubkeySelectorProvider) ?? '';
 
-    final entityData = WalletAssetData(
-      networkId: details.network.id,
-      assetClass: sendableAsset.kind,
-      assetAddress: coinAssetData.selectedOption!.coin.contractAddress,
-      pubkey: details.participantPubkey,
-      walletAddress: details.receiverAddress,
-      content: WalletAssetContent(
-        amount: transferResult.requestBody['amount'] as String?,
-        amountUsd: coinAssetData.amountUSD.toString(),
-        txHash: details.txHash,
-        txUrl: details.transactionExplorerUrl,
-        from: senderAddress,
-        to: receiverAddress,
-        assetId: coinAssetData.selectedOption!.coin.id,
-      ),
+    final entityData = _buildWalletAssetData(
+      details: details,
+      sendableAsset: sendableAsset,
+      coinAssetData: coinAssetData,
+      transferResult: transferResult,
+      senderAddress: senderAddress,
+      receiverAddress: receiverAddress,
     );
 
     final senderPubkeys = (
@@ -326,9 +361,47 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       receiverPubkeys: receiverPubkeys,
     );
 
+    return (event, currentUserPubkey);
+  }
+
+  WalletAssetData _buildWalletAssetData({
+    required TransactionDetails details,
+    required WalletAsset sendableAsset,
+    required CoinAssetToSendData coinAssetData,
+    required TransferResult transferResult,
+    required String senderAddress,
+    required String receiverAddress,
+  }) =>
+      WalletAssetData(
+        networkId: details.network.id,
+        assetClass: sendableAsset.kind,
+        assetAddress: coinAssetData.selectedOption!.coin.contractAddress,
+        pubkey: details.participantPubkey,
+        walletAddress: details.receiverAddress,
+        content: WalletAssetContent(
+          amount: transferResult.requestBody['amount'] as String?,
+          amountUsd: coinAssetData.amountUSD.toString(),
+          txHash: details.txHash,
+          txUrl: details.transactionExplorerUrl,
+          from: senderAddress,
+          to: receiverAddress,
+          assetId: coinAssetData.selectedOption!.coin.id,
+        ),
+      );
+
+  Future<void> _maybeSendChatNotification({
+    required String receiverPubkey,
+    required EventMessage event,
+    required String senderPubkey,
+  }) async {
+    final canSendMessage = await ref.read(canSendMessageProvider(receiverPubkey).future);
+    if (!canSendMessage) {
+      return;
+    }
+
     final eventReference = ImmutableEventReference(
       eventId: event.id,
-      masterPubkey: currentUserPubkey,
+      masterPubkey: senderPubkey,
       kind: event.kind,
     );
     final content = eventReference.encode();
@@ -341,12 +414,17 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
     final chatService = await ref.read(sendChatMessageServiceProvider.future);
     await chatService.send(
       kind: event.kind,
-      receiverPubkey: details.participantPubkey!,
+      receiverPubkey: receiverPubkey,
       content: content,
       tags: [tag, paymentSentTag],
     );
+  }
 
-    // Update the transaction with the eventId from the relay
+  Future<void> _updateTransactionWithEvent({
+    required TransactionsRepository transactionsRepository,
+    required TransactionDetails details,
+    required EventMessage event,
+  }) async {
     await transactionsRepository.updateTransaction(
       txHash: details.txHash,
       walletViewId: details.walletViewId,

@@ -81,7 +81,6 @@ class ContactPickerModal extends HookConsumerWidget {
     return SheetContent(
       topPadding: 0,
       body: UserPickerSheet(
-        controlPrivacy: true,
         navigationBar: NavigationAppBar.modal(
           title: Text(context.i18n.friends_modal_title),
           actions: const [NavigationCloseButton()],
