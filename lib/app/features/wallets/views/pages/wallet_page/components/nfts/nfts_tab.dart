@@ -20,7 +20,7 @@ import 'package:ion/app/features/wallets/views/pages/wallet_page/tab_type.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/view_models/wallet_nfts_view_model.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
-class NftsTab extends ConsumerWidget {
+class NftsTab extends HookConsumerWidget {
   const NftsTab({
     super.key,
   });
@@ -33,14 +33,14 @@ class NftsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final nftLayoutType = ref.watch(nftLayoutTypeSelectorProvider);
 
-    final currentNftsState = ref.watch(currentNftsProvider);
+    final currentNftsState = ref.watch(currentNftsNotifierProvider);
     final viewModel = ref.watch(walletNftsViewModelProvider);
 
     ref
       ..listen(walletSearchQueryControllerProvider(CryptoAssetType.nft), (_, next) {
         viewModel.searchQueryCommand(next);
       })
-      ..listen(currentNftsProvider, (_, next) {
+      ..listen(currentNftsNotifierProvider, (_, next) {
         next.whenData(viewModel.setNftsCommand.execute);
       });
 

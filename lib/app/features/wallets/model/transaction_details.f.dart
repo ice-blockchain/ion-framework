@@ -64,11 +64,17 @@ class TransactionDetails with _$TransactionDetails {
           );
         },
         nft: (nft) => CryptoAssetToSendData.nft(nft: nft.nft),
-        nftIdentifier: (nftIdentifier) => throw const FormatException(
-          'NFT identifier should be resolved to full NFT data before creating TransactionDetails',
+        nftIdentifier: (nftIdentifier) => throw FormatException(
+          'NFT identifier should be resolved to full NFT data before creating TransactionDetails. '
+          'Network: ${transaction.network.id}, '
+          'Transaction hash: ${transaction.txHash}, '
+          'NFT identifier: ${nftIdentifier.nftIdentifier}',
         ),
-        undefinedCoin: (_) => throw const FormatException(
-          'Undefined token should be resolved to coin data before creating TransactionDetails',
+        undefinedCoin: (undefinedCoin) => throw FormatException(
+          'Undefined token should be resolved to coin data before creating TransactionDetails. '
+          'Network: ${transaction.network.id}, '
+          'Transaction hash: ${transaction.txHash}, '
+          'Contract address: ${undefinedCoin.contractAddress}',
         ),
       ),
       walletViewName: walletViewName,
