@@ -131,7 +131,8 @@ Map<String, dynamic> _$$WalletAssetSpl2022ImplToJson(
 _$WalletAssetSep41Impl _$$WalletAssetSep41ImplFromJson(
         Map<String, dynamic> json) =>
     _$WalletAssetSep41Impl(
-      mint: json['mint'] as String,
+      issuer: json['issuer'] as String,
+      assetCode: json['assetCode'] as String,
       symbol: json['symbol'] as String,
       decimals: (json['decimals'] as num).toInt(),
       balance: const StringOrIntConverter().fromJson(json['balance']),
@@ -142,7 +143,8 @@ _$WalletAssetSep41Impl _$$WalletAssetSep41ImplFromJson(
 Map<String, dynamic> _$$WalletAssetSep41ImplToJson(
         _$WalletAssetSep41Impl instance) =>
     <String, dynamic>{
-      'mint': instance.mint,
+      'issuer': instance.issuer,
+      'assetCode': instance.assetCode,
       'symbol': instance.symbol,
       'decimals': instance.decimals,
       if (const StringOrIntConverter().toJson(instance.balance)
@@ -159,8 +161,8 @@ _$WalletAssetTep74Impl _$$WalletAssetTep74ImplFromJson(
       decimals: (json['decimals'] as num).toInt(),
       balance: const StringOrIntConverter().fromJson(json['balance']),
       kind: json['kind'] as String,
-      mint: json['mint'] as String?,
       name: json['name'] as String?,
+      master: json['master'] as String?,
     );
 
 Map<String, dynamic> _$$WalletAssetTep74ImplToJson(
@@ -172,8 +174,8 @@ Map<String, dynamic> _$$WalletAssetTep74ImplToJson(
           case final value?)
         'balance': value,
       'kind': instance.kind,
-      if (instance.mint case final value?) 'mint': value,
       if (instance.name case final value?) 'name': value,
+      if (instance.master case final value?) 'master': value,
     };
 
 _$WalletAssetTrc10Impl _$$WalletAssetTrc10ImplFromJson(
@@ -256,6 +258,7 @@ _$WalletAssetUnknownImpl _$$WalletAssetUnknownImplFromJson(
       balance: const StringOrIntConverter().fromJson(json['balance']),
       kind: json['kind'] as String,
       contract: json['contract'] as String?,
+      master: json['master'] as String?,
       name: json['name'] as String?,
       assetId: json['assetId'] as String?,
       mint: json['mint'] as String?,
@@ -273,6 +276,7 @@ Map<String, dynamic> _$$WalletAssetUnknownImplToJson(
         'balance': value,
       'kind': instance.kind,
       if (instance.contract case final value?) 'contract': value,
+      if (instance.master case final value?) 'master': value,
       if (instance.name case final value?) 'name': value,
       if (instance.assetId case final value?) 'assetId': value,
       if (instance.mint case final value?) 'mint': value,
