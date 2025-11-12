@@ -66,7 +66,7 @@ class IntroPage extends HookConsumerWidget {
               ],
               child: Button(
                 onPressed: () => GetStartedRoute().go(context),
-                label: Text(context.i18n.button_continue),
+                label: Text(context.i18n.button_log_in),
                 trailingIcon: Assets.svg.iconButtonNext.icon(
                   color: context.theme.appColors.secondaryBackground,
                 ),
