@@ -1,25 +1,24 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/media_service/video_info_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'video_codec_detector.r.g.dart';
 
 class VideoCodecDetector {
-  const VideoCodecDetector();
+  const VideoCodecDetector({
+    required this.videoInfoService,
+  });
 
-  static const _channel = MethodChannel('ion/video_codec');
+  final VideoInfoService videoInfoService;
 
   Future<String?> getVideoCodec(String videoPath) async {
     try {
-      final result = await _channel.invokeMethod<String>(
-        'getVideoCodec',
-        {'videoPath': videoPath},
-      );
-      Logger.log('Detected codec: $result for path: $videoPath');
-      return result;
+      final codec = await videoInfoService.getVideoCodec(videoPath);
+      Logger.log('Detected codec: $codec for path: $videoPath');
+      return codec;
     } catch (e) {
       Logger.log(
         'Failed to detect video codec',
@@ -41,5 +40,7 @@ class VideoCodecDetector {
 
 @riverpod
 VideoCodecDetector videoCodecDetector(Ref ref) {
-  return const VideoCodecDetector();
+  return VideoCodecDetector(
+    videoInfoService: ref.read(videoInfoServiceProvider),
+  );
 }

@@ -2,8 +2,6 @@ package io.ion.app
 
 import android.content.Context
 import android.content.Intent
-import android.media.MediaExtractor
-import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.Log
@@ -53,10 +51,6 @@ class MainActivity : FlutterFragmentActivity() {
         private const val ARG_EXPORTED_VIDEO_FILE = "argExportedVideoFilePath"
         private const val ARG_EXPORTED_VIDEO_COVER = "argExportedVideoCoverPreviewPath"
 
-        // For Video Codec Detection
-        private const val VIDEO_CODEC_CHANNEL = "ion/video_codec"
-        private const val METHOD_GET_VIDEO_CODEC = "getVideoCodec"
-
         // Errors code
         private const val ERR_CODE_SDK_NOT_INITIALIZED = "ERR_SDK_NOT_INITIALIZED"
         private const val ERR_CODE_SDK_LICENSE_REVOKED = "ERR_SDK_LICENSE_REVOKED"
@@ -83,7 +77,6 @@ class MainActivity : FlutterFragmentActivity() {
     )
 
     private var banubaSdkChannel: MethodChannel? = null
-    private var videoCodecChannel: MethodChannel? = null
 
     private lateinit var volumeKeyChannel: MethodChannel
 
@@ -102,30 +95,6 @@ class MainActivity : FlutterFragmentActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             "ion/video_compression"
         ).setMethodCallHandler(videoCompressionPlugin)
-
-        videoCodecChannel = MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            VIDEO_CODEC_CHANNEL
-        )
-        videoCodecChannel?.setMethodCallHandler { call, result ->
-            when (call.method) {
-                METHOD_GET_VIDEO_CODEC -> {
-                    val videoPath = call.argument<String>("videoPath")
-                    if (videoPath == null) {
-                        result.error("INVALID_ARGUMENT", "videoPath is required", null)
-                        return@setMethodCallHandler
-                    }
-
-                    try {
-                        val codec = getVideoCodecFromPath(videoPath)
-                        result.success(codec)
-                    } catch (e: Exception) {
-                        result.error("CODEC_DETECTION_FAILED", e.message, null)
-                    }
-                }
-                else -> result.notImplemented()
-            }
-        }
 
         // Set up your MethodChannel here after registration
         banubaSdkChannel = MethodChannel(
@@ -403,31 +372,6 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    private fun getVideoCodecFromPath(videoPath: String): String? {
-        val extractor = MediaExtractor()
-        return try {
-            extractor.setDataSource(videoPath)
-
-            for (i in 0 until extractor.trackCount) {
-                val format = extractor.getTrackFormat(i)
-                val mime = format.getString(MediaFormat.KEY_MIME)
-
-                if (mime?.startsWith("video/") == true) {
-                    Log.d(TAG, "Video codec for $videoPath: $mime")
-                    return mime
-                }
-            }
-
-            Log.w(TAG, "No video track found in $videoPath")
-            null
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to extract video codec from $videoPath", e)
-            null
-        } finally {
-            extractor.release()
-        }
-    }
-
     private fun getVideoSize(context: Context, uri: Uri): Size? {
         val retriever = MediaMetadataRetriever()
         return try {
@@ -475,8 +419,6 @@ class MainActivity : FlutterFragmentActivity() {
             try {
                 banubaSdkChannel?.setMethodCallHandler(null)
                 banubaSdkChannel = null
-                videoCodecChannel?.setMethodCallHandler(null)
-                videoCodecChannel = null
                 videoCompressionPlugin = null
             } catch (e: Exception) {
                 Log.e(TAG, "Error cleaning up MethodChannels", e)
