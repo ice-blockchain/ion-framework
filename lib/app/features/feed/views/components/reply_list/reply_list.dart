@@ -12,6 +12,7 @@ import 'package:ion/app/features/components/entities_list/entity_list_item.f.dar
 import 'package:ion/app/features/core/model/paged.f.dart';
 import 'package:ion/app/features/feed/providers/replies_data_source_provider.r.dart';
 import 'package:ion/app/features/feed/providers/replies_provider.r.dart';
+import 'package:ion/app/features/feed/providers/reply_input_focus_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -37,6 +38,7 @@ class ReplyList extends ConsumerWidget {
     final entities = replies?.data.items;
     final hasMoreReplies =
         ref.watch(repliesProvider(eventReference).select((state) => (state?.hasMore).falseOrValue));
+    final isInputFocused = ref.watch(replyInputFocusControllerProvider(eventReference));
 
     final isLoading = replies?.data is PagedLoading;
 
@@ -48,7 +50,7 @@ class ReplyList extends ConsumerWidget {
         if (headers != null) ...headers!,
         if (entities == null)
           const EntitiesListSkeleton()
-        else if (entities.isEmpty)
+        else if (entities.isEmpty && !isInputFocused)
           const _EmptyState()
         else
           EntitiesList(
