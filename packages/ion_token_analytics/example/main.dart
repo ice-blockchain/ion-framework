@@ -6,7 +6,7 @@ Future<void> main() async {
 
   final ws2 = await connectWebSocketOverHttp2(uri);
   if (ws2 != null) {
-    ws2.stream.listen((m) => print('ws2: $m'));
+    ws2.stream.listen((m) => print('ws2: ${m.data}'));
     ws2.add('ws2: Hello HTTP/2 WebSocket!');
   }
 
