@@ -276,12 +276,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
     required String? senderAddress,
     required String? receiverAddress,
   }) async {
-    final transactionsRepository = await ref.read(transactionsRepositoryProvider.future);
-
-    await _persistTransactionDetails(
-      transactionsRepository: transactionsRepository,
-      details: details,
-    );
+    await _persistTransactionDetails(details);
 
     if (details.participantPubkey == null || senderAddress == null || receiverAddress == null) {
       return;
@@ -297,23 +292,19 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       receiverAddress: receiverAddress,
     );
 
-    await _maybeSendChatNotification(
-      receiverPubkey: details.participantPubkey!,
-      event: event,
-      senderPubkey: currentUserPubkey,
-    );
+    await _updateTransactionWithEvent(details: details, event: event);
 
-    await _updateTransactionWithEvent(
-      transactionsRepository: transactionsRepository,
-      details: details,
-      event: event,
+    unawaited(
+      _notifyParticipantAboutPayment(
+        receiverPubkey: details.participantPubkey!,
+        event: event,
+        senderPubkey: currentUserPubkey,
+      ),
     );
   }
 
-  Future<void> _persistTransactionDetails({
-    required TransactionsRepository transactionsRepository,
-    required TransactionDetails details,
-  }) async {
+  Future<void> _persistTransactionDetails(TransactionDetails details) async {
+    final transactionsRepository = await ref.read(transactionsRepositoryProvider.future);
     await transactionsRepository.saveTransactionDetails(details);
   }
 
@@ -389,15 +380,46 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
         ),
       );
 
+  Future<void> _updateTransactionWithEvent({
+    required TransactionDetails details,
+    required EventMessage event,
+  }) async {
+    final transactionsRepository = await ref.read(transactionsRepositoryProvider.future);
+    await transactionsRepository.updateTransaction(
+      txHash: details.txHash,
+      walletViewId: details.walletViewId,
+      eventId: event.id,
+    );
+  }
+
+  Future<void> _notifyParticipantAboutPayment({
+    required String receiverPubkey,
+    required EventMessage event,
+    required String senderPubkey,
+  }) async {
+    try {
+      await withRetry<void>(
+        ({error}) => _maybeSendChatNotification(
+          receiverPubkey: receiverPubkey,
+          event: event,
+          senderPubkey: senderPubkey,
+        ),
+        maxRetries: _maxRetries,
+        initialDelay: _initialRetryDelay,
+        retryWhen: (error) => error is Exception,
+      );
+    } catch (error, stackTrace) {
+      Logger.error('Failed to send chat notification', stackTrace: stackTrace);
+    }
+  }
+
   Future<void> _maybeSendChatNotification({
     required String receiverPubkey,
     required EventMessage event,
     required String senderPubkey,
   }) async {
     final canSendMessage = await ref.read(canSendMessageProvider(receiverPubkey).future);
-    if (!canSendMessage) {
-      return;
-    }
+    if (!canSendMessage) return;
 
     final eventReference = ImmutableEventReference(
       eventId: event.id,
@@ -417,18 +439,6 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       receiverPubkey: receiverPubkey,
       content: content,
       tags: [tag, paymentSentTag],
-    );
-  }
-
-  Future<void> _updateTransactionWithEvent({
-    required TransactionsRepository transactionsRepository,
-    required TransactionDetails details,
-    required EventMessage event,
-  }) async {
-    await transactionsRepository.updateTransaction(
-      txHash: details.txHash,
-      walletViewId: details.walletViewId,
-      eventId: event.id,
     );
   }
 }
