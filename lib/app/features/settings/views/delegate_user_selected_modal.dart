@@ -31,11 +31,7 @@ class DelegateUserSelectedModal extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             NavigationAppBar.modal(
-              actions: [
-                NavigationCloseButton(
-                  onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-                ),
-              ],
+              actions: const [NavigationCloseButton()],
             ),
             ScreenSideOffset.medium(
               child: Column(
