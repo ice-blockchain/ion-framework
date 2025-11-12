@@ -33,6 +33,7 @@ class BanubaService {
   static const methodInitVideoEditor = 'initVideoEditor';
   static const methodStartVideoEditor = 'startVideoEditor';
   static const methodStartVideoEditorTrimmer = 'startVideoEditorTrimmer';
+  static const methodIsVideoResolutionSupported = 'isVideoResolutionSupported';
   static const argVideoFilePath = 'videoFilePath';
   static const argMaxVideoDurationMs = 'maxVideoDurationMs';
   static const argCoverSelectionEnabled = 'coverSelectionEnabled';
@@ -41,6 +42,26 @@ class BanubaService {
   static const methodReleaseVideoEditor = 'releaseVideoEditor';
 
   static const platformChannel = MethodChannel('banubaSdkChannel');
+
+  Future<bool> isVideoResolutionSupported(String filePath) async {
+    try {
+      final supported = await platformChannel.invokeMethod<bool>(
+        methodIsVideoResolutionSupported,
+        {argVideoFilePath: filePath},
+      );
+      Logger.log(
+        'Banuba video capability check $supported',
+      );
+      return supported ?? true;
+    } on PlatformException catch (e) {
+      Logger.log(
+        'Video resolution capability check failed',
+        error: e,
+        stackTrace: StackTrace.current,
+      );
+      return true;
+    }
+  }
 
   Future<void> _initPhotoEditor() async {
     if (Platform.isAndroid) {
@@ -164,11 +185,25 @@ Future<MediaFile?> editMedia(
       if (newPath == null) return null;
       return mediaFile.copyWith(path: newPath);
     case MediaType.video:
+      if (Platform.isAndroid && false) {
+        final isSupported =
+            await ref.read(banubaServiceProvider).isVideoResolutionSupported(filePath);
+        if (!isSupported) {
+          Logger.log(
+            'Skipping Banuba editor due to unsupported resolution',
+          );
+          return mediaFile; // Skip Banuba editor, keep original file
+        }
+      }
+
       final editVideoData = await ref.read(banubaServiceProvider).editVideo(
             filePath,
             maxVideoDuration: maxVideoDuration,
             coverSelectionEnabled: videoCoverSelectionEnabled,
           );
+      Logger.log(
+        'Banuba editor result $editVideoData',
+      );
       if (editVideoData == null) return null;
       return mediaFile.copyWith(path: editVideoData.newPath, thumb: editVideoData.thumb);
     case MediaType.unknown || MediaType.audio:

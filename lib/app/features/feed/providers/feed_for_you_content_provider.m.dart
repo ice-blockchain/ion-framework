@@ -92,6 +92,8 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   Stream<IonConnectEntity> requestEntities({required int limit}) async* {
     Logger.info('$_logTag Requesting events, limit: [$limit]');
 
+    return;
+
     var fetchedEvents = 0;
 
     await for (final entity in _fetchInitialPageData(limit: limit)) {

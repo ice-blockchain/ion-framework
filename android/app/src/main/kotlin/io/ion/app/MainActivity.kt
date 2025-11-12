@@ -2,6 +2,8 @@ package io.ion.app
 
 import android.content.Context
 import android.content.Intent
+import android.media.MediaCodecList
+import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.Log
@@ -46,6 +48,7 @@ class MainActivity : FlutterFragmentActivity() {
         private const val METHOD_START_VIDEO_EDITOR = "startVideoEditor"
         private const val METHOD_START_VIDEO_EDITOR_PIP = "startVideoEditorPIP"
         private const val METHOD_START_VIDEO_EDITOR_TRIMMER = "startVideoEditorTrimmer"
+        private const val METHOD_CHECK_VIDEO_RESOLUTION = "isVideoResolutionSupported"
         private const val METHOD_RELEASE_VIDEO_EDITOR = "releaseVideoEditor"
         private const val METHOD_DEMO_PLAY_EXPORTED_VIDEO = "playExportedVideo"
         private const val ARG_EXPORTED_VIDEO_FILE = "argExportedVideoFilePath"
@@ -155,6 +158,21 @@ class MainActivity : FlutterFragmentActivity() {
                             },
                             onError = { result.error(ERR_CODE_SDK_NOT_INITIALIZED, "", null) }
                         )
+                    }
+                }
+
+                METHOD_CHECK_VIDEO_RESOLUTION -> {
+                    val videoFilePath = call.argument("videoFilePath") as? String
+                    if (videoFilePath.isNullOrEmpty()) {
+                        result.success(true)
+                    } else {
+                        val videoUri = Uri.fromFile(File(videoFilePath))
+                        val size = getVideoSize(applicationContext, videoUri)
+                        if (size == null) {
+                            result.success(true)
+                        } else {
+                            result.success(isEncoderSizeSupported(size.width, size.height))
+                        }
                     }
                 }
 
@@ -356,6 +374,42 @@ class MainActivity : FlutterFragmentActivity() {
             stopKoin()
             videoEditorModule = null
         }
+    }
+
+    private fun isEncoderSizeSupported(width: Int, height: Int): Boolean {
+        val codecs = MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos
+        val mimeTypes = listOf(
+            MediaFormat.MIMETYPE_VIDEO_AVC,
+        )
+
+        Log.d("BANUBA EXPORT", "Checking codec capabilities")
+
+        mimeTypes.forEach { mime ->
+            codecs.filter { it.isEncoder && it.supportedTypes.contains(mime) }.forEach { codecInfo ->
+                Log.d("BANUBA EXPORT", codecInfo.name);
+                val videoCaps = try {
+                    codecInfo.getCapabilitiesForType(mime).videoCapabilities
+
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+
+                videoCaps?.let { caps ->
+                    Log.d("BANUBA EXPORT", caps.supportedHeights.toString());
+                    Log.d("BANUBA EXPORT", caps.supportedWidths.toString());
+
+                    val supported = caps.isSizeSupported(width, height) ||
+                        caps.isSizeSupported(height, width)
+                    if (supported) {
+                        Log.d(TAG, "Banuba ${codecInfo.name} supports ${width}x$height for $mime")
+                        return true
+                    }
+                }
+            }
+        }
+
+        Log.w(TAG, "Banuba No encoder available for ${width}x$height")
+        return false
     }
 
     private fun checkSdkLicenseVideoEditor(
