@@ -14,8 +14,10 @@ import 'package:ion/app/features/user/providers/request_coins_form_provider.r.da
 import 'package:ion/app/features/wallets/hooks/use_check_wallet_address_available.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
+import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
+import 'package:ion/app/features/wallets/providers/selectable_networks_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/network_list/network_item.dart';
@@ -56,33 +58,42 @@ class NetworkListView extends HookConsumerWidget {
       NetworkListViewType.swapBuy => ref.watch(swapCoinsControllerProvider).buyCoin,
     };
 
+    final contactPubkey = switch (type) {
+      NetworkListViewType.send =>
+        ref.watch(sendAssetFormControllerProvider.select((state) => state.contactPubkey)),
+      NetworkListViewType.request =>
+        ref.watch(requestCoinsFormControllerProvider.select((state) => state.contactPubkey)),
+      _ => null,
+    };
+
     final isProcessing = useRef(false);
+    Future<void> onNetworkTap(NetworkData network) async {
+      try {
+        if (isProcessing.value) return;
+        isProcessing.value = true;
+        await _onTap(context, ref, network);
+      } finally {
+        isProcessing.value = false;
+      }
+    }
 
-    final coinsState = coinsGroup == null
-        ? const AsyncValue<List<CoinInWalletData>>.loading()
-        : ref.watch(syncedCoinsBySymbolGroupProvider(coinsGroup.symbolGroup));
+    final hasContact = contactPubkey?.isNotEmpty ?? false;
+    final shouldDisableUnavailable = const {
+          NetworkListViewType.send,
+          NetworkListViewType.request,
+        }.contains(type) &&
+        hasContact;
 
-    final child = coinsState.hasValue
-        ? _NetworksList(
-            itemCount: coinsState.value!.length,
-            itemBuilder: (BuildContext context, int index) {
-              final coin = coinsState.value![index];
-              return NetworkItem(
-                coinInWallet: coin,
-                network: coin.coin.network,
-                onTap: () async {
-                  try {
-                    if (isProcessing.value) return;
-                    isProcessing.value = true;
-                    await _onTap(context, ref, coin.coin.network);
-                  } finally {
-                    isProcessing.value = false;
-                  }
-                },
-              );
-            },
+    final child = shouldDisableUnavailable
+        ? _SelectableNetworksList(
+            coinsGroup: coinsGroup,
+            contactPubkey: contactPubkey!,
+            onNetworkTap: onNetworkTap,
           )
-        : _LoadingState(itemCount: coinsGroup?.coins.length ?? 1);
+        : _UnrestrictedNetworksList(
+            coinsGroup: coinsGroup,
+            onNetworkTap: onNetworkTap,
+          );
 
     return SheetContent(
       body: Column(
@@ -164,6 +175,95 @@ class NetworkListView extends HookConsumerWidget {
         ref.read(swapCoinsControllerProvider.notifier).setBuyNetwork(network);
         context.pop();
     }
+  }
+}
+
+class _UnrestrictedNetworksList extends ConsumerWidget {
+  const _UnrestrictedNetworksList({
+    required this.coinsGroup,
+    required this.onNetworkTap,
+  });
+
+  final CoinsGroup? coinsGroup;
+  final Future<void> Function(NetworkData network) onNetworkTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final coinsState = coinsGroup == null
+        ? const AsyncValue<List<CoinInWalletData>>.loading()
+        : ref.watch(syncedCoinsBySymbolGroupProvider(coinsGroup!.symbolGroup));
+
+    if (!coinsState.hasValue) {
+      return _LoadingState(itemCount: coinsGroup?.coins.length ?? 1);
+    }
+
+    return _NetworksList(
+      itemCount: coinsState.value!.length,
+      itemBuilder: (BuildContext context, int index) {
+        final coin = coinsState.value![index];
+        final network = coin.coin.network;
+        return NetworkItem(
+          coinInWallet: coin,
+          network: network,
+          onTap: () => onNetworkTap(network),
+        );
+      },
+    );
+  }
+}
+
+class _SelectableNetworksList extends ConsumerWidget {
+  const _SelectableNetworksList({
+    required this.coinsGroup,
+    required this.onNetworkTap,
+    required this.contactPubkey,
+  });
+
+  final CoinsGroup? coinsGroup;
+  final Future<void> Function(NetworkData network) onNetworkTap;
+  final String contactPubkey;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final networksState = coinsGroup == null
+        ? const AsyncValue<SelectableNetworkState>.loading()
+        : ref.watch(
+            selectableNetworksProvider(
+              symbolGroup: coinsGroup!.symbolGroup,
+              contactPubkey: contactPubkey,
+            ),
+          );
+
+    if (!networksState.hasValue) {
+      return _LoadingState(itemCount: coinsGroup?.coins.length ?? 1);
+    }
+
+    final enabledNetworkIds = networksState.value!.enabledNetworkIds;
+
+    return _NetworksList(
+      itemCount: networksState.value!.coins.length,
+      itemBuilder: (BuildContext context, int index) {
+        final coin = networksState.value!.coins[index];
+        final network = coin.coin.network;
+        final isEnabled = enabledNetworkIds.contains(network.id);
+        final networkItem = NetworkItem(
+          coinInWallet: coin,
+          network: network,
+          onTap: () => onNetworkTap(network),
+        );
+
+        if (isEnabled) {
+          return networkItem;
+        }
+
+        return IgnorePointer(
+          child: Opacity(
+            opacity: 0.3,
+            child: networkItem,
+          ),
+        );
+      },
+    );
   }
 }
 
