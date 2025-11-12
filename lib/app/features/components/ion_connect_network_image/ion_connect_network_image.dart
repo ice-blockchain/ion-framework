@@ -28,13 +28,7 @@ class IonConnectNetworkImage extends HookConsumerWidget {
     this.borderRadius,
     super.key,
   }) : cacheManager = cacheManager ??
-            CacheManager(
-              Config(
-                'ionConnectNetworkImageCacheKey',
-                maxNrOfCacheObjects: 1000,
-                stalePeriod: const Duration(days: 1),
-              ),
-            );
+            IONCacheManager.ionConnectNetworkImage;
 
   final String imageUrl;
   final String authorPubkey;

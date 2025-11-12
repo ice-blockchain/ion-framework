@@ -4,22 +4,10 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:ion/app/services/file_cache/ion_cache_manager.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/image_path.dart';
-
-class PreCachePicturesCacheManager {
-  static const key = 'preCachePicturesCacheKey';
-
-  static CacheManager instance = CacheManager(
-    Config(
-      key,
-      maxNrOfCacheObjects: 1000,
-      stalePeriod: const Duration(days: 60),
-    ),
-  );
-}
 
 Future<void> precachePictures(BuildContext context, Iterable<String> urls) async {
   try {
@@ -45,7 +33,7 @@ Future<void> _precachePicture(BuildContext context, String url) async {
           // We don't need the file itself, just the action of caching.
 
           try {
-            await PreCachePicturesCacheManager.instance.getSingleFile(url);
+            await IONCacheManager.preCachePictures.getSingleFile(url);
           } catch (e) {
             Logger.warning('[Caught getSingleFile error] $url - Error: $e');
           }
@@ -53,7 +41,7 @@ Future<void> _precachePicture(BuildContext context, String url) async {
 
           final imageProvider = CachedNetworkImageProvider(
             url,
-            cacheManager: PreCachePicturesCacheManager.instance,
+            cacheManager: IONCacheManager.preCachePictures,
             cacheKey: url,
           );
           await precacheImage(
