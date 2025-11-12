@@ -79,7 +79,7 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
             media,
             authorPubkey: rumor.masterPubkey,
           )
-              .whenComplete(() async {
+              .then((_) async {
             final isThumb =
                 entity.data.media.values.any((m) => m.url != media.url && m.thumb == media.url);
 
