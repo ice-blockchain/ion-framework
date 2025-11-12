@@ -10,7 +10,6 @@ import 'package:ion/app/components/text_editor/utils/extract_tags.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/create_article/providers/draft_article_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_interests.f.dart';
@@ -21,7 +20,6 @@ import 'package:ion/app/features/feed/providers/media_upload_provider.r.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_settings.dart';
-import 'package:ion/app/features/ion_connect/model/entity_editing_ended_at.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_label.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
@@ -103,10 +101,6 @@ class CreateArticle extends _$CreateArticle {
         ...extractTags(updatedContent).map((tag) => RelatedHashtag(value: tag)),
       ];
 
-      final editingEndedAt = EntityEditingEndedAt.build(
-        ref.read(envProvider.notifier).get<int>(EnvVariable.EDIT_POST_ALLOWED_MINUTES),
-      );
-
       final mentions = _buildMentions(updatedContent);
 
       final articleData = ArticleData.fromData(
@@ -122,7 +116,6 @@ class CreateArticle extends _$CreateArticle {
         settings: EntityDataWithSettings.build(whoCanReply: whoCanReply),
         imageColor: imageColor,
         richText: richText,
-        editingEndedAt: editingEndedAt,
         language: _buildLanguageLabel(language),
       );
 
