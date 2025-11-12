@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:http2/http2.dart';
+import 'package:ion_token_analytics/src/websocket/web_socket_exceptions.dart';
 
 /// Manages an HTTP/2 connection that can be used to create multiple WebSocket connections.
 ///
@@ -22,10 +23,6 @@ class Http2Connection {
   ClientTransportConnection get transport => _transport;
 
   /// Connects to a server and creates an HTTP/2 connection.
-  ///
-  /// The [host] is the server hostname.
-  /// The [port] defaults to 443 for secure connections.
-  /// The [scheme] should be 'wss' for WebSocket over TLS.
   static Future<Http2Connection> connect(
     String host, {
     int port = 443,
@@ -36,15 +33,13 @@ class Http2Connection {
       final transport = ClientTransportConnection.viaSocket(socket);
       return Http2Connection._(transport, host, scheme);
     } catch (e, stackTrace) {
-      print('HTTP/2 connection error: $e\n$stackTrace');
-      rethrow;
+      throw Http2ConnectionException(host, port, '$e\n$stackTrace');
     }
   }
 
   /// Closes the HTTP/2 connection.
   ///
   /// After closing, no new WebSocket connections can be created.
-  /// Existing WebSocket connections will continue to work until they are individually closed.
   Future<void> close() async {
     if (_closed) {
       return;

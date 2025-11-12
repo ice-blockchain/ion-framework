@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:http2/http2.dart';
 import 'package:ion_token_analytics/src/websocket/http2_connection.dart';
+import 'package:ion_token_analytics/src/websocket/web_socket_exceptions.dart';
 import 'package:ion_token_analytics/src/websocket/web_socket_message.dart';
 
 // WebSocket protocol constants (RFC 6455)
@@ -48,14 +49,6 @@ class _WebSocketConstants {
 /// This class provides WebSocket functionality over HTTP/2 connections,
 /// supporting text and binary messages, compression (permessage-deflate),
 /// and proper connection lifecycle management.
-///
-/// Example usage:
-/// ```dart
-/// // Using Http2Connection (recommended for multiple connections):
-/// final connection = await Http2Connection.connect('example.com');
-/// final ws1 = await connection.websocket(path: '/stream1');
-/// final ws2 = await connection.websocket(path: '/stream2');
-/// ```
 class Http2WebSocket {
   Http2WebSocket._(this._requestStream, this._subscription) {
     // Set up handler to process incoming messages
@@ -78,8 +71,6 @@ class Http2WebSocket {
   /// The [path] specifies the WebSocket endpoint (defaults to '/').
   /// Additional [headers] can be provided for custom values.
   ///
-  /// Returns a [Http2WebSocket] instance if successful, or `null` if the handshake fails.
-  ///
   /// Example:
   /// ```dart
   /// final connection = await Http2Connection.connect('example.com');
@@ -89,7 +80,7 @@ class Http2WebSocket {
   ///   headers: {'authorization': 'Bearer token'},
   /// );
   /// ```
-  static Future<Http2WebSocket?> fromHttp2Connection(
+  static Future<Http2WebSocket> fromHttp2Connection(
     Http2Connection connection, {
     String path = '/',
     Map<String, String>? headers,
@@ -119,7 +110,7 @@ class Http2WebSocket {
       final requestStream = connection.transport.makeRequest(requestHeaders);
 
       // Wait for handshake response with :status 200
-      final completer = Completer<Http2WebSocket?>();
+      final completer = Completer<Http2WebSocket>();
       late StreamSubscription<StreamMessage> subscription;
 
       subscription = requestStream.incomingMessages.listen(
@@ -137,31 +128,32 @@ class Http2WebSocket {
                 completer: completer,
               );
             } else {
-              print('WebSocket handshake failed: :status = $status');
               subscription.cancel();
-              completer.complete(null);
+              if (!completer.isCompleted) {
+                completer.completeError(WebSocketHandshakeStatusException(status ?? 'unknown'));
+              }
             }
           }
         },
         onError: (Object error, StackTrace stackTrace) {
-          print('Stream error: $error\n$stackTrace');
-          if (!completer.isCompleted) {
-            completer.complete(null);
-          }
           subscription.cancel();
+          if (!completer.isCompleted) {
+            completer.completeError(WebSocketStreamException('$error\n$stackTrace'), stackTrace);
+          }
         },
         onDone: () {
           if (!completer.isCompleted) {
-            print('Stream closed before handshake completed');
-            completer.complete(null);
+            completer.completeError(const WebSocketHandshakeStreamClosedException());
           }
         },
       );
 
       return await completer.future;
     } catch (e, stackTrace) {
-      print('WebSocket creation error: $e\n$stackTrace');
-      return null;
+      if (e is WebSocketException) {
+        rethrow;
+      }
+      throw WebSocketHandshakeException('$e\n$stackTrace');
     }
   }
 
@@ -205,13 +197,13 @@ class Http2WebSocket {
   /// Checks the `sec-websocket-accept` header from the server against the expected
   /// value computed from [wsKey]. If verification succeeds or the header is missing
   /// (for compatibility), creates an [Http2WebSocket] instance and completes the
-  /// [completer] with it. Otherwise, cancels the [subscription] and completes with null.
+  /// [completer] with it. Otherwise, cancels the [subscription] and throws an exception.
   static void _verifyHandshakeAndComplete({
     required Map<String, String> headers,
     required String wsKey,
     required ClientTransportStream requestStream,
     required StreamSubscription<StreamMessage> subscription,
-    required Completer<Http2WebSocket?> completer,
+    required Completer<Http2WebSocket> completer,
   }) {
     final accept = headers['sec-websocket-accept'];
 
@@ -227,11 +219,8 @@ class Http2WebSocket {
 
     final expectedAccept = _computeWebSocketAccept(wsKey);
     if (accept != expectedAccept) {
-      print('Handshake failed: Invalid sec-websocket-accept');
-      print('  Expected: $expectedAccept');
-      print('  Received: $accept');
       subscription.cancel();
-      completer.complete(null);
+      completer.completeError(WebSocketHandshakeAcceptException(expectedAccept, accept));
       return;
     }
 
@@ -257,8 +246,6 @@ class Http2WebSocket {
   /// Sends a text message over the WebSocket connection.
   ///
   /// The [message] will be encoded as UTF-8 and sent as a WebSocket text frame.
-  ///
-  /// Throws [StateError] if the connection is already closed.
   void add(String message) {
     _ensureNotClosed();
     final payload = utf8.encode(message);
@@ -269,8 +256,6 @@ class Http2WebSocket {
   /// Sends binary data over the WebSocket connection.
   ///
   /// The [data] will be sent as-is in a WebSocket binary frame.
-  ///
-  /// Throws [StateError] if the connection is already closed.
   void addBinary(Uint8List data) {
     _ensureNotClosed();
     final frame = _buildFrame(data, opcode: _WebSocketConstants.opcodeBinary);
@@ -307,7 +292,7 @@ class Http2WebSocket {
   /// Ensures the connection is not closed before performing operations.
   void _ensureNotClosed() {
     if (_closed) {
-      throw StateError('WebSocket connection is already closed');
+      throw const WebSocketClosedException();
     }
   }
 
@@ -379,9 +364,13 @@ class Http2WebSocket {
         return;
       }
 
-      final payload = _parseFrame(Uint8List.fromList(frameBytes));
-      if (payload != null) {
-        _controller.add(payload);
+      try {
+        final payload = _parseFrame(Uint8List.fromList(frameBytes));
+        if (payload != null) {
+          _controller.add(payload);
+        }
+      } catch (e, stackTrace) {
+        _controller.addError(e, stackTrace);
       }
     } else if (message is HeadersStreamMessage) {
       // RFC 8441 allows no additional headers after handshake, but handle gracefully
@@ -399,7 +388,7 @@ class Http2WebSocket {
   /// control frames. Automatically handles ping/pong, close frames, and decompression.
   WebSocketMessage? _parseFrame(Uint8List frame) {
     if (frame.length < 2) {
-      return null;
+      throw const WebSocketFrameTooShortException();
     }
 
     final firstByte = frame[0];
@@ -413,13 +402,13 @@ class Http2WebSocket {
     // Parse extended payload length
     if (payloadLen == _WebSocketConstants.payloadLength16Bit) {
       if (frame.length < 4) {
-        return null;
+        throw const WebSocketFrame16BitLengthException();
       }
       payloadLen = (frame[2] << 8) | frame[3];
       offset = 4;
     } else if (payloadLen == _WebSocketConstants.payloadLength64Bit) {
       if (frame.length < 10) {
-        return null;
+        throw const WebSocketFrame64BitLengthException();
       }
       final view = ByteData.sublistView(frame, 2, 10);
       payloadLen = view.getUint64(0);
@@ -429,14 +418,14 @@ class Http2WebSocket {
     Uint8List? maskKey;
     if (masked) {
       if (frame.length < offset + _WebSocketConstants.maskKeyLength) {
-        return null;
+        throw const WebSocketFrameMissingMaskException();
       }
       maskKey = frame.sublist(offset, offset + _WebSocketConstants.maskKeyLength);
       offset += _WebSocketConstants.maskKeyLength;
     }
 
     if (frame.length < offset + payloadLen) {
-      return null;
+      throw WebSocketFramePayloadMismatchException(payloadLen, frame.length - offset);
     }
 
     final payload = frame.sublist(offset, offset + payloadLen);
@@ -473,9 +462,8 @@ class Http2WebSocket {
 
       final decompressed = ZLibDecoder(raw: true).convert(withTrailer.toBytes());
       return Uint8List.fromList(decompressed);
-    } catch (e) {
-      print('Decompression error: $e');
-      rethrow;
+    } catch (e, stackTrace) {
+      throw WebSocketDecompressionException('$e\n$stackTrace');
     }
   }
 
@@ -490,9 +478,8 @@ class Http2WebSocket {
         try {
           final text = utf8.decode(payload);
           return WebSocketMessage(type: WebSocketMessageType.text, data: text);
-        } catch (e) {
-          print('UTF-8 decode error: $e');
-          return null;
+        } catch (e, stackTrace) {
+          throw WebSocketDecodingException('$e\n$stackTrace');
         }
 
       case _WebSocketConstants.opcodeBinary:
@@ -511,8 +498,7 @@ class Http2WebSocket {
         return null;
 
       default:
-        print('Unknown opcode: 0x${opcode.toRadixString(16)}');
-        return null;
+        throw WebSocketFrameUnsupportedOpcodeException(opcode);
     }
   }
 
@@ -523,32 +509,5 @@ class Http2WebSocket {
     }
     final pong = _buildFrame(payload, opcode: _WebSocketConstants.opcodePong);
     _requestStream.sendData(pong);
-  }
-
-  /// Convenience method to listen to WebSocket messages.
-  ///
-  /// Provides a simpler API similar to the built-in WebSocket class.
-  ///
-  /// Example:
-  /// ```dart
-  /// ws.listen(
-  ///   onData: (message) {
-  ///     if (message.type == WebSocketMessageType.text) {
-  ///       print('Text: ${message.asText}');
-  ///     } else {
-  ///       print('Binary: ${message.asBinary.length} bytes');
-  ///     }
-  ///   },
-  ///   onError: (error) => print('Error: $error'),
-  ///   onDone: () => print('Connection closed'),
-  /// );
-  /// ```
-  void listen({
-    void Function(WebSocketMessage)? onData,
-    void Function(Object error, StackTrace stackTrace)? onError,
-    void Function()? onDone,
-    bool? cancelOnError,
-  }) {
-    stream.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 }
