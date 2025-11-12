@@ -16,7 +16,6 @@ import 'package:ion/app/features/chat/views/components/message_items/components.
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/reply_message/reply_message.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 import 'package:ion/app/services/text_parser/text_parser.dart';
 
