@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:http2/http2.dart';
-import 'package:ion_token_analytics/src/websocket/web_socket_exceptions.dart';
+import 'package:ion_token_analytics/src/http2_web_socket/web_socket_exceptions.dart';
 
 /// Manages an HTTP/2 connection that can be used to create multiple WebSocket connections.
 ///

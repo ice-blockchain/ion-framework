@@ -6,9 +6,9 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:http2/http2.dart';
-import 'package:ion_token_analytics/src/websocket/http2_connection.dart';
-import 'package:ion_token_analytics/src/websocket/web_socket_exceptions.dart';
-import 'package:ion_token_analytics/src/websocket/web_socket_message.dart';
+import 'package:ion_token_analytics/src/http2_web_socket/http2_connection.dart';
+import 'package:ion_token_analytics/src/http2_web_socket/web_socket_exceptions.dart';
+import 'package:ion_token_analytics/src/http2_web_socket/web_socket_message.dart';
 
 // WebSocket protocol constants (RFC 6455)
 class _WebSocketConstants {
@@ -210,7 +210,6 @@ class Http2WebSocket {
     // Note: Some servers may not include sec-websocket-accept header.
     // While RFC 6455 requires it, we can proceed without verification for compatibility.
     if (accept == null) {
-      print('Warning: Missing sec-websocket-accept header, proceeding without verification');
       // Create the WebSocket instance without verification
       final ws = Http2WebSocket._(requestStream, subscription);
       completer.complete(ws);
@@ -223,8 +222,6 @@ class Http2WebSocket {
       completer.completeError(WebSocketHandshakeAcceptException(expectedAccept, accept));
       return;
     }
-
-    print('WebSocket handshake successful! sec-websocket-accept verified.');
 
     // Create the WebSocket instance
     final ws = Http2WebSocket._(requestStream, subscription);
@@ -374,9 +371,6 @@ class Http2WebSocket {
       }
     } else if (message is HeadersStreamMessage) {
       // RFC 8441 allows no additional headers after handshake, but handle gracefully
-      if (message.headers.isNotEmpty) {
-        print('Additional headers received: ${message.headers.length}');
-      }
     }
   }
 
