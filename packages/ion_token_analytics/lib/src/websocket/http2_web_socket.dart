@@ -6,7 +6,8 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:http2/http2.dart';
-import 'package:ion_token_analytics/src/websocket/models/web_socket_message.dart';
+import 'package:ion_token_analytics/src/websocket/http2_connection.dart';
+import 'package:ion_token_analytics/src/websocket/web_socket_message.dart';
 
 // WebSocket protocol constants (RFC 6455)
 class _WebSocketConstants {
@@ -42,21 +43,6 @@ class _WebSocketConstants {
   static const List<int> deflateTrailer = [0x00, 0x00, 0xFF, 0xFF];
 }
 
-/// Exception thrown when WebSocket operations fail.
-class WebSocketException implements Exception {
-  /// Creates a WebSocket exception.
-  const WebSocketException(this.message, [this.details]);
-
-  /// A description of the error.
-  final String message;
-
-  /// Additional error details.
-  final Object? details;
-
-  @override
-  String toString() => 'WebSocketException: $message${details != null ? ' ($details)' : ''}';
-}
-
 /// A WebSocket implementation over HTTP/2 using the RFC 8441 extended CONNECT method.
 ///
 /// This class provides WebSocket functionality over HTTP/2 connections,
@@ -65,6 +51,14 @@ class WebSocketException implements Exception {
 ///
 /// Example usage:
 /// ```dart
+/// // Using Http2Connection (recommended for multiple connections):
+/// final connection = await Http2Connection.connect('example.com');
+/// if (connection != null) {
+///   final ws1 = await connection.websocket(path: '/stream1');
+///   final ws2 = await connection.websocket(path: '/stream2');
+/// }
+///
+/// // Using standalone function (single connection):
 /// final ws = await connectWebSocketOverHttp2(Uri.parse('wss://example.com'));
 /// if (ws != null) {
 ///   ws.listen(
@@ -89,6 +83,170 @@ class Http2WebSocket {
 
     // Send initial empty DATA to activate bidirectional stream (per RFC 8441)
     _requestStream.sendData(Uint8List(0));
+  }
+
+  /// Creates a WebSocket connection over HTTP/2 using an existing [Http2Connection].
+  ///
+  /// The [connection] must be an active HTTP/2 connection.
+  /// The [path] specifies the WebSocket endpoint (defaults to '/').
+  /// Additional [headers] can be provided for custom values.
+  ///
+  /// Returns a [Http2WebSocket] instance if successful, or `null` if the handshake fails.
+  ///
+  /// Example:
+  /// ```dart
+  /// final connection = await Http2Connection.connect('example.com');
+  /// if (connection != null) {
+  ///   final ws = await Http2WebSocket.connect(
+  ///     connection,
+  ///     path: '/api/stream',
+  ///     headers: {'authorization': 'Bearer token'},
+  ///   );
+  /// }
+  /// ```
+  static Future<Http2WebSocket?> fromHttp2Connection(
+    Http2Connection connection, {
+    String path = '/',
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final wsKey = _generateWebSocketKey();
+
+      // Build extended CONNECT request headers (RFC 8441)
+      final requestHeaders = [
+        Header.ascii(':method', 'CONNECT'),
+        Header.ascii(':protocol', 'websocket'),
+        Header.ascii(':scheme', connection.scheme),
+        Header.ascii(':path', path.isEmpty ? '/' : path),
+        Header.ascii(':authority', connection.host),
+        Header.ascii('sec-websocket-version', _WebSocketConstants.webSocketVersion),
+        Header.ascii('sec-websocket-key', wsKey),
+        Header.ascii('sec-websocket-extensions', _WebSocketConstants.webSocketExtension),
+      ];
+
+      // Add custom headers if provided
+      if (headers != null) {
+        for (final entry in headers.entries) {
+          requestHeaders.add(Header.ascii(entry.key, entry.value));
+        }
+      }
+
+      final requestStream = connection.transport.makeRequest(requestHeaders);
+
+      // Wait for handshake response with :status 200
+      final completer = Completer<Http2WebSocket?>();
+      late StreamSubscription<StreamMessage> subscription;
+
+      subscription = requestStream.incomingMessages.listen(
+        (StreamMessage message) {
+          if (message is HeadersStreamMessage) {
+            final parsedHeaders = _parseHeaders(message.headers);
+            final status = parsedHeaders[':status'];
+
+            if (status == '200') {
+              _verifyHandshakeAndComplete(
+                headers: parsedHeaders,
+                wsKey: wsKey,
+                requestStream: requestStream,
+                subscription: subscription,
+                completer: completer,
+              );
+            } else {
+              print('WebSocket handshake failed: :status = $status');
+              subscription.cancel();
+              completer.complete(null);
+            }
+          }
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          print('Stream error: $error\n$stackTrace');
+          if (!completer.isCompleted) {
+            completer.complete(null);
+          }
+          subscription.cancel();
+        },
+        onDone: () {
+          if (!completer.isCompleted) {
+            print('Stream closed before handshake completed');
+            completer.complete(null);
+          }
+        },
+      );
+
+      return await completer.future;
+    } catch (e, stackTrace) {
+      print('WebSocket creation error: $e\n$stackTrace');
+      return null;
+    }
+  }
+
+  /// Generates a random WebSocket key for the handshake.
+  ///
+  /// Returns a base64-encoded string of 16 random bytes, as required by RFC 6455.
+  static String _generateWebSocketKey() {
+    final randomBytes = List<int>.generate(
+      _WebSocketConstants.randomBytesLength,
+      (_) => Random().nextInt(256),
+    );
+    return base64Encode(randomBytes);
+  }
+
+  /// Parses HTTP/2 headers into a map.
+  static Map<String, String> _parseHeaders(List<Header> headers) {
+    final result = <String, String>{};
+    for (final header in headers) {
+      final name = utf8.decode(header.name);
+      final value = utf8.decode(header.value);
+      result[name] = value;
+    }
+    return result;
+  }
+
+  /// Computes the expected `sec-websocket-accept` header value per RFC 6455.
+  ///
+  /// This combines the client's WebSocket key with the magic GUID and
+  /// returns the SHA-1 hash encoded in base64.
+  static String _computeWebSocketAccept(String key) {
+    final combined = key + _WebSocketConstants.webSocketGuid;
+    final hash = sha1.convert(utf8.encode(combined));
+    return base64Encode(hash.bytes);
+  }
+
+  /// Verifies the WebSocket handshake and completes the connection.
+  static void _verifyHandshakeAndComplete({
+    required Map<String, String> headers,
+    required String wsKey,
+    required ClientTransportStream requestStream,
+    required StreamSubscription<StreamMessage> subscription,
+    required Completer<Http2WebSocket?> completer,
+  }) {
+    final accept = headers['sec-websocket-accept'];
+
+    // Note: Some servers may not include sec-websocket-accept header.
+    // While RFC 6455 requires it, we can proceed without verification for compatibility.
+    if (accept == null) {
+      print('Warning: Missing sec-websocket-accept header, proceeding without verification');
+      // Create the WebSocket instance without verification
+      final ws = Http2WebSocket._(requestStream, subscription);
+      completer.complete(ws);
+      return;
+    }
+
+    final expectedAccept = _computeWebSocketAccept(wsKey);
+    if (accept != expectedAccept) {
+      print('Handshake failed: Invalid sec-websocket-accept');
+      print('  Expected: $expectedAccept');
+      print('  Received: $accept');
+      subscription.cancel();
+      completer.complete(null);
+      return;
+    }
+
+    print('WebSocket handshake successful! sec-websocket-accept verified.');
+
+    // Create the WebSocket instance
+    final ws = Http2WebSocket._(requestStream, subscription);
+    completer.complete(ws);
   }
 
   final StreamController<WebSocketMessage> _controller =
@@ -149,6 +307,7 @@ class Http2WebSocket {
 
     final frame = _buildFrame(payload.toBytes(), opcode: _WebSocketConstants.opcodeClose);
     _requestStream.sendData(frame, endStream: true);
+    _subscription.cancel();
     _controller.close();
   }
 
@@ -392,173 +551,4 @@ class Http2WebSocket {
   }) {
     stream.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
-}
-
-/// Computes the expected `sec-websocket-accept` header value per RFC 6455.
-///
-/// This combines the client's WebSocket key with the magic GUID and
-/// returns the SHA-1 hash encoded in base64.
-String _computeWebSocketAccept(String key) {
-  final combined = key + _WebSocketConstants.webSocketGuid;
-  final hash = sha1.convert(utf8.encode(combined));
-  return base64Encode(hash.bytes);
-}
-
-/// Generates a random WebSocket key for the handshake.
-///
-/// Returns a base64-encoded string of 16 random bytes, as required by RFC 6455.
-String _generateWebSocketKey() {
-  final randomBytes = List<int>.generate(
-    _WebSocketConstants.randomBytesLength,
-    (_) => Random().nextInt(256),
-  );
-  return base64Encode(randomBytes);
-}
-
-/// Establishes a WebSocket connection over HTTP/2 using RFC 8441 extended CONNECT.
-///
-/// This function creates a WebSocket connection using the HTTP/2 protocol's
-/// extended CONNECT method, as specified in RFC 8441. It performs the WebSocket
-/// handshake and verifies the server's response.
-///
-/// The [uri] must use the `wss://` scheme for secure connections.
-///
-/// Returns a [Http2WebSocket] instance if the connection is successful,
-/// or `null` if the connection or handshake fails.
-///
-/// Example:
-/// ```dart
-/// final uri = Uri.parse('wss://echo.websocket.org');
-/// final ws = await connectWebSocketOverHttp2(uri);
-/// if (ws != null) {
-///   ws.add('Hello, WebSocket!');
-///   ws.listen(
-///     onData: (message) => print('Received: ${message.data}'),
-///   );
-/// }
-/// ```
-///
-/// Throws [WebSocketException] if the connection fails or handshake is invalid.
-Future<Http2WebSocket?> connectWebSocketOverHttp2(Uri uri) async {
-  try {
-    // Establish secure HTTP/2 connection
-    final socket = await SecureSocket.connect(uri.host, uri.port, supportedProtocols: const ['h2']);
-
-    final transport = ClientTransportConnection.viaSocket(socket);
-
-    // Generate WebSocket key for handshake
-    final wsKey = _generateWebSocketKey();
-
-    // Build extended CONNECT request headers (RFC 8441)
-    final requestHeaders = [
-      Header.ascii(':method', 'CONNECT'),
-      Header.ascii(':protocol', 'websocket'),
-      Header.ascii(':scheme', uri.scheme),
-      Header.ascii(':path', uri.path.isEmpty ? '/' : uri.path),
-      Header.ascii(':authority', uri.host),
-      Header.ascii('sec-websocket-version', _WebSocketConstants.webSocketVersion),
-      Header.ascii('sec-websocket-key', wsKey),
-      Header.ascii('sec-websocket-extensions', _WebSocketConstants.webSocketExtension),
-    ];
-
-    final requestStream = transport.makeRequest(requestHeaders);
-
-    // Wait for handshake response with :status 200
-    final completer = Completer<Http2WebSocket?>();
-    late StreamSubscription<StreamMessage> subscription;
-
-    subscription = requestStream.incomingMessages.listen(
-      (message) {
-        if (message is HeadersStreamMessage) {
-          final headers = _parseHeaders(message.headers);
-          final status = headers[':status'];
-
-          if (status == '200') {
-            _verifyHandshakeAndComplete(
-              headers: headers,
-              wsKey: wsKey,
-              requestStream: requestStream,
-              subscription: subscription,
-              completer: completer,
-            );
-          } else {
-            print('WebSocket handshake failed: :status = $status');
-            subscription.cancel();
-            completer.complete(null);
-          }
-        }
-      },
-      onError: (Object error, StackTrace stackTrace) {
-        print('Stream error: $error\n$stackTrace');
-        if (!completer.isCompleted) {
-          completer.complete(null);
-        }
-        subscription.cancel();
-      },
-      onDone: () {
-        if (!completer.isCompleted) {
-          print('Stream closed before handshake completed');
-          completer.complete(null);
-        }
-      },
-    );
-
-    final result = await completer.future;
-
-    if (result == null) {
-      await transport.finish();
-    }
-    return result;
-  } catch (e, stackTrace) {
-    print('WebSocket connection error: $e\n$stackTrace');
-    return null;
-  }
-}
-
-/// Parses HTTP/2 headers into a map.
-Map<String, String> _parseHeaders(List<Header> headers) {
-  final result = <String, String>{};
-  for (final header in headers) {
-    final name = utf8.decode(header.name);
-    final value = utf8.decode(header.value);
-    result[name] = value;
-  }
-  return result;
-}
-
-/// Verifies the WebSocket handshake and completes the connection.
-void _verifyHandshakeAndComplete({
-  required Map<String, String> headers,
-  required String wsKey,
-  required ClientTransportStream requestStream,
-  required StreamSubscription<StreamMessage> subscription,
-  required Completer<Http2WebSocket?> completer,
-}) {
-  final accept = headers['sec-websocket-accept'];
-
-  // Note: Some servers may not include sec-websocket-accept header.
-  // While RFC 6455 requires it, we can proceed without verification for compatibility.
-  if (accept == null) {
-    print('Warning: Missing sec-websocket-accept header, proceeding without verification');
-    // Create the WebSocket instance without verification
-    final ws = Http2WebSocket._(requestStream, subscription);
-    completer.complete(ws);
-    return;
-  }
-
-  final expectedAccept = _computeWebSocketAccept(wsKey);
-  if (accept != expectedAccept) {
-    print('Handshake failed: Invalid sec-websocket-accept');
-    print('  Expected: $expectedAccept');
-    print('  Received: $accept');
-    subscription.cancel();
-    completer.complete(null);
-    return;
-  }
-
-  print('WebSocket handshake successful! sec-websocket-accept verified.');
-
-  // Create the WebSocket instance
-  final ws = Http2WebSocket._(requestStream, subscription);
-  completer.complete(ws);
 }
