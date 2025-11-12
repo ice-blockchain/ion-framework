@@ -12,6 +12,10 @@ class SettingsRoutes {
     TypedGoRoute<ContentLanguagesRoute>(path: 'content-language'),
     TypedGoRoute<BlockedUsersRoute>(path: 'blocked-users'),
     TypedGoRoute<ConfirmLogoutRoute>(path: 'confirm-logout'),
+    TypedGoRoute<DelegateAccessRoute>(path: 'delegate-access'),
+    TypedGoRoute<SelectDelegateUserRoute>(path: 'select-delegate-user'),
+    TypedGoRoute<DelegateUserSelectedRoute>(path: 'delegate-user-selected/:selectedUserPubkey'),
+    TypedGoRoute<SwitchUserAccountRoute>(path: 'switch-user-account/:selectedUserPubkey'),
     ...ProtectAccountRoutes.routes,
   ];
 }
@@ -80,4 +84,40 @@ class ConfirmLogoutRoute extends BaseRouteData with _$ConfirmLogoutRoute {
         );
 
   final String pubkey;
+}
+
+class DelegateAccessRoute extends BaseRouteData with _$DelegateAccessRoute {
+  DelegateAccessRoute()
+      : super(
+          child: const DelegateAccessModal(),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class SelectDelegateUserRoute extends BaseRouteData with _$SelectDelegateUserRoute {
+  SelectDelegateUserRoute()
+      : super(
+          child: const SelectDelegateUserModal(),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class DelegateUserSelectedRoute extends BaseRouteData with _$DelegateUserSelectedRoute {
+  DelegateUserSelectedRoute({required this.selectedUserPubkey})
+      : super(
+          child: DelegateUserSelectedModal(selectedUserPubkey: selectedUserPubkey),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String selectedUserPubkey;
+}
+
+class SwitchUserAccountRoute extends BaseRouteData with _$SwitchUserAccountRoute {
+  SwitchUserAccountRoute({required this.selectedUserPubkey})
+      : super(
+          child: SwitchUserAccountModal(selectedUserPubkey: selectedUserPubkey),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String selectedUserPubkey;
 }

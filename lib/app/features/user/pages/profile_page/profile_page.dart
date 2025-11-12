@@ -36,6 +36,7 @@ import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -134,6 +135,10 @@ class ProfilePage extends HookConsumerWidget {
       flipForRtl: true,
       color: profileMode == ProfileMode.dark ? context.theme.appColors.onPrimaryAccent : null,
     );
+
+    final isDelegateAccessEnabled = ref
+        .watch(featureFlagsProvider.notifier)
+        .get(DelegateAccessFeatureFlag.delegateAccessEnabled);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -286,6 +291,14 @@ class ProfilePage extends HookConsumerWidget {
                         ProfileActions(
                           pubkey: masterPubkey,
                           profileMode: profileMode,
+                        ),
+                        SizedBox(width: 8.0.s),
+                      ],
+                      if (isDelegateAccessEnabled) ...[
+                        GestureDetector(
+                          onTap: () => SwitchUserAccountRoute(selectedUserPubkey: masterPubkey)
+                              .push<void>(context),
+                          child: Assets.svg.iconSwitchProfile.icon(size: 24.0.s),
                         ),
                         SizedBox(width: 8.0.s),
                       ],
