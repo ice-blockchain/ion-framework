@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
@@ -47,41 +48,43 @@ class PostDetailsPage extends HookConsumerWidget {
         child: Column(
           children: [
             Flexible(
-              child: Stack(
-                children: [
-                  ReplyList(
-                    eventReference: eventReference,
-                    scrollController: scrollController,
-                    onPullToRefresh: () {
-                      ref.read(ionConnectCacheProvider.notifier).remove(
-                            CacheableEntity.cacheKeyBuilder(
-                              eventReference: eventReference,
-                            ),
-                          );
-                    },
-                    headers: [
-                      SliverToBoxAdapter(
-                        child: Post(
-                          eventReference: eventReference,
-                          timeFormat: TimestampFormat.detailed,
-                          onDelete: context.pop,
-                          isTextSelectable: true,
-                          bodyMaxLines: null,
-                          displayParent: true,
-                          showNotInterested: false,
-                        ),
-                      ),
-                      const SliverToBoxAdapter(child: SectionSeparator()),
-                    ],
-                  ),
-                  PositionedDirectional(
-                    bottom: 12.5.s,
-                    end: 16.0.s,
-                    child: ScrollToTopButton(
+              child: KeyboardDismissOnTap(
+                child: Stack(
+                  children: [
+                    ReplyList(
+                      eventReference: eventReference,
                       scrollController: scrollController,
+                      onPullToRefresh: () {
+                        ref.read(ionConnectCacheProvider.notifier).remove(
+                              CacheableEntity.cacheKeyBuilder(
+                                eventReference: eventReference,
+                              ),
+                            );
+                      },
+                      headers: [
+                        SliverToBoxAdapter(
+                          child: Post(
+                            eventReference: eventReference,
+                            timeFormat: TimestampFormat.detailed,
+                            onDelete: context.pop,
+                            isTextSelectable: true,
+                            bodyMaxLines: null,
+                            displayParent: true,
+                            showNotInterested: false,
+                          ),
+                        ),
+                        const SliverToBoxAdapter(child: SectionSeparator()),
+                      ],
                     ),
-                  ),
-                ],
+                    PositionedDirectional(
+                      bottom: 12.5.s,
+                      end: 16.0.s,
+                      child: ScrollToTopButton(
+                        scrollController: scrollController,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             if (canReply) ...[
