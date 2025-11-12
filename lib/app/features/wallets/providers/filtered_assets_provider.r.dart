@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/riverpod.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_type.dart';
 import 'package:ion/app/features/wallets/model/manage_coins_group.f.dart';
 import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/contact_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/manage_coins/providers/manage_coins_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -84,4 +86,45 @@ List<CoinsGroup> _filterCoins(List<CoinsGroup> coins, String query) {
             group.abbreviation.toLowerCase().contains(query),
       )
       .toList();
+}
+
+@riverpod
+Future<SelectableCoinsUiState> selectableFilteredCoins(
+  Ref ref, {
+  String? contactPubkey,
+}) async {
+  final filteredGroups = await ref.watch(filteredCoinsNotifierProvider.future);
+  final contactAvailability =
+      await ref.watch(contactWalletsAvailabilityProvider(contactPubkey).future);
+
+  final enabled = <CoinsGroup>[];
+  final disabled = <CoinsGroup>[];
+
+  for (final group in filteredGroups) {
+    final canReceive = !contactAvailability.hasPublicWallets ||
+        group.coins.any(
+          (coin) => contactAvailability.availableNetworkIds.contains(coin.coin.network.id),
+        );
+
+    (canReceive ? enabled : disabled).add(group);
+  }
+
+  return SelectableCoinsUiState(
+    groups: [...enabled, ...disabled],
+    enabledSymbolGroups: contactAvailability.hasPublicWallets
+        ? enabled.map((group) => group.symbolGroup).toSet()
+        : filteredGroups.map((group) => group.symbolGroup).toSet(),
+  );
+}
+
+class SelectableCoinsUiState {
+  const SelectableCoinsUiState({
+    required this.groups,
+    required this.enabledSymbolGroups,
+  });
+
+  final List<CoinsGroup> groups;
+  final Set<String> enabledSymbolGroups;
+
+  bool isGroupEnabled(CoinsGroup group) => enabledSymbolGroups.contains(group.symbolGroup);
 }
