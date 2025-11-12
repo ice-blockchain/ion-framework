@@ -53,21 +53,8 @@ class _WebSocketConstants {
 /// ```dart
 /// // Using Http2Connection (recommended for multiple connections):
 /// final connection = await Http2Connection.connect('example.com');
-/// if (connection != null) {
-///   final ws1 = await connection.websocket(path: '/stream1');
-///   final ws2 = await connection.websocket(path: '/stream2');
-/// }
-///
-/// // Using standalone function (single connection):
-/// final ws = await connectWebSocketOverHttp2(Uri.parse('wss://example.com'));
-/// if (ws != null) {
-///   ws.listen(
-///     onData: (message) => print('Received: ${message.data}'),
-///     onError: (error) => print('Error: $error'),
-///     onDone: () => print('Connection closed'),
-///   );
-///   ws.add('Hello, WebSocket!');
-/// }
+/// final ws1 = await connection.websocket(path: '/stream1');
+/// final ws2 = await connection.websocket(path: '/stream2');
 /// ```
 class Http2WebSocket {
   Http2WebSocket._(this._requestStream, this._subscription) {
@@ -96,13 +83,11 @@ class Http2WebSocket {
   /// Example:
   /// ```dart
   /// final connection = await Http2Connection.connect('example.com');
-  /// if (connection != null) {
-  ///   final ws = await Http2WebSocket.connect(
-  ///     connection,
-  ///     path: '/api/stream',
-  ///     headers: {'authorization': 'Bearer token'},
-  ///   );
-  /// }
+  /// final ws = await Http2WebSocket.fromHttp2Connection(
+  ///   connection,
+  ///   path: '/api/stream',
+  ///   headers: {'authorization': 'Bearer token'},
+  /// );
   /// ```
   static Future<Http2WebSocket?> fromHttp2Connection(
     Http2Connection connection, {
@@ -192,6 +177,9 @@ class Http2WebSocket {
   }
 
   /// Parses HTTP/2 headers into a map.
+  ///
+  /// Converts the list of HTTP/2 [Header] objects into a map where both keys
+  /// and values are UTF-8 decoded strings.
   static Map<String, String> _parseHeaders(List<Header> headers) {
     final result = <String, String>{};
     for (final header in headers) {
@@ -204,7 +192,7 @@ class Http2WebSocket {
 
   /// Computes the expected `sec-websocket-accept` header value per RFC 6455.
   ///
-  /// This combines the client's WebSocket key with the magic GUID and
+  /// This combines the client's WebSocket [key] with the magic GUID and
   /// returns the SHA-1 hash encoded in base64.
   static String _computeWebSocketAccept(String key) {
     final combined = key + _WebSocketConstants.webSocketGuid;
@@ -213,6 +201,11 @@ class Http2WebSocket {
   }
 
   /// Verifies the WebSocket handshake and completes the connection.
+  ///
+  /// Checks the `sec-websocket-accept` header from the server against the expected
+  /// value computed from [wsKey]. If verification succeeds or the header is missing
+  /// (for compatibility), creates an [Http2WebSocket] instance and completes the
+  /// [completer] with it. Otherwise, cancels the [subscription] and completes with null.
   static void _verifyHandshakeAndComplete({
     required Map<String, String> headers,
     required String wsKey,
@@ -320,6 +313,7 @@ class Http2WebSocket {
 
   /// Builds a masked WebSocket frame according to RFC 6455.
   ///
+  /// Takes the [payload] data and [opcode] to construct a complete WebSocket frame.
   /// Client-side frames must be masked with a random 4-byte key.
   /// The frame format includes:
   /// - FIN bit (1) + opcode
@@ -361,6 +355,9 @@ class Http2WebSocket {
   }
 
   /// Masks payload data using XOR with the provided mask key.
+  ///
+  /// Applies XOR operation between each byte in [payload] and the corresponding
+  /// byte from [maskKey] (cycling through the 4-byte key as needed).
   Uint8List _maskPayload(Uint8List payload, Uint8List maskKey) {
     final masked = Uint8List(payload.length);
     for (var i = 0; i < payload.length; i++) {
@@ -371,8 +368,10 @@ class Http2WebSocket {
 
   /// Handles incoming stream messages from the HTTP/2 connection.
   ///
-  /// Processes data frames by parsing WebSocket frames and emitting messages.
-  /// Additional headers after handshake are logged but ignored.
+  /// Processes data frames by parsing WebSocket frames and emitting messages
+  /// to the controller stream. Additional headers after handshake are logged
+  /// but ignored. The [message] can be either a [DataStreamMessage] containing
+  /// WebSocket frame data or a [HeadersStreamMessage].
   void _handleIncomingMessage(StreamMessage message) {
     if (message is DataStreamMessage) {
       final frameBytes = message.bytes;
@@ -394,9 +393,10 @@ class Http2WebSocket {
 
   /// Parses a WebSocket frame according to RFC 6455.
   ///
-  /// Server-to-client frames are typically unmasked.
-  /// Returns a [WebSocketMessage] for text/binary frames, or null for control frames.
-  /// Automatically handles ping/pong, close frames, and decompression.
+  /// Takes the raw [frame] bytes and extracts the payload data, handling masking,
+  /// extended length encoding, and compression. Server-to-client frames are typically
+  /// unmasked. Returns a [WebSocketMessage] for text/binary frames, or null for
+  /// control frames. Automatically handles ping/pong, close frames, and decompression.
   WebSocketMessage? _parseFrame(Uint8List frame) {
     if (frame.length < 2) {
       return null;

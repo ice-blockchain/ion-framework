@@ -4,14 +4,9 @@ import 'package:http2/http2.dart';
 
 /// Manages an HTTP/2 connection that can be used to create multiple WebSocket connections.
 ///
-/// This class wraps a [ClientTransportConnection] and provides a convenient way
-/// to create multiple WebSocket streams over a single HTTP/2 connection.
-///
 /// Example usage:
 /// ```dart
-/// final connection = await Http2Connection.connect('example.com', 443);
-/// final ws1 = await connection.websocket(path: '/stream1');
-/// final ws2 = await connection.websocket(path: '/stream2');
+/// final connection = await Http2Connection.connect('example.com', 4443);
 /// ```
 class Http2Connection {
   Http2Connection._(this._transport, this.host, this.scheme);
