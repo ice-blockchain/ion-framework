@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/inputs/text_input/components/text_input_icons.dart';
@@ -36,7 +38,18 @@ class AddressInputField extends HookWidget {
     final isValidInput = useState(true);
 
     useOnInit(
-      () => controller.text = address ?? '',
+      () {
+        final newAddress = address ?? '';
+        if (controller.text != newAddress) {
+          final currentOffset = controller.selection.baseOffset;
+          controller.value = controller.value.copyWith(
+            text: newAddress,
+            selection: TextSelection.collapsed(
+              offset: min(currentOffset, newAddress.length),
+            ),
+          );
+        }
+      },
       [address],
     );
 
