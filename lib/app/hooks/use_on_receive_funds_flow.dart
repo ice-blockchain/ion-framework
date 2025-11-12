@@ -10,10 +10,7 @@ void Function() useOnReceiveFundsFlow({
   required void Function() onNeedToEnable2FA,
   required WidgetRef ref,
 }) {
-  final is2FAEnabledForCurrentUser = ref.watch(is2FAEnabledForCurrentUserProvider).value ?? false;
-  final isBackupEnabledForCurrentUser =
-      ref.watch(isBackupEnabledForCurrentUserProvider).value ?? false;
-  final isAccountSecured = is2FAEnabledForCurrentUser && isBackupEnabledForCurrentUser;
+  final isAccountSecured = ref.watch(isCurrentUserSecuredProvider).value ?? false;
 
   final isPasswordFlowUser = ref.watch(isPasswordFlowUserProvider).value ?? false;
   final forceSecurityEnabled =
