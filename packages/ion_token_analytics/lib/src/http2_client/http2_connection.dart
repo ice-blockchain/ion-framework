@@ -10,22 +10,6 @@ import 'package:ion_token_analytics/src/http2_client/web_socket_exceptions.dart'
 /// Example usage:
 /// ```dart
 /// final connection = Http2Connection.connect('example.com', port: 443);
-///
-/// // Listen to connection status changes
-/// connection.statusStream.listen((status) {
-///   switch (status) {
-///     case ConnectionStatusConnecting():
-///       print('Connecting...');
-///     case ConnectionStatusConnected():
-///       print('Connected!');
-///     case ConnectionStatusDisconnecting():
-///       print('Disconnecting...');
-///     case ConnectionStatusDisconnected(exception: final e):
-///       print('Disconnected${e != null ? ' with error: $e' : ''}');
-///   }
-/// });
-///
-/// // Wait for connection to be ready (throws if connection fails)
 /// await connection.waitForConnected();
 /// ```
 class Http2Connection {

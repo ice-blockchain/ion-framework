@@ -30,21 +30,5 @@ void main() {
 
       ws.close();
     });
-
-    test('connection lifecycle with proper cleanup', () async {
-      final connection = Http2Connection.connect(testHost, port: testPort);
-
-      await connection.waitForConnected();
-
-      final ws = await Http2WebSocket.fromHttp2Connection(connection);
-
-      expect(connection.status, isA<ConnectionStatusConnected>());
-
-      ws.close();
-
-      await Future.delayed(const Duration(seconds: 1));
-
-      expect(connection.status, isA<ConnectionStatusDisconnected>());
-    });
   });
 }

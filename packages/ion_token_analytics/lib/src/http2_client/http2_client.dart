@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:http2/http2.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_connection.dart';
+import 'package:ion_token_analytics/src/http2_client/http2_subscription.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_web_socket.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_response.dart';
@@ -136,30 +137,37 @@ class Http2Client {
     }
   }
 
-  /// Subscribes to a WebSocket stream.
+  /// Creates a WebSocket subscription over HTTP/2.
   ///
   /// The [path] specifies the WebSocket endpoint.
   /// The [queryParameters] will be appended to the path as a query string.
   /// The [headers] can contain custom headers for the WebSocket handshake.
   ///
-  /// Returns a stream of messages of type T. The stream will automatically
-  /// close when the WebSocket connection closes.
+  /// Returns an [Http2Subscription] containing a stream of messages and a close method.
+  /// The subscription will automatically increment the active operations counter,
+  /// keeping the connection alive until the subscription is closed.
   ///
-  /// Example:
+  /// To receive messages, listen to the [Http2Subscription.stream]:
   /// ```dart
-  /// await for (final message in client.subscribe<String>(
+  /// final subscription = await client.subscribe<String>(
   ///   '/api/updates',
   ///   queryParameters: {'channel': 'news'},
   ///   headers: {'authorization': 'Bearer token'},
-  /// )) {
+  /// );
+  ///
+  /// // Listen to messages
+  /// subscription.stream.listen((message) {
   ///   print('Received: $message');
-  /// }
+  /// });
+  ///
+  /// // Close when done
+  /// await subscription.close();
   /// ```
-  Stream<T> subscribe<T>(
+  Future<Http2Subscription<T>> subscribe<T>(
     String path, {
     Map<String, String>? queryParameters,
     Map<String, String>? headers,
-  }) async* {
+  }) async {
     await _ensureConnection();
     _activeOperations++;
 
@@ -171,26 +179,70 @@ class Http2Client {
         headers: headers,
       );
 
-      await for (final message in ws.stream) {
-        if (message.type == WebSocketMessageType.text) {
-          // Parse text messages based on type T
-          if (T == String) {
-            yield message.data as T;
-          } else {
-            // Try to parse as JSON
-            final parsed = jsonDecode(message.data as String);
-            yield parsed as T;
+      final controller = StreamController<T>();
+      var isClosed = false;
+
+      final streamSubscription = ws.stream.listen(
+        (message) {
+          if (controller.isClosed) return;
+
+          if (message.type == WebSocketMessageType.text) {
+            if (T == String) {
+              controller.add(message.data as T);
+            } else {
+              try {
+                final parsed = jsonDecode(message.data as String);
+                controller.add(parsed as T);
+              } catch (e) {
+                controller.addError(e);
+              }
+            }
+          } else if (message.type == WebSocketMessageType.binary) {
+            if (message.data is T) {
+              controller.add(message.data as T);
+            }
           }
-        } else if (message.type == WebSocketMessageType.binary) {
-          // For binary messages, yield as-is if type matches
-          if (message.data is T) {
-            yield message.data as T;
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          if (!controller.isClosed) {
+            controller.addError(error, stackTrace);
           }
+        },
+        onDone: () async {
+          if (!isClosed) {
+            isClosed = true;
+            if (!controller.isClosed) {
+              await controller.close();
+            }
+            _activeOperations--;
+            await _maybeCloseConnection();
+          }
+        },
+      );
+
+      // Manual close method
+      Future<void> close() async {
+        if (isClosed) return;
+        isClosed = true;
+
+        // Cancel the stream subscription and close the WebSocket
+        await streamSubscription.cancel();
+        ws.close();
+
+        // Close the controller without awaiting - it will complete when listeners finish
+        if (!controller.isClosed) {
+          unawaited(controller.close());
         }
+
+        _activeOperations--;
+        await _maybeCloseConnection();
       }
-    } finally {
+
+      return Http2Subscription<T>(stream: controller.stream, close: close);
+    } catch (e) {
       _activeOperations--;
       await _maybeCloseConnection();
+      rethrow;
     }
   }
 
@@ -228,9 +280,8 @@ class Http2Client {
   ///
   /// This is called automatically after each request or subscription completes.
   Future<void> _maybeCloseConnection() async {
-    if (_activeOperations == 0 && _connection != null) {
-      await _connection!.close();
-      _connection = null;
+    if (_activeOperations == 0) {
+      await close();
     }
   }
 

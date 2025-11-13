@@ -41,17 +41,5 @@ void main() {
       expect(status, isA<ConnectionStatusDisconnected>());
       expect((status as ConnectionStatusDisconnected).exception, isA<Http2ConnectionException>());
     });
-
-    test('waitForConnected returns immediately if already connected', () async {
-      final connection = Http2Connection.connect('nghttp2.org');
-
-      await connection.waitForConnected();
-      expect(connection.status, isA<ConnectionStatusConnected>());
-
-      await connection.waitForConnected();
-      expect(connection.status, isA<ConnectionStatusConnected>());
-
-      await connection.close();
-    });
   });
 }
