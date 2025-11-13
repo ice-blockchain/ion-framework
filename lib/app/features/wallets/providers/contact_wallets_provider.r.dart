@@ -25,13 +25,9 @@ class ContactWalletsAvailability {
 
 @riverpod
 Future<ContactWalletsAvailability> contactWalletsAvailability(
-  Ref ref,
-  String? contactPubkey,
-) async {
-  if (contactPubkey == null) {
-    return const ContactWalletsAvailability.unknown();
-  }
-
+  Ref ref, {
+  required String contactPubkey,
+}) async {
   final metadata = await ref.watch(
     userMetadataProvider(
       contactPubkey,
