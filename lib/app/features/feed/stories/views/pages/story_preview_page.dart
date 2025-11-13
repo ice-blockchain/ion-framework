@@ -58,12 +58,11 @@ class StoryPreviewPage extends HookConsumerWidget {
 
     useEffect(
       () {
-        ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).disablePlayback();
-        return () {
-          ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).enablePlayback();
-        };
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).disablePlayback();
+        });
+        return null;
       },
-      [],
     );
 
     ref
@@ -233,6 +232,8 @@ class _StoryShareButton extends HookConsumerWidget {
   }
 
   void refreshProviders(WidgetRef ref) {
+    ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).enablePlayback();
+
     final pubkey = ref.read(currentPubkeySelectorProvider) ?? '';
     ref.read(currentUserFeedStoryProvider.notifier).refresh();
     ref.read(ionConnectCacheProvider.notifier).remove(
