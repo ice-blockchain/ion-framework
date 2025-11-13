@@ -92,21 +92,19 @@ Future<FollowListEntity?> followList(
   bool network = true,
   bool cache = true,
 }) async {
-  final followListFuture = ref.watch(
+  final followListEntity = await ref.watch(
     ionConnectEntityProvider(
       cache: cache,
       network: network,
       eventReference: ReplaceableEventReference(masterPubkey: pubkey, kind: FollowListEntity.kind),
     ).future,
-  );
+  ) as FollowListEntity?;
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
   if (currentUserMasterPubkey != pubkey) {
-    return followListFuture as FollowListEntity?;
+    return followListEntity;
   }
 
   final blockedUsersKeys = ref.watch(blockedUsersPubkeysSelectorProvider);
-  final followListEntity = (await followListFuture) as FollowListEntity?;
-
   final notBlockedUsers =
       followListEntity?.data.list.where((e) => !blockedUsersKeys.contains(e.pubkey)).toList();
 
