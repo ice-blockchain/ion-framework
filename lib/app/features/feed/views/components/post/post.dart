@@ -449,7 +449,7 @@ final class _ParentPost extends StatelessWidget {
         topOffset: 0,
         header: header,
         headerOffset: 0,
-        displayQuote: false,
+        displayParent: true,
         accentTheme: accentTheme,
         eventReference: eventReference,
         contentWrapper: (content) {
