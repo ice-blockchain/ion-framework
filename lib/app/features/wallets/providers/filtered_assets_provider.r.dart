@@ -94,8 +94,19 @@ Future<SelectableCoinsUiState> selectableFilteredCoins(
   String? contactPubkey,
 }) async {
   final filteredGroups = await ref.watch(filteredCoinsNotifierProvider.future);
-  final contactAvailability =
-      await ref.watch(contactWalletsAvailabilityProvider(contactPubkey).future);
+
+  final allEnabledGroups = filteredGroups.map((group) => group.symbolGroup);
+
+  if (contactPubkey == null) {
+    return SelectableCoinsUiState(
+      groups: filteredGroups,
+      enabledSymbolGroups: allEnabledGroups.toSet(),
+    );
+  }
+
+  final contactAvailability = await ref.watch(
+    contactWalletsAvailabilityProvider(contactPubkey: contactPubkey).future,
+  );
 
   final enabled = <CoinsGroup>[];
   final disabled = <CoinsGroup>[];
@@ -113,7 +124,7 @@ Future<SelectableCoinsUiState> selectableFilteredCoins(
     groups: [...enabled, ...disabled],
     enabledSymbolGroups: contactAvailability.hasPublicWallets
         ? enabled.map((group) => group.symbolGroup).toSet()
-        : filteredGroups.map((group) => group.symbolGroup).toSet(),
+        : allEnabledGroups.toSet(),
   );
 }
 
