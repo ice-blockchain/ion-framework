@@ -76,12 +76,21 @@ void main() {
       expect(() => invalidClient.request<Map<String, dynamic>>('/test'), throwsA(isA<Exception>()));
     });
 
-    test('reuses connection for multiple requests', () async {
-      final response1 = await client.request<Map<String, dynamic>>('/httpbin/get');
-      final response2 = await client.request<Map<String, dynamic>>('/httpbin/headers');
+    test('closes connection when all requests are done', () async {
+      expect(client.connection, isNull);
 
-      expect(response1.data, isA<Map<String, dynamic>>());
-      expect(response2.data, isA<Map<String, dynamic>>());
+      final future1 = client.request<Map<String, dynamic>>('/httpbin/delay/1');
+      final future2 = client.request<Map<String, dynamic>>('/httpbin/delay/1');
+
+      expect(client.connection, isNotNull);
+
+      await Future.wait([future1, future2]);
+
+      expect(client.connection, isNull);
+
+      unawaited(client.request<Map<String, dynamic>>('/httpbin/delay/1'));
+
+      expect(client.connection, isNotNull);
     });
 
     test('request timeout throws TimeoutException', () async {

@@ -117,7 +117,7 @@ class Http2WebSocket {
         }
       }
 
-      final requestStream = connection.transport.makeRequest(requestHeaders);
+      final requestStream = connection.transport!.makeRequest(requestHeaders);
 
       // Wait for handshake response with :status 200
       final completer = Completer<Http2WebSocket>();

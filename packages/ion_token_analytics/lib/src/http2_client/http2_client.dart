@@ -45,6 +45,11 @@ class Http2Client {
   int _activeOperations = 0;
   Completer<void>? _connectionLock;
 
+  /// Gets the current HTTP/2 connection if one is established.
+  ///
+  /// Returns the active connection or null if no connection exists.
+  Http2Connection? get connection => _connection;
+
   /// Makes an HTTP/2 request.
   ///
   /// The [path] specifies the endpoint to request.
@@ -108,7 +113,7 @@ class Http2Client {
       }
 
       // Make the request
-      final stream = _connection!.transport.makeRequest(requestHeaders);
+      final stream = _connection!.transport!.makeRequest(requestHeaders);
 
       // Send body if present
       if (bodyData != null) {
@@ -208,7 +213,11 @@ class Http2Client {
     _connectionLock = Completer<void>();
 
     try {
-      _connection = await Http2Connection.connect(host, port: port, scheme: scheme);
+      _connection = Http2Connection.connect(host, port: port, scheme: scheme);
+      await _connection!.waitForConnected();
+    } catch (e) {
+      _connection = null;
+      rethrow;
     } finally {
       _connectionLock!.complete();
       _connectionLock = null;
