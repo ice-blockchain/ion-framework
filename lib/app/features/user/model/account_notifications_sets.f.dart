@@ -34,6 +34,15 @@ enum AccountNotificationSetType {
       UserNotificationsType.none => null,
     };
   }
+
+  UserNotificationsType toUserNotificationType() {
+    return switch (this) {
+      AccountNotificationSetType.posts => UserNotificationsType.posts,
+      AccountNotificationSetType.stories => UserNotificationsType.stories,
+      AccountNotificationSetType.articles => UserNotificationsType.articles,
+      AccountNotificationSetType.videos => UserNotificationsType.videos,
+    };
+  }
 }
 
 @Freezed(equal: false)
