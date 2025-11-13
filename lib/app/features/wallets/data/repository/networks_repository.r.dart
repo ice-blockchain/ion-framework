@@ -43,9 +43,8 @@ class NetworksRepository {
   }
 
   Future<List<NetworkData>> getNftNetworks() => getByFilters(tiers: [1]).then(
-        (networks) => networks
-            .where((network) => network.id != 'Ton' && network.id != 'TonTestnet')
-            .toList(),
+        (networks) =>
+            networks.where((network) => network.id != 'Ton' && network.id != 'TonTestnet').toList(),
       );
 
   Future<List<NetworkData>> getAll() {
