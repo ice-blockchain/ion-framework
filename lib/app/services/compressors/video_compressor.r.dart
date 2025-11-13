@@ -53,7 +53,7 @@ class VideoCompressionSettings {
     crf: FfmpegCrfArg.balanced,
     maxRate: FfmpegBitrateArg.high,
     bufSize: FfmpegBitrateArg.highest,
-    scale: FfmpegScaleArg.p1080,
+    scale: FfmpegScaleArg.p1080WidthPortrait,
     audioCodec: FfmpegAudioCodecArg.aac,
     audioBitrate: FfmpegAudioBitrateArg.medium,
     pixelFormat: FfmpegPixelFormatArg.yuv420p,
