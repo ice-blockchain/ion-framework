@@ -4,35 +4,31 @@ import 'package:test/test.dart';
 void main() {
   group('Http2Connection', () {
     test('connection status transitions from connecting to connected', () async {
-      final connection = Http2Connection.connect('nghttp2.org');
+      final connection = Http2Connection('nghttp2.org');
 
-      expect(connection.status, isA<ConnectionStatusConnecting>());
+      expect(connection.status, isA<ConnectionStatusDisconnected>());
 
       final statuses = <ConnectionStatus>[];
       final subscription = connection.statusStream.listen(statuses.add);
 
-      await connection.waitForConnected();
-
-      expect(connection.status, isA<ConnectionStatusConnected>());
-      expect(connection.transport, isNotNull);
-
-      await connection.close();
-
-      expect(connection.status, isA<ConnectionStatusDisconnected>());
+      await connection.connect();
+      await connection.disconnect();
 
       await subscription.cancel();
 
-      expect(statuses.any((s) => s is ConnectionStatusConnected), isTrue);
-      expect(statuses.any((s) => s is ConnectionStatusDisconnecting), isTrue);
-      expect(statuses.any((s) => s is ConnectionStatusDisconnected), isTrue);
+      expect(statuses.length, 4);
+      expect(statuses[0], isA<ConnectionStatusConnecting>());
+      expect(statuses[1], isA<ConnectionStatusConnected>());
+      expect(statuses[2], isA<ConnectionStatusDisconnecting>());
+      expect(statuses[3], isA<ConnectionStatusDisconnected>());
     });
 
     test('connection fails with invalid host', () async {
-      final connection = Http2Connection.connect('invalid-host-that-does-not-exist.com');
+      final connection = Http2Connection('invalid-host-that-does-not-exist.com');
 
-      expect(connection.status, isA<ConnectionStatusConnecting>());
+      expect(connection.status, isA<ConnectionStatusDisconnected>());
 
-      await expectLater(connection.waitForConnected(), throwsA(isA<Http2ConnectionException>()));
+      await expectLater(connection.connect(), throwsA(isA<Exception>()));
 
       expect(connection.status, isA<ConnectionStatusDisconnected>());
       expect(connection.transport, isNull);

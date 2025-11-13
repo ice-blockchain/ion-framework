@@ -9,27 +9,23 @@ import 'package:ion_token_analytics/src/http2_client/web_socket_exceptions.dart'
 ///
 /// Example usage:
 /// ```dart
-/// final connection = Http2Connection.connect('example.com', port: 443);
-/// await connection.waitForConnected();
+/// final connection = Http2Connection('example.com', port: 443);
+/// await connection.connect();
 /// ```
 class Http2Connection {
-  /// Creates and starts connecting to a server.
+  /// Creates an HTTP/2 connection manager.
   ///
-  /// The connection starts immediately and the status can be monitored
-  /// via [statusStream].
-  Http2Connection.connect(this.host, {this.port = 443, this.scheme = 'https'}) {
-    _connect();
-  }
+  /// Does not automatically connect. Call [connect] to establish the connection.
+  Http2Connection(this.host, {this.port = 443, this.scheme = 'https'});
 
   final String host;
   final int port;
   final String scheme;
 
   ClientTransportConnection? _transport;
-  bool _closed = false;
 
-  final _statusController = StreamController<ConnectionStatus>.broadcast();
-  ConnectionStatus _currentStatus = const ConnectionStatusConnecting();
+  final _statusController = StreamController<ConnectionStatus>.broadcast(sync: true);
+  ConnectionStatus _currentStatus = const ConnectionStatusDisconnected();
 
   /// Gets the underlying HTTP/2 transport connection.
   ///
@@ -48,7 +44,7 @@ class Http2Connection {
   /// Waits for the connection to be established.
   ///
   /// Completes when the connection is ready or throws the exception if connection fails.
-  Future<void> waitForConnected() async {
+  Future<void> _waitForConnected() async {
     // If already connected, return immediately
     if (_currentStatus is ConnectionStatusConnected) {
       return;
@@ -75,7 +71,21 @@ class Http2Connection {
     _statusController.add(status);
   }
 
-  Future<void> _connect() async {
+  /// Establishes the HTTP/2 connection.
+  ///
+  /// If already connected, returns immediately. Otherwise, attempts to connect
+  /// to the server. Can be called multiple times safely.
+  Future<void> connect() async {
+    // If already connected, return immediately
+    if (_currentStatus is ConnectionStatusConnected) {
+      return;
+    }
+
+    // If currently connecting, wait for completion
+    if (_currentStatus is ConnectionStatusConnecting) {
+      return _waitForConnected();
+    }
+
     _updateStatus(const ConnectionStatusConnecting());
 
     try {
@@ -85,24 +95,27 @@ class Http2Connection {
     } catch (e) {
       final exception = Http2ConnectionException(host, port, e.toString());
       _updateStatus(ConnectionStatusDisconnected(exception));
+      rethrow;
     }
   }
 
-  /// Closes the HTTP/2 connection.
-  ///
-  /// After closing, no new WebSocket connections can be created.
-  Future<void> close() async {
-    if (_closed) {
+  /// Disconnects the HTTP/2 connection.
+  Future<void> disconnect() async {
+    if (_currentStatus is ConnectionStatusDisconnected ||
+        _currentStatus is ConnectionStatusDisconnecting) {
       return;
     }
-    _closed = true;
+
     _updateStatus(const ConnectionStatusDisconnecting());
 
     if (_transport != null) {
-      await _transport!.finish();
+      try {
+        await _transport!.finish();
+      } finally {
+        _transport = null;
+      }
     }
 
     _updateStatus(const ConnectionStatusDisconnected());
-    await _statusController.close();
   }
 }

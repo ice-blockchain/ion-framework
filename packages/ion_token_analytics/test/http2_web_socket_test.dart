@@ -9,9 +9,9 @@ void main() {
     const testPort = 4443;
 
     test('sends text message and receives NOTICE response', () async {
-      final connection = Http2Connection.connect(testHost, port: testPort);
+      final connection = Http2Connection(testHost, port: testPort);
 
-      await connection.waitForConnected();
+      await connection.connect();
 
       final ws = await Http2WebSocket.fromHttp2Connection(connection);
 

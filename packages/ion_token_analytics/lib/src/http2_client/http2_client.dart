@@ -6,6 +6,7 @@ import 'package:http2/http2.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_connection.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_subscription.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_web_socket.dart';
+import 'package:ion_token_analytics/src/http2_client/models/http2_connection_status.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_response.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_web_socket_message.dart';
@@ -42,14 +43,12 @@ class Http2Client {
   /// The connection scheme (http or https).
   final String scheme;
 
-  Http2Connection? _connection;
+  late final Http2Connection _connection = Http2Connection(host, port: port, scheme: scheme);
   int _activeOperations = 0;
-  Completer<void>? _connectionLock;
+  Future<void>? _connectionFuture;
 
-  /// Gets the current HTTP/2 connection if one is established.
-  ///
-  /// Returns the active connection or null if no connection exists.
-  Http2Connection? get connection => _connection;
+  /// Gets the current HTTP/2 connection.
+  Http2Connection get connection => _connection;
 
   /// Makes an HTTP/2 request.
   ///
@@ -114,7 +113,7 @@ class Http2Client {
       }
 
       // Make the request
-      final stream = _connection!.transport!.makeRequest(requestHeaders);
+      final stream = _connection.transport!.makeRequest(requestHeaders);
 
       // Send body if present
       if (bodyData != null) {
@@ -173,7 +172,7 @@ class Http2Client {
 
     try {
       final ws = await Http2WebSocket.fromHttp2Connection(
-        _connection!,
+        _connection,
         path: path,
         queryParameters: queryParameters,
         headers: headers,
@@ -249,30 +248,24 @@ class Http2Client {
   /// Ensures an HTTP/2 connection is established.
   ///
   /// If a connection already exists, this method returns immediately.
-  /// Otherwise, it creates a new connection. Uses a lock to prevent
-  /// multiple simultaneous connection attempts.
+  /// Otherwise, it creates a new connection. Prevents multiple simultaneous
+  /// connection attempts by reusing the same connection Future.
   Future<void> _ensureConnection() async {
-    // Wait for any ongoing connection attempt
-    if (_connectionLock != null) {
-      await _connectionLock!.future;
-    }
-
-    if (_connection != null) {
+    if (_connection.status is ConnectionStatusConnected) {
       return;
     }
 
-    // Create a new lock for this connection attempt
-    _connectionLock = Completer<void>();
+    if (_connectionFuture != null) {
+      await _connectionFuture;
+      return;
+    }
+
+    _connectionFuture = _connection.connect();
 
     try {
-      _connection = Http2Connection.connect(host, port: port, scheme: scheme);
-      await _connection!.waitForConnected();
-    } catch (e) {
-      _connection = null;
-      rethrow;
+      await _connectionFuture;
     } finally {
-      _connectionLock!.complete();
-      _connectionLock = null;
+      _connectionFuture = null;
     }
   }
 
@@ -375,9 +368,6 @@ class Http2Client {
   /// After calling this method, no new requests or subscriptions can be made.
   /// Any active operations will continue until completion.
   Future<void> close() async {
-    if (_connection != null) {
-      await _connection!.close();
-      _connection = null;
-    }
+    await _connection.disconnect();
   }
 }
