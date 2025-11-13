@@ -244,6 +244,10 @@ class Http2WebSocket {
   final StreamSubscription<StreamMessage> _subscription;
   bool _closed = false;
 
+  // Buffer for fragmented messages
+  final BytesBuilder _fragmentBuffer = BytesBuilder();
+  int? _fragmentOpcode;
+
   /// Stream of messages received from the WebSocket connection.
   ///
   /// Listen to this stream to receive both text and binary messages.
@@ -390,12 +394,14 @@ class Http2WebSocket {
   /// extended length encoding, and compression. Server-to-client frames are typically
   /// unmasked. Returns a [Http2WebSocketMessage] for text/binary frames, or null for
   /// control frames. Automatically handles ping/pong, close frames, and decompression.
+  /// Supports fragmented messages by buffering continuation frames.
   Http2WebSocketMessage? _parseFrame(Uint8List frame) {
     if (frame.length < 2) {
       throw const WebSocketFrameTooShortException();
     }
 
     final firstByte = frame[0];
+    final fin = (firstByte & _WebSocketConstants.finBit) != 0;
     final opcode = firstByte & _WebSocketConstants.opcodeMask;
     final rsv1 = (firstByte & _WebSocketConstants.rsv1Bit) != 0; // Compression bit
     final maskLen = frame[1];
@@ -450,8 +456,38 @@ class Http2WebSocket {
       unmasked = _decompressPayload(unmasked);
     }
 
-    // Process frame based on opcode
-    return _processFrameByOpcode(opcode, unmasked);
+    // Handle fragmentation
+    if (opcode == 0x0) {
+      // Continuation frame
+      if (_fragmentOpcode == null) {
+        throw WebSocketFrameUnsupportedOpcodeException(0x0);
+      }
+      _fragmentBuffer.add(unmasked);
+
+      if (fin) {
+        // Final fragment - process complete message
+        final completePayload = _fragmentBuffer.toBytes();
+        final messageOpcode = _fragmentOpcode!;
+        _fragmentBuffer.clear();
+        _fragmentOpcode = null;
+        return _processFrameByOpcode(messageOpcode, Uint8List.fromList(completePayload));
+      }
+      return null; // More fragments to come
+    } else if (opcode == _WebSocketConstants.opcodeText ||
+        opcode == _WebSocketConstants.opcodeBinary) {
+      // Data frame
+      if (!fin) {
+        // First fragment of a fragmented message
+        _fragmentOpcode = opcode;
+        _fragmentBuffer.add(unmasked);
+        return null; // More fragments to come
+      }
+      // Complete message in single frame
+      return _processFrameByOpcode(opcode, unmasked);
+    } else {
+      // Control frame - must not be fragmented
+      return _processFrameByOpcode(opcode, unmasked);
+    }
   }
 
   /// Decompresses a payload using DEFLATE algorithm.

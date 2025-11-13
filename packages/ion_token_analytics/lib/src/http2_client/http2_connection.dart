@@ -120,4 +120,13 @@ class Http2Connection {
 
     _updateStatus(const ConnectionStatusDisconnected());
   }
+
+  /// Closes the connection and releases all resources.
+  ///
+  /// This should be called when the connection is no longer needed.
+  /// After calling this method, the connection cannot be reused.
+  Future<void> dispose() async {
+    await disconnect();
+    await _statusController.close();
+  }
 }

@@ -274,7 +274,7 @@ class Http2Client {
   /// This is called automatically after each request or subscription completes.
   Future<void> _maybeCloseConnection() async {
     if (_activeStreams == 0) {
-      await close();
+      await _connection.disconnect();
     }
   }
 
@@ -365,11 +365,11 @@ class Http2Client {
     return result;
   }
 
-  /// Closes the client and its underlying connection.
+  /// Disposes the client and its underlying connection.
   ///
   /// After calling this method, no new requests or subscriptions can be made.
   /// Any active operations will continue until completion.
-  Future<void> close() async {
-    await _connection.disconnect();
+  Future<void> dispose() async {
+    await _connection.dispose();
   }
 }
