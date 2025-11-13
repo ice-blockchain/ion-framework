@@ -70,7 +70,8 @@ sealed class WalletAsset with _$WalletAsset {
 
   @FreezedUnionValue('Sep41')
   const factory WalletAsset.sep41({
-    required String mint,
+    required String issuer,
+    required String assetCode,
     required String symbol,
     required int decimals,
     @StringOrIntConverter() required String balance,
@@ -84,8 +85,8 @@ sealed class WalletAsset with _$WalletAsset {
     required int decimals,
     @StringOrIntConverter() required String balance,
     required String kind,
-    String? mint,
     String? name,
+    String? master,
   }) = _WalletAssetTep74;
 
   @FreezedUnionValue('Trc10')
@@ -124,6 +125,7 @@ sealed class WalletAsset with _$WalletAsset {
     @StringOrIntConverter() required String balance,
     required String kind,
     String? contract,
+    String? master,
     String? name,
     String? assetId,
     String? mint,
