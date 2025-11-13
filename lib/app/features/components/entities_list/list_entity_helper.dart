@@ -8,7 +8,6 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/block_user_provider.r.dart';
@@ -90,7 +89,7 @@ class ListEntityHelper {
 
     if (entity is ModifiablePostEntity && entity.data.quotedEvent != null) {
       final quotedEntity = ref.watch(
-            ionConnectEntityProvider(
+            ionConnectEntityWithCountersProvider(
               eventReference: entity.data.quotedEvent!.eventReference,
             ).select((value) {
               final entity = value.valueOrNull;
@@ -110,7 +109,8 @@ class ListEntityHelper {
       }
     } else if (entity is GenericRepostEntity) {
       final childEntity = ref.watch(
-            ionConnectEntityProvider(eventReference: entity.data.eventReference).select((value) {
+            ionConnectEntityWithCountersProvider(eventReference: entity.data.eventReference)
+                .select((value) {
               final entity = value.valueOrNull;
               if (entity != null) {
                 ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
