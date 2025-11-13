@@ -92,7 +92,10 @@ class Http2WebSocket {
       final wsKey = _generateWebSocketKey();
 
       // Build the full path with query parameters
-      final uri = Uri(path: path.isEmpty ? '/' : path, queryParameters: queryParameters);
+      final uri = Uri(
+        path: path.startsWith('/') ? path : '/$path',
+        queryParameters: queryParameters,
+      );
       final fullPath = uri.toString();
 
       // Build extended CONNECT request headers (RFC 8441)

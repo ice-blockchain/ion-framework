@@ -76,7 +76,10 @@ class Http2Client {
       final opts = options ?? Http2RequestOptions();
 
       // Build the full path with query parameters
-      final uri = Uri(path: path.isEmpty ? '/' : path, queryParameters: queryParameters);
+      final uri = Uri(
+        path: path.startsWith('/') ? path : '/$path',
+        queryParameters: queryParameters,
+      );
       final fullPath = uri.toString();
 
       // Build request headers
