@@ -15,6 +15,7 @@ import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
+import 'package:ion/app/features/feed/providers/feed_video_playback_enabled.r.dart';
 import 'package:ion/app/features/feed/providers/selected_entity_language_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
@@ -54,8 +55,16 @@ class StoryPreviewPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mediaType = mimeType != null ? MediaType.fromMimeType(mimeType!) : MediaType.unknown;
-    final whoCanReply = ref.watch(selectedWhoCanReplyOptionProvider);
-    final isPublishing = useState(false);
+
+    useEffect(
+      () {
+        ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).disablePlayback();
+        return () {
+          ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).enablePlayback();
+        };
+      },
+      [],
+    );
 
     ref
       ..displayErrors(createPostNotifierProvider(CreatePostOption.story))
@@ -135,57 +144,12 @@ class StoryPreviewPage extends HookConsumerWidget {
             Column(
               children: [
                 SizedBox(height: 10.0.s),
-                StoryShareButton(
-                  isLoading: isPublishing.value,
-                  onPressed: isPublishing.value
-                      ? null
-                      : () async {
-                          final language = ref.read(selectedEntityLanguageNotifierProvider);
-                          if (language == null) {
-                            unawaited(EntityLanguageWarningRoute().push<void>(context));
-                            return;
-                          }
-
-                          isPublishing.value = true;
-
-                          final createPostNotifier = ref.read(
-                            createPostNotifierProvider(CreatePostOption.story).notifier,
-                          );
-
-                          if (eventReference != null || mediaType == MediaType.image) {
-                            final dimensions = await ref
-                                .read(imageCompressorProvider)
-                                .getImageDimension(path: path);
-
-                            await createPostNotifier.create(
-                              mediaFiles: [
-                                MediaFile(
-                                  path: path,
-                                  mimeType: mimeType,
-                                  width: dimensions.width,
-                                  height: dimensions.height,
-                                ),
-                              ],
-                              whoCanReply: whoCanReply,
-                              quotedEvent: isPostScreenshot ? null : eventReference,
-                              sourcePostReference: isPostScreenshot ? eventReference : null,
-                              topics: ref.read(selectedInterestsNotifierProvider),
-                              language: language.value,
-                            );
-                          } else if (mediaType == MediaType.video) {
-                            await createPostNotifier.create(
-                              mediaFiles: [MediaFile(path: path, mimeType: mimeType)],
-                              whoCanReply: whoCanReply,
-                              topics: ref.read(selectedInterestsNotifierProvider),
-                              language: language.value,
-                            );
-                          }
-                          if (context.mounted) {
-                            _refreshProviders(ref);
-
-                            isPublishing.value = false;
-                          }
-                        },
+                _StoryShareButton(
+                  eventReference: eventReference,
+                  mediaType: mediaType,
+                  path: path,
+                  mimeType: mimeType,
+                  isPostScreenshot: isPostScreenshot,
                 ),
                 ScreenBottomOffset(margin: 16.0.s),
               ],
@@ -195,8 +159,80 @@ class StoryPreviewPage extends HookConsumerWidget {
       ),
     );
   }
+}
 
-  void _refreshProviders(WidgetRef ref) {
+class _StoryShareButton extends HookConsumerWidget {
+  const _StoryShareButton({
+    required this.eventReference,
+    required this.mediaType,
+    required this.path,
+    required this.mimeType,
+    required this.isPostScreenshot,
+  });
+
+  final EventReference? eventReference;
+  final MediaType mediaType;
+  final String path;
+  final String? mimeType;
+  final bool isPostScreenshot;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isPublishing = useState(false);
+    final whoCanReply = ref.watch(selectedWhoCanReplyOptionProvider);
+    return StoryShareButton(
+      isLoading: isPublishing.value,
+      onPressed: isPublishing.value
+          ? null
+          : () async {
+              final language = ref.read(selectedEntityLanguageNotifierProvider);
+              if (language == null) {
+                unawaited(EntityLanguageWarningRoute().push<void>(context));
+                return;
+              }
+
+              isPublishing.value = true;
+
+              final createPostNotifier = ref.read(
+                createPostNotifierProvider(CreatePostOption.story).notifier,
+              );
+
+              if (eventReference != null || mediaType == MediaType.image) {
+                final dimensions =
+                    await ref.read(imageCompressorProvider).getImageDimension(path: path);
+
+                await createPostNotifier.create(
+                  mediaFiles: [
+                    MediaFile(
+                      path: path,
+                      mimeType: mimeType,
+                      width: dimensions.width,
+                      height: dimensions.height,
+                    ),
+                  ],
+                  whoCanReply: whoCanReply,
+                  quotedEvent: isPostScreenshot ? null : eventReference,
+                  sourcePostReference: isPostScreenshot ? eventReference : null,
+                  topics: ref.read(selectedInterestsNotifierProvider),
+                  language: language.value,
+                );
+              } else if (mediaType == MediaType.video) {
+                await createPostNotifier.create(
+                  mediaFiles: [MediaFile(path: path, mimeType: mimeType)],
+                  whoCanReply: whoCanReply,
+                  topics: ref.read(selectedInterestsNotifierProvider),
+                  language: language.value,
+                );
+              }
+              if (context.mounted) {
+                refreshProviders(ref);
+
+                isPublishing.value = false;
+              }
+            },
+    );
+  }
+
+  void refreshProviders(WidgetRef ref) {
     final pubkey = ref.read(currentPubkeySelectorProvider) ?? '';
     ref.read(currentUserFeedStoryProvider.notifier).refresh();
     ref.read(ionConnectCacheProvider.notifier).remove(

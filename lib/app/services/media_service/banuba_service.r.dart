@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/feed/providers/feed_video_playback_enabled.r.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -20,10 +21,10 @@ part 'banuba_service.r.g.dart';
 typedef EditVideResult = ({String newPath, String? thumb});
 
 class BanubaService {
-  const BanubaService(this.env, this.banubaVideoEditorVisibilityNotifier);
+  const BanubaService(this.env, this.feedVideoPlaybackEnabledNotifier);
 
   final Env env;
-  final BanubaVideoEditorVisibilityNotifier banubaVideoEditorVisibilityNotifier;
+  final FeedVideoPlaybackEnabledNotifier feedVideoPlaybackEnabledNotifier;
   // For Photo Editor
   static const methodInitPhotoEditor = 'initPhotoEditor';
   static const methodStartPhotoEditor = 'startPhotoEditor';
@@ -92,10 +93,7 @@ class BanubaService {
     Duration? maxVideoDuration = const Duration(seconds: 60),
     bool coverSelectionEnabled = true,
   }) async {
-    banubaVideoEditorVisibilityNotifier.showEditor();
-    if (Platform.isAndroid) {
-      await platformChannel.invokeMethod(methodReleaseVideoEditor);
-    }
+    feedVideoPlaybackEnabledNotifier.disablePlayback();
     await platformChannel.invokeMethod(
       methodInitVideoEditor,
       env.get<String>(EnvVariable.BANUBA_TOKEN),
@@ -109,8 +107,7 @@ class BanubaService {
         argCoverSelectionEnabled: coverSelectionEnabled,
       },
     );
-
-    banubaVideoEditorVisibilityNotifier.hideEditor();
+    feedVideoPlaybackEnabledNotifier.enablePlayback();
 
     if (result is Map) {
       var newPath = result[argExportedVideoFile] as String;
@@ -132,7 +129,7 @@ class BanubaService {
 BanubaService banubaService(Ref ref) {
   return BanubaService(
     ref.watch(envProvider.notifier),
-    ref.watch(banubaVideoEditorVisibilityNotifierProvider.notifier),
+    ref.watch(feedVideoPlaybackEnabledNotifierProvider.notifier),
   );
 }
 
@@ -183,15 +180,4 @@ Future<MediaFile?> editMedia(
     case MediaType.unknown || MediaType.audio:
       throw Exception('Unknown media type');
   }
-}
-
-@riverpod
-class BanubaVideoEditorVisibilityNotifier extends _$BanubaVideoEditorVisibilityNotifier {
-  @override
-  bool build() {
-    return false;
-  }
-
-  void showEditor() => state = true;
-  void hideEditor() => state = false;
 }
