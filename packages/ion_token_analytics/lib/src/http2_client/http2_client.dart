@@ -76,13 +76,8 @@ class Http2Client {
       final opts = options ?? Http2RequestOptions();
 
       // Build the full path with query parameters
-      var fullPath = path.isEmpty ? '/' : path;
-      if (queryParameters != null && queryParameters.isNotEmpty) {
-        final queryString = queryParameters.entries
-            .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-            .join('&');
-        fullPath = '$fullPath?$queryString';
-      }
+      final uri = Uri(path: path.isEmpty ? '/' : path, queryParameters: queryParameters);
+      final fullPath = uri.toString();
 
       // Build request headers
       final requestHeaders = [
@@ -152,7 +147,7 @@ class Http2Client {
   /// ```
   Stream<T> subscribe<T>(
     String path, {
-    Map<String, dynamic>? queryParameters,
+    Map<String, String>? queryParameters,
     Map<String, String>? headers,
   }) async* {
     await _ensureConnection();
@@ -173,15 +168,8 @@ class Http2Client {
             yield message.data as T;
           } else {
             // Try to parse as JSON
-            try {
-              final parsed = jsonDecode(message.data as String);
-              yield parsed as T;
-            } catch (_) {
-              // If parsing fails, yield the raw string if possible
-              if (message.data is T) {
-                yield message.data as T;
-              }
-            }
+            final parsed = jsonDecode(message.data as String);
+            yield parsed as T;
           }
         } else if (message.type == WebSocketMessageType.binary) {
           // For binary messages, yield as-is if type matches

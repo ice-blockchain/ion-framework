@@ -85,20 +85,15 @@ class Http2WebSocket {
   static Future<Http2WebSocket> fromHttp2Connection(
     Http2Connection connection, {
     String path = '/',
-    Map<String, dynamic>? queryParameters,
+    Map<String, String>? queryParameters,
     Map<String, String>? headers,
   }) async {
     try {
       final wsKey = _generateWebSocketKey();
 
       // Build the full path with query parameters
-      var fullPath = path.isEmpty ? '/' : path;
-      if (queryParameters != null && queryParameters.isNotEmpty) {
-        final queryString = queryParameters.entries
-            .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value.toString())}')
-            .join('&');
-        fullPath = '$fullPath?$queryString';
-      }
+      final uri = Uri(path: path.isEmpty ? '/' : path, queryParameters: queryParameters);
+      final fullPath = uri.toString();
 
       // Build extended CONNECT request headers (RFC 8441)
       final requestHeaders = [
