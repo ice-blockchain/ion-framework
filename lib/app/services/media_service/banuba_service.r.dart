@@ -20,10 +20,10 @@ part 'banuba_service.r.g.dart';
 typedef EditVideResult = ({String newPath, String? thumb});
 
 class BanubaService {
-  const BanubaService(this.env);
+  const BanubaService(this.env, this.banubaVideoEditorVisibilityNotifier);
 
   final Env env;
-
+  final BanubaVideoEditorVisibilityNotifier banubaVideoEditorVisibilityNotifier;
   // For Photo Editor
   static const methodInitPhotoEditor = 'initPhotoEditor';
   static const methodStartPhotoEditor = 'startPhotoEditor';
@@ -92,6 +92,10 @@ class BanubaService {
     Duration? maxVideoDuration = const Duration(seconds: 60),
     bool coverSelectionEnabled = true,
   }) async {
+    banubaVideoEditorVisibilityNotifier.showEditor();
+    if (Platform.isAndroid) {
+      await platformChannel.invokeMethod(methodReleaseVideoEditor);
+    }
     await platformChannel.invokeMethod(
       methodInitVideoEditor,
       env.get<String>(EnvVariable.BANUBA_TOKEN),
@@ -105,6 +109,8 @@ class BanubaService {
         argCoverSelectionEnabled: coverSelectionEnabled,
       },
     );
+
+    banubaVideoEditorVisibilityNotifier.hideEditor();
 
     if (result is Map) {
       var newPath = result[argExportedVideoFile] as String;
@@ -124,7 +130,10 @@ class BanubaService {
 
 @Riverpod(keepAlive: true)
 BanubaService banubaService(Ref ref) {
-  return BanubaService(ref.watch(envProvider.notifier));
+  return BanubaService(
+    ref.watch(envProvider.notifier),
+    ref.watch(banubaVideoEditorVisibilityNotifierProvider.notifier),
+  );
 }
 
 @riverpod
@@ -174,4 +183,15 @@ Future<MediaFile?> editMedia(
     case MediaType.unknown || MediaType.audio:
       throw Exception('Unknown media type');
   }
+}
+
+@riverpod
+class BanubaVideoEditorVisibilityNotifier extends _$BanubaVideoEditorVisibilityNotifier {
+  @override
+  bool build() {
+    return false;
+  }
+
+  void showEditor() => state = true;
+  void hideEditor() => state = false;
 }

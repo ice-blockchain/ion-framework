@@ -16,6 +16,7 @@ import 'package:ion/app/features/settings/providers/video_settings_provider.m.da
 import 'package:ion/app/features/video/views/components/video_button.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_route_presence.dart';
+import 'package:ion/app/services/media_service/banuba_service.r.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/url.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -46,9 +47,10 @@ class VideoPreview extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final uniqueId = useRef(UniqueKey().toString());
     final videoSettings = ref.watch(videoSettingsProvider);
+    final isBanubaEditorShown = ref.watch(banubaVideoEditorVisibilityNotifierProvider);
 
     // If autoplay is disabled, we don't need to initialize the controller (to avoid the video downloading)
-    final videoControllerProviderState = videoSettings.autoplay
+    final videoControllerProviderState = (videoSettings.autoplay && !isBanubaEditorShown)
         ? ref.watch(
             videoControllerProvider(
               VideoControllerParams(
