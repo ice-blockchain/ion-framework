@@ -6,8 +6,15 @@ publish_to: "none"
 version: 9.9.9+9999
 
 environment:
-  sdk: ">=3.5.4 <4.0.0"
+  sdk: ">=3.6.0 <4.0.0"
   flutter: "3.35.3"
+
+workspace:
+  - packages/ion_connect_cache
+  - packages/ion_content_labeler
+  - packages/ion_identity_client
+  - packages/ion_lint_rules
+  - packages/ion_screenshot_detector
 
 dependencies:
   android_id: ^0.4.0
@@ -115,13 +122,9 @@ dependencies:
   in_app_update: ^4.2.5
   intl: any
   ion_connect_cache:
-    path: packages/ion_connect_cache
   ion_content_labeler:
-    path: packages/ion_content_labeler
   ion_identity_client:
-    path: packages/ion_identity_client
   ion_screenshot_detector:
-    path: packages/ion_screenshot_detector
   isolate_manager: ^6.1.0
   json_annotation: ^4.8.1
   lottie: ^3.1.0
@@ -195,7 +198,6 @@ dev_dependencies:
   freezed: ^2.4.1
   go_router_builder: ^3.0.1
   ion_lint_rules:
-    path: packages/ion_lint_rules
   json_serializable: ^6.7.1
   melos: ^6.1.0
   riverpod_generator: ^2.6.1

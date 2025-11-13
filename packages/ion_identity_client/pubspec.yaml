@@ -4,8 +4,10 @@ version: 0.0.1
 publish_to: none
 
 environment:
-  sdk: '>=3.3.4 <4.0.0'
+  sdk: '>=3.6.0 <4.0.0'
   flutter: ">=1.17.0"
+
+resolution: workspace
 
 dependencies:
   asn1lib: ^1.5.4
@@ -42,7 +44,3 @@ dev_dependencies:
   freezed: ^2.5.7
   json_serializable: ^6.8.0
   very_good_analysis: ^6.0.0
-
-
-dependency_overrides:
-  js: ^0.7.1
