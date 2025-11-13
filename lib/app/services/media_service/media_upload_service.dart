@@ -9,9 +9,11 @@ import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/blurhash_service.r.dart';
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_scale_arg.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/services/sentry/sentry_service.dart';
 
 class MediaUploadService {
   MediaUploadService({
@@ -94,40 +96,60 @@ class MediaUploadService {
   Future<({List<FileMetadata> fileMetadatas, MediaAttachment mediaAttachment})> uploadVideo(
     MediaFile file,
   ) async {
-    final videoCompressor = ref.read(videoCompressorProvider);
-    final compressedVideo = await videoCompressor.compress(file);
-    final videoUploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
-          compressedVideo,
-          alt: fileAlt,
-        );
-    final videoImage = await videoCompressor.getThumbnail(compressedVideo, thumb: file.thumb);
-    final videoImageUploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
-          videoImage,
-          alt: fileAlt,
-        );
-    final thumbImage = await ref
-        .read(imageCompressorProvider)
-        .scaleImage(videoImage, scaleResolution: FfmpegScaleArg.p480);
-    final thumbImageUploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
-          thumbImage,
-          alt: fileAlt,
-        );
-    final imageUrl = videoImageUploadResult.fileMetadata.url;
-    final thumbUrl = thumbImageUploadResult.fileMetadata.url;
-    final blurhash = await ref.read(generateBlurhashProvider(videoImage));
-    final mediaAttachment = videoUploadResult.mediaAttachment.copyWith(
-      image: imageUrl,
-      thumb: thumbUrl,
-      blurhash: blurhash,
-    );
-    final videoFileMetadata = videoUploadResult.fileMetadata.copyWith(
-      thumb: thumbUrl,
-      image: imageUrl,
-      blurhash: blurhash,
-    );
-    return (
-      fileMetadatas: [videoFileMetadata, videoImageUploadResult.fileMetadata],
-      mediaAttachment: mediaAttachment,
-    );
+    try {
+      final videoCompressor = ref.read(videoCompressorProvider);
+
+      final compressedVideo = await videoCompressor.compress(file);
+
+      final videoUploadResult = await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
+            compressedVideo,
+            alt: fileAlt,
+          );
+
+      final videoImage = await videoCompressor.getThumbnail(compressedVideo, thumb: file.thumb);
+
+      final videoImageUploadResult =
+          await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
+                videoImage,
+                alt: fileAlt,
+              );
+
+      final thumbImage = await ref
+          .read(imageCompressorProvider)
+          .scaleImage(videoImage, scaleResolution: FfmpegScaleArg.p480);
+
+      final thumbImageUploadResult =
+          await ref.read(ionConnectUploadNotifierProvider.notifier).upload(
+                thumbImage,
+                alt: fileAlt,
+              );
+
+      final imageUrl = videoImageUploadResult.fileMetadata.url;
+      final thumbUrl = thumbImageUploadResult.fileMetadata.url;
+      final blurhash = await ref.read(generateBlurhashProvider(videoImage));
+
+      final mediaAttachment = videoUploadResult.mediaAttachment.copyWith(
+        image: imageUrl,
+        thumb: thumbUrl,
+        blurhash: blurhash,
+      );
+      final videoFileMetadata = videoUploadResult.fileMetadata.copyWith(
+        thumb: thumbUrl,
+        image: imageUrl,
+        blurhash: blurhash,
+      );
+      return (
+        fileMetadatas: [videoFileMetadata, videoImageUploadResult.fileMetadata],
+        mediaAttachment: mediaAttachment,
+      );
+    } catch (error, stackTrace) {
+      Logger.error(error, stackTrace: stackTrace, message: 'Error during video upload');
+      await SentryService.logException(
+        error,
+        stackTrace: stackTrace,
+        tag: 'video_upload_error',
+      );
+      rethrow;
+    }
   }
 }

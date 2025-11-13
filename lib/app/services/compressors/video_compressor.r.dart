@@ -27,6 +27,7 @@ import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_video_profile.
 import 'package:ion/app/services/media_service/ffmpeg_commands_config.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/media_service/video_info_service.r.dart';
+import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'video_compressor.r.g.dart';
@@ -103,6 +104,26 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     return '${seconds.toStringAsFixed(2)} s';
   }
 
+  Future<void> _logVideoError(
+    Object error,
+    StackTrace stackTrace,
+    String tag,
+    Map<String, dynamic>? fallbackContext,
+  ) async {
+    Logger.error(error, stackTrace: stackTrace, message: 'Error during video compression!');
+    final debugContext = (error is CompressVideoException && error.context != null)
+        ? error.context
+        : (error is ExtractThumbnailException && error.context != null)
+            ? error.context
+            : fallbackContext;
+    await SentryService.logException(
+      error,
+      stackTrace: stackTrace,
+      tag: tag,
+      debugContext: debugContext,
+    );
+  }
+
   ///
   /// Compresses a video file to a new file with the same name in the application cache directory.
   /// If success, returns a new [MediaFile] with the compressed video.
@@ -129,12 +150,14 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     }
 
     settings ??= VideoCompressionSettings.balanced;
+    final originalVideoInfo = await videoInfoService.getVideoInformation(file.path);
+    final originalBytes = await File(file.path).length();
+
     try {
       final output = await generateOutputPath(extension: 'mp4');
       final sessionResultCompleter = Completer<FFmpegSession>();
 
       final stopwatch = Stopwatch()..start();
-      final originalBytes = await File(file.path).length();
       Logger.log('Original video size: ${_formatBytes(originalBytes)}');
 
       final args = FFmpegCommands.compressVideo(
@@ -164,9 +187,22 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       final returnCode = await session.getReturnCode();
       if (!ReturnCode.isSuccess(returnCode)) {
         final logs = await session.getAllLogsAsString();
-        final stackTrace = await session.getFailStackTrace();
-        Logger.log('Failed to compress video. Logs: $logs, StackTrace: $stackTrace');
-        throw CompressVideoException(returnCode);
+        Logger.log('Failed to compress video. Logs: $logs');
+        throw CompressVideoException(
+          returnCode,
+          context: {
+            'video_file_size_bytes': originalBytes,
+            'video_duration_seconds': originalVideoInfo.duration.inSeconds,
+            'video_resolution': '${originalVideoInfo.width}x${originalVideoInfo.height}',
+            'compression_codec': settings.videoCodec.codec,
+            'compression_preset': settings.preset.value,
+            'compression_crf': settings.crf.value,
+            'compression_max_rate': settings.maxRate.bitrate,
+            'compression_buf_size': settings.bufSize.bitrate,
+            'ffmpeg_return_code': returnCode?.toString(),
+            'ffmpeg_logs': logs,
+          },
+        );
       }
 
       final compressedBytes = await File(output).length();
@@ -188,7 +224,21 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
         duration: outDuration.inSeconds,
       );
     } catch (error, stackTrace) {
-      Logger.log('Error during video compression!', error: error, stackTrace: stackTrace);
+      await _logVideoError(
+        error,
+        stackTrace,
+        'video_compression_error',
+        {
+          'video_file_size_bytes': originalBytes,
+          'video_duration_seconds': originalVideoInfo.duration.inSeconds,
+          'video_resolution': '${originalVideoInfo.width}x${originalVideoInfo.height}',
+          'compression_codec': settings.videoCodec.codec,
+          'compression_preset': settings.preset.value,
+          'compression_crf': settings.crf.value,
+          'compression_max_rate': settings.maxRate.bitrate,
+          'compression_buf_size': settings.bufSize.bitrate,
+        },
+      );
       rethrow;
     }
   }
@@ -223,7 +273,18 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
 
         final returnCode = await session.getReturnCode();
         if (!ReturnCode.isSuccess(returnCode)) {
-          throw ExtractThumbnailException(returnCode);
+          final logs = await session.getAllLogsAsString();
+          final videoInfo = await videoInfoService.getVideoInformation(videoFile.path);
+          throw ExtractThumbnailException(
+            returnCode,
+            context: {
+              'video_duration_seconds': videoFile.duration ?? videoInfo.duration.inSeconds,
+              'video_resolution': '${videoInfo.width}x${videoInfo.height}',
+              'thumbnail_timestamp': timestamp,
+              'ffmpeg_return_code': returnCode?.toString(),
+              'ffmpeg_logs': logs,
+            },
+          );
         }
         thumbPath = outputPath;
       }
@@ -234,7 +295,13 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
 
       return compressedImage;
     } catch (error, stackTrace) {
-      Logger.log('Error during thumbnail extraction!', error: error, stackTrace: stackTrace);
+      Logger.error(error, stackTrace: stackTrace, message: 'Error during thumbnail extraction!');
+      await _logVideoError(
+        error,
+        stackTrace,
+        'video_thumbnail_error',
+        {'thumbnail_timestamp': timestamp},
+      );
       rethrow;
     }
   }
