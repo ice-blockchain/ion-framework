@@ -38,11 +38,13 @@ mixin SentryService {
   /// [stackTrace] - Optional stack trace for the exception
   /// [level] - Optional severity level (defaults to SentryLevel.error)
   /// [tag] - Optional tag to categorize the exception
+  /// [debugContext] - Optional map of additional context data for debugging
   static Future<SentryId> logException(
     dynamic exception, {
     StackTrace? stackTrace,
     SentryLevel? level,
     String? tag,
+    Map<String, dynamic>? debugContext,
   }) async {
     return Sentry.captureException(
       exception,
@@ -53,6 +55,9 @@ mixin SentryService {
         }
         if (tag != null) {
           scope.setTag('manual_log', tag);
+        }
+        if (debugContext != null) {
+          scope.setContexts('debug_context', debugContext);
         }
       },
     );
