@@ -89,41 +89,35 @@ void main() {
     });
 
     test('connection gets disconnected automatically after request is done', () async {
-      expect(client.connection, isNull);
+      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
 
       final future = client.request<Map<String, dynamic>>('/httpbin/delay/1');
 
-      expect(client.connection, isNotNull);
+      expect(client.connection.status, equals(const ConnectionStatusConnecting()));
 
       await future;
 
-      expect(client.connection, isNull);
+      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
     });
 
     test('connection remains connected with multiple concurrent requests', () async {
-      expect(client.connection, isNull);
+      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
 
-      // Start multiple requests concurrently
       final future1 = client.request<Map<String, dynamic>>('/httpbin/delay/1');
       final future2 = client.request<Map<String, dynamic>>('/httpbin/delay/2');
 
-      // Connection should be established
-      expect(client.connection, isNotNull);
+      expect(client.connection.status, equals(const ConnectionStatusConnecting()));
       final connectionDuringRequests = client.connection;
 
-      // Wait for first request to complete
       final response1 = await future1;
       expect(response1.statusCode, equals(200));
 
-      // Connection should still be active because second request is ongoing
-      expect(client.connection, isNotNull);
+      expect(client.connection.status, equals(const ConnectionStatusConnected()));
       expect(client.connection, equals(connectionDuringRequests));
 
-      // Wait for second request to complete
       await future2;
 
-      // Now all requests are done, connection should be closed
-      expect(client.connection, isNull);
+      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
     });
   });
 
@@ -135,40 +129,37 @@ void main() {
     });
 
     test('connection lifecycle with sequential requests', () async {
-      expect(client.connection, isNull);
+      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
 
-      // First request
       final response1 = await client.request<Map<String, dynamic>>('.well-known/nostr/nip96.json');
       expect(response1.statusCode, equals(200));
-      expect(client.connection, isNull);
+      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
 
-      // Second request - should create a new connection
       final future2 = client.request<Map<String, dynamic>>('.well-known/nostr/nip96.json');
 
-      expect(client.connection, isNotNull);
+      expect(client.connection.status, equals(const ConnectionStatusConnecting()));
 
-      // Complete the request
       final response2 = await future2;
       expect(response2.statusCode, equals(200));
 
-      // Connection should be closed after request
-      expect(client.connection, isNull);
+      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
     });
 
-    test('subscription keeps connection open and closes with subscription', () async {
-      expect(client.connection, isNull);
+    test('active subscriptions keep connection open', () async {
+      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
 
-      final subscription = await client.subscribe<String>('/');
+      final subscription1 = await client.subscribe<String>('/');
+      final subscription2 = await client.subscribe<String>('/');
 
-      final messages = <String>[];
-      final listener = subscription.stream.listen(messages.add);
+      expect(client.connection.status, equals(const ConnectionStatusConnected()));
 
-      expect(client.connection, isNotNull);
+      await subscription1.close();
 
-      await listener.cancel();
-      await subscription.close();
+      expect(client.connection.status, equals(const ConnectionStatusConnected()));
 
-      expect(client.connection, isNull);
+      await subscription2.close();
+
+      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
     });
   });
 }

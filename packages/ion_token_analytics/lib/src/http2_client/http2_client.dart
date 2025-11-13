@@ -336,13 +336,15 @@ class Http2Client {
             }
           }
 
-          completer.complete(
-            Http2RequestResponse<T>(
-              data: parsedData,
-              statusCode: statusCode,
-              headers: responseHeaders,
-            ),
-          );
+          if (!completer.isCompleted) {
+            completer.complete(
+              Http2RequestResponse<T>(
+                data: parsedData,
+                statusCode: statusCode,
+                headers: responseHeaders,
+              ),
+            );
+          }
         } catch (e, stackTrace) {
           completer.completeError(e, stackTrace);
         }

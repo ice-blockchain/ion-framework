@@ -29,6 +29,7 @@ void main() {
       expect((message.data as String).toUpperCase(), contains('NOTICE'));
 
       ws.close();
+      await connection.disconnect();
     });
   });
 }

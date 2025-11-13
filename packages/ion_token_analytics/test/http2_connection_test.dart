@@ -3,25 +3,28 @@ import 'package:test/test.dart';
 
 void main() {
   group('Http2Connection', () {
-    test('connection status transitions from connecting to connected', () async {
-      final connection = Http2Connection('nghttp2.org');
+    test(
+      'connection status transitions from connecting to connected and then to disconnected',
+      () async {
+        final connection = Http2Connection('nghttp2.org');
 
-      expect(connection.status, isA<ConnectionStatusDisconnected>());
+        expect(connection.status, isA<ConnectionStatusDisconnected>());
 
-      final statuses = <ConnectionStatus>[];
-      final subscription = connection.statusStream.listen(statuses.add);
+        final statuses = <ConnectionStatus>[];
+        final subscription = connection.statusStream.listen(statuses.add);
 
-      await connection.connect();
-      await connection.disconnect();
+        await connection.connect();
+        await connection.disconnect();
 
-      await subscription.cancel();
+        await subscription.cancel();
 
-      expect(statuses.length, 4);
-      expect(statuses[0], isA<ConnectionStatusConnecting>());
-      expect(statuses[1], isA<ConnectionStatusConnected>());
-      expect(statuses[2], isA<ConnectionStatusDisconnecting>());
-      expect(statuses[3], isA<ConnectionStatusDisconnected>());
-    });
+        expect(statuses.length, 4);
+        expect(statuses[0], isA<ConnectionStatusConnecting>());
+        expect(statuses[1], isA<ConnectionStatusConnected>());
+        expect(statuses[2], isA<ConnectionStatusDisconnecting>());
+        expect(statuses[3], isA<ConnectionStatusDisconnected>());
+      },
+    );
 
     test('connection fails with invalid host', () async {
       final connection = Http2Connection('invalid-host-that-does-not-exist.com');

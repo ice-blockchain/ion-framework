@@ -23,6 +23,7 @@ class Http2Connection {
   final String scheme;
 
   ClientTransportConnection? _transport;
+  SecureSocket? _socket;
 
   final _statusController = StreamController<ConnectionStatus>.broadcast(sync: true);
   ConnectionStatus _currentStatus = const ConnectionStatusDisconnected();
@@ -89,12 +90,13 @@ class Http2Connection {
     _updateStatus(const ConnectionStatusConnecting());
 
     try {
-      final socket = await SecureSocket.connect(host, port, supportedProtocols: const ['h2']);
-      _transport = ClientTransportConnection.viaSocket(socket);
+      _socket = await SecureSocket.connect(host, port, supportedProtocols: const ['h2']);
+      _transport = ClientTransportConnection.viaSocket(_socket!);
       _updateStatus(const ConnectionStatusConnected());
     } catch (e) {
       final exception = Http2ConnectionException(host, port, e.toString());
       _updateStatus(ConnectionStatusDisconnected(exception));
+      _socket = null;
       rethrow;
     }
   }
@@ -108,12 +110,16 @@ class Http2Connection {
 
     _updateStatus(const ConnectionStatusDisconnecting());
 
-    if (_transport != null) {
-      try {
-        await _transport!.finish();
-      } finally {
-        _transport = null;
-      }
+    try {
+      await _transport?.terminate();
+    } finally {
+      _transport = null;
+    }
+
+    try {
+      await _socket?.close();
+    } finally {
+      _socket = null;
     }
 
     _updateStatus(const ConnectionStatusDisconnected());
