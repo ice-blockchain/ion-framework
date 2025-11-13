@@ -13,11 +13,14 @@ part 'selectable_networks_provider.r.g.dart';
 Future<SelectableNetworkState> selectableNetworks(
   Ref ref, {
   required String symbolGroup,
-  String? contactPubkey,
+  required String contactPubkey,
 }) async {
-  final coins = await ref.watch(syncedCoinsBySymbolGroupProvider(symbolGroup).future);
-  final contactAvailability =
-      await ref.watch(contactWalletsAvailabilityProvider(contactPubkey).future);
+  final coins = await ref.watch(
+    syncedCoinsBySymbolGroupProvider(symbolGroup).future,
+  );
+  final contactAvailability = await ref.watch(
+    contactWalletsAvailabilityProvider(contactPubkey: contactPubkey).future,
+  );
 
   final enabled = <CoinInWalletData>[];
   final disabled = <CoinInWalletData>[];
