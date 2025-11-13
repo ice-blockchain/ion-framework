@@ -5,13 +5,16 @@ import 'package:http2/http2.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_connection_status.dart';
 import 'package:ion_token_analytics/src/http2_client/web_socket_exceptions.dart';
 
-/// Manages an HTTP/2 connection that can be used to create multiple WebSocket connections.
+/// Manages an HTTP/2 connection.
 ///
 /// Example usage:
 /// ```dart
 /// final connection = Http2Connection('example.com', port: 443);
 /// await connection.connect();
+/// await connection.disconnect();
 /// ```
+///
+/// TODO: Add reconnect logic
 class Http2Connection {
   /// Creates an HTTP/2 connection manager.
   ///
@@ -46,17 +49,14 @@ class Http2Connection {
   ///
   /// Completes when the connection is ready or throws the exception if connection fails.
   Future<void> _waitForConnected() async {
-    // If already connected, return immediately
     if (_currentStatus is ConnectionStatusConnected) {
       return;
     }
 
-    // If already disconnected, throw the exception if present
     if (_currentStatus case ConnectionStatusDisconnected(exception: final exception?)) {
       throw exception;
     }
 
-    // Wait for a status change
     await for (final status in statusStream) {
       if (status is ConnectionStatusConnected) {
         return;
@@ -73,16 +73,11 @@ class Http2Connection {
   }
 
   /// Establishes the HTTP/2 connection.
-  ///
-  /// If already connected, returns immediately. Otherwise, attempts to connect
-  /// to the server. Can be called multiple times safely.
   Future<void> connect() async {
-    // If already connected, return immediately
     if (_currentStatus is ConnectionStatusConnected) {
       return;
     }
 
-    // If currently connecting, wait for completion
     if (_currentStatus is ConnectionStatusConnecting) {
       return _waitForConnected();
     }
@@ -97,6 +92,7 @@ class Http2Connection {
       final exception = Http2ConnectionException(host, port, e.toString());
       _updateStatus(ConnectionStatusDisconnected(exception));
       _socket = null;
+      _transport = null;
       rethrow;
     }
   }

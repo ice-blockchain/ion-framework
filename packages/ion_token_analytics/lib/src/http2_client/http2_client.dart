@@ -4,11 +4,11 @@ import 'dart:typed_data';
 
 import 'package:http2/http2.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_connection.dart';
-import 'package:ion_token_analytics/src/http2_client/http2_subscription.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_web_socket.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_connection_status.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_response.dart';
+import 'package:ion_token_analytics/src/http2_client/models/http2_subscription.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_web_socket_message.dart';
 
 /// HTTP/2 client for making requests and WebSocket subscriptions.
@@ -44,7 +44,7 @@ class Http2Client {
   final String scheme;
 
   late final Http2Connection _connection = Http2Connection(host, port: port, scheme: scheme);
-  int _activeOperations = 0;
+  int _activeStreams = 0;
   Future<void>? _connectionFuture;
 
   /// Gets the current HTTP/2 connection.
@@ -75,7 +75,7 @@ class Http2Client {
     Http2RequestOptions? options,
   }) async {
     await _ensureConnection();
-    _activeOperations++;
+    _activeStreams++;
 
     try {
       final opts = options ?? Http2RequestOptions();
@@ -131,7 +131,7 @@ class Http2Client {
 
       return response;
     } finally {
-      _activeOperations--;
+      _activeStreams--;
       await _maybeCloseConnection();
     }
   }
@@ -168,7 +168,7 @@ class Http2Client {
     Map<String, String>? headers,
   }) async {
     await _ensureConnection();
-    _activeOperations++;
+    _activeStreams++;
 
     try {
       final ws = await Http2WebSocket.fromHttp2Connection(
@@ -213,7 +213,7 @@ class Http2Client {
             if (!controller.isClosed) {
               await controller.close();
             }
-            _activeOperations--;
+            _activeStreams--;
             await _maybeCloseConnection();
           }
         },
@@ -233,13 +233,13 @@ class Http2Client {
           unawaited(controller.close());
         }
 
-        _activeOperations--;
+        _activeStreams--;
         await _maybeCloseConnection();
       }
 
       return Http2Subscription<T>(stream: controller.stream, close: close);
     } catch (e) {
-      _activeOperations--;
+      _activeStreams--;
       await _maybeCloseConnection();
       rethrow;
     }
@@ -273,7 +273,7 @@ class Http2Client {
   ///
   /// This is called automatically after each request or subscription completes.
   Future<void> _maybeCloseConnection() async {
-    if (_activeOperations == 0) {
+    if (_activeStreams == 0) {
       await close();
     }
   }
