@@ -51,13 +51,13 @@ class _TransferFactory {
         amount: amount,
         to: receiverAddress,
         assetCode: asset.symbol,
-        issuer: asset.mint,
+        issuer: asset.issuer,
         memo: memo,
       ),
       tep74: (asset) => Tep74Transfer(
         amount: amount,
         to: receiverAddress,
-        master: asset.mint,
+        master: asset.master,
       ),
       trc10: (asset) => Trc10Transfer(
         amount: amount,
