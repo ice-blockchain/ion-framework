@@ -115,11 +115,13 @@ class Http2Client {
       }
 
       // Wait for response with optional timeout
+      // The response future will complete once the stream is fully read
       final responseFuture = _readResponse<T>(stream);
-      if (opts.timeout != null) {
-        return await responseFuture.timeout(opts.timeout!);
-      }
-      return await responseFuture;
+      final response = opts.timeout != null
+          ? await responseFuture.timeout(opts.timeout!)
+          : await responseFuture;
+
+      return response;
     } finally {
       _activeOperations--;
       await _maybeCloseConnection();
@@ -242,7 +244,11 @@ class Http2Client {
           dataBuffer.addAll(message.bytes);
         }
       },
-      onError: completer.completeError,
+      onError: (Object error, StackTrace stackTrace) {
+        if (!completer.isCompleted) {
+          completer.completeError(error, stackTrace);
+        }
+      },
       onDone: () {
         try {
           T? parsedData;
