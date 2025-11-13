@@ -327,6 +327,7 @@ final class _FramedEvent extends HookConsumerWidget {
       );
     }
 
+    // FIXME: we shouldn't memoize widgets
     final repliedEntity = useMemoized(
       () {
         switch (entity) {
