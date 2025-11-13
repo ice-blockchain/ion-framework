@@ -51,11 +51,6 @@ class SendE2eeReactionService {
   final ConversationMessageDataDao conversationMessageDataDaoProvider;
   final ConversationMessageReactionDao conversationMessageReactionDaoProvider;
 
-  static const allowedStatus = [
-    MessageDeliveryStatus.received,
-    MessageDeliveryStatus.read,
-  ];
-
   Future<void> sendReaction({
     required String content,
     required EventMessage kind14Rumor,

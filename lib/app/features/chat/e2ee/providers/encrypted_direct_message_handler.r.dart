@@ -66,27 +66,33 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
   Future<void> _addDirectMessageToDatabase(EventMessage rumor) async {
     await conversationDao.add([rumor]);
     await conversationEventMessageDao.add(rumor);
-    await _addMediaToDatabase(rumor);
+    unawaited(_addMediaToDatabase(rumor));
   }
 
   Future<void> _addMediaToDatabase(EventMessage rumor) async {
     final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
     if (entity.data.media.isNotEmpty) {
       for (final media in entity.data.media.values) {
-        await mediaEncryptionService.getEncryptedMedia(
-          media,
-          authorPubkey: rumor.masterPubkey,
-        );
-        final isThumb =
-            entity.data.media.values.any((m) => m.url != media.url && m.thumb == media.url);
+        unawaited(
+          mediaEncryptionService
+              .getEncryptedMedia(
+            media,
+            authorPubkey: rumor.masterPubkey,
+          )
+              .then((_) async {
+            final isThumb =
+                entity.data.media.values.any((m) => m.url != media.url && m.thumb == media.url);
 
-        if (isThumb) {
-          continue;
-        }
-        await messageMediaDao.add(
-          eventReference: entity.toEventReference(),
-          status: MessageMediaStatus.completed,
-          remoteUrl: media.url,
+            if (isThumb) {
+              return;
+            }
+
+            await messageMediaDao.add(
+              remoteUrl: media.url,
+              status: MessageMediaStatus.completed,
+              eventReference: entity.toEventReference(),
+            );
+          }),
         );
       }
     }
