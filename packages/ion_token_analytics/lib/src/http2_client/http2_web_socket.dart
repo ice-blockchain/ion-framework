@@ -6,9 +6,9 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:http2/http2.dart';
-import 'package:ion_token_analytics/src/http2_web_socket/http2_connection.dart';
-import 'package:ion_token_analytics/src/http2_web_socket/web_socket_exceptions.dart';
-import 'package:ion_token_analytics/src/http2_web_socket/web_socket_message.dart';
+import 'package:ion_token_analytics/src/http2_client/http2_connection.dart';
+import 'package:ion_token_analytics/src/http2_client/models/http2_web_socket_message.dart';
+import 'package:ion_token_analytics/src/http2_client/web_socket_exceptions.dart';
 
 // WebSocket protocol constants (RFC 6455)
 class _WebSocketConstants {
@@ -69,6 +69,7 @@ class Http2WebSocket {
   ///
   /// The [connection] must be an active HTTP/2 connection.
   /// The [path] specifies the WebSocket endpoint (defaults to '/').
+  /// The [queryParameters] can be provided to append to the path.
   /// Additional [headers] can be provided for custom values.
   ///
   /// Example:
@@ -77,23 +78,34 @@ class Http2WebSocket {
   /// final ws = await Http2WebSocket.fromHttp2Connection(
   ///   connection,
   ///   path: '/api/stream',
+  ///   queryParameters: {'channel': 'updates'},
   ///   headers: {'authorization': 'Bearer token'},
   /// );
   /// ```
   static Future<Http2WebSocket> fromHttp2Connection(
     Http2Connection connection, {
     String path = '/',
+    Map<String, dynamic>? queryParameters,
     Map<String, String>? headers,
   }) async {
     try {
       final wsKey = _generateWebSocketKey();
+
+      // Build the full path with query parameters
+      var fullPath = path.isEmpty ? '/' : path;
+      if (queryParameters != null && queryParameters.isNotEmpty) {
+        final queryString = queryParameters.entries
+            .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value.toString())}')
+            .join('&');
+        fullPath = '$fullPath?$queryString';
+      }
 
       // Build extended CONNECT request headers (RFC 8441)
       final requestHeaders = [
         Header.ascii(':method', 'CONNECT'),
         Header.ascii(':protocol', 'websocket'),
         Header.ascii(':scheme', connection.scheme),
-        Header.ascii(':path', path.isEmpty ? '/' : path),
+        Header.ascii(':path', fullPath),
         Header.ascii(':authority', connection.host),
         Header.ascii('sec-websocket-version', _WebSocketConstants.webSocketVersion),
         Header.ascii('sec-websocket-key', wsKey),
@@ -228,8 +240,8 @@ class Http2WebSocket {
     completer.complete(ws);
   }
 
-  final StreamController<WebSocketMessage> _controller =
-      StreamController<WebSocketMessage>.broadcast();
+  final StreamController<Http2WebSocketMessage> _controller =
+      StreamController<Http2WebSocketMessage>.broadcast();
   final ClientTransportStream _requestStream;
   final StreamSubscription<StreamMessage> _subscription;
   bool _closed = false;
@@ -238,7 +250,7 @@ class Http2WebSocket {
   ///
   /// Listen to this stream to receive both text and binary messages.
   /// Each message includes metadata about its type.
-  Stream<WebSocketMessage> get stream => _controller.stream;
+  Stream<Http2WebSocketMessage> get stream => _controller.stream;
 
   /// Sends a text message over the WebSocket connection.
   ///
@@ -378,9 +390,9 @@ class Http2WebSocket {
   ///
   /// Takes the raw [frame] bytes and extracts the payload data, handling masking,
   /// extended length encoding, and compression. Server-to-client frames are typically
-  /// unmasked. Returns a [WebSocketMessage] for text/binary frames, or null for
+  /// unmasked. Returns a [Http2WebSocketMessage] for text/binary frames, or null for
   /// control frames. Automatically handles ping/pong, close frames, and decompression.
-  WebSocketMessage? _parseFrame(Uint8List frame) {
+  Http2WebSocketMessage? _parseFrame(Uint8List frame) {
     if (frame.length < 2) {
       throw const WebSocketFrameTooShortException();
     }
@@ -463,21 +475,21 @@ class Http2WebSocket {
 
   /// Processes a WebSocket frame based on its opcode.
   ///
-  /// Returns appropriate [WebSocketMessage] for data frames,
+  /// Returns appropriate [Http2WebSocketMessage] for data frames,
   /// handles control frames (ping, pong, close), and returns null
   /// when no message should be emitted to the stream.
-  WebSocketMessage? _processFrameByOpcode(int opcode, Uint8List payload) {
+  Http2WebSocketMessage? _processFrameByOpcode(int opcode, Uint8List payload) {
     switch (opcode) {
       case _WebSocketConstants.opcodeText:
         try {
           final text = utf8.decode(payload);
-          return WebSocketMessage(type: WebSocketMessageType.text, data: text);
+          return Http2WebSocketMessage(type: WebSocketMessageType.text, data: text);
         } catch (e, stackTrace) {
           throw WebSocketDecodingException('$e\n$stackTrace');
         }
 
       case _WebSocketConstants.opcodeBinary:
-        return WebSocketMessage(type: WebSocketMessageType.binary, data: payload);
+        return Http2WebSocketMessage(type: WebSocketMessageType.binary, data: payload);
 
       case _WebSocketConstants.opcodeClose:
         close();

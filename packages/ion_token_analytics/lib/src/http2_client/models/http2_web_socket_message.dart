@@ -9,10 +9,10 @@ enum WebSocketMessageType {
   binary,
 }
 
-/// A message received from a WebSocket connection.
-class WebSocketMessage {
-  /// Creates a WebSocket message.
-  const WebSocketMessage({required this.type, required this.data});
+/// A message received from an HTTP/2 WebSocket connection.
+class Http2WebSocketMessage {
+  /// Creates an HTTP/2 WebSocket message.
+  const Http2WebSocketMessage({required this.type, required this.data});
 
   /// The type of the message (text or binary).
   final WebSocketMessageType type;
