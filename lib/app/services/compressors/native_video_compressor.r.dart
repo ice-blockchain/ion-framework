@@ -11,6 +11,7 @@ import 'package:ion/app/services/compressors/output_path_generator.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/media_service/video_info_service.r.dart';
+import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'native_video_compressor.r.g.dart';
@@ -134,6 +135,18 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
       Logger.error(
         error,
         stackTrace: stackTrace,
+      );
+
+      final context = <String, dynamic>{
+        'compression_codec': settings?.codec,
+        'compression_quality': settings?.quality,
+        'compression_max_dimension': settings?.height,
+      };
+      await SentryService.logException(
+        error,
+        stackTrace: stackTrace,
+        tag: 'native_video_compression_error',
+        debugContext: context,
       );
       rethrow;
     } finally {

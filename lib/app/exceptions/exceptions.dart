@@ -149,7 +149,12 @@ class EntityNotFoundException extends IONException {
 }
 
 class CompressVideoException extends IONException {
-  CompressVideoException(dynamic error) : super(10029, 'Failed to compress video: $error');
+  CompressVideoException(
+    dynamic error, {
+    this.context,
+  }) : super(10029, 'Failed to compress video: $error');
+
+  final Map<String, dynamic>? context;
 }
 
 class CompressAudioException extends IONException {
@@ -161,7 +166,12 @@ class CompressAudioToWavException extends IONException {
 }
 
 class ExtractThumbnailException extends IONException {
-  ExtractThumbnailException(dynamic error) : super(10032, 'Failed to extract thumbnail: $error');
+  ExtractThumbnailException(
+    dynamic error, {
+    this.context,
+  }) : super(10032, 'Failed to extract thumbnail: $error');
+
+  final Map<String, dynamic>? context;
 }
 
 class CompressWithBrotliException extends IONException {
