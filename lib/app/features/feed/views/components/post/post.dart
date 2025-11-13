@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
 import 'package:ion/app/components/counter_items_footer/counter_items_footer.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
@@ -15,9 +16,9 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/article/article.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_entity_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/user_info_menu_bottom_sheet.dart';
 import 'package:ion/app/features/feed/views/components/deleted_entity/deleted_entity.dart';
-import 'package:ion/app/features/feed/views/components/overlay_menu/own_entity_menu.dart';
-import 'package:ion/app/features/feed/views/components/overlay_menu/user_info_menu.dart';
 import 'package:ion/app/features/feed/views/components/post/components/post_body/post_body.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/feed/views/components/quoted_entity_frame/quoted_entity_frame.dart';
@@ -41,7 +42,7 @@ class Post extends ConsumerWidget {
     this.footer,
     this.quotedEventFooter,
     this.onDelete,
-    this.accentTheme = false,
+    this.isAccentTheme = false,
     this.isTextSelectable = false,
     this.showNotInterested = true,
     this.network = true,
@@ -55,7 +56,7 @@ class Post extends ConsumerWidget {
 
   final EventReference eventReference;
   final EventReference? repostEventReference;
-  final bool accentTheme;
+  final bool isAccentTheme;
   final bool displayQuote;
   final bool displayParent;
   final double? topOffset;
@@ -94,7 +95,7 @@ class Post extends ConsumerWidget {
     if (entity == null) {
       return ScreenSideOffset.small(
         child: Skeleton(
-          child: PostSkeleton(color: accentTheme ? Colors.white.withValues(alpha: 0.1) : null),
+          child: PostSkeleton(color: isAccentTheme ? Colors.white.withValues(alpha: 0.1) : null),
         ),
       );
     }
@@ -118,7 +119,7 @@ class Post extends ConsumerWidget {
           entity: entity,
           maxLines: bodyMaxLines,
           onVideoTap: onVideoTap,
-          accentTheme: accentTheme,
+          accentTheme: isAccentTheme,
           isTextSelectable: isTextSelectable,
           framedEventReference: repostEventReference ?? quotedEventReference,
           plainInlineStyles: plainInlineStyles,
@@ -126,7 +127,7 @@ class Post extends ConsumerWidget {
         if (displayQuote && quotedEventReference != null)
           ScreenSideOffset.small(
             child: _QuotedEvent(
-              accentTheme: accentTheme,
+              accentTheme: isAccentTheme,
               eventReference: quotedEventReference,
               footer: quotedEventFooter,
             ),
@@ -141,9 +142,9 @@ class Post extends ConsumerWidget {
         if (isParentShown) ...[
           SizedBox(height: topOffset ?? 12.0.s),
           _ParentEvent(
-            accentTheme: accentTheme,
+            accentTheme: isAccentTheme,
             eventReference: parentEventReference,
-            header: accentTheme && header != null ? header : null,
+            header: isAccentTheme && header != null ? header : null,
           ),
         ],
         header ??
@@ -153,28 +154,27 @@ class Post extends ConsumerWidget {
               createdAt:
                   entity is ModifiablePostEntity ? entity.data.publishedAt.value : entity.createdAt,
               timeFormat: timeFormat,
-              textStyle: accentTheme
+              textStyle: isAccentTheme
                   ? context.theme.appTextThemes.caption.copyWith(
                       color: context.theme.appColors.onPrimaryAccent,
                     )
                   : null,
-              trailing: isOwnedByCurrentUser
-                  ? OwnEntityMenu(
-                      eventReference: eventReference,
-                      onDelete: onDelete,
-                      padding: EdgeInsetsGeometry.symmetric(
-                        horizontal: ScreenSideOffset.defaultSmallMargin,
-                        vertical: 5.0.s,
+              trailing: BottomSheetMenuButton(
+                menuBuilder: (context) => isOwnedByCurrentUser
+                    ? OwnEntityMenuBottomSheet(
+                        eventReference: eventReference,
+                        onDelete: onDelete,
+                      )
+                    : UserInfoMenuBottomSheet(
+                        eventReference: eventReference,
+                        showNotInterested: showNotInterested,
                       ),
-                    )
-                  : UserInfoMenu(
-                      eventReference: eventReference,
-                      showNotInterested: showNotInterested,
-                      padding: EdgeInsetsGeometry.symmetric(
-                        horizontal: ScreenSideOffset.defaultSmallMargin,
-                        vertical: 5.0.s,
-                      ),
-                    ),
+                isAccentTheme: isAccentTheme,
+                padding: EdgeInsetsGeometry.symmetric(
+                  horizontal: ScreenSideOffset.defaultSmallMargin,
+                  vertical: 5.0.s,
+                ),
+              ),
               padding: EdgeInsetsDirectional.only(
                 start: ScreenSideOffset.defaultSmallMargin,
                 top: isParentShown ? 0 : (topOffset ?? 12.0.s),
@@ -375,7 +375,7 @@ final class _QuotedPost extends ConsumerWidget {
         },
         child: AbsorbPointer(
           child: Post(
-            accentTheme: accentTheme,
+            isAccentTheme: accentTheme,
             eventReference: eventReference,
             displayQuote: false,
             header: UserInfo(
@@ -450,7 +450,7 @@ final class _ParentPost extends StatelessWidget {
         header: header,
         headerOffset: 0,
         displayParent: true,
-        accentTheme: accentTheme,
+        isAccentTheme: accentTheme,
         eventReference: eventReference,
         contentWrapper: (content) {
           return ParentDottedLine(
