@@ -4,7 +4,7 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('WebSocket', () {
+  group('Http2WebSocket', () {
     test('connects to a relay and receives response', () async {
       Http2Connection? connection;
       Http2WebSocket? websocket;
