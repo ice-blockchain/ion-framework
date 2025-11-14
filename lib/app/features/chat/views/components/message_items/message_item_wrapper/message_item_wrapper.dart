@@ -10,7 +10,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/chat_medias_provider.r.dart';
-import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_reaction_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/shared_post_message_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
@@ -20,6 +19,7 @@ import 'package:ion/app/features/chat/recent_chats/providers/money_message_provi
 import 'package:ion/app/features/chat/recent_chats/providers/selected_reply_message_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_item_wrapper/swipeable_message.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reaction_dialog/message_reaction_dialog.dart';
+import 'package:ion/app/features/chat/views/components/message_items/message_reactions/optimistic_ui/message_reactions_provider.r.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
@@ -93,19 +93,12 @@ class MessageItemWrapper extends HookConsumerWidget {
                 ReplaceablePrivateDirectMessageEntity.fromEventMessage(messageItem.eventMessage)
                     .toEventReference();
             final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
-            final isExist = await ref.read(conversationMessageReactionDaoProvider).isReactionExist(
-                  messageEventReference: messageEventReference,
-                  emoji: emoji,
-                  masterPubkey: currentUserMasterPubkey!,
-                );
 
-            if (!isExist) {
-              final e2eeReactionService = await ref.read(sendE2eeReactionServiceProvider.future);
-              await e2eeReactionService.sendReaction(
-                content: emoji,
-                kind14Rumor: messageItem.eventMessage,
-              );
-            }
+            await ref.read(toggleReactionNotifierProvider.notifier).toggleReactionIfMissing(
+                  emoji: emoji,
+                  eventReference: messageEventReference,
+                  currentUserMasterPubkey: currentUserMasterPubkey!,
+                );
           }
         } catch (e, st) {
           Logger.log('Error showing message reaction dialog:', error: e, stackTrace: st);

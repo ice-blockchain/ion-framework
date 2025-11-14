@@ -71,7 +71,7 @@ class ConversationMessageReactionDao extends DatabaseAccessor<ChatDatabase>
         // Remove reactions
         ..deleteWhere(
           reactionTable,
-          (table) => table.messageEventReference.isInValues(eventReferences),
+          (table) => table.reactionEventReference.isInValues(eventReferences),
         );
     });
   }

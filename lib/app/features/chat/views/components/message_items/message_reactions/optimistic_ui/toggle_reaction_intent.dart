@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion/app/features/chat/model/message_reaction.f.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/optimistic_ui/model/optimistic_message_reactions.f.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_intent.dart';
 
@@ -25,6 +26,12 @@ final class ToggleReactionIntent implements OptimisticIntent<OptimisticMessageRe
 
       return reaction.copyWith(masterPubkeys: updatedPubkeys);
     }).toList();
+
+    // Check if emoji not found in existing reactions (new reaction)
+    final emojiExists = current.reactions.any((r) => r.emoji == emoji);
+    if (!emojiExists) {
+      reactions.add(MessageReaction(emoji: emoji, masterPubkeys: [currentMasterPubkey]));
+    }
 
     return current.copyWith(reactions: reactions);
   }
