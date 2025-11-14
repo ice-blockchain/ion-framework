@@ -12,6 +12,8 @@ import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
+import 'package:ion/app/features/ion_connect/services/entity_serialization_worker.dart';
+import 'package:ion/app/features/ion_connect/services/shared_ion_connect_isolate.dart';
 import 'package:ion/app/utils/directory.dart';
 import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -61,25 +63,25 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
   Future<void> saveEntity(DbCacheableEntity entity) async {
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
-    final cacheKey = entity.toEventReference().toString();
-    final eventMessage = await entity.toEntityEventMessage();
+    // Use shared isolate for serialization
+    final result = await sharedIonConnectIsolate.compute(
+      serializeEntityFn,
+      entity,
+    );
 
-    await cacheService.save((cacheKey: cacheKey, eventMessage: eventMessage));
+    await cacheService.save(result);
   }
 
   Future<void> saveAllEntities(List<DbCacheableEntity> entities) async {
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
 
-    final valuesFutures = entities.map((e) async {
-      final cacheKey = e.toEventReference().toString();
-      final eventMessage = await e.toEntityEventMessage();
+    // Use shared isolate for batch serialization
+    final result = await sharedIonConnectIsolate.compute(
+      serializeEntitiesFn,
+      entities,
+    );
 
-      return (cacheKey: cacheKey, eventMessage: eventMessage);
-    }).toList();
-
-    final values = await Future.wait(valuesFutures);
-
-    await cacheService.saveAll(values);
+    await cacheService.saveAll(result);
   }
 
   Future<IonConnectEntity?> get(

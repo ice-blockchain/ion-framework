@@ -3,9 +3,11 @@
 import 'package:ion_connect_cache/src/models/database_cache_entry.dart';
 import 'package:nostr_dart/nostr_dart.dart';
 
+typedef IonConnectCacheServiceEntity = ({String cacheKey, EventMessage eventMessage});
+
 abstract class IonConnectCacheService {
-  Future<EventMessage?> save(({String cacheKey, EventMessage eventMessage}) value);
-  Future<List<EventMessage>> saveAll(List<({String cacheKey, EventMessage eventMessage})> values);
+  Future<EventMessage?> save(IonConnectCacheServiceEntity value);
+  Future<List<EventMessage>> saveAll(List<IonConnectCacheServiceEntity> values);
 
   Future<DatabaseCacheEntry?> get(String cacheKey);
   Future<List<DatabaseCacheEntry>> getAllFiltered({
