@@ -57,6 +57,29 @@ class VideoInfoService {
 
     return (width: width, height: height, duration: duration, bitrate: bitrate);
   }
+
+  Future<String?> getVideoCodec(String videoPath) async {
+    try {
+      final infoSession = await FFprobeKit.getMediaInformation(videoPath);
+      final info = infoSession.getMediaInformation();
+      if (info == null) {
+        return null;
+      }
+      final streams = info.getStreams();
+      if (streams.isEmpty) {
+        return null;
+      }
+
+      final videoStream = streams.firstWhere(
+        (s) => s.getType() == 'video',
+        orElse: () => throw Exception('No video stream found'),
+      );
+
+      return videoStream.getCodec();
+    } catch (e) {
+      return null;
+    }
+  }
 }
 
 @Riverpod(keepAlive: true)
