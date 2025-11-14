@@ -186,6 +186,8 @@ class Auth extends _$Auth {
     if (currentUser != null && currentUser != identityKeyName) {
       ref.read(userSwitchProvider.notifier).trigger();
       await Future<void>.delayed(const Duration(milliseconds: 300));
+    } else {
+      _isNewUserFlowActive = false;
     }
 
     await ref

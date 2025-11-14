@@ -53,6 +53,20 @@ class IntroPage extends HookConsumerWidget {
               ),
             ),
           PositionedDirectional(
+            top: MediaQuery.paddingOf(context).top + 16.0.s,
+            end: 16.0.s,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => SwitchAccountAuthRoute().go(context),
+              child: Container(
+                padding: EdgeInsets.all(8.0.s),
+                child: Assets.svg.iconSwitchProfile.icon(
+                  size: 24.0.s,
+                ),
+              ),
+            ),
+          ),
+          PositionedDirectional(
             start: 40.0.s,
             end: 40.0.s,
             bottom: MediaQuery.paddingOf(context).bottom + 46.0.s,
