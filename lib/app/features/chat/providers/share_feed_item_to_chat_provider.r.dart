@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -11,6 +12,7 @@ import 'package:ion/app/features/chat/community/models/entities/tags/master_pubk
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/chat/model/participiant_keys.f.dart';
 import 'package:ion/app/features/chat/providers/conversation_pubkeys_provider.r.dart';
 import 'package:ion/app/features/chat/providers/exist_chat_conversation_id_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -22,7 +24,6 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
-import 'package:ion/app/services/uuid/generate_conversation_id.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'share_feed_item_to_chat_provider.r.g.dart';
@@ -148,16 +149,12 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
       throw UserMasterPubkeyNotFoundException();
     }
 
-    final participantsMasterPubkeys = [masterPubkey, currentUserMasterPubkey];
+    final participantsMasterPubkeys =
+        ParticipantKeys(keys: [masterPubkey, currentUserMasterPubkey].sorted());
 
-    final existingConversationId =
-        await ref.read(existChatConversationIdProvider(participantsMasterPubkeys).future);
-
-    final conversationId = existingConversationId ??
-        generateConversationId(
-          conversationType: ConversationType.oneToOne,
-          receiverMasterPubkeys: [masterPubkey, currentUserMasterPubkey],
-        );
+    final conversationId = await ref.read(
+      existChatConversationIdProvider(participantsMasterPubkeys).future,
+    );
 
     final tags = [
       MasterPubkeyTag(value: currentUserMasterPubkey).toTag(),
@@ -188,14 +185,14 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
     final conversationPubkeysNotifier = ref.read(conversationPubkeysProvider.notifier);
 
     final participantsKeysMap =
-        await conversationPubkeysNotifier.fetchUsersKeys(participantsMasterPubkeys);
+        await conversationPubkeysNotifier.fetchUsersKeys(participantsMasterPubkeys.keys);
 
     await ref.read(eventMessageDaoProvider).add(kind16Rumor);
 
     final kind16Entity = GenericRepostEntity.fromEventMessage(kind16Rumor);
 
     await Future.wait(
-      participantsMasterPubkeys.map(
+      participantsMasterPubkeys.keys.map(
         (masterPubkey) async {
           final pubkeys = participantsKeysMap[masterPubkey];
 
@@ -222,7 +219,7 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
     await ref.read(sendE2eeChatMessageServiceProvider).sendMessage(
           content: '',
           conversationId: conversationId,
-          participantsMasterPubkeys: participantsMasterPubkeys,
+          participantsMasterPubkeys: participantsMasterPubkeys.keys,
           quotedEventKind: quotedEventKind,
           quotedEvent: QuotedImmutableEvent(
             eventReference: ImmutableEventReference(
