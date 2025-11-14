@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_entity_helper.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
@@ -46,7 +47,10 @@ class NotificationItem extends HookConsumerWidget {
     }
 
     final isHidden = eventReference != null &&
-        (entity == null || _isDeleted(ref, entity) || _isRepostedEntityDeleted(ref, entity));
+        (entity == null ||
+            _isDeleted(ref, entity) ||
+            _isRepostedEntityDeleted(ref, entity) ||
+            ListEntityHelper.isUserBlockedOrBlocking(context, ref, entity));
 
     useEffect(
       () {

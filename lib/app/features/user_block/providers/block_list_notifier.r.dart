@@ -150,3 +150,12 @@ bool isEntityBlockedOrBlockedBy(Ref ref, IonConnectEntity entity) {
 
   return false;
 }
+
+@riverpod
+Iterable<String> blockedUsersPubkeysSelector(Ref ref) =>
+    ref
+        .watch(currentUserBlockListNotifierProvider)
+        .valueOrNull
+        ?.map((blockUser) => blockUser.data.blockedMasterPubkeys)
+        .expand((pubkey) => pubkey) ??
+    [];
