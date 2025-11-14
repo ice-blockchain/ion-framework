@@ -30,6 +30,7 @@ enum EnvVariable {
   RELAY_PING_INTERVAL_DURATION,
   CHECKSUM,
   FEED_MIN_VISIBLE_ARTICLE_CATEGORIES_NUMBER,
+  ENFORCE_ACCOUNT_SECURITY_DELAY_IN_MINUTES,
   ACCOUNT_NOTIFICATION_SETTINGS_SYNC_INTERVAL_MINUTES,
   AF_APP_ID,
   AF_ONE_LINK_TEMPLATE_ID,
@@ -96,6 +97,12 @@ class Env extends _$Env {
       EnvVariable.FEED_MIN_VISIBLE_ARTICLE_CATEGORIES_NUMBER => const int.fromEnvironment(
           'FEED_MIN_VISIBLE_ARTICLE_CATEGORIES_NUMBER',
           defaultValue: 5,
+        ) as T,
+      EnvVariable.ENFORCE_ACCOUNT_SECURITY_DELAY_IN_MINUTES => const Duration(
+          minutes: int.fromEnvironment(
+            'ENFORCE_ACCOUNT_SECURITY_DELAY_IN_MINUTES',
+            defaultValue: 1440,
+          ),
         ) as T,
       EnvVariable.ACCOUNT_NOTIFICATION_SETTINGS_SYNC_INTERVAL_MINUTES => const Duration(
           minutes: int.fromEnvironment(
