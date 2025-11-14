@@ -34,6 +34,7 @@ class MuteSetEntity with IonConnectEntity, CacheableEntity, ReplaceableEntity, _
     required String signature,
     required int createdAt,
     required MuteSetData data,
+    EventMessage? eventMessage,
   }) = _MuteSetEntity;
 
   const MuteSetEntity._();
@@ -51,6 +52,7 @@ class MuteSetEntity with IonConnectEntity, CacheableEntity, ReplaceableEntity, _
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: MuteSetData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

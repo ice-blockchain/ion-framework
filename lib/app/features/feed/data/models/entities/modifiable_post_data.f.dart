@@ -51,6 +51,7 @@ class ModifiablePostEntity
     required String signature,
     required int createdAt,
     required ModifiablePostData data,
+    EventMessage? eventMessage,
   }) = _ModifiablePostEntity;
 
   const ModifiablePostEntity._();
@@ -68,6 +69,7 @@ class ModifiablePostEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: ModifiablePostData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 
@@ -80,7 +82,7 @@ class ModifiablePostEntity
   bool get isStory => data.expiration != null;
 
   @override
-  FutureOr<EventMessage> toEntityEventMessage() => toEventMessage(data);
+  FutureOr<EventMessage> toEntityEventMessage() => eventMessage ?? toEventMessage(data);
 }
 
 @freezed

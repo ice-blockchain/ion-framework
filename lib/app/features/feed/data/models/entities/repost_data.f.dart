@@ -23,6 +23,7 @@ class RepostEntity with _$RepostEntity, IonConnectEntity, ImmutableEntity, Cache
     required String signature,
     required int createdAt,
     required RepostData data,
+    EventMessage? eventMessage,
   }) = _RepostEntity;
 
   const RepostEntity._();
@@ -40,6 +41,7 @@ class RepostEntity with _$RepostEntity, IonConnectEntity, ImmutableEntity, Cache
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: RepostData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 
