@@ -10,10 +10,12 @@ import 'package:ion/app/extensions/theme_data.dart';
 class BottomSheetMenuContent extends StatelessWidget {
   const BottomSheetMenuContent({
     required this.groups,
+    this.headerButtons,
     super.key,
   });
 
   final List<List<Widget>> groups;
+  final List<Widget>? headerButtons;
 
   @override
   Widget build(BuildContext context) {
@@ -22,20 +24,29 @@ class BottomSheetMenuContent extends StatelessWidget {
         padding: EdgeInsetsDirectional.fromSTEB(16.0.s, 24.0.s, 16.0.s, 16.0.s),
         child: Column(
           spacing: 12.5.s,
-          children: groups
-              .map(
-                (groupMenuItems) => DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: context.theme.appColors.tertiaryBackground,
-                    borderRadius: BorderRadius.circular(16.0.s),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: groupMenuItems.separated(const HorizontalSeparator()).toList(),
-                  ),
+          children: [
+            if (headerButtons != null)
+              Row(
+                spacing: 12.0.s,
+                children: headerButtons!
+                    .map(
+                      (button) => Expanded(child: button),
+                    )
+                    .toList(),
+              ),
+            ...groups.map(
+              (groupMenuItems) => DecoratedBox(
+                decoration: BoxDecoration(
+                  color: context.theme.appColors.tertiaryBackground,
+                  borderRadius: BorderRadius.circular(16.0.s),
                 ),
-              )
-              .toList(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: groupMenuItems.separated(const HorizontalSeparator()).toList(),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
