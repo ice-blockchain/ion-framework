@@ -1,4 +1,4 @@
-# melos_managed_dependency_overrides: ion_identity_client,js,ion_lint_rules
+# melos_managed_dependency_overrides: ion_identity_client,ion_token_analytics,js,ion_lint_rules
 dependency_overrides:
   analyzer_plugin: ^0.13.1
   flutter_quill:

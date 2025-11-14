@@ -2,10 +2,7 @@
 
 import 'dart:math';
 
-import 'package:ion_token_analytics/src/community_tokens/token_info/models/addresses.dart';
-import 'package:ion_token_analytics/src/community_tokens/token_info/models/community_token.dart';
-import 'package:ion_token_analytics/src/community_tokens/token_info/models/creator.dart';
-import 'package:ion_token_analytics/src/community_tokens/token_info/models/market_data.dart';
+import 'package:ion_token_analytics/src/community_tokens/token_info/models/models.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 

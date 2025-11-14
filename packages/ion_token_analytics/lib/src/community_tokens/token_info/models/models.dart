@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
-export 'addresses.dart';
-export 'community_token.dart';
-export 'creator.dart';
-export 'market_data.dart';
-export 'position.dart';
+export 'addresses.f.dart';
+export 'community_token.f.dart';
+export 'creator.f.dart';
+export 'market_data.f.dart';
+export 'position.f.dart';

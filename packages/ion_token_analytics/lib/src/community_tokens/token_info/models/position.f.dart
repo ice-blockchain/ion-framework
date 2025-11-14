@@ -2,8 +2,8 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'position.freezed.dart';
-part 'position.g.dart';
+part 'position.f.freezed.dart';
+part 'position.f.g.dart';
 
 @freezed
 class Position with _$Position {

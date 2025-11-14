@@ -2,8 +2,8 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'creator.freezed.dart';
-part 'creator.g.dart';
+part 'creator.f.freezed.dart';
+part 'creator.f.g.dart';
 
 @freezed
 class Creator with _$Creator {
