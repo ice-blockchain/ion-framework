@@ -10,6 +10,7 @@ class SettingsRoutes {
     TypedGoRoute<PushNotificationsSettingsRoute>(path: 'push-notifications-settings'),
     TypedGoRoute<AppLanguagesRoute>(path: 'app-language'),
     TypedGoRoute<ContentLanguagesRoute>(path: 'content-language'),
+    TypedGoRoute<RelaySelectionRoute>(path: 'relay-selection'),
     TypedGoRoute<BlockedUsersRoute>(path: 'blocked-users'),
     TypedGoRoute<ConfirmLogoutRoute>(path: 'confirm-logout'),
     TypedGoRoute<DelegateAccessRoute>(path: 'delegate-access'),
@@ -40,6 +41,14 @@ class ContentLanguagesRoute extends BaseRouteData with _$ContentLanguagesRoute {
   ContentLanguagesRoute()
       : super(
           child: const ContentLanguageModal(),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class RelaySelectionRoute extends BaseRouteData with _$RelaySelectionRoute {
+  RelaySelectionRoute()
+      : super(
+          child: const RelaySelectionModal(),
           type: IceRouteType.bottomSheet,
         );
 }

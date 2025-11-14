@@ -10,15 +10,19 @@ import 'package:ion/app/components/separated/separated_column.dart';
 import 'package:ion/app/constants/links.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/app_info_provider.r.dart';
 import 'package:ion/app/features/core/providers/contact_support_notifier.r.dart';
+import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/settings/model/settings_action.dart';
+import 'package:ion/app/features/settings/providers/selected_relay_provider.r.dart';
 import 'package:ion/app/hooks/use_pop_if_returned_null.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/browser/browser.dart';
+import 'package:ion/generated/assets.gen.dart';
 
 class SettingsModal extends HookConsumerWidget {
   const SettingsModal({super.key});
@@ -26,6 +30,10 @@ class SettingsModal extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pubkey = ref.watch(currentPubkeySelectorProvider) ?? '';
+    final isRelaySelectionEnabled = ref
+        .watch(featureFlagsProvider.notifier)
+        .get(RelaySelectionFeatureFlag.relaySelectionEnabled);
+    final selectedRelay = ref.watch(selectedRelayProvider);
 
     final popIfNull = usePopIfReturnedNull<bool>();
 
@@ -70,6 +78,24 @@ class SettingsModal extends HookConsumerWidget {
                       icon: option.getIcon(context),
                       label: option.getLabel(context),
                       onTap: getOnPressed(option),
+                    ),
+                  if (isRelaySelectionEnabled)
+                    ModalActionButton(
+                      icon: Assets.svg.iconSettingsAutoplay.icon(
+                        color: context.theme.appColors.primaryAccent,
+                      ),
+                      label: 'Relay Selection',
+                      value: selectedRelay != null
+                          ? Text(
+                              selectedRelay!,
+                              style: context.theme.appTextThemes.caption.copyWith(
+                                color: context.theme.appColors.primaryAccent,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            )
+                          : null,
+                      onTap: () => popIfNull(() => RelaySelectionRoute().push<bool>(context)),
                     ),
                   const _AppInfoWidget(),
                 ],

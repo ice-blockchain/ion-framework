@@ -115,6 +115,7 @@ import 'package:ion/app/features/settings/views/delegate_user_selected_modal.dar
 import 'package:ion/app/features/settings/views/logout_confirm_modal.dart';
 import 'package:ion/app/features/settings/views/privacy_settings_modal.dart';
 import 'package:ion/app/features/settings/views/push_notifications_settings.dart';
+import 'package:ion/app/features/settings/views/relay_selection_modal.dart';
 import 'package:ion/app/features/settings/views/select_delegate_user_modal.dart';
 import 'package:ion/app/features/settings/views/settings_modal.dart';
 import 'package:ion/app/features/settings/views/switch_user_account_modal.dart';

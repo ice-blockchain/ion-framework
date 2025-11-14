@@ -407,8 +407,12 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       throw EventSignerNotFoundException();
     }
 
+    // Nostr protocol expects timestamps in seconds, not microseconds
+    final createdAtSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
     return entityData.toEventMessage(
       eventSigner,
+      createdAt: createdAtSeconds,
       tags: [
         if (includeMasterPubkey) MasterPubkeyTag(value: mainWallet.signingKey.publicKey).toTag(),
       ],
@@ -436,9 +440,12 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     final createdAt = DateTime.now();
     final masterPubkey = mainWallet.signingKey.publicKey;
 
+    // Nostr protocol expects timestamps in seconds, not microseconds
+    final createdAtSeconds = createdAt.millisecondsSinceEpoch ~/ 1000;
+
     final eventId = EventMessage.calculateEventId(
       publicKey: masterPubkey,
-      createdAt: createdAt.microsecondsSinceEpoch,
+      createdAt: createdAtSeconds,
       kind: kind,
       tags: tags,
       content: '',
@@ -464,7 +471,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     return EventMessage(
       id: eventId,
       pubkey: masterPubkey,
-      createdAt: createdAt.microsecondsSinceEpoch,
+      createdAt: createdAtSeconds,
       kind: kind,
       tags: tags,
       content: '',

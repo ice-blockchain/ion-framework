@@ -26,6 +26,9 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_cont
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_posts_list/feed_posts_list.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/stories.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/trending_videos.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/settings/providers/selected_relay_follow_lists_provider.r.dart';
+import 'package:ion/app/features/settings/providers/test_follow_list_provider.r.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -35,6 +38,7 @@ class FeedPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final followLists = ref.watch(selectedRelayFollowListsProvider);
     final feedCategory = ref.watch(feedCurrentFilterProvider.select((state) => state.category));
     final hasMorePosts = ref.watch(feedPostsProvider.select((state) => state.hasMore)).falseOrValue;
     final showTrendingVideosFeatureFlag = useRef(
@@ -64,6 +68,8 @@ class FeedPage extends HookConsumerWidget {
           const FeedNotificationsButton(),
           SizedBox(width: 12.0.s),
           FeedFiltersMenuButton(scrollController: scrollController),
+          SizedBox(width: 12.0.s),
+          _DebugTestFollowButton(),
         ],
         scrollController: scrollController,
         horizontalPadding: ScreenSideOffset.defaultSmallMargin,
@@ -127,5 +133,64 @@ class FeedPage extends HookConsumerWidget {
       ref.read(feedStoriesProvider.notifier).refresh();
       ref.read(currentUserFeedStoryProvider.notifier).refresh();
     }
+  }
+}
+
+class _DebugTestFollowButton extends ConsumerWidget {
+  const _DebugTestFollowButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return IconButton(
+      icon: const Icon(Icons.bug_report),
+      tooltip: 'Test NIP-02 Follow List',
+      onPressed: () async {
+        try {
+          // Get a test pubkey from the first event in the follow lists
+          final followLists = await ref.read(selectedRelayFollowListsProvider.future);
+          
+          if (followLists.isEmpty) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('No follow lists found to test with')),
+              );
+            }
+            return;
+          }
+
+          // Use the pubkey from the first event as the test follow target
+          final testPubkey = followLists.first.pubkey;
+          
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Testing follow list with $testPubkey...')),
+            );
+          }
+
+          final result = await ref.read(
+            testFollowListOnSelectedRelayProvider(testPubkey).future,
+          ) as EventMessage?;
+
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  result != null
+                      ? 'Success! Event ID: ${result.id}'
+                      : 'Failed to fetch back event',
+                ),
+                duration: const Duration(seconds: 5),
+              ),
+            );
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: $e')),
+            );
+          }
+        }
+      },
+    );
   }
 }

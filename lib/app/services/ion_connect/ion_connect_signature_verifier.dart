@@ -16,7 +16,7 @@ class IonConnectSignatureVerifier extends SchnorrSignatureVerifier {
   }) async {
     final result = await sharedCoreIsolate.compute(
       ionConnectSignatureVerifierFn,
-      (signature: signature, message: message, publicKey: publicKey, fallbackVerifier: this),
+      (signature: signature, message: message, publicKey: publicKey, fallbackVerifier: SchnorrSignatureVerifier()),
     );
     return result;
   }

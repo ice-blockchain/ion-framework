@@ -48,3 +48,9 @@ final class DelegateAccessFeatureFlag extends FeatureFlag {
 
   static const delegateAccessEnabled = DelegateAccessFeatureFlag._(key: 'delegateAccessEnabled');
 }
+
+final class RelaySelectionFeatureFlag extends FeatureFlag {
+  const RelaySelectionFeatureFlag._({required super.key});
+
+  static const relaySelectionEnabled = RelaySelectionFeatureFlag._(key: 'relaySelectionEnabled');
+}
