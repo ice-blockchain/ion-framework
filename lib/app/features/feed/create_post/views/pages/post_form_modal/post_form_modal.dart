@@ -189,6 +189,7 @@ class PostFormModal extends HookConsumerWidget {
       mediaFiles: attachedMediaFilesNotifier.value,
       videoFile: attachedVideoNotifier.value,
     );
+    final isBottomSheetShown = useState(false);
 
     ref.watch(mediaNsfwCheckerProvider);
 
@@ -199,13 +200,7 @@ class PostFormModal extends HookConsumerWidget {
     return BackHardwareButtonInterceptor(
       onBackPress: (_) async => textEditorController.document.isEmpty()
           ? context.pop()
-          : await showSimpleBottomSheet<void>(
-              context: context,
-              child: CancelCreationModal(
-                title: context.i18n.cancel_creation_post_title,
-                onCancel: () => Navigator.of(context).pop(),
-              ),
-            ),
+          : _tryShowCancelCreationModal(context, isBottomSheetShown),
       child: SheetContent(
         topPadding: 0,
         body: ShowCaseWidget(
@@ -247,5 +242,23 @@ class PostFormModal extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _tryShowCancelCreationModal(
+    BuildContext context,
+    ValueNotifier<bool> isBottomSheetShown,
+  ) async {
+    if (!isBottomSheetShown.value) {
+      isBottomSheetShown.value = true;
+      await showSimpleBottomSheet<void>(
+        context: context,
+        child: CancelCreationModal(
+          title: context.i18n.cancel_creation_post_title,
+          onCancel: () => Navigator.of(context).pop(),
+        ),
+      );
+
+      isBottomSheetShown.value = false;
+    }
   }
 }
