@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/addresses.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/community_token.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/creator.dart';
@@ -9,52 +11,77 @@ class TokenInfoRepositoryMock implements TokenInfoRepository {
   TokenInfoRepositoryMock(this.client);
 
   final NetworkClient client;
+  static final _random = Random();
 
-  static final List<CommunityToken> _mockTokens = [
-    const CommunityToken(
+  static List<CommunityToken> get _mockTokens => [
+    CommunityToken(
       type: 'community',
       title: 'Mock Community Token',
       description: 'A mock community token for testing and development',
-      imageUrl: 'https://example.com/mock-token.png',
-      addresses: Addresses(blockchain: '0x1234567890abcdef', ionConnect: 'mock_ion_address_1'),
-      creator: Creator(
+      imageUrl: 'https://i.pravatar.cc/150?img=10',
+      addresses: const Addresses(
+        blockchain: '0x1234567890abcdef',
+        ionConnect: 'mock_ion_address_1',
+      ),
+      creator: const Creator(
         name: 'mockCreator',
         display: 'Mock Creator',
         verified: true,
         avatar: 'https://i.pravatar.cc/150?img=1',
         ionConnect: 'mock_creator_address',
       ),
-      marketData: MarketData(marketCap: 1847293, volume: 384729, holders: 247, priceUSD: 12.34),
+      marketData: MarketData(
+        marketCap: _random.nextInt(5000000) + 500000,
+        volume: _random.nextInt(1000000) + 100000,
+        holders: _random.nextInt(500) + 50,
+        priceUSD: _random.nextDouble() * 50 + 0.01,
+      ),
     ),
-    const CommunityToken(
+    CommunityToken(
       type: 'community',
       title: 'Test Token 2',
       description: 'Another test token with different market data',
-      imageUrl: 'https://example.com/test-token-2.png',
-      addresses: Addresses(blockchain: '0xfedcba0987654321', ionConnect: 'mock_ion_address_2'),
-      creator: Creator(
+      imageUrl: 'https://i.pravatar.cc/150?img=20',
+      addresses: const Addresses(
+        blockchain: '0xfedcba0987654321',
+        ionConnect: 'mock_ion_address_2',
+      ),
+      creator: const Creator(
         name: 'testCreator',
         display: 'Test Creator',
         verified: false,
         avatar: 'https://i.pravatar.cc/150?img=2',
         ionConnect: 'test_creator_address',
       ),
-      marketData: MarketData(marketCap: 2938475, volume: 592847, holders: 418, priceUSD: 28.91),
+      marketData: MarketData(
+        marketCap: _random.nextInt(5000000) + 500000,
+        volume: _random.nextInt(1000000) + 100000,
+        holders: _random.nextInt(500) + 50,
+        priceUSD: _random.nextDouble() * 50 + 0.01,
+      ),
     ),
-    const CommunityToken(
+    CommunityToken(
       type: 'community',
       title: 'Dev Token',
       description: 'Development token for local testing',
-      imageUrl: 'https://example.com/dev-token.png',
-      addresses: Addresses(blockchain: '0xabcd1234efgh5678', ionConnect: 'mock_ion_address_3'),
-      creator: Creator(
+      imageUrl: 'https://i.pravatar.cc/150?img=30',
+      addresses: const Addresses(
+        blockchain: '0xabcd1234efgh5678',
+        ionConnect: 'mock_ion_address_3',
+      ),
+      creator: const Creator(
         name: 'devCreator',
         display: 'Dev Creator',
         verified: true,
         avatar: 'https://i.pravatar.cc/150?img=3',
         ionConnect: 'dev_creator_address',
       ),
-      marketData: MarketData(marketCap: 829461, volume: 147382, holders: 93, priceUSD: 6.78),
+      marketData: MarketData(
+        marketCap: _random.nextInt(5000000) + 500000,
+        volume: _random.nextInt(1000000) + 100000,
+        holders: _random.nextInt(500) + 50,
+        priceUSD: _random.nextDouble() * 50 + 0.01,
+      ),
     ),
   ];
 
