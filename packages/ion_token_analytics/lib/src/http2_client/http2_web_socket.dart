@@ -71,10 +71,12 @@ class Http2WebSocket {
   /// The [path] specifies the WebSocket endpoint (defaults to '/').
   /// The [queryParameters] can be provided to append to the path.
   /// Additional [headers] can be provided for custom values.
+  /// The [timeout] specifies how long to wait for the handshake (defaults to 30 seconds).
   ///
   /// Example:
   /// ```dart
-  /// final connection = await Http2Connection.connect('example.com');
+  /// final connection = Http2Connection('example.com');
+  /// await connection.connect();
   /// final ws = await Http2WebSocket.fromHttp2Connection(
   ///   connection,
   ///   path: '/api/stream',
@@ -87,6 +89,7 @@ class Http2WebSocket {
     String path = '/',
     Map<String, String>? queryParameters,
     Map<String, String>? headers,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     try {
       final wsKey = _generateWebSocketKey();
@@ -158,7 +161,13 @@ class Http2WebSocket {
         },
       );
 
-      return await completer.future;
+      return await completer.future.timeout(
+        timeout,
+        onTimeout: () {
+          subscription.cancel();
+          throw WebSocketHandshakeException('Handshake timeout after ${timeout.inSeconds}s');
+        },
+      );
     } catch (e, stackTrace) {
       if (e is WebSocketException) {
         rethrow;
@@ -284,6 +293,10 @@ class Http2WebSocket {
       return;
     }
     _closed = true;
+
+    // Clean up fragmentation state
+    _fragmentBuffer.clear();
+    _fragmentOpcode = null;
 
     final payload = BytesBuilder();
     if (code >= _WebSocketConstants.closeCodeMin && code <= _WebSocketConstants.closeCodeMax) {

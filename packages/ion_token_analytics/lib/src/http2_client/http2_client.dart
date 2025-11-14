@@ -46,6 +46,7 @@ class Http2Client {
   late final Http2Connection _connection = Http2Connection(host, port: port, scheme: scheme);
   int _activeStreams = 0;
   Future<void>? _connectionFuture;
+  bool _disposed = false;
 
   /// Gets the current HTTP/2 connection.
   Http2Connection get connection => _connection;
@@ -65,7 +66,7 @@ class Http2Client {
   ///   '/api/users',
   ///   data: {'name': 'John'},
   ///   queryParameters: {'filter': 'active'},
-  ///   options: Options(method: 'POST', timeout: Duration(seconds: 10)),
+  ///   options: Http2RequestOptions(method: 'POST', timeout: Duration(seconds: 10)),
   /// );
   /// ```
   Future<Http2RequestResponse<T>> request<T>(
@@ -74,6 +75,9 @@ class Http2Client {
     Map<String, String>? queryParameters,
     Http2RequestOptions? options,
   }) async {
+    if (_disposed) {
+      throw StateError('Cannot make request on disposed Http2Client');
+    }
     await _ensureConnection();
     _activeStreams++;
 
@@ -167,6 +171,9 @@ class Http2Client {
     Map<String, String>? queryParameters,
     Map<String, String>? headers,
   }) async {
+    if (_disposed) {
+      throw StateError('Cannot create subscription on disposed Http2Client');
+    }
     await _ensureConnection();
     _activeStreams++;
 
@@ -224,13 +231,20 @@ class Http2Client {
         if (isClosed) return;
         isClosed = true;
 
-        // Cancel the stream subscription and close the WebSocket
+        // Cancel the stream subscription first
         await streamSubscription.cancel();
+
+        // Close the WebSocket connection
         ws.close();
 
-        // Close the controller without awaiting - it will complete when listeners finish
+        // Close the controller and properly handle any errors
         if (!controller.isClosed) {
-          unawaited(controller.close());
+          try {
+            await controller.close();
+          } catch (e) {
+            // Controller close errors are expected if there are active listeners
+            // They will be handled by the listener's error handler
+          }
         }
 
         _activeStreams--;
@@ -255,17 +269,24 @@ class Http2Client {
       return;
     }
 
-    if (_connectionFuture != null) {
-      await _connectionFuture;
+    // Capture the future to avoid race conditions
+    final currentFuture = _connectionFuture;
+    if (currentFuture != null) {
+      await currentFuture;
       return;
     }
 
-    _connectionFuture = _connection.connect();
+    // Create and store the connection future
+    final newFuture = _connection.connect();
+    _connectionFuture = newFuture;
 
     try {
-      await _connectionFuture;
+      await newFuture;
     } finally {
-      _connectionFuture = null;
+      // Only clear if this is still the current future
+      if (_connectionFuture == newFuture) {
+        _connectionFuture = null;
+      }
     }
   }
 
@@ -306,6 +327,11 @@ class Http2Client {
         }
       },
       onDone: () {
+        // Don't try to complete if already completed (e.g., by onError)
+        if (completer.isCompleted) {
+          return;
+        }
+
         try {
           T? parsedData;
 
@@ -336,17 +362,17 @@ class Http2Client {
             }
           }
 
-          if (!completer.isCompleted) {
-            completer.complete(
-              Http2RequestResponse<T>(
-                data: parsedData,
-                statusCode: statusCode,
-                headers: responseHeaders,
-              ),
-            );
-          }
+          completer.complete(
+            Http2RequestResponse<T>(
+              data: parsedData,
+              statusCode: statusCode,
+              headers: responseHeaders,
+            ),
+          );
         } catch (e, stackTrace) {
-          completer.completeError(e, stackTrace);
+          if (!completer.isCompleted) {
+            completer.completeError(e, stackTrace);
+          }
         }
       },
     );
@@ -370,6 +396,7 @@ class Http2Client {
   /// After calling this method, no new requests or subscriptions can be made.
   /// Any active operations will continue until completion.
   Future<void> dispose() async {
+    _disposed = true;
     await _connection.dispose();
   }
 }
