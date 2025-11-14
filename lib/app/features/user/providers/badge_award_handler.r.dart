@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_event_handler.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
 import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/service_pubkeys_provider.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'badge_award_handler.r.g.dart';
@@ -40,40 +42,48 @@ class BadgeAwardHandler extends GlobalSubscriptionEventHandler {
       return;
     }
 
-    final badgeAwardEntity = BadgeAwardEntity.fromEventMessage(eventMessage);
+    _invalidateProfileBadgesCache(ref, currentPubkey);
 
-    final pubkeys = await ref.watch(servicePubkeysProvider.future);
-    final eventRef = badgeAwardEntity.data.badgeDefinitionRef;
-    if (eventRef.kind == BadgeDefinitionEntity.kind &&
-        eventRef.dTag == BadgeDefinitionEntity.verifiedBadgeDTag &&
-        (pubkeys.isEmpty || pubkeys.contains(eventRef.masterPubkey))) {
-      final badgeEntries = [
-        BadgeEntry(
-          definitionRef: badgeAwardEntity.data.badgeDefinitionRef,
-          awardId: badgeAwardEntity.id,
-        ),
-      ];
+    await _sendProfileBadgesData(ref, currentPubkey, eventMessage);
+  }
+}
 
-      final updatedData = await ref.read(
-        updatedProfileBadgesProvider(
-          badgeEntries,
-          currentPubkey,
-        ).future,
-      );
+void _invalidateProfileBadgesCache(Ref ref, String currentPubkey) {
+  final profileBadgesEventRef = ReplaceableEventReference(
+    masterPubkey: currentPubkey,
+    kind: ProfileBadgesEntity.kind,
+    dTag: ProfileBadgesEntity.dTag,
+  );
+  ref.read(ionConnectCacheProvider.notifier).remove(profileBadgesEventRef.toString());
+}
 
-      await ref.read(ionConnectNotifierProvider.notifier).sendEntitiesData([updatedData]);
+Future<void> _sendProfileBadgesData(
+  Ref ref,
+  String currentPubkey,
+  EventMessage eventMessage,
+) async {
+  final badgeAwardEntity = BadgeAwardEntity.fromEventMessage(eventMessage);
 
-      final userMetadata = await ref.watch(userMetadataProvider(currentPubkey).future);
+  final pubkeys = await ref.watch(servicePubkeysProvider.future);
+  final eventRef = badgeAwardEntity.data.badgeDefinitionRef;
+  if (eventRef.kind == BadgeDefinitionEntity.kind &&
+      eventRef.dTag == BadgeDefinitionEntity.verifiedBadgeDTag &&
+      (pubkeys.isEmpty || pubkeys.contains(eventRef.masterPubkey))) {
+    final badgeEntries = [
+      BadgeEntry(
+        definitionRef: badgeAwardEntity.data.badgeDefinitionRef,
+        awardId: badgeAwardEntity.id,
+      ),
+    ];
 
-      if (userMetadata != null) {
-        await ref
-            .read(ionConnectDatabaseCacheProvider.notifier)
-            .remove(userMetadata.toEventReference().toString());
-        await ref
-            .read(userMetadataInvalidatorNotifierProvider.notifier)
-            .invalidateCurrentUserMetadataProviders();
-      }
-    }
+    final updatedData = await ref.read(
+      updatedProfileBadgesProvider(
+        badgeEntries,
+        currentPubkey,
+      ).future,
+    );
+
+    await ref.read(ionConnectNotifierProvider.notifier).sendEntitiesData([updatedData]);
   }
 }
 
