@@ -169,11 +169,11 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
     int targetHeight;
 
     if (originalWidth > originalHeight) {
-      targetWidth = maxDimension;
-      targetHeight = (maxDimension / aspectRatio).round();
-    } else {
       targetHeight = maxDimension;
       targetWidth = (maxDimension * aspectRatio).round();
+    } else {
+      targetWidth = maxDimension;
+      targetHeight = (maxDimension / aspectRatio).round();
     }
 
     // Align dimensions to multiples of 16 for broader hardware decoder compatibility
