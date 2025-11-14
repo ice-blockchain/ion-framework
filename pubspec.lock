@@ -1704,13 +1704,6 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
-  ion_token_analytics:
-    dependency: "direct overridden"
-    description:
-      path: "packages/ion_token_analytics"
-      relative: true
-    source: path
-    version: "0.0.1"
   isolate_manager:
     dependency: "direct main"
     description:
