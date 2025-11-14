@@ -1,5 +1,3 @@
 # Ion Token Analytics
 
-<!--
-TODO
--->
+A Dart library for ION Token Analytics client.

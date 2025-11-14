@@ -34,6 +34,15 @@ class Http2Client {
   /// Creates an HTTP/2 client for the specified host and port.
   Http2Client(this.host, {this.port = 443, this.scheme = 'https'});
 
+  factory Http2Client.fromBaseUrl(String baseUrl) {
+    final uri = Uri.parse(baseUrl);
+    final scheme = uri.scheme.isEmpty ? 'https' : uri.scheme;
+    final host = uri.host;
+    final port = uri.hasPort ? uri.port : (scheme == 'https' ? 443 : 80);
+
+    return Http2Client(host, port: port, scheme: scheme);
+  }
+
   /// The server hostname.
   final String host;
 
