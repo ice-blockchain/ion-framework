@@ -34,7 +34,7 @@ Future<void> userAwardsSync(Ref ref) async {
   }
 
   final prefs = ref.watch(userPreferencesServiceProvider(identityKeyName: identityKeyName));
-  const doneKey = 'user_awards_sync_bootstrap_done_v1';
+  const doneKey = 'user_awards_sync_bootstrap_done_v2';
   final alreadyDone = prefs.getValue<bool>(doneKey) ?? false;
   if (alreadyDone) {
     return;
