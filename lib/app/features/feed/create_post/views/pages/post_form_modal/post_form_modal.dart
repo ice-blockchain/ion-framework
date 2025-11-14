@@ -245,7 +245,9 @@ class PostFormModal extends HookConsumerWidget {
   }
 
   Future<void> _tryShowCancelCreationModal(
-      BuildContext context, ValueNotifier<bool> isBottomSheetShown) async {
+    BuildContext context,
+    ValueNotifier<bool> isBottomSheetShown,
+  ) async {
     if (!isBottomSheetShown.value) {
       isBottomSheetShown.value = true;
       await showSimpleBottomSheet<void>(
