@@ -27,7 +27,6 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_post
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/stories.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/trending_videos.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/features/settings/providers/selected_relay_follow_lists_provider.r.dart';
 import 'package:ion/app/features/settings/providers/test_follow_list_provider.r.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
@@ -38,7 +37,6 @@ class FeedPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final followLists = ref.watch(selectedRelayFollowListsProvider);
     final feedCategory = ref.watch(feedCurrentFilterProvider.select((state) => state.category));
     final hasMorePosts = ref.watch(feedPostsProvider.select((state) => state.hasMore)).falseOrValue;
     final showTrendingVideosFeatureFlag = useRef(
@@ -69,7 +67,9 @@ class FeedPage extends HookConsumerWidget {
           SizedBox(width: 12.0.s),
           FeedFiltersMenuButton(scrollController: scrollController),
           SizedBox(width: 12.0.s),
-          _DebugTestFollowButton(),
+          const _DebugTestSelectedRelayButton(),
+          SizedBox(width: 12.0.s),
+          const _DebugTestFollowButton(),
         ],
         scrollController: scrollController,
         horizontalPadding: ScreenSideOffset.defaultSmallMargin,
@@ -136,61 +136,144 @@ class FeedPage extends HookConsumerWidget {
   }
 }
 
-class _DebugTestFollowButton extends ConsumerWidget {
+class _DebugTestSelectedRelayButton extends ConsumerStatefulWidget {
+  const _DebugTestSelectedRelayButton();
+
+  @override
+  ConsumerState<_DebugTestSelectedRelayButton> createState() => _DebugTestSelectedRelayButtonState();
+}
+
+class _DebugTestSelectedRelayButtonState extends ConsumerState<_DebugTestSelectedRelayButton> {
+  bool _isTesting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: _isTesting
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.settings_ethernet),
+      tooltip: 'Test Follow List on Selected Relay',
+      onPressed: _isTesting
+          ? null
+          : () async {
+              setState(() => _isTesting = true);
+              try {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Testing follow list on selected relay... Check logs for details.'),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+
+                final result = await ref.read(
+                  testFollowListOnSelectedRelayProvider.future,
+                );
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        result != null
+                            ? 'Success! Event ID: ${result.id.substring(0, 16)}...'
+                            : 'Failed to fetch back event. Check logs for details.',
+                      ),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Test failed: $e'),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } finally {
+                if (mounted) {
+                  setState(() => _isTesting = false);
+                }
+              }
+            },
+    );
+  }
+}
+
+class _DebugTestFollowButton extends ConsumerStatefulWidget {
   const _DebugTestFollowButton();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_DebugTestFollowButton> createState() => _DebugTestFollowButtonState();
+}
+
+class _DebugTestFollowButtonState extends ConsumerState<_DebugTestFollowButton> {
+  bool _isTesting = false;
+
+  @override
+  Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.bug_report),
-      tooltip: 'Test NIP-02 Follow List',
-      onPressed: () async {
-        try {
-          // Get a test pubkey from the first event in the follow lists
-          final followLists = await ref.read(selectedRelayFollowListsProvider.future);
-          
-          if (followLists.isEmpty) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('No follow lists found to test with')),
-              );
-            }
-            return;
-          }
+      icon: _isTesting
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.bug_report),
+      tooltip: 'Test Follow List on All Relays',
+      onPressed: _isTesting
+          ? null
+          : () async {
+              setState(() => _isTesting = true);
+              try {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Testing follow list on all relays... Check logs for detailed report.'),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
 
-          // Use the pubkey from the first event as the test follow target
-          final testPubkey = followLists.first.pubkey;
-          
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Testing follow list with $testPubkey...')),
-            );
-          }
+                final reports = await ref.read(
+                  testFollowListOnAllRelaysProvider.future,
+                );
 
-          final result = await ref.read(
-            testFollowListOnSelectedRelayProvider(testPubkey).future,
-          ) as EventMessage?;
+                if (context.mounted) {
+                  final successful = reports.where((r) => r.success).length;
+                  final matched = reports.where((r) => r.matched).length;
+                  final failed = reports.where((r) => !r.success).length;
 
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  result != null
-                      ? 'Success! Event ID: ${result.id}'
-                      : 'Failed to fetch back event',
-                ),
-                duration: const Duration(seconds: 5),
-              ),
-            );
-          }
-        } catch (e) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error: $e')),
-            );
-          }
-        }
-      },
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Test completed! Success: $successful, Matched: $matched, Failed: $failed. Check logs for details.',
+                      ),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Test failed: $e'),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } finally {
+                if (mounted) {
+                  setState(() => _isTesting = false);
+                }
+              }
+            },
     );
   }
 }
