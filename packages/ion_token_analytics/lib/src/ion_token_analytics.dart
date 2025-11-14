@@ -1,5 +1,5 @@
 import 'package:ion_token_analytics/src/community_tokens/community_tokens_service.dart';
-import 'package:ion_token_analytics/src/http2_client/http2_client.dart';
+import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class IonTokenAnalyticsClientOptions {
   IonTokenAnalyticsClientOptions({required this.baseUrl});
@@ -16,9 +16,9 @@ class IonTokenAnalyticsClient {
   static Future<IonTokenAnalyticsClient> create({
     required IonTokenAnalyticsClientOptions options,
   }) async {
-    final httpClient = Http2Client.fromBaseUrl(options.baseUrl);
+    final networkClient = NetworkClient.fromBaseUrl(options.baseUrl);
     return IonTokenAnalyticsClient._(
-      communityTokensService: await IonCommunityTokensService.create(networkClient: httpClient),
+      communityTokensService: await IonCommunityTokensService.create(networkClient: networkClient),
     );
   }
 }

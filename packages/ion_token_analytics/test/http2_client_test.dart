@@ -1,6 +1,8 @@
 import 'dart:async';
 
-import 'package:ion_token_analytics/ion_token_analytics.dart';
+import 'package:ion_token_analytics/src/http2_client/http2_client.dart';
+import 'package:ion_token_analytics/src/http2_client/models/http2_connection_status.dart';
+import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -3,10 +3,12 @@ import 'package:ion_token_analytics/src/community_tokens/token_info/models/commu
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/creator.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/market_data.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository.dart';
-import 'package:ion_token_analytics/src/http2_client/models/http2_subscription.dart';
+import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class TokenInfoRepositoryMock implements TokenInfoRepository {
-  TokenInfoRepositoryMock();
+  TokenInfoRepositoryMock(this.client);
+
+  final NetworkClient client;
 
   static final List<CommunityToken> _mockTokens = [
     const CommunityToken(
@@ -68,11 +70,11 @@ class TokenInfoRepositoryMock implements TokenInfoRepository {
   }
 
   @override
-  Future<Http2Subscription<List<CommunityToken>>> subscribeToTokenInfo(
+  Future<NetworkSubscription<List<CommunityToken>>> subscribeToTokenInfo(
     List<String> ionConnectAddresses,
   ) async {
     final stream = Stream.periodic(const Duration(seconds: 1), (_) => _mockTokens);
 
-    return Http2Subscription<List<CommunityToken>>(stream: stream, close: () async {});
+    return NetworkSubscription<List<CommunityToken>>(stream: stream, close: () async {});
   }
 }
