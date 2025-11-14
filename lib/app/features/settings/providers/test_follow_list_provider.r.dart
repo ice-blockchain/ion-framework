@@ -73,7 +73,7 @@ Future<EventMessage?> testFollowListOnSelectedRelay(
   );
 
   final ionNotifier = ref.read(ionConnectNotifierProvider.notifier);
-  final signedEvent = await ionNotifier.sign(updatedFollowListData);
+  final signedEvent = await ionNotifier.sign(updatedFollowListData, useSecp256k1Schnorr: true);
 
   Logger.log(
     '$_logTag After sign - Event createdAt: ${signedEvent.createdAt}',

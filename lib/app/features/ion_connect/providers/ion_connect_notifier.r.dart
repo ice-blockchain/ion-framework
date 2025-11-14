@@ -23,6 +23,8 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart'
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/long_living_subscription_relay_provider.r.dart';
+import 'package:ion/app/services/ion_connect/nostr_event_signer.dart';
+import 'package:ion/app/services/ion_connect/secp256k1_schnorr_key_store.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_auth_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_picker_provider.r.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
@@ -394,6 +396,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
   Future<EventMessage> sign(
     EventSerializable entityData, {
     bool includeMasterPubkey = true,
+    bool useSecp256k1Schnorr = false,
   }) async {
     final mainWallet = await ref.read(mainWalletProvider.future);
 
@@ -401,10 +404,25 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       throw MainWalletNotFoundException();
     }
 
-    final eventSigner = await ref.read(currentUserIonConnectEventSignerProvider.future);
-
-    if (eventSigner == null) {
-      throw EventSignerNotFoundException();
+    final EventSigner eventSigner;
+    
+    if (useSecp256k1Schnorr) {
+      // Use secp256k1 Schnorr signing
+      final currentEventSigner = await ref.read(currentUserIonConnectEventSignerProvider.future);
+      if (currentEventSigner == null) {
+        throw EventSignerNotFoundException();
+      }
+      // Create a secp256k1 signer from the existing private key
+      final secp256k1Signer = await Secp256k1SchnorrKeyStore.fromPrivate(currentEventSigner.privateKey);
+      // Wrap the signer to ensure signatures are in Nostr format (no prefix)
+      eventSigner = NostrEventSigner(secp256k1Signer);
+    } else {
+      // Use standard Ed25519 signing
+      final currentEventSigner = await ref.read(currentUserIonConnectEventSignerProvider.future);
+      if (currentEventSigner == null) {
+        throw EventSignerNotFoundException();
+      }
+      eventSigner = currentEventSigner;
     }
 
     // Nostr protocol expects timestamps in seconds, not microseconds
