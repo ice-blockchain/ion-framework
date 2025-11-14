@@ -20,13 +20,18 @@ part 'feed_stories_provider.r.g.dart';
 class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
   @override
   ({Iterable<ModifiablePostEntity> items, bool hasMore, bool ready}) build() {
-    final blockedUsersPubkeys = ref
-            .watch(currentUserBlockListNotifierProvider)
-            .valueOrNull
-            ?.map((block) => block.data.blockedMasterPubkeys)
-            .expand((pubkey) => pubkey)
-            .toList() ??
-        [];
+    final blockedUsersPubkeys = ref.watch(
+      currentUserBlockListNotifierProvider.select(
+        (av) =>
+            av.valueOrNull
+                ?.map(
+                  (b) => b.data.blockedMasterPubkeys,
+                )
+                .expand((k) => k)
+                .toSet() ??
+            const <String>{},
+      ),
+    );
     final filter = ref.watch(feedCurrentFilterProvider);
 
     final currentUserStory = ref.watch(currentUserFeedStoryProvider);
@@ -53,7 +58,7 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
     };
 
     final filteredStoriesBlockedByCurrentUser =
-        stories.where((story) => !blockedUsersPubkeys.contains(story.masterPubkey)).toList();
+        stories.where((story) => !blockedUsersPubkeys.contains(story.masterPubkey)).toSet();
 
     return (
       items: filteredStoriesBlockedByCurrentUser,
