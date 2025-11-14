@@ -16,8 +16,8 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/article/article.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_entity_menu_bottom_sheet.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/user_info_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_post_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
 import 'package:ion/app/features/feed/views/components/deleted_entity/deleted_entity.dart';
 import 'package:ion/app/features/feed/views/components/post/components/post_body/post_body.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
@@ -161,11 +161,11 @@ class Post extends ConsumerWidget {
                   : null,
               trailing: BottomSheetMenuButton(
                 menuBuilder: (context) => isOwnedByCurrentUser
-                    ? OwnEntityMenuBottomSheet(
+                    ? OwnPostMenuBottomSheet(
                         eventReference: eventReference,
                         onDelete: onDelete,
                       )
-                    : UserInfoMenuBottomSheet(
+                    : PostMenuBottomSheet(
                         eventReference: eventReference,
                         showNotInterested: showNotInterested,
                       ),

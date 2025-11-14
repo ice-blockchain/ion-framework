@@ -5,10 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_content.dart';
 import 'package:ion/app/components/icons/outlined_icon.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
-import 'package:ion/app/extensions/asset_gen_image.dart';
-import 'package:ion/app/extensions/build_context.dart';
-import 'package:ion/app/extensions/num.dart';
-import 'package:ion/app/extensions/theme_data.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/delete/delete_confirmation_type.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -21,8 +18,8 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class OwnEntityMenuBottomSheet extends ConsumerWidget {
-  const OwnEntityMenuBottomSheet({
+class OwnPostMenuBottomSheet extends ConsumerWidget {
+  const OwnPostMenuBottomSheet({
     required this.eventReference,
     this.onDelete,
     super.key,
@@ -45,7 +42,7 @@ class OwnEntityMenuBottomSheet extends ConsumerWidget {
     final editMenuItems = <Widget>[];
     final deleteMenuItems = <Widget>[];
 
-    // Add Edit menu item for ModifiablePostEntity
+    // Edit menu item for posts and articles
     if (entity is ModifiablePostEntity && _isEntityEditable(entity)) {
       editMenuItems.add(
         ListItem(
@@ -78,13 +75,18 @@ class OwnEntityMenuBottomSheet extends ConsumerWidget {
               color: context.theme.appColors.primaryAccent,
             ),
           ),
-          title: Text(context.i18n.button_edit),
+          title: Text(
+            context.i18n.button_edit,
+            style: context.theme.appTextThemes.body.copyWith(
+              color: context.theme.appColors.primaryText,
+            ),
+          ),
           backgroundColor: Colors.transparent,
         ),
       );
     }
 
-    // Add Edit menu item for ArticleEntity
+    // Edit menu item for articles
     if (entity is ArticleEntity && _isEntityEditable(entity)) {
       editMenuItems.add(
         ListItem(
@@ -100,7 +102,12 @@ class OwnEntityMenuBottomSheet extends ConsumerWidget {
               color: context.theme.appColors.primaryAccent,
             ),
           ),
-          title: Text(context.i18n.button_edit),
+          title: Text(
+            context.i18n.button_edit,
+            style: context.theme.appTextThemes.body.copyWith(
+              color: context.theme.appColors.primaryText,
+            ),
+          ),
           backgroundColor: Colors.transparent,
         ),
       );
@@ -145,7 +152,9 @@ class OwnEntityMenuBottomSheet extends ConsumerWidget {
 
     menuItemsGroups.add(deleteMenuItems);
 
-    return BottomSheetMenuContent(groups: menuItemsGroups);
+    return BottomSheetMenuContent(
+      groups: menuItemsGroups,
+    );
   }
 
   DeleteConfirmationType _getDeleteConfirmationType(IonConnectEntity entity) {
@@ -161,8 +170,7 @@ class OwnEntityMenuBottomSheet extends ConsumerWidget {
     return switch (entity) {
       final ModifiablePostEntity post =>
         post.data.editingEndedAt?.value.toDateTime.isAfter(DateTime.now()) ?? false,
-      final ArticleEntity article =>
-        article.data.editingEndedAt?.value.toDateTime.isAfter(DateTime.now()) ?? false,
+      final ArticleEntity _ => true,
       _ => false,
     };
   }
