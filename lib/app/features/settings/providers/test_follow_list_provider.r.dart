@@ -54,36 +54,8 @@ Future<EventMessage?> testFollowListOnSelectedRelay(
 
   final updatedFollowListData = FollowListData(list: followees.toList());
 
-  // 3. Sign the event
-  final nowBeforeSign = DateTime.now();
-  Logger.log(
-    '$_logTag Before sign - DateTime.now(): $nowBeforeSign',
-  );
-  Logger.log(
-    '$_logTag Before sign - millisecondsSinceEpoch: ${nowBeforeSign.millisecondsSinceEpoch}',
-  );
-  Logger.log(
-    '$_logTag Before sign - microsecondsSinceEpoch: ${nowBeforeSign.microsecondsSinceEpoch}',
-  );
-  Logger.log(
-    '$_logTag Before sign - UTC: ${nowBeforeSign.toUtc()}',
-  );
-  Logger.log(
-    '$_logTag Before sign - Local: ${nowBeforeSign.toLocal()}',
-  );
-
   final ionNotifier = ref.read(ionConnectNotifierProvider.notifier);
   final signedEvent = await ionNotifier.sign(updatedFollowListData, useSecp256k1Schnorr: true);
-
-  Logger.log(
-    '$_logTag After sign - Event createdAt: ${signedEvent.createdAt}',
-  );
-  Logger.log(
-    '$_logTag After sign - Event createdAt as DateTime: ${DateTime.fromMicrosecondsSinceEpoch(signedEvent.createdAt)}',
-  );
-  Logger.log(
-    '$_logTag After sign - Event createdAt UTC: ${DateTime.fromMicrosecondsSinceEpoch(signedEvent.createdAt).toUtc()}',
-  );
 
   Logger.log('$_logTag Created signed event: ${signedEvent.id}');
 
@@ -101,11 +73,12 @@ Future<EventMessage?> testFollowListOnSelectedRelay(
   await Future<void>.delayed(const Duration(seconds: 2));
 
   // 6. Fetch it back from the selected relay
+  // Use the pubkey from the signed event (the one that signed it)
   final requestMessage = RequestMessage();
   requestMessage.addFilter(
     RequestFilter(
       kinds: const [FollowListEntity.kind],
-      authors: [currentUserPubkey],
+      authors: [signedEvent.pubkey], // Use pubkey from the signed event
       limit: 1,
     ),
   );
