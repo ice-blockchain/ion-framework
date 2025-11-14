@@ -42,6 +42,7 @@ WalletsDatabase walletsDatabase(Ref ref) {
   final database = WalletsDatabase(pubkey, appGroupId: appGroup);
 
   onLogout(ref, database.close);
+  onUserSwitch(ref, database.close);
 
   return database;
 }

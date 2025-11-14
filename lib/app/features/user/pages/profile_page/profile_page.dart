@@ -296,8 +296,7 @@ class ProfilePage extends HookConsumerWidget {
                       ],
                       if (isDelegateAccessEnabled) ...[
                         GestureDetector(
-                          onTap: () => SwitchUserAccountRoute(selectedUserPubkey: masterPubkey)
-                              .push<void>(context),
+                          onTap: () => SwitchAccountRoute().push<void>(context),
                           child: Assets.svg.iconSwitchProfile.icon(size: 24.0.s),
                         ),
                         SizedBox(width: 8.0.s),

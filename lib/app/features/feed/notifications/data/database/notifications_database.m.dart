@@ -32,6 +32,7 @@ NotificationsDatabase notificationsDatabase(Ref ref) {
   final database = NotificationsDatabase(pubkey);
 
   onLogout(ref, database.close);
+  onUserSwitch(ref, database.close);
 
   return database;
 }

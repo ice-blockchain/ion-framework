@@ -20,6 +20,7 @@ BlockUserDatabase blockedUsersDatabase(Ref ref) {
   final database = BlockUserDatabase(pubkey);
 
   onLogout(ref, database.close);
+  onUserSwitch(ref, database.close);
 
   return database;
 }
