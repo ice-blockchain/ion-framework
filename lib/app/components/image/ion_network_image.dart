@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/placeholder/ion_placeholder.dart';
+import 'package:ion/app/services/file_cache/ion_cache_manager.dart';
 
 class IonNetworkImage extends HookWidget {
   IonNetworkImage({
@@ -26,14 +27,7 @@ class IonNetworkImage extends HookWidget {
     this.errorWidget,
     this.borderRadius,
     this.cacheKey,
-  }) : cacheManager = cacheManager ??
-            CacheManager(
-              Config(
-                'ionNetworkImageCacheKey',
-                maxNrOfCacheObjects: 1000,
-                stalePeriod: const Duration(days: 60),
-              ),
-            );
+  }) : cacheManager = cacheManager ?? IONCacheManager.ionNetworkImage;
 
   final String imageUrl;
   final Widget Function(BuildContext, String, Object)? errorWidget;
