@@ -185,7 +185,7 @@ class Http2Client {
         headers: headers,
       );
 
-      final controller = StreamController<T>();
+      final controller = StreamController<T>.broadcast();
       var isClosed = false;
 
       final streamSubscription = ws.stream.listen(
@@ -231,20 +231,13 @@ class Http2Client {
         if (isClosed) return;
         isClosed = true;
 
-        // Cancel the stream subscription first
-        await streamSubscription.cancel();
-
-        // Close the WebSocket connection
+        // Close the WebSocket connection first
         ws.close();
 
-        // Close the controller and properly handle any errors
+        await streamSubscription.cancel();
+
         if (!controller.isClosed) {
-          try {
-            await controller.close();
-          } catch (e) {
-            // Controller close errors are expected if there are active listeners
-            // They will be handled by the listener's error handler
-          }
+          await controller.close();
         }
 
         _activeStreams--;
