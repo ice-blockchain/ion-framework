@@ -18,7 +18,12 @@ import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class SwitchAccountModal extends HookConsumerWidget {
-  const SwitchAccountModal({super.key});
+  const SwitchAccountModal({
+    super.key,
+    this.showActions = true,
+  });
+
+  final bool showActions;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,37 +35,33 @@ class SwitchAccountModal extends HookConsumerWidget {
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            spacing: 16.0.s,
             children: [
               NavigationAppBar.modal(
                 showBackButton: false,
                 title: Text(context.i18n.profile_switch_user_header),
                 actions: const [NavigationCloseButton()],
               ),
-              ModalActionButton(
-                icon: Assets.svg.iconChannelType.icon(color: context.theme.appColors.primaryAccent),
-                label: context.i18n.profile_create_new_account,
-                onTap: () async {
-                  await ref.read(authProvider.notifier).clearCurrentUserForAuthentication();
-
-                  if (context.mounted) {
-                    context.pop();
-                  }
-                },
-              ),
-              SizedBox(height: 16.0.s),
-              const AccountsList(),
-              SizedBox(height: 16.0.s),
-              ModalActionButton(
-                icon: Assets.svg.iconMenuLogout.icon(size: 24.0.s),
-                label: context.i18n.profile_log_out(
-                  prefixUsername(username: userMetadataValue?.data.name, context: context),
+              if (showActions)
+                ModalActionButton(
+                  icon: Assets.svg.iconChannelType.icon(
+                    color: context.theme.appColors.primaryAccent,
+                  ),
+                  label: context.i18n.profile_create_new_account,
+                  onTap: () async {
+                    await ref.read(authProvider.notifier).clearCurrentUserForAuthentication();
+                    if (context.mounted) context.pop();
+                  },
                 ),
-                onTap: () {
-                  if (currentPubkey != null) {
-                    ConfirmLogoutRoute(pubkey: currentPubkey).push<void>(context);
-                  }
-                },
-              ),
+              const AccountsList(),
+              if (showActions && currentPubkey != null)
+                ModalActionButton(
+                  icon: Assets.svg.iconMenuLogout.icon(size: 24.0.s),
+                  label: context.i18n.profile_log_out(
+                    prefixUsername(username: userMetadataValue?.data.name, context: context),
+                  ),
+                  onTap: () => ConfirmLogoutRoute(pubkey: currentPubkey).push<void>(context),
+                ),
               ScreenBottomOffset(margin: 32.0.s),
             ],
           ),
