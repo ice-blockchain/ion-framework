@@ -10,9 +10,9 @@ class IonTokenAnalyticsClientOptions {
 }
 
 class IonTokenAnalyticsClient {
-  IonTokenAnalyticsClient._({required this.communityTokensService});
+  IonTokenAnalyticsClient._({required this.communityTokens});
 
-  final IonCommunityTokensService communityTokensService;
+  final IonCommunityTokensService communityTokens;
 
   // Asynchronous factory constructor to create an instance of IonTokenAnalyticsClient (async to be future-proof)
   static Future<IonTokenAnalyticsClient> create({
@@ -20,7 +20,7 @@ class IonTokenAnalyticsClient {
   }) async {
     final networkClient = NetworkClient.fromBaseUrl(options.baseUrl);
     return IonTokenAnalyticsClient._(
-      communityTokensService: await IonCommunityTokensService.create(networkClient: networkClient),
+      communityTokens: await IonCommunityTokensService.create(networkClient: networkClient),
     );
   }
 }
