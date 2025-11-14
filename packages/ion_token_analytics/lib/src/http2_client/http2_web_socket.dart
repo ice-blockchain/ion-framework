@@ -9,8 +9,8 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:http2/http2.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_connection.dart';
-import 'package:ion_token_analytics/src/http2_client/models/http2_web_socket_message.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_exceptions.dart';
+import 'package:ion_token_analytics/src/http2_client/models/http2_web_socket_message.dart';
 
 // WebSocket protocol constants (RFC 6455)
 class _WebSocketConstants {

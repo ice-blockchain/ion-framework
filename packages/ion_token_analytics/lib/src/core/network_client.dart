@@ -60,6 +60,24 @@ class NetworkClient {
     return response.data as T;
   }
 
+  Future<NetworkSubscription<T>> subscribe<T>(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Map<String, String>? headers,
+  }) async {
+    final subscription = await _client.subscribe<T>(
+      path,
+      queryParameters: _buildQueryParameters(queryParameters),
+      headers: headers,
+    );
+
+    return NetworkSubscription<T>(stream: subscription.stream, close: subscription.close);
+  }
+
+  Future<void> dispose() {
+    return _client.dispose();
+  }
+
   /// Builds a map of query parameters suitable for HTTP requests.
   ///
   /// Converts the input [queryParameters] map into a string-based map where:
@@ -94,24 +112,6 @@ class NetworkClient {
     }
 
     return result;
-  }
-
-  Future<NetworkSubscription<T>> subscribe<T>(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
-  }) async {
-    final subscription = await _client.subscribe<T>(
-      path,
-      queryParameters: _buildQueryParameters(queryParameters),
-      headers: headers,
-    );
-
-    return NetworkSubscription<T>(stream: subscription.stream, close: subscription.close);
-  }
-
-  Future<void> dispose() {
-    return _client.dispose();
   }
 }
 

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion_token_analytics/src/http2_client/http2_connection.dart';
-import 'package:ion_token_analytics/src/http2_client/models/http2_connection_status.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_exceptions.dart';
+import 'package:ion_token_analytics/src/http2_client/models/http2_connection_status.dart';
 import 'package:test/test.dart';
 
 void main() {
