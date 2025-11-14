@@ -9,9 +9,11 @@ import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_video_playback_enabled.r.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
+import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/utils/url.dart';
+import 'package:ion/app/utils/video_codec_detector.r.dart';
 import 'package:path/path.dart' as path;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uri_to_file/uri_to_file.dart';
@@ -170,6 +172,35 @@ Future<MediaFile?> editMedia(
       if (newPath == null) return null;
       return mediaFile.copyWith(path: newPath);
     case MediaType.video:
+      if (Platform.isAndroid) {
+        final codecDetector = ref.read(videoCodecDetectorProvider);
+        final isAV1 = await codecDetector.isAV1Video(filePath);
+
+        if (isAV1) {
+          Logger.log('AV1 video detected, bypassing Banuba editor');
+
+          try {
+            final videoCompressor = ref.read(videoCompressorProvider);
+            final thumbFile = await videoCompressor.getThumbnail(
+              mediaFile.copyWith(path: filePath),
+            );
+
+            return mediaFile.copyWith(
+              path: filePath,
+              thumb: thumbFile.path,
+            );
+          } catch (e) {
+            Logger.log(
+              'Failed to generate thumbnail for AV1 video',
+              error: e,
+              stackTrace: StackTrace.current,
+            );
+            return mediaFile.copyWith(path: filePath);
+          }
+        }
+      }
+
+      // Normal flow for iOS or non-AV1 Android videos: use Banuba editor
       final editVideoData = await ref.read(banubaServiceProvider).editVideo(
             filePath,
             maxVideoDuration: maxVideoDuration,
