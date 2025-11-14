@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 /// Options for configuring HTTP/2 requests.
 ///
 /// Allows customization of request method, timeout, and headers.

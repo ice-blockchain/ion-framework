@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 /// A subscription to an HTTP/2 stream.
 ///
 /// Wraps a stream of data and provides a method to close the underlying stream.

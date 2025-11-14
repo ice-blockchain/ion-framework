@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 /// Response from an HTTP/2 request.
 class Http2RequestResponse<T> {
   /// Creates an HTTP/2 response.

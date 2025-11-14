@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 /// Represents the current state of an HTTP/2 connection.
 sealed class ConnectionStatus {
   const ConnectionStatus();

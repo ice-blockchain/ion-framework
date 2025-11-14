@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'dart:math';
 
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/addresses.dart';

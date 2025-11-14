@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'dart:typed_data';
 
 /// Represents the type of message received from a WebSocket connection.
