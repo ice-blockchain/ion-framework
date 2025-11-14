@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -8,7 +9,7 @@ import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
-import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/chat/model/message_reaction.f.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
@@ -17,6 +18,7 @@ import 'package:ion/app/features/chat/recent_chats/providers/selected_conversati
 import 'package:ion/app/features/chat/recent_chats/views/pages/recent_chat_overlay/recent_chat_overlay.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_item_wrapper/message_item_wrapper.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_metadata/message_metadata.dart';
+import 'package:ion/app/features/chat/views/components/message_items/message_reactions/optimistic_ui/message_reactions_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/emoji_message/emoji_message.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -338,31 +340,28 @@ class ChatPreview extends HookConsumerWidget {
         ),
     };
 
-    final storyReactionContent =
-        ref.watch(conversationMessageReactionDaoProvider).storyReactionContent(eventReference);
+    final reactions = eventReference != null
+        ? ref.watch(messageReactionWatchProvider(eventReference!)).valueOrNull?.reactions ?? []
+        : <MessageReaction>[];
+    final reactionEmoji = reactions.firstWhereOrNull((r) => r.masterPubkeys.isNotEmpty)?.emoji;
 
     return Row(
       children: [
         RecentChatMessageIcon(messageType: messageType, color: textColor),
         Flexible(
-          child: StreamBuilder(
-            stream: storyReactionContent,
-            builder: (context, snapshot) {
-              return Text(
-                snapshot.hasData ? snapshot.data ?? content : content,
-                maxLines: maxLines,
-                overflow: TextOverflow.ellipsis,
-                style: messageType == MessageType.emoji
-                    ? context.theme.appTextThemes.body2
-                        .copyWith(
-                          color: textColor ?? context.theme.appColors.onTertiaryBackground,
-                        )
-                        .platformEmojiAware()
-                    : context.theme.appTextThemes.body2.copyWith(
-                        color: textColor ?? context.theme.appColors.onTertiaryBackground,
-                      ),
-              );
-            },
+          child: Text(
+            reactionEmoji ?? content,
+            maxLines: maxLines,
+            overflow: TextOverflow.ellipsis,
+            style: messageType == MessageType.emoji
+                ? context.theme.appTextThemes.body2
+                    .copyWith(
+                      color: textColor ?? context.theme.appColors.onTertiaryBackground,
+                    )
+                    .platformEmojiAware()
+                : context.theme.appTextThemes.body2.copyWith(
+                    color: textColor ?? context.theme.appColors.onTertiaryBackground,
+                  ),
           ),
         ),
       ],

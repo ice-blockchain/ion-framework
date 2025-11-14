@@ -73,6 +73,25 @@ class TextMessage extends HookConsumerWidget {
     final hasReactionsOrMetadata =
         useHasReaction(entity.toEventReference(), ref) || metadata != null;
 
+    final metadataRef = useMemoized(GlobalKey.new);
+    final metadataWidth = useState<double>(0);
+
+    final textScaler = MediaQuery.textScalerOf(context);
+
+    useEffect(
+      () {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final box = metadataRef.currentContext?.findRenderObject() as RenderBox?;
+
+          if (box != null && box.hasSize && box.size.width > 0) {
+            metadataWidth.value = box.size.width;
+          }
+        });
+        return null;
+      },
+      [eventMessage, textScaler],
+    );
+
     final messageItem = useMemoized(
       () => TextItem(
         eventMessage: eventMessage,
@@ -106,6 +125,8 @@ class TextMessage extends HookConsumerWidget {
               hasReactionsOrMetadata: hasReactionsOrMetadata,
               hasRepliedMessage: repliedMessageItem != null,
               hasUrlInText: hasUrlInText,
+              metadataWidth: metadataWidth.value,
+              metadataRef: metadataRef,
             ),
             if (metadata != null) UrlPreviewBlock(url: firstUrl, isMe: isMe),
             if (hasReactionsOrMetadata)
@@ -115,7 +136,11 @@ class TextMessage extends HookConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(child: MessageReactions(isMe: isMe, eventMessage: eventMessage)),
-                  MessageMetadata(eventMessage: eventMessage, startPadding: 0.0.s),
+                  MessageMetadata(
+                    eventMessage: eventMessage,
+                    startPadding: 0.0.s,
+                    key: metadataRef,
+                  ),
                 ],
               ),
           ],
@@ -132,6 +157,8 @@ class _TextMessageContent extends HookWidget {
     required this.hasReactionsOrMetadata,
     required this.hasRepliedMessage,
     required this.hasUrlInText,
+    required this.metadataWidth,
+    required this.metadataRef,
   });
 
   final TextStyle textStyle;
@@ -139,36 +166,21 @@ class _TextMessageContent extends HookWidget {
   final bool hasReactionsOrMetadata;
   final bool hasRepliedMessage;
   final bool hasUrlInText;
+  final double metadataWidth;
+  final GlobalKey metadataRef;
   @override
   Widget build(BuildContext context) {
     final maxAvailableWidth = MessageItemWrapper.maxWidth - (12.0.s * 2);
     final content = eventMessage.content;
 
-    final metadataRef = useRef(GlobalKey());
-
-    final metadataWidth = useState<double>(0);
-
     final textScaler = MediaQuery.textScalerOf(context);
-
-    useEffect(
-      () {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final box = metadataRef.value.currentContext?.findRenderObject() as RenderBox?;
-          if (box != null && box.hasSize && box.size.width > 0) {
-            metadataWidth.value = box.size.width;
-          }
-        });
-        return null;
-      },
-      [eventMessage, textScaler],
-    );
 
     final oneLineTextPainter = TextPainter(
       text: TextSpan(text: content, style: textStyle),
       textDirection: TextDirection.ltr,
       textWidthBasis: TextWidthBasis.longestLine,
       textScaler: textScaler,
-    )..layout(maxWidth: maxAvailableWidth - metadataWidth.value.s);
+    )..layout(maxWidth: maxAvailableWidth - metadataWidth.s);
 
     final oneLineMetrics = oneLineTextPainter.computeLineMetrics();
     oneLineTextPainter.dispose();
@@ -193,8 +205,8 @@ class _TextMessageContent extends HookWidget {
           ),
           if (hasRepliedMessage) const Spacer(),
           Offstage(
-            offstage: metadataWidth.value.s <= 0,
-            child: MessageMetadata(eventMessage: eventMessage, key: metadataRef.value),
+            offstage: metadataWidth.s <= 0,
+            child: MessageMetadata(eventMessage: eventMessage, key: metadataRef),
           ),
         ],
       );
@@ -209,7 +221,7 @@ class _TextMessageContent extends HookWidget {
       final lineMetrics = multiLineTextPainter.computeLineMetrics();
       multiLineTextPainter.dispose();
 
-      final wouldOverlap = lineMetrics.last.width > (maxAvailableWidth - metadataWidth.value.s);
+      final wouldOverlap = lineMetrics.last.width > (maxAvailableWidth - metadataWidth.s);
 
       return Stack(
         alignment: AlignmentDirectional.bottomEnd,
@@ -220,10 +232,10 @@ class _TextMessageContent extends HookWidget {
             hasUrlInText: hasUrlInText,
           ),
           Offstage(
-            offstage: metadataWidth.value.s <= 0,
+            offstage: metadataWidth.s <= 0,
             child: MessageMetadata(
               eventMessage: eventMessage,
-              key: metadataRef.value,
+              key: metadataRef,
             ),
           ),
         ],

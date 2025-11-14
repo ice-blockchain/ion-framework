@@ -89,12 +89,32 @@ class ToggleReactionNotifier extends _$ToggleReactionNotifier {
     final service = ref.read(messageReactionServiceProvider(eventReference));
 
     var current = ref.read(messageReactionWatchProvider(eventReference)).valueOrNull;
-
     current ??= OptimisticMessageReactions(reactions: [], eventReference: eventReference);
 
     await service.dispatch(
       ToggleReactionIntent(emoji: emoji, currentMasterPubkey: currentUserMasterPubkey),
       current,
+    );
+  }
+
+  Future<void> toggleReactionIfMissing({
+    required String emoji,
+    required EventReference eventReference,
+    required String currentUserMasterPubkey,
+  }) async {
+    final current = ref.read(messageReactionWatchProvider(eventReference)).valueOrNull;
+    final hasReaction = current?.reactions.any(
+          (reaction) =>
+              reaction.emoji == emoji && reaction.masterPubkeys.contains(currentUserMasterPubkey),
+        ) ??
+        false;
+
+    if (hasReaction) return;
+
+    await toggle(
+      emoji: emoji,
+      eventReference: eventReference,
+      currentUserMasterPubkey: currentUserMasterPubkey,
     );
   }
 }
