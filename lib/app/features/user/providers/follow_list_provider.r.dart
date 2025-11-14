@@ -11,6 +11,7 @@ import 'package:ion/app/features/optimistic_ui/features/follow/follow_provider.r
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/follow_list_state.f.dart';
+import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'follow_list_provider.r.g.dart';
@@ -91,13 +92,23 @@ Future<FollowListEntity?> followList(
   bool network = true,
   bool cache = true,
 }) async {
-  return await ref.watch(
+  final followListEntity = await ref.watch(
     ionConnectEntityProvider(
       cache: cache,
       network: network,
       eventReference: ReplaceableEventReference(masterPubkey: pubkey, kind: FollowListEntity.kind),
     ).future,
   ) as FollowListEntity?;
+  final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
+  if (currentUserMasterPubkey != pubkey) {
+    return followListEntity;
+  }
+
+  final blockedUsersKeys = ref.watch(blockedUsersPubkeysSelectorProvider);
+  final notBlockedUsers =
+      followListEntity?.data.list.where((e) => !blockedUsersKeys.contains(e.pubkey)).toList();
+
+  return followListEntity?.copyWith.data(list: notBlockedUsers ?? []);
 }
 
 @riverpod

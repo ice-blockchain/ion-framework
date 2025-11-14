@@ -28,13 +28,7 @@ class SearchUsers extends _$SearchUsers {
         expirationDuration: expirationDuration,
       ).future,
     );
-    final blockedUsersMasterPubkeys = ref
-            .watch(currentUserBlockListNotifierProvider)
-            .valueOrNull
-            ?.map((blockUser) => blockUser.data.blockedMasterPubkeys)
-            .expand((pubkey) => pubkey)
-            .toList() ??
-        [];
+    final blockedUsersMasterPubkeys = ref.watch(blockedUsersPubkeysSelectorProvider);
 
     final filteredMasterPubkeys = paginatedMasterPubkeys.items
         .where(

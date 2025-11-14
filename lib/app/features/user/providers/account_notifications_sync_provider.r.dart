@@ -23,6 +23,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/user_notifications_type.dart';
 import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
+import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'account_notifications_sync_provider.r.g.dart';
@@ -121,6 +122,8 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
       return;
     }
 
+    final blockedUsersKeys = ref.watch(blockedUsersPubkeysSelectorProvider);
+
     final contentTypes = await _getUserSpecificContentTypes();
     if (contentTypes.isEmpty) {
       return;
@@ -135,13 +138,14 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
     for (final entry in usersMap.entries) {
       final contentType = entry.key;
       final users = entry.value;
+      final notBlockedUsers = users.where((e) => !blockedUsersKeys.contains(e)).toList();
 
-      if (users.isEmpty) {
+      if (notBlockedUsers.isEmpty) {
         continue;
       }
 
       await _syncContentTypeFromRelay(
-        users: users,
+        users: notBlockedUsers,
         contentType: contentType,
       );
     }
