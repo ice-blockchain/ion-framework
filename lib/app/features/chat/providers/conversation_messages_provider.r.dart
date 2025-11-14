@@ -7,7 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'conversation_messages_provider.r.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class ConversationMessages extends _$ConversationMessages {
   @override
   Stream<Map<DateTime, List<EventMessage>>> build(String conversationId, ConversationType type) {

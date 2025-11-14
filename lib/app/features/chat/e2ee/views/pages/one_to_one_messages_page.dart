@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -14,6 +15,7 @@ import 'package:ion/app/features/chat/e2ee/views/components/e2ee_conversation_em
 import 'package:ion/app/features/chat/e2ee/views/components/e2ee_conversation_loading_view.dart';
 import 'package:ion/app/features/chat/e2ee/views/components/one_to_one_messages_list.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/chat/model/participiant_keys.f.dart';
 import 'package:ion/app/features/chat/providers/conversation_messages_provider.r.dart';
 import 'package:ion/app/features/chat/providers/exist_chat_conversation_id_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_edit_message_provider.r.dart';
@@ -26,7 +28,6 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
-import 'package:ion/app/services/uuid/generate_conversation_id.dart';
 
 class OneToOneMessagesPage extends HookConsumerWidget {
   const OneToOneMessagesPage({
@@ -38,37 +39,27 @@ class OneToOneMessagesPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final conversationId = useState<String?>(null);
+    final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider)!;
+    final conversationId = ref
+        .watch(
+          existChatConversationIdProvider(
+            ParticipantKeys(keys: [receiverMasterPubkey, currentUserMasterPubkey].sorted()),
+          ),
+        )
+        .valueOrNull;
 
     useOnInit(
       () async {
-        final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
-
-        if (currentUserMasterPubkey == null) {
-          throw UserMasterPubkeyNotFoundException();
+        if (conversationId == null) {
+          return;
         }
 
-        final participantsMasterPubkeys = [
-          receiverMasterPubkey,
-          currentUserMasterPubkey,
-        ];
-
-        final existingConversationId = await ref.read(
-          existChatConversationIdProvider(participantsMasterPubkeys).future,
-        );
-
-        final conversationIdValue = existingConversationId ??
-            generateConversationId(
-              conversationType: ConversationType.oneToOne,
-              receiverMasterPubkeys: [receiverMasterPubkey, currentUserMasterPubkey],
-            );
-        conversationId.value = conversationIdValue;
-
         final localNotificationsService = await ref.read(localNotificationsServiceProvider.future);
-        await localNotificationsService.cancelByGroupKey(conversationIdValue);
+        await localNotificationsService.cancelByGroupKey(conversationId);
 
         await ref.read(userMetadataProvider(receiverMasterPubkey, cache: false).future);
       },
+      [conversationId],
     );
 
     final onSubmitted = useCallback(
@@ -87,13 +78,13 @@ class OneToOneMessagesPage extends HookConsumerWidget {
         await ref.read(sendE2eeChatMessageServiceProvider).sendMessage(
           content: content ?? '',
           mediaFiles: mediaFiles ?? [],
-          conversationId: conversationId.value!,
+          conversationId: conversationId!,
           editedMessage: editedMessage?.eventMessage,
           repliedMessage: repliedMessage?.eventMessage,
           participantsMasterPubkeys: [receiverMasterPubkey, currentPubkey],
         );
       },
-      [receiverMasterPubkey],
+      [receiverMasterPubkey, conversationId],
     );
 
     return Scaffold(
@@ -105,15 +96,15 @@ class OneToOneMessagesPage extends HookConsumerWidget {
             children: [
               _Header(
                 receiverMasterPubkey: receiverMasterPubkey,
-                conversationId: conversationId.value ?? '',
+                conversationId: conversationId ?? '',
               ),
-              _MessagesList(conversationId: conversationId.value),
+              _MessagesList(conversationId: conversationId),
               const EditMessageInfo(),
               const RepliedMessageInfo(),
               ChatInputBar(
                 onSubmitted: onSubmitted,
                 receiverMasterPubkey: receiverMasterPubkey,
-                conversationId: conversationId.value,
+                conversationId: conversationId ?? '',
               ),
             ],
           ),
@@ -188,10 +179,12 @@ class _MessagesList extends HookConsumerWidget {
       [messages],
     );
 
+    print('conversationId: $conversationId, messages: $messages');
+
     return Expanded(
       child: () {
         // Show loading if actively loading OR if we have data but minimum duration hasn't passed
-        if (messages == null || messages.isLoading || !canShowContent.value) {
+        if (messages == null || messages.isLoading) {
           return const E2eeConversationLoadingView();
         }
 
