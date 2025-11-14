@@ -9,7 +9,6 @@ import 'package:cached_video_player_plus/cached_video_player_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -25,18 +24,6 @@ import 'package:video_player/video_player.dart';
 
 part 'video_player_provider.m.freezed.dart';
 part 'video_player_provider.m.g.dart';
-
-class NetworkVideosCacheManager {
-  static const key = 'networkVideosCacheKey';
-
-  static CacheManager instance = CacheManager(
-    Config(
-      key,
-      maxNrOfCacheObjects: 100,
-      stalePeriod: const Duration(days: 1),
-    ),
-  );
-}
 
 /// Limits how many video controllers are initialized concurrently.
 class _ConcurrencyGate {
@@ -344,7 +331,7 @@ class VideoPlayerControllerFactory {
         _isLocalFile(sourcePath) ? Uri.file(sourcePath) : Uri.parse(sourcePath),
         videoPlayerOptions: videoPlayerOptions,
         cacheKey: _cacheKeyFor(sourcePath),
-        cacheManager: NetworkVideosCacheManager.instance,
+        cacheManager: IONCacheManager.networkVideos,
       );
     } else if (_isLocalFile(sourcePath)) {
       return CachedVideoPlayerPlus.file(

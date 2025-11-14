@@ -10,7 +10,7 @@ import 'package:path_provider/path_provider.dart';
 class IONCacheManager {
   static const key = 'ionCacheKey';
 
-  static CacheManager instance = CacheManager(
+  static final CacheManager instance = CacheManager(
     Config(
       key,
       maxNrOfCacheObjects: 1000,
@@ -18,6 +18,38 @@ class IONCacheManager {
       repo: JsonCacheInfoRepository(databaseName: key),
       fileSystem: IONFileSystem(key),
       fileService: HttpFileService(),
+    ),
+  );
+
+  static final ionNetworkImage = CacheManager(
+    Config(
+      'ionNetworkImageCache',
+      maxNrOfCacheObjects: 1000,
+      stalePeriod: const Duration(days: 60),
+    ),
+  );
+
+  static final ionConnectNetworkImage = CacheManager(
+    Config(
+      'ionConnectNetworkImageCacheKey',
+      maxNrOfCacheObjects: 1000,
+      stalePeriod: const Duration(days: 1),
+    ),
+  );
+
+  static final networkVideos = CacheManager(
+    Config(
+      'networkVideosCacheKey',
+      maxNrOfCacheObjects: 100,
+      stalePeriod: const Duration(days: 1),
+    ),
+  );
+
+  static final preCachePictures = CacheManager(
+    Config(
+      'preCachePicturesCacheKey',
+      maxNrOfCacheObjects: 1000,
+      stalePeriod: const Duration(days: 60),
     ),
   );
 
