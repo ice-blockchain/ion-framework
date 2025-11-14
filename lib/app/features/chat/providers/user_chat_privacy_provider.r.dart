@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/chat/model/participiant_keys.f.dart';
 import 'package:ion/app/features/chat/providers/exist_chat_conversation_id_provider.r.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion/app/services/uuid/generate_conversation_id.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_chat_privacy_provider.r.g.dart';
@@ -42,28 +43,24 @@ Future<bool> canSendMessage(
     throw UserMasterPubkeyNotFoundException();
   }
 
-  final participantsMasterPubkeys = [masterPubkey, currentUserMasterPubkey];
+  final participantsMasterPubkeys =
+      ParticipantKeys(keys: [masterPubkey, currentUserMasterPubkey].sorted());
 
-  final oldTypeConversationId = await ref.watch(
+  final conversationId = await ref.read(
     existChatConversationIdProvider(participantsMasterPubkeys).future,
   );
 
-  final generatedConversationId = generateConversationId(
-    conversationType: ConversationType.oneToOne,
-    receiverMasterPubkeys: participantsMasterPubkeys,
-  );
-
   final conversationIdExists = await ref.watch(
-    checkIfConversationExistsProvider(generatedConversationId).future,
+    checkIfConversationExistsProvider(conversationId).future,
   );
 
-  if (oldTypeConversationId == null && !conversationIdExists) return false;
+  if (!conversationIdExists) return false;
 
   // 4. Check if the conversation was deleted by the other user
   final isConversationDeleted =
       await ref.watch(conversationDaoProvider).checkAnotherUserDeletedConversation(
             masterPubkey: masterPubkey,
-            conversationId: oldTypeConversationId ?? generatedConversationId,
+            conversationId: conversationId,
           );
 
   return !isConversationDeleted;
