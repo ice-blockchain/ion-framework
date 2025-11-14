@@ -51,12 +51,28 @@ class NetworkClient {
     );
 
     if (response.statusCode != 200) {
+      //TODO: add custom exceptions with codes
       throw Exception('Request failed with status ${response.statusCode}: $path');
     }
 
     return response.data as T;
   }
 
+  /// Builds a map of query parameters suitable for HTTP requests.
+  ///
+  /// Converts the input [queryParameters] map into a string-based map where:
+  /// - List values are joined with commas and the key is suffixed with '[]'
+  /// - All other values are converted to strings using [toString()]
+  ///
+  /// Example:
+  /// ```dart
+  /// _buildQueryParameters({
+  ///   'id': 123,
+  ///   'tags': ['dart', 'flutter'],
+  ///   'active': true
+  /// })
+  /// // Returns: {'id': '123', 'tags[]': 'dart,flutter', 'active': 'true'}
+  /// ```
   Map<String, String> _buildQueryParameters(Map<String, dynamic>? queryParameters) {
     if (queryParameters == null) {
       return {};

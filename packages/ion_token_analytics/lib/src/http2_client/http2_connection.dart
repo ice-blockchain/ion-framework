@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:http2/http2.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_connection_status.dart';
-import 'package:ion_token_analytics/src/http2_client/web_socket_exceptions.dart';
+import 'package:ion_token_analytics/src/http2_client/http2_exceptions.dart';
 
 /// Manages an HTTP/2 connection.
 ///
