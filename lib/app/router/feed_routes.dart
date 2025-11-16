@@ -65,6 +65,8 @@ class FeedRoutes {
         TypedGoRoute<EditArticleRoute>(path: 'create-article/edit/:modifiedEvent'),
         TypedGoRoute<EditArticlePreviewRoute>(path: 'article-preview/edit/:modifiedEvent'),
         TypedGoRoute<FeedContentCreationBlockedModalRoute>(path: 'content-creation-blocked'),
+        TypedGoRoute<ActiveBoostPostModalRoute>(path: 'boost-post/active/:eventReference'),
+        TypedGoRoute<NewBoostPostModalRoute>(path: 'boost-post/new/:eventReference'),
       ],
     ),
     TypedGoRoute<InviteFriendsRoute>(path: 'invite-friends-fullstack'),
@@ -557,4 +559,30 @@ class FeedContentCreationBlockedModalRoute extends BaseRouteData
           child: const FeedContentCreationBlockedModalPage(),
           type: IceRouteType.bottomSheet,
         );
+}
+
+class ActiveBoostPostModalRoute extends BaseRouteData with _$ActiveBoostPostModalRoute {
+  ActiveBoostPostModalRoute({required this.eventReference})
+      : super(
+          child: BoostPostModal(
+            eventReference: EventReference.fromEncoded(eventReference),
+            isBoostActive: true,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String eventReference;
+}
+
+class NewBoostPostModalRoute extends BaseRouteData with _$NewBoostPostModalRoute {
+  NewBoostPostModalRoute({required this.eventReference})
+      : super(
+          child: BoostPostModal(
+            eventReference: EventReference.fromEncoded(eventReference),
+            isBoostActive: false,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String eventReference;
 }
