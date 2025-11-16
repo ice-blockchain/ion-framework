@@ -56,6 +56,37 @@
   "bookmarks_new_collection_desc": "Add a name for new bookmarks collection",
   "bookmarks_new_collection_title": "Create new collection",
   "bookmarks_title": "Bookmarks",
+  "boost_apple_fee_description": "Apple will charge a 30% fee to advertisers for promoting publications through iOS apps. It is important to note that the commission is calculated from the total amount of the payment before taxes and goes in favor of Apple.",
+  "boost_apple_fee_title": "Apple service fee",
+  "boost_approximately_views": "Approximately views",
+  "boost_balance_description": "The balance is the remaining funds in your advertising account, which is used to pay for ongoing advertising campaigns.",
+  "boost_balance_title": "Balance",
+  "boost_budget_description": "The budget is the total amount of money that is allocated to promote your post, to increase the number of views and reach during your chosen time period.",
+  "boost_budget_title": "Budget",
+  "boost_cost_description": "The cost is the total amount of the current campaign.",
+  "boost_cost_title": "Cost",
+  "boost_daily_budget_title": "Daily budget",
+  "boost_duration_days": "{days} days",
+  "@boost_duration_days": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "boost_duration_label": "Duration",
+  "boost_increase_boost": "Increase boost",
+  "boost_pay_amount": "Pay ${amount}",
+  "@boost_pay_amount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "boost_taxes_description": "Taxes are the internal fees that Online+ charges advertisers for promoting posts. These commissions cover various expenses related to the placement and optimization of advertising posts, as well as the use of analytics and targeting tools.",
+  "boost_taxes_title": "Taxes",
+  "boost_total_views": "Total views",
   "button_add": "Add",
   "button_add_answer": "Add answer",
   "button_allow": "Allow",
@@ -64,6 +95,7 @@
   "button_back_to_security": "Back to Security",
   "button_block": "Block",
   "button_bookmark": "Bookmark",
+  "button_boost": "Boost",
   "button_cancel": "Cancel",
   "button_close": "Close",
   "button_confirm": "Confirm",
@@ -105,6 +137,7 @@
   "button_share": "Share",
   "button_share_story": "Share story",
   "button_skip": "Skip",
+  "button_tip_creator": "Tip creator",
   "button_try_again": "Try again",
   "button_turn_off": "Turn off",
   "button_unblock": "Unblock",
@@ -643,6 +676,7 @@
   "profile_help": "Help Center",
   "profile_location": "Location",
   "profile_log_out": "Log out {nickname}",
+  "profile_login_with_new_account": "Login with new account",
   "profile_no_account_found": "We couldn't find this account",
   "profile_none": "None",
   "profile_notifications_popup_title": "Account notifications",
@@ -670,7 +704,6 @@
   "profile_send_option_title": "Send payment",
   "profile_stories": "Stories",
   "profile_switch_user_header": "User accounts",
-  "profile_login_with_new_account": "Login with new account",
   "profile_token_be_first_to_buy": "Be the first to buy",
   "profile_token_buy": "Buy",
   "profile_videos": "Videos",
