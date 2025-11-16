@@ -246,21 +246,12 @@ class _SelectableNetworksList extends ConsumerWidget {
         final coin = networksState.value!.coins[index];
         final network = coin.coin.network;
         final isEnabled = enabledNetworkIds.contains(network.id);
-        final networkItem = NetworkItem(
+
+        return NetworkItem(
           coinInWallet: coin,
           network: network,
           onTap: () => onNetworkTap(network),
-        );
-
-        if (isEnabled) {
-          return networkItem;
-        }
-
-        return IgnorePointer(
-          child: Opacity(
-            opacity: 0.3,
-            child: networkItem,
-          ),
+          isEnabled: isEnabled,
         );
       },
     );
