@@ -34,7 +34,7 @@ List<T> filterUnsupportedVideoFormats<T>(
 bool _filterVideoByFormat(String mimeType) {
   final format = mimeType.split('/').last;
   if (Platform.isIOS) {
-    return format == 'mp4' || format == 'mov' || format == 'm4v';
+    return format == 'mp4' || format == 'mov' || format == 'm4v' || format == 'quicktime';
   }
 
   return format == 'mp4' || format == 'mov';
