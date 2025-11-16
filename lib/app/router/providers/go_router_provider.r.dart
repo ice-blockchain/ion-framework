@@ -76,7 +76,8 @@ GoRouter goRouter(Ref ref) {
         return null;
       }
 
-      return _mainRedirect(location: state.matchedLocation, ref: ref);
+      final result = await _mainRedirect(location: state.matchedLocation, ref: ref);
+      return result;
     },
     routes: $appRoutes,
     errorBuilder: (context, state) => ErrorPage(message: state.error?.toString()),
@@ -91,7 +92,11 @@ Future<String?> _mainRedirect({
   required Ref ref,
 }) async {
   final isAuthenticated = (ref.read(authProvider).valueOrNull?.isAuthenticated).falseOrValue;
-  final onboardingComplete = ref.read(onboardingCompleteProvider).valueOrNull;
+
+  final onboardingComplete = isAuthenticated
+      ? await ref.read(onboardingCompleteProvider.future)
+      : ref.read(onboardingCompleteProvider).valueOrNull;
+
   final hasNotificationsPermission = ref.read(hasPermissionProvider(Permission.notifications));
 
   final isOnSplash = location.startsWith(SplashRoute().location);
@@ -99,6 +104,7 @@ Future<String?> _mainRedirect({
   final isOnOnboarding = location.contains('/${AuthRoutes.onboardingPrefix}/');
   final isOnMediaPicker = location.contains(MediaPickerRoutes.routesPrefix);
   final isOnFeed = location == FeedRoute().location;
+  final isOnIntro = location == IntroRoute().location;
 
   if (!isAuthenticated && !isOnAuth) {
     return IntroRoute().location;
@@ -106,7 +112,7 @@ Future<String?> _mainRedirect({
 
   if (isAuthenticated && onboardingComplete != null) {
     if (onboardingComplete) {
-      if (isOnSplash || isOnAuth) {
+      if (isOnSplash || isOnAuth || isOnIntro) {
         return FeedRoute().location;
       } else if (isOnOnboarding) {
         if (hasNotificationsPermission) {
