@@ -1029,5 +1029,25 @@
     "who_can_reply_settings_title_story": "谁可以回复此故事",
     "who_can_reply_settings_title_video": "谁可以回复此视频",
     "who_can_reply_settings_verified_accounts": "经过验证的账户",
-    "write_a_message": "写一条消息..."
+    "write_a_message": "写一条消息...",
+    "chart_label": "图表",
+    "chart_stats_volume": "量",
+    "chart_stats_buys": "买入",
+    "chart_stats_sells": "卖出",
+    "chart_stats_net_buy": "净买入",
+    "latest_trades_title": "最新成交",
+    "trade_buy": "买入",
+    "trade_sell": "卖出",
+    "tokenized_community_chart_tab": "图表",
+    "tokenized_community_holders_tab": "持有者",
+    "tokenized_community_trades_tab": "交易",
+    "tokenized_community_comments_tab": "评论",
+    "top_holders_title": "顶级持有者 ({count})",
+    "@top_holders_title": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    }
 }
