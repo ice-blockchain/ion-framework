@@ -81,6 +81,7 @@ dependencies:
     git:
       url: https://github.com/ice-blockchain/flutterfire.git
       path: packages/firebase_messaging/firebase_messaging
+  fl_chart: ^1.1.1
   flutter:
     sdk: flutter
   flutter_animate: ^4.5.0

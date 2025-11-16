@@ -1029,5 +1029,25 @@
   "who_can_reply_settings_title_story": "Кто может отвечать на эту историю",
   "who_can_reply_settings_title_video": "Кто может отвечать на это видео",
   "who_can_reply_settings_verified_accounts": "Проверенные аккаунты",
-  "write_a_message": "Написать сообщение..."
+  "write_a_message": "Написать сообщение...",
+  "chart_label": "График",
+  "chart_stats_volume": "Объём",
+  "chart_stats_buys": "Покупки",
+  "chart_stats_sells": "Продажи",
+  "chart_stats_net_buy": "Чистые покупки",
+  "latest_trades_title": "Последние сделки",
+  "trade_buy": "ПОКУПКА",
+  "trade_sell": "ПРОДАЖА",
+  "tokenized_community_chart_tab": "График",
+  "tokenized_community_holders_tab": "Держатели",
+  "tokenized_community_trades_tab": "Сделки",
+  "tokenized_community_comments_tab": "Комментарии",
+  "top_holders_title": "Топ держатели ({count})",
+  "@top_holders_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
