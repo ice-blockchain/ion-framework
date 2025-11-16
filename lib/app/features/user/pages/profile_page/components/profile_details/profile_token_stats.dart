@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
+import 'package:ion/app/components/info/info_modal.dart';
+import 'package:ion/app/components/info/info_type.dart';
 import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -13,8 +15,6 @@ import 'package:ion/app/features/tokenized_communities/providers/token_operation
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters.dart';
-import 'package:ion/app/features/wallets/model/info_type.dart';
-import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
 import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
