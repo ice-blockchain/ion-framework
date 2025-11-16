@@ -1,71 +1,66 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/avatar/default_avatar.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
-import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/user/pages/switch_account_modal/providers/account_info_provider.r.dart';
+import 'package:ion/app/features/user/pages/switch_account_modal/providers/switch_account_modal_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class AccountsTile extends ConsumerWidget {
   const AccountsTile({
     required this.identityKeyName,
+    required this.accountInfo,
+    required this.isCurrentUser,
     super.key,
   });
 
   final String identityKeyName;
+  final SwitchAccountInfoModel? accountInfo;
+  final bool isCurrentUser;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentIdentityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
-    final accountInfoAsync = ref.watch(accountInfoProvider(identityKeyName));
-    final isCurrentUser = identityKeyName == currentIdentityKeyName;
+    final modalNotifier = ref.read(switchAccountModalNotifierProvider.notifier);
 
-    return accountInfoAsync.when(
-      data: (AccountInfo? accountInfo) {
-        if (accountInfo == null) {
-          return _DefaultUserTile(
-            identityKeyName: identityKeyName,
-            isCurrentUser: isCurrentUser,
-            onTap: () {
-              if (!isCurrentUser) {
-                unawaited(ref.read(authProvider.notifier).setCurrentUser(identityKeyName));
-                if (context.mounted) {
-                  context.maybePop();
-                }
-              }
-            },
-          );
+    if (accountInfo == null) {
+      return _DefaultUserTile(
+        identityKeyName: identityKeyName,
+        isCurrentUser: isCurrentUser,
+        onTap: () async {
+          if (!isCurrentUser) {
+            Navigator.of(context).pop();
+            await modalNotifier.setCurrentUser(identityKeyName);
+          }
+        },
+      );
+    }
+
+    return BadgesUserListItem(
+      isSelected: isCurrentUser,
+      onTap: () async {
+        if (!isCurrentUser) {
+          Navigator.of(context).pop();
+          await modalNotifier.setCurrentUser(identityKeyName);
         }
-
-        return BadgesUserListItem(
-          isSelected: isCurrentUser,
-          onTap: () => ref.read(authProvider.notifier).setCurrentUser(identityKeyName),
-          title: Text(
-            accountInfo.userPreview.data.trimmedDisplayName,
-            strutStyle: const StrutStyle(forceStrutHeight: true),
-          ),
-          subtitle: Text(
-            prefixUsername(username: accountInfo.userPreview.data.name, context: context),
-          ),
-          masterPubkey: accountInfo.masterPubkey,
-          trailing: isCurrentUser == true ? Assets.svg.iconBlockCheckboxOn.icon() : null,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16.0.s),
-          backgroundColor: context.theme.appColors.tertiaryBackground,
-          borderRadius: ListItem.defaultBorderRadius,
-          constraints: ListItem.defaultConstraints,
-        );
       },
-      loading: () => Skeleton(child: ListItem()),
-      error: (_, __) => Skeleton(child: ListItem()),
+      title: Text(
+        accountInfo!.userPreview.data.trimmedDisplayName,
+        strutStyle: const StrutStyle(forceStrutHeight: true),
+      ),
+      subtitle: Text(
+        prefixUsername(username: accountInfo!.userPreview.data.name, context: context),
+      ),
+      masterPubkey: accountInfo!.masterPubkey,
+      trailing: isCurrentUser == true ? Assets.svg.iconBlockCheckboxOn.icon() : null,
+      contentPadding: EdgeInsets.symmetric(horizontal: 16.0.s),
+      backgroundColor: context.theme.appColors.tertiaryBackground,
+      borderRadius: ListItem.defaultBorderRadius,
+      constraints: ListItem.defaultConstraints,
     );
   }
 }

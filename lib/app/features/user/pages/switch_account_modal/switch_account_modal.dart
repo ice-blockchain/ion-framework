@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/modal_action_button/modal_action_button.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
@@ -9,6 +8,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/user/pages/switch_account_modal/components/accounts_list/accounts_list.dart';
+import 'package:ion/app/features/user/pages/switch_account_modal/providers/switch_account_modal_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -29,6 +29,7 @@ class SwitchAccountModal extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userMetadataValue = ref.watch(currentUserMetadataProvider).valueOrNull;
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+    final modalNotifier = ref.read(switchAccountModalNotifierProvider.notifier);
 
     return SheetContent(
       body: ScreenSideOffset.small(
@@ -49,8 +50,8 @@ class SwitchAccountModal extends HookConsumerWidget {
                   ),
                   label: context.i18n.profile_create_new_account,
                   onTap: () async {
-                    await ref.read(authProvider.notifier).clearCurrentUserForAuthentication();
-                    if (context.mounted) context.pop();
+                    Navigator.of(context).pop();
+                    await modalNotifier.clearCurrentUserForAuthentication();
                   },
                 ),
               const AccountsList(),
