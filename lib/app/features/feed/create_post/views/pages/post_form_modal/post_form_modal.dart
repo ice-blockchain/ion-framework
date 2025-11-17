@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/back_hardware_button_interceptor/back_hardware_button_interceptor.dart';
@@ -15,6 +16,7 @@ import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/ho
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_media_links.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_video.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_nsfw_validation.dart';
+import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_poll_data.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_post_quill_controller.dart';
 import 'package:ion/app/features/feed/hooks/use_detect_language.dart';
 import 'package:ion/app/features/feed/hooks/use_preselect_language.dart';
@@ -168,6 +170,7 @@ class PostFormModal extends HookConsumerWidget {
     );
     final scrollController = useScrollController();
     final textEditorKey = useMemoized(TextEditorKeys.createPost);
+    final wasEdited = useState(false);
 
     final attachedVideoNotifier =
         useAttachedVideo(videoPath: videoPath, mimeType: mimeType, videoThumbPath: videoThumbPath);
@@ -183,6 +186,7 @@ class PostFormModal extends HookConsumerWidget {
       enabled: parentEvent == null && createOption != CreatePostOption.modify,
       quillController: textEditorController,
     );
+    usePollData(ref, eventReference: modifiedEvent);
 
     useNsfwValidation(
       ref: ref,
@@ -197,8 +201,23 @@ class PostFormModal extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    useEffect(
+      () {
+        void changesListener(DocChange? change) {
+          if (!wasEdited.value) {
+            wasEdited.value = true;
+          }
+        }
+
+        textEditorController.document.changes.listen(changesListener);
+
+        return () => textEditorController.document.changes.listen(null).cancel();
+      },
+      [textEditorController],
+    );
+
     return BackHardwareButtonInterceptor(
-      onBackPress: (_) async => textEditorController.document.isEmpty()
+      onBackPress: (_) async => !wasEdited.value
           ? context.pop()
           : _tryShowCancelCreationModal(context, isBottomSheetShown),
       child: SheetContent(
@@ -211,6 +230,7 @@ class PostFormModal extends HookConsumerWidget {
               CreatePostAppBar(
                 createOption: createOption,
                 textEditorController: textEditorController,
+                wasEdited: wasEdited.value,
               ),
               Expanded(
                 child: CreatePostContent(
