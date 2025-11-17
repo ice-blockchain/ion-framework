@@ -54,7 +54,13 @@ class SwitchAccountModal extends HookConsumerWidget {
                     await modalNotifier.clearCurrentUserForAuthentication();
                   },
                 ),
-              const AccountsList(),
+              AccountsList(
+                onSelectUser: () {
+                  if (showActions) {
+                    FeedRoute().go(context);
+                  }
+                },
+              ),
               if (showActions && currentPubkey != null)
                 ModalActionButton(
                   icon: Assets.svg.iconMenuLogout.icon(size: 24.0.s),

@@ -182,8 +182,9 @@ class Auth extends _$Auth {
 
   Future<void> setCurrentUser(String identityKeyName) async {
     final currentUser = ref.read(currentIdentityKeyNameSelectorProvider);
+    final isUserSwitching = currentUser != null && currentUser != identityKeyName;
 
-    if (currentUser != null && currentUser != identityKeyName) {
+    if (isUserSwitching) {
       ref.read(userSwitchProvider.notifier).trigger();
       await Future<void>.delayed(const Duration(milliseconds: 300));
     } else {
@@ -343,4 +344,20 @@ void onLogin(Ref ref, void Function() callback) {
 void keepAliveWhileUnauthenticated(Ref ref) {
   final keepAlive = ref.keepAlive();
   onLogin(ref, keepAlive.close);
+}
+
+@Riverpod(keepAlive: true)
+class PubkeyChangeWithExistingUser extends _$PubkeyChangeWithExistingUser {
+  @override
+  void build() {
+    ref.listen<String?>(
+      currentPubkeySelectorProvider,
+      (prev, next) async {
+        if (prev != null && next != null && prev != next) {
+          // TODO(linus): refresh everything related to feed on pubkey change
+        }
+      },
+      fireImmediately: false,
+    );
+  }
 }
