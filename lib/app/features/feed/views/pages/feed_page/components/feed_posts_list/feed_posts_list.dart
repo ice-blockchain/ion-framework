@@ -21,12 +21,12 @@ class FeedPostsList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entities = ref.watch(feedPostsProvider.select((state) => state.items));
-
     // Prefetching mute list here so it can be used later with sync provider
     useOnInit(() {
-      ref.read(mutedUsersProvider);
+      ref.read(cachedMutedUsersProvider);
     });
+
+    final entities = ref.watch(feedPostsProvider.select((state) => state.items));
 
     if (entities == null) {
       return const EntitiesListSkeleton();
