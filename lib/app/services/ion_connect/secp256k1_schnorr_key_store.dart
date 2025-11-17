@@ -87,3 +87,4 @@ class Secp256k1SchnorrKeyStore with EventSigner {
   static const schnorrSignaturePrefix = 'schnorr/secp256k1';
 }
 
+
