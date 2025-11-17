@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/empty_list/empty_list.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
@@ -40,46 +41,49 @@ class ReplyList extends ConsumerWidget {
 
     final isLoading = replies?.data is PagedLoading;
 
-    return LoadMoreBuilder(
-      hasMore: hasMoreReplies,
-      onLoadMore: () => ref.read(repliesProvider(eventReference).notifier).loadMore(eventReference),
-      showIndicator: !isLoading,
-      slivers: [
-        if (headers != null) ...headers!,
-        if (entities == null)
-          const EntitiesListSkeleton()
-        else if (entities.isEmpty)
-          const _EmptyState()
-        else
-          EntitiesList(
-            items: entities
-                .map(
-                  (entity) => IonEntityListItem.event(eventReference: entity.toEventReference()),
-                )
-                .toList(),
-            separatorHeight: 1.0.s,
-            onVideoTap: ({
-              required String eventReference,
-              required int initialMediaIndex,
-              String? framedEventReference,
-            }) =>
-                ReplyListVideosRoute(
-              eventReference: eventReference,
-              initialMediaIndex: initialMediaIndex,
-              parentEventReference: this.eventReference.encode(),
-              framedEventReference: framedEventReference,
-            ).push<void>(context),
+    return KeyboardVisibilityBuilder(
+      builder: (context, isKeyboardVisible) => LoadMoreBuilder(
+        hasMore: hasMoreReplies,
+        onLoadMore: () =>
+            ref.read(repliesProvider(eventReference).notifier).loadMore(eventReference),
+        showIndicator: !isLoading,
+        slivers: [
+          if (headers != null) ...headers!,
+          if (entities == null)
+            const EntitiesListSkeleton()
+          else if (entities.isEmpty && !isKeyboardVisible)
+            const _EmptyState()
+          else
+            EntitiesList(
+              items: entities
+                  .map(
+                    (entity) => IonEntityListItem.event(eventReference: entity.toEventReference()),
+                  )
+                  .toList(),
+              separatorHeight: 1.0.s,
+              onVideoTap: ({
+                required String eventReference,
+                required int initialMediaIndex,
+                String? framedEventReference,
+              }) =>
+                  ReplyListVideosRoute(
+                eventReference: eventReference,
+                initialMediaIndex: initialMediaIndex,
+                parentEventReference: this.eventReference.encode(),
+                framedEventReference: framedEventReference,
+              ).push<void>(context),
+            ),
+          SliverToBoxAdapter(
+            child: SizedBox(height: 60.0.s),
           ),
-        SliverToBoxAdapter(
-          child: SizedBox(height: 60.0.s),
-        ),
-      ],
-      builder: (context, slivers) => PullToRefreshBuilder(
-        slivers: slivers,
-        onRefresh: () => _onRefresh(ref),
-        builder: (BuildContext context, List<Widget> slivers) => CustomScrollView(
-          controller: scrollController,
+        ],
+        builder: (context, slivers) => PullToRefreshBuilder(
           slivers: slivers,
+          onRefresh: () => _onRefresh(ref),
+          builder: (BuildContext context, List<Widget> slivers) => CustomScrollView(
+            controller: scrollController,
+            slivers: slivers,
+          ),
         ),
       ),
     );
