@@ -29,6 +29,7 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/settings/providers/test_custom_kinds_provider.r.dart';
 import 'package:ion/app/features/settings/providers/test_follow_list_provider.r.dart';
+import 'package:ion/app/features/settings/providers/test_generic_repost_provider.r.dart';
 import 'package:ion/app/features/settings/providers/test_post_deletion_provider.r.dart';
 import 'package:ion/app/features/settings/providers/test_post_provider.r.dart';
 import 'package:ion/app/features/settings/providers/test_repost_provider.r.dart';
@@ -83,14 +84,18 @@ class FeedPage extends HookConsumerWidget {
           // const _DebugTestRepostSelectedRelayButton(),
           // SizedBox(width: 12.0.s),
           // const _DebugTestRepostAllRelaysButton(),
+          // SizedBox(width: 12.0.s),
+          // const _DebugTestModifiablePostSelectedRelayButton(),
+          // SizedBox(width: 12.0.s),
+          // const _DebugTestModifiablePostAllRelaysButton(),
+          // SizedBox(width: 12.0.s),
+          // const _DebugTestArticleSelectedRelayButton(),
+          // SizedBox(width: 12.0.s),
+          // const _DebugTestArticleAllRelaysButton(),
           SizedBox(width: 12.0.s),
-          const _DebugTestModifiablePostSelectedRelayButton(),
+          const _DebugTestGenericRepostSelectedRelayButton(),
           SizedBox(width: 12.0.s),
-          const _DebugTestModifiablePostAllRelaysButton(),
-          SizedBox(width: 12.0.s),
-          const _DebugTestArticleSelectedRelayButton(),
-          SizedBox(width: 12.0.s),
-          const _DebugTestArticleAllRelaysButton(),
+          const _DebugTestGenericRepostAllRelaysButton(),
         ],
         scrollController: scrollController,
         horizontalPadding: ScreenSideOffset.defaultSmallMargin,
@@ -1000,6 +1005,152 @@ class _DebugTestArticleAllRelaysButtonState
                   final successful = reports.where((CustomKindTestReport r) => r.success).length;
                   final matched = reports.where((CustomKindTestReport r) => r.matched).length;
                   final failed = reports.where((CustomKindTestReport r) => !r.success).length;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Test completed! Success: $successful, Matched: $matched, Failed: $failed. Check logs for details.',
+                      ),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Test failed: $e'),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } finally {
+                if (mounted) {
+                  setState(() => _isTesting = false);
+                }
+              }
+            },
+    );
+  }
+}
+
+class _DebugTestGenericRepostSelectedRelayButton extends ConsumerStatefulWidget {
+  const _DebugTestGenericRepostSelectedRelayButton();
+
+  @override
+  ConsumerState<_DebugTestGenericRepostSelectedRelayButton> createState() =>
+      _DebugTestGenericRepostSelectedRelayButtonState();
+}
+
+class _DebugTestGenericRepostSelectedRelayButtonState
+    extends ConsumerState<_DebugTestGenericRepostSelectedRelayButton> {
+  bool _isTesting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: _isTesting
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.repeat_outlined),
+      tooltip: 'Test GenericRepost (Kind 16) on Selected Relay',
+      onPressed: _isTesting
+          ? null
+          : () async {
+              setState(() => _isTesting = true);
+              try {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Testing generic repost on selected relay... Check logs for details.'),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+
+                final result = await ref.read(
+                  testGenericRepostOnSelectedRelayProvider.future,
+                ) as EventMessage?;
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        result != null
+                            ? 'Success! GenericRepost ID: ${result.id.substring(0, 16)}...'
+                            : 'Failed to fetch back generic repost. Check logs for details.',
+                      ),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Test failed: $e'),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } finally {
+                if (mounted) {
+                  setState(() => _isTesting = false);
+                }
+              }
+            },
+    );
+  }
+}
+
+class _DebugTestGenericRepostAllRelaysButton extends ConsumerStatefulWidget {
+  const _DebugTestGenericRepostAllRelaysButton();
+
+  @override
+  ConsumerState<_DebugTestGenericRepostAllRelaysButton> createState() =>
+      _DebugTestGenericRepostAllRelaysButtonState();
+}
+
+class _DebugTestGenericRepostAllRelaysButtonState
+    extends ConsumerState<_DebugTestGenericRepostAllRelaysButton> {
+  bool _isTesting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: _isTesting
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.repeat),
+      tooltip: 'Test GenericRepost (Kind 16) on All Relays',
+      onPressed: _isTesting
+          ? null
+          : () async {
+              setState(() => _isTesting = true);
+              try {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Testing generic repost on all relays... Check logs for detailed report.'),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+
+                final List<GenericRepostTestReport> reports = await ref.read(
+                  testGenericRepostOnAllRelaysProvider.future,
+                );
+
+                if (context.mounted) {
+                  final successful = reports.where((GenericRepostTestReport r) => r.success).length;
+                  final matched = reports.where((GenericRepostTestReport r) => r.matched).length;
+                  final failed = reports.where((GenericRepostTestReport r) => !r.success).length;
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
