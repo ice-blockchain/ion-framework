@@ -15,11 +15,13 @@ class ProfileUserInfo extends ConsumerWidget {
   const ProfileUserInfo({
     required this.pubkey,
     required this.profileMode,
+    required this.statsData,
     super.key,
   });
 
   final String pubkey;
   final ProfileMode profileMode;
+  final ProfileTokenStatsData? statsData;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -68,7 +70,7 @@ class ProfileUserInfo extends ConsumerWidget {
                 ),
               ),
             ),
-            ProfileTokenStats(data: ProfileTokenStatsData.mock()),
+            ProfileTokenStats(data: statsData),
           ],
         ),
       );
