@@ -11,8 +11,11 @@ import 'package:ion/app/features/user/pages/switch_account_modal/providers/switc
 
 class AccountsList extends ConsumerWidget {
   const AccountsList({
+    required this.onSelectUser,
     super.key,
   });
+
+  final VoidCallback onSelectUser;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,6 +35,7 @@ class AccountsList extends ConsumerWidget {
                   identityKeyName: account.identityKeyName,
                   accountInfo: account.accountInfo,
                   isCurrentUser: account.isCurrentUser,
+                  onSelectUser: onSelectUser,
                 ),
               )
               .toList(),

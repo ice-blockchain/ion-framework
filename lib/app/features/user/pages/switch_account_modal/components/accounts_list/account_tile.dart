@@ -16,13 +16,14 @@ class AccountsTile extends ConsumerWidget {
     required this.identityKeyName,
     required this.accountInfo,
     required this.isCurrentUser,
+    required this.onSelectUser,
     super.key,
   });
 
   final String identityKeyName;
   final SwitchAccountInfoModel? accountInfo;
   final bool isCurrentUser;
-
+  final VoidCallback onSelectUser;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final modalNotifier = ref.read(switchAccountModalNotifierProvider.notifier);
@@ -34,6 +35,7 @@ class AccountsTile extends ConsumerWidget {
         onTap: () async {
           if (!isCurrentUser) {
             Navigator.of(context).pop();
+            onSelectUser();
             await modalNotifier.setCurrentUser(identityKeyName);
           }
         },
@@ -45,6 +47,7 @@ class AccountsTile extends ConsumerWidget {
       onTap: () async {
         if (!isCurrentUser) {
           Navigator.of(context).pop();
+          onSelectUser();
           await modalNotifier.setCurrentUser(identityKeyName);
         }
       },
