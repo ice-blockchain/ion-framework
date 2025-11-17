@@ -86,8 +86,12 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
 
       final output = await generateOutputPath(extension: 'mp4');
 
-      final (width: originalWidth, height: originalHeight, duration: originalDuration, bitrate: _) =
-          await videoInfoService.getVideoInformation(file.path);
+      final (
+        width: originalWidth,
+        height: originalHeight,
+        duration: originalDuration,
+        bitrate: originalBitrate
+      ) = await videoInfoService.getVideoInformation(file.path);
 
       Logger.log('Original dimensions: ${originalWidth}x$originalHeight');
 
@@ -99,6 +103,17 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
 
       Logger.log('Target dimensions: ${targetDimensions.width}x${targetDimensions.height}');
 
+      final quality = settings?.quality ?? 0.75;
+      final targetBitrate = _calculateTargetBitrate(
+        width: targetDimensions.width,
+        height: targetDimensions.height,
+        frameRate: 30,
+        quality: quality,
+        originalBitrate: originalBitrate,
+        originalWidth: originalWidth,
+        originalHeight: originalHeight,
+      );
+
       Logger.log(
         'Time since start: ${stopwatch.elapsed.inSeconds}.${stopwatch.elapsed.inMilliseconds % 1000}s',
       );
@@ -109,7 +124,8 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
         'destWidth': targetDimensions.width,
         'destHeight': targetDimensions.height,
         'codec': settings?.codec,
-        'quality': settings?.quality ?? 0.75,
+        'quality': quality,
+        if (targetBitrate != null) 'bitrate': targetBitrate,
       });
 
       final compressedFile = File(output);
@@ -186,6 +202,42 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
     }
 
     return (width: targetWidth, height: targetHeight);
+  }
+
+  /// Calculates target bitrate using the same formula as Android for consistency.
+  /// Formula: width * height * frameRate * bpp * qualityFactor
+  /// - bpp (bits per pixel) = 0.08 for balanced quality
+  /// - qualityFactor = quality (clamped 0.5-1.0)
+  /// - Clamp result between 1 Mbps and 10 Mbps
+  /// When re-encoding at same resolution, cap at original bitrate to prevent size increase.
+  int? _calculateTargetBitrate({
+    required int width,
+    required int height,
+    required int frameRate,
+    required double quality,
+    required int originalWidth,
+    required int originalHeight,
+    int? originalBitrate,
+  }) {
+    if (!Platform.isIOS) {
+      return null;
+    }
+
+    const bpp = 0.08;
+    final qualityFactor = quality.clamp(0.5, 1.0);
+    final calculatedBitrate = (width * height * frameRate * bpp * qualityFactor).round();
+
+    const minBitrate = 1000000;
+    const maxBitrate = 10000000;
+    var targetBitrate = calculatedBitrate.clamp(minBitrate, maxBitrate);
+
+    final isSameResolution = width == originalWidth && height == originalHeight;
+    if (isSameResolution && originalBitrate != null) {
+      targetBitrate = targetBitrate < originalBitrate ? targetBitrate : originalBitrate;
+      targetBitrate = targetBitrate.clamp(minBitrate, maxBitrate);
+    }
+
+    return targetBitrate;
   }
 }
 
