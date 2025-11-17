@@ -23,7 +23,6 @@ import 'package:ion/app/features/feed/create_post/views/components/post_submit_b
 import 'package:ion/app/features/feed/create_post/views/components/reply_input_field/attached_media_preview.dart';
 import 'package:ion/app/features/feed/create_post/views/components/reply_input_field/reply_author_header.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/providers/reply_input_focus_provider.r.dart';
 import 'package:ion/app/features/feed/providers/suggestions/suggestions_notifier_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/actions_toolbar/actions_toolbar.dart';
 import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_bold_button.dart';
@@ -32,7 +31,6 @@ import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_i
 import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_poll_button.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
-import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
@@ -84,16 +82,6 @@ class ReplyInputField extends HookConsumerWidget {
     final attachedMediaLinksNotifier = useState<Map<String, MediaAttachment>>({});
     final scrollController = useScrollController();
     final suggestionsState = ref.watch(suggestionsNotifierProvider);
-
-    useOnInit(
-      () {
-        if (ref.context.mounted) {
-          ref.read(replyInputFocusControllerProvider(eventReference).notifier).focused =
-              hasFocus.value;
-        }
-      },
-      [hasFocus.value],
-    );
 
     return ScreenSideOffset.small(
       child: Column(
