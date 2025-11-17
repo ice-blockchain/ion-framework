@@ -27,6 +27,7 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_post
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/stories.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/trending_videos.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/settings/providers/test_custom_kinds_provider.r.dart';
 import 'package:ion/app/features/settings/providers/test_follow_list_provider.r.dart';
 import 'package:ion/app/features/settings/providers/test_post_deletion_provider.r.dart';
 import 'package:ion/app/features/settings/providers/test_post_provider.r.dart';
@@ -78,10 +79,18 @@ class FeedPage extends HookConsumerWidget {
           // const _DebugTestPostSelectedRelayButton(),
           // SizedBox(width: 12.0.s),
           // const _DebugTestPostAllRelaysButton(),
+          // SizedBox(width: 12.0.s),
+          // const _DebugTestRepostSelectedRelayButton(),
+          // SizedBox(width: 12.0.s),
+          // const _DebugTestRepostAllRelaysButton(),
           SizedBox(width: 12.0.s),
-          const _DebugTestRepostSelectedRelayButton(),
+          const _DebugTestModifiablePostSelectedRelayButton(),
           SizedBox(width: 12.0.s),
-          const _DebugTestRepostAllRelaysButton(),
+          const _DebugTestModifiablePostAllRelaysButton(),
+          SizedBox(width: 12.0.s),
+          const _DebugTestArticleSelectedRelayButton(),
+          SizedBox(width: 12.0.s),
+          const _DebugTestArticleAllRelaysButton(),
         ],
         scrollController: scrollController,
         horizontalPadding: ScreenSideOffset.defaultSmallMargin,
@@ -699,6 +708,298 @@ class _DebugTestRepostAllRelaysButtonState
                   final successful = reports.where((RepostTestReport r) => r.success).length;
                   final matched = reports.where((RepostTestReport r) => r.matched).length;
                   final failed = reports.where((RepostTestReport r) => !r.success).length;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Test completed! Success: $successful, Matched: $matched, Failed: $failed. Check logs for details.',
+                      ),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Test failed: $e'),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } finally {
+                if (mounted) {
+                  setState(() => _isTesting = false);
+                }
+              }
+            },
+    );
+  }
+}
+
+class _DebugTestModifiablePostSelectedRelayButton extends ConsumerStatefulWidget {
+  const _DebugTestModifiablePostSelectedRelayButton();
+
+  @override
+  ConsumerState<_DebugTestModifiablePostSelectedRelayButton> createState() =>
+      _DebugTestModifiablePostSelectedRelayButtonState();
+}
+
+class _DebugTestModifiablePostSelectedRelayButtonState
+    extends ConsumerState<_DebugTestModifiablePostSelectedRelayButton> {
+  bool _isTesting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: _isTesting
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.edit_note),
+      tooltip: 'Test ModifiablePost (30175) on Selected Relay',
+      onPressed: _isTesting
+          ? null
+          : () async {
+              setState(() => _isTesting = true);
+              try {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Testing modifiable post on selected relay... Check logs for details.'),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+
+                final result = await ref.read(
+                  testModifiablePostOnSelectedRelayProvider.future,
+                ) as EventMessage?;
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        result != null
+                            ? 'Success! ModifiablePost ID: ${result.id.substring(0, 16)}...'
+                            : 'Failed to fetch back modifiable post. Check logs for details.',
+                      ),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Test failed: $e'),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } finally {
+                if (mounted) {
+                  setState(() => _isTesting = false);
+                }
+              }
+            },
+    );
+  }
+}
+
+class _DebugTestModifiablePostAllRelaysButton extends ConsumerStatefulWidget {
+  const _DebugTestModifiablePostAllRelaysButton();
+
+  @override
+  ConsumerState<_DebugTestModifiablePostAllRelaysButton> createState() =>
+      _DebugTestModifiablePostAllRelaysButtonState();
+}
+
+class _DebugTestModifiablePostAllRelaysButtonState
+    extends ConsumerState<_DebugTestModifiablePostAllRelaysButton> {
+  bool _isTesting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: _isTesting
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.edit),
+      tooltip: 'Test ModifiablePost (30175) on All Relays',
+      onPressed: _isTesting
+          ? null
+          : () async {
+              setState(() => _isTesting = true);
+              try {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Testing modifiable post on all relays... Check logs for detailed report.'),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+
+                final List<CustomKindTestReport> reports = await ref.read(
+                  testModifiablePostOnAllRelaysProvider.future,
+                );
+
+                if (context.mounted) {
+                  final successful = reports.where((CustomKindTestReport r) => r.success).length;
+                  final matched = reports.where((CustomKindTestReport r) => r.matched).length;
+                  final failed = reports.where((CustomKindTestReport r) => !r.success).length;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Test completed! Success: $successful, Matched: $matched, Failed: $failed. Check logs for details.',
+                      ),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Test failed: $e'),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } finally {
+                if (mounted) {
+                  setState(() => _isTesting = false);
+                }
+              }
+            },
+    );
+  }
+}
+
+class _DebugTestArticleSelectedRelayButton extends ConsumerStatefulWidget {
+  const _DebugTestArticleSelectedRelayButton();
+
+  @override
+  ConsumerState<_DebugTestArticleSelectedRelayButton> createState() =>
+      _DebugTestArticleSelectedRelayButtonState();
+}
+
+class _DebugTestArticleSelectedRelayButtonState
+    extends ConsumerState<_DebugTestArticleSelectedRelayButton> {
+  bool _isTesting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: _isTesting
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.article_outlined),
+      tooltip: 'Test Article (30023) on Selected Relay',
+      onPressed: _isTesting
+          ? null
+          : () async {
+              setState(() => _isTesting = true);
+              try {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Testing article on selected relay... Check logs for details.'),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+
+                final result = await ref.read(
+                  testArticleOnSelectedRelayProvider.future,
+                ) as EventMessage?;
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        result != null
+                            ? 'Success! Article ID: ${result.id.substring(0, 16)}...'
+                            : 'Failed to fetch back article. Check logs for details.',
+                      ),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Test failed: $e'),
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              } finally {
+                if (mounted) {
+                  setState(() => _isTesting = false);
+                }
+              }
+            },
+    );
+  }
+}
+
+class _DebugTestArticleAllRelaysButton extends ConsumerStatefulWidget {
+  const _DebugTestArticleAllRelaysButton();
+
+  @override
+  ConsumerState<_DebugTestArticleAllRelaysButton> createState() =>
+      _DebugTestArticleAllRelaysButtonState();
+}
+
+class _DebugTestArticleAllRelaysButtonState
+    extends ConsumerState<_DebugTestArticleAllRelaysButton> {
+  bool _isTesting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: _isTesting
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.article),
+      tooltip: 'Test Article (30023) on All Relays',
+      onPressed: _isTesting
+          ? null
+          : () async {
+              setState(() => _isTesting = true);
+              try {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Testing article on all relays... Check logs for detailed report.'),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+
+                final List<CustomKindTestReport> reports = await ref.read(
+                  testArticleOnAllRelaysProvider.future,
+                );
+
+                if (context.mounted) {
+                  final successful = reports.where((CustomKindTestReport r) => r.success).length;
+                  final matched = reports.where((CustomKindTestReport r) => r.matched).length;
+                  final failed = reports.where((CustomKindTestReport r) => !r.success).length;
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
