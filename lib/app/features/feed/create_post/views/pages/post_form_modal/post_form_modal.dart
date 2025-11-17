@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/back_hardware_button_interceptor/back_hardware_button_interceptor.dart';
 import 'package:ion/app/components/text_editor/text_editor.dart';
@@ -14,6 +16,7 @@ import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/ho
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_media_links.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_video.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_nsfw_validation.dart';
+import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_poll_data.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_post_quill_controller.dart';
 import 'package:ion/app/features/feed/hooks/use_cancel_creation_modal.dart';
 import 'package:ion/app/features/feed/hooks/use_detect_language.dart';
@@ -181,6 +184,7 @@ class PostFormModal extends HookConsumerWidget {
       enabled: parentEvent == null && createOption != CreatePostOption.modify,
       quillController: textEditorController,
     );
+    usePollData(ref, eventReference: modifiedEvent);
 
     useNsfwValidation(
       ref: ref,

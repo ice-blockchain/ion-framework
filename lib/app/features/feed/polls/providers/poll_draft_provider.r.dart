@@ -52,4 +52,8 @@ class PollDraftNotifier extends _$PollDraftNotifier {
   void reset() {
     state = PollDraft.initial();
   }
+
+  set draft(PollDraft draft) {
+    state = draft;
+  }
 }
