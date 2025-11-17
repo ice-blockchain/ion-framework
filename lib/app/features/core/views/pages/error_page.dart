@@ -10,6 +10,8 @@ import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/core/providers/init_provider.r.dart';
 import 'package:ion/app/features/core/providers/internet_status_stream_provider.r.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
+import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
+import 'package:ion/app/features/feed/providers/feed_config_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -31,6 +33,8 @@ class ErrorPage extends HookConsumerWidget {
         if (prevNoInternetConnection.falseOrValue && hasInternetConnection) {
           ref.read(splashProvider.notifier).animationCompleted = false;
           ref
+            ..invalidate(feedConfigProvider)
+            ..invalidate(walletsNotifierProvider)
             ..invalidate(initAppProvider)
             ..read(initAppProvider);
         }
