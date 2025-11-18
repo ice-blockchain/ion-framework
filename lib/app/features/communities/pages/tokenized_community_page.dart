@@ -9,17 +9,22 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/models/latest_trade.dart';
 import 'package:ion/app/features/communities/models/token_header_data.dart';
 import 'package:ion/app/features/communities/models/top_holder.dart';
+import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/communities/views/components/chart_component.dart';
 import 'package:ion/app/features/communities/views/components/chart_stats_component.dart';
 import 'package:ion/app/features/communities/views/components/comments_section_compact.dart';
 import 'package:ion/app/features/communities/views/components/latest_trades_component.dart';
 import 'package:ion/app/features/communities/views/components/token_header_component.dart';
 import 'package:ion/app/features/communities/views/components/top_holders_component.dart';
+import 'package:ion/app/utils/username.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/header/header.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_actions/profile_action.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion/app/features/communities/providers/token_olhcv_candles_provider.r.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/models/ohlcv_candle.f.dart';
 
 enum TokenizedCommunityTabType implements TabType {
   chart,
@@ -53,7 +58,9 @@ enum TokenizedCommunityTabType implements TabType {
 }
 
 class TokenizedCommunityPage extends HookWidget {
-  const TokenizedCommunityPage({super.key});
+  const TokenizedCommunityPage({required this.masterPubkey, super.key});
+
+  final String masterPubkey;
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +99,7 @@ class TokenizedCommunityPage extends HookWidget {
           showBackButton: true,
           textColor: context.theme.appColors.secondaryBackground,
         ),
-        expandedHeader: const _TokenExpandedHeader(),
+        expandedHeader: _TokenExpandedHeader(masterPubkey: masterPubkey),
       ),
     );
   }
@@ -122,37 +129,62 @@ class _ChartsTabView extends StatelessWidget {
   }
 }
 
-class _TokenExpandedHeader extends StatelessWidget {
-  const _TokenExpandedHeader();
+class _TokenExpandedHeader extends ConsumerWidget {
+  const _TokenExpandedHeader({required this.masterPubkey});
+
+  final String masterPubkey;
+
   @override
-  Widget build(BuildContext context) {
-    const headerData = TokenHeaderData(
-      displayName: 'Susan Hellena Parks',
-      handle: '@susan_h_parks',
-      priceUsd: 0.0000117,
-      marketCapUsd: 43230000,
-      holdersCount: 1100,
-      volumeUsd: 990,
-      verified: true,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(masterPubkey));
+    final token = tokenInfo.valueOrNull;
+
+    return TokenHeaderComponent(
+      token: token,
+      masterPubkey: masterPubkey,
     );
-    return const TokenHeaderComponent(data: headerData);
   }
 }
 
-class _TokenChart extends HookWidget {
-  @override
-  Widget build(BuildContext context) {
-    final selectedRange = useState(ChartTimeRange.m15);
+class _TokenChart extends HookConsumerWidget {
+  const _TokenChart();
 
-    return ChartComponent(
-      price: Decimal.parse('0.0234'),
-      label: 'SUSAN H PARKS',
-      changePercent: 145.84,
-      candles: demoCandles,
-      selectedRange: selectedRange.value,
-      onRangeChanged: (range) => selectedRange.value = range,
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedRange = useState(ChartTimeRange.m15);
+    // TODO: put real master
+    final candles = ref.watch(
+      tokenOhlcvCandlesProvider(
+        'masterPubkey',
+        selectedRange.value.intervalString,
+      ),
+    );
+
+    return candles.when(
+      data: (candles) => ChartComponent(
+        price: Decimal.parse('0.0234'),
+        label: 'SUSAN H PARKS',
+        changePercent: 145.84,
+        candles: mapOhlcvToChartCandles(candles),
+        selectedRange: selectedRange.value,
+        onRangeChanged: (range) => selectedRange.value = range,
+      ),
+      error: (error, stackTrace) => const SizedBox.shrink(),
+      loading: () => const SizedBox.shrink(),
     );
   }
+}
+
+extension on ChartTimeRange {
+  String get intervalString => switch (this) {
+        ChartTimeRange.m1 => '1m',
+        ChartTimeRange.m3 => '3m',
+        ChartTimeRange.m5 => '5m',
+        ChartTimeRange.m15 => '15m',
+        ChartTimeRange.m30 => '30m',
+        ChartTimeRange.h1 => '1h',
+        ChartTimeRange.d1 => '1d',
+      };
 }
 
 class _TokenStats extends HookWidget {
@@ -259,4 +291,22 @@ class _LatestTrades extends HookWidget {
       onViewAllPressed: () {},
     );
   }
+}
+
+List<ChartCandle> mapOhlcvToChartCandles(List<OhlcvCandle> source) {
+  return source
+      .map(
+        (candle) => ChartCandle(
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close,
+          price: Decimal.parse(candle.close.toString()),
+          date: DateTime.fromMillisecondsSinceEpoch(
+            (candle.timestamp ~/ 1000), // timestamp is in microseconds
+            isUtc: true,
+          ),
+        ),
+      )
+      .toList();
 }
