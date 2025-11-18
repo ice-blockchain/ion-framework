@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/back_hardware_button_interceptor/back_hardware_button_interceptor.dart';
 import 'package:ion/app/components/text_editor/text_editor.dart';
@@ -16,14 +15,13 @@ import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/ho
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_video.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_nsfw_validation.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_post_quill_controller.dart';
+import 'package:ion/app/features/feed/hooks/use_cancel_creation_modal.dart';
 import 'package:ion/app/features/feed/hooks/use_detect_language.dart';
 import 'package:ion/app/features/feed/hooks/use_preselect_language.dart';
 import 'package:ion/app/features/feed/hooks/use_preselect_topics.dart';
-import 'package:ion/app/features/feed/views/pages/cancel_creation_modal/cancel_creation_modal.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/nsfw/providers/media_nsfw_checker.r.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
-import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 class PostFormModal extends HookConsumerWidget {
@@ -189,18 +187,20 @@ class PostFormModal extends HookConsumerWidget {
       mediaFiles: attachedMediaFilesNotifier.value,
       videoFile: attachedVideoNotifier.value,
     );
-    final isBottomSheetShown = useState(false);
-
-    ref.watch(mediaNsfwCheckerProvider);
 
     if (textEditorController == null) {
       return const SizedBox.shrink();
     }
 
+    final onAttemptToCancel = useCancelCreationModal(
+      title: context.i18n.cancel_creation_post_title,
+      textEditorController: textEditorController,
+    );
+
+    ref.watch(mediaNsfwCheckerProvider);
+
     return BackHardwareButtonInterceptor(
-      onBackPress: (_) async => textEditorController.document.isEmpty()
-          ? context.pop()
-          : _tryShowCancelCreationModal(context, isBottomSheetShown),
+      onBackPress: (_) async => onAttemptToCancel(),
       child: SheetContent(
         topPadding: 0,
         body: ShowCaseWidget(
@@ -210,7 +210,7 @@ class PostFormModal extends HookConsumerWidget {
             children: [
               CreatePostAppBar(
                 createOption: createOption,
-                textEditorController: textEditorController,
+                onClose: onAttemptToCancel,
               ),
               Expanded(
                 child: CreatePostContent(
@@ -242,23 +242,5 @@ class PostFormModal extends HookConsumerWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _tryShowCancelCreationModal(
-    BuildContext context,
-    ValueNotifier<bool> isBottomSheetShown,
-  ) async {
-    if (!isBottomSheetShown.value) {
-      isBottomSheetShown.value = true;
-      await showSimpleBottomSheet<void>(
-        context: context,
-        child: CancelCreationModal(
-          title: context.i18n.cancel_creation_post_title,
-          onCancel: () => Navigator.of(context).pop(),
-        ),
-      );
-
-      isBottomSheetShown.value = false;
-    }
   }
 }

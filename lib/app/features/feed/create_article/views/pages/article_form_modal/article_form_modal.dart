@@ -15,12 +15,11 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/create_article/views/pages/article_form_modal/components/article_form_add_image.dart';
 import 'package:ion/app/features/feed/create_article/views/pages/article_form_modal/components/article_form_toolbar.dart';
 import 'package:ion/app/features/feed/create_article/views/pages/article_form_modal/hooks/use_article_form.dart';
-import 'package:ion/app/features/feed/views/pages/cancel_creation_modal/cancel_creation_modal.dart';
+import 'package:ion/app/features/feed/hooks/use_cancel_creation_modal.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
-import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 
 class ArticleFormModal extends HookConsumerWidget {
   factory ArticleFormModal({
@@ -59,21 +58,13 @@ class ArticleFormModal extends HookConsumerWidget {
 
     final scrollController = ScrollController();
     final textEditorKey = useMemoized(TextEditorKeys.createArticle);
-
-    Future<bool?> showCancelCreationModal(BuildContext context) {
-      return showSimpleBottomSheet<bool>(
-        context: context,
-        child: CancelCreationModal(
-          title: context.i18n.cancel_creation_article_title,
-          onCancel: () => Navigator.of(context).pop(true),
-        ),
-      );
-    }
+    final onAttemptToCancel = useCancelCreationModal(
+      title: context.i18n.cancel_creation_article_title,
+      textEditorController: articleState.textEditorController,
+    );
 
     return BackHardwareButtonInterceptor(
-      onBackPress: (context) async {
-        await showCancelCreationModal(context);
-      },
+      onBackPress: (_) async => onAttemptToCancel(),
       child: SheetContent(
         body: Column(
           mainAxisSize: MainAxisSize.min,
@@ -84,9 +75,7 @@ class ArticleFormModal extends HookConsumerWidget {
                     ? context.i18n.create_article_nav_title_edit
                     : context.i18n.create_article_nav_title,
               ),
-              onBackPress: () {
-                showCancelCreationModal(context);
-              },
+              onBackPress: onAttemptToCancel,
               actions: [
                 Button(
                   type: ButtonType.secondary,
