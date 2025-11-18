@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats_data.dart';
+import 'package:ion/app/features/communities/pages/tokenized_community_page.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ProfileTokenStatsInfo extends StatelessWidget {
@@ -52,11 +54,13 @@ class ProfileTokenStatsInfo extends StatelessWidget {
 
 class ProfileTokenStats extends StatelessWidget {
   const ProfileTokenStats({
-    this.data,
+    required this.masterPubkey,
+    required this.data,
     super.key,
   });
 
   final ProfileTokenStatsData? data;
+  final String masterPubkey;
 
   @override
   Widget build(BuildContext context) {
@@ -66,9 +70,13 @@ class ProfileTokenStats extends StatelessWidget {
         children: [
           const _BuyHint(),
           SizedBox(width: 8.0.s),
-          const BuyButton(),
+          const BuyButton(masterPubkey: ''),
         ],
       );
+    }
+
+    void onStatItemTap() {
+      TokenizedCommunityRoute(masterPubkey: masterPubkey).go(context);
     }
 
     return Row(
@@ -77,16 +85,19 @@ class ProfileTokenStats extends StatelessWidget {
         _StatItem(
           icon: Assets.svg.iconMemeMarketcap,
           text: data!.marketCap,
+          onTap: onStatItemTap,
         ),
         _StatItem(
           icon: Assets.svg.iconMemeMarkers,
           text: data!.price,
+          onTap: onStatItemTap,
         ),
         _StatItem(
           icon: Assets.svg.iconSearchGroups,
           text: data!.volume,
+          onTap: onStatItemTap,
         ),
-        const BuyButton(),
+        BuyButton(masterPubkey: masterPubkey),
       ],
     );
   }
@@ -96,43 +107,48 @@ class _StatItem extends StatelessWidget {
   const _StatItem({
     required this.icon,
     required this.text,
+    this.onTap,
   });
 
   final String icon;
   final String text;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(width: 3.13.s),
-        Container(
-          width: 14.15.s,
-          height: 14.15.s,
-          clipBehavior: Clip.antiAlias,
-          decoration: const BoxDecoration(),
-          child: Center(
-            child: icon.icon(
-              size: 14.15.s,
-              color: context.theme.appColors.secondaryBackground,
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(width: 3.13.s),
+          Container(
+            width: 14.15.s,
+            height: 14.15.s,
+            clipBehavior: Clip.antiAlias,
+            decoration: const BoxDecoration(),
+            child: Center(
+              child: icon.icon(
+                size: 14.15.s,
+                color: context.theme.appColors.secondaryBackground,
+              ),
             ),
           ),
-        ),
-        SizedBox(width: 3.13.s),
-        Flexible(
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: context.theme.appTextThemes.caption.copyWith(
-              color: context.theme.appColors.secondaryBackground,
-              fontFamily: 'Noto Sans',
-              fontWeight: FontWeight.w600,
-              height: 1.17,
+          SizedBox(width: 3.13.s),
+          Flexible(
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: context.theme.appTextThemes.caption.copyWith(
+                color: context.theme.appColors.secondaryBackground,
+                fontFamily: 'Noto Sans',
+                fontWeight: FontWeight.w600,
+                height: 1.17,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -174,48 +190,53 @@ class _BuyHint extends StatelessWidget {
 
 class BuyButton extends StatelessWidget {
   const BuyButton({
+    required this.masterPubkey,
     this.height = 23.0,
     super.key,
   });
 
+  final String masterPubkey;
   final double height;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: height.s,
-      padding: EdgeInsets.symmetric(horizontal: 22.0.s),
-      decoration: ShapeDecoration(
-        color: context.theme.appColors.primaryAccent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.32.s),
+    return GestureDetector(
+      onTap: () => TokenizedCommunityRoute(masterPubkey: masterPubkey).go(context),
+      child: Container(
+        height: height.s,
+        padding: EdgeInsets.symmetric(horizontal: 22.0.s),
+        decoration: ShapeDecoration(
+          color: context.theme.appColors.primaryAccent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.32.s),
+          ),
         ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: const BoxDecoration(),
-            child: Center(
-              child: Assets.svg.iconWorkBuycoin.icon(
-                size: 14.s,
-                color: context.theme.appColors.secondaryBackground,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: const BoxDecoration(),
+              child: Center(
+                child: Assets.svg.iconWorkBuycoin.icon(
+                  size: 14.s,
+                  color: context.theme.appColors.secondaryBackground,
+                ),
               ),
             ),
-          ),
-          SizedBox(width: 3.13.s),
-          Text(
-            context.i18n.profile_token_buy,
-            style: context.theme.appTextThemes.caption3.copyWith(
-              color: context.theme.appColors.secondaryBackground,
-              fontFamily: 'Noto Sans',
-              fontWeight: FontWeight.w600,
-              height: 1.28,
+            SizedBox(width: 3.13.s),
+            Text(
+              context.i18n.profile_token_buy,
+              style: context.theme.appTextThemes.caption3.copyWith(
+                color: context.theme.appColors.secondaryBackground,
+                fontFamily: 'Noto Sans',
+                fontWeight: FontWeight.w600,
+                height: 1.28,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

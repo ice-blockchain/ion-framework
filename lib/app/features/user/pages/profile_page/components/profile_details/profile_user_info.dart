@@ -70,7 +70,7 @@ class ProfileUserInfo extends ConsumerWidget {
                 ),
               ),
             ),
-            ProfileTokenStats(data: statsData),
+            ProfileTokenStats(masterPubkey: pubkey, data: statsData),
           ],
         ),
       );
