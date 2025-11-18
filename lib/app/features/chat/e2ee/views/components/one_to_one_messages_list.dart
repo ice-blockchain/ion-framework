@@ -127,8 +127,6 @@ class OneToOneMessageList extends HookConsumerWidget {
       [scrollController],
     );
 
-    print('[CUSTOM LOG] messages.length: ${messages.length}');
-
     return NotificationListener<ScrollUpdateNotification>(
       onNotification: (notification) {
         if (notification.scrollDelta != null && notification.scrollDelta! > 0) {

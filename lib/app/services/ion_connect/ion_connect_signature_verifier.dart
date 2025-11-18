@@ -14,8 +14,6 @@ class IonConnectSignatureVerifier extends SchnorrSignatureVerifier {
     required String message,
     required String publicKey,
   }) async {
-    return true;
-    //TODO: remove this after testing
     final result = await sharedCoreIsolate.compute(
       ionConnectSignatureVerifierFn,
       (signature: signature, message: message, publicKey: publicKey, fallbackVerifier: this),
