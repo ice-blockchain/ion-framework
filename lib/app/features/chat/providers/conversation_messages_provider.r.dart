@@ -14,7 +14,6 @@ part 'conversation_messages_provider.r.g.dart';
 class ConversationMessages extends _$ConversationMessages {
   static const int _tailLimit = 100;
   static const int _pageSize = 50;
-  static const int _maxWindow = 1000;
 
   StreamSubscription<List<EventMessage>>? _tailSubscription;
 
@@ -33,11 +32,9 @@ class ConversationMessages extends _$ConversationMessages {
 
     final dao = ref.watch(conversationMessageDaoProvider);
 
-    final initialTail =
-        await dao.watchTail(conversationId, limit: _tailLimit).first;
+    final initialTail = await dao.watchTail(conversationId, limit: _tailLimit).first;
 
-    _tailSubscription =
-        dao.watchTail(conversationId, limit: _tailLimit).listen(_applyTail);
+    _tailSubscription = dao.watchTail(conversationId, limit: _tailLimit).listen(_applyTail);
 
     ref.onDispose(() {
       _tailSubscription?.cancel();
@@ -55,14 +52,9 @@ class ConversationMessages extends _$ConversationMessages {
 
     final currentMessages = state.valueOrNull ?? [];
     final tailIds = tail.map((message) => message.id).toSet();
-    final olderMessages =
-        currentMessages.where((message) => !tailIds.contains(message.id));
+    final olderMessages = currentMessages.where((message) => !tailIds.contains(message.id));
 
-    var merged = [...tail, ...olderMessages];
-
-    if (merged.length > _maxWindow) {
-      merged = merged.sublist(0, _maxWindow);
-    }
+    final merged = [...tail, ...olderMessages];
 
     state = AsyncData(merged);
   }
@@ -95,20 +87,14 @@ class ConversationMessages extends _$ConversationMessages {
     }
 
     final knownIds = currentMessages.map((message) => message.id).toSet();
-    final uniqueOlder = olderMessages
-        .where((message) => !knownIds.contains(message.id))
-        .toList();
+    final uniqueOlder = olderMessages.where((message) => !knownIds.contains(message.id)).toList();
 
     if (uniqueOlder.isEmpty) {
       return false;
     }
 
     // Combine keeping newest-first order.
-    var combined = [...currentMessages, ...uniqueOlder];
-
-    if (combined.length > _maxWindow) {
-      combined = combined.sublist(0, _maxWindow);
-    }
+    final combined = [...currentMessages, ...uniqueOlder];
 
     // Update state
     state = AsyncData(combined);
@@ -118,8 +104,7 @@ class ConversationMessages extends _$ConversationMessages {
   Future<int?> ensureMessageLoaded(String sharedId) async {
     while (true) {
       final currentMessages = state.valueOrNull ?? [];
-      final messageIndex =
-          currentMessages.indexWhere((message) => message.sharedId == sharedId);
+      final messageIndex = currentMessages.indexWhere((message) => message.sharedId == sharedId);
 
       if (messageIndex != -1) {
         return messageIndex;
