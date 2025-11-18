@@ -22,7 +22,11 @@ import 'package:ion/app/utils/future.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
 class OneToOneMessageList extends HookConsumerWidget {
-  const OneToOneMessageList(this.messages, {required this.conversationId, super.key});
+  const OneToOneMessageList(
+    this.messages, {
+    required this.conversationId,
+    super.key,
+  });
 
   final List<EventMessage> messages;
   final String conversationId;
@@ -72,21 +76,40 @@ class OneToOneMessageList extends HookConsumerWidget {
           curve: (c) => Curves.easeInOut,
         );
       },
-      [scrollController, listController],
+      [scrollController, listController, messages.length],
     );
 
     final onTapReply = useCallback(
-      (ReplaceablePrivateDirectMessageEntity entity) {
+      (ReplaceablePrivateDirectMessageEntity entity) async {
         final replyMessage = entity.data.relatedEvents?.singleOrNull;
 
         if (replyMessage != null) {
-          final replyMessageIndex = messages.indexWhere(
-            (element) => element.sharedId == replyMessage.eventReference.dTag,
+          final replySharedId = replyMessage.eventReference.dTag;
+
+          var replyMessageIndex = messages.indexWhere(
+            (element) => element.sharedId == replySharedId,
           );
-          animateToItem(replyMessageIndex);
+
+          if (replyMessageIndex == -1) {
+            replyMessageIndex = await ref
+                    .read(conversationMessagesProvider(conversationId).notifier)
+                    .ensureMessageLoaded(replySharedId) ??
+                -1;
+          }
+
+          if (replyMessageIndex != -1) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              animateToItem(replyMessageIndex);
+            });
+          }
         }
       },
-      [messages, scrollController, listController], // Optimized dependencies
+      [
+        messages,
+        conversationId,
+        scrollController,
+        listController,
+      ], // Optimized dependencies
     );
 
     //trigger load more when scroll to bottom
@@ -126,7 +149,9 @@ class OneToOneMessageList extends HookConsumerWidget {
               listController: listController,
               key: const Key('one_to_one_messages_list'),
               padding: EdgeInsetsDirectional.only(bottom: 12.s),
-              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
               findChildIndexCallback: (key) {
                 final valueKey = key as ValueKey<String>;
                 return messages.indexWhere((e) => e.id == valueKey.value);
@@ -135,7 +160,9 @@ class OneToOneMessageList extends HookConsumerWidget {
               extentEstimation: (index, dimensions) {
                 if (index == null || index >= messages.length) return 60.0.s; // Default height
                 final message = messages[index];
-                final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(message);
+                final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(
+                  message,
+                );
 
                 // Base height estimate for the message type
                 var estimatedHeight = _getEstimatedHeight(entity.data.messageType);
@@ -170,7 +197,9 @@ class OneToOneMessageList extends HookConsumerWidget {
               itemBuilder: (context, index) {
                 final message = messages[index];
 
-                final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(message);
+                final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(
+                  message,
+                );
 
                 final currentMessageDate = message.publishedAt.toDateTime;
                 final nextMessageDate =
@@ -257,7 +286,10 @@ class OneToOneMessageList extends HookConsumerWidget {
     );
   }
 
-  Future<void> _markAsRead(WidgetRef ref, List<EventMessage> allMessages) async {
+  Future<void> _markAsRead(
+    WidgetRef ref,
+    List<EventMessage> allMessages,
+  ) async {
     final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
 
     final latestMessageFromReceiver =
