@@ -224,6 +224,38 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         return EncoderConfig(targetWidth, targetHeight, outputMime, codec, quality)
     }
 
+    private fun getSupportedH264Profile(
+        mime: String,
+        width: Int,
+        height: Int
+    ): Int {
+        val codecList = android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
+        
+        val profiles = listOf(
+            MediaCodecInfo.CodecProfileLevel.AVCProfileHigh to "HIGH",
+            MediaCodecInfo.CodecProfileLevel.AVCProfileMain to "MAIN",
+            MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline to "BASELINE"
+        )
+        
+        for ((profile, profileName) in profiles) {
+            val testFormat = MediaFormat.createVideoFormat(mime, width, height)
+            testFormat.setInteger(
+                MediaFormat.KEY_COLOR_FORMAT,
+                MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
+            )
+            testFormat.setInteger(MediaFormat.KEY_PROFILE, profile)
+            
+            val encoderName = codecList.findEncoderForFormat(testFormat)
+            if (encoderName != null) {
+                Log.d(TAG, "Device supports H.264 $profileName profile")
+                return profile
+            }
+        }
+        
+        Log.w(TAG, "No H.264 profile found, falling back to BASELINE")
+        return MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
+    }
+
     private fun createVideoEncoder(config: EncoderConfig): MediaCodec {
         val format = MediaFormat.createVideoFormat(config.mime, config.width, config.height)
 
@@ -240,10 +272,10 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         )
 
         when (config.codec) {
-            "h264" -> format.setInteger(
-                MediaFormat.KEY_PROFILE,
-                MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
-            )
+            "h264" -> {
+                val supportedProfile = getSupportedH264Profile(config.mime, config.width, config.height)
+                format.setInteger(MediaFormat.KEY_PROFILE, supportedProfile)
+            }
 
             "hevc" -> format.setInteger(
                 MediaFormat.KEY_PROFILE,
