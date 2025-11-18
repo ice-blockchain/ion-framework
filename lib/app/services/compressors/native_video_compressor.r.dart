@@ -90,7 +90,8 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
         width: originalWidth,
         height: originalHeight,
         duration: originalDuration,
-        bitrate: originalBitrate
+        bitrate: originalBitrate,
+        frameRate: originalFrameRate
       ) = await videoInfoService.getVideoInformation(file.path);
 
       Logger.log('Original dimensions: ${originalWidth}x$originalHeight');
@@ -104,10 +105,11 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
       Logger.log('Target dimensions: ${targetDimensions.width}x${targetDimensions.height}');
 
       final quality = settings?.quality ?? 0.75;
+      final frameRate = originalFrameRate?.round() ?? 30;
       final targetBitrate = _calculateTargetBitrate(
         width: targetDimensions.width,
         height: targetDimensions.height,
-        frameRate: 30,
+        frameRate: frameRate,
         quality: quality,
         originalBitrate: originalBitrate,
         originalWidth: originalWidth,
