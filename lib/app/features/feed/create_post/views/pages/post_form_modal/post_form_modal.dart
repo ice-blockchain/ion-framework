@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/back_hardware_button_interceptor/back_hardware_button_interceptor.dart';
@@ -170,7 +169,6 @@ class PostFormModal extends HookConsumerWidget {
     );
     final scrollController = useScrollController();
     final textEditorKey = useMemoized(TextEditorKeys.createPost);
-    final wasEdited = useState(false);
 
     final attachedVideoNotifier =
         useAttachedVideo(videoPath: videoPath, mimeType: mimeType, videoThumbPath: videoThumbPath);
@@ -201,23 +199,8 @@ class PostFormModal extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    useEffect(
-      () {
-        void changesListener(DocChange? change) {
-          if (!wasEdited.value) {
-            wasEdited.value = true;
-          }
-        }
-
-        textEditorController.document.changes.listen(changesListener);
-
-        return () => textEditorController.document.changes.listen(null).cancel();
-      },
-      [textEditorController],
-    );
-
     return BackHardwareButtonInterceptor(
-      onBackPress: (_) async => !wasEdited.value
+      onBackPress: (_) async => textEditorController.document.isEmpty()
           ? context.pop()
           : _tryShowCancelCreationModal(context, isBottomSheetShown),
       child: SheetContent(
@@ -230,7 +213,6 @@ class PostFormModal extends HookConsumerWidget {
               CreatePostAppBar(
                 createOption: createOption,
                 textEditorController: textEditorController,
-                wasEdited: wasEdited.value,
               ),
               Expanded(
                 child: CreatePostContent(

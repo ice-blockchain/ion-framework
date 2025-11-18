@@ -15,20 +15,18 @@ class CreatePostAppBar extends HookWidget {
   const CreatePostAppBar({
     required this.createOption,
     required this.textEditorController,
-    required this.wasEdited,
     super.key,
   });
 
   final CreatePostOption createOption;
   final QuillController textEditorController;
-  final bool wasEdited;
 
   Future<void> _handleClose({
     required BuildContext context,
     required FocusNode focusNode,
     required bool finishedEditing,
   }) async {
-    if (textEditorController.document.isEmpty() || !wasEdited) {
+    if (textEditorController.document.isEmpty()) {
       context.pop(finishedEditing);
       return;
     }
