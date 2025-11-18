@@ -26,6 +26,7 @@ public class VideoCompressionPlugin: NSObject, FlutterPlugin {
             // Optional parameters with defaults
             let quality = args["quality"] as? Double ?? 0.6
             let realtime = args["realtime"] as? Bool ?? true
+            let bitrate = args["bitrate"] as? Int
 
             let codecType: CMVideoCodecType
             switch codec {
@@ -44,7 +45,8 @@ public class VideoCompressionPlugin: NSObject, FlutterPlugin {
                 pixelFormat: kCVPixelFormatType_32BGRA,
                 codec: codecType,
                 quality: quality,
-                realtime: realtime
+                realtime: realtime,
+                bitrate: bitrate
             )
 
             DispatchQueue.global(qos: .userInitiated).async {
@@ -95,9 +97,14 @@ public class VideoCompressionPlugin: NSObject, FlutterPlugin {
         let h264ProfileLevel = AVVideoProfileLevelH264HighAutoLevel
 
         var compressionProperties: [String: Any] = [
-            AVVideoQualityKey: options.quality,  // VBR encoding: 0.0 = lowest quality, 1.0 = highest quality
             AVVideoProfileLevelKey: options.codec == kCMVideoCodecType_H264 ? h264ProfileLevel : hevcProfileLevel
         ]
+
+        if let bitrate = options.bitrate {
+            compressionProperties[AVVideoAverageBitRateKey] = bitrate
+        } else {
+            compressionProperties[AVVideoQualityKey] = options.quality
+        }
 
         // Add HEVC-specific settings
         if options.codec == kCMVideoCodecType_HEVC {
@@ -219,4 +226,5 @@ struct CompressionOptions {
     var codec: CMVideoCodecType
     var quality: Double
     var realtime: Bool
+    var bitrate: Int?
 }

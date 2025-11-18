@@ -86,8 +86,13 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
 
       final output = await generateOutputPath(extension: 'mp4');
 
-      final (width: originalWidth, height: originalHeight, duration: originalDuration, bitrate: _) =
-          await videoInfoService.getVideoInformation(file.path);
+      final (
+        width: originalWidth,
+        height: originalHeight,
+        duration: originalDuration,
+        bitrate: originalBitrate,
+        frameRate: originalFrameRate
+      ) = await videoInfoService.getVideoInformation(file.path);
 
       Logger.log('Original dimensions: ${originalWidth}x$originalHeight');
 
@@ -99,6 +104,18 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
 
       Logger.log('Target dimensions: ${targetDimensions.width}x${targetDimensions.height}');
 
+      final quality = settings?.quality ?? 0.75;
+      final frameRate = originalFrameRate?.round() ?? 30;
+      final targetBitrate = _calculateTargetBitrate(
+        width: targetDimensions.width,
+        height: targetDimensions.height,
+        frameRate: frameRate,
+        quality: quality,
+        originalBitrate: originalBitrate,
+        originalWidth: originalWidth,
+        originalHeight: originalHeight,
+      );
+
       Logger.log(
         'Time since start: ${stopwatch.elapsed.inSeconds}.${stopwatch.elapsed.inMilliseconds % 1000}s',
       );
@@ -109,7 +126,8 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
         'destWidth': targetDimensions.width,
         'destHeight': targetDimensions.height,
         'codec': settings?.codec,
-        'quality': settings?.quality ?? 0.75,
+        'quality': quality,
+        if (targetBitrate != null) 'bitrate': targetBitrate,
       });
 
       final compressedFile = File(output);
@@ -169,20 +187,59 @@ class NativeVideoCompressor implements Compressor<NativeVideoCompressionSettings
     int targetHeight;
 
     if (originalWidth > originalHeight) {
-      targetWidth = maxDimension;
-      targetHeight = (maxDimension / aspectRatio).round();
-    } else {
       targetHeight = maxDimension;
       targetWidth = (maxDimension * aspectRatio).round();
+    } else {
+      targetWidth = maxDimension;
+      targetHeight = (maxDimension / aspectRatio).round();
     }
 
-    // Align dimensions to multiples of 16 for broader hardware decoder compatibility
+    // Align dimensions to multiples of 16 for Android hardware decoder compatibility
     // Many Android hardware decoders (e.g., some MediaTek) expect 16x16 macroblock alignment
     // and can produce corrupted frames for non-mod16 dimensions.
-    targetWidth = ((targetWidth + 15) ~/ 16) * 16;
-    targetHeight = ((targetHeight + 15) ~/ 16) * 16;
+    // iOS VideoToolbox handles alignment internally, so skip alignment for iOS.
+    if (!Platform.isIOS) {
+      targetWidth = ((targetWidth + 15) ~/ 16) * 16;
+      targetHeight = ((targetHeight + 15) ~/ 16) * 16;
+    }
 
     return (width: targetWidth, height: targetHeight);
+  }
+
+  /// Calculates target bitrate using the same formula as Android for consistency.
+  /// Formula: width * height * frameRate * bpp * qualityFactor
+  /// - bpp (bits per pixel) = 0.08 for balanced quality
+  /// - qualityFactor = quality (clamped 0.5-1.0)
+  /// - Clamp result between 1 Mbps and 10 Mbps
+  /// When re-encoding at same resolution, cap at original bitrate to prevent size increase.
+  int? _calculateTargetBitrate({
+    required int width,
+    required int height,
+    required int frameRate,
+    required double quality,
+    required int originalWidth,
+    required int originalHeight,
+    int? originalBitrate,
+  }) {
+    if (!Platform.isIOS) {
+      return null;
+    }
+
+    const bpp = 0.08;
+    final qualityFactor = quality.clamp(0.5, 1.0);
+    final calculatedBitrate = (width * height * frameRate * bpp * qualityFactor).round();
+
+    const minBitrate = 1000000;
+    const maxBitrate = 10000000;
+    var targetBitrate = calculatedBitrate.clamp(minBitrate, maxBitrate);
+
+    final isSameResolution = width == originalWidth && height == originalHeight;
+    if (isSameResolution && originalBitrate != null) {
+      targetBitrate = targetBitrate < originalBitrate ? targetBitrate : originalBitrate;
+      targetBitrate = targetBitrate.clamp(minBitrate, maxBitrate);
+    }
+
+    return targetBitrate;
   }
 }
 
