@@ -112,7 +112,6 @@ class MessageMetadata extends HookConsumerWidget {
 
   Widget statusIcon(BuildContext context, MessageDeliveryStatus deliveryStatus, double? size) {
     return switch (deliveryStatus) {
-      MessageDeliveryStatus.deleted => const SizedBox.shrink(),
       MessageDeliveryStatus.created => const SizedBox.shrink(),
       MessageDeliveryStatus.failed => const SizedBox.shrink(),
       MessageDeliveryStatus.sent => Assets.svg.iconMessageSent.icon(

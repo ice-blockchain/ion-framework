@@ -11,7 +11,6 @@ import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/database.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/extensions/map.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/community/models/entities/community_join_data.f.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/conversation_identifier.f.dart';
@@ -90,7 +89,7 @@ class ChatDatabase extends _$ChatDatabase {
   final String? appGroupId;
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
     final databaseName = 'conversation_database_$pubkey';
@@ -107,8 +106,10 @@ class ChatDatabase extends _$ChatDatabase {
     return driftDatabase(
       name: databaseName,
       native: DriftNativeOptions(
-        databasePath: () async =>
-            getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroupId),
+        databasePath: () async => getSharedDatabasePath(
+          databaseName: databaseName,
+          appGroupId: appGroupId,
+        ),
         shareAcrossIsolates: true,
         setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
       ),
@@ -157,10 +158,52 @@ class ChatDatabase extends _$ChatDatabase {
         from2To3: (Migrator m, Schema3 schema) async {
           //  Rename "isDeleted" column from ConversationTable to "isHidden"
           await m.dropColumn(schema.conversationTable, 'is_deleted');
-          await m.addColumn(schema.conversationTable, schema.conversationTable.isHidden);
+          await m.addColumn(
+            schema.conversationTable,
+            schema.conversationTable.isHidden,
+          );
         },
         from3To4: (Migrator m, Schema4 schema) async {
           await m.createTable(schema.processedGiftWrapTable);
+        },
+        from4To5: (Migrator m, Schema5 schema) async {
+          await m.addColumn(
+            schema.conversationMessageTable,
+            schema.conversationMessageTable.isDeleted,
+          );
+          await m.addColumn(
+            schema.conversationMessageTable,
+            schema.conversationMessageTable.publishedAt,
+          );
+
+          await schema.database.customStatement(r'''
+            UPDATE conversation_message_table
+            SET published_at = (
+              SELECT CAST(json_extract(tag.value, '$[1]') AS INTEGER)
+              FROM event_message_table
+              JOIN json_each(event_message_table.tags) AS tag
+                ON json_extract(tag.value, '$[0]') = 'published_at'
+              WHERE event_message_table.event_reference = conversation_message_table.message_event_reference
+              LIMIT 1
+            )
+            WHERE EXISTS (
+              SELECT 1
+              FROM event_message_table
+              JOIN json_each(event_message_table.tags) AS tag2
+                ON json_extract(tag2.value, '$[0]') = 'published_at'
+              WHERE event_message_table.event_reference = conversation_message_table.message_event_reference
+            );
+          ''');
+
+          await schema.database.customStatement('''
+            UPDATE conversation_message_table
+            SET is_deleted = 1
+            WHERE message_event_reference IN (
+              SELECT message_event_reference
+              FROM message_status_table
+              WHERE status = 5
+            );
+          ''');
         },
       ),
     );

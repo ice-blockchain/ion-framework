@@ -12,7 +12,6 @@ import 'package:ion/app/features/chat/model/message_list_item.f.dart';
 import 'package:ion/app/features/chat/providers/message_status_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reaction_dialog/message_reaction_dialog.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
-
 import 'package:ion/generated/assets.gen.dart';
 
 class SharedStoryWrapper extends HookConsumerWidget {
@@ -70,36 +69,34 @@ class SharedStoryWrapper extends HookConsumerWidget {
       [messageItemKey, isMe, sharedEntity, sharedPostMessageStatus],
     );
 
-    return sharedPostMessageStatus == MessageDeliveryStatus.deleted
-        ? const SizedBox.shrink()
-        : ScreenSideOffset.small(
-            child: Align(
-              alignment: isMe ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
-              child: GestureDetector(
-                onLongPress: showReactDialog,
-                child: RepaintBoundary(
-                  key: messageItemKey,
-                  child: Row(
+    return ScreenSideOffset.small(
+      child: Align(
+        alignment: isMe ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+        child: GestureDetector(
+          onLongPress: showReactDialog,
+          child: RepaintBoundary(
+            key: messageItemKey,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                child,
+                if (sharedPostMessageStatus == MessageDeliveryStatus.failed)
+                  Row(
                     mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      child,
-                      if (sharedPostMessageStatus == MessageDeliveryStatus.failed)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(width: 6.0.s),
-                            Assets.svg.iconMessageFailed.icon(
-                              color: context.theme.appColors.attentionRed,
-                              size: 16.0.s,
-                            ),
-                          ],
-                        ),
+                      SizedBox(width: 6.0.s),
+                      Assets.svg.iconMessageFailed.icon(
+                        color: context.theme.appColors.attentionRed,
+                        size: 16.0.s,
+                      ),
                     ],
                   ),
-                ),
-              ),
+              ],
             ),
-          );
+          ),
+        ),
+      ),
+    );
   }
 }
