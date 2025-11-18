@@ -10,6 +10,7 @@
 /// The escaped commas and backslashes are required for FFmpeg filter syntax.
 /// Example: A 4K portrait video (3840x2160) would be scaled to 607x1080
 ///
+///
 enum FfmpegScaleArg {
   p80(
     name: '80p',
