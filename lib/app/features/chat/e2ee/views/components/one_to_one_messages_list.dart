@@ -112,7 +112,6 @@ class OneToOneMessageList extends HookConsumerWidget {
       ], // Optimized dependencies
     );
 
-    //trigger load more when scroll to bottom
     useEffect(
       () {
         void listener() {
