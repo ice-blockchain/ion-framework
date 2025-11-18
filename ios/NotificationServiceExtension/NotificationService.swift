@@ -25,19 +25,24 @@ class NotificationService: UNNotificationServiceExtension {
                 let keysStorage = KeysStorage(storage: storage)
                 let appBadgeCounter = AppBadgeCounterService(storage: storage)
                 
-                let result = await NotificationTranslationService(
+                guard let result = await NotificationTranslationService(
                     appLocaleStorage: AppLocaleStorage(storage: storage),
                     keysStorage: keysStorage
                 ).translate(
                     request.content.userInfo
-                )
+                ) else {
+                    // Hide notification if translation fails
+                    NSLog("[NSE] Translation failed, hiding notification")
+                    contentHandler(UNNotificationContent())
+                    return
+                }
 
                 // Handle badge count based on notification type
-                if let notificationType = result?.notificationType, !notificationType.isChat {
+                if let notificationType = result.notificationType, !notificationType.isChat {
                     incrementBadge(appBadgeCounter: appBadgeCounter, 
                                  mutableContent: mutableNotificationContent, 
                                  category: .inapp)
-                } else if let conversationId = result?.conversationId {
+                } else if let conversationId = result.conversationId {
                     // Chat notification - check if we should increment
                     handleChatNotificationBadge(
                         conversationId: conversationId,
@@ -47,21 +52,21 @@ class NotificationService: UNNotificationServiceExtension {
                     )
                 }
 
-                if let result = result {
-                    mutableNotificationContent.title = result.title
-                    mutableNotificationContent.body = result.body
+                mutableNotificationContent.title = result.title
+                mutableNotificationContent.body = result.body
 
-                    communicationPushData = CommunicationPushData(
-                        title: result.title,
-                        body: result.body,
-                        avatarFilePath: result.avatarFilePath,
-                        attachmentFilePath: result.attachmentFilePaths,
-                        conversationId: result.conversationId
-                    )
-
-                }
+                communicationPushData = CommunicationPushData(
+                    title: result.title,
+                    body: result.body,
+                    avatarFilePath: result.avatarFilePath,
+                    attachmentFilePath: result.attachmentFilePaths,
+                    conversationId: result.conversationId
+                )
             } catch {
-                NSLog("[NSE] Failed to translate notification: \(error)")
+                // Hide notification if any error occurs during processing
+                NSLog("[NSE] Failed to process notification: \(error)")
+                contentHandler(UNNotificationContent())
+                return
             }
 
             if let communicationPushData = communicationPushData {
@@ -73,26 +78,23 @@ class NotificationService: UNNotificationServiceExtension {
                 if let communicationStyle = communicationStyle {
                     contentHandler(communicationStyle)
                 } else {
-                    contentHandler(mutableNotificationContent)
+                    // Hide notification if communication style building fails
+                    NSLog("[NSE] Failed to build communication style, hiding notification")
+                    contentHandler(UNNotificationContent())
                 }
-
             } else {
-                contentHandler(mutableNotificationContent)
+                // Hide notification if no communication data
+                NSLog("[NSE] No communication data, hiding notification")
+                contentHandler(UNNotificationContent())
             }
         }
     }
 
     override func serviceExtensionTimeWillExpire() {
-        if let contentHandler = contentHandler, let mutableNotificationContent = mutableNotificationContent {
-            do {
-                let storage = try SharedStorage()
-                let badgeCounter = AppBadgeCounterService(storage: storage)
-                incrementBadge(appBadgeCounter: badgeCounter, 
-                             mutableContent: mutableNotificationContent, 
-                             category: .inapp)
-            } catch {}
-
-            contentHandler(mutableNotificationContent)
+        if let contentHandler = contentHandler {
+            // Hide notification if processing times out
+            NSLog("[NSE] Service extension time expired, hiding notification")
+            contentHandler(UNNotificationContent())
         }
     }
     

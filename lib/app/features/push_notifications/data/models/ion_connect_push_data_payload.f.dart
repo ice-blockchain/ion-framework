@@ -90,6 +90,25 @@ class IonConnectPushDataPayload {
     return EventParser().parse(event);
   }
 
+  /// Check if this notification is about a self-interaction (user interacting with their own content)
+  bool isSelfInteraction({required String currentPubkey}) {
+    final entity = mainEntity;
+
+    if (entity.masterPubkey == currentPubkey) {
+      if (entity is ReactionEntity ||
+          entity is GenericRepostEntity ||
+          entity is RepostEntity ||
+          (entity is ModifiablePostEntity &&
+              (entity.data.quotedEvent != null || entity.data.parentEvent != null)) ||
+          (entity is PostEntity &&
+              (entity.data.quotedEvent != null || entity.data.parentEvent != null))) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   Future<PushNotificationType?> getNotificationType({
     required String currentPubkey,
     required Future<IonConnectEntity?> Function(EventReference) getRelatedEntity,

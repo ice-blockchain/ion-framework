@@ -142,6 +142,58 @@ class IonConnectCacheDatabase: DatabaseManager {
         )
     }
         
+    /// Gets muted user pubkeys from the database
+    /// - Parameter currentUserMasterPubkey: The current user's master pubkey
+    /// - Returns: Array of muted user master pubkeys
+    func getMutedUsers() -> [String] {
+        guard let db = database else { return [] }
+        
+        var mutedUsers: [String] = []
+        guard let userPubkey: String = keysStorage.getCurrentPubkey() else {
+            return []
+        }
+        
+        // Cache key format: "{kind}:{masterPubkey}:{dTag}"
+        // For muted users: "30007:{userPubkey}:not_interested"
+        let cacheKey = "30007:\(userPubkey):not_interested"
+        
+        let query = """
+            SELECT content FROM event_messages_table
+            WHERE cache_key = ?
+        """
+        
+        var statement: OpaquePointer?
+        
+        guard sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK else {
+            NSLog("[NSE] \(logPrefix) Failed to prepare query for muted users with cache key: \(cacheKey)")
+            return []
+        }
+        
+        defer {
+            sqlite3_finalize(statement)
+        }
+        
+        // Bind the cache key parameter
+        sqlite3_bind_text(statement, 1, (cacheKey as NSString).utf8String, -1, nil)
+        
+        while sqlite3_step(statement) == SQLITE_ROW {
+            if let contentCString = sqlite3_column_text(statement, 0) {
+                let contentString: String = String(cString: contentCString)
+                if let data = contentString.data(using: .utf8),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let tags = json["tags"] as? [[String]] {
+                    for tag in tags {
+                        if tag.count >= 2 && tag[0] == "p" {
+                            mutedUsers.append(tag[1])
+                        }
+                    }
+                }
+            }
+        }
+        
+        return mutedUsers
+    }
+    
     /// Gets the database file path in the app group container
     private func getDatabasePath() -> String? {
         let appGroupIdentifier = keysStorage.storage.appGroupIdentifier
@@ -161,3 +213,4 @@ class IonConnectCacheDatabase: DatabaseManager {
         return dbPath
     }
 }
+
