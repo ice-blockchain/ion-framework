@@ -54,7 +54,7 @@ class VideoCompressionSettings {
     crf: FfmpegCrfArg.balanced,
     maxRate: FfmpegBitrateArg.high,
     bufSize: FfmpegBitrateArg.highest,
-    scale: FfmpegScaleArg.p1080,
+    scale: FfmpegScaleArg.p1080Width,
     audioCodec: FfmpegAudioCodecArg.aac,
     audioBitrate: FfmpegAudioBitrateArg.medium,
     pixelFormat: FfmpegPixelFormatArg.yuv420p,
@@ -210,8 +210,13 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       Logger.log('Compressed video size: ${_formatBytes(compressedBytes)}');
       Logger.log('Compression time: ${_formatDuration(stopwatch.elapsed)}');
 
-      final (width: outWidth, height: outHeight, duration: outDuration, bitrate: outBitrate) =
-          await videoInfoService.getVideoInformation(output);
+      final (
+        width: outWidth,
+        height: outHeight,
+        duration: outDuration,
+        bitrate: outBitrate,
+        frameRate: _
+      ) = await videoInfoService.getVideoInformation(output);
 
       // Return the final compressed video file info
       return MediaFile(
