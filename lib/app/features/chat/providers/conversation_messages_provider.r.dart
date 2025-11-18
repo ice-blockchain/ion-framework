@@ -68,7 +68,7 @@ class ConversationMessages extends _$ConversationMessages {
   }
 
   /// Loads more messages (older) and appends them to the state.
-  Future<void> loadMore() async {
+  Future<bool> loadMore() async {
     final dao = ref.read(conversationMessageDaoProvider);
 
     // Current state messages, or empty
@@ -76,7 +76,7 @@ class ConversationMessages extends _$ConversationMessages {
 
     // If there are no messages, nothing to load more
     if (currentMessages.isEmpty) {
-      return;
+      return false;
     }
 
     // publishedAt from the last message in the list (oldest in newest-first order)
@@ -91,7 +91,7 @@ class ConversationMessages extends _$ConversationMessages {
     );
 
     if (olderMessages.isEmpty) {
-      return;
+      return false;
     }
 
     final knownIds = currentMessages.map((message) => message.id).toSet();
@@ -100,7 +100,7 @@ class ConversationMessages extends _$ConversationMessages {
         .toList();
 
     if (uniqueOlder.isEmpty) {
-      return;
+      return false;
     }
 
     // Combine keeping newest-first order.
@@ -112,5 +112,24 @@ class ConversationMessages extends _$ConversationMessages {
 
     // Update state
     state = AsyncData(combined);
+    return true;
+  }
+
+  Future<int?> ensureMessageLoaded(String sharedId) async {
+    while (true) {
+      final currentMessages = state.valueOrNull ?? [];
+      final messageIndex =
+          currentMessages.indexWhere((message) => message.sharedId == sharedId);
+
+      if (messageIndex != -1) {
+        return messageIndex;
+      }
+
+      final didLoadMore = await loadMore();
+
+      if (!didLoadMore) {
+        return null;
+      }
+    }
   }
 }

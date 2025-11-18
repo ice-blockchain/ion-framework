@@ -79,6 +79,14 @@ class OneToOneMessagesPage extends HookConsumerWidget {
           repliedMessage: repliedMessage?.eventMessage,
           participantsMasterPubkeys: [receiverMasterPubkey, currentPubkey],
         );
+        for (var i = 0; i < 10000; i++) {
+          await ref.read(sendE2eeChatMessageServiceProvider).sendMessage(
+            content: 'Message $i',
+            mediaFiles: mediaFiles ?? [],
+            conversationId: conversationId,
+            participantsMasterPubkeys: [receiverMasterPubkey, currentPubkey],
+          );
+        }
       },
       [receiverMasterPubkey, conversationId],
     );
