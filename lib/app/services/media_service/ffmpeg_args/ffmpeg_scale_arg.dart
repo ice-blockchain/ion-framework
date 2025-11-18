@@ -10,9 +10,6 @@
 /// The escaped commas and backslashes are required for FFmpeg filter syntax.
 /// Example: A 4K portrait video (3840x2160) would be scaled to 607x1080
 ///
-/// p1080WidthPortrait: Constrains width to max 1080 for portrait videos (maintains aspect ratio).
-/// - Portrait (ih > iw): width = min(1080, input_width), height = auto
-/// - Landscape (iw >= ih): height = min(1080, input_height), width = auto
 ///
 enum FfmpegScaleArg {
   p80(
@@ -50,10 +47,6 @@ enum FfmpegScaleArg {
   p1080Width(
     name: 'p1080Width',
     resolution: r'scale=w=min(1080\,iw):h=-2',
-  ),
-  p1080WidthPortrait(
-    name: 'p1080WidthPortrait',
-    resolution: r'scale=w=if(gt(ih\,iw)\,min(1080\,iw)\,-2):h=if(gt(ih\,iw)\,-2\,min(1080\,ih))',
   );
 
   const FfmpegScaleArg({
