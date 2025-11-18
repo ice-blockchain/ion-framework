@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
 import 'package:ion/app/components/counter_items_footer/counter_items_footer.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
@@ -14,9 +15,9 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/article/components/article_footer/article_footer.dart';
 import 'package:ion/app/features/feed/views/components/article/components/article_image/article_image.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_post_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
 import 'package:ion/app/features/feed/views/components/deleted_entity/deleted_entity.dart';
-import 'package:ion/app/features/feed/views/components/overlay_menu/own_entity_menu.dart';
-import 'package:ion/app/features/feed/views/components/overlay_menu/user_info_menu.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
@@ -31,7 +32,7 @@ class Article extends ConsumerWidget {
     this.header,
     this.footer,
     this.isReplied = false,
-    this.accentTheme = false,
+    this.isAccentTheme = false,
     this.addTrailingPadding = true,
     this.showActionButtons = true,
     this.showNotInterested = true,
@@ -50,7 +51,7 @@ class Article extends ConsumerWidget {
     return Article(
       showActionButtons: false,
       addTrailingPadding: false,
-      accentTheme: accentTheme,
+      isAccentTheme: accentTheme,
       eventReference: eventReference,
       footer: footer,
       cache: cache,
@@ -66,7 +67,7 @@ class Article extends ConsumerWidget {
     return Article(
       header: header,
       isReplied: true,
-      accentTheme: accentTheme,
+      isAccentTheme: accentTheme,
       showActionButtons: false,
       eventReference: eventReference,
       cache: cache,
@@ -80,7 +81,7 @@ class Article extends ConsumerWidget {
   final Widget? header;
   final bool isReplied;
   final Widget? footer;
-  final bool accentTheme;
+  final bool isAccentTheme;
   final bool showNotInterested;
   final bool network;
   final bool cache;
@@ -106,7 +107,7 @@ class Article extends ConsumerWidget {
       return Padding(
         padding: EdgeInsetsDirectional.only(start: 12.0.s),
         child: Skeleton(
-          child: PostSkeleton(color: accentTheme ? Colors.white.withValues(alpha: 0.1) : null),
+          child: PostSkeleton(color: isAccentTheme ? Colors.white.withValues(alpha: 0.1) : null),
         ),
       );
     }
@@ -121,7 +122,7 @@ class Article extends ConsumerWidget {
     final isOwnedByCurrentUser = ref.watch(isCurrentUserSelectorProvider(entity.masterPubkey));
 
     return ColoredBox(
-      color: accentTheme
+      color: isAccentTheme
           ? context.theme.appColors.primaryAccent
           : context.theme.appColors.onPrimaryAccent,
       child: Column(
@@ -134,19 +135,23 @@ class Article extends ConsumerWidget {
               network: network,
               createdAt: entity.data.publishedAt.value,
               timeFormat: timeFormat,
-              accentTheme: accentTheme,
+              accentTheme: isAccentTheme,
               trailing: showActionButtons
                   ? Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         BookmarkButton(eventReference: eventReference),
-                        if (isOwnedByCurrentUser)
-                          OwnEntityMenu(eventReference: eventReference)
-                        else
-                          UserInfoMenu(
-                            eventReference: eventReference,
-                            showNotInterested: showNotInterested,
-                          ),
+                        BottomSheetMenuButton(
+                          menuBuilder: (context) => isOwnedByCurrentUser
+                              ? OwnPostMenuBottomSheet(
+                                  eventReference: eventReference,
+                                )
+                              : PostMenuBottomSheet(
+                                  eventReference: eventReference,
+                                  showNotInterested: showNotInterested,
+                                ),
+                          isAccentTheme: isAccentTheme,
+                        ),
                       ],
                     )
                   : null,
@@ -190,19 +195,18 @@ class Article extends ConsumerWidget {
                                 pubkey: eventReference.masterPubkey,
                                 createdAt: entity.data.publishedAt.value,
                                 timeFormat: timeFormat,
-                                accentTheme: accentTheme,
+                                accentTheme: isAccentTheme,
                                 trailing: showActionButtons
-                                    ? Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          if (isOwnedByCurrentUser)
-                                            OwnEntityMenu(eventReference: eventReference)
-                                          else
-                                            UserInfoMenu(
-                                              eventReference: eventReference,
-                                              showNotInterested: showNotInterested,
-                                            ),
-                                        ],
+                                    ? BottomSheetMenuButton(
+                                        menuBuilder: (context) => isOwnedByCurrentUser
+                                            ? OwnPostMenuBottomSheet(
+                                                eventReference: eventReference,
+                                              )
+                                            : PostMenuBottomSheet(
+                                                eventReference: eventReference,
+                                                showNotInterested: showNotInterested,
+                                              ),
+                                        isAccentTheme: isAccentTheme,
                                       )
                                     : null,
                               ),
@@ -216,7 +220,7 @@ class Article extends ConsumerWidget {
                             SizedBox(height: 10.0.s),
                             ArticleFooter(
                               text: entity.data.title ?? '',
-                              color: accentTheme
+                              color: isAccentTheme
                                   ? context.theme.appColors.onPrimaryAccent
                                   : context.theme.appColors.sharkText,
                             ),

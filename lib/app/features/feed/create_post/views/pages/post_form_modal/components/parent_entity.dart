@@ -3,6 +3,7 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -11,7 +12,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/article/article.dart';
-import 'package:ion/app/features/feed/views/components/overlay_menu/user_info_menu.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
 import 'package:ion/app/features/feed/views/components/post/components/post_body/post_body.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/feed/views/components/replying_to/replying_to.dart';
@@ -51,8 +52,10 @@ class ParentEntity extends ConsumerWidget {
           title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
           subtitle: Text(prefixUsername(username: username, context: context)),
           masterPubkey: eventReference.masterPubkey,
-          trailing: UserInfoMenu(
-            eventReference: eventReference,
+          trailing: BottomSheetMenuButton(
+            menuBuilder: (context) => PostMenuBottomSheet(
+              eventReference: eventReference,
+            ),
           ),
         ),
         SizedBox(height: 8.0.s),

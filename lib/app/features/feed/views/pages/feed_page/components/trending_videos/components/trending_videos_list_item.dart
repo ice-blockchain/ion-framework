@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
 import 'package:ion/app/components/placeholder/ion_placeholder.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_post_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
 import 'package:ion/app/features/feed/views/components/feed_network_image/feed_network_image.dart';
-import 'package:ion/app/features/feed/views/components/overlay_menu/own_entity_menu.dart';
-import 'package:ion/app/features/feed/views/components/overlay_menu/user_info_menu.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/components/trending_video_author.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/components/trending_video_likes_button.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -139,7 +139,6 @@ class _TopControls extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isOwnedByCurrentUser =
         ref.watch(isCurrentUserSelectorProvider(eventReference.masterPubkey));
-    final menuPadding = EdgeInsetsDirectional.only(start: 6.0.s, end: 6.0.s, top: 12.0.s);
 
     return SizedBox(
       height: 40.0.s,
@@ -148,23 +147,23 @@ class _TopControls extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           TrendingVideoLikesButton(eventReference: eventReference),
-          if (isOwnedByCurrentUser)
-            OwnEntityMenu(
-              showShadow: true,
-              iconSize: 16.0.s,
-              eventReference: eventReference,
-              iconColor: context.theme.appColors.onPrimaryAccent,
-              padding: menuPadding,
-              onDelete: context.canPop,
-            )
-          else
-            UserInfoMenu(
-              showShadow: true,
-              iconSize: 16.0.s,
-              eventReference: eventReference,
-              iconColor: context.theme.appColors.onPrimaryAccent,
-              padding: menuPadding,
+          BottomSheetMenuButton(
+            showShadow: true,
+            iconSize: 16.0.s,
+            iconColor: context.theme.appColors.onPrimaryAccent,
+            padding: EdgeInsetsDirectional.only(
+              start: 6.0.s,
+              end: 6.0.s,
+              top: 12.0.s,
             ),
+            menuBuilder: (context) => isOwnedByCurrentUser
+                ? OwnPostMenuBottomSheet(
+                    eventReference: eventReference,
+                  )
+                : PostMenuBottomSheet(
+                    eventReference: eventReference,
+                  ),
+          ),
         ],
       ),
     );

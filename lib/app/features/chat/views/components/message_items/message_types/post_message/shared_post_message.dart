@@ -138,7 +138,7 @@ class SharedPostMessage extends HookConsumerWidget {
               child: Article(
                 header:
                     Padding(padding: EdgeInsetsDirectional.only(bottom: 10.0.s), child: userInfo),
-                accentTheme: isMe,
+                isAccentTheme: isMe,
                 footer: const SizedBox.shrink(),
                 eventReference: postEntity.toEventReference(),
               ),
@@ -151,7 +151,7 @@ class SharedPostMessage extends HookConsumerWidget {
               child: Post(
                 header:
                     Padding(padding: EdgeInsetsDirectional.only(start: 14.0.s), child: userInfo),
-                accentTheme: isMe,
+                isAccentTheme: isMe,
                 footer: const SizedBox.shrink(),
                 eventReference: postEntity.toEventReference(),
                 quotedEventFooter: const SizedBox.shrink(),
