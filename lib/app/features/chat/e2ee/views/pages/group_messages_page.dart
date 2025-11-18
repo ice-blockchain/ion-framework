@@ -13,7 +13,6 @@ import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/e2ee/views/components/e2ee_conversation_empty_view.dart';
 import 'package:ion/app/features/chat/e2ee/views/components/one_to_one_messages_list.dart';
-import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/conversation_messages_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/chat_input_bar/chat_input_bar.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
@@ -31,11 +30,11 @@ class GroupMessagesPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final messages = ref
         .watch(
-          conversationMessagesProvider(conversationId, ConversationType.group),
+          conversationMessagesProvider(conversationId),
         )
         .valueOrNull;
 
-    final lastMessage = messages?.entries.lastOrNull?.value.last;
+    final lastMessage = messages?.lastOrNull;
 
     if (lastMessage == null) {
       return const SizedBox.shrink();
@@ -112,15 +111,14 @@ class _MessagesList extends ConsumerWidget {
   final String conversationId;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final messages =
-        ref.watch(conversationMessagesProvider(conversationId, ConversationType.group));
+    final messages = ref.watch(conversationMessagesProvider(conversationId));
     return Expanded(
       child: messages.maybeWhen(
         data: (messages) {
           if (messages.isEmpty) {
             return const E2eeConversationEmptyView();
           }
-          return OneToOneMessageList(messages);
+          return OneToOneMessageList(messages, conversationId: conversationId);
         },
         orElse: () => const SizedBox.expand(),
       ),

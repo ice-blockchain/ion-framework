@@ -73,9 +73,7 @@ Stream<MessageDeliveryStatus> sharedPostMessageStatus(
       storyReactionDeliveryStatusStream,
     ],
   ).map((statuses) {
-    if (statuses.contains(MessageDeliveryStatus.deleted)) {
-      return MessageDeliveryStatus.deleted;
-    } else if (statuses.contains(MessageDeliveryStatus.failed)) {
+    if (statuses.contains(MessageDeliveryStatus.failed)) {
       return MessageDeliveryStatus.failed;
     } else {
       return MessageDeliveryStatus.sent;
