@@ -6,6 +6,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
 import 'package:ion/app/features/auth/providers/onboarding_data_provider.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -23,6 +24,7 @@ import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_social_profile_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -45,9 +47,11 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
         // BE requires sending user relays alongside the user delegation event
         final userRelaysEvent = await _buildUserRelaysEvent(userRelays: userRelays);
 
+        EventMessage? userDelegationEvent;
+
         // Send user delegation event in advance so all subsequent events pass delegation attestation
         try {
-          final userDelegationEvent = await ref.read(delegationCompleteProvider.future)
+          userDelegationEvent = await ref.read(delegationCompleteProvider.future)
               ? null
               : await _buildUserDelegation(onVerifyIdentity: onVerifyIdentity);
 
@@ -91,6 +95,12 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
             if (updatedProfileBadges != null) updatedProfileBadges,
           ],
           additionalEvents: usernameProofsEvents,
+        );
+
+        await _sendFollowListToFollowees(
+          followList: followList,
+          userMetadata: userMetadata,
+          userDelegationEvent: userDelegationEvent,
         );
       },
     );
@@ -254,6 +264,42 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
     final followeeList = pubkeys.map((pubkey) => Followee(pubkey: pubkey)).toList();
 
     return FollowListData(list: followeeList);
+  }
+
+  Future<void> _sendFollowListToFollowees({
+    required FollowListData followList,
+    required UserMetadata userMetadata,
+    EventMessage? userDelegationEvent,
+  }) async {
+    if (followList.list.isEmpty) {
+      return;
+    }
+
+    final ionNotifier = ref.read(ionConnectNotifierProvider.notifier);
+
+    // Build metadata events from freshly created metadata/delegation.
+    final metadataEvents = <EventMessage>[];
+
+    final userMetadataEvent = await ionNotifier.sign(userMetadata);
+    metadataEvents.add(userMetadataEvent);
+
+    if (userDelegationEvent != null) {
+      metadataEvents.add(userDelegationEvent);
+    }
+
+    final userEventsMetadataBuilder = UserEventsMetadataBuilder(metadataEvents);
+    final followListEvent = await ionNotifier.sign(followList);
+
+    await Future.wait(
+      followList.list.map(
+        (followee) => ionNotifier.sendEvent(
+          followListEvent,
+          actionSource: ActionSourceUser(followee.pubkey),
+          metadataBuilders: [userEventsMetadataBuilder],
+          cache: false,
+        ),
+      ),
+    );
   }
 
   Future<({FileMetadata fileMetadata, MediaAttachment mediaAttachment})?> _uploadAvatar() async {
