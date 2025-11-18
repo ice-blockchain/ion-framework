@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
 import 'package:ion/app/components/counter_items_footer/counter_items_footer.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
@@ -17,9 +18,9 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_post_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
 import 'package:ion/app/features/feed/views/components/deleted_entity/deleted_entity.dart';
-import 'package:ion/app/features/feed/views/components/overlay_menu/own_entity_menu.dart';
-import 'package:ion/app/features/feed/views/components/overlay_menu/user_info_menu.dart';
 import 'package:ion/app/features/feed/views/pages/article_details_page/components/article_details_date_topics.dart';
 import 'package:ion/app/features/feed/views/pages/article_details_page/components/article_details_header.dart';
 import 'package:ion/app/features/feed/views/pages/article_details_page/components/article_details_progress_indicator.dart';
@@ -77,11 +78,18 @@ class ArticleDetailsPage extends HookConsumerWidget {
       appBar: NavigationAppBar.screen(
         actions: [
           if (isOwnedByCurrentUser)
-            OwnEntityMenu(eventReference: eventReference, onDelete: context.pop)
+            BottomSheetMenuButton(
+              menuBuilder: (context) => OwnPostMenuBottomSheet(
+                eventReference: eventReference,
+                onDelete: context.pop,
+              ),
+            )
           else
-            UserInfoMenu(
-              eventReference: eventReference,
-              showNotInterested: false,
+            BottomSheetMenuButton(
+              menuBuilder: (context) => PostMenuBottomSheet(
+                eventReference: eventReference,
+                showNotInterested: false,
+              ),
             ),
         ],
       ),

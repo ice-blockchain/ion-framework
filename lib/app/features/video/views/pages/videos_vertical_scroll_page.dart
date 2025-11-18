@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -14,8 +15,8 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
-import 'package:ion/app/features/feed/views/components/overlay_menu/own_entity_menu.dart';
-import 'package:ion/app/features/feed/views/components/overlay_menu/user_info_menu.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_post_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -167,6 +168,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
           backgroundColor: Colors.transparent,
           leading: NavigationBackButton(
             () => context.pop(),
+            showShadow: true,
             icon: Assets.svg.iconChatBack.icon(
               size: NavigationAppBar.actionButtonSide,
               color: onPrimaryAccentColor,
@@ -178,18 +180,24 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
             Padding(
               padding: EdgeInsetsDirectional.only(end: rightPadding),
               child: isOwnedByCurrentUser
-                  ? OwnEntityMenu(
-                      eventReference: currentEventReference.value,
+                  ? BottomSheetMenuButton(
+                      showShadow: true,
                       iconColor: secondaryBackgroundColor,
-                      onDelete: () {
-                        if (context.canPop() && context.mounted) {
-                          context.pop();
-                        }
-                      },
+                      menuBuilder: (context) => OwnPostMenuBottomSheet(
+                        eventReference: currentEventReference.value,
+                        onDelete: () {
+                          if (context.canPop() && context.mounted) {
+                            context.pop();
+                          }
+                        },
+                      ),
                     )
-                  : UserInfoMenu(
-                      eventReference: currentEventReference.value,
+                  : BottomSheetMenuButton(
+                      showShadow: true,
                       iconColor: secondaryBackgroundColor,
+                      menuBuilder: (context) => PostMenuBottomSheet(
+                        eventReference: currentEventReference.value,
+                      ),
                     ),
             ),
           ],
