@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/components/shadow/svg_shadow.dart';
 import 'package:ion/app/constants/ui.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/num.dart';
@@ -13,6 +14,7 @@ class NavigationBackButton extends StatelessWidget {
     super.key,
     this.hideKeyboardOnBack = false,
     this.icon,
+    this.showShadow = false,
   });
 
   final VoidCallback onPress;
@@ -21,23 +23,27 @@ class NavigationBackButton extends StatelessWidget {
 
   final Widget? icon;
 
+  final bool showShadow;
+
   static double get iconSize => 24.0.s;
 
   static double get totalSize => iconSize + UiConstants.hitSlop * 4;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveIcon = icon ??
+        Assets.svg.iconBackArrow.icon(
+          size: iconSize,
+          flipForRtl: true,
+        );
+
     return SizedBox(
       width: totalSize,
       height: totalSize,
       child: IconButton(
         padding: EdgeInsets.zero,
         onPressed: () => hideKeyboardOnBack ? hideKeyboard(context, callback: onPress) : onPress(),
-        icon: icon ??
-            Assets.svg.iconBackArrow.icon(
-              size: iconSize,
-              flipForRtl: true,
-            ),
+        icon: showShadow ? SvgShadow(child: effectiveIcon) : effectiveIcon,
       ),
     );
   }
