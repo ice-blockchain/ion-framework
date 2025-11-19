@@ -3,6 +3,8 @@
 part of 'app_routes.gr.dart';
 
 class ChatRoutes {
+  static const shareRoutePrefix = 'share';
+
   static const routes = <TypedRoute<RouteData>>[
     TypedGoRoute<AppTestRoute>(path: 'app-test'),
     TypedGoRoute<ChatQuickSearchRoute>(path: 'chat-simple-search'),
@@ -27,7 +29,7 @@ class ChatRoutes {
         TypedGoRoute<SearchEmojiRoute>(path: 'search-emoji'),
         TypedGoRoute<AddParticipantsToGroupModalRoute>(path: 'add-participants-to-group'),
         TypedGoRoute<CreateGroupModalRoute>(path: 'create-group'),
-        TypedGoRoute<ShareViaMessageModalRoute>(path: 'share-via-message/:eventReference'),
+        TypedGoRoute<ShareViaMessageModalRoute>(path: '$shareRoutePrefix/:eventReference'),
         TypedGoRoute<PaymentSelectionChatRoute>(path: 'select-payment-type'),
         TypedGoRoute<SelectCoinChatRoute>(path: 'coin-selector-chat'),
         TypedGoRoute<SelectNetworkChatRoute>(path: 'network-selector-chat'),

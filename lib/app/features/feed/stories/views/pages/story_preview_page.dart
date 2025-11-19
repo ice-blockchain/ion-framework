@@ -70,20 +70,12 @@ class StoryPreviewPage extends HookConsumerWidget {
       ..listenSuccess(
         createPostNotifierProvider(CreatePostOption.story),
         (_) {
-          if (context.mounted) {
-            context.maybePop();
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (context.mounted) {
-                // Close StoryRecordPage
-                context.maybePop();
+          if (context.mounted && context.canPop()) {
+            context.popUntil((route) {
+              final isStoryRoute = route.path.startsWith('/${FeedRoutes.storyRoutePrefix}');
+              final isShareRoute = route.path.startsWith('/${ChatRoutes.shareRoutePrefix}');
 
-                // Close main modal after StoryRecordPage is closed
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (context.mounted) {
-                    context.maybePop();
-                  }
-                });
-              }
+              return !isStoryRoute && !isShareRoute;
             });
           }
         },
