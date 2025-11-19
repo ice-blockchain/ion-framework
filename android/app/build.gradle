@@ -98,16 +98,16 @@ android {
             dimension "default"
             applicationIdSuffix ""
             manifestPlaceholders = [
-                appName: "Online+",
-                deeplink_host: "app.online.io"
+                    appName      : "Online+",
+                    deeplink_host: "app.online.io"
             ]
         }
         staging {
             dimension "default"
             applicationIdSuffix ".staging"
             manifestPlaceholders = [
-                appName: "Online+",
-                deeplink_host: "testnet.app.online.io"
+                    appName      : "Online+",
+                    deeplink_host: "testnet.app.online.io"
             ]
         }
     }
@@ -121,11 +121,11 @@ dependencies {
     // Kotlin Coroutines for async operations
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.6.2"
-    
+
     def banubaPESdkVersion = '1.2.21'
     implementation "com.banuba.sdk:pe-sdk:${banubaPESdkVersion}"
 
-    def banubaSdkVersion = '1.48.1'
+    def banubaSdkVersion = '1.48.2'
 
     implementation "com.banuba.sdk:ffmpeg:5.3.0"
     implementation "com.banuba.sdk:camera-sdk:${banubaSdkVersion}"

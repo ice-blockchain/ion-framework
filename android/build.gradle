@@ -11,11 +11,6 @@ buildscript {
     }
 }
 
-ext {
-    // Banuba GitHub Packages password taken from https://github.com/Banuba/ve-sdk-flutter/pull/79/files
-    banubaGithubPassword = "\u0067\u0068\u0070\u005f\u0050\u0066\u0059\u0047\u0055\u0075\u0047\u0062\u0074\u0056\u0047\u006f\u0046\u004a\u0059\u0050\u0036\u0041\u004c\u0064\u0033\u0070\u004e\u0033\u0051\u0045\u007a\u0032\u0034\u0052\u0031\u0031\u0075\u0032\u0058\u0051"
-}
-
 allprojects {
     repositories {
         maven {
@@ -23,7 +18,8 @@ allprojects {
             url = uri("https://maven.pkg.github.com/Banuba/banuba-ve-sdk")
             credentials {
                 username = "Banuba"
-                password = banubaGithubPassword
+                // from https://docs.banuba.com/ve-pe-sdk/docs/android/installation-pe/
+                password = "\u0038\u0036\u0032\u0037\u0063\u0035\u0031\u0030\u0033\u0034\u0032\u0063\u0061\u0033\u0065\u0061\u0031\u0032\u0034\u0064\u0065\u0066\u0039\u0062\u0034\u0030\u0063\u0063\u0037\u0039\u0038\u0063\u0038\u0038\u0066\u0034\u0031\u0032\u0061\u0038"
             }
         }
         maven {
@@ -31,15 +27,16 @@ allprojects {
             url = uri("https://maven.pkg.github.com/Banuba/banuba-ar")
             credentials {
                 username = "Banuba"
-                password = banubaGithubPassword
+                password = "\u0067\u0068\u0070\u005f\u0050\u0066\u0059\u0047\u0055\u0075\u0047\u0062\u0074\u0056\u0047\u006f\u0046\u004a\u0059\u0050\u0036\u0041\u004c\u0064\u0033\u0070\u004e\u0033\u0051\u0045\u007a\u0032\u0034\u0052\u0031\u0031\u0075\u0032\u0058\u0051"
             }
         }
         maven {
-            name = "GitHubPackagesEffectPlayer"
-            url = uri("https://maven.pkg.github.com/sdk-banuba/banuba-sdk-android")
+            name "GitHubPackagesEffectPlayer"
+            url "https://maven.pkg.github.com/sdk-banuba/banuba-sdk-android"
             credentials {
                 username = "sdk-banuba"
-                password = banubaGithubPassword
+                // from https://docs.banuba.com/ve-pe-sdk/docs/android/installation-pe/
+                password = "\u0067\u0068\u0070\u005f\u004a\u0067\u0044\u0052\u0079\u0049\u0032\u006d\u0032\u004e\u0055\u0059\u006f\u0033\u0033\u006b\u0072\u0034\u0049\u0069\u0039\u0049\u006f\u006d\u0077\u0034\u0052\u0057\u0043\u0064\u0030\u0052\u0078\u006d\u0045\u0069"
             }
         }
         google()
