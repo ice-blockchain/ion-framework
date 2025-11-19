@@ -9,6 +9,7 @@ class TradingStatsFormatted {
     required this.buysText,
     required this.sellsText,
     required this.netBuyText,
+    required this.isNetBuyPositive,
   });
 
   factory TradingStatsFormatted.fromStats(TradingStats stats) {
@@ -28,6 +29,7 @@ class TradingStatsFormatted {
       buysText: buysText,
       sellsText: sellsText,
       netBuyText: netBuyText,
+      isNetBuyPositive: stats.netBuy >= 0,
     );
   }
 
@@ -35,4 +37,5 @@ class TradingStatsFormatted {
   final String buysText;
   final String sellsText;
   final String netBuyText;
+  final bool isNetBuyPositive;
 }

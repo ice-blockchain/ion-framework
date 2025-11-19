@@ -237,6 +237,7 @@ class _TokenStats extends HookConsumerWidget {
           buysText: selectedStatsFormatted.buysText,
           sellsText: selectedStatsFormatted.sellsText,
           netBuyText: selectedStatsFormatted.netBuyText,
+          isNetBuyPositive: selectedStatsFormatted.isNetBuyPositive,
           onTimeframeTap: (index) => selectedTimeframe.value = index,
         );
       },
