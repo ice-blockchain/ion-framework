@@ -9,8 +9,12 @@ import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/models/latest_trade.dart';
 import 'package:ion/app/features/communities/models/top_holder.dart';
+import 'package:ion/app/features/communities/models/trading_stats_formatted.dart';
 import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_olhcv_candles_provider.r.dart';
+import 'package:ion/app/features/communities/providers/token_trading_stats_provider.r.dart';
+import 'package:ion/app/features/communities/utils/timeframe_extension.dart';
+import 'package:ion/app/features/communities/utils/trading_stats_extension.dart';
 import 'package:ion/app/features/communities/views/components/chart_component.dart';
 import 'package:ion/app/features/communities/views/components/chart_stats_component.dart';
 import 'package:ion/app/features/communities/views/components/comments_section_compact.dart';
@@ -114,7 +118,7 @@ class _ChartsTabView extends StatelessWidget {
       slivers: [
         SliverToBoxAdapter(child: _TokenChart(masterPubkey: masterPubkey)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
-        SliverToBoxAdapter(child: _TokenStats()),
+        SliverToBoxAdapter(child: _TokenStats(masterPubkey: masterPubkey)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
         SliverToBoxAdapter(child: _TopHolders()),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
@@ -198,24 +202,48 @@ extension on ChartTimeRange {
       };
 }
 
-class _TokenStats extends HookWidget {
-  @override
-  Widget build(BuildContext context) {
-    final selectedTimeframe = useState(0);
+class _TokenStats extends HookConsumerWidget {
+  const _TokenStats({required this.masterPubkey});
 
-    return ChartStatsComponent(
-      selectedTimeframe: selectedTimeframe.value,
-      timeframes: const [
-        TimeframeChange(label: '5m', percent: -0.55),
-        TimeframeChange(label: '1h', percent: -0.55),
-        TimeframeChange(label: '6h', percent: 44.43),
-        TimeframeChange(label: '24h', percent: 1244.99),
-      ],
-      volumeText: r'$140.6K',
-      buysText: r'154/$154K',
-      sellsText: r'145/$153K',
-      netBuyText: '+18K',
-      onTimeframeTap: (index) => selectedTimeframe.value = index,
+  final String masterPubkey;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedTimeframe = useState(0);
+    final tradingStatsAsync = ref.watch(tokenTradingStatsProvider(masterPubkey));
+
+    return tradingStatsAsync.when(
+      data: (tradingStats) {
+        // Get the selected timeframe's stats
+        // Sort entries by timeframe duration (5m, 1h, 6h, 24h, etc.)
+        final timeframeEntries = tradingStats.entries.toList()
+          ..sort(
+            (a, b) => a.key.sortValue.compareTo(b.key.sortValue),
+          );
+
+        final selectedTimeframeStats = timeframeEntries[selectedTimeframe.value].value;
+        final selectedStatsFormatted = TradingStatsFormatted.fromStats(selectedTimeframeStats);
+
+        return ChartStatsComponent(
+          selectedTimeframe: selectedTimeframe.value,
+          timeframes: [
+            for (final timeframeEntry in timeframeEntries)
+              TimeframeChange(
+                label: timeframeEntry.key.displayLabel,
+                percent: timeframeEntry.value.netBuyPercent,
+              ),
+          ],
+          volumeText: selectedStatsFormatted.volumeText,
+          buysText: selectedStatsFormatted.buysText,
+          sellsText: selectedStatsFormatted.sellsText,
+          netBuyText: selectedStatsFormatted.netBuyText,
+          onTimeframeTap: (index) => selectedTimeframe.value = index,
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (error, stackTrace) {
+        return const SizedBox.shrink();
+      },
     );
   }
 }
