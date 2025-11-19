@@ -103,13 +103,8 @@ class NotificationItem extends HookConsumerWidget {
                 ),
               ),
               if (entity != null)
-                Container(
-                  margin: EdgeInsetsDirectional.only(end: 16.s),
-                  height: 50.s,
-                  width: 50.s,
-                  child: NotificationMedia(
-                    entity: entity,
-                  ),
+                NotificationMedia(
+                  entity: entity,
                 ),
             ],
           ),
