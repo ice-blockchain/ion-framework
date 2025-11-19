@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/communities/models/token_header_data.dart';
 import 'package:ion/app/features/communities/utils/position_formatters.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/components/profile_avatar/profile_avatar.dart';
+import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
-import 'package:ion/app/utils/username.dart';
 
 class TokenHeaderComponent extends StatelessWidget {
   const TokenHeaderComponent({

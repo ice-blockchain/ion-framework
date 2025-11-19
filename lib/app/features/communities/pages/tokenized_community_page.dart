@@ -3,28 +3,26 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/layouts/collapsing_header_tabs_layout.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/models/latest_trade.dart';
-import 'package:ion/app/features/communities/models/token_header_data.dart';
 import 'package:ion/app/features/communities/models/top_holder.dart';
 import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/communities/providers/token_olhcv_candles_provider.r.dart';
 import 'package:ion/app/features/communities/views/components/chart_component.dart';
 import 'package:ion/app/features/communities/views/components/chart_stats_component.dart';
 import 'package:ion/app/features/communities/views/components/comments_section_compact.dart';
 import 'package:ion/app/features/communities/views/components/latest_trades_component.dart';
 import 'package:ion/app/features/communities/views/components/token_header_component.dart';
 import 'package:ion/app/features/communities/views/components/top_holders_component.dart';
-import 'package:ion/app/utils/username.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/header/header.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_actions/profile_action.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion/app/features/communities/providers/token_olhcv_candles_provider.r.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/models/ohlcv_candle.f.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 enum TokenizedCommunityTabType implements TabType {
   chart,
@@ -88,7 +86,7 @@ class TokenizedCommunityPage extends HookWidget {
           ],
         ),
         tabBarViews: [
-          const _ChartsTabView(),
+          _ChartsTabView(masterPubkey: masterPubkey),
           _TopHolders(),
           _LatestTrades(),
           const CommentsSectionCompact(commentCount: 10),
@@ -106,13 +104,15 @@ class TokenizedCommunityPage extends HookWidget {
 }
 
 class _ChartsTabView extends StatelessWidget {
-  const _ChartsTabView();
+  const _ChartsTabView({required this.masterPubkey});
+
+  final String masterPubkey;
 
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(child: _TokenChart()),
+        SliverToBoxAdapter(child: _TokenChart(masterPubkey: masterPubkey)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
         SliverToBoxAdapter(child: _TokenStats()),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
@@ -147,28 +147,39 @@ class _TokenExpandedHeader extends ConsumerWidget {
 }
 
 class _TokenChart extends HookConsumerWidget {
-  const _TokenChart();
+  const _TokenChart({required this.masterPubkey});
+
+  final String masterPubkey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedRange = useState(ChartTimeRange.m15);
-    // TODO: put real master
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(masterPubkey));
+    final token = tokenInfo.valueOrNull;
+
     final candles = ref.watch(
       tokenOhlcvCandlesProvider(
-        'masterPubkey',
+        masterPubkey,
         selectedRange.value.intervalString,
       ),
     );
 
     return candles.when(
-      data: (candles) => ChartComponent(
-        price: Decimal.parse('0.0234'),
-        label: 'SUSAN H PARKS',
-        changePercent: 145.84,
-        candles: mapOhlcvToChartCandles(candles),
-        selectedRange: selectedRange.value,
-        onRangeChanged: (range) => selectedRange.value = range,
-      ),
+      data: (candles) {
+        // Use token data if available, otherwise show loading/placeholder
+        if (token == null) {
+          return const SizedBox.shrink();
+        }
+
+        return ChartComponent(
+          price: Decimal.parse(token.marketData.priceUSD.toStringAsFixed(4)),
+          label: token.title,
+          changePercent: 145.84, // TODO: Calculate from candles
+          candles: mapOhlcvToChartCandles(candles),
+          selectedRange: selectedRange.value,
+          onRangeChanged: (range) => selectedRange.value = range,
+        );
+      },
       error: (error, stackTrace) => const SizedBox.shrink(),
       loading: () => const SizedBox.shrink(),
     );
