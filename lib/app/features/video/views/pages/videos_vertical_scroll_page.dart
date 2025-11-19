@@ -11,6 +11,7 @@ import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/quick_page_swiper/quick_page_swiper.dart';
+import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
@@ -158,6 +159,33 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
       },
       [onVideoSeen, initialPage, flattenedVideos],
     );
+
+    final nextVideoParams = useMemoized(
+      () {
+        final currentIndex = flattenedVideos.indexWhere(
+          (v) => v.entity.toEventReference() == currentEventReference.value,
+        );
+
+        if (currentIndex != -1 && currentIndex + 1 < flattenedVideos.length) {
+          final nextVideo = flattenedVideos[currentIndex + 1];
+          final nextEventReference = nextVideo.entity.toEventReference();
+          final nextIsInitial = (currentIndex + 1) == initialPage;
+
+          return VideoControllerParams(
+            sourcePath: nextVideo.media.url,
+            authorPubkey: nextEventReference.masterPubkey,
+            looping: true,
+            uniqueId: nextIsInitial ? framedEventReference?.encode() ?? '' : '',
+          );
+        }
+        return null;
+      },
+      [flattenedVideos, currentEventReference.value],
+    );
+
+    if (nextVideoParams != null) {
+      ref.watch(videoControllerProvider(nextVideoParams));
+    }
 
     return StatusBarColorWrapper.light(
       child: Scaffold(
