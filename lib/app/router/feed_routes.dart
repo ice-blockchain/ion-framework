@@ -3,8 +3,10 @@
 part of 'app_routes.gr.dart';
 
 class FeedRoutes {
+  static const storyRoutePrefix = 'story';
+
   static const routes = <TypedRoute<RouteData>>[
-    TypedGoRoute<StoryViewerRoute>(path: 'story-viewing-fullstack/:pubkey'),
+    TypedGoRoute<StoryViewerRoute>(path: '$storyRoutePrefix/viewing-fullstack/:pubkey'),
     TypedGoRoute<TrendingVideosRoute>(path: 'trending-videos-fullstack/:eventReference'),
     TypedGoRoute<FeedVideosRoute>(path: 'feed-videos-fullstack/:eventReference'),
     TypedGoRoute<FeedAdvancedSearchVideosRoute>(
@@ -371,12 +373,12 @@ class FeedSearchFiltersRoute extends BaseRouteData with _$FeedSearchFiltersRoute
         );
 }
 
-@TypedGoRoute<StoryRecordRoute>(path: '/story-record')
+@TypedGoRoute<StoryRecordRoute>(path: '/${FeedRoutes.storyRoutePrefix}/record')
 class StoryRecordRoute extends BaseRouteData with _$StoryRecordRoute {
   StoryRecordRoute() : super(child: const StoryRecordPage());
 }
 
-@TypedGoRoute<StoryPreviewRoute>(path: '/story-preview/:path')
+@TypedGoRoute<StoryPreviewRoute>(path: '/${FeedRoutes.storyRoutePrefix}/preview/:path')
 class StoryPreviewRoute extends BaseRouteData with _$StoryPreviewRoute {
   StoryPreviewRoute({
     required this.path,
