@@ -24,6 +24,7 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_router_listenable.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/providers/route_location_provider.r.dart';
+import 'package:ion/app/router/redirect_strategies/user_switching_redirect_strategy.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -109,6 +110,19 @@ Future<String?> _mainRedirect({
   required String location,
   required Ref ref,
 }) async {
+  final userSwitchingStrategy = UserSwitchingRedirectStrategy();
+  final userSwitchingRedirect = await userSwitchingStrategy.getRedirect(
+    location: location,
+    ref: ref,
+  );
+  if (userSwitchingRedirect != null) {
+    if (location != userSwitchingRedirect) {
+      return userSwitchingRedirect;
+    } else {
+      return null;
+    }
+  }
+
   final isAuthenticated = (ref.read(authProvider).valueOrNull?.isAuthenticated).falseOrValue;
 
   final onboardingComplete = isAuthenticated
@@ -125,18 +139,38 @@ Future<String?> _mainRedirect({
   final isOnIntro = location == IntroRoute().location;
 
   if (!isAuthenticated && !isOnAuth) {
-    return IntroRoute().location;
+    final introLocation = IntroRoute().location;
+    if (location != introLocation) {
+      return introLocation;
+    }
+
+    return null;
   }
 
   if (isAuthenticated && onboardingComplete != null) {
     if (onboardingComplete) {
       if (isOnSplash || isOnAuth || isOnIntro) {
-        return FeedRoute().location;
+        final feedLocation = FeedRoute().location;
+        if (location != feedLocation) {
+          return feedLocation;
+        }
+
+        return null;
       } else if (isOnOnboarding) {
         if (hasNotificationsPermission) {
-          return FeedRoute().location;
+          final feedLocation = FeedRoute().location;
+          if (location != feedLocation) {
+            return feedLocation;
+          }
+
+          return null;
         } else {
-          return NotificationsRoute().location;
+          final notificationsLocation = NotificationsRoute().location;
+          if (location != notificationsLocation) {
+            return notificationsLocation;
+          }
+
+          return null;
         }
       }
     }
@@ -149,7 +183,12 @@ Future<String?> _mainRedirect({
         !isOnOnboarding &&
         !isOnMediaPicker &&
         !(hasUserMetadata && relaysAssigned)) {
-      return FillProfileRoute().location;
+      final fillProfileLocation = FillProfileRoute().location;
+      if (location != fillProfileLocation) {
+        return fillProfileLocation;
+      }
+
+      return null;
     }
 
     if (!onboardingComplete &&
@@ -159,7 +198,12 @@ Future<String?> _mainRedirect({
         relaysAssigned &&
         !delegationComplete) {
       ref.read(uiEventQueueNotifierProvider.notifier).emit(const ShowLinkNewDeviceDialogEvent());
-      return FeedRoute().location;
+      final feedLocation = FeedRoute().location;
+      if (location != feedLocation) {
+        return feedLocation;
+      }
+
+      return null;
     }
   }
 

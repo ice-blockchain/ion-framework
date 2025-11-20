@@ -28,6 +28,7 @@ class AuthRoutes {
         TypedGoRoute<SwitchAccountAuthRoute>(path: '$authPrefix/switch-account'),
       ],
     ),
+    TypedGoRoute<SwitchUserLoaderRoute>(path: '$authPrefix/switch-user-loader'),
   ];
 }
 
@@ -154,7 +155,15 @@ class RestoreFromCloudNoKeysRoute extends BaseRouteData with _$RestoreFromCloudN
 class SwitchAccountAuthRoute extends BaseRouteData with _$SwitchAccountAuthRoute {
   SwitchAccountAuthRoute()
       : super(
-          child: const SwitchAccountModal(showActions: false),
+          child: const SwitchAccountModal(enableAccountManagement: false),
           type: IceRouteType.bottomSheet,
+        );
+}
+
+class SwitchUserLoaderRoute extends BaseRouteData with _$SwitchUserLoaderRoute {
+  SwitchUserLoaderRoute()
+      : super(
+          child: const SwitchUserLoaderPage(),
+          type: IceRouteType.singleWithoutTransition,
         );
 }

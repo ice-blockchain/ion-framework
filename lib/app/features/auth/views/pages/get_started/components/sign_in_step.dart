@@ -12,6 +12,7 @@ import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/data/models/twofa_type.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/login_action_notifier.r.dart';
 import 'package:ion/app/features/auth/providers/registration_restrictions_provider.r.dart';
 import 'package:ion/app/features/auth/views/components/auth_footer/auth_footer.dart';
@@ -200,6 +201,14 @@ class SignInStep extends HookConsumerWidget {
     required Future<void> Function(String username) onSuggestToCreatePasskeyCreds,
     required SuggestBiometricsCallback onSuggestToAddBiometrics,
   }) async {
+    final authState = await ref.read(authProvider.future);
+    final authenticatedUsers = authState.authenticatedIdentityKeyNames;
+
+    if (authenticatedUsers.contains(username)) {
+      await ref.read(authProvider.notifier).setCurrentUser(username);
+      return;
+    }
+
     await ref.read(loginActionNotifierProvider.notifier).verifyUserLoginFlow(keyName: username);
     final loginState = ref.read(loginActionNotifierProvider);
     if (loginState.hasError) {
