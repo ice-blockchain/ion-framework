@@ -9,7 +9,8 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
-import 'package:ion/app/hooks/use_auto_play.dart';
+import 'package:ion/app/hooks/use_auto_play_route_observer.dart';
+import 'package:ion/app/router/app_route_observer.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:video_player/video_player.dart';
@@ -29,7 +30,10 @@ class IntroPage extends HookConsumerWidget {
         ),
       ),
     );
-    useAutoPlay(videoControllerProviderState.valueOrNull);
+    useAutoPlayRouteObserver(
+      videoControllerProviderState.valueOrNull,
+      routeObserver: routeObserver,
+    );
 
     final videoController = videoControllerProviderState.valueOrNull;
 
