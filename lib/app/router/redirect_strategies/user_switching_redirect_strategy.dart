@@ -16,6 +16,7 @@ class UserSwitchingRedirectStrategy implements RedirectStrategy {
     required Ref ref,
   }) async {
     final isUserSwitching = ref.read(userSwitchingProvider);
+
     if (!isUserSwitching) {
       return null;
     }
@@ -32,6 +33,12 @@ class UserSwitchingRedirectStrategy implements RedirectStrategy {
     final currentPubkey = ref.read(currentPubkeySelectorProvider);
     final mainWallet = ref.read(mainWalletProvider);
     final walletsInitializer = ref.read(walletsInitializerNotifierProvider);
+
+    final hasError = mainWallet.hasError || walletsInitializer.hasError;
+    if (hasError) {
+      ref.read(userSwitchingProvider.notifier).reset();
+      return null;
+    }
 
     final isReady = isAuthenticated &&
         currentPubkey != null &&
