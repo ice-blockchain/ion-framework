@@ -330,7 +330,26 @@ class SendE2eeChatMessageService {
 
     final mediaAttachmentsLists = await Future.wait(mediaAttachmentsFutures);
 
-    for (final mediaAttachments in mediaAttachmentsLists) {
+    // Check which media records still exist (some may have been cancelled)
+    final existingMediaRecords = await (ref.read(chatDatabaseProvider).select(
+          ref.read(chatDatabaseProvider).messageMediaTable,
+        )
+              ..where((t) => t.messageEventReference.equalsValue(eventReference)))
+        .get();
+
+    // Get IDs of media that still exist (weren't cancelled)
+    final existingMediaIds = existingMediaRecords.map((record) => record.id).toSet();
+
+    // Only include media attachments for files that weren't cancelled
+    for (var i = 0; i < mediaAttachmentsLists.length; i++) {
+      final mediaId = messageMediaIds[i];
+
+      // Skip this media if it was cancelled
+      if (!existingMediaIds.contains(mediaId)) {
+        continue;
+      }
+
+      final mediaAttachments = mediaAttachmentsLists[i];
       for (final (pubkey, attachment) in mediaAttachments) {
         mediaAttachmentsUsersBased.update(
           pubkey,
