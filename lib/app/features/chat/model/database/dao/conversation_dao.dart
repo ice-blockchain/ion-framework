@@ -154,7 +154,7 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
       ..where(conversationMessageTable.isDeleted.equals(false))
       ..where(conversationTable.isHidden.equals(false))
       ..addColumns([
-        lastActivityExpr, // sadece gerçekten ihtiyacın olan extra kolon
+        lastActivityExpr,
       ])
       ..groupBy([conversationTable.id])
       ..orderBy([
