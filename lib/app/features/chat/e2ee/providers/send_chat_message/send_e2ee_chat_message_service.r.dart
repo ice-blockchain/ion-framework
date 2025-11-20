@@ -332,9 +332,8 @@ class SendE2eeChatMessageService {
 
     // Check which media records still exist (some may have been cancelled)
     final existingMediaRecords = await (ref.read(chatDatabaseProvider).select(
-          ref.read(chatDatabaseProvider).messageMediaTable,
-        )
-              ..where((t) => t.messageEventReference.equalsValue(eventReference)))
+              ref.read(chatDatabaseProvider).messageMediaTable,
+            )..where((t) => t.messageEventReference.equalsValue(eventReference)))
         .get();
 
     // Get IDs of media that still exist (weren't cancelled)
