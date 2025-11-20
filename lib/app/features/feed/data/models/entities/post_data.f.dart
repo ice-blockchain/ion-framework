@@ -23,7 +23,7 @@ import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
-import 'package:ion/app/services/markdown/delta_to_text_and_pmo.r.dart';
+import 'package:ion/app/services/markdown/delta_markdown_converter.dart';
 
 part 'post_data.f.freezed.dart';
 

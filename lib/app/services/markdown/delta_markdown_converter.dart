@@ -99,13 +99,25 @@ abstract class DeltaMarkdownConverter {
   }) {
     var updatedLineStartIndex = lineStartIndex;
     var updatedInCodeBlock = inCodeBlock;
+    var segmentStart = 0;
 
     // Process content character by character to detect newlines.
     // When a newline is found, check if this operation has block attributes
     // (Quill attaches block attributes to the newline character).
     for (var i = 0; i < content.length; i++) {
       if (content[i] == '\n') {
-        final result = _processBlockAttributes(
+        // Process inline attributes for the segment before this newline
+        if (i > segmentStart && attributes != null && attributes.isNotEmpty) {
+          final segment = content.substring(segmentStart, i);
+          _processInlineAttributes(
+            content: segment,
+            attributes: attributes,
+            currentIndex: currentIndex + segmentStart,
+            pmoTags: pmoTags,
+          );
+        }
+
+        updatedInCodeBlock = _processBlockAttributes(
           attributes: attributes,
           lineStartIndex: updatedLineStartIndex,
           currentIndex: currentIndex,
@@ -114,17 +126,18 @@ abstract class DeltaMarkdownConverter {
           pmoTags: pmoTags,
         );
 
-        updatedInCodeBlock = result.inCodeBlock;
         updatedLineStartIndex = currentIndex + i + 1;
+        segmentStart = i + 1;
       }
     }
 
-    // Process inline attributes (only for content without newlines)
-    if (attributes != null && attributes.isNotEmpty && !content.contains('\n')) {
+    // Process inline attributes for remaining content after the last newline
+    if (segmentStart < content.length && attributes != null && attributes.isNotEmpty) {
+      final segment = content.substring(segmentStart);
       _processInlineAttributes(
-        content: content,
+        content: segment,
         attributes: attributes,
-        currentIndex: currentIndex,
+        currentIndex: currentIndex + segmentStart,
         pmoTags: pmoTags,
       );
     }
@@ -136,7 +149,8 @@ abstract class DeltaMarkdownConverter {
   }
 
   /// Processes block-level attributes (headers, lists, blockquotes, code blocks).
-  static ({bool inCodeBlock}) _processBlockAttributes({
+  /// Returns the updated [inCodeBlock] state.
+  static bool _processBlockAttributes({
     required Map<String, dynamic>? attributes,
     required int lineStartIndex,
     required int currentIndex,
@@ -182,7 +196,7 @@ abstract class DeltaMarkdownConverter {
       }
     }
 
-    return (inCodeBlock: updatedInCodeBlock);
+    return updatedInCodeBlock;
   }
 
   /// Processes inline attributes (bold, italic, strike, underline, code, link).
@@ -193,35 +207,31 @@ abstract class DeltaMarkdownConverter {
     required List<PmoTag> pmoTags,
   }) {
     var replacement = content;
-    var hasReplacement = false;
 
+    // Apply formatting in order: code, bold, italic, strike, underline, link
+    // Code is first so other styles wrap the backticks
+    if (attributes.containsKey('code')) {
+      replacement = '`$replacement`';
+    }
     if (attributes.containsKey('bold')) {
       replacement = '**$replacement**';
-      hasReplacement = true;
     }
     if (attributes.containsKey('italic')) {
       replacement = '*$replacement*';
-      hasReplacement = true;
     }
     if (attributes.containsKey('strike')) {
       replacement = '~~$replacement~~';
-      hasReplacement = true;
     }
     if (attributes.containsKey('underline')) {
       replacement = '<u>$replacement</u>';
-      hasReplacement = true;
-    }
-    if (attributes.containsKey('code')) {
-      replacement = '`$replacement`';
-      hasReplacement = true;
     }
     if (attributes.containsKey('link')) {
       final link = attributes['link'];
-      replacement = '[$content]($link)';
-      hasReplacement = true;
+      replacement = '[$replacement]($link)';
     }
 
-    if (hasReplacement && content.trim().isNotEmpty) {
+    // Only add PMO tag if replacement differs from content and content is not empty
+    if (replacement != content && content.trim().isNotEmpty) {
       pmoTags.add(PmoTag(currentIndex, currentIndex + content.length, replacement));
     }
   }
@@ -235,28 +245,23 @@ abstract class DeltaMarkdownConverter {
     if (data.containsKey('text-editor-single-image')) {
       final imageUrl = data['text-editor-single-image'];
       const placeholder = ' ';
-      final start = currentIndex;
-      final end = currentIndex + placeholder.length;
       final replacement = '![]($imageUrl)';
-
-      pmoTags.add(PmoTag(start, end, replacement));
+      pmoTags.add(PmoTag(currentIndex, currentIndex + placeholder.length, replacement));
       return placeholder;
-    } else if (data.containsKey('text-editor-separator')) {
+    }
+
+    if (data.containsKey('text-editor-separator')) {
       const placeholder = '\n';
-      final start = currentIndex;
-      final end = currentIndex + placeholder.length;
       const replacement = '\n---\n';
-
-      pmoTags.add(PmoTag(start, end, replacement));
+      pmoTags.add(PmoTag(currentIndex, currentIndex + placeholder.length, replacement));
       return placeholder;
-    } else if (data.containsKey('text-editor-code')) {
+    }
+
+    if (data.containsKey('text-editor-code')) {
       final code = data['text-editor-code'];
       const placeholder = '\n';
-      final start = currentIndex;
-      final end = currentIndex + placeholder.length;
       final replacement = '\n```\n$code\n```\n';
-
-      pmoTags.add(PmoTag(start, end, replacement));
+      pmoTags.add(PmoTag(currentIndex, currentIndex + placeholder.length, replacement));
       return placeholder;
     }
 
@@ -293,7 +298,6 @@ abstract class DeltaMarkdownConverter {
         })
         .whereType<_ParsedPmoTag>()
         .toList()
-
       // Sort by start position ascending to process from start to end
       ..sort((a, b) => a.start.compareTo(b.start));
 
