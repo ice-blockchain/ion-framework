@@ -73,7 +73,7 @@ class PollUtils {
     );
   }
 
-  static PollDraft pollDataToPollDraft(PollData pollData) {
+  static PollDraft pollDataToPollDraft(PollData pollData, {required bool isVoted}) {
     final pollAnswers = pollData.options.map((option) => PollAnswer(text: option)).toList();
     final closingTime = pollData.closingTime ?? DateTime.now();
     final remaining = closingTime.difference(DateTime.now());
@@ -84,6 +84,7 @@ class PollUtils {
       lengthDays: remaining.inDays,
       lengthHours: remainingHours,
       added: true,
+      isVoted: isVoted,
     );
   }
 }
