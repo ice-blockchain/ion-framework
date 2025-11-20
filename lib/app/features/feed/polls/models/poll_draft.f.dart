@@ -12,6 +12,7 @@ class PollDraft with _$PollDraft {
     required int lengthDays,
     required int lengthHours,
     required bool added,
+    required bool isVoted,
   }) = _PollDraft;
 
   factory PollDraft.initial() => PollDraft(
@@ -19,6 +20,7 @@ class PollDraft with _$PollDraft {
         lengthDays: 1,
         lengthHours: 0,
         added: false,
+        isVoted: false,
       );
 }
 
