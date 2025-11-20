@@ -25,6 +25,21 @@ class NotificationMedia extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final mediaChild = _buildMediaChild(context, ref);
+
+    if (mediaChild == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: EdgeInsetsDirectional.only(end: 16.s),
+      height: 50.s,
+      width: 50.s,
+      child: mediaChild,
+    );
+  }
+
+  Widget? _buildMediaChild(BuildContext context, WidgetRef ref) {
     // For reposts, get the original entity to display its media
     final displayEntity = switch (entity) {
       final GenericRepostEntity _ => ref.watch(getRepostedEntityProvider(entity)),
@@ -33,7 +48,7 @@ class NotificationMedia extends HookConsumerWidget {
     };
 
     if (displayEntity == null) {
-      return const SizedBox.shrink();
+      return null;
     }
 
     final eventReference = displayEntity.toEventReference();
@@ -43,8 +58,15 @@ class NotificationMedia extends HookConsumerWidget {
       final imageUrl = articleData.image;
       final thumbUrl =
           articleData.media.values.where((item) => imageUrl == item.url).firstOrNull?.thumb;
+      final notificationImage = imageUrl ?? thumbUrl;
+      if (notificationImage == null) {
+        return null;
+      }
 
-      return _NotificationImage(url: imageUrl ?? thumbUrl, eventReference: eventReference);
+      return _NotificationImage(
+        url: notificationImage,
+        eventReference: eventReference,
+      );
     }
 
     final postData = switch (displayEntity) {
@@ -53,24 +75,30 @@ class NotificationMedia extends HookConsumerWidget {
       _ => null,
     };
 
-    if (postData is! EntityDataWithMediaContent) return const SizedBox.shrink();
+    if (postData is! EntityDataWithMediaContent) {
+      return null;
+    }
 
     final (:content, :media) = ref.watch(cachedParsedMediaProvider(postData));
-    final firstMedia = media
-        .firstWhereOrNull((item) => [MediaType.image, MediaType.video].contains(item.mediaType));
+    final firstMedia = media.firstWhereOrNull(
+      (item) => [MediaType.image, MediaType.video].contains(item.mediaType),
+    );
 
-    if (firstMedia == null) {
-      return const SizedBox.shrink();
+    final notificationImageUrl = firstMedia?.thumb ?? firstMedia?.image;
+    if (firstMedia == null || notificationImageUrl == null) {
+      return null;
     }
+
+    final notificationImage = _NotificationImage(
+      url: notificationImageUrl,
+      eventReference: eventReference,
+    );
 
     if (firstMedia.mediaType == MediaType.video) {
       return Stack(
         fit: StackFit.expand,
         children: [
-          _NotificationImage(
-            url: firstMedia.thumb ?? firstMedia.image,
-            eventReference: eventReference,
-          ),
+          notificationImage,
           Assets.svg.iconVideoPlay.icon(
             color: context.theme.appColors.secondaryBackground,
             fit: BoxFit.scaleDown,
@@ -79,10 +107,8 @@ class NotificationMedia extends HookConsumerWidget {
         ],
       );
     }
-    return _NotificationImage(
-      url: firstMedia.thumb ?? firstMedia.image,
-      eventReference: eventReference,
-    );
+
+    return notificationImage;
   }
 }
 
@@ -92,18 +118,15 @@ class _NotificationImage extends StatelessWidget {
     required this.eventReference,
   });
 
-  final String? url;
+  final String url;
   final EventReference eventReference;
 
   @override
   Widget build(BuildContext context) {
-    if (url == null) {
-      return const SizedBox.shrink();
-    }
     return ClipRRect(
       borderRadius: BorderRadius.circular(8.0.s),
       child: FeedIONConnectNetworkImage(
-        imageUrl: url!,
+        imageUrl: url,
         fit: BoxFit.cover,
         authorPubkey: eventReference.masterPubkey,
       ),
