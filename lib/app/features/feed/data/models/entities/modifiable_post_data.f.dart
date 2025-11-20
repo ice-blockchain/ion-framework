@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -169,8 +168,13 @@ class ModifiablePostData
   const ModifiablePostData._();
 
   @override
-  // Posts (kind 30175) use 100% text only - always return plain text, never Delta JSON
-  String get content => textContent;
+  String get content {
+    final rt = richText;
+    if (rt != null && rt.content.isNotEmpty) {
+      return rt.content;
+    }
+    return textContent;
+  }
 
   @override
   FutureOr<EventMessage> toEventMessage(
