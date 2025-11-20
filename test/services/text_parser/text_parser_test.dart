@@ -213,6 +213,64 @@ void main() {
       expect(results[2].text, equals(' for info'));
     });
 
+    test('should parse bare domain with query params correctly', () {
+      final results = parser.parse('Check out ice.io/?ref=testRef for details');
+
+      expect(results.length, equals(3));
+      expect(results[0].text, equals('Check out '));
+      expect(results[1].text, equals('ice.io/?ref=testRef'));
+      expect(results[1].matcher, isA<UrlMatcher>());
+      expect(results[2].text, equals(' for details'));
+    });
+
+    test('should parse bare domain with path correctly', () {
+      final results = parser.parse('Visit ice.io/path/to/page for info');
+
+      expect(results.length, equals(3));
+      expect(results[0].text, equals('Visit '));
+      expect(results[1].text, equals('ice.io/path/to/page'));
+      expect(results[1].matcher, isA<UrlMatcher>());
+      expect(results[2].text, equals(' for info'));
+    });
+
+    test('should parse bare domain with path and query params correctly', () {
+      final results = parser.parse('See ice.io/path?query=value&other=test here');
+
+      expect(results.length, equals(3));
+      expect(results[0].text, equals('See '));
+      expect(results[1].text, equals('ice.io/path?query=value&other=test'));
+      expect(results[1].matcher, isA<UrlMatcher>());
+      expect(results[2].text, equals(' here'));
+    });
+
+    test('should parse bare domain with .app TLD and query params', () {
+      final results = parser.parse('Visit ice.io/?ref=testRef');
+
+      expect(results.length, equals(2));
+      expect(results[0].text, equals('Visit '));
+      expect(results[1].text, equals('ice.io/?ref=testRef'));
+      expect(results[1].matcher, isA<UrlMatcher>());
+    });
+
+    test('should parse query params with underscores correctly', () {
+      final results = parser.parse('Link: ice.io/?ref=testRef&source=test');
+
+      expect(results.length, equals(2));
+      expect(results[0].text, equals('Link: '));
+      expect(results[1].text, equals('ice.io/?ref=testRef&source=test'));
+      expect(results[1].matcher, isA<UrlMatcher>());
+    });
+
+    test('should terminate query params at punctuation', () {
+      final results = parser.parse('Check ice.io/?q=test. Next sentence');
+
+      expect(results.length, equals(3));
+      expect(results[0].text, equals('Check '));
+      expect(results[1].text, equals('ice.io/?q=test'));
+      expect(results[1].matcher, isA<UrlMatcher>());
+      expect(results[2].text, equals('. Next sentence'));
+    });
+
     test('should not parse valid bare domain with TLD but followed by extra symbols', () {
       final results = parser.parse('Visit ice.ion for info');
 
