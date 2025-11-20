@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 // lib/app/router/redirect_strategies/user_switching_redirect_strategy.dart
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
