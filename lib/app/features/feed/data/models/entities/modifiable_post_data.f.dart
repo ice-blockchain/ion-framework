@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -32,6 +34,7 @@ import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
 import 'package:ion/app/features/ion_connect/model/source_post_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
+import 'package:ion/app/services/markdown/delta_to_text_and_pmo.r.dart';
 
 part 'modifiable_post_data.f.freezed.dart';
 
@@ -117,6 +120,26 @@ class ModifiablePostData
     final quotedEventTag =
         tags[QuotedImmutableEvent.tagName] ?? tags[QuotedReplaceableEvent.tagName];
 
+    // Check for richText first (prefer existing Delta)
+    RichText? richText;
+    if (tags[RichText.tagName] != null) {
+      richText = RichText.fromTag(tags[RichText.tagName]!.first);
+    } else {
+      // No richText Delta, check for PMO tags to reconstruct Delta
+      final pmoTags = tags['pmo'] ?? [];
+      if (pmoTags.isNotEmpty) {
+        // Map markdown (via PMO tags) to Delta
+        final reconstructedDelta = DeltaMarkdownConverter.mapMarkdownToDelta(
+          eventMessage.content,
+          pmoTags,
+        );
+        richText = RichText(
+          protocol: 'quill_delta',
+          content: jsonEncode(reconstructedDelta.toJson()),
+        );
+      }
+    }
+
     return ModifiablePostData(
       textContent: eventMessage.content,
       media: EntityDataWithMediaContent.parseImeta(tags[MediaAttachment.tagName]),
@@ -136,8 +159,7 @@ class ModifiablePostData
       settings: tags[EventSetting.settingTagName]?.map(EventSetting.fromTag).toList(),
       communityId:
           tags[ConversationIdentifier.tagName]?.map(ConversationIdentifier.fromTag).first.value,
-      richText:
-          tags[RichText.tagName] != null ? RichText.fromTag(tags[RichText.tagName]!.first) : null,
+      richText: richText,
       poll: tags['poll']?.firstOrNull != null ? PollData.fromTag(tags['poll']!.first) : null,
       sourcePostReference: SourcePostReference.fromTags(eventMessage.tags),
       language: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.language),
@@ -147,16 +169,32 @@ class ModifiablePostData
   const ModifiablePostData._();
 
   @override
-  String get content => richText?.content ?? textContent;
+  // Posts (kind 30175) use 100% text only - always return plain text, never Delta JSON
+  String get content => textContent;
 
   @override
   FutureOr<EventMessage> toEventMessage(
     EventSigner signer, {
     List<List<String>> tags = const [],
     int? createdAt,
-  }) {
+  }) async {
+    var contentToSign = content;
+    final pmoTags = <List<String>>[];
+
+    if (richText != null) {
+      try {
+        final deltaJson = jsonDecode(richText!.content) as List;
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(deltaJson);
+        contentToSign = result.text;
+        pmoTags.addAll(result.tags.map((t) => t.toTag()));
+      } catch (e) {
+        // Fallback to existing content if conversion fails
+      }
+    }
+
     final allTags = [
       ...tags,
+      ...pmoTags,
       replaceableEventId.toTag(),
       publishedAt.toTag(),
       if (editingEndedAt != null) editingEndedAt!.toTag(),
@@ -168,7 +206,7 @@ class ModifiablePostData
       if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),
       if (settings != null) ...settings!.map((setting) => setting.toTag()),
       if (communityId != null) ConversationIdentifier(value: communityId!).toTag(),
-      if (richText != null) richText!.toTag(),
+      // ModifiablePosts (kind 30175) use 100% text only with PMO tags, no rich_text tag
       if (poll != null) poll!.toTag(),
       if (sourcePostReference != null) sourcePostReference!.toTag(),
       if (language != null) ...language!.toTags(),
@@ -178,7 +216,7 @@ class ModifiablePostData
       signer: signer,
       createdAt: createdAt,
       kind: ModifiablePostEntity.kind,
-      content: richText != null ? '' : content,
+      content: contentToSign,
       tags: allTags,
     );
   }

@@ -93,6 +93,8 @@ class CreateArticle extends _$CreateArticle {
         content: jsonEncode(updatedContent.toJson()),
       );
 
+      final markdownContent = deltaToMarkdown(updatedContent);
+
       if (topics.isEmpty) {
         topics.add(FeedInterests.unclassified);
       }
@@ -116,6 +118,7 @@ class CreateArticle extends _$CreateArticle {
         settings: EntityDataWithSettings.build(whoCanReply: whoCanReply),
         imageColor: imageColor,
         richText: richText,
+        textContent: markdownContent,
         language: _buildLanguageLabel(language),
       );
 
@@ -215,6 +218,7 @@ class CreateArticle extends _$CreateArticle {
       );
 
       final contentString = jsonEncode(updatedContent.toJson());
+      final markdownContent = deltaToMarkdown(updatedContent);
 
       final richText = RichText(
         protocol: 'quill_delta',
@@ -272,7 +276,7 @@ class CreateArticle extends _$CreateArticle {
         title: title,
         summary: summary,
         image: imageUrlToUpload,
-        textContent: '',
+        textContent: markdownContent,
         media: cleanedMedia,
         relatedHashtags: relatedHashtags,
         relatedPubkeys: mentions,

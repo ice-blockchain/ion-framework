@@ -70,7 +70,8 @@ final deltaToMd = DeltaToMarkdown(
 
 String deltaToMarkdown(Delta delta) {
   final processedDelta = Delta();
-  for (final op in delta.toList()) {
+
+  for (final op in delta.operations) {
     if (op.key == 'insert') {
       if (op.data is Map) {
         processedDelta.insert(op.data);
@@ -79,18 +80,52 @@ String deltaToMarkdown(Delta delta) {
           'text-editor-single-image': op.attributes!['text-editor-single-image'],
         });
       } else {
-        processedDelta.insert(op.data, op.attributes);
+        final data = op.data;
+        final attributes = op.attributes;
+
+        // Handle underline: markdown doesn't support underline natively,
+        // so we need to wrap it in HTML <u> tags
+        if (data is String && (attributes?.containsKey('underline') ?? false)) {
+          // Check if there are other attributes (bold, italic) that need to be handled
+          final hasBold = attributes?.containsKey('bold') ?? false;
+          final hasItalic = attributes?.containsKey('italic') ?? false;
+
+          // Build the markdown with underline as HTML <u> tags
+          var text = data;
+
+          // Apply bold and italic first (markdown syntax)
+          if (hasBold && hasItalic) {
+            text = '***$text***';
+          } else if (hasBold) {
+            text = '**$text**';
+          } else if (hasItalic) {
+            text = '*$text*';
+          }
+
+          // Wrap in <u> tags for underline
+          text = '<u>$text</u>';
+
+          // Insert as plain text - the markdown converter should preserve HTML
+          processedDelta.insert(text);
+        } else {
+          processedDelta.insert(op.data, op.attributes);
+        }
       }
     }
   }
-  return deltaToMd.convert(processedDelta);
+
+  final markdown = deltaToMd.convert(processedDelta);
+
+  // Post-process to ensure <u> tags are preserved (not escaped)
+  // The markdown converter might escape HTML, so we unescape <u> tags
+  return markdown.replaceAll(r'\<u\>', '<u>').replaceAll(r'\</u\>', '</u>');
 }
 
 Delta markdownToDelta(String markdown) {
   final delta = _mdToDelta.convert(markdown);
   final processedDelta = Delta();
 
-  for (final op in delta.toList()) {
+  for (final op in delta.operations) {
     if (op.key == 'insert' && op.data is Map) {
       final data = op.data! as Map;
       if (data.containsKey('image')) {
@@ -103,6 +138,63 @@ Delta markdownToDelta(String markdown) {
           'text-editor-separator': '---',
         });
       } else {
+        processedDelta.insert(op.data, op.attributes);
+      }
+    } else if (op.key == 'insert' && op.data is String) {
+      // Check for HTML <u> tags and convert them to underline attributes
+      final text = op.data! as String;
+      final attrs = op.attributes;
+
+      // Pattern to match <u>...</u> tags, including nested markdown formatting
+      final underlinePattern = RegExp('<u>(.*?)</u>', dotAll: true);
+
+      if (underlinePattern.hasMatch(text)) {
+        // Process text with <u> tags
+        var lastEnd = 0;
+        final matches = underlinePattern.allMatches(text);
+
+        for (final match in matches) {
+          // Add text before the tag
+          if (match.start > lastEnd) {
+            final beforeText = text.substring(lastEnd, match.start);
+            if (beforeText.isNotEmpty) {
+              processedDelta.insert(beforeText, attrs);
+            }
+          }
+
+          // Process the content inside <u> tags
+          final underlinedContent = match.group(1) ?? '';
+
+          // Check for markdown formatting inside the <u> tags
+          final hasBold = underlinedContent.contains('**');
+          final hasItalic = underlinedContent.contains('*') && !hasBold;
+          final hasBoldItalic = underlinedContent.contains('***');
+
+          // Extract plain text by removing markdown formatting
+          final plainText =
+              underlinedContent.replaceAll('***', '').replaceAll('**', '').replaceAll('*', '');
+
+          // Build attributes
+          final underlineAttrs = <String, dynamic>{
+            'underline': true,
+            if (hasBoldItalic || hasBold) 'bold': true,
+            if (hasBoldItalic || hasItalic) 'italic': true,
+            ...?attrs,
+          };
+
+          processedDelta.insert(plainText, underlineAttrs);
+          lastEnd = match.end;
+        }
+
+        // Add remaining text after last tag
+        if (lastEnd < text.length) {
+          final afterText = text.substring(lastEnd);
+          if (afterText.isNotEmpty) {
+            processedDelta.insert(afterText, attrs);
+          }
+        }
+      } else {
+        // No underline tags, insert normally
         processedDelta.insert(op.data, op.attributes);
       }
     } else {
