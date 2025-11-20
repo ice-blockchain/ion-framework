@@ -34,7 +34,7 @@ import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
 import 'package:ion/app/features/ion_connect/model/source_post_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
-import 'package:ion/app/services/markdown/delta_to_text_and_pmo.r.dart';
+import 'package:ion/app/services/markdown/delta_markdown_converter.dart';
 
 part 'modifiable_post_data.f.freezed.dart';
 

@@ -14,8 +14,10 @@ import 'package:ion/app/features/ion_connect/model/entity_published_at.f.dart';
 import 'package:ion/app/features/ion_connect/model/replaceable_event_identifier.f.dart';
 import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
 import 'package:ion/app/services/ion_connect/ed25519_key_store.dart';
-import 'package:ion/app/services/markdown/delta_to_text_and_pmo.r.dart';
+import 'package:ion/app/services/markdown/delta_markdown_converter.dart';
 import 'package:ion/app/services/markdown/quill.dart';
+
+import '../../../test_utils.dart';
 
 void main() {
   group('DeltaMarkdownConverter', () {
@@ -2141,10 +2143,547 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         });
       });
     });
-  });
-}
 
-// Helper to create a real EventSigner for testing
-Future<EventSigner> createTestSigner() async {
-  return Ed25519KeyStore.generate();
+    group('Edge Cases', () {
+      group('Empty and minimal content', () {
+        test('handles empty Delta', () async {
+          final delta = Delta();
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, isEmpty);
+          expect(result.tags, isEmpty);
+        });
+
+        test('handles Delta with only newline', () async {
+          final delta = Delta()..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('\n'));
+          expect(result.tags, isEmpty);
+        });
+
+        test('handles empty string content', () async {
+          final delta = Delta()..insert('');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, isEmpty);
+          expect(result.tags, isEmpty);
+        });
+
+        test('handles whitespace-only content with formatting', () async {
+          final delta = Delta()
+            ..insert('   ', {'bold': true})
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          // Whitespace-only content should not create PMO tags (per line 234)
+          expect(result.text, equals('   \n'));
+          expect(result.tags, isEmpty);
+        });
+
+        test('handles single character with formatting', () async {
+          final delta = Delta()
+            ..insert('A', {'bold': true})
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('A\n'));
+          expect(result.tags, hasLength(1));
+          expect(result.tags.first.replacement, equals('**A**'));
+        });
+      });
+
+      group('Strikethrough formatting', () {
+        test('converts strikethrough text', () async {
+          final delta = Delta()
+            ..insert('Hello ')
+            ..insert('deleted', {'strike': true})
+            ..insert(' world\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('Hello deleted world\n'));
+          expect(result.tags, hasLength(1));
+          expect(result.tags.first.replacement, equals('~~deleted~~'));
+        });
+
+        test('converts strikethrough with bold', () async {
+          final delta = Delta()
+            ..insert('Text ', {'strike': true, 'bold': true})
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('Text \n'));
+          expect(result.tags, hasLength(1));
+          // Order: code, bold, italic, strike, underline, link
+          // So it should be **~~Text ~~** (bold wraps strike)
+          expect(result.tags.first.replacement, contains('**'));
+          expect(result.tags.first.replacement, contains('~~'));
+        });
+      });
+
+      group('Invalid PMO tag handling in mapMarkdownToDelta', () {
+        test('handles PMO tags with negative start index', () {
+          const plainText = 'Hello world';
+          final pmoTags = [
+            ['pmo', '-1:5', '**Hello**'],
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          // Should skip invalid tag and return plain text as Delta
+          expect(result, isNotNull);
+          final text = Document.fromDelta(result).toPlainText();
+          expect(text.trim(), equals(plainText));
+        });
+
+        test('handles PMO tags with negative end index', () {
+          const plainText = 'Hello world';
+          final pmoTags = [
+            ['pmo', '0:-5', '**Hello**'],
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          expect(result, isNotNull);
+        });
+
+        test('handles PMO tags with start > end', () {
+          const plainText = 'Hello world';
+          final pmoTags = [
+            ['pmo', '10:5', '**world**'],
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          // Should skip invalid tag
+          expect(result, isNotNull);
+          final text = Document.fromDelta(result).toPlainText();
+          expect(text.trim(), equals(plainText));
+        });
+
+        test('handles PMO tags with start beyond text length', () {
+          const plainText = 'Hello';
+          final pmoTags = [
+            ['pmo', '100:105', '**text**'],
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          // Should skip invalid tag
+          expect(result, isNotNull);
+          final text = Document.fromDelta(result).toPlainText();
+          expect(text.trim(), equals(plainText));
+        });
+
+        test('handles PMO tags with end beyond text length', () {
+          const plainText = 'Hello';
+          final pmoTags = [
+            ['pmo', '0:100', '**Hello**'],
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          // Should skip invalid tag
+          expect(result, isNotNull);
+          final text = Document.fromDelta(result).toPlainText();
+          expect(text.trim(), equals(plainText));
+        });
+
+        test('handles PMO tags with overlapping ranges', () {
+          const plainText = 'Hello world';
+          final pmoTags = [
+            ['pmo', '0:5', '**Hello**'],
+            ['pmo', '3:8', '*lo wo*'], // Overlaps with first tag
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          // Should handle overlapping tags (second tag should be skipped if it starts before currentPos)
+          expect(result, isNotNull);
+        });
+
+        test('handles PMO tags with same start/end (zero-length)', () {
+          const plainText = 'Hello world';
+          final pmoTags = [
+            ['pmo', '5:5', '**'],
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          // Zero-length tags should be valid (insertion at position)
+          expect(result, isNotNull);
+        });
+
+        test('handles PMO tags with invalid format (missing colon)', () {
+          const plainText = 'Hello world';
+          final pmoTags = [
+            ['pmo', '05', '**Hello**'], // Missing colon
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          // Should skip invalid tag
+          expect(result, isNotNull);
+          final text = Document.fromDelta(result).toPlainText();
+          expect(text.trim(), equals(plainText));
+        });
+
+        test('handles PMO tags with non-numeric indices', () {
+          const plainText = 'Hello world';
+          final pmoTags = [
+            ['pmo', 'abc:def', '**Hello**'],
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          // Should skip invalid tag
+          expect(result, isNotNull);
+          final text = Document.fromDelta(result).toPlainText();
+          expect(text.trim(), equals(plainText));
+        });
+
+        test('handles PMO tags with empty replacement', () {
+          const plainText = 'Hello world';
+          final pmoTags = [
+            ['pmo', '0:5', ''], // Empty replacement
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          // Should handle empty replacement
+          expect(result, isNotNull);
+        });
+
+        test('handles PMO tags that are not "pmo"', () {
+          const plainText = 'Hello world';
+          final pmoTags = [
+            ['notpmo', '0:5', '**Hello**'],
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          // Should skip non-pmo tags
+          expect(result, isNotNull);
+          final text = Document.fromDelta(result).toPlainText();
+          expect(text.trim(), equals(plainText));
+        });
+
+        test('handles PMO tags with less than 3 elements', () {
+          const plainText = 'Hello world';
+          final pmoTags = [
+            ['pmo', '0:5'], // Missing replacement
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          // Should skip invalid tag
+          expect(result, isNotNull);
+          final text = Document.fromDelta(result).toPlainText();
+          expect(text.trim(), equals(plainText));
+        });
+
+        test('handles empty plainText with PMO tags', () {
+          const plainText = '';
+          final pmoTags = [
+            ['pmo', '0:0', '# '],
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          // Should handle empty text
+          expect(result, isNotNull);
+        });
+
+        test('handles PMO tags out of order (should be sorted)', () {
+          const plainText = 'Hello world';
+          final pmoTags = [
+            ['pmo', '6:11', '**world**'],
+            ['pmo', '0:5', '**Hello**'], // Out of order
+          ];
+
+          final result = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+          // Should sort and process correctly
+          expect(result, isNotNull);
+          final text = Document.fromDelta(result).toPlainText();
+          expect(text, contains('Hello'));
+          expect(text, contains('world'));
+        });
+      });
+
+      group('Header edge cases', () {
+        test('handles header level 0', () async {
+          final delta = Delta()
+            ..insert('Header')
+            ..insert('\n', {'header': 0});
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('Header\n'));
+          expect(result.tags, hasLength(1));
+          expect(result.tags.first.replacement, equals(' ')); // Empty hashes
+        });
+
+        test('handles header level 6', () async {
+          final delta = Delta()
+            ..insert('Header')
+            ..insert('\n', {'header': 6});
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('Header\n'));
+          expect(result.tags, hasLength(1));
+          expect(result.tags.first.replacement, equals('###### '));
+        });
+
+        test('handles very large header level', () async {
+          final delta = Delta()
+            ..insert('Header')
+            ..insert('\n', {'header': 100});
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('Header\n'));
+          expect(result.tags, hasLength(1));
+          expect(result.tags.first.replacement, equals('#' * 100 + ' '));
+        });
+      });
+
+      group('List edge cases', () {
+        test('handles unknown list type', () async {
+          final delta = Delta()
+            ..insert('Item')
+            ..insert('\n', {'list': 'unknown'});
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('Item\n'));
+          // Should default to bullet list marker
+          expect(result.tags, hasLength(1));
+          expect(result.tags.first.replacement, equals('- '));
+        });
+
+        test('handles null list type', () async {
+          final delta = Delta()
+            ..insert('Item')
+            ..insert('\n', {'list': null});
+
+          // The implementation casts list to String, so null will cause a type error
+          // This tests that the implementation doesn't handle null (current behavior)
+          expect(
+            DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson()),
+            throwsA(isA<TypeError>()),
+          );
+        });
+      });
+
+      group('Link edge cases', () {
+        test('handles empty link URL', () async {
+          final delta = Delta()
+            ..insert('link', {'link': ''})
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('link\n'));
+          expect(result.tags, hasLength(1));
+          expect(result.tags.first.replacement, equals('[link]()'));
+        });
+
+        test('handles null link URL', () async {
+          final delta = Delta()
+            ..insert('link', {'link': null})
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('link\n'));
+          expect(result.tags, hasLength(1));
+          expect(result.tags.first.replacement, contains('link'));
+        });
+      });
+
+      group('Code block edge cases', () {
+        test('handles code block that never closes (document ends)', () async {
+          final delta = Delta()
+            ..insert('code line')
+            ..insert('\n', {'code-block': true});
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('code line\n'));
+          // Should close code block at end
+          expect(result.tags, hasLength(2));
+          expect(result.tags[0].replacement, equals('```\n'));
+          expect(result.tags[1].replacement, equals('\n```'));
+        });
+
+        test('handles code block with only newline', () async {
+          final delta = Delta()..insert('\n', {'code-block': true});
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('\n'));
+          expect(result.tags, hasLength(2));
+          expect(result.tags[0].replacement, equals('```\n'));
+          expect(result.tags[1].replacement, equals('\n```'));
+        });
+      });
+
+      group('Multiple newlines in single operation', () {
+        test('handles multiple newlines with block attributes', () async {
+          final delta = Delta()..insert('Line 1\nLine 2\nLine 3\n', {'header': 1});
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('Line 1\nLine 2\nLine 3\n'));
+          // Each newline in the operation gets processed, so header is applied to each
+          // This creates 3 header tags (one for each newline)
+          expect(result.tags, hasLength(3));
+          expect(result.tags.every((tag) => tag.replacement == '# '), isTrue);
+        });
+
+        test('handles multiple newlines with inline attributes', () async {
+          final delta = Delta()..insert('Bold\nNormal\nText\n', {'bold': true});
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('Bold\nNormal\nText\n'));
+          // Bold should apply to segments before each newline
+          expect(result.tags.length, greaterThan(0));
+        });
+      });
+
+      group('Special characters and Unicode', () {
+        test('handles Unicode characters', () async {
+          final delta = Delta()
+            ..insert('Hello 世界')
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('Hello 世界\n'));
+          expect(result.tags, isEmpty);
+        });
+
+        test('handles emojis', () async {
+          final delta = Delta()
+            ..insert('Hello 👋')
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('Hello 👋\n'));
+          expect(result.tags, isEmpty);
+        });
+
+        test('handles special markdown characters in content', () async {
+          final delta = Delta()
+            ..insert('Text with * and ** and `')
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('Text with * and ** and `\n'));
+          expect(result.tags, isEmpty);
+        });
+
+        test('handles Unicode with formatting', () async {
+          final delta = Delta()
+            ..insert('世界', {'bold': true})
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('世界\n'));
+          expect(result.tags, hasLength(1));
+          expect(result.tags.first.replacement, equals('**世界**'));
+        });
+      });
+
+      group('Embed edge cases', () {
+        test('handles unknown embed type', () async {
+          final delta = Delta()
+            ..insert({'unknown-embed': 'data'})
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          // Should return empty placeholder for unknown embed
+          expect(result.text, equals('\n'));
+          expect(result.tags, isEmpty);
+        });
+
+        test('handles image with empty URL', () async {
+          final delta = Delta()
+            ..insert({'text-editor-single-image': ''})
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals(' \n')); // Space placeholder
+          expect(result.tags, hasLength(1));
+          expect(result.tags.first.replacement, equals('![]()'));
+        });
+
+        test('handles image with null URL', () async {
+          final delta = Delta()
+            ..insert({'text-editor-single-image': null})
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals(' \n')); // Space placeholder
+          expect(result.tags, hasLength(1));
+        });
+      });
+
+      group('Complex formatting combinations', () {
+        test('handles all inline formats together', () async {
+          final delta = Delta()
+            ..insert('text', {
+              'bold': true,
+              'italic': true,
+              'strike': true,
+              'underline': true,
+              'code': true,
+              'link': 'https://example.com',
+            })
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('text\n'));
+          expect(result.tags, hasLength(1));
+          final replacement = result.tags.first.replacement;
+          // Should contain all formatting markers
+          expect(replacement, contains('`'));
+          expect(replacement, contains('**'));
+          expect(replacement, contains('*'));
+          expect(replacement, contains('~~'));
+          expect(replacement, contains('<u>'));
+          expect(replacement, contains('['));
+          expect(replacement, contains(']'));
+        });
+
+        test('handles formatting on empty content', () async {
+          final delta = Delta()
+            ..insert('', {'bold': true})
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('\n'));
+          // Empty content should not create PMO tag
+          expect(result.tags, isEmpty);
+        });
+      });
+
+      group('Round-trip edge cases', () {
+        test('round-trip with empty Delta', () async {
+          final delta = Delta();
+          final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+          final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
+          final resultDelta =
+              DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+
+          expect(resultDelta, isNotNull);
+          final text = Document.fromDelta(resultDelta).toPlainText();
+          expect(text.trim(), isEmpty);
+        });
+
+        test('round-trip with only whitespace', () async {
+          final delta = Delta()..insert('   \n');
+          final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+          final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
+          final resultDelta =
+              DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+
+          expect(resultDelta, isNotNull);
+        });
+
+        test('round-trip with strikethrough', () async {
+          final delta = Delta()
+            ..insert('Hello ')
+            ..insert('deleted', {'strike': true})
+            ..insert(' world\n');
+          final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+          final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
+          final resultDelta =
+              DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+
+          expect(resultDelta, isNotNull);
+          final text = Document.fromDelta(resultDelta).toPlainText();
+          expect(text.trim(), equals('Hello deleted world'));
+        });
+      });
+    });
+  });
 }
