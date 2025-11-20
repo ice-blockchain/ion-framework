@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -21,6 +23,7 @@ import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/services/markdown/delta_to_text_and_pmo.r.dart';
 
 part 'post_data.f.freezed.dart';
 
@@ -84,6 +87,26 @@ class PostData
     final quotedEventTag =
         tags[QuotedImmutableEvent.tagName] ?? tags[QuotedReplaceableEvent.tagName];
 
+    // Check for richText first (prefer existing Delta)
+    RichText? richText;
+    if (tags[RichText.tagName] != null) {
+      richText = RichText.fromTag(tags[RichText.tagName]!.first);
+    } else {
+      // No richText Delta, check for PMO tags to reconstruct Delta
+      final pmoTags = tags['pmo'] ?? [];
+      if (pmoTags.isNotEmpty) {
+        // Map markdown (via PMO tags) to Delta
+        final reconstructedDelta = DeltaMarkdownConverter.mapMarkdownToDelta(
+          eventMessage.content,
+          pmoTags,
+        );
+        richText = RichText(
+          protocol: 'quill_delta',
+          content: jsonEncode(reconstructedDelta.toJson()),
+        );
+      }
+    }
+
     return PostData(
       content: eventMessage.content,
       media: EntityDataWithMediaContent.parseImeta(tags[MediaAttachment.tagName]),
@@ -95,6 +118,7 @@ class PostData
       relatedPubkeys: tags[RelatedPubkey.tagName]?.map(RelatedPubkey.fromTag).toList(),
       relatedHashtags: tags[RelatedHashtag.tagName]?.map(RelatedHashtag.fromTag).toList(),
       settings: tags[EventSetting.settingTagName]?.map(EventSetting.fromTag).toList(),
+      richText: richText,
     );
   }
 
@@ -105,14 +129,29 @@ class PostData
     EventSigner signer, {
     List<List<String>> tags = const [],
     int? createdAt,
-  }) {
+  }) async {
+    var contentToSign = content;
+    final pmoTags = <List<String>>[];
+
+    if (richText != null) {
+      try {
+        final deltaJson = jsonDecode(richText!.content) as List;
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(deltaJson);
+        contentToSign = result.text;
+        pmoTags.addAll(result.tags.map((t) => t.toTag()));
+      } catch (e) {
+        // Fallback to existing content if conversion fails
+      }
+    }
+
     return EventMessage.fromData(
       signer: signer,
       createdAt: createdAt,
       kind: PostEntity.kind,
-      content: content,
+      content: contentToSign,
       tags: [
         ...tags,
+        ...pmoTags,
         if (expiration != null) expiration!.toTag(),
         if (quotedEvent != null) quotedEvent!.toTag(),
         if (relatedPubkeys != null) ...relatedPubkeys!.map((pubkey) => pubkey.toTag()),
@@ -120,6 +159,7 @@ class PostData
         if (relatedEvents != null) ...relatedEvents!.map((event) => event.toTag()),
         if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),
         if (settings != null) ...settings!.map((setting) => setting.toTag()),
+        // Posts (kind 1) use 100% text only with PMO tags, no rich_text tag
       ],
     );
   }
