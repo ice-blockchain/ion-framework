@@ -59,6 +59,42 @@ class FeedSearchHistory extends _$FeedSearchHistory {
     }
   }
 
+  Future<void> removeUserIdFromHistory(String pubkey) async {
+    await _removeFromList(
+      item: pubkey,
+      list: state.pubKeys,
+      storeKey: _pubKeysStoreKey,
+      onUpdate: (newList) => state = state.copyWith(pubKeys: newList),
+    );
+  }
+
+  Future<void> removeQueryFromHistory(String query) async {
+    await _removeFromList(
+      item: query,
+      list: state.queries,
+      storeKey: _queriesStoreKey,
+      onUpdate: (newList) => state = state.copyWith(queries: newList),
+    );
+  }
+
+  Future<void> _removeFromList({
+    required String item,
+    required List<String> list,
+    required String storeKey,
+    required void Function(List<String>) onUpdate,
+  }) async {
+    if (list.contains(item)) {
+      final newList = list.where((element) => element != item).toList();
+
+      final identityKeyName = ref.read(currentIdentityKeyNameSelectorProvider) ?? '';
+      final userPreferencesService =
+          ref.read(userPreferencesServiceProvider(identityKeyName: identityKeyName));
+      await userPreferencesService.setValue<List<String>>(storeKey, newList);
+
+      onUpdate(newList);
+    }
+  }
+
   Future<void> clear() async {
     final identityKeyName = ref.read(currentIdentityKeyNameSelectorProvider) ?? '';
     final userPreferencesService =
