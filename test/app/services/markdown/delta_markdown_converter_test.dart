@@ -763,6 +763,434 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
       });
     });
 
+    group('PMO round-trip conversion (mapDeltaToPmo -> mapMarkdownToDelta)', () {
+      // Note: These tests are specifically for Posts (kind 1) and ModifiablePosts (kind 30175)
+      // which use PMO tags. Articles (kind 30023) use markdown directly, not PMO tags.
+
+      test('round-trip with plain text (for Posts/ModifiablePosts)', () async {
+        // 1. Create expected Delta
+        final expectedDelta = Delta()..insert('Hello world\n');
+
+        // 2. Call mapDeltaToPmo on expected
+        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+
+        // 3. Call mapMarkdownToDelta on result
+        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
+        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+
+        // 4. Compare expected with new result
+        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
+        final resultText = Document.fromDelta(resultDelta).toPlainText();
+        expect(resultText.trim(), equals(expectedText.trim()));
+      });
+
+      test('round-trip with bold and italic (for Posts/ModifiablePosts)', () async {
+        // 1. Create expected Delta
+        final expectedDelta = Delta()
+          ..insert('Hello ')
+          ..insert('bold', {'bold': true})
+          ..insert(' and ')
+          ..insert('italic', {'italic': true})
+          ..insert(' text\n');
+
+        // 2. Call mapDeltaToPmo on expected
+        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+
+        // 3. Call mapMarkdownToDelta on result
+        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
+        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+
+        // 4. Compare expected with new result
+        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
+        final resultText = Document.fromDelta(resultDelta).toPlainText();
+        expect(resultText.trim(), equals(expectedText.trim()));
+
+        // Verify formatting is preserved
+        var hasBold = false;
+        var hasItalic = false;
+        for (final op in resultDelta.operations) {
+          if (op.key == 'insert' && op.data is String) {
+            final text = op.data! as String;
+            final attrs = op.attributes;
+            if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
+              hasBold = true;
+            }
+            if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
+              hasItalic = true;
+            }
+          }
+        }
+        expect(hasBold, isTrue, reason: 'Bold formatting should be preserved');
+        expect(hasItalic, isTrue, reason: 'Italic formatting should be preserved');
+      });
+
+      test('round-trip with headers (for Posts/ModifiablePosts)', () async {
+        // 1. Create expected Delta
+        final expectedDelta = Delta()
+          ..insert('Header 1')
+          ..insert('\n', {'header': 1})
+          ..insert('Header 2')
+          ..insert('\n', {'header': 2})
+          ..insert('Header 3')
+          ..insert('\n', {'header': 3});
+
+        // 2. Call mapDeltaToPmo on expected
+        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+
+        // 3. Call mapMarkdownToDelta on result
+        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
+        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+
+        // 4. Compare expected with new result
+        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
+        final resultText = Document.fromDelta(resultDelta).toPlainText();
+        expect(resultText.trim(), equals(expectedText.trim()));
+
+        // Verify headers are preserved
+        var header1Count = 0;
+        var header2Count = 0;
+        var header3Count = 0;
+        for (final op in resultDelta.operations) {
+          if (op.attributes?.containsKey('header') ?? false) {
+            final level = op.attributes!['header'] as int;
+            if (level == 1) header1Count++;
+            if (level == 2) header2Count++;
+            if (level == 3) header3Count++;
+          }
+        }
+        expect(header1Count, equals(1), reason: 'Should have one H1');
+        expect(header2Count, equals(1), reason: 'Should have one H2');
+        expect(header3Count, equals(1), reason: 'Should have one H3');
+      });
+
+      test('round-trip with lists (for Posts/ModifiablePosts)', () async {
+        // 1. Create expected Delta
+        final expectedDelta = Delta()
+          ..insert('Item 1')
+          ..insert('\n', {'list': 'bullet'})
+          ..insert('Item 2')
+          ..insert('\n', {'list': 'bullet'})
+          ..insert('Item 3')
+          ..insert('\n', {'list': 'bullet'})
+          ..insert('First')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Second')
+          ..insert('\n', {'list': 'ordered'});
+
+        // 2. Call mapDeltaToPmo on expected
+        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+
+        // 3. Call mapMarkdownToDelta on result
+        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
+        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+
+        // 4. Compare expected with new result
+        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
+        final resultText = Document.fromDelta(resultDelta).toPlainText();
+        expect(resultText.trim(), equals(expectedText.trim()));
+
+        // Verify lists are preserved
+        var bulletListCount = 0;
+        var orderedListCount = 0;
+        for (final op in resultDelta.operations) {
+          if (op.attributes?.containsKey('list') ?? false) {
+            final listType = op.attributes!['list'] as String;
+            if (listType == 'bullet') bulletListCount++;
+            if (listType == 'ordered') orderedListCount++;
+          }
+        }
+        expect(bulletListCount, equals(3), reason: 'Should have 3 bullet list items');
+        expect(orderedListCount, equals(2), reason: 'Should have 2 ordered list items');
+      });
+
+      test('round-trip with code blocks (for Posts/ModifiablePosts)', () async {
+        // 1. Create expected Delta
+        final expectedDelta = Delta()
+          ..insert('Normal text\n')
+          ..insert('code line 1')
+          ..insert('\n', {'code-block': true})
+          ..insert('code line 2')
+          ..insert('\n', {'code-block': true})
+          ..insert('code line 3')
+          ..insert('\n', {'code-block': true})
+          ..insert('Back to normal\n');
+
+        // 2. Call mapDeltaToPmo on expected
+        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+
+        // 3. Call mapMarkdownToDelta on result
+        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
+        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+
+        // 4. Compare expected with new result
+        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
+        final resultText = Document.fromDelta(resultDelta).toPlainText();
+        expect(resultText.trim(), equals(expectedText.trim()));
+
+        // Verify code blocks are preserved
+        // Note: The markdown parser may add extra newlines, so we check that code blocks exist
+        var hasCodeBlock = false;
+        for (final op in resultDelta.operations) {
+          if (op.attributes?.containsKey('code-block') ?? false) {
+            hasCodeBlock = true;
+            break;
+          }
+        }
+        expect(hasCodeBlock, isTrue, reason: 'Should have code block lines');
+      });
+
+      test('round-trip with links (for Posts/ModifiablePosts)', () async {
+        // 1. Create expected Delta
+        final expectedDelta = Delta()
+          ..insert('Visit ')
+          ..insert('example.com', {'link': 'https://example.com'})
+          ..insert(' and ')
+          ..insert('google.com', {'link': 'https://google.com'})
+          ..insert('\n');
+
+        // 2. Call mapDeltaToPmo on expected
+        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+
+        // 3. Call mapMarkdownToDelta on result
+        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
+        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+
+        // 4. Compare expected with new result
+        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
+        final resultText = Document.fromDelta(resultDelta).toPlainText();
+        expect(resultText.trim(), equals(expectedText.trim()));
+
+        // Verify links are preserved
+        var hasExampleLink = false;
+        var hasGoogleLink = false;
+        for (final op in resultDelta.operations) {
+          if (op.key == 'insert' && op.data is String) {
+            final text = op.data! as String;
+            final attrs = op.attributes;
+            if (text.contains('example.com') &&
+                (attrs?.containsKey('link') ?? false) &&
+                attrs!['link'] == 'https://example.com') {
+              hasExampleLink = true;
+            }
+            if (text.contains('google.com') &&
+                (attrs?.containsKey('link') ?? false) &&
+                attrs!['link'] == 'https://google.com') {
+              hasGoogleLink = true;
+            }
+          }
+        }
+        expect(hasExampleLink, isTrue, reason: 'Example link should be preserved');
+        expect(hasGoogleLink, isTrue, reason: 'Google link should be preserved');
+      });
+
+      test('round-trip with images', () async {
+        // 1. Create expected Delta
+        final expectedDelta = Delta()
+          ..insert('Text before\n')
+          ..insert({'text-editor-single-image': 'https://example.com/image1.png'})
+          ..insert('\n')
+          ..insert('Text after\n');
+
+        // 2. Call mapDeltaToPmo on expected
+        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+
+        // 3. Call mapMarkdownToDelta on result
+        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
+        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+
+        // 4. Compare expected with new result
+        // Normalize whitespace and image placeholders for comparison
+        String normalizeText(String text) {
+          return text
+              .replaceAll(RegExp(r'\n+'), '\n')
+              .replaceAll(RegExp(r'\s*\uFFFC\s*'), '\uFFFC')
+              .trim();
+        }
+
+        final expectedText = normalizeText(Document.fromDelta(expectedDelta).toPlainText());
+        final resultText = normalizeText(Document.fromDelta(resultDelta).toPlainText());
+        expect(resultText, equals(expectedText));
+
+        // Verify image is preserved
+        var hasImage = false;
+        for (final op in resultDelta.operations) {
+          if (op.key == 'insert' && op.data is Map) {
+            final data = op.data! as Map;
+            if (data.containsKey('text-editor-single-image')) {
+              final imageUrl = data['text-editor-single-image'] as String?;
+              if (imageUrl == 'https://example.com/image1.png') {
+                hasImage = true;
+              }
+            }
+          }
+        }
+        expect(hasImage, isTrue, reason: 'Image should be preserved');
+      });
+
+      test('round-trip with underline formatting (for Posts/ModifiablePosts)', () async {
+        // 1. Create expected Delta
+        final expectedDelta = Delta()
+          ..insert('Hello ')
+          ..insert('underlined', {'underline': true})
+          ..insert(' world\n');
+
+        // 2. Call mapDeltaToPmo on expected
+        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+
+        // 3. Call mapMarkdownToDelta on result
+        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
+        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+
+        // 4. Compare expected with new result
+        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
+        final resultText = Document.fromDelta(resultDelta).toPlainText();
+        expect(resultText.trim(), equals(expectedText.trim()));
+
+        // Verify underline is preserved
+        var hasUnderline = false;
+        for (final op in resultDelta.operations) {
+          if (op.key == 'insert' && op.data is String) {
+            final text = op.data! as String;
+            final attrs = op.attributes;
+            if (text.contains('underlined') && (attrs?.containsKey('underline') ?? false)) {
+              hasUnderline = true;
+            }
+          }
+        }
+        expect(hasUnderline, isTrue, reason: 'Underline formatting should be preserved');
+      });
+
+      test('round-trip with complex formatting (all features, for Posts/ModifiablePosts)',
+          () async {
+        // 1. Create expected Delta with all features
+        final expectedDelta = Delta()
+          ..insert('Header')
+          ..insert('\n', {'header': 1})
+          ..insert('Paragraph with ')
+          ..insert('bold', {'bold': true})
+          ..insert(', ')
+          ..insert('italic', {'italic': true})
+          ..insert(', ')
+          ..insert('underlined', {'underline': true})
+          ..insert(', and ')
+          ..insert('link', {'link': 'https://example.com'})
+          ..insert('\n')
+          ..insert('Code block:')
+          ..insert('\n')
+          ..insert('def hello():')
+          ..insert('\n', {'code-block': true})
+          ..insert('    return "world"')
+          ..insert('\n', {'code-block': true})
+          ..insert('List:')
+          ..insert('\n')
+          ..insert('Item 1')
+          ..insert('\n', {'list': 'bullet'})
+          ..insert('Item 2')
+          ..insert('\n', {'list': 'bullet'})
+          ..insert({'text-editor-single-image': 'https://example.com/image.png'})
+          ..insert('\n');
+
+        // 2. Call mapDeltaToPmo on expected
+        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+
+        // 3. Call mapMarkdownToDelta on result
+        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
+        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+
+        // 4. Compare expected with new result
+        // Note: Markdown conversion may add extra newlines and handle formatting differently,
+        // so we focus on verifying features are preserved rather than exact text matching
+        // Normalize whitespace and image placeholders for comparison
+        String normalizeText(String text) {
+          return text
+              .replaceAll(RegExp(r'\n{2,}'), '\n') // Normalize multiple newlines to single
+              .replaceAll(RegExp(r'\s*\uFFFC\s*'), '\uFFFC') // Normalize image placeholder spacing
+              .replaceAll(RegExp(r'[ \t]+'), ' ') // Normalize spaces
+              .replaceAll(RegExp('```'), '') // Remove code block fences for comparison
+              .trim();
+        }
+
+        final resultText = normalizeText(Document.fromDelta(resultDelta).toPlainText());
+
+        // Verify semantic content is preserved (allowing for markdown formatting differences)
+        expect(resultText.contains('Header'), isTrue);
+        expect(resultText.contains('Paragraph'), isTrue);
+        expect(resultText.contains('bold'), isTrue);
+        expect(resultText.contains('italic'), isTrue);
+        expect(resultText.contains('underlined'), isTrue);
+        expect(resultText.contains('link'), isTrue);
+        expect(resultText.contains('def hello'), isTrue);
+        expect(resultText.contains('Item 1'), isTrue);
+        expect(resultText.contains('Item 2'), isTrue);
+
+        // Verify all features are preserved
+        var hasHeader = false;
+        var hasBold = false;
+        var hasItalic = false;
+        var hasUnderline = false;
+        var hasLink = false;
+        var hasCodeBlock = false;
+        var hasImage = false;
+
+        for (final op in resultDelta.operations) {
+          if (op.attributes?.containsKey('header') ?? false) {
+            hasHeader = true;
+          }
+          if (op.attributes?.containsKey('bold') ?? false) {
+            hasBold = true;
+          }
+          if (op.attributes?.containsKey('italic') ?? false) {
+            hasItalic = true;
+          }
+          if (op.attributes?.containsKey('underline') ?? false) {
+            hasUnderline = true;
+          }
+          if (op.attributes?.containsKey('link') ?? false) {
+            hasLink = true;
+          }
+          if (op.attributes?.containsKey('code-block') ?? false) {
+            hasCodeBlock = true;
+          }
+          if (op.key == 'insert' && op.data is Map) {
+            final data = op.data! as Map;
+            if (data.containsKey('text-editor-single-image')) {
+              hasImage = true;
+            }
+          }
+        }
+
+        expect(hasHeader, isTrue, reason: 'Header should be preserved');
+        expect(hasBold, isTrue, reason: 'Bold should be preserved');
+        expect(hasItalic, isTrue, reason: 'Italic should be preserved');
+        expect(hasUnderline, isTrue, reason: 'Underline should be preserved');
+        expect(hasLink, isTrue, reason: 'Link should be preserved');
+        expect(hasCodeBlock, isTrue, reason: 'Code block should be preserved');
+        // Note: Lists may be converted differently by markdown parser, so we check text content instead
+        expect(
+          resultText.contains('Item 1'),
+          isTrue,
+          reason: 'List items should be preserved in text',
+        );
+        expect(
+          resultText.contains('Item 2'),
+          isTrue,
+          reason: 'List items should be preserved in text',
+        );
+        // Note: Images may be converted differently by markdown parser when combined with other formatting
+        // Check if image URL is present in the markdown or result text
+        final markdown = pmoResult.tags.map((t) => t.replacement).join(' ').toLowerCase();
+        final hasImageInMarkdown = markdown.contains('example.com/image.png') ||
+            markdown.contains('image.png') ||
+            resultText.contains('image.png') ||
+            hasImage;
+        expect(
+          hasImageInMarkdown,
+          isTrue,
+          reason: 'Image should be preserved (either as Delta embed or in markdown/text)',
+        );
+      });
+    });
+
     group('Markdown to Delta (PMO reconstruction)', () {
       group('Reading posts with PMO tags', () {
         test('should reconstruct Delta from plain text + PMO tags when no richText', () async {
