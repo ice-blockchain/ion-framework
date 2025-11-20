@@ -21,6 +21,7 @@ import 'package:ion/app/features/force_update/view/pages/app_update_modal.dart';
 import 'package:ion/app/features/push_notifications/providers/initial_notification_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_response_service.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/router/app_route_observer.dart';
 import 'package:ion/app/router/app_router_listenable.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/providers/route_location_provider.r.dart';
@@ -69,6 +70,8 @@ GoRouter goRouter(Ref ref) {
           error: initState.error.toString(),
           stackTrace: initState.stackTrace,
         );
+
+        print('Router init error: ${initState.error}');
         return ErrorRoute(message: initState.error.toString()).location;
       }
 
@@ -89,10 +92,14 @@ GoRouter goRouter(Ref ref) {
       return result;
     },
     routes: $appRoutes,
-    errorBuilder: (context, state) => ErrorPage(message: state.error?.toString()),
+    errorBuilder: (context, state) {
+      print('Router error: ${state.error}');
+      return ErrorPage(message: state.error?.toString());
+    },
     initialLocation: SplashRoute().location,
     debugLogDiagnostics: ref.read(featureFlagsProvider.notifier).get(LoggerFeatureFlag.logRouters),
     navigatorKey: rootNavigatorKey,
+    observers: [routeObserver],
   );
 
   // Listen to route changes
@@ -117,6 +124,7 @@ Future<String?> _mainRedirect({
   );
   if (userSwitchingRedirect != null) {
     if (location != userSwitchingRedirect) {
+      print('Router user switching redirect: $userSwitchingRedirect');
       return userSwitchingRedirect;
     } else {
       return null;
@@ -141,6 +149,7 @@ Future<String?> _mainRedirect({
   if (!isAuthenticated && !isOnAuth) {
     final introLocation = IntroRoute().location;
     if (location != introLocation) {
+      print('Router intro redirect: $introLocation');
       return introLocation;
     }
 
@@ -152,6 +161,7 @@ Future<String?> _mainRedirect({
       if (isOnSplash || isOnAuth || isOnIntro) {
         final feedLocation = FeedRoute().location;
         if (location != feedLocation) {
+          print('Router feed redirect: $feedLocation');
           return feedLocation;
         }
 
@@ -160,6 +170,7 @@ Future<String?> _mainRedirect({
         if (hasNotificationsPermission) {
           final feedLocation = FeedRoute().location;
           if (location != feedLocation) {
+            print('Router feed redirect: $feedLocation');
             return feedLocation;
           }
 
@@ -167,6 +178,7 @@ Future<String?> _mainRedirect({
         } else {
           final notificationsLocation = NotificationsRoute().location;
           if (location != notificationsLocation) {
+            print('Router notifications redirect: $notificationsLocation');
             return notificationsLocation;
           }
 
@@ -185,6 +197,7 @@ Future<String?> _mainRedirect({
         !(hasUserMetadata && relaysAssigned)) {
       final fillProfileLocation = FillProfileRoute().location;
       if (location != fillProfileLocation) {
+        print('Router fill profile redirect: $fillProfileLocation');
         return fillProfileLocation;
       }
 
@@ -200,6 +213,7 @@ Future<String?> _mainRedirect({
       ref.read(uiEventQueueNotifierProvider.notifier).emit(const ShowLinkNewDeviceDialogEvent());
       final feedLocation = FeedRoute().location;
       if (location != feedLocation) {
+        print('Router feed redirect: $feedLocation');
         return feedLocation;
       }
 
