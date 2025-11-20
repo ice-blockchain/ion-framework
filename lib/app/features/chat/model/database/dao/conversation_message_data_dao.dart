@@ -190,5 +190,4 @@ enum MessageDeliveryStatus {
   sent,
   received,
   read,
-  // deleted;
 }
