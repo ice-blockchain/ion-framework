@@ -18,6 +18,7 @@ import 'package:ion/app/features/auth/views/pages/sign_up_early_access/sign_up_e
 import 'package:ion/app/features/auth/views/pages/sign_up_passkey/sign_up_passkey.dart';
 import 'package:ion/app/features/auth/views/pages/sign_up_password/sign_up_password.dart';
 import 'package:ion/app/features/auth/views/pages/sign_up_restricted/sign_up_restricted.dart';
+import 'package:ion/app/features/auth/views/pages/switch_user_loader_page/switch_user_loader_page.dart';
 import 'package:ion/app/features/auth/views/pages/turn_on_notifications/turn_on_notifications.dart';
 import 'package:ion/app/features/chat/community/channel/views/pages/channel_detail_page/channel_detail_page.dart';
 import 'package:ion/app/features/chat/community/channel/views/pages/create_channel_modal/create_channel_modal.dart';

@@ -20,10 +20,10 @@ import 'package:ion/generated/assets.gen.dart';
 class SwitchAccountModal extends HookConsumerWidget {
   const SwitchAccountModal({
     super.key,
-    this.showActions = true,
+    this.enableAccountManagement = true,
   });
 
-  final bool showActions;
+  final bool enableAccountManagement;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,7 +43,7 @@ class SwitchAccountModal extends HookConsumerWidget {
                 title: Text(context.i18n.profile_switch_user_header),
                 actions: const [NavigationCloseButton()],
               ),
-              if (showActions)
+              if (enableAccountManagement)
                 ModalActionButton(
                   icon: Assets.svg.iconChannelType.icon(
                     color: context.theme.appColors.primaryAccent,
@@ -54,14 +54,16 @@ class SwitchAccountModal extends HookConsumerWidget {
                     await modalNotifier.clearCurrentUserForAuthentication();
                   },
                 ),
-              AccountsList(
+              SwitchAccountModalList(
                 onSelectUser: () {
-                  if (showActions) {
+                  if (enableAccountManagement) {
                     FeedRoute().go(context);
+                  } else {
+                    ref.read(userSwitchingProvider.notifier).active();
                   }
                 },
               ),
-              if (showActions && currentPubkey != null)
+              if (enableAccountManagement && currentPubkey != null)
                 ModalActionButton(
                   icon: Assets.svg.iconMenuLogout.icon(size: 24.0.s),
                   label: context.i18n.profile_log_out(

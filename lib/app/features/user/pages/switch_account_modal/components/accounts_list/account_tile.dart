@@ -11,8 +11,8 @@ import 'package:ion/app/features/user/pages/switch_account_modal/providers/switc
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class AccountsTile extends ConsumerWidget {
-  const AccountsTile({
+class SwitchAccountModalTile extends ConsumerWidget {
+  const SwitchAccountModalTile({
     required this.identityKeyName,
     required this.accountInfo,
     required this.isCurrentUser,

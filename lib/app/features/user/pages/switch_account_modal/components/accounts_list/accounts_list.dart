@@ -9,8 +9,8 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/switch_account_modal/components/accounts_list/account_tile.dart';
 import 'package:ion/app/features/user/pages/switch_account_modal/providers/switch_account_modal_provider.r.dart';
 
-class AccountsList extends ConsumerWidget {
-  const AccountsList({
+class SwitchAccountModalList extends ConsumerWidget {
+  const SwitchAccountModalList({
     required this.onSelectUser,
     super.key,
   });
@@ -31,7 +31,7 @@ class AccountsList extends ConsumerWidget {
           separator: SizedBox(height: 16.0.s),
           children: modalState.accounts
               .map(
-                (account) => AccountsTile(
+                (account) => SwitchAccountModalTile(
                   identityKeyName: account.identityKeyName,
                   accountInfo: account.accountInfo,
                   isCurrentUser: account.isCurrentUser,
@@ -41,14 +41,14 @@ class AccountsList extends ConsumerWidget {
               .toList(),
         );
       },
-      loading: () => const _AccountsListSkeleton(),
+      loading: () => const _Skeleton(),
       error: (_, __) => const SizedBox.shrink(),
     );
   }
 }
 
-class _AccountsListSkeleton extends StatelessWidget {
-  const _AccountsListSkeleton();
+class _Skeleton extends StatelessWidget {
+  const _Skeleton();
 
   @override
   Widget build(BuildContext context) {

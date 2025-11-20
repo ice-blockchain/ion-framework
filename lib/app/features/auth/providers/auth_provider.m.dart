@@ -7,8 +7,16 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/bool.dart';
 import 'package:ion/app/features/auth/providers/local_passkey_creds_provider.r.dart';
 import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
+import 'package:ion/app/features/feed/providers/counters/helpers/counter_cache_helpers.r.dart';
+import 'package:ion/app/features/feed/providers/feed_following_content_provider.m.dart';
+import 'package:ion/app/features/feed/providers/feed_for_you_content_provider.m.dart';
+import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
+import 'package:ion/app/features/feed/providers/feed_trending_videos_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/user/providers/biometrics_provider.r.dart';
+import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -156,9 +164,18 @@ class Auth extends _$Auth {
       return;
     }
 
+    _isNewUserFlowActive = true;
+    _usersCountAtNewUserFlowStart =
+        (await ref.read(authenticatedIdentityKeyNamesStreamProvider.future)).length - 1;
+
     ref.read(userSwitchProvider.notifier).trigger();
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    await ref.read(currentIdentityKeyNameSelectorProvider.notifier).setCurrentIdentityKeyName(null);
     final ionIdentity = await ref.read(ionIdentityProvider.future);
     await ionIdentity(username: currentUser).auth.logOut();
+
+    ref.invalidateSelf();
   }
 
   Future<void> clearCurrentUserForAuthentication() async {
@@ -169,7 +186,7 @@ class Auth extends _$Auth {
     final currentUser = ref.read(currentIdentityKeyNameSelectorProvider);
     if (currentUser != null) {
       ref.read(userSwitchProvider.notifier).trigger();
-      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 300));
 
       await ref
           .read(currentIdentityKeyNameSelectorProvider.notifier)
@@ -354,10 +371,32 @@ class PubkeyChangeWithExistingUser extends _$PubkeyChangeWithExistingUser {
       currentPubkeySelectorProvider,
       (prev, next) async {
         if (prev != null && next != null && prev != next) {
-          // TODO(linus): refresh everything related to feed on pubkey change
+          ref
+            ..invalidate(feedFollowingContentProvider)
+            ..invalidate(feedForYouContentProvider)
+            ..invalidate(feedPostsProvider)
+            ..invalidate(feedStoriesProvider)
+            ..invalidate(currentUserFeedStoryProvider)
+            ..invalidate(feedTrendingVideosProvider)
+            ..invalidate(currentUserFollowListProvider)
+            ..invalidate(quoteCounterUpdaterProvider);
         }
       },
       fireImmediately: false,
     );
+  }
+}
+
+@Riverpod(keepAlive: true)
+class UserSwitching extends _$UserSwitching {
+  @override
+  bool build() => false;
+
+  void active() {
+    state = true;
+  }
+
+  void reset() {
+    state = false;
   }
 }
