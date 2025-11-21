@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion_token_analytics/ion_token_analytics.dart';
+import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository.dart';
+import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository.dart';
@@ -17,15 +19,18 @@ class IonCommunityTokensService {
     required OhlcvCandlesRepository ohlcvCandlesRepository,
     required TradingStatsRepository tradingStatsRepository,
     required TopHoldersRepository topHoldersRepository,
+    required LatestTradesRepository latestTradesRepository,
   }) : _tokenInfoRepository = tokenInfoRepository,
        _ohlcvCandlesRepository = ohlcvCandlesRepository,
        _tradingStatsRepository = tradingStatsRepository,
-       _topHoldersRepository = topHoldersRepository;
+       _topHoldersRepository = topHoldersRepository,
+       _latestTradesRepository = latestTradesRepository;
 
   final TokenInfoRepository _tokenInfoRepository;
   final OhlcvCandlesRepository _ohlcvCandlesRepository;
   final TradingStatsRepository _tradingStatsRepository;
   final TopHoldersRepository _topHoldersRepository;
+  final LatestTradesRepository _latestTradesRepository;
 
   static Future<IonCommunityTokensService> create({required NetworkClient networkClient}) async {
     final service = IonCommunityTokensService._(
@@ -33,6 +38,7 @@ class IonCommunityTokensService {
       ohlcvCandlesRepository: OhlcvCandlesRepositoryMock(),
       tradingStatsRepository: TradingStatsRepositoryMock(),
       topHoldersRepository: TopHoldersRepositoryMock(),
+      latestTradesRepository: LatestTradesRepositoryMock(),
     );
     return service;
   }
@@ -67,5 +73,11 @@ class IonCommunityTokensService {
     required String ionConnectAddress,
   }) {
     return _topHoldersRepository.subscribeToTopHolders(ionConnectAddress);
+  }
+
+  Future<NetworkSubscription<List<LatestTrade>>> subscribeToLatestTrades({
+    required String ionConnectAddress,
+  }) {
+    return _latestTradesRepository.subscribeToLatestTrades(ionConnectAddress);
   }
 }

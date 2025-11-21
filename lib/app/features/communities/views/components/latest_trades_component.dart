@@ -16,10 +16,10 @@ class LatestTradesComponent extends StatelessWidget {
     super.key,
   });
 
-  final List<LatestTrade> trades;
+  final List<LatestTradeViewData> trades;
   final int maxVisible;
   final VoidCallback? onViewAllPressed;
-  final ValueChanged<LatestTrade>? onTapTrade;
+  final ValueChanged<LatestTradeViewData>? onTapTrade;
 
   @override
   Widget build(BuildContext context) {
@@ -81,8 +81,8 @@ class LatestTradesComponent extends StatelessWidget {
 
 class _TradeRow extends StatelessWidget {
   const _TradeRow({required this.trade, this.onTap});
-  final LatestTrade trade;
-  final ValueChanged<LatestTrade>? onTap;
+  final LatestTradeViewData trade;
+  final ValueChanged<LatestTradeViewData>? onTap;
 
   @override
   Widget build(BuildContext context) {

@@ -10,6 +10,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/models/latest_trade.dart';
 import 'package:ion/app/features/communities/models/top_holder.dart';
 import 'package:ion/app/features/communities/models/trading_stats_formatted.dart';
+import 'package:ion/app/features/communities/providers/token_latest_trades_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_olhcv_candles_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_top_holders_provider.r.dart';
@@ -93,7 +94,7 @@ class TokenizedCommunityPage extends HookWidget {
         tabBarViews: [
           _ChartsTabView(masterPubkey: masterPubkey),
           _TopHolders(masterPubkey: masterPubkey),
-          _LatestTrades(),
+          _LatestTrades(masterPubkey: masterPubkey),
           const CommentsSectionCompact(commentCount: 10),
         ],
         collapsedHeaderBuilder: (opacity) => Header(
@@ -123,7 +124,7 @@ class _ChartsTabView extends StatelessWidget {
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
         SliverToBoxAdapter(child: _TopHolders(masterPubkey: masterPubkey)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
-        SliverToBoxAdapter(child: _LatestTrades()),
+        SliverToBoxAdapter(child: _LatestTrades(masterPubkey: masterPubkey)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
         const SliverToBoxAdapter(
           child: CommentsSectionCompact(commentCount: 10),
@@ -261,7 +262,7 @@ class _TopHolders extends HookConsumerWidget {
 
     return holdersAsync.when(
       data: (holders) {
-        final holderViewData = holders.map(_mapToHolderViewData).toList();
+        final holderViewData = holders.map<TopHolderViewData>(_mapToHolderViewData).toList();
         if (holderViewData.isEmpty) {
           return const SizedBox.shrink();
         }
@@ -289,58 +290,30 @@ class _TopHolders extends HookConsumerWidget {
   }
 }
 
-class _LatestTrades extends HookWidget {
-  @override
-  Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final trades = [
-      LatestTrade(
-        displayName: 'Mike Jay Evans',
-        handle: '@mikejayevans',
-        amount: 2340,
-        usd: 6.81,
-        time: now.subtract(const Duration(minutes: 23)),
-        side: TradeSide.buy,
-        verified: true,
-      ),
-      LatestTrade(
-        displayName: 'Samuel Smith',
-        handle: '@samuelsmith',
-        amount: 98110,
-        usd: 987,
-        time: now.subtract(const Duration(minutes: 45)),
-        side: TradeSide.sell,
-      ),
-      LatestTrade(
-        displayName: 'Saul Bettings',
-        handle: '@saulbettings',
-        amount: 1120,
-        usd: 137,
-        time: now.subtract(const Duration(minutes: 56)),
-        side: TradeSide.buy,
-      ),
-      LatestTrade(
-        displayName: '0x987gj...9cid4j',
-        handle: '',
-        amount: 0,
-        usd: 0,
-        time: now.subtract(const Duration(minutes: 70)),
-        side: TradeSide.buy,
-      ),
-      LatestTrade(
-        displayName: '0x987gj...9cid4j',
-        handle: '',
-        amount: 0,
-        usd: 0,
-        time: now.subtract(const Duration(minutes: 85)),
-        side: TradeSide.sell,
-        verified: true,
-      ),
-    ];
+class _LatestTrades extends HookConsumerWidget {
+  const _LatestTrades({required this.masterPubkey});
 
-    return LatestTradesComponent(
-      trades: trades,
-      onViewAllPressed: () {},
+  final String masterPubkey;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tradesAsync = ref.watch(tokenLatestTradesProvider(masterPubkey));
+
+    return tradesAsync.when(
+      data: (trades) {
+        final tradesViewData = trades.map(LatestTradeViewData.fromLatestTrade).toList();
+        if (tradesViewData.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return LatestTradesComponent(
+          trades: tradesViewData,
+          onViewAllPressed: () {},
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (error, stackTrace) {
+        return const SizedBox.shrink();
+      },
     );
   }
 }
