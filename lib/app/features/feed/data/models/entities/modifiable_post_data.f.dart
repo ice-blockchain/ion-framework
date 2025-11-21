@@ -156,31 +156,26 @@ class ModifiablePostData
     String content,
     RichText? richText,
   ) async {
-    if (richText != null) {
-      try {
+    try {
+      if (richText != null) {
         final deltaJson = jsonDecode(richText.content) as List;
         final result = await DeltaMarkdownConverter.mapDeltaToPmo(deltaJson);
         final contentToSign = result.text;
         final pmoTags = result.tags.map((t) => t.toTag()).toList();
         return (contentToSign: contentToSign, pmoTags: pmoTags);
-      } catch (e) {
-        // Fallback to existing content if conversion fails
-        return (contentToSign: content, pmoTags: <List<String>>[]);
-      }
-    } else {
-      // Backward compatibility: If no richText but content looks like markdown,
-      // convert markdown → Delta → plain text + PMO tags
-      try {
+      } else {
+        // Backward compatibility: If no richText but content looks like markdown,
+        // convert markdown → Delta → plain text + PMO tags
         final delta = markdownToDelta(content);
         final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
         // Trim trailing newline that markdownToDelta adds
         final contentToSign = result.text.trimRight();
         final pmoTags = result.tags.map((t) => t.toTag()).toList();
         return (contentToSign: contentToSign, pmoTags: pmoTags);
-      } catch (e) {
-        // Fallback to existing content if conversion fails
-        return (contentToSign: content, pmoTags: <List<String>>[]);
       }
+    } catch (e) {
+      // Fallback to existing content if conversion fails
+      return (contentToSign: content, pmoTags: <List<String>>[]);
     }
   }
 
