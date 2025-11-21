@@ -65,7 +65,7 @@ class IntroPage extends HookConsumerWidget {
             Center(
               child: AspectRatio(
                 aspectRatio: videoController.value.aspectRatio,
-                child: VideoPlayer(videoController),
+                child: _SafeVideoPlayer(controller: videoController),
               ),
             ),
           if (isDelegateAccessEnabled && isSwitchAccountEnabled)
@@ -107,5 +107,26 @@ class IntroPage extends HookConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+class _SafeVideoPlayer extends StatelessWidget {
+  const _SafeVideoPlayer({
+    required this.controller,
+  });
+
+  final VideoPlayerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    try {
+      if (!controller.value.isInitialized || controller.value.hasError) {
+        return const SizedBox.shrink();
+      }
+
+      return VideoPlayer(controller);
+    } catch (e, _) {
+      return const SizedBox.shrink();
+    }
   }
 }
