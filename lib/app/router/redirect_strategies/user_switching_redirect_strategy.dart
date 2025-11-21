@@ -40,7 +40,10 @@ class UserSwitchingRedirectStrategy implements RedirectStrategy {
       return null;
     }
 
-    final isReady = isAuthenticated && currentPubkey != null;
+    final isReady = isAuthenticated &&
+        currentPubkey != null &&
+        mainWallet.hasValue &&
+        walletsInitializer.hasValue;
 
     if (isReady) {
       ref.read(userSwitchingProvider.notifier).reset();
