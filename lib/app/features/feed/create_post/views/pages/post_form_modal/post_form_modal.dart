@@ -15,6 +15,7 @@ import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/ho
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_media_links.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_attached_video.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_nsfw_validation.dart';
+import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_poll_data.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_post_quill_controller.dart';
 import 'package:ion/app/features/feed/hooks/use_detect_language.dart';
 import 'package:ion/app/features/feed/hooks/use_preselect_language.dart';
@@ -183,6 +184,7 @@ class PostFormModal extends HookConsumerWidget {
       enabled: parentEvent == null && createOption != CreatePostOption.modify,
       quillController: textEditorController,
     );
+    usePollData(ref, eventReference: modifiedEvent);
 
     useNsfwValidation(
       ref: ref,
