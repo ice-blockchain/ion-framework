@@ -28,6 +28,8 @@ class ErrorPage extends HookConsumerWidget {
     final showDebugInfo = ref.watch(envProvider.notifier).get<bool>(EnvVariable.SHOW_DEBUG_INFO);
     final hasInternetConnection = ref.watch(hasInternetConnectionProvider);
     final prevNoInternetConnection = usePrevious(!hasInternetConnection);
+    final isNoConnectionError = useRef(!hasInternetConnection);
+
     useOnInit(
       () {
         if (prevNoInternetConnection.falseOrValue && hasInternetConnection) {
@@ -46,24 +48,24 @@ class ErrorPage extends HookConsumerWidget {
       body: Center(
         child: ScreenSideOffset.large(
           child: InfoCard(
-            iconAsset: hasInternetConnection
-                ? Assets.svg.actionFeedMaintenance
-                : Assets.svg.walletIconWalletLoadingerror,
-            title: hasInternetConnection
-                ? context.i18n.maintenance_page_title
-                : context.i18n.no_connection_page_title,
+            iconAsset: isNoConnectionError.value
+                ? Assets.svg.walletIconWalletLoadingerror
+                : Assets.svg.actionFeedMaintenance,
+            title: isNoConnectionError.value
+                ? context.i18n.no_connection_page_title
+                : context.i18n.maintenance_page_title,
             descriptionWidget: Column(
               children: [
                 Text(
-                  hasInternetConnection
-                      ? context.i18n.maintenance_page_description
-                      : context.i18n.no_connection_page_description,
+                  isNoConnectionError.value
+                      ? context.i18n.no_connection_page_description
+                      : context.i18n.maintenance_page_description,
                   textAlign: TextAlign.center,
                   style: context.theme.appTextThemes.body2.copyWith(
                     color: context.theme.appColors.secondaryText,
                   ),
                 ),
-                if (showDebugInfo && message != null && hasInternetConnection) ...[
+                if (showDebugInfo && message != null && isNoConnectionError.value == false) ...[
                   SizedBox(height: 8.0.s),
                   Text(
                     message!,
