@@ -55,6 +55,23 @@ class NotificationTranslationService {
             return nil
         }
 
+        if shouldSkipOwnGiftWrap(data: data, currentPubkey: currentPubkey) {
+            NSLog("[NSE] Skipping own gift wrap notification")
+            return nil
+        }
+
+        // Skip notifications from muted users or muted conversations
+        if shouldSkipMutedNotification(data: data, currentPubkey: currentPubkey, keysStorage: keysStorage) {
+            NSLog("[NSE] Skipping notification from muted user or conversation")
+            return nil
+        }
+
+        // Skip notifications for self-interactions (e.g., quoting/reposting own content)
+        if data.isSelfInteraction(currentPubkey: currentPubkey) {
+            NSLog("[NSE] Skipping self-interaction notification")
+            return nil
+        }
+
         let dataIsValid = data.validate(currentPubkey: currentPubkey)
 
         if !dataIsValid {
@@ -289,4 +306,61 @@ class NotificationTranslationService {
         
         return nil
     }
+    
+    /// Check if notification should be skipped because user/conversation is muted
+    private func shouldSkipMutedNotification(data: IonConnectPushDataPayload, currentPubkey: String, keysStorage: KeysStorage) -> Bool {
+        guard data.event.kind == IonConnectGiftWrapEntity.kind else {
+            return false
+        }
+        
+        guard let decryptedEvent = data.decryptedEvent else {
+            return false
+        }
+        
+        guard let senderPubkey = try? decryptedEvent.masterPubkey() else { return false }
+        
+        let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
+        if cacheDB.openDatabase() {
+            defer { cacheDB.closeDatabase() }
+            let mutedUsers = cacheDB.getMutedUsers()
+            if mutedUsers.contains(senderPubkey) {
+                NSLog("[NSE] Sender is muted: \(senderPubkey)")
+                return true
+            }
+        }
+        
+        let chatDB = ChatDatabase(keysStorage: keysStorage)
+        if chatDB.openDatabase() {
+            defer { chatDB.closeDatabase() }
+            let mutedConversationIds = chatDB.getMutedConversationIds(currentUserMasterPubkey: currentPubkey)
+            
+            let sortedPubkeys = [senderPubkey, currentPubkey].sorted()
+            let conversationId = sortedPubkeys.joined(separator: "")
+            
+            if mutedConversationIds.contains(conversationId) {
+                NSLog("[NSE] Conversation is muted: \(conversationId)")
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    /// Check if the gift wrap notification should be skipped because it's from the current user
+    private func shouldSkipOwnGiftWrap(data: IonConnectPushDataPayload, currentPubkey: String) -> Bool {
+        guard data.event.kind == IonConnectGiftWrapEntity.kind else {
+            return false
+        }
+        
+        guard let decryptedEvent = data.decryptedEvent else {
+            return false
+        }
+        
+        guard let rumorMasterPubkey = try? decryptedEvent.masterPubkey() else {
+            return false
+        }
+        
+        return rumorMasterPubkey == currentPubkey
+    }
 }
+

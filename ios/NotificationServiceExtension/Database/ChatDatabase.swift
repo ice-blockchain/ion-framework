@@ -60,12 +60,12 @@ final class ChatDatabase: DatabaseManager {
         
         let safePubkey = currentUserMasterPubkey.replacingOccurrences(of: "'", with: "''")
         
-        // Query for MuteSetEntity (kind 10000) with chat conversations d-tag
+        // Query for MuteSetEntity (kind 30007) with chat conversations d-tag
         // This matches the Dart logic: kinds: [MuteSetEntity.kind], authors: [currentUserMasterPubkey]
         let query = """
         SELECT content
         FROM event_message_table
-        WHERE kind = 10000
+        WHERE kind = 30007
         AND master_pubkey = '\(safePubkey)'
         AND content LIKE '%"d":["chat_conversations"]%'
         ORDER BY created_at DESC
