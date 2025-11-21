@@ -9,6 +9,8 @@ import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_content.d
 import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_header_button.dart';
 import 'package:ion/app/components/icons/outlined_icon.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
+import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
+import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/views/pages/unfollow_user_page.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -135,8 +137,12 @@ class PostMenuBottomSheet extends ConsumerWidget {
         label: context.i18n.button_tip_creator,
         iconAsset: Assets.svg.iconProfileTips,
         onPressed: () {
-          Navigator.of(context).pop();
-          // TODO: Implement tip functionality
+          return ref.read(messageNotificationNotifierProvider.notifier).show(
+                MessageNotification(
+                  message: context.i18n.coming_soon_label,
+                  icon: Assets.svg.iconBlockTime.icon(size: 16.0.s),
+                ),
+              );
         },
       ),
     ];
