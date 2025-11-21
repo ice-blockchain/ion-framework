@@ -53,6 +53,7 @@ export 'src/wallets/services/get_wallet_transfer_requests/models/transfer_reques
 export 'src/wallets/services/get_wallet_transfer_requests/models/wallet_transfer_request.f.dart';
 export 'src/wallets/services/get_wallet_transfer_requests/models/wallet_transfer_requests.f.dart';
 export 'src/wallets/services/make_transfer/models/transfer.f.dart';
+export 'src/wallets/services/sign_and_broadcast/models/evm_broadcast_request.f.dart';
 export 'src/wallets/services/wallet_views/models/coin_in_wallet.f.dart';
 export 'src/wallets/services/wallet_views/models/create_update_wallet_view_request.f.dart';
 export 'src/wallets/services/wallet_views/models/short_wallet_view.f.dart';

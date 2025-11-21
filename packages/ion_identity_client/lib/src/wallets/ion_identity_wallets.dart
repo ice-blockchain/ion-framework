@@ -10,6 +10,7 @@ import 'package:ion_identity_client/src/wallets/services/get_wallet_nfts/get_wal
 import 'package:ion_identity_client/src/wallets/services/get_wallet_transfer_requests/get_wallet_transfer_requests_service.dart';
 import 'package:ion_identity_client/src/wallets/services/get_wallets/get_wallets_service.dart';
 import 'package:ion_identity_client/src/wallets/services/make_transfer/make_transfer_service.dart';
+import 'package:ion_identity_client/src/wallets/services/sign_and_broadcast/sign_and_broadcast_service.dart';
 import 'package:ion_identity_client/src/wallets/services/wallet_views/wallet_views_service.dart';
 
 /// A class that handles operations related to user wallets, such as listing the wallets
@@ -34,6 +35,7 @@ class IONIdentityWallets {
     required WalletViewsService walletViewsService,
     required ExtractUserIdService extractUserIdService,
     required MakeTransferService makeTransferService,
+    required SignAndBroadcastService signAndBroadcastService,
   })  : _createWalletService = createWalletService,
         _getWalletsService = getWalletsService,
         _getWalletAssetsService = getWalletAssetsService,
@@ -43,7 +45,8 @@ class IONIdentityWallets {
         _generateSignatureService = generateSignatureService,
         _walletViewsService = walletViewsService,
         _extractUserIdService = extractUserIdService,
-        _makeTransferService = makeTransferService;
+        _makeTransferService = makeTransferService,
+        _signAndBroadcastService = signAndBroadcastService;
 
   final String username;
 
@@ -57,6 +60,7 @@ class IONIdentityWallets {
   final WalletViewsService _walletViewsService;
   final ExtractUserIdService _extractUserIdService;
   final MakeTransferService _makeTransferService;
+  final SignAndBroadcastService _signAndBroadcastService;
 
   Future<Wallet> createWallet({
     required String network,
@@ -204,5 +208,26 @@ class IONIdentityWallets {
         wallet: wallet,
         request: request,
         onVerifyIdentity: onVerifyIdentity,
+      );
+
+  /// Signs and broadcasts an EVM transaction or user operations.
+  ///
+  /// Supports both standard transactions (hex or JSON format) and fee-sponsored
+  /// user operations (ERC-4337 style).
+  ///
+  /// - [wallet]: The wallet to use for signing and broadcasting
+  /// - [request]: The broadcast request (transaction or user operations)
+  /// - [signer]: The signer for user action authentication
+  ///
+  /// Returns a [Future] that resolves to a [Map<String, dynamic>] containing the transaction result.
+  Future<Map<String, dynamic>> signAndBroadcast(
+    Wallet wallet,
+    EvmBroadcastRequest request,
+    UserActionSignerNew signer,
+  ) =>
+      _signAndBroadcastService.signAndBroadcast(
+        wallet: wallet,
+        request: request,
+        signer: signer,
       );
 }

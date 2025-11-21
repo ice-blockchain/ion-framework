@@ -17,6 +17,7 @@ targets:
           include:
             - lib/**.r.dart
             - lib/**.m.dart
+            - lib/app/features/tokenized_communities/providers/providers.dart
       go_router_builder:go_router_builder:
         generate_for:
           include:
