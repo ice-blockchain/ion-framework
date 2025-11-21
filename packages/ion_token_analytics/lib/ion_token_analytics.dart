@@ -5,5 +5,6 @@ library ion_token_analytics;
 
 export 'src/community_tokens/ohlcv_candles/models/models.dart';
 export 'src/community_tokens/token_info/models/models.dart';
+export 'src/community_tokens/top_holders/models/models.dart';
 export 'src/community_tokens/trading_stats/models/models.dart';
 export 'src/ion_token_analytics.dart';

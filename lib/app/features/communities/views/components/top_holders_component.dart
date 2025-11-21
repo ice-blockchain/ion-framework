@@ -16,10 +16,10 @@ class TopHoldersComponent extends StatelessWidget {
     super.key,
   });
 
-  final List<TopHolder> holders;
+  final List<TopHolderViewData> holders;
   final int maxVisible;
   final VoidCallback? onViewAllPressed;
-  final ValueChanged<TopHolder>? onTapHolder;
+  final ValueChanged<TopHolderViewData>? onTapHolder;
   final String Function(double amount)? amountFormatter;
 
   @override
@@ -97,9 +97,9 @@ class _TopHolderRow extends StatelessWidget {
   });
 
   final int rank;
-  final TopHolder holder;
+  final TopHolderViewData holder;
   final String amountText;
-  final ValueChanged<TopHolder>? onTap;
+  final ValueChanged<TopHolderViewData>? onTap;
 
   @override
   Widget build(BuildContext context) {

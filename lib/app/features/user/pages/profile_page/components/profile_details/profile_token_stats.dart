@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats_data.dart';
-import 'package:ion/app/features/communities/pages/tokenized_community_page.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 

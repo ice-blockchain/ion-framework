@@ -12,6 +12,7 @@ import 'package:ion/app/features/communities/models/top_holder.dart';
 import 'package:ion/app/features/communities/models/trading_stats_formatted.dart';
 import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_olhcv_candles_provider.r.dart';
+import 'package:ion/app/features/communities/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/communities/utils/timeframe_extension.dart';
 import 'package:ion/app/features/communities/utils/trading_stats_extension.dart';
@@ -91,7 +92,7 @@ class TokenizedCommunityPage extends HookWidget {
         ),
         tabBarViews: [
           _ChartsTabView(masterPubkey: masterPubkey),
-          _TopHolders(),
+          _TopHolders(masterPubkey: masterPubkey),
           _LatestTrades(),
           const CommentsSectionCompact(commentCount: 10),
         ],
@@ -120,7 +121,7 @@ class _ChartsTabView extends StatelessWidget {
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
         SliverToBoxAdapter(child: _TokenStats(masterPubkey: masterPubkey)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
-        SliverToBoxAdapter(child: _TopHolders()),
+        SliverToBoxAdapter(child: _TopHolders(masterPubkey: masterPubkey)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
         SliverToBoxAdapter(child: _LatestTrades()),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
@@ -249,30 +250,41 @@ class _TokenStats extends HookConsumerWidget {
   }
 }
 
-class _TopHolders extends HookWidget {
-  @override
-  Widget build(BuildContext context) {
-    const holders = [
-      TopHolder(
-        displayName: 'Stephan Chan',
-        handle: '@stepchan',
-        amount: 10200000,
-        percentShare: 10.22,
-      ),
-      TopHolder(displayName: 'Jane Doe', handle: '@janedoe', amount: 10520000, percentShare: 10.22),
-      TopHolder(
-        displayName: 'Alex Smith',
-        handle: '@alexsmith',
-        amount: 15000000,
-        percentShare: 8.67,
-      ),
-      TopHolder(displayName: '0x565gj...9cid4j', handle: '', amount: 25520000, percentShare: 0.91),
-      TopHolder(displayName: '0x987gj...9cid4j', handle: '', amount: 12502, percentShare: 0.76),
-    ];
+class _TopHolders extends HookConsumerWidget {
+  const _TopHolders({required this.masterPubkey});
 
-    return TopHoldersComponent(
-      holders: holders,
-      onViewAllPressed: () {},
+  final String masterPubkey;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final holdersAsync = ref.watch(tokenTopHoldersProvider(masterPubkey));
+
+    return holdersAsync.when(
+      data: (holders) {
+        final holderViewData = holders.map(_mapToHolderViewData).toList();
+        if (holderViewData.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return TopHoldersComponent(
+          holders: holderViewData,
+          onViewAllPressed: () {},
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  TopHolderViewData _mapToHolderViewData(TopHolder holder) {
+    final profile = holder.position.holder;
+    final handle = profile.name.isNotEmpty ? '@${profile.name}' : '';
+
+    return TopHolderViewData(
+      displayName: profile.display,
+      handle: handle,
+      amount: holder.position.amount,
+      percentShare: holder.position.supplyShare,
+      avatarUrl: profile.avatar,
     );
   }
 }
@@ -343,7 +355,7 @@ List<ChartCandle> mapOhlcvToChartCandles(List<OhlcvCandle> source) {
           close: candle.close,
           price: Decimal.parse(candle.close.toString()),
           date: DateTime.fromMillisecondsSinceEpoch(
-            (candle.timestamp ~/ 1000), // timestamp is in microseconds
+            candle.timestamp ~/ 1000, // timestamp is in microseconds
             isUtc: true,
           ),
         ),

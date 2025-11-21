@@ -5,6 +5,9 @@ import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_can
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/top_holders/models/models.dart';
+import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository.dart';
+import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository_mock.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
@@ -14,19 +17,23 @@ class IonCommunityTokensService {
     required TokenInfoRepository tokenInfoRepository,
     required OhlcvCandlesRepository ohlcvCandlesRepository,
     required TradingStatsRepository tradingStatsRepository,
+    required TopHoldersRepository topHoldersRepository,
   }) : _tokenInfoRepository = tokenInfoRepository,
        _ohlcvCandlesRepository = ohlcvCandlesRepository,
-       _tradingStatsRepository = tradingStatsRepository;
+       _tradingStatsRepository = tradingStatsRepository,
+       _topHoldersRepository = topHoldersRepository;
 
   final TokenInfoRepository _tokenInfoRepository;
   final OhlcvCandlesRepository _ohlcvCandlesRepository;
   final TradingStatsRepository _tradingStatsRepository;
+  final TopHoldersRepository _topHoldersRepository;
 
   static Future<IonCommunityTokensService> create({required NetworkClient networkClient}) async {
     final service = IonCommunityTokensService._(
       tokenInfoRepository: TokenInfoRepositoryMock(networkClient),
       ohlcvCandlesRepository: OhlcvCandlesRepositoryMock(),
       tradingStatsRepository: TradingStatsRepositoryMock(),
+      topHoldersRepository: TopHoldersRepositoryMock(),
     );
     return service;
   }
@@ -55,5 +62,11 @@ class IonCommunityTokensService {
     required String ionConnectAddress,
   }) {
     return _tradingStatsRepository.subscribeToTradingStats(ionConnectAddress);
+  }
+
+  Future<NetworkSubscription<List<TopHolder>>> subscribeToTopHolders({
+    required String ionConnectAddress,
+  }) {
+    return _topHoldersRepository.subscribeToTopHolders(ionConnectAddress);
   }
 }

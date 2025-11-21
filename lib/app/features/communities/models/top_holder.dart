@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
-class TopHolder {
-  const TopHolder({
+class TopHolderViewData {
+  const TopHolderViewData({
     required this.displayName,
     required this.handle,
     required this.amount,
