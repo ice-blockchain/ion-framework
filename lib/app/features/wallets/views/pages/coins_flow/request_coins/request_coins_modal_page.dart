@@ -20,8 +20,11 @@ class RequestCoinsModalPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final contactPubkey =
+        ref.watch(requestCoinsFormControllerProvider.select((state) => state.contactPubkey));
     return SelectCoinModalPage(
       title: context.i18n.profile_request_funds,
+      contactPubkey: contactPubkey,
       onCoinSelected: (value) {
         ref.read(requestCoinsFormControllerProvider.notifier).setCoin(value);
         context.push(selectNetworkLocationRouteBuilder(PaymentType.request));

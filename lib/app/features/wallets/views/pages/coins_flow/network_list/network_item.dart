@@ -17,54 +17,59 @@ class NetworkItem extends ConsumerWidget {
     required this.network,
     required this.coinInWallet,
     required this.onTap,
+    this.isEnabled = true,
     super.key,
   });
 
   final NetworkData network;
   final VoidCallback onTap;
   final CoinInWalletData coinInWallet;
+  final bool isEnabled;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
 
-    return ListItem(
-      title: Row(
-        children: [
-          Expanded(
-            child: Text(
-              coinInWallet.coin.name,
-              overflow: TextOverflow.ellipsis,
+    return Opacity(
+      opacity: isEnabled ? 1 : 0.3,
+      child: ListItem(
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                coinInWallet.coin.name,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          SizedBox(width: 5.0.s),
-          _NetworkLabel(network: network),
-        ],
+            SizedBox(width: 5.0.s),
+            _NetworkLabel(network: network),
+          ],
+        ),
+        subtitle: Text(coinInWallet.coin.abbreviation),
+        backgroundColor: context.theme.appColors.tertiaryBackground,
+        leading: CoinIconWithNetwork.small(
+          coinInWallet.coin.iconUrl,
+          network: network,
+        ),
+        trailing: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              isBalanceVisible ? formatCrypto(coinInWallet.amount) : StringConstants.obfuscated,
+              style: context.theme.appTextThemes.body
+                  .copyWith(color: context.theme.appColors.primaryText),
+            ),
+            Text(
+              isBalanceVisible
+                  ? formatToCurrency(coinInWallet.balanceUSD)
+                  : StringConstants.obfuscated,
+              style: context.theme.appTextThemes.caption3
+                  .copyWith(color: context.theme.appColors.secondaryText),
+            ),
+          ],
+        ),
+        onTap: isEnabled ? onTap : null,
       ),
-      subtitle: Text(coinInWallet.coin.abbreviation),
-      backgroundColor: context.theme.appColors.tertiaryBackground,
-      leading: CoinIconWithNetwork.small(
-        coinInWallet.coin.iconUrl,
-        network: network,
-      ),
-      trailing: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            isBalanceVisible ? formatCrypto(coinInWallet.amount) : StringConstants.obfuscated,
-            style: context.theme.appTextThemes.body
-                .copyWith(color: context.theme.appColors.primaryText),
-          ),
-          Text(
-            isBalanceVisible
-                ? formatToCurrency(coinInWallet.balanceUSD)
-                : StringConstants.obfuscated,
-            style: context.theme.appTextThemes.caption3
-                .copyWith(color: context.theme.appColors.secondaryText),
-          ),
-        ],
-      ),
-      onTap: onTap,
     );
   }
 }
