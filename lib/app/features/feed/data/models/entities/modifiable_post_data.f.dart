@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -32,6 +33,8 @@ import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
 import 'package:ion/app/features/ion_connect/model/source_post_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
+import 'package:ion/app/services/markdown/delta_markdown_converter.dart';
+import 'package:ion/app/services/markdown/quill.dart';
 
 part 'modifiable_post_data.f.freezed.dart';
 
@@ -111,11 +114,12 @@ class ModifiablePostData
     SourcePostReference? sourcePostReference,
     EntityLabel? language,
   }) = _ModifiablePostData;
-
   factory ModifiablePostData.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
     final quotedEventTag =
         tags[QuotedImmutableEvent.tagName] ?? tags[QuotedReplaceableEvent.tagName];
+
+    final richText = RichText.fromEventTags(tags, eventMessage.content);
 
     return ModifiablePostData(
       textContent: eventMessage.content,
@@ -136,8 +140,7 @@ class ModifiablePostData
       settings: tags[EventSetting.settingTagName]?.map(EventSetting.fromTag).toList(),
       communityId:
           tags[ConversationIdentifier.tagName]?.map(ConversationIdentifier.fromTag).first.value,
-      richText:
-          tags[RichText.tagName] != null ? RichText.fromTag(tags[RichText.tagName]!.first) : null,
+      richText: richText,
       poll: tags['poll']?.firstOrNull != null ? PollData.fromTag(tags['poll']!.first) : null,
       sourcePostReference: SourcePostReference.fromTags(eventMessage.tags),
       language: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.language),
@@ -146,17 +149,58 @@ class ModifiablePostData
 
   const ModifiablePostData._();
 
+  /// Converts rich text or markdown content to plain text and PMO tags.
+  ///
+  /// Returns a record containing the content to sign and the PMO tags.
+  Future<({String contentToSign, List<List<String>> pmoTags})> _convertContentToPmoTags(
+    String content,
+    RichText? richText,
+  ) async {
+    try {
+      if (richText != null) {
+        final deltaJson = jsonDecode(richText.content) as List;
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(deltaJson);
+        final contentToSign = result.text;
+        final pmoTags = result.tags.map((t) => t.toTag()).toList();
+        return (contentToSign: contentToSign, pmoTags: pmoTags);
+      } else {
+        // Backward compatibility: If no richText but content looks like markdown,
+        // convert markdown → Delta → plain text + PMO tags
+        final delta = markdownToDelta(content);
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+        // Trim trailing newline that markdownToDelta adds
+        final contentToSign = result.text.trimRight();
+        final pmoTags = result.tags.map((t) => t.toTag()).toList();
+        return (contentToSign: contentToSign, pmoTags: pmoTags);
+      }
+    } catch (e) {
+      // Fallback to existing content if conversion fails
+      return (contentToSign: content, pmoTags: <List<String>>[]);
+    }
+  }
+
   @override
-  String get content => richText?.content ?? textContent;
+  String get content {
+    final rt = richText;
+    if (rt != null && rt.content.isNotEmpty) {
+      return rt.content;
+    }
+    return textContent;
+  }
 
   @override
   FutureOr<EventMessage> toEventMessage(
     EventSigner signer, {
     List<List<String>> tags = const [],
     int? createdAt,
-  }) {
+  }) async {
+    final result = await _convertContentToPmoTags(content, richText);
+    final contentToSign = result.contentToSign;
+    final pmoTags = result.pmoTags;
+
     final allTags = [
       ...tags,
+      ...pmoTags,
       replaceableEventId.toTag(),
       publishedAt.toTag(),
       if (editingEndedAt != null) editingEndedAt!.toTag(),
@@ -168,7 +212,7 @@ class ModifiablePostData
       if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),
       if (settings != null) ...settings!.map((setting) => setting.toTag()),
       if (communityId != null) ConversationIdentifier(value: communityId!).toTag(),
-      if (richText != null) richText!.toTag(),
+      // ModifiablePosts (kind 30175) use 100% text only with PMO tags, no rich_text tag
       if (poll != null) poll!.toTag(),
       if (sourcePostReference != null) sourcePostReference!.toTag(),
       if (language != null) ...language!.toTags(),
@@ -178,7 +222,7 @@ class ModifiablePostData
       signer: signer,
       createdAt: createdAt,
       kind: ModifiablePostEntity.kind,
-      content: richText != null ? '' : content,
+      content: contentToSign,
       tags: allTags,
     );
   }

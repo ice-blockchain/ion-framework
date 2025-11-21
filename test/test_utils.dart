@@ -2,6 +2,8 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/services/ion_connect/ed25519_key_store.dart';
 import 'package:meta/meta.dart';
 
 /// A testing utility which creates a [ProviderContainer] and automatically
@@ -35,3 +37,5 @@ void parameterizedGroup<T>(Object description, List<T> testData, void Function(T
     },
   );
 }
+
+Future<EventSigner> createTestSigner() => Ed25519KeyStore.generate();

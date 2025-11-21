@@ -31,6 +31,18 @@ part 'parsed_media_provider.r.g.dart';
 
   Delta? delta;
 
+  // For articles (kind 30023), content should be 100% markdown only.
+  // Check if content is markdown and prioritize it over delta.
+  final isMarkdownContent = isMarkdown(content);
+
+  if (isMarkdownContent) {
+    // Content is markdown - convert to delta (prioritize markdown for articles)
+    delta = markdownToDelta(content);
+    final mediaDelta = _parseMediaContentDelta(delta: delta, media: media);
+    return (content: processDeltaMatches(mediaDelta.content), media: mediaDelta.media);
+  }
+
+  // If not markdown, try delta from richText if available
   if (richText != null) {
     final richTextDecoded = Delta.fromJson(jsonDecode(richText.content) as List<dynamic>);
     final richTextDelta = processDelta(richTextDecoded);
@@ -38,14 +50,8 @@ part 'parsed_media_provider.r.g.dart';
     return (content: processDeltaMatches(mediaDelta.content), media: mediaDelta.media);
   }
 
-  final isMarkdownContent = isMarkdown(content);
-
-  if (isMarkdownContent) {
-    delta = markdownToDelta(content);
-  } else {
-    delta = plainTextToDelta(content);
-  }
-
+  // Fallback to plain text
+  delta = plainTextToDelta(content);
   final mediaDeltaFallback = _parseMediaContentDelta(delta: delta, media: media);
   return (
     content: processDeltaMatches(mediaDeltaFallback.content),
