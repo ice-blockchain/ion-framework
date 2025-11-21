@@ -88,25 +88,7 @@ class PostData
     final quotedEventTag =
         tags[QuotedImmutableEvent.tagName] ?? tags[QuotedReplaceableEvent.tagName];
 
-    // Check for richText first (prefer existing Delta)
-    RichText? richText;
-    if (tags[RichText.tagName] != null) {
-      richText = RichText.fromTag(tags[RichText.tagName]!.first);
-    } else {
-      // No richText Delta, check for PMO tags to reconstruct Delta
-      final pmoTags = tags['pmo'] ?? [];
-      if (pmoTags.isNotEmpty) {
-        // Map markdown (via PMO tags) to Delta
-        final reconstructedDelta = DeltaMarkdownConverter.mapMarkdownToDelta(
-          eventMessage.content,
-          pmoTags,
-        );
-        richText = RichText(
-          protocol: 'quill_delta',
-          content: jsonEncode(reconstructedDelta.toJson()),
-        );
-      }
-    }
+    final richText = RichText.fromEventTags(tags, eventMessage.content);
 
     return PostData(
       content: eventMessage.content,

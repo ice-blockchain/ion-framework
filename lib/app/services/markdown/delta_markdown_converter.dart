@@ -2,24 +2,8 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_quill/quill_delta.dart';
+import 'package:ion/app/features/ion_connect/model/pmo_tag.f.dart';
 import 'package:ion/app/services/markdown/quill.dart';
-
-/// Represents a PMO (Positional Markdown Override) tag.
-class PmoTag {
-  const PmoTag(this.start, this.end, this.replacement);
-
-  final int start;
-  final int end;
-  final String replacement;
-
-  List<String> toTag() => ['pmo', '$start:$end', replacement];
-
-  @override
-  String toString() => 'PmoTag($start, $end, $replacement)';
-}
-
-/// Result of the conversion containing plain text and PMO tags.
-typedef PmoConversionResult = ({String text, List<PmoTag> tags});
 
 typedef _ParsedPmoTag = ({int start, int end, String replacement});
 
@@ -75,7 +59,7 @@ abstract class DeltaMarkdownConverter {
 
     // Close any open code block at the end of the document
     if (inCodeBlock) {
-      pmoTags.add(PmoTag(currentIndex, currentIndex, '\n```'));
+      pmoTags.add(PmoTag(start: currentIndex, end: currentIndex, replacement: '\n```'));
     }
 
     return (text: buffer.toString(), tags: pmoTags);
@@ -161,7 +145,7 @@ abstract class DeltaMarkdownConverter {
     // Enter code block: transition from non-code-block to code-block
     if (isCodeBlockLine && !updatedInCodeBlock) {
       // Add opening fence before the line content
-      pmoTags.add(PmoTag(lineStartIndex, lineStartIndex, '```\n'));
+      pmoTags.add(PmoTag(start: lineStartIndex, end: lineStartIndex, replacement: '```\n'));
       updatedInCodeBlock = true;
     }
 
@@ -169,7 +153,8 @@ abstract class DeltaMarkdownConverter {
     if (!isCodeBlockLine && updatedInCodeBlock) {
       // Add closing fence right after the newline of the previous (last code block) line
       final newlinePosition = currentIndex + charIndex;
-      pmoTags.add(PmoTag(newlinePosition + 1, newlinePosition + 1, '\n```'));
+      pmoTags
+          .add(PmoTag(start: newlinePosition + 1, end: newlinePosition + 1, replacement: '\n```'));
       updatedInCodeBlock = false;
     }
 
@@ -178,17 +163,17 @@ abstract class DeltaMarkdownConverter {
       if (attributes.containsKey('header')) {
         final level = attributes['header'] as int;
         final hashes = '#' * level;
-        pmoTags.add(PmoTag(lineStartIndex, lineStartIndex, '$hashes '));
+        pmoTags.add(PmoTag(start: lineStartIndex, end: lineStartIndex, replacement: '$hashes '));
       }
       if (attributes.containsKey('list')) {
         final listType = attributes['list'];
         if (listType != null) {
           final marker = listType == 'ordered' ? '1. ' : '- ';
-          pmoTags.add(PmoTag(lineStartIndex, lineStartIndex, marker));
+          pmoTags.add(PmoTag(start: lineStartIndex, end: lineStartIndex, replacement: marker));
         }
       }
       if (attributes.containsKey('blockquote')) {
-        pmoTags.add(PmoTag(lineStartIndex, lineStartIndex, '> '));
+        pmoTags.add(PmoTag(start: lineStartIndex, end: lineStartIndex, replacement: '> '));
       }
     }
 
@@ -233,7 +218,13 @@ abstract class DeltaMarkdownConverter {
     }
 
     if (replacement != content) {
-      pmoTags.add(PmoTag(currentIndex, currentIndex + content.length, replacement));
+      pmoTags.add(
+        PmoTag(
+          start: currentIndex,
+          end: currentIndex + content.length,
+          replacement: replacement,
+        ),
+      );
     }
   }
 
@@ -244,7 +235,13 @@ abstract class DeltaMarkdownConverter {
     required String replacement,
     required List<PmoTag> pmoTags,
   }) {
-    pmoTags.add(PmoTag(currentIndex, currentIndex + placeholder.length, replacement));
+    pmoTags.add(
+      PmoTag(
+        start: currentIndex,
+        end: currentIndex + placeholder.length,
+        replacement: replacement,
+      ),
+    );
   }
 
   /// Processes embed data (images, separators, code blocks).
@@ -298,7 +295,7 @@ abstract class DeltaMarkdownConverter {
   /// Parses PMO tags from raw tag list.
   static List<_ParsedPmoTag> _parsePmoTags(List<List<String>> pmoTags) {
     return pmoTags
-        .where((tag) => tag.length >= 3 && tag[0] == 'pmo')
+        .where((tag) => tag.length >= 3 && tag[0] == PmoTag.tagName)
         .map((tag) {
           final indices = tag[1].split(':');
           if (indices.length != 2) return null;
