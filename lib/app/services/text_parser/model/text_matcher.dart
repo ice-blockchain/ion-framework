@@ -40,7 +40,7 @@ class UrlMatcher extends TextMatcher {
       r'(?:[^@\s]+@)?' // optional auth
       r'(?:[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*|localhost)' // host or localhost
       r'(?::\d{2,5})?' // optional port
-      r'(?:\/[^\s!?.,;:]*[A-Za-z0-9\/])?' // optional path
+      r'(?:\/(?:[^\s!?.,;:]*[A-Za-z0-9\/]|(?=\?)))?' // optional path (allows /? for query-only paths)
       r'(?:\?[^\s!?.,;:]*[A-Za-z0-9%_=&-])?' // optional query params
       r'\b' // word boundary
       ')'
@@ -50,7 +50,7 @@ class UrlMatcher extends TextMatcher {
       r'www\.' // www.
       r'(?:[A-Za-z0-9-]+\.)*[A-Za-z0-9-]+' // domain parts
       r'(?::\d{2,5})?' // optional port
-      r'(?:\/[^\s!?.,;:]*[A-Za-z0-9\/])?' // optional path
+      r'(?:\/(?:[^\s!?.,;:]*[A-Za-z0-9\/]|(?=\?)))?' // optional path (allows /? for query-only paths)
       r'(?:\?[^\s!?.,;:]*[A-Za-z0-9%_=&-])?' // optional query params
       r'\b' // word boundary
       ')'
@@ -61,7 +61,7 @@ class UrlMatcher extends TextMatcher {
       '(?<![A-Za-z])' // not preceded by a letter (prevents matching mid-word like "text.To")
       r'[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?\.(?:[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?\.)*[a-z]{2,}' // domain.tld
       r'(?::\d{2,5})?' // optional port
-      r'(?:\/[^\s!?.,;:]*[A-Za-z0-9\/])?' // optional path
+      r'(?:\/(?:[^\s!?.,;:]*[A-Za-z0-9\/]|(?=\?)))?' // optional path (allows /? for query-only paths)
       r'(?:\?[^\s!?.,;:]*[A-Za-z0-9%_=&-])?' // optional query params
       '(?![A-Za-z0-9-])' // not followed by alphanumeric or dash (acts as boundary)
       ')'
