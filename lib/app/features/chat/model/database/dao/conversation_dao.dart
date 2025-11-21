@@ -159,7 +159,8 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
       ..groupBy([conversationTable.id])
       ..orderBy([
         OrderingTerm.desc(lastActivityExpr),
-      ]);
+      ])
+      ..distinct;
 
     return query.watch().map((rows) {
       return rows.map((row) {

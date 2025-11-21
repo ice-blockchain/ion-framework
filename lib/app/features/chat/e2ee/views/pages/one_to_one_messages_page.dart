@@ -13,7 +13,7 @@ import 'package:ion/app/features/chat/e2ee/views/components/e2ee_conversation_em
 import 'package:ion/app/features/chat/e2ee/views/components/one_to_one_messages_list.dart';
 import 'package:ion/app/features/chat/model/participiant_keys.f.dart';
 import 'package:ion/app/features/chat/providers/conversation_messages_provider.r.dart';
-import 'package:ion/app/features/chat/providers/exist_chat_conversation_id_provider.r.dart';
+import 'package:ion/app/features/chat/providers/exist_one_to_one_chat_conversation_id_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_edit_message_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_reply_message_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/chat_input_bar/chat_input_bar.dart';
@@ -38,7 +38,7 @@ class OneToOneMessagesPage extends HookConsumerWidget {
     final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider)!;
     final conversationId = ref
         .watch(
-          existChatConversationIdProvider(
+          existOneToOneChatConversationIdProvider(
             ParticipantKeys(keys: [receiverMasterPubkey, currentUserMasterPubkey].sorted()),
           ),
         )

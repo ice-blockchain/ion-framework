@@ -165,31 +165,12 @@ class OneToOneMessageList extends HookConsumerWidget {
                 var estimatedHeight = _getEstimatedHeight(entity.data.messageType);
 
                 // Add date header height if this message shows a date
-                final currentMessageDate = message.publishedAt.toDateTime;
-                final previousMessageDate = (index < messages.length - 1)
-                    ? messages[index + 1].publishedAt.toDateTime
-                    : null;
-
-                final hasDateHeader = previousMessageDate == null ||
-                    !isSameDay(previousMessageDate, currentMessageDate);
-                if (hasDateHeader) {
+                if (_shouldShowDateHeader(index)) {
                   estimatedHeight += 50.0.s; // Date header height estimate
                 }
 
                 // Add margin spacing
-                final isLastMessageInConversation = index == 0;
-                final hasNextMessageFromAnotherUser =
-                    index > 0 && messages[index - 1].masterPubkey != message.masterPubkey;
-
-                if (!isLastMessageInConversation) {
-                  if (hasNextMessageFromAnotherUser) {
-                    estimatedHeight += 16.0;
-                  } else {
-                    estimatedHeight += 8.0;
-                  }
-                }
-
-                return estimatedHeight;
+                return estimatedHeight += _getBottomMargin(index);
               },
               itemBuilder: (context, index) {
                 final message = messages[index];
@@ -198,35 +179,20 @@ class OneToOneMessageList extends HookConsumerWidget {
                   message,
                 );
 
-                final currentMessageDate = message.publishedAt.toDateTime;
-                final nextMessageDate =
-                    index < messages.length - 1 ? messages[index + 1].publishedAt.toDateTime : null;
-                final hasDateHeader =
-                    nextMessageDate == null || (!isSameDay(currentMessageDate, nextMessageDate));
-                final isLastMessageInConversation = index == 0;
-
-                final hasNextMessageFromAnotherUser =
-                    index > 0 && messages[index - 1].masterPubkey != message.masterPubkey;
-
-                final isPreviousMessageFromAnotherDay = index > 0 &&
-                    !isSameDay(
-                      messages[index - 1].publishedAt.toDateTime,
-                      message.publishedAt.toDateTime,
-                    );
-
-                final margin = EdgeInsetsDirectional.only(
-                  bottom: isLastMessageInConversation || isPreviousMessageFromAnotherDay
-                      ? 0
-                      : hasNextMessageFromAnotherUser
-                          ? 16.0.s
-                          : 8.0.s,
-                );
+                final hasDateHeader = _shouldShowDateHeader(index);
+                final margin = EdgeInsetsDirectional.only(bottom: _getBottomMargin(index));
 
                 return Column(
                   key: ValueKey(message.id),
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (hasDateHeader) ChatDateHeaderText(date: currentMessageDate),
+                    if (hasDateHeader)
+                      Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12.0.s),
+                          child: ChatDateHeaderText(date: message.publishedAt.toDateTime),
+                        ),
+                      ),
                     switch (entity.data.messageType) {
                       MessageType.text => TextMessage(
                           margin: margin,
@@ -281,6 +247,34 @@ class OneToOneMessageList extends HookConsumerWidget {
         ],
       ),
     );
+  }
+
+  bool _shouldShowDateHeader(int index) {
+    final currentMessageDate = messages[index].publishedAt.toDateTime;
+    final nextMessageDate =
+        index < messages.length - 1 ? messages[index + 1].publishedAt.toDateTime : null;
+    return nextMessageDate == null || (!isSameDay(currentMessageDate, nextMessageDate));
+  }
+
+  double _getBottomMargin(int index) {
+    final message = messages[index];
+    final isLastMessageInConversation = index == 0;
+    final hasNextMessageFromAnotherUser =
+        index > 0 && messages[index - 1].masterPubkey != message.masterPubkey;
+
+    final isPreviousMessageFromAnotherDay = index > 0 &&
+        !isSameDay(
+          messages[index - 1].publishedAt.toDateTime,
+          message.publishedAt.toDateTime,
+        );
+
+    if (isLastMessageInConversation || isPreviousMessageFromAnotherDay) {
+      return 0;
+    } else if (hasNextMessageFromAnotherUser) {
+      return 16.0.s;
+    } else {
+      return 8.0.s;
+    }
   }
 
   Future<void> _markAsRead(

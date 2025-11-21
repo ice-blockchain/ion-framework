@@ -170,6 +170,7 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
       ..where(conversationMessageTable.isDeleted.equals(false))
       ..where(conversationMessageTable.conversationId.equals(conversationId))
       ..orderBy([OrderingTerm.desc(conversationMessageTable.publishedAt)])
+      ..distinct
       ..limit(limit);
 
     return query.watch().asyncMap((List<TypedResult> rows) async {
