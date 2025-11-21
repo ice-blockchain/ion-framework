@@ -2449,13 +2449,11 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final delta = Delta()
             ..insert('Item')
             ..insert('\n', {'list': null});
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
 
-          // The implementation casts list to String, so null will cause a type error
-          // This tests that the implementation doesn't handle null (current behavior)
-          expect(
-            DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson()),
-            throwsA(isA<TypeError>()),
-          );
+          // Null list type should be handled gracefully (no list marker added)
+          expect(result.text, equals('Item\n'));
+          expect(result.tags, isEmpty);
         });
       });
 
@@ -2604,6 +2602,17 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 
           expect(result.text, equals(' \n')); // Space placeholder
           expect(result.tags, hasLength(1));
+        });
+
+        test('handles code embed with null code', () async {
+          final delta = Delta()
+            ..insert({'text-editor-code': null})
+            ..insert('\n');
+          final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+          expect(result.text, equals('\n\n')); // Newline placeholder + inserted newline
+          expect(result.tags, hasLength(1));
+          expect(result.tags.first.replacement, contains('```'));
         });
       });
 
