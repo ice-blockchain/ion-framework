@@ -6,11 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_content.dart';
+import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_header_button.dart';
 import 'package:ion/app/components/icons/outlined_icon.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
+import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
+import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/views/pages/unfollow_user_page.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/providers/boosted_posts_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/optimistic_ui/features/follow/follow_provider.r.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/block_user_modal/block_user_modal.dart';
@@ -20,6 +24,7 @@ import 'package:ion/app/features/user/providers/report_notifier.m.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/block_user_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -45,6 +50,13 @@ class PostMenuBottomSheet extends ConsumerWidget {
         (eventReference as ReplaceableEventReference).kind == ArticleEntity.kind;
 
     ref.displayErrors(reportNotifierProvider);
+
+    final encoded = eventReference.encode();
+    final boostedState = ref.watch(boostedPostsProvider);
+    final isBoosted = boostedState.maybeWhen(
+      data: (ids) => ids.contains(encoded),
+      orElse: () => false,
+    );
 
     final menuItemsGroups = <List<Widget>>[];
     final menuItemsFollowGroup = <Widget>[];
@@ -108,8 +120,36 @@ class PostMenuBottomSheet extends ConsumerWidget {
 
     menuItemsGroups.add(menuItemsComplainGroup);
 
+    final headerButtons = <Widget>[
+      BottomSheetMenuHeaderButton(
+        label: context.i18n.button_boost,
+        iconAsset: Assets.svg.iconSheetBoost,
+        onPressed: () {
+          Navigator.of(context).pop();
+          if (isBoosted) {
+            ActiveBoostPostModalRoute(eventReference: encoded).push<void>(context);
+          } else {
+            NewBoostPostModalRoute(eventReference: encoded).push<void>(context);
+          }
+        },
+      ),
+      BottomSheetMenuHeaderButton(
+        label: context.i18n.button_tip_creator,
+        iconAsset: Assets.svg.iconProfileTips,
+        onPressed: () {
+          return ref.read(messageNotificationNotifierProvider.notifier).show(
+                MessageNotification(
+                  message: context.i18n.coming_soon_label,
+                  icon: Assets.svg.iconBlockTime.icon(size: 16.0.s),
+                ),
+              );
+        },
+      ),
+    ];
+
     return BottomSheetMenuContent(
       groups: menuItemsGroups,
+      headerButtons: headerButtons,
     );
   }
 }
