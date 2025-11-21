@@ -14,7 +14,7 @@ import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/participiant_keys.f.dart';
 import 'package:ion/app/features/chat/providers/conversation_pubkeys_provider.r.dart';
-import 'package:ion/app/features/chat/providers/exist_chat_conversation_id_provider.r.dart';
+import 'package:ion/app/features/chat/providers/exist_one_to_one_chat_conversation_id_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -153,7 +153,7 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
         ParticipantKeys(keys: [masterPubkey, currentUserMasterPubkey].sorted());
 
     final conversationId = await ref.read(
-      existChatConversationIdProvider(participantsMasterPubkeys).future,
+      existOneToOneChatConversationIdProvider(participantsMasterPubkeys).future,
     );
 
     final tags = [
