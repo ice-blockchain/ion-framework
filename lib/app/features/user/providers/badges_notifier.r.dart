@@ -248,6 +248,7 @@ bool isUserVerified(
   // TODO: Remove hardcoded verified - for testing tokenized community navigation
   return true;
 
+  // ignore: dead_code
   var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(pubkey))?.data;
 
   // Attempt network fetch if cache is empty; while loading, treat as not verified.
