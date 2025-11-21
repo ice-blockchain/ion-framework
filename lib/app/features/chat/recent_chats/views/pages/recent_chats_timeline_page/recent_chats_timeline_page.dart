@@ -190,7 +190,7 @@ class ConversationList extends ConsumerWidget {
     }
 
     return SliverFixedExtentList(
-      itemExtent: 73.5.s, // Fixed height for all chat tiles matching skeleton tiles
+      itemExtent: 74.s, // Fixed height for all chat tiles matching skeleton tiles
       delegate: SliverChildBuilderDelegate(
         (BuildContext context, int index) {
           final conversation = conversations[index];
