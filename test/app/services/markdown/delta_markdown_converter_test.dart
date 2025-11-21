@@ -2651,8 +2651,7 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final delta = Delta();
           final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
           final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-          final resultDelta =
-              DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
 
           expect(resultDelta, isNotNull);
           final text = Document.fromDelta(resultDelta).toPlainText();
@@ -2663,8 +2662,7 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final delta = Delta()..insert('   \n');
           final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
           final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-          final resultDelta =
-              DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
 
           expect(resultDelta, isNotNull);
         });
@@ -2676,8 +2674,7 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             ..insert(' world\n');
           final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
           final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-          final resultDelta =
-              DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
 
           expect(resultDelta, isNotNull);
           final text = Document.fromDelta(resultDelta).toPlainText();
