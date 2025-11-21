@@ -193,7 +193,9 @@ class Auth extends _$Auth {
           .setCurrentIdentityKeyName(null);
       await ref.read(currentIdentityKeyNameStoreProvider.notifier).clearCurrentIdentityKeyName();
 
-      ref.invalidateSelf();
+      ref
+        ..invalidate(currentPubkeySelectorProvider)
+        ..invalidateSelf();
     }
   }
 
@@ -202,6 +204,8 @@ class Auth extends _$Auth {
     final isUserSwitching = currentUser != null && currentUser != identityKeyName;
 
     if (isUserSwitching) {
+      // Activate user switching flag for router redirect logic
+      ref.read(userSwitchingProvider.notifier).active();
       ref.read(userSwitchProvider.notifier).trigger();
       await Future<void>.delayed(const Duration(milliseconds: 300));
     } else {
