@@ -449,9 +449,10 @@ class IonConnectNotifier extends _$IonConnectNotifier {
 
     // Only use createdAtSeconds for secp256k1 (Nostr protocol expects seconds)
     // For ed25519, use microseconds (default behavior)
-    final createdAtTimestamp = mainWallet.signingKey.curve.toLowerCase() == 'secp256k1'
-        ? createdAt.millisecondsSinceEpoch ~/ 1000
-        : createdAt.microsecondsSinceEpoch;
+    final createdAtTimestamp =
+        mainWallet.signingKey.curve.toLowerCase() == SigningAlgorithm.secp256k1Schnorr.curveName
+            ? createdAt.millisecondsSinceEpoch ~/ 1000
+            : createdAt.microsecondsSinceEpoch;
 
     final eventId = EventMessage.calculateEventId(
       publicKey: masterPubkey,

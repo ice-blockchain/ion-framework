@@ -15,6 +15,7 @@ import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'auth_provider.m.freezed.dart';
+
 part 'auth_provider.m.g.dart';
 
 @freezed
@@ -54,9 +55,14 @@ class Auth extends _$Auth {
     final userLocalPasskeyCredsState =
         currentIdentityKeyName != null ? localPasskeyCredsStates[currentIdentityKeyName] : null;
     final eventSigner = currentIdentityKeyName != null
-        ? await ref
-            .watch(ed25519IonConnectEventSignerProviderProvider(currentIdentityKeyName).notifier)
-            .initEventSigner()
+        ? await Future.wait([
+            ref
+                .watch(ed25519IonConnectEventSignerProvider(currentIdentityKeyName).notifier)
+                .initEventSigner(),
+            ref
+                .watch(secp256k1IonConnectEventSignerProvider(currentIdentityKeyName).notifier)
+                .initEventSigner(),
+          ])
         : null;
 
     if (currentIdentityKeyName != null) {

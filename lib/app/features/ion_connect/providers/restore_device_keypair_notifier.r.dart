@@ -2,7 +2,6 @@
 
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/providers/device_keypair_dialog_manager.r.dart';
 import 'package:ion/app/features/ion_connect/providers/device_keypair_utils.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
@@ -82,15 +81,23 @@ class RestoreDeviceKeypairNotifier extends _$RestoreDeviceKeypairNotifier {
   }
 
   /// Restores the decrypted keypair to the device storage and returns the event signer
-  Future<EventSigner> _restoreKeypairToDevice(
+  Future<void> _restoreKeypairToDevice(
     String privateKey,
     String identityKeyName,
   ) async {
     // Restore the keypair using the ion connect event signer provider
-    final eventSignerNotifier =
-        ref.read(ed25519IonConnectEventSignerProviderProvider(identityKeyName).notifier);
 
-    // Use the restoreFromPrivateKey method to restore the keypair
-    return eventSignerNotifier.restoreFromPrivateKey(privateKey);
+    await Future.wait(
+      [
+        ref
+            .read(ed25519IonConnectEventSignerProvider(identityKeyName).notifier)
+            .restoreFromPrivateKey(privateKey),
+        ref
+            .read(secp256k1IonConnectEventSignerProvider(identityKeyName).notifier)
+            .restoreFromPrivateKey(privateKey),
+      ],
+    );
+
+    return;
   }
 }
