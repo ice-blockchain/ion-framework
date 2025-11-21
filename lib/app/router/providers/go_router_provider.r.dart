@@ -126,11 +126,6 @@ Future<String?> _mainRedirect({
     }
   }
 
-  final isUserSwitching = ref.read(userSwitchingProvider);
-  if (isUserSwitching) {
-    return null;
-  }
-
   final isAuthenticated = (ref.read(authProvider).valueOrNull?.isAuthenticated).falseOrValue;
 
   final onboardingComplete = ref.read(onboardingCompleteProvider).valueOrNull;

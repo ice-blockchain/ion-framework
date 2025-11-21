@@ -179,6 +179,7 @@ class Auth extends _$Auth {
   }
 
   Future<void> clearCurrentUserForAuthentication() async {
+    state = const AsyncValue.loading();
     _isNewUserFlowActive = true;
     _usersCountAtNewUserFlowStart =
         (await ref.read(authenticatedIdentityKeyNamesStreamProvider.future)).length;
