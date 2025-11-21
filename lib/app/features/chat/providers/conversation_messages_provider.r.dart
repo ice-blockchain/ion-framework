@@ -51,8 +51,8 @@ class ConversationMessages extends _$ConversationMessages {
     }
 
     final currentMessages = state.valueOrNull ?? [];
-    final tailIds = tail.map((message) => message.id).toSet();
-    final olderMessages = currentMessages.where((message) => !tailIds.contains(message.id));
+    final tailIds = tail.map((message) => message.sharedId).toSet();
+    final olderMessages = currentMessages.where((message) => !tailIds.contains(message.sharedId));
 
     final merged = [...tail, ...olderMessages];
 
