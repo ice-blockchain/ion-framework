@@ -9,6 +9,8 @@ class ConversationMessageTable extends Table {
   late final messageEventReference =
       text().map(const EventReferenceConverter()).references(EventMessageTable, #eventReference)();
 
+  IntColumn get publishedAt => integer().withDefault(const Constant(0))();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   @override
   Set<Column<Object>> get primaryKey => {messageEventReference};
 }
