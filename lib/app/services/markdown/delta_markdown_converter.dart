@@ -40,10 +40,6 @@ abstract class DeltaMarkdownConverter {
     var lineStartIndex = 0;
     var inCodeBlock = false;
 
-    // Quill's canonical delta format: block attributes are attached to the newline
-    // character at the end of each line. Each line typically has its own insert operation
-    // with attributes on the newline, though text content may contain newlines.
-
     for (final op in delta.operations) {
       if (op.key == 'insert') {
         final data = op.data;
@@ -97,13 +93,12 @@ abstract class DeltaMarkdownConverter {
     required bool inCodeBlock,
     required List<PmoTag> pmoTags,
   }) {
-    var updatedLineStartIndex = lineStartIndex;
-    var updatedInCodeBlock = inCodeBlock;
+    var lineStart = lineStartIndex;
+    var inCodeBlockState = inCodeBlock;
     var segmentStart = 0;
 
-    // Process content character by character to detect newlines.
-    // When a newline is found, check if this operation has block attributes
-    // (Quill attaches block attributes to the newline character).
+    // Process character by character to detect newlines.
+    // Block attributes are attached to the newline character in Quill's format.
     for (var i = 0; i < content.length; i++) {
       if (content[i] == '\n') {
         // Process inline attributes for the segment before this newline
@@ -117,16 +112,16 @@ abstract class DeltaMarkdownConverter {
           );
         }
 
-        updatedInCodeBlock = _processBlockAttributes(
+        inCodeBlockState = _processBlockAttributes(
           attributes: attributes,
-          lineStartIndex: updatedLineStartIndex,
+          lineStartIndex: lineStart,
           currentIndex: currentIndex,
           charIndex: i,
-          inCodeBlock: updatedInCodeBlock,
+          inCodeBlock: inCodeBlockState,
           pmoTags: pmoTags,
         );
 
-        updatedLineStartIndex = currentIndex + i + 1;
+        lineStart = currentIndex + i + 1;
         segmentStart = i + 1;
       }
     }
@@ -143,8 +138,8 @@ abstract class DeltaMarkdownConverter {
     }
 
     return (
-      lineStartIndex: updatedLineStartIndex,
-      inCodeBlock: updatedInCodeBlock,
+      lineStartIndex: lineStart,
+      inCodeBlock: inCodeBlockState,
     );
   }
 
@@ -183,13 +178,14 @@ abstract class DeltaMarkdownConverter {
       if (attributes.containsKey('header')) {
         final level = attributes['header'] as int;
         final hashes = '#' * level;
-        // Insert hashes at the start of the line
         pmoTags.add(PmoTag(lineStartIndex, lineStartIndex, '$hashes '));
       }
       if (attributes.containsKey('list')) {
-        final listType = attributes['list'] as String;
-        final marker = listType == 'ordered' ? '1. ' : '- ';
-        pmoTags.add(PmoTag(lineStartIndex, lineStartIndex, marker));
+        final listType = attributes['list'];
+        if (listType != null) {
+          final marker = listType == 'ordered' ? '1. ' : '- ';
+          pmoTags.add(PmoTag(lineStartIndex, lineStartIndex, marker));
+        }
       }
       if (attributes.containsKey('blockquote')) {
         pmoTags.add(PmoTag(lineStartIndex, lineStartIndex, '> '));
@@ -200,16 +196,22 @@ abstract class DeltaMarkdownConverter {
   }
 
   /// Processes inline attributes (bold, italic, strike, underline, code, link).
+  ///
+  /// Formatting is applied in a specific order: code, bold, italic, strike, underline, link.
+  /// Code is applied first so other styles wrap the backticks correctly.
   static void _processInlineAttributes({
     required String content,
     required Map<String, dynamic> attributes,
     required int currentIndex,
     required List<PmoTag> pmoTags,
   }) {
+    if (content.trim().isEmpty) {
+      return; // Skip empty or whitespace-only content
+    }
+
     var replacement = content;
 
     // Apply formatting in order: code, bold, italic, strike, underline, link
-    // Code is first so other styles wrap the backticks
     if (attributes.containsKey('code')) {
       replacement = '`$replacement`';
     }
@@ -226,14 +228,23 @@ abstract class DeltaMarkdownConverter {
       replacement = '<u>$replacement</u>';
     }
     if (attributes.containsKey('link')) {
-      final link = attributes['link'];
+      final link = attributes['link'] ?? '';
       replacement = '[$replacement]($link)';
     }
 
-    // Only add PMO tag if replacement differs from content and content is not empty
-    if (replacement != content && content.trim().isNotEmpty) {
+    if (replacement != content) {
       pmoTags.add(PmoTag(currentIndex, currentIndex + content.length, replacement));
     }
+  }
+
+  /// Creates a PMO tag for an embed placeholder.
+  static void _addEmbedPmoTag({
+    required int currentIndex,
+    required String placeholder,
+    required String replacement,
+    required List<PmoTag> pmoTags,
+  }) {
+    pmoTags.add(PmoTag(currentIndex, currentIndex + placeholder.length, replacement));
   }
 
   /// Processes embed data (images, separators, code blocks).
@@ -243,25 +254,40 @@ abstract class DeltaMarkdownConverter {
     required List<PmoTag> pmoTags,
   }) {
     if (data.containsKey('text-editor-single-image')) {
-      final imageUrl = data['text-editor-single-image'];
+      final imageUrl = data['text-editor-single-image'] ?? '';
       const placeholder = ' ';
       final replacement = '![]($imageUrl)';
-      pmoTags.add(PmoTag(currentIndex, currentIndex + placeholder.length, replacement));
+      _addEmbedPmoTag(
+        currentIndex: currentIndex,
+        placeholder: placeholder,
+        replacement: replacement,
+        pmoTags: pmoTags,
+      );
       return placeholder;
     }
 
     if (data.containsKey('text-editor-separator')) {
       const placeholder = '\n';
       const replacement = '\n---\n';
-      pmoTags.add(PmoTag(currentIndex, currentIndex + placeholder.length, replacement));
+      _addEmbedPmoTag(
+        currentIndex: currentIndex,
+        placeholder: placeholder,
+        replacement: replacement,
+        pmoTags: pmoTags,
+      );
       return placeholder;
     }
 
     if (data.containsKey('text-editor-code')) {
-      final code = data['text-editor-code'];
+      final code = data['text-editor-code'] ?? '';
       const placeholder = '\n';
       final replacement = '\n```\n$code\n```\n';
-      pmoTags.add(PmoTag(currentIndex, currentIndex + placeholder.length, replacement));
+      _addEmbedPmoTag(
+        currentIndex: currentIndex,
+        placeholder: placeholder,
+        replacement: replacement,
+        pmoTags: pmoTags,
+      );
       return placeholder;
     }
 
@@ -269,24 +295,9 @@ abstract class DeltaMarkdownConverter {
     return '';
   }
 
-  /// Maps markdown (via PMO tags) to Delta.
-  ///
-  /// This is used for backward compatibility when reading posts/articles
-  /// that have PMO tags but no richText Delta.
-  ///
-  /// Parameters:
-  /// - [plainText]: The plain text content from the event
-  /// - [pmoTags]: List of PMO tags in format ['pmo', 'start:end', 'markdown replacement']
-  ///
-  /// Returns: Delta mapped from the markdown created by applying PMO tags
-  static Delta mapMarkdownToDelta(String plainText, List<List<String>> pmoTags) {
-    if (pmoTags.isEmpty) {
-      // No PMO tags, return plain text as Delta
-      return Delta()..insert('$plainText\n');
-    }
-
-    // Parse PMO tags
-    final parsedTags = pmoTags
+  /// Parses PMO tags from raw tag list.
+  static List<_ParsedPmoTag> _parsePmoTags(List<List<String>> pmoTags) {
+    return pmoTags
         .where((tag) => tag.length >= 3 && tag[0] == 'pmo')
         .map((tag) {
           final indices = tag[1].split(':');
@@ -298,41 +309,61 @@ abstract class DeltaMarkdownConverter {
         })
         .whereType<_ParsedPmoTag>()
         .toList()
-      // Sort by start position ascending to process from start to end
       ..sort((a, b) => a.start.compareTo(b.start));
+  }
 
-    // Build markdown by applying replacements in order
+  /// Validates that a PMO tag can be applied at the current position.
+  static bool _isValidPmoTag({
+    required _ParsedPmoTag tag,
+    required int currentPos,
+    required int textLength,
+  }) {
+    return tag.start >= currentPos &&
+        tag.start <= textLength &&
+        tag.end <= textLength &&
+        tag.start <= tag.end;
+  }
+
+  /// Maps markdown (via PMO tags) to Delta.
+  ///
+  /// Used for backward compatibility when reading posts/articles
+  /// that have PMO tags but no richText Delta.
+  ///
+  /// Parameters:
+  /// - [plainText]: The plain text content from the event
+  /// - [pmoTags]: List of PMO tags in format ['pmo', 'start:end', 'markdown replacement']
+  ///
+  /// Returns: Delta mapped from the markdown created by applying PMO tags
+  static Delta mapMarkdownToDelta(String plainText, List<List<String>> pmoTags) {
+    if (pmoTags.isEmpty) {
+      return Delta()..insert('$plainText\n');
+    }
+
+    final parsedTags = _parsePmoTags(pmoTags);
     final buffer = StringBuffer();
     var currentPos = 0;
 
     for (final tag in parsedTags) {
-      // Validate indices against original plain text
-      if (tag.start < currentPos ||
-          tag.start > plainText.length ||
-          tag.end > plainText.length ||
-          tag.start > tag.end) {
-        continue; // Skip invalid or overlapping tags
+      if (!_isValidPmoTag(
+        tag: tag,
+        currentPos: currentPos,
+        textLength: plainText.length,
+      )) {
+        continue;
       }
 
-      // Add text before this tag
       if (tag.start > currentPos) {
         buffer.write(plainText.substring(currentPos, tag.start));
       }
 
-      // Add the markdown replacement
       buffer.write(tag.replacement);
-
       currentPos = tag.end;
     }
 
-    // Add remaining text after last tag
     if (currentPos < plainText.length) {
       buffer.write(plainText.substring(currentPos));
     }
 
-    final markdown = buffer.toString();
-
-    // Convert markdown to Delta
-    return markdownToDelta(markdown);
+    return markdownToDelta(buffer.toString());
   }
 }
