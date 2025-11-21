@@ -78,7 +78,6 @@ class MessageNotificationWrapper extends HookConsumerWidget {
             child: FadeTransition(
               opacity: animation,
               child: Container(
-                constraints: BoxConstraints(minHeight: 42.0.s),
                 padding: EdgeInsets.all(8.0.s),
                 decoration: BoxDecoration(
                   color: color,
