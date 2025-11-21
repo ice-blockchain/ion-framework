@@ -164,6 +164,24 @@ class ArticleData
     );
   }
 
+  /// Converts rich text Delta to markdown content.
+  ///
+  /// Returns the markdown content, or falls back to textContent if conversion fails.
+  String _convertRichTextToMarkdown(String textContent, RichText? richText) {
+    if (richText != null) {
+      try {
+        final deltaJson = jsonDecode(richText.content) as List;
+        final delta = Delta.fromJson(deltaJson);
+        // Convert Delta to markdown
+        return deltaToMarkdown(delta);
+      } catch (e) {
+        // Fallback to existing textContent if conversion fails
+        return textContent;
+      }
+    }
+    return textContent;
+  }
+
   @override
   String get content => richText?.content ?? textContent;
 
@@ -173,18 +191,7 @@ class ArticleData
     List<List<String>> tags = const [],
     int? createdAt,
   }) async {
-    var contentToSign = textContent;
-
-    if (richText != null) {
-      try {
-        final deltaJson = jsonDecode(richText!.content) as List;
-        final delta = Delta.fromJson(deltaJson);
-        // Convert Delta to markdown
-        contentToSign = deltaToMarkdown(delta);
-      } catch (e) {
-        // Fallback to existing textContent if conversion fails
-      }
-    }
+    final contentToSign = _convertRichTextToMarkdown(textContent, richText);
 
     return EventMessage.fromData(
       signer: signer,

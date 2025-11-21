@@ -114,31 +114,12 @@ class ModifiablePostData
     SourcePostReference? sourcePostReference,
     EntityLabel? language,
   }) = _ModifiablePostData;
-
   factory ModifiablePostData.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
     final quotedEventTag =
         tags[QuotedImmutableEvent.tagName] ?? tags[QuotedReplaceableEvent.tagName];
 
-    // Check for richText first (prefer existing Delta)
-    RichText? richText;
-    if (tags[RichText.tagName] != null) {
-      richText = RichText.fromTag(tags[RichText.tagName]!.first);
-    } else {
-      // No richText Delta, check for PMO tags to reconstruct Delta
-      final pmoTags = tags['pmo'] ?? [];
-      if (pmoTags.isNotEmpty) {
-        // Map markdown (via PMO tags) to Delta
-        final reconstructedDelta = DeltaMarkdownConverter.mapMarkdownToDelta(
-          eventMessage.content,
-          pmoTags,
-        );
-        richText = RichText(
-          protocol: 'quill_delta',
-          content: jsonEncode(reconstructedDelta.toJson()),
-        );
-      }
-    }
+    final richText = RichText.fromEventTags(tags, eventMessage.content);
 
     return ModifiablePostData(
       textContent: eventMessage.content,
@@ -168,6 +149,41 @@ class ModifiablePostData
 
   const ModifiablePostData._();
 
+  /// Converts rich text or markdown content to plain text and PMO tags.
+  ///
+  /// Returns a record containing the content to sign and the PMO tags.
+  Future<({String contentToSign, List<List<String>> pmoTags})> _convertContentToPmoTags(
+    String content,
+    RichText? richText,
+  ) async {
+    if (richText != null) {
+      try {
+        final deltaJson = jsonDecode(richText.content) as List;
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(deltaJson);
+        final contentToSign = result.text;
+        final pmoTags = result.tags.map((t) => t.toTag()).toList();
+        return (contentToSign: contentToSign, pmoTags: pmoTags);
+      } catch (e) {
+        // Fallback to existing content if conversion fails
+        return (contentToSign: content, pmoTags: <List<String>>[]);
+      }
+    } else {
+      // Backward compatibility: If no richText but content looks like markdown,
+      // convert markdown → Delta → plain text + PMO tags
+      try {
+        final delta = markdownToDelta(content);
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+        // Trim trailing newline that markdownToDelta adds
+        final contentToSign = result.text.trimRight();
+        final pmoTags = result.tags.map((t) => t.toTag()).toList();
+        return (contentToSign: contentToSign, pmoTags: pmoTags);
+      } catch (e) {
+        // Fallback to existing content if conversion fails
+        return (contentToSign: content, pmoTags: <List<String>>[]);
+      }
+    }
+  }
+
   @override
   String get content {
     final rt = richText;
@@ -183,31 +199,9 @@ class ModifiablePostData
     List<List<String>> tags = const [],
     int? createdAt,
   }) async {
-    var contentToSign = content;
-    final pmoTags = <List<String>>[];
-
-    if (richText != null) {
-      try {
-        final deltaJson = jsonDecode(richText!.content) as List;
-        final result = await DeltaMarkdownConverter.mapDeltaToPmo(deltaJson);
-        contentToSign = result.text;
-        pmoTags.addAll(result.tags.map((t) => t.toTag()));
-      } catch (e) {
-        // Fallback to existing content if conversion fails
-      }
-    } else {
-      // Backward compatibility: If no richText but content looks like markdown,
-      // convert markdown → Delta → plain text + PMO tags
-      try {
-        final delta = markdownToDelta(content);
-        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
-        // Trim trailing newline that markdownToDelta adds
-        contentToSign = result.text.trimRight();
-        pmoTags.addAll(result.tags.map((t) => t.toTag()));
-      } catch (e) {
-        // Fallback to existing content if conversion fails
-      }
-    }
+    final result = await _convertContentToPmoTags(content, richText);
+    final contentToSign = result.contentToSign;
+    final pmoTags = result.pmoTags;
 
     final allTags = [
       ...tags,
