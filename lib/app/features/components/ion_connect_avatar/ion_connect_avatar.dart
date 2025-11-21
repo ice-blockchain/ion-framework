@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/avatar/default_avatar.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/ion_connect_network_image/ion_connect_network_image.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_watch_once.dart';
@@ -28,13 +29,13 @@ class IonConnectAvatar extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isOwnedByCurrentUser = ref.watch(isCurrentUserSelectorProvider(masterPubkey));
+    final provider = userPreviewDataProvider(masterPubkey, network: network)
+        .select((value) => value.valueOrNull?.data.avatarUrl);
+
     // Avatar from identity is always the full image and in relay's metadata we're using thumbnails.
     // So taking the first value only to avoid fetching both original image and it's thumbnail.
-    final avatarUrl = useWatchOnce(
-      ref,
-      userPreviewDataProvider(masterPubkey, network: network)
-          .select((value) => value.valueOrNull?.data.avatarUrl),
-    );
+    final avatarUrl = isOwnedByCurrentUser ? ref.watch(provider) : useWatchOnce(ref, provider);
 
     final avatar = Avatar(
       imageWidget: avatarUrl != null
