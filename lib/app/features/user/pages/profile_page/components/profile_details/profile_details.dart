@@ -11,9 +11,9 @@ import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_actions/edit_user_button.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_actions/profile_actions.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats_data.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_user_info.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/user_name_tile/user_name_tile.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats_data.dart';
 
 class ProfileDetails extends ConsumerWidget {
   const ProfileDetails({

@@ -5,7 +5,6 @@ import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_can
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository_mock.dart';
-import 'package:ion_token_analytics/src/community_tokens/top_holders/models/models.dart';
 import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository.dart';

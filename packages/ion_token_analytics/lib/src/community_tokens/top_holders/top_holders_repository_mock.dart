@@ -3,9 +3,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:ion_token_analytics/src/community_tokens/token_info/models/addresses.f.dart';
-import 'package:ion_token_analytics/src/community_tokens/token_info/models/creator.f.dart';
-import 'package:ion_token_analytics/src/community_tokens/top_holders/models/models.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
