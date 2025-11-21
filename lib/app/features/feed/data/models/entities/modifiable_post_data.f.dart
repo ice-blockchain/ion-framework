@@ -34,6 +34,7 @@ import 'package:ion/app/features/ion_connect/model/source_post_reference.f.dart'
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/services/markdown/delta_markdown_converter.dart';
+import 'package:ion/app/services/markdown/quill.dart';
 
 part 'modifiable_post_data.f.freezed.dart';
 
@@ -190,6 +191,18 @@ class ModifiablePostData
         final deltaJson = jsonDecode(richText!.content) as List;
         final result = await DeltaMarkdownConverter.mapDeltaToPmo(deltaJson);
         contentToSign = result.text;
+        pmoTags.addAll(result.tags.map((t) => t.toTag()));
+      } catch (e) {
+        // Fallback to existing content if conversion fails
+      }
+    } else {
+      // Backward compatibility: If no richText but content looks like markdown,
+      // convert markdown → Delta → plain text + PMO tags
+      try {
+        final delta = markdownToDelta(content);
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+        // Trim trailing newline that markdownToDelta adds
+        contentToSign = result.text.trimRight();
         pmoTags.addAll(result.tags.map((t) => t.toTag()));
       } catch (e) {
         // Fallback to existing content if conversion fails

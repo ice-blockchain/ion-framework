@@ -179,7 +179,7 @@ class ArticleData
       try {
         final deltaJson = jsonDecode(richText!.content) as List;
         final delta = Delta.fromJson(deltaJson);
-        // Convert Delta to markdown for article content
+        // Convert Delta to markdown
         contentToSign = deltaToMarkdown(delta);
       } catch (e) {
         // Fallback to existing textContent if conversion fails
