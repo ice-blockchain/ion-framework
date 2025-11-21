@@ -13,6 +13,7 @@ class SearchHistory extends StatelessWidget {
     required this.queries,
     required this.onSelectQuery,
     required this.onClearHistory,
+    this.onDeleteQuery,
     super.key,
   });
 
@@ -21,6 +22,7 @@ class SearchHistory extends StatelessWidget {
   final void Function(String query) onSelectQuery;
   final VoidCallback onClearHistory;
   final NullableIndexedWidgetBuilder itemBuilder;
+  final void Function(String query)? onDeleteQuery;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +57,7 @@ class SearchHistory extends StatelessWidget {
                     onTap: () {
                       onSelectQuery(query);
                     },
+                    onDelete: onDeleteQuery != null ? () => onDeleteQuery!(query) : null,
                   );
                 },
               ),
