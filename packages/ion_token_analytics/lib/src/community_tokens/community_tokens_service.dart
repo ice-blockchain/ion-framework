@@ -10,7 +10,7 @@ import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_r
 import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository_impl.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class IonCommunityTokensService {
@@ -38,7 +38,7 @@ class IonCommunityTokensService {
     final service = IonCommunityTokensService._(
       tokenInfoRepository: TokenInfoRepositoryMock(networkClient),
       ohlcvCandlesRepository: OhlcvCandlesRepositoryMock(),
-      tradingStatsRepository: TradingStatsRepositoryMock(),
+      tradingStatsRepository: TradingStatsRepositoryImpl(networkClient),
       topHoldersRepository: TopHoldersRepositoryImpl(networkClient),
       latestTradesRepository: LatestTradesRepositoryImpl(networkClient),
     );

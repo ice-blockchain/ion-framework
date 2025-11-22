@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/mocks/latest_trades_mock_handler.dart';
 import 'package:ion_token_analytics/src/community_tokens/top_holders/mocks/top_holders_mock_handler.dart';
+import 'package:ion_token_analytics/src/community_tokens/trading_stats/mocks/trading_stats_mock_handler.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
 /// A mock NetworkClient that intercepts specific requests and returns mock data.
@@ -12,6 +13,7 @@ class NetworkClientMock extends NetworkClient {
 
   final _topHoldersHandler = TopHoldersMockHandler();
   final _latestTradesHandler = LatestTradesMockHandler();
+  final _tradingStatsHandler = TradingStatsMockHandler();
 
   @override
   Future<T> get<T>(
@@ -41,6 +43,11 @@ class NetworkClientMock extends NetworkClient {
     // Intercept Latest Trades subscription
     if (path.contains('/latest-trades')) {
       return _latestTradesHandler.handleSubscription<T>();
+    }
+
+    // Intercept Trading Stats subscription
+    if (path.contains('/trading-stats')) {
+      return _tradingStatsHandler.handleSubscription<T>();
     }
 
     // Fallback to real implementation (or throw if strictly mock)

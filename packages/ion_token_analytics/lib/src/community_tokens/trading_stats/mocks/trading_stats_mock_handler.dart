@@ -4,11 +4,41 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/models/models.dart';
-import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
-class TradingStatsRepositoryMock implements TradingStatsRepository {
+class TradingStatsMockHandler {
   static final _rnd = Random();
+
+  Future<NetworkSubscription<T>> handleSubscription<T>() async {
+    final controller = StreamController<T>();
+    Timer? timer;
+
+    // 1) Initial snapshot (like backend)
+    var snapshot = _generateSnapshot();
+    // Cast to T (which is Map<String, TradingStats>)
+    // We need to ensure T matches the expected type or cast safely
+    if (!controller.isClosed) {
+      controller.add(snapshot as T);
+    }
+
+    // 2) Streaming updates every 2 seconds
+    timer = Timer.periodic(const Duration(seconds: 2), (_) {
+      snapshot = _updateRandom(snapshot);
+      if (!controller.isClosed) {
+        controller.add(snapshot as T);
+      }
+    });
+
+    return NetworkSubscription<T>(
+      stream: controller.stream,
+      close: () async {
+        timer?.cancel();
+        await controller.close();
+      },
+    );
+  }
+
+  // --- Mock Data Generation Logic ---
 
   // Helper function to generate random trading stats
   TradingStats _generateStats() {
@@ -62,35 +92,5 @@ class TradingStatsRepositoryMock implements TradingStatsRepository {
     };
 
     return updated;
-  }
-
-  @override
-  Future<NetworkSubscription<Map<String, TradingStats>>> subscribeToTradingStats(
-    String ionConnectAddress,
-  ) async {
-    await Future<void>.delayed(const Duration(milliseconds: 120));
-
-    final controller = StreamController<Map<String, TradingStats>>();
-    Timer? timer;
-
-    // 1) Initial snapshot (like backend)
-    var snapshot = _generateSnapshot();
-    controller.add(snapshot);
-
-    // 2) Streaming updates every 2 seconds
-    timer = Timer.periodic(const Duration(seconds: 2), (_) {
-      snapshot = _updateRandom(snapshot);
-      if (!controller.isClosed) {
-        controller.add(snapshot);
-      }
-    });
-
-    return NetworkSubscription(
-      stream: controller.stream,
-      close: () async {
-        timer?.cancel();
-        await controller.close();
-      },
-    );
   }
 }
