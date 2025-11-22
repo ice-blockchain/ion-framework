@@ -17,6 +17,7 @@ class CommunityToken with _$CommunityToken {
     required Addresses addresses,
     required Creator creator,
     required MarketData marketData,
+    String? createdAt,
   }) = _CommunityToken;
 
   factory CommunityToken.fromJson(Map<String, dynamic> json) => _$CommunityTokenFromJson(json);

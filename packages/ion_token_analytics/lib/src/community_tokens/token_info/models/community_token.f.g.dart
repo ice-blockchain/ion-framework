@@ -12,6 +12,7 @@ _$CommunityTokenImpl _$$CommunityTokenImplFromJson(Map<String, dynamic> json) =>
       title: json['title'] as String,
       description: json['description'] as String,
       imageUrl: json['imageUrl'] as String,
+      createdAt: json['createdAt'] as String?,
       addresses: Addresses.fromJson(json['addresses'] as Map<String, dynamic>),
       creator: Creator.fromJson(json['creator'] as Map<String, dynamic>),
       marketData: MarketData.fromJson(
@@ -26,6 +27,7 @@ Map<String, dynamic> _$$CommunityTokenImplToJson(
   'title': instance.title,
   'description': instance.description,
   'imageUrl': instance.imageUrl,
+  if (instance.createdAt case final value?) 'createdAt': value,
   'addresses': instance.addresses.toJson(),
   'creator': instance.creator.toJson(),
   'marketData': instance.marketData.toJson(),

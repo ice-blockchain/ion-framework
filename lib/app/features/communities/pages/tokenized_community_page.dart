@@ -25,6 +25,7 @@ import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/header/header.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_actions/profile_action.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
@@ -118,6 +119,18 @@ class _ChartsTabView extends StatelessWidget {
       slivers: [
         // SliverToBoxAdapter(child: YourPositionCard(masterPubkey: masterPubkey)),
         SliverToBoxAdapter(child: SizedBox(height: 12.0.s)),
+        // TODO: remove, just for enterign global categories page
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.all(16.0.s),
+            child: TextButton(
+              onPressed: () {
+                CreatorTokensRoute(masterPubkey: masterPubkey).push<void>(context);
+              },
+              child: const Text('View Global Categories'),
+            ),
+          ),
+        ),
         SliverToBoxAdapter(child: _TokenChart(masterPubkey: masterPubkey)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
         SliverToBoxAdapter(child: _TokenStats(masterPubkey: masterPubkey)),

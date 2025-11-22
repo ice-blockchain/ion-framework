@@ -25,6 +25,7 @@ mixin _$CommunityToken {
   String get title => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
   String get imageUrl => throw _privateConstructorUsedError;
+  String? get createdAt => throw _privateConstructorUsedError;
   Addresses get addresses => throw _privateConstructorUsedError;
   Creator get creator => throw _privateConstructorUsedError;
   MarketData get marketData => throw _privateConstructorUsedError;
@@ -51,6 +52,7 @@ abstract class $CommunityTokenCopyWith<$Res> {
     String title,
     String description,
     String imageUrl,
+    String? createdAt,
     Addresses addresses,
     Creator creator,
     MarketData marketData,
@@ -80,6 +82,7 @@ class _$CommunityTokenCopyWithImpl<$Res, $Val extends CommunityToken>
     Object? title = null,
     Object? description = null,
     Object? imageUrl = null,
+    Object? createdAt = freezed,
     Object? addresses = null,
     Object? creator = null,
     Object? marketData = null,
@@ -102,6 +105,10 @@ class _$CommunityTokenCopyWithImpl<$Res, $Val extends CommunityToken>
                 ? _value.imageUrl
                 : imageUrl // ignore: cast_nullable_to_non_nullable
                       as String,
+            createdAt: freezed == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as String?,
             addresses: null == addresses
                 ? _value.addresses
                 : addresses // ignore: cast_nullable_to_non_nullable
@@ -164,6 +171,7 @@ abstract class _$$CommunityTokenImplCopyWith<$Res>
     String title,
     String description,
     String imageUrl,
+    String? createdAt,
     Addresses addresses,
     Creator creator,
     MarketData marketData,
@@ -195,6 +203,7 @@ class __$$CommunityTokenImplCopyWithImpl<$Res>
     Object? title = null,
     Object? description = null,
     Object? imageUrl = null,
+    Object? createdAt = freezed,
     Object? addresses = null,
     Object? creator = null,
     Object? marketData = null,
@@ -217,6 +226,10 @@ class __$$CommunityTokenImplCopyWithImpl<$Res>
             ? _value.imageUrl
             : imageUrl // ignore: cast_nullable_to_non_nullable
                   as String,
+        createdAt: freezed == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as String?,
         addresses: null == addresses
             ? _value.addresses
             : addresses // ignore: cast_nullable_to_non_nullable
@@ -242,6 +255,7 @@ class _$CommunityTokenImpl implements _CommunityToken {
     required this.title,
     required this.description,
     required this.imageUrl,
+    this.createdAt,
     required this.addresses,
     required this.creator,
     required this.marketData,
@@ -259,6 +273,8 @@ class _$CommunityTokenImpl implements _CommunityToken {
   @override
   final String imageUrl;
   @override
+  final String? createdAt;
+  @override
   final Addresses addresses;
   @override
   final Creator creator;
@@ -267,7 +283,7 @@ class _$CommunityTokenImpl implements _CommunityToken {
 
   @override
   String toString() {
-    return 'CommunityToken(type: $type, title: $title, description: $description, imageUrl: $imageUrl, addresses: $addresses, creator: $creator, marketData: $marketData)';
+    return 'CommunityToken(type: $type, title: $title, description: $description, imageUrl: $imageUrl, createdAt: $createdAt, addresses: $addresses, creator: $creator, marketData: $marketData)';
   }
 
   @override
@@ -281,6 +297,8 @@ class _$CommunityTokenImpl implements _CommunityToken {
                 other.description == description) &&
             (identical(other.imageUrl, imageUrl) ||
                 other.imageUrl == imageUrl) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
             (identical(other.addresses, addresses) ||
                 other.addresses == addresses) &&
             (identical(other.creator, creator) || other.creator == creator) &&
@@ -296,6 +314,7 @@ class _$CommunityTokenImpl implements _CommunityToken {
     title,
     description,
     imageUrl,
+    createdAt,
     addresses,
     creator,
     marketData,
@@ -324,6 +343,7 @@ abstract class _CommunityToken implements CommunityToken {
     required final String title,
     required final String description,
     required final String imageUrl,
+    final String? createdAt,
     required final Addresses addresses,
     required final Creator creator,
     required final MarketData marketData,
@@ -340,6 +360,8 @@ abstract class _CommunityToken implements CommunityToken {
   String get description;
   @override
   String get imageUrl;
+  @override
+  String? get createdAt;
   @override
   Addresses get addresses;
   @override
