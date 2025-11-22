@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/mocks/latest_trades_mock_handler.dart';
+import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/mocks/ohlcv_candles_mock_handler.dart';
 import 'package:ion_token_analytics/src/community_tokens/top_holders/mocks/top_holders_mock_handler.dart';
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/mocks/trading_stats_mock_handler.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
@@ -14,6 +15,7 @@ class NetworkClientMock extends NetworkClient {
   final _topHoldersHandler = TopHoldersMockHandler();
   final _latestTradesHandler = LatestTradesMockHandler();
   final _tradingStatsHandler = TradingStatsMockHandler();
+  final _ohlcvCandlesHandler = OhlcvCandlesMockHandler();
 
   @override
   Future<T> get<T>(
@@ -48,6 +50,11 @@ class NetworkClientMock extends NetworkClient {
     // Intercept Trading Stats subscription
     if (path.contains('/trading-stats')) {
       return _tradingStatsHandler.handleSubscription<T>();
+    }
+
+    // Intercept OHLCV subscription
+    if (path.contains('/ohlcv')) {
+      return _ohlcvCandlesHandler.handleSubscription<T>();
     }
 
     // Fallback to real implementation (or throw if strictly mock)
