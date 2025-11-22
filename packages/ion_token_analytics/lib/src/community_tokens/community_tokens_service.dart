@@ -2,7 +2,7 @@
 
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository.dart';
@@ -40,7 +40,7 @@ class IonCommunityTokensService {
       ohlcvCandlesRepository: OhlcvCandlesRepositoryMock(),
       tradingStatsRepository: TradingStatsRepositoryMock(),
       topHoldersRepository: TopHoldersRepositoryImpl(networkClient),
-      latestTradesRepository: LatestTradesRepositoryMock(),
+      latestTradesRepository: LatestTradesRepositoryImpl(networkClient),
     );
     return service;
   }
@@ -78,7 +78,19 @@ class IonCommunityTokensService {
     return _topHoldersRepository.subscribeToTopHolders(ionConnectAddress, limit: limit);
   }
 
-  Future<NetworkSubscription<List<LatestTrade>>> subscribeToLatestTrades({
+  Future<List<LatestTrade>> fetchLatestTrades({
+    required String ionConnectAddress,
+    int limit = 10,
+    int offset = 0,
+  }) {
+    return _latestTradesRepository.fetchLatestTrades(
+      ionConnectAddress,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<NetworkSubscription<LatestTrade>> subscribeToLatestTrades({
     required String ionConnectAddress,
   }) {
     return _latestTradesRepository.subscribeToLatestTrades(ionConnectAddress);

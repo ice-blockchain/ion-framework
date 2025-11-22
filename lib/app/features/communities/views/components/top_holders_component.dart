@@ -1,10 +1,8 @@
-// SPDX-License-Identifier: ice License 1.0
-
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/communities/models/top_holder.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class TopHoldersComponent extends StatelessWidget {
   const TopHoldersComponent({
@@ -16,10 +14,10 @@ class TopHoldersComponent extends StatelessWidget {
     super.key,
   });
 
-  final List<TopHolderViewData> holders;
+  final List<TopHolder> holders;
   final int maxVisible;
   final VoidCallback? onViewAllPressed;
-  final ValueChanged<TopHolderViewData>? onTapHolder;
+  final ValueChanged<TopHolder>? onTapHolder;
   final String Function(double amount)? amountFormatter;
 
   @override
@@ -70,7 +68,7 @@ class TopHoldersComponent extends StatelessWidget {
                   _TopHolderRow(
                     rank: i + 1,
                     holder: visible[i],
-                    amountText: _formatAmount(visible[i].amount),
+                    amountText: _formatAmount(visible[i].position.amount),
                     onTap: onTapHolder,
                   ),
               ],
@@ -97,14 +95,18 @@ class _TopHolderRow extends StatelessWidget {
   });
 
   final int rank;
-  final TopHolderViewData holder;
+  final TopHolder holder;
   final String amountText;
-  final ValueChanged<TopHolderViewData>? onTap;
+  final ValueChanged<TopHolder>? onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
     final texts = context.theme.appTextThemes;
+
+    final position = holder.position;
+    final profile = position.holder;
+    final handle = profile.name.isNotEmpty ? '@${profile.name}' : '';
 
     final rightBadge = Container(
       padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 2.0.s),
@@ -113,7 +115,7 @@ class _TopHolderRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(12.0.s),
       ),
       child: Text(
-        '${holder.percentShare.toStringAsFixed(2)}%',
+        '${position.supplyShare.toStringAsFixed(2)}%',
         style: texts.caption2
             .copyWith(color: colors.primaryText, height: 18 / texts.caption2.fontSize!),
       ),
@@ -130,11 +132,11 @@ class _TopHolderRow extends StatelessWidget {
               children: [
                 _RankBadge(rank: rank),
                 SizedBox(width: 12.0.s),
-                _Avatar(url: holder.avatarUrl),
+                _Avatar(url: profile.avatar),
                 SizedBox(width: 8.0.s),
                 _NameAndAmount(
-                  name: holder.displayName,
-                  handle: holder.handle,
+                  name: profile.display,
+                  handle: handle,
                   amountText: amountText,
                 ),
               ],

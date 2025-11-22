@@ -21,12 +21,8 @@ LatestTrade _$LatestTradeFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$LatestTrade {
-  Creator get trader => throw _privateConstructorUsedError;
-  double get amount => throw _privateConstructorUsedError;
-  double get amountUSD => throw _privateConstructorUsedError;
-  int get timestamp => throw _privateConstructorUsedError;
-  String get side => throw _privateConstructorUsedError; // "buy" or "sell"
-  Addresses get addresses => throw _privateConstructorUsedError;
+  Creator get creator => throw _privateConstructorUsedError;
+  TradePosition get position => throw _privateConstructorUsedError;
 
   /// Serializes this LatestTrade to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -45,17 +41,10 @@ abstract class $LatestTradeCopyWith<$Res> {
     $Res Function(LatestTrade) then,
   ) = _$LatestTradeCopyWithImpl<$Res, LatestTrade>;
   @useResult
-  $Res call({
-    Creator trader,
-    double amount,
-    double amountUSD,
-    int timestamp,
-    String side,
-    Addresses addresses,
-  });
+  $Res call({Creator creator, TradePosition position});
 
-  $CreatorCopyWith<$Res> get trader;
-  $AddressesCopyWith<$Res> get addresses;
+  $CreatorCopyWith<$Res> get creator;
+  $TradePositionCopyWith<$Res> get position;
 }
 
 /// @nodoc
@@ -72,40 +61,17 @@ class _$LatestTradeCopyWithImpl<$Res, $Val extends LatestTrade>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? trader = null,
-    Object? amount = null,
-    Object? amountUSD = null,
-    Object? timestamp = null,
-    Object? side = null,
-    Object? addresses = null,
-  }) {
+  $Res call({Object? creator = null, Object? position = null}) {
     return _then(
       _value.copyWith(
-            trader: null == trader
-                ? _value.trader
-                : trader // ignore: cast_nullable_to_non_nullable
+            creator: null == creator
+                ? _value.creator
+                : creator // ignore: cast_nullable_to_non_nullable
                       as Creator,
-            amount: null == amount
-                ? _value.amount
-                : amount // ignore: cast_nullable_to_non_nullable
-                      as double,
-            amountUSD: null == amountUSD
-                ? _value.amountUSD
-                : amountUSD // ignore: cast_nullable_to_non_nullable
-                      as double,
-            timestamp: null == timestamp
-                ? _value.timestamp
-                : timestamp // ignore: cast_nullable_to_non_nullable
-                      as int,
-            side: null == side
-                ? _value.side
-                : side // ignore: cast_nullable_to_non_nullable
-                      as String,
-            addresses: null == addresses
-                ? _value.addresses
-                : addresses // ignore: cast_nullable_to_non_nullable
-                      as Addresses,
+            position: null == position
+                ? _value.position
+                : position // ignore: cast_nullable_to_non_nullable
+                      as TradePosition,
           )
           as $Val,
     );
@@ -115,9 +81,9 @@ class _$LatestTradeCopyWithImpl<$Res, $Val extends LatestTrade>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $CreatorCopyWith<$Res> get trader {
-    return $CreatorCopyWith<$Res>(_value.trader, (value) {
-      return _then(_value.copyWith(trader: value) as $Val);
+  $CreatorCopyWith<$Res> get creator {
+    return $CreatorCopyWith<$Res>(_value.creator, (value) {
+      return _then(_value.copyWith(creator: value) as $Val);
     });
   }
 
@@ -125,9 +91,9 @@ class _$LatestTradeCopyWithImpl<$Res, $Val extends LatestTrade>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $AddressesCopyWith<$Res> get addresses {
-    return $AddressesCopyWith<$Res>(_value.addresses, (value) {
-      return _then(_value.copyWith(addresses: value) as $Val);
+  $TradePositionCopyWith<$Res> get position {
+    return $TradePositionCopyWith<$Res>(_value.position, (value) {
+      return _then(_value.copyWith(position: value) as $Val);
     });
   }
 }
@@ -141,19 +107,12 @@ abstract class _$$LatestTradeImplCopyWith<$Res>
   ) = __$$LatestTradeImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    Creator trader,
-    double amount,
-    double amountUSD,
-    int timestamp,
-    String side,
-    Addresses addresses,
-  });
+  $Res call({Creator creator, TradePosition position});
 
   @override
-  $CreatorCopyWith<$Res> get trader;
+  $CreatorCopyWith<$Res> get creator;
   @override
-  $AddressesCopyWith<$Res> get addresses;
+  $TradePositionCopyWith<$Res> get position;
 }
 
 /// @nodoc
@@ -169,40 +128,17 @@ class __$$LatestTradeImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? trader = null,
-    Object? amount = null,
-    Object? amountUSD = null,
-    Object? timestamp = null,
-    Object? side = null,
-    Object? addresses = null,
-  }) {
+  $Res call({Object? creator = null, Object? position = null}) {
     return _then(
       _$LatestTradeImpl(
-        trader: null == trader
-            ? _value.trader
-            : trader // ignore: cast_nullable_to_non_nullable
+        creator: null == creator
+            ? _value.creator
+            : creator // ignore: cast_nullable_to_non_nullable
                   as Creator,
-        amount: null == amount
-            ? _value.amount
-            : amount // ignore: cast_nullable_to_non_nullable
-                  as double,
-        amountUSD: null == amountUSD
-            ? _value.amountUSD
-            : amountUSD // ignore: cast_nullable_to_non_nullable
-                  as double,
-        timestamp: null == timestamp
-            ? _value.timestamp
-            : timestamp // ignore: cast_nullable_to_non_nullable
-                  as int,
-        side: null == side
-            ? _value.side
-            : side // ignore: cast_nullable_to_non_nullable
-                  as String,
-        addresses: null == addresses
-            ? _value.addresses
-            : addresses // ignore: cast_nullable_to_non_nullable
-                  as Addresses,
+        position: null == position
+            ? _value.position
+            : position // ignore: cast_nullable_to_non_nullable
+                  as TradePosition,
       ),
     );
   }
@@ -211,35 +147,19 @@ class __$$LatestTradeImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$LatestTradeImpl implements _LatestTrade {
-  const _$LatestTradeImpl({
-    required this.trader,
-    required this.amount,
-    required this.amountUSD,
-    required this.timestamp,
-    required this.side,
-    required this.addresses,
-  });
+  const _$LatestTradeImpl({required this.creator, required this.position});
 
   factory _$LatestTradeImpl.fromJson(Map<String, dynamic> json) =>
       _$$LatestTradeImplFromJson(json);
 
   @override
-  final Creator trader;
+  final Creator creator;
   @override
-  final double amount;
-  @override
-  final double amountUSD;
-  @override
-  final int timestamp;
-  @override
-  final String side;
-  // "buy" or "sell"
-  @override
-  final Addresses addresses;
+  final TradePosition position;
 
   @override
   String toString() {
-    return 'LatestTrade(trader: $trader, amount: $amount, amountUSD: $amountUSD, timestamp: $timestamp, side: $side, addresses: $addresses)';
+    return 'LatestTrade(creator: $creator, position: $position)';
   }
 
   @override
@@ -247,28 +167,14 @@ class _$LatestTradeImpl implements _LatestTrade {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$LatestTradeImpl &&
-            (identical(other.trader, trader) || other.trader == trader) &&
-            (identical(other.amount, amount) || other.amount == amount) &&
-            (identical(other.amountUSD, amountUSD) ||
-                other.amountUSD == amountUSD) &&
-            (identical(other.timestamp, timestamp) ||
-                other.timestamp == timestamp) &&
-            (identical(other.side, side) || other.side == side) &&
-            (identical(other.addresses, addresses) ||
-                other.addresses == addresses));
+            (identical(other.creator, creator) || other.creator == creator) &&
+            (identical(other.position, position) ||
+                other.position == position));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    trader,
-    amount,
-    amountUSD,
-    timestamp,
-    side,
-    addresses,
-  );
+  int get hashCode => Object.hash(runtimeType, creator, position);
 
   /// Create a copy of LatestTrade
   /// with the given fields replaced by the non-null parameter values.
@@ -286,29 +192,17 @@ class _$LatestTradeImpl implements _LatestTrade {
 
 abstract class _LatestTrade implements LatestTrade {
   const factory _LatestTrade({
-    required final Creator trader,
-    required final double amount,
-    required final double amountUSD,
-    required final int timestamp,
-    required final String side,
-    required final Addresses addresses,
+    required final Creator creator,
+    required final TradePosition position,
   }) = _$LatestTradeImpl;
 
   factory _LatestTrade.fromJson(Map<String, dynamic> json) =
       _$LatestTradeImpl.fromJson;
 
   @override
-  Creator get trader;
+  Creator get creator;
   @override
-  double get amount;
-  @override
-  double get amountUSD;
-  @override
-  int get timestamp;
-  @override
-  String get side; // "buy" or "sell"
-  @override
-  Addresses get addresses;
+  TradePosition get position;
 
   /// Create a copy of LatestTrade
   /// with the given fields replaced by the non-null parameter values.

@@ -1,11 +1,9 @@
-// SPDX-License-Identifier: ice License 1.0
-
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/communities/models/latest_trade.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class LatestTradesComponent extends StatelessWidget {
   const LatestTradesComponent({
@@ -13,13 +11,15 @@ class LatestTradesComponent extends StatelessWidget {
     this.maxVisible = 5,
     this.onViewAllPressed,
     this.onTapTrade,
+    this.onLoadMore,
     super.key,
   });
 
-  final List<LatestTradeViewData> trades;
+  final List<LatestTrade> trades;
   final int maxVisible;
   final VoidCallback? onViewAllPressed;
-  final ValueChanged<LatestTradeViewData>? onTapTrade;
+  final ValueChanged<LatestTrade>? onTapTrade;
+  final VoidCallback? onLoadMore;
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +72,18 @@ class LatestTradesComponent extends StatelessWidget {
                   ),
               ],
             ),
+            if (onLoadMore != null) ...[
+              SizedBox(height: 12.0.s),
+              Center(
+                child: TextButton(
+                  onPressed: onLoadMore,
+                  child: Text(
+                    'Load More',
+                    style: texts.caption.copyWith(color: colors.primaryAccent),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -81,8 +93,8 @@ class LatestTradesComponent extends StatelessWidget {
 
 class _TradeRow extends StatelessWidget {
   const _TradeRow({required this.trade, this.onTap});
-  final LatestTradeViewData trade;
-  final ValueChanged<LatestTradeViewData>? onTap;
+  final LatestTrade trade;
+  final ValueChanged<LatestTrade>? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -90,11 +102,16 @@ class _TradeRow extends StatelessWidget {
     final texts = context.theme.appTextThemes;
     final i18n = context.i18n;
 
-    final timeText = formatShortTimestamp(trade.time, context: context);
-    final amountText = formatDoubleCompact(trade.amount);
-    final usdText = formatUSD(trade.usd);
-    final badgeColor = trade.side == TradeSide.buy ? colors.success : colors.lossRed;
-    final badgeText = trade.side == TradeSide.buy ? i18n.trade_buy : i18n.trade_sell;
+    final position = trade.position;
+    final holder = position.holder;
+    final time = DateTime.parse(position.createdAt);
+    final isBuy = position.type == 'buy';
+
+    final timeText = formatShortTimestamp(time, context: context);
+    final amountText = formatDoubleCompact(position.amount);
+    final usdText = formatUSD(position.amountUSD);
+    final badgeColor = isBuy ? colors.success : colors.lossRed;
+    final badgeText = isBuy ? i18n.trade_buy : i18n.trade_sell;
 
     final badge = Container(
       padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 1.0.s),
@@ -115,12 +132,12 @@ class _TradeRow extends StatelessWidget {
           children: [
             Row(
               children: [
-                _Avatar(url: trade.avatarUrl),
+                _Avatar(url: holder.avatar),
                 SizedBox(width: 8.0.s),
                 _TitleAndMeta(
-                  name: trade.displayName,
-                  handle: trade.handle,
-                  verified: trade.verified,
+                  name: holder.display,
+                  handle: holder.name.isNotEmpty ? '@${holder.name}' : '',
+                  verified: holder.verified,
                   meta: '$amountText • \$$usdText • $timeText',
                 ),
               ],

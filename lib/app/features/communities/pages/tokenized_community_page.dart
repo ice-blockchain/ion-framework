@@ -7,8 +7,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/layouts/collapsing_header_tabs_layout.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/communities/models/latest_trade.dart';
-import 'package:ion/app/features/communities/models/top_holder.dart';
 import 'package:ion/app/features/communities/models/trading_stats_formatted.dart';
 import 'package:ion/app/features/communities/providers/token_latest_trades_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
@@ -264,12 +262,11 @@ class _TopHolders extends HookConsumerWidget {
 
     return holdersAsync.when(
       data: (holders) {
-        final holderViewData = holders.map<TopHolderViewData>(_mapToHolderViewData).toList();
-        if (holderViewData.isEmpty) {
+        if (holders.isEmpty) {
           return const SizedBox.shrink();
         }
         return TopHoldersComponent(
-          holders: holderViewData,
+          holders: holders,
           onViewAllPressed: () {},
         );
       },
@@ -277,39 +274,28 @@ class _TopHolders extends HookConsumerWidget {
       error: (_, __) => const SizedBox.shrink(),
     );
   }
-
-  TopHolderViewData _mapToHolderViewData(TopHolder holder) {
-    final profile = holder.position.holder;
-    final handle = profile.name.isNotEmpty ? '@${profile.name}' : '';
-
-    return TopHolderViewData(
-      displayName: profile.display,
-      handle: handle,
-      amount: holder.position.amount,
-      percentShare: holder.position.supplyShare,
-      avatarUrl: profile.avatar,
-    );
-  }
 }
 
 class _LatestTrades extends HookConsumerWidget {
   const _LatestTrades({required this.masterPubkey});
 
+  static const int limit = 5;
+
   final String masterPubkey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tradesAsync = ref.watch(tokenLatestTradesProvider(masterPubkey));
+    final tradesAsync = ref.watch(tokenLatestTradesProvider(masterPubkey, limit: limit));
 
     return tradesAsync.when(
       data: (trades) {
-        final tradesViewData = trades.map(LatestTradeViewData.fromLatestTrade).toList();
-        if (tradesViewData.isEmpty) {
+        if (trades.isEmpty) {
           return const SizedBox.shrink();
         }
         return LatestTradesComponent(
-          trades: tradesViewData,
+          trades: trades,
           onViewAllPressed: () {},
+          onLoadMore: () => ref.read(tokenLatestTradesProvider(masterPubkey).notifier).loadMore(),
         );
       },
       loading: () => const SizedBox.shrink(),
