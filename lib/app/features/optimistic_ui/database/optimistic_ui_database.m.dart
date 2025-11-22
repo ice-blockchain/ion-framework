@@ -24,6 +24,7 @@ OptimisticUiDatabase optimisticUiDatabase(Ref ref) {
   final database = OptimisticUiDatabase(pubkey);
 
   onLogout(ref, database.close);
+  onUserSwitch(ref, database.close);
 
   return database;
 }

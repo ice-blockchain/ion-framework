@@ -22,6 +22,7 @@ class CurrentUserBlockListNotifier extends _$CurrentUserBlockListNotifier {
   Future<List<BlockedUserEntity>> build() async {
     final keepAlive = ref.keepAlive();
     onLogout(ref, keepAlive.close);
+    onUserSwitch(ref, keepAlive.close);
 
     final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
     if (currentUserMasterPubkey == null) {
@@ -84,6 +85,7 @@ class IsBlockedNotifier extends _$IsBlockedNotifier {
   Future<bool> build(String masterPubkey) async {
     final keepAlive = ref.keepAlive();
     onLogout(ref, keepAlive.close);
+    onUserSwitch(ref, keepAlive.close);
 
     final blockedUser = ref.watch(blockedUserWatchProvider(masterPubkey)).valueOrNull;
 
@@ -97,6 +99,7 @@ class IsBlockedByNotifier extends _$IsBlockedByNotifier {
   Future<bool> build(String masterPubkey) async {
     final keepAlive = ref.keepAlive();
     onLogout(ref, keepAlive.close);
+    onUserSwitch(ref, keepAlive.close);
 
     final blockedByList = await ref.watch(currentUserBlockedByListNotifierProvider.future);
     return blockedByList.any((entity) => entity.masterPubkey == masterPubkey);

@@ -78,7 +78,8 @@ Future<void> initApp(Ref ref) async {
     ..listen(pushesInitProvider, noop)
     ..listen(globalSubscriptionProvider, (_, subscription) => subscription?.init())
     ..listen(accountNotificationsSyncProvider, noop)
-    ..listen(deepLinkHandlerProvider, noop);
+    ..listen(deepLinkHandlerProvider, noop)
+    ..listen(pubkeyChangeWithExistingUserProvider, noop);
 
   initFirebaseMessagingBackgroundHandler();
 

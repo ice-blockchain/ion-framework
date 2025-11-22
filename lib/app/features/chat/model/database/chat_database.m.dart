@@ -65,6 +65,7 @@ ChatDatabase chatDatabase(Ref ref) {
   final database = ChatDatabase(pubkey, appGroupId: appGroup);
 
   onLogout(ref, database.close);
+  onUserSwitch(ref, database.close);
 
   return database;
 }

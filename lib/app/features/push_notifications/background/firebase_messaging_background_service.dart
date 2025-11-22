@@ -112,6 +112,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final savedIdentityKeyName =
       await backgroundContainer.read(currentIdentityKeyNameStoreProvider.future);
 
+  // NOTE(ice-linus): Read from SharedPreferences directly to ensure consistency with iOS Notification Service Extension
+  // final savedIdentityKeyName = await sharedPreferencesFoundation
+  //     .getString(CurrentIdentityKeyNameStore.currentIdentityKeyNameKey);
+
   if (message.notification != null) {
     backgroundContainer.dispose();
     return;
