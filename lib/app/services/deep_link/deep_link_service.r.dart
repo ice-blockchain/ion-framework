@@ -13,6 +13,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/core/providers/init_provider.r.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -23,6 +24,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/router/providers/go_router_provider.r.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
@@ -59,18 +61,45 @@ SharedContentType mapEntityToSharedContentType(IonConnectEntity entity) {
 Future<void> deepLinkHandler(Ref ref) async {
   // used only first time when app is opened from closed state (cold start)
   final appLinks = AppLinks();
+  String? handledInitialLink;
+
   try {
     final initialLink = await appLinks.getInitialLinkString();
 
     if (initialLink != null) {
+      handledInitialLink = initialLink;
       final deepLinkService = ref.read(deepLinkServiceProvider);
-      // need to wait for splash animation to complete before navigating
-      final subscription = ref.listen(splashProvider, (prev, animationCompleted) {
-        if (animationCompleted) {
-          deepLinkService.resolveDeeplink(initialLink);
+      ref.read(splashProvider.notifier).animationCompleted = true;
+
+      final initApp = ref.read(initAppProvider);
+      if (initApp.isLoading) {
+        await ref.read(initAppProvider.future);
+      }
+
+      final router = ref.read(goRouterProvider);
+
+      final completer = Completer<void>();
+
+      void checkRouterState() {
+        if (!completer.isCompleted &&
+            !router.routerDelegate.currentConfiguration.uri
+                .toString()
+                .contains(SplashRoute().location)) {
+          completer.complete();
         }
-      });
-      ref.onDispose(subscription.close);
+      }
+
+      checkRouterState();
+
+      if (!completer.isCompleted) {
+        void listener() => checkRouterState();
+        router.routerDelegate.addListener(listener);
+
+        await completer.future;
+        router.routerDelegate.removeListener(listener);
+      }
+
+      deepLinkService.resolveDeeplink(initialLink);
     }
   } catch (e) {
     Logger.error('Error getting initial link: $e');
@@ -78,7 +107,11 @@ Future<void> deepLinkHandler(Ref ref) async {
 
   // iOS handles warm start on AppDelegate level via AppsFlyer SDK
   if (Platform.isAndroid) {
-    appLinks.stringLinkStream.listen(ref.read(deepLinkServiceProvider).resolveDeeplink);
+    appLinks.stringLinkStream.listen((link) {
+      if (link != handledInitialLink) {
+        ref.read(deepLinkServiceProvider).resolveDeeplink(link);
+      }
+    });
   }
 
   void closeOpenModalsIfNeeded() {
