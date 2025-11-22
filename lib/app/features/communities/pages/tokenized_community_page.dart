@@ -254,11 +254,13 @@ class _TokenStats extends HookConsumerWidget {
 class _TopHolders extends HookConsumerWidget {
   const _TopHolders({required this.masterPubkey});
 
+  static const int limit = 5;
+
   final String masterPubkey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final holdersAsync = ref.watch(tokenTopHoldersProvider(masterPubkey));
+    final holdersAsync = ref.watch(tokenTopHoldersProvider(masterPubkey, limit: limit));
 
     return holdersAsync.when(
       data: (holders) {

@@ -8,7 +8,7 @@ import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_can
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository_mock.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
@@ -33,11 +33,13 @@ class IonCommunityTokensService {
   final LatestTradesRepository _latestTradesRepository;
 
   static Future<IonCommunityTokensService> create({required NetworkClient networkClient}) async {
+    // Base URL doesn't matter for mock
+
     final service = IonCommunityTokensService._(
       tokenInfoRepository: TokenInfoRepositoryMock(networkClient),
       ohlcvCandlesRepository: OhlcvCandlesRepositoryMock(),
       tradingStatsRepository: TradingStatsRepositoryMock(),
-      topHoldersRepository: TopHoldersRepositoryMock(),
+      topHoldersRepository: TopHoldersRepositoryImpl(networkClient),
       latestTradesRepository: LatestTradesRepositoryMock(),
     );
     return service;
@@ -71,8 +73,9 @@ class IonCommunityTokensService {
 
   Future<NetworkSubscription<List<TopHolder>>> subscribeToTopHolders({
     required String ionConnectAddress,
+    required int limit,
   }) {
-    return _topHoldersRepository.subscribeToTopHolders(ionConnectAddress);
+    return _topHoldersRepository.subscribeToTopHolders(ionConnectAddress, limit: limit);
   }
 
   Future<NetworkSubscription<List<LatestTrade>>> subscribeToLatestTrades({

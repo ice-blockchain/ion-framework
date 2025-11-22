@@ -10,16 +10,16 @@ part 'token_top_holders_provider.r.g.dart';
 @riverpod
 Stream<List<analytics.TopHolder>> tokenTopHolders(
   Ref ref,
-  String masterPubkey,
-) async* {
+  String masterPubkey, {
+  required int limit,
+}) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
   final subscription = await client.communityTokens.subscribeToTopHolders(
     ionConnectAddress: masterPubkey,
+    limit: limit,
   );
 
-  try {
-    yield* subscription.stream;
-  } finally {
-    await subscription.close();
-  }
+  ref.onDispose(subscription.close);
+
+  yield* subscription.stream;
 }

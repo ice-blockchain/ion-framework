@@ -1712,6 +1712,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  ion_token_analytics:
+    dependency: "direct main"
+    description:
+      path: "packages/ion_token_analytics"
+      relative: true
+    source: path
+    version: "0.0.1"
   isolate_manager:
     dependency: "direct main"
     description:
@@ -3257,5 +3264,5 @@ packages:
     source: hosted
     version: "2.2.2"
 sdks:
-  dart: ">=3.9.0 <4.0.0"
+  dart: ">=3.9.2 <4.0.0"
   flutter: ">=3.35.3"
