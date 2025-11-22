@@ -3,6 +3,7 @@
 /// A Dart Library for ION Token Analytics client
 library ion_token_analytics;
 
+export 'src/community_tokens/category_tokens/models/models.dart';
 export 'src/community_tokens/latest_trades/models/models.dart';
 export 'src/community_tokens/ohlcv_candles/models/models.dart';
 export 'src/community_tokens/token_info/models/models.dart';

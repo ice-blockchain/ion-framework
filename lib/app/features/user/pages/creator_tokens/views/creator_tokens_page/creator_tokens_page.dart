@@ -8,6 +8,7 @@ import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.d
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/tabs_header/tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/communities/providers/featured_tokens_provider.r.dart';
 import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel.dart';
@@ -16,15 +17,14 @@ import 'package:ion/app/features/user/pages/profile_page/cant_find_profile_page.
 import 'package:ion/app/features/user/pages/profile_page/components/header/header.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/pages/profile_page/profile_skeleton.dart';
-import 'package:ion/app/features/communities/providers/featured_tokens_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class CreatorTokensPage extends HookConsumerWidget {
   const CreatorTokensPage({
@@ -74,7 +74,6 @@ class CreatorTokensPage extends HookConsumerWidget {
     // Create stable identifier for the list (to avoid unnecessary useEffect triggers)
     final tokensIdentifier = featuredTokens.map((t) => t.addresses.ionConnect).join(',');
 
-    // Initialize with first carousel item if available
     final initialToken = featuredTokens.isNotEmpty ? featuredTokens.first : null;
     final selectedToken = useState<CommunityToken?>(initialToken);
 

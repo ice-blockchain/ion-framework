@@ -93,4 +93,34 @@ class TradingStatsMockHandler {
 
     return updated;
   }
+
+  @override
+  Future<NetworkSubscription<Map<String, TradingStats>>> subscribeToTradingStats(
+    String ionConnectAddress,
+  ) async {
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+
+    final controller = StreamController<Map<String, TradingStats>>();
+    Timer? timer;
+
+    // 1) Initial snapshot (like backend)
+    var snapshot = _generateSnapshot();
+    controller.add(snapshot);
+
+    // 2) Streaming updates every 2 seconds
+    timer = Timer.periodic(const Duration(seconds: 2), (_) {
+      snapshot = _updateRandom(snapshot);
+      if (!controller.isClosed) {
+        controller.add(snapshot);
+      }
+    });
+
+    return NetworkSubscription(
+      stream: controller.stream,
+      close: () async {
+        timer?.cancel();
+        await controller.close();
+      },
+    );
+  }
 }
