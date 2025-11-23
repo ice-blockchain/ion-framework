@@ -36,5 +36,6 @@ class TradePositionPatch with _$TradePositionPatch {
     double? balanceUSD,
   }) = _TradePositionPatch;
 
-  factory TradePositionPatch.fromJson(Map<String, dynamic> json) => _$TradePositionPatchFromJson(json);
+  factory TradePositionPatch.fromJson(Map<String, dynamic> json) =>
+      _$TradePositionPatchFromJson(json);
 }

@@ -20,8 +20,13 @@ class Creator with _$Creator implements CreatorPatch {
 
 @Freezed(copyWith: false)
 class CreatorPatch with _$CreatorPatch {
-  const factory CreatorPatch({String? name, String? display, bool? verified, String? avatar, String? ionConnect}) =
-      _CreatorPatch;
+  const factory CreatorPatch({
+    String? name,
+    String? display,
+    bool? verified,
+    String? avatar,
+    String? ionConnect,
+  }) = _CreatorPatch;
 
   factory CreatorPatch.fromJson(Map<String, dynamic> json) => _$CreatorPatchFromJson(json);
 }

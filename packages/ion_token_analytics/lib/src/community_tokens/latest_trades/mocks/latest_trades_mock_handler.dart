@@ -68,7 +68,9 @@ class LatestTradesMockHandler {
             blockchain: '0x${_random.nextInt(0xFFFFFFFF).toRadixString(16)}',
             ionConnect: 'trader-${index + 1}',
           ),
-          createdAt: DateTime.fromMillisecondsSinceEpoch(now - (minutesAgo * 60 * 1000)).toIso8601String(),
+          createdAt: DateTime.fromMillisecondsSinceEpoch(
+            now - (minutesAgo * 60 * 1000),
+          ).toIso8601String(),
           type: side,
           amount: 100.0 + _random.nextDouble() * 1000.0,
           amountUSD: 5.0 + _random.nextDouble() * 500.0,

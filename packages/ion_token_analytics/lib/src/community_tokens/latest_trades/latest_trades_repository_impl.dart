@@ -12,7 +12,11 @@ class LatestTradesRepositoryImpl implements LatestTradesRepository {
   final NetworkClient _client;
 
   @override
-  Future<List<LatestTrade>> fetchLatestTrades(String ionConnectAddress, {int limit = 10, int offset = 0}) async {
+  Future<List<LatestTrade>> fetchLatestTrades(
+    String ionConnectAddress, {
+    int limit = 10,
+    int offset = 0,
+  }) async {
     final response = await _client.get<List<dynamic>>(
       '/community-tokens/$ionConnectAddress/latest-trades',
       queryParameters: {'limit': limit, 'offset': offset},
@@ -22,7 +26,9 @@ class LatestTradesRepositoryImpl implements LatestTradesRepository {
   }
 
   @override
-  Future<NetworkSubscription<LatestTradePatch>> subscribeToLatestTrades(String ionConnectAddress) async {
+  Future<NetworkSubscription<LatestTradePatch>> subscribeToLatestTrades(
+    String ionConnectAddress,
+  ) async {
     final subscription = await _client.subscribe<Map<String, dynamic>>(
       '/community-tokens/$ionConnectAddress/latest-trades',
     );

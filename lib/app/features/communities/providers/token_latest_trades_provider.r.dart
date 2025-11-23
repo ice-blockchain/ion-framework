@@ -51,7 +51,8 @@ class TokenLatestTrades extends _$TokenLatestTrades {
       if (existIndex >= 0) {
         final existTrade = _currentTrades[existIndex];
         final existTradeJson = existTrade.toJson();
-        final patchedTrade = analytics.LatestTrade.fromJson(existTradeJson..addAll(newTrade.toJson()));
+        final patchedTrade =
+            analytics.LatestTrade.fromJson(existTradeJson..addAll(newTrade.toJson()));
 
         _currentTrades = List.of(_currentTrades);
         _currentTrades[existIndex] = patchedTrade;

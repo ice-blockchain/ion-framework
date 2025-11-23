@@ -80,7 +80,10 @@ class TopHoldersMockHandler {
         amount: 10_000_000.0 - rank * 100_000,
         amountUSD: 500.0 + (rank * 12),
         supplyShare: (12 - rank) * 1.17,
-        addresses: Addresses(blockchain: '0x1234567890abcdef$rank', ionConnect: 'new-king-${_random.nextInt(10000)}'),
+        addresses: Addresses(
+          blockchain: '0x1234567890abcdef$rank',
+          ionConnect: 'new-king-${_random.nextInt(10000)}',
+        ),
       ),
     );
   }
@@ -90,7 +93,9 @@ class TopHoldersMockHandler {
       // Update existing
       final target = currentPool[_random.nextInt(currentPool.length)];
       return target.copyWith(
-        position: target.position.copyWith(amount: target.position.amount + (_random.nextDouble() * 1000)),
+        position: target.position.copyWith(
+          amount: target.position.amount + (_random.nextDouble() * 1000),
+        ),
       );
     } else {
       // New Rank 1 (Shift)

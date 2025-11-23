@@ -19,7 +19,8 @@ class TopHolderPosition with _$TopHolderPosition implements TopHolderPositionPat
     required Addresses addresses,
   }) = _TopHolderPosition;
 
-  factory TopHolderPosition.fromJson(Map<String, dynamic> json) => _$TopHolderPositionFromJson(json);
+  factory TopHolderPosition.fromJson(Map<String, dynamic> json) =>
+      _$TopHolderPositionFromJson(json);
 }
 
 @Freezed(copyWith: false)
@@ -34,5 +35,6 @@ class TopHolderPositionPatch with _$TopHolderPositionPatch {
     AddressesPatch? addresses,
   }) = _TopHolderPositionPatch;
 
-  factory TopHolderPositionPatch.fromJson(Map<String, dynamic> json) => _$TopHolderPositionPatchFromJson(json);
+  factory TopHolderPositionPatch.fromJson(Map<String, dynamic> json) =>
+      _$TopHolderPositionPatchFromJson(json);
 }
