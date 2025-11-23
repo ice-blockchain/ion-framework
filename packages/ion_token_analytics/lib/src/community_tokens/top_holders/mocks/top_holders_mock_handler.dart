@@ -80,7 +80,7 @@ class TopHoldersMockHandler {
         amount: 10_000_000.0 - rank * 100_000,
         amountUSD: 500.0 + (rank * 12),
         supplyShare: (12 - rank) * 1.17,
-        addresses: Addresses(blockchain: '0x1234567890abcdef$rank', ionConnect: 'address-$rank'),
+        addresses: Addresses(blockchain: '0x1234567890abcdef$rank', ionConnect: 'new-king-${_random.nextInt(10000)}'),
       ),
     );
   }
@@ -90,9 +90,7 @@ class TopHoldersMockHandler {
       // Update existing
       final target = currentPool[_random.nextInt(currentPool.length)];
       return target.copyWith(
-        position: target.position.copyWith(
-          amount: target.position.amount + (_random.nextDouble() * 1000),
-        ),
+        position: target.position.copyWith(amount: target.position.amount + (_random.nextDouble() * 1000)),
       );
     } else {
       // New Rank 1 (Shift)
@@ -103,7 +101,7 @@ class TopHoldersMockHandler {
             display: 'New King ${_random.nextInt(100)}',
             verified: true,
             avatar: 'https://i.pravatar.cc/150?img=${_random.nextInt(50)}',
-            ionConnect: 'new-king-${_random.nextInt(1000)}',
+            ionConnect: 'new-king-${_random.nextInt(10000)}',
           ),
           rank: 1,
           amount: 20_000_000,

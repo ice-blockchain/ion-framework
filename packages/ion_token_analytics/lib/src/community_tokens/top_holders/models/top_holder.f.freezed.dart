@@ -209,3 +209,69 @@ abstract class _TopHolder implements TopHolder {
   _$$TopHolderImplCopyWith<_$TopHolderImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+TopHolderPatch _$TopHolderPatchFromJson(Map<String, dynamic> json) {
+  return _TopHolderPatch.fromJson(json);
+}
+
+/// @nodoc
+mixin _$TopHolderPatch {
+  CreatorPatch? get creator => throw _privateConstructorUsedError;
+  TopHolderPositionPatch? get position => throw _privateConstructorUsedError;
+
+  /// Serializes this TopHolderPatch to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$TopHolderPatchImpl implements _TopHolderPatch {
+  const _$TopHolderPatchImpl({this.creator, this.position});
+
+  factory _$TopHolderPatchImpl.fromJson(Map<String, dynamic> json) =>
+      _$$TopHolderPatchImplFromJson(json);
+
+  @override
+  final CreatorPatch? creator;
+  @override
+  final TopHolderPositionPatch? position;
+
+  @override
+  String toString() {
+    return 'TopHolderPatch(creator: $creator, position: $position)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$TopHolderPatchImpl &&
+            (identical(other.creator, creator) || other.creator == creator) &&
+            (identical(other.position, position) ||
+                other.position == position));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, creator, position);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$TopHolderPatchImplToJson(this);
+  }
+}
+
+abstract class _TopHolderPatch implements TopHolderPatch {
+  const factory _TopHolderPatch({
+    final CreatorPatch? creator,
+    final TopHolderPositionPatch? position,
+  }) = _$TopHolderPatchImpl;
+
+  factory _TopHolderPatch.fromJson(Map<String, dynamic> json) =
+      _$TopHolderPatchImpl.fromJson;
+
+  @override
+  CreatorPatch? get creator;
+  @override
+  TopHolderPositionPatch? get position;
+}

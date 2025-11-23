@@ -8,7 +8,7 @@ part 'top_holder_position.f.freezed.dart';
 part 'top_holder_position.f.g.dart';
 
 @freezed
-class TopHolderPosition with _$TopHolderPosition {
+class TopHolderPosition with _$TopHolderPosition implements TopHolderPositionPatch {
   const factory TopHolderPosition({
     required Creator holder,
     required String type,
@@ -19,6 +19,20 @@ class TopHolderPosition with _$TopHolderPosition {
     required Addresses addresses,
   }) = _TopHolderPosition;
 
-  factory TopHolderPosition.fromJson(Map<String, dynamic> json) =>
-      _$TopHolderPositionFromJson(json);
+  factory TopHolderPosition.fromJson(Map<String, dynamic> json) => _$TopHolderPositionFromJson(json);
+}
+
+@Freezed(copyWith: false)
+class TopHolderPositionPatch with _$TopHolderPositionPatch {
+  const factory TopHolderPositionPatch({
+    CreatorPatch? holder,
+    String? type,
+    int? rank,
+    double? amount,
+    double? amountUSD,
+    double? supplyShare,
+    AddressesPatch? addresses,
+  }) = _TopHolderPositionPatch;
+
+  factory TopHolderPositionPatch.fromJson(Map<String, dynamic> json) => _$TopHolderPositionPatchFromJson(json);
 }

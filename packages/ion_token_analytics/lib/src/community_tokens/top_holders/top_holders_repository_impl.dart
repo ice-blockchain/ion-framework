@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_stream_transformer.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class TopHoldersRepositoryImpl implements TopHoldersRepository {
@@ -13,19 +12,26 @@ class TopHoldersRepositoryImpl implements TopHoldersRepository {
   final NetworkClient _client;
 
   @override
-  Future<NetworkSubscription<List<TopHolder>>> subscribeToTopHolders(
+  Future<NetworkSubscription<TopHolderPatch>> subscribeToTopHolders(
     String ionConnectAddress, {
     required int limit,
   }) async {
     // Subscribe to the raw event stream
-    final subscription = await _client.subscribe<dynamic>(
+    final subscription = await _client.subscribe<Map<String, dynamic>>(
       '/community-tokens/$ionConnectAddress/top-holders',
       queryParameters: {'limit': limit},
     );
 
-    // Transform the stream using our logic
-    final transformedStream = subscription.stream.transform(TopHoldersStreamTransformer(limit));
+    final stream = subscription.stream.map((json) {
+      try {
+        final data = TopHolder.fromJson(json);
+        return data;
+      } catch (_) {
+        final patch = TopHolderPatch.fromJson(json);
+        return patch;
+      }
+    });
 
-    return NetworkSubscription(stream: transformedStream, close: subscription.close);
+    return NetworkSubscription(stream: stream, close: subscription.close);
   }
 }

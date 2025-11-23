@@ -4,7 +4,7 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
 abstract class TopHoldersRepository {
-  Future<NetworkSubscription<List<TopHolder>>> subscribeToTopHolders(
+  Future<NetworkSubscription<TopHolderPatch>> subscribeToTopHolders(
     String ionConnectAddress, {
     required int limit,
   });

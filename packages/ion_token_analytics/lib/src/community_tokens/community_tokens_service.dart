@@ -64,7 +64,7 @@ class IonCommunityTokensService {
     return _tradingStatsRepository.subscribeToTradingStats(ionConnectAddress);
   }
 
-  Future<NetworkSubscription<List<TopHolder>>> subscribeToTopHolders({
+  Future<NetworkSubscription<TopHolderPatch>> subscribeToTopHolders({
     required String ionConnectAddress,
     required int limit,
   }) {

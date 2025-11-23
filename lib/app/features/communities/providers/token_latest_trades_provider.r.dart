@@ -48,11 +48,10 @@ class TokenLatestTrades extends _$TokenLatestTrades {
 
     // Listen to updates and prepend them
     subscription.stream.listen((newTrade) {
-      if (newTrade.position == null || newTrade.creator == null) return;
       final existIndex = state.valueOrNull?.indexWhere(
             (element) =>
-                element.position.createdAt == newTrade.position!.createdAt &&
-                element.position.addresses.ionConnect == newTrade.position!.addresses.ionConnect,
+                element.position.createdAt == newTrade.position?.createdAt &&
+                element.position.addresses.ionConnect == newTrade.position?.addresses?.ionConnect,
           ) ??
           -1;
 

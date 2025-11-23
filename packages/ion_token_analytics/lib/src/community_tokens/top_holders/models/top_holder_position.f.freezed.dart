@@ -340,3 +340,125 @@ abstract class _TopHolderPosition implements TopHolderPosition {
   _$$TopHolderPositionImplCopyWith<_$TopHolderPositionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+TopHolderPositionPatch _$TopHolderPositionPatchFromJson(
+  Map<String, dynamic> json,
+) {
+  return _TopHolderPositionPatch.fromJson(json);
+}
+
+/// @nodoc
+mixin _$TopHolderPositionPatch {
+  CreatorPatch? get holder => throw _privateConstructorUsedError;
+  String? get type => throw _privateConstructorUsedError;
+  int? get rank => throw _privateConstructorUsedError;
+  double? get amount => throw _privateConstructorUsedError;
+  double? get amountUSD => throw _privateConstructorUsedError;
+  double? get supplyShare => throw _privateConstructorUsedError;
+  AddressesPatch? get addresses => throw _privateConstructorUsedError;
+
+  /// Serializes this TopHolderPositionPatch to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$TopHolderPositionPatchImpl implements _TopHolderPositionPatch {
+  const _$TopHolderPositionPatchImpl({
+    this.holder,
+    this.type,
+    this.rank,
+    this.amount,
+    this.amountUSD,
+    this.supplyShare,
+    this.addresses,
+  });
+
+  factory _$TopHolderPositionPatchImpl.fromJson(Map<String, dynamic> json) =>
+      _$$TopHolderPositionPatchImplFromJson(json);
+
+  @override
+  final CreatorPatch? holder;
+  @override
+  final String? type;
+  @override
+  final int? rank;
+  @override
+  final double? amount;
+  @override
+  final double? amountUSD;
+  @override
+  final double? supplyShare;
+  @override
+  final AddressesPatch? addresses;
+
+  @override
+  String toString() {
+    return 'TopHolderPositionPatch(holder: $holder, type: $type, rank: $rank, amount: $amount, amountUSD: $amountUSD, supplyShare: $supplyShare, addresses: $addresses)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$TopHolderPositionPatchImpl &&
+            (identical(other.holder, holder) || other.holder == holder) &&
+            (identical(other.type, type) || other.type == type) &&
+            (identical(other.rank, rank) || other.rank == rank) &&
+            (identical(other.amount, amount) || other.amount == amount) &&
+            (identical(other.amountUSD, amountUSD) ||
+                other.amountUSD == amountUSD) &&
+            (identical(other.supplyShare, supplyShare) ||
+                other.supplyShare == supplyShare) &&
+            (identical(other.addresses, addresses) ||
+                other.addresses == addresses));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    holder,
+    type,
+    rank,
+    amount,
+    amountUSD,
+    supplyShare,
+    addresses,
+  );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$TopHolderPositionPatchImplToJson(this);
+  }
+}
+
+abstract class _TopHolderPositionPatch implements TopHolderPositionPatch {
+  const factory _TopHolderPositionPatch({
+    final CreatorPatch? holder,
+    final String? type,
+    final int? rank,
+    final double? amount,
+    final double? amountUSD,
+    final double? supplyShare,
+    final AddressesPatch? addresses,
+  }) = _$TopHolderPositionPatchImpl;
+
+  factory _TopHolderPositionPatch.fromJson(Map<String, dynamic> json) =
+      _$TopHolderPositionPatchImpl.fromJson;
+
+  @override
+  CreatorPatch? get holder;
+  @override
+  String? get type;
+  @override
+  int? get rank;
+  @override
+  double? get amount;
+  @override
+  double? get amountUSD;
+  @override
+  double? get supplyShare;
+  @override
+  AddressesPatch? get addresses;
+}
