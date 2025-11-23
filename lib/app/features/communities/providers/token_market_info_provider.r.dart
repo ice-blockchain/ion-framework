@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -10,16 +11,29 @@ part 'token_market_info_provider.r.g.dart';
 @riverpod
 Stream<CommunityToken?> tokenMarketInfo(Ref ref, String masterPubkey) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
+
+  // 1. Fetch initial data via REST
+  final currentToken = (await client.communityTokens.getTokenInfo([masterPubkey]))
+      //TODO: remove this when we integrate token info endpoint in BE
+      // .where((token) => token.addresses.ionConnect == masterPubkey)
+      .firstOrNull;
+  yield currentToken;
+
+  // 2. Subscribe to real-time updates
   final subscription = await client.communityTokens.subscribeToTokenInfo([masterPubkey]);
 
   try {
-    await for (final tokens in subscription.stream) {
-      // The API returns a list, but we're subscribing to a single address
-      // so we should get either 0 or 1 token
-      if (tokens.isNotEmpty) {
-        yield tokens.first;
-      } else {
-        yield null;
+    await for (final patches in subscription.stream) {
+      for (final patch in patches) {
+        //TODO: remove this when we integrate token info endpoint in BE
+        // if (patch.addresses?.ionConnect == masterPubkey) {
+        if (currentToken == null) {
+          yield patch as CommunityToken;
+        } else {
+          final currentTokenJson = currentToken.toJson()..addAll(patch.toJson());
+          yield CommunityToken.fromJson(currentTokenJson);
+        }
+        // }
       }
     }
   } finally {

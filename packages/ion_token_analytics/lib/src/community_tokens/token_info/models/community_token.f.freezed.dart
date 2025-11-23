@@ -354,3 +354,124 @@ abstract class _CommunityToken implements CommunityToken {
   _$$CommunityTokenImplCopyWith<_$CommunityTokenImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+CommunityTokenPatch _$CommunityTokenPatchFromJson(Map<String, dynamic> json) {
+  return _CommunityTokenPatch.fromJson(json);
+}
+
+/// @nodoc
+mixin _$CommunityTokenPatch {
+  String? get type => throw _privateConstructorUsedError;
+  String? get title => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
+  String? get imageUrl => throw _privateConstructorUsedError;
+  AddressesPatch? get addresses => throw _privateConstructorUsedError;
+  CreatorPatch? get creator => throw _privateConstructorUsedError;
+  MarketDataPatch? get marketData => throw _privateConstructorUsedError;
+
+  /// Serializes this CommunityTokenPatch to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$CommunityTokenPatchImpl implements _CommunityTokenPatch {
+  const _$CommunityTokenPatchImpl({
+    this.type,
+    this.title,
+    this.description,
+    this.imageUrl,
+    this.addresses,
+    this.creator,
+    this.marketData,
+  });
+
+  factory _$CommunityTokenPatchImpl.fromJson(Map<String, dynamic> json) =>
+      _$$CommunityTokenPatchImplFromJson(json);
+
+  @override
+  final String? type;
+  @override
+  final String? title;
+  @override
+  final String? description;
+  @override
+  final String? imageUrl;
+  @override
+  final AddressesPatch? addresses;
+  @override
+  final CreatorPatch? creator;
+  @override
+  final MarketDataPatch? marketData;
+
+  @override
+  String toString() {
+    return 'CommunityTokenPatch(type: $type, title: $title, description: $description, imageUrl: $imageUrl, addresses: $addresses, creator: $creator, marketData: $marketData)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$CommunityTokenPatchImpl &&
+            (identical(other.type, type) || other.type == type) &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
+            (identical(other.addresses, addresses) ||
+                other.addresses == addresses) &&
+            (identical(other.creator, creator) || other.creator == creator) &&
+            (identical(other.marketData, marketData) ||
+                other.marketData == marketData));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    type,
+    title,
+    description,
+    imageUrl,
+    addresses,
+    creator,
+    marketData,
+  );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$CommunityTokenPatchImplToJson(this);
+  }
+}
+
+abstract class _CommunityTokenPatch implements CommunityTokenPatch {
+  const factory _CommunityTokenPatch({
+    final String? type,
+    final String? title,
+    final String? description,
+    final String? imageUrl,
+    final AddressesPatch? addresses,
+    final CreatorPatch? creator,
+    final MarketDataPatch? marketData,
+  }) = _$CommunityTokenPatchImpl;
+
+  factory _CommunityTokenPatch.fromJson(Map<String, dynamic> json) =
+      _$CommunityTokenPatchImpl.fromJson;
+
+  @override
+  String? get type;
+  @override
+  String? get title;
+  @override
+  String? get description;
+  @override
+  String? get imageUrl;
+  @override
+  AddressesPatch? get addresses;
+  @override
+  CreatorPatch? get creator;
+  @override
+  MarketDataPatch? get marketData;
+}

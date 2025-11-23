@@ -8,7 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'token_olhcv_candles_provider.r.g.dart';
 
 @riverpod
-Stream<OhlcvCandle> tokenOhlcvCandles(
+Stream<List<OhlcvCandle>> tokenOhlcvCandles(
   Ref ref,
   String ionConnectAddress,
   String interval,
@@ -19,8 +19,13 @@ Stream<OhlcvCandle> tokenOhlcvCandles(
     interval: interval,
   );
 
+  final currentCandles = <OhlcvCandle>[];
+
   try {
-    yield* subscription.stream;
+    await for (final candle in subscription.stream) {
+      currentCandles.add(candle);
+      yield currentCandles;
+    }
   } finally {
     await subscription.close();
   }

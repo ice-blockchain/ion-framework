@@ -15,14 +15,15 @@ class OhlcvCandlesRepositoryImpl implements OhlcvCandlesRepository {
     required String interval,
   }) async {
     // Subscribe to raw stream (dynamic)
-    final rawSubscription = await _client.subscribe<dynamic>(
+    final subscription = await _client.subscribe<Map<String, dynamic>>(
       '/community-tokens/$ionConnectAddress/ohlcv',
       queryParameters: {'interval': interval},
     );
+    final stream = subscription.stream.map((json) {
+      final data = OhlcvCandle.fromJson(json);
+      return data;
+    });
 
-    // Apply transformer
-    final transformedStream = rawSubscription.stream.map((event) => event as OhlcvCandle);
-
-    return NetworkSubscription(stream: transformedStream, close: rawSubscription.close);
+    return NetworkSubscription(stream: stream, close: subscription.close);
   }
 }

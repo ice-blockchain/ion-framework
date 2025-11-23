@@ -258,3 +258,98 @@ abstract class _Position implements Position {
   _$$PositionImplCopyWith<_$PositionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+PositionPatch _$PositionPatchFromJson(Map<String, dynamic> json) {
+  return _PositionPatch.fromJson(json);
+}
+
+/// @nodoc
+mixin _$PositionPatch {
+  int? get rank => throw _privateConstructorUsedError;
+  double? get amount => throw _privateConstructorUsedError;
+  double? get amountUSD => throw _privateConstructorUsedError;
+  double? get pnl => throw _privateConstructorUsedError;
+  double? get pnlPercentage => throw _privateConstructorUsedError;
+
+  /// Serializes this PositionPatch to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$PositionPatchImpl implements _PositionPatch {
+  const _$PositionPatchImpl({
+    this.rank,
+    this.amount,
+    this.amountUSD,
+    this.pnl,
+    this.pnlPercentage,
+  });
+
+  factory _$PositionPatchImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PositionPatchImplFromJson(json);
+
+  @override
+  final int? rank;
+  @override
+  final double? amount;
+  @override
+  final double? amountUSD;
+  @override
+  final double? pnl;
+  @override
+  final double? pnlPercentage;
+
+  @override
+  String toString() {
+    return 'PositionPatch(rank: $rank, amount: $amount, amountUSD: $amountUSD, pnl: $pnl, pnlPercentage: $pnlPercentage)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PositionPatchImpl &&
+            (identical(other.rank, rank) || other.rank == rank) &&
+            (identical(other.amount, amount) || other.amount == amount) &&
+            (identical(other.amountUSD, amountUSD) ||
+                other.amountUSD == amountUSD) &&
+            (identical(other.pnl, pnl) || other.pnl == pnl) &&
+            (identical(other.pnlPercentage, pnlPercentage) ||
+                other.pnlPercentage == pnlPercentage));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, rank, amount, amountUSD, pnl, pnlPercentage);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$PositionPatchImplToJson(this);
+  }
+}
+
+abstract class _PositionPatch implements PositionPatch {
+  const factory _PositionPatch({
+    final int? rank,
+    final double? amount,
+    final double? amountUSD,
+    final double? pnl,
+    final double? pnlPercentage,
+  }) = _$PositionPatchImpl;
+
+  factory _PositionPatch.fromJson(Map<String, dynamic> json) =
+      _$PositionPatchImpl.fromJson;
+
+  @override
+  int? get rank;
+  @override
+  double? get amount;
+  @override
+  double? get amountUSD;
+  @override
+  double? get pnl;
+  @override
+  double? get pnlPercentage;
+}

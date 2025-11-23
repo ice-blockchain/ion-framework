@@ -20,3 +20,18 @@ class CommunityToken with _$CommunityToken {
 
   factory CommunityToken.fromJson(Map<String, dynamic> json) => _$CommunityTokenFromJson(json);
 }
+
+@Freezed(copyWith: false)
+class CommunityTokenPatch with _$CommunityTokenPatch {
+  const factory CommunityTokenPatch({
+    String? type,
+    String? title,
+    String? description,
+    String? imageUrl,
+    AddressesPatch? addresses,
+    CreatorPatch? creator,
+    MarketDataPatch? marketData,
+  }) = _CommunityTokenPatch;
+
+  factory CommunityTokenPatch.fromJson(Map<String, dynamic> json) => _$CommunityTokenPatchFromJson(json);
+}

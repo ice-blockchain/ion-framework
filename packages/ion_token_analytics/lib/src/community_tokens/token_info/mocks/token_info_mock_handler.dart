@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/models.dart';
-import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
-class TokenInfoRepositoryMock implements TokenInfoRepository {
-  TokenInfoRepositoryMock(this.client);
-
-  final NetworkClient client;
+class TokenInfoMockHandler {
   static final _random = Random();
 
   static List<CommunityToken> get _mockTokens => [
@@ -18,10 +15,7 @@ class TokenInfoRepositoryMock implements TokenInfoRepository {
       title: 'Mock Community Token',
       description: 'A mock community token for testing and development',
       imageUrl: 'https://i.pravatar.cc/150?img=10',
-      addresses: const Addresses(
-        blockchain: '0x1234567890abcdef',
-        ionConnect: 'mock_ion_address_1',
-      ),
+      addresses: const Addresses(blockchain: '0x1234567890abcdef', ionConnect: 'mock_ion_address_1'),
       creator: const Creator(
         name: 'mockCreator',
         display: 'Mock Creator',
@@ -41,10 +35,7 @@ class TokenInfoRepositoryMock implements TokenInfoRepository {
       title: 'Test Token 2',
       description: 'Another test token with different market data',
       imageUrl: 'https://i.pravatar.cc/150?img=20',
-      addresses: const Addresses(
-        blockchain: '0xfedcba0987654321',
-        ionConnect: 'mock_ion_address_2',
-      ),
+      addresses: const Addresses(blockchain: '0xfedcba0987654321', ionConnect: 'mock_ion_address_2'),
       creator: const Creator(
         name: 'testCreator',
         display: 'Test Creator',
@@ -64,10 +55,7 @@ class TokenInfoRepositoryMock implements TokenInfoRepository {
       title: 'Dev Token',
       description: 'Development token for local testing',
       imageUrl: 'https://i.pravatar.cc/150?img=30',
-      addresses: const Addresses(
-        blockchain: '0xabcd1234efgh5678',
-        ionConnect: 'mock_ion_address_3',
-      ),
+      addresses: const Addresses(blockchain: '0xabcd1234efgh5678', ionConnect: 'mock_ion_address_3'),
       creator: const Creator(
         name: 'devCreator',
         display: 'Dev Creator',
@@ -84,23 +72,18 @@ class TokenInfoRepositoryMock implements TokenInfoRepository {
     ),
   ];
 
-  @override
-  Future<List<CommunityToken>> getTokenInfo(List<String> ionConnectAddresses) async {
+  Future<T> handleGet<T>() async {
     await Future<void>.delayed(const Duration(milliseconds: 100));
-
-    if (_mockTokens.isEmpty) {
-      return [];
-    }
-
-    return _mockTokens;
+    return _mockTokens.map((e) => e.toJson()).toList() as T;
   }
 
-  @override
-  Future<NetworkSubscription<List<CommunityToken>>> subscribeToTokenInfo(
-    List<String> ionConnectAddresses,
-  ) async {
-    final stream = Stream.periodic(const Duration(seconds: 1), (_) => _mockTokens);
+  Future<NetworkSubscription<T>> handleSubscription<T>() async {
+    final stream = Stream.periodic(const Duration(seconds: 1), (_) {
+      // For mock purposes, we can just return the full object as a patch
+      // In a real scenario, this would be a partial update
+      return _mockTokens.map((e) => e.toJson()).toList() as T;
+    });
 
-    return NetworkSubscription<List<CommunityToken>>(stream: stream, close: () async {});
+    return NetworkSubscription(stream: stream, close: () async {});
   }
 }

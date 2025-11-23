@@ -184,7 +184,9 @@ class _TokenChart extends HookConsumerWidget {
           onRangeChanged: (range) => selectedRange.value = range,
         );
       },
-      error: (error, stackTrace) => const SizedBox.shrink(),
+      error: (error, stackTrace) {
+        return const SizedBox.shrink();
+      },
       loading: () => const SizedBox.shrink(),
     );
   }

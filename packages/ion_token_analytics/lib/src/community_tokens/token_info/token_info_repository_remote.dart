@@ -20,21 +20,16 @@ class TokenInfoRepositoryRemote implements TokenInfoRepository {
   }
 
   @override
-  Future<NetworkSubscription<List<CommunityToken>>> subscribeToTokenInfo(
-    List<String> ionConnectAddresses,
-  ) async {
+  Future<NetworkSubscription<List<CommunityTokenPatch>>> subscribeToTokenInfo(List<String> ionConnectAddresses) async {
     final subscription = await client.subscribe<List<dynamic>>(
       '/v1/community-tokens',
       queryParameters: {'ionConnectAddresses': ionConnectAddresses},
     );
 
     final tokenStream = subscription.stream.map(
-      (data) => data.map((json) => CommunityToken.fromJson(json as Map<String, dynamic>)).toList(),
+      (data) => data.map((json) => CommunityTokenPatch.fromJson(json as Map<String, dynamic>)).toList(),
     );
 
-    return NetworkSubscription<List<CommunityToken>>(
-      stream: tokenStream,
-      close: subscription.close,
-    );
+    return NetworkSubscription<List<CommunityTokenPatch>>(stream: tokenStream, close: subscription.close);
   }
 }

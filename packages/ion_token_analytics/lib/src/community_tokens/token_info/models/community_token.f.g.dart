@@ -30,3 +30,33 @@ Map<String, dynamic> _$$CommunityTokenImplToJson(
   'creator': instance.creator.toJson(),
   'marketData': instance.marketData.toJson(),
 };
+
+_$CommunityTokenPatchImpl _$$CommunityTokenPatchImplFromJson(
+  Map<String, dynamic> json,
+) => _$CommunityTokenPatchImpl(
+  type: json['type'] as String?,
+  title: json['title'] as String?,
+  description: json['description'] as String?,
+  imageUrl: json['imageUrl'] as String?,
+  addresses: json['addresses'] == null
+      ? null
+      : AddressesPatch.fromJson(json['addresses'] as Map<String, dynamic>),
+  creator: json['creator'] == null
+      ? null
+      : CreatorPatch.fromJson(json['creator'] as Map<String, dynamic>),
+  marketData: json['marketData'] == null
+      ? null
+      : MarketDataPatch.fromJson(json['marketData'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$$CommunityTokenPatchImplToJson(
+  _$CommunityTokenPatchImpl instance,
+) => <String, dynamic>{
+  if (instance.type case final value?) 'type': value,
+  if (instance.title case final value?) 'title': value,
+  if (instance.description case final value?) 'description': value,
+  if (instance.imageUrl case final value?) 'imageUrl': value,
+  if (instance.addresses?.toJson() case final value?) 'addresses': value,
+  if (instance.creator?.toJson() case final value?) 'creator': value,
+  if (instance.marketData?.toJson() case final value?) 'marketData': value,
+};

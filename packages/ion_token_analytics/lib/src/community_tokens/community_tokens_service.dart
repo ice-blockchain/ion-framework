@@ -6,7 +6,7 @@ import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_tr
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository_remote.dart';
 import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository.dart';
@@ -36,7 +36,7 @@ class IonCommunityTokensService {
     // Base URL doesn't matter for mock
 
     final service = IonCommunityTokensService._(
-      tokenInfoRepository: TokenInfoRepositoryMock(networkClient),
+      tokenInfoRepository: TokenInfoRepositoryRemote(networkClient),
       ohlcvCandlesRepository: OhlcvCandlesRepositoryImpl(networkClient),
       tradingStatsRepository: TradingStatsRepositoryImpl(networkClient),
       topHoldersRepository: TopHoldersRepositoryImpl(networkClient),
@@ -49,7 +49,7 @@ class IonCommunityTokensService {
     return _tokenInfoRepository.getTokenInfo(ionConnectAddresses);
   }
 
-  Future<NetworkSubscription<List<CommunityToken>>> subscribeToTokenInfo(List<String> ionConnectAddresses) {
+  Future<NetworkSubscription<List<CommunityTokenPatch>>> subscribeToTokenInfo(List<String> ionConnectAddresses) {
     return _tokenInfoRepository.subscribeToTokenInfo(ionConnectAddresses);
   }
 

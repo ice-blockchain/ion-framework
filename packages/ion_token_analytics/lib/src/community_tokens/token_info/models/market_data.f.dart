@@ -18,3 +18,16 @@ class MarketData with _$MarketData {
 
   factory MarketData.fromJson(Map<String, dynamic> json) => _$MarketDataFromJson(json);
 }
+
+@Freezed(copyWith: false)
+class MarketDataPatch with _$MarketDataPatch {
+  const factory MarketDataPatch({
+    double? marketCap,
+    double? volume,
+    int? holders,
+    double? priceUSD,
+    PositionPatch? position,
+  }) = _MarketDataPatch;
+
+  factory MarketDataPatch.fromJson(Map<String, dynamic> json) => _$MarketDataPatchFromJson(json);
+}

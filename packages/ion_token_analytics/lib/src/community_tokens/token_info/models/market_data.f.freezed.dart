@@ -280,3 +280,99 @@ abstract class _MarketData implements MarketData {
   _$$MarketDataImplCopyWith<_$MarketDataImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+MarketDataPatch _$MarketDataPatchFromJson(Map<String, dynamic> json) {
+  return _MarketDataPatch.fromJson(json);
+}
+
+/// @nodoc
+mixin _$MarketDataPatch {
+  double? get marketCap => throw _privateConstructorUsedError;
+  double? get volume => throw _privateConstructorUsedError;
+  int? get holders => throw _privateConstructorUsedError;
+  double? get priceUSD => throw _privateConstructorUsedError;
+  PositionPatch? get position => throw _privateConstructorUsedError;
+
+  /// Serializes this MarketDataPatch to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$MarketDataPatchImpl implements _MarketDataPatch {
+  const _$MarketDataPatchImpl({
+    this.marketCap,
+    this.volume,
+    this.holders,
+    this.priceUSD,
+    this.position,
+  });
+
+  factory _$MarketDataPatchImpl.fromJson(Map<String, dynamic> json) =>
+      _$$MarketDataPatchImplFromJson(json);
+
+  @override
+  final double? marketCap;
+  @override
+  final double? volume;
+  @override
+  final int? holders;
+  @override
+  final double? priceUSD;
+  @override
+  final PositionPatch? position;
+
+  @override
+  String toString() {
+    return 'MarketDataPatch(marketCap: $marketCap, volume: $volume, holders: $holders, priceUSD: $priceUSD, position: $position)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$MarketDataPatchImpl &&
+            (identical(other.marketCap, marketCap) ||
+                other.marketCap == marketCap) &&
+            (identical(other.volume, volume) || other.volume == volume) &&
+            (identical(other.holders, holders) || other.holders == holders) &&
+            (identical(other.priceUSD, priceUSD) ||
+                other.priceUSD == priceUSD) &&
+            (identical(other.position, position) ||
+                other.position == position));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, marketCap, volume, holders, priceUSD, position);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$MarketDataPatchImplToJson(this);
+  }
+}
+
+abstract class _MarketDataPatch implements MarketDataPatch {
+  const factory _MarketDataPatch({
+    final double? marketCap,
+    final double? volume,
+    final int? holders,
+    final double? priceUSD,
+    final PositionPatch? position,
+  }) = _$MarketDataPatchImpl;
+
+  factory _MarketDataPatch.fromJson(Map<String, dynamic> json) =
+      _$MarketDataPatchImpl.fromJson;
+
+  @override
+  double? get marketCap;
+  @override
+  double? get volume;
+  @override
+  int? get holders;
+  @override
+  double? get priceUSD;
+  @override
+  PositionPatch? get position;
+}

@@ -21,11 +21,6 @@ class OhlcvCandlesMockHandler {
       }
     }
 
-    // 2) Emit marker (empty JSON)
-    if (!controller.isClosed) {
-      controller.add(<String, dynamic>{} as T);
-    }
-
     // 3) Emit periodic updates
     var lastCandle = snapshot.last;
     timer = Timer.periodic(const Duration(seconds: 2), (_) {
