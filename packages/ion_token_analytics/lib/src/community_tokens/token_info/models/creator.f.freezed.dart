@@ -255,3 +255,98 @@ abstract class _Creator implements Creator {
   _$$CreatorImplCopyWith<_$CreatorImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+CreatorPatch _$CreatorPatchFromJson(Map<String, dynamic> json) {
+  return _CreatorPatch.fromJson(json);
+}
+
+/// @nodoc
+mixin _$CreatorPatch {
+  String? get name => throw _privateConstructorUsedError;
+  String? get display => throw _privateConstructorUsedError;
+  bool? get verified => throw _privateConstructorUsedError;
+  String? get avatar => throw _privateConstructorUsedError;
+  String? get ionConnect => throw _privateConstructorUsedError;
+
+  /// Serializes this CreatorPatch to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$CreatorPatchImpl implements _CreatorPatch {
+  const _$CreatorPatchImpl({
+    this.name,
+    this.display,
+    this.verified,
+    this.avatar,
+    this.ionConnect,
+  });
+
+  factory _$CreatorPatchImpl.fromJson(Map<String, dynamic> json) =>
+      _$$CreatorPatchImplFromJson(json);
+
+  @override
+  final String? name;
+  @override
+  final String? display;
+  @override
+  final bool? verified;
+  @override
+  final String? avatar;
+  @override
+  final String? ionConnect;
+
+  @override
+  String toString() {
+    return 'CreatorPatch(name: $name, display: $display, verified: $verified, avatar: $avatar, ionConnect: $ionConnect)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$CreatorPatchImpl &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.display, display) || other.display == display) &&
+            (identical(other.verified, verified) ||
+                other.verified == verified) &&
+            (identical(other.avatar, avatar) || other.avatar == avatar) &&
+            (identical(other.ionConnect, ionConnect) ||
+                other.ionConnect == ionConnect));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, name, display, verified, avatar, ionConnect);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$CreatorPatchImplToJson(this);
+  }
+}
+
+abstract class _CreatorPatch implements CreatorPatch {
+  const factory _CreatorPatch({
+    final String? name,
+    final String? display,
+    final bool? verified,
+    final String? avatar,
+    final String? ionConnect,
+  }) = _$CreatorPatchImpl;
+
+  factory _CreatorPatch.fromJson(Map<String, dynamic> json) =
+      _$CreatorPatchImpl.fromJson;
+
+  @override
+  String? get name;
+  @override
+  String? get display;
+  @override
+  bool? get verified;
+  @override
+  String? get avatar;
+  @override
+  String? get ionConnect;
+}

@@ -360,3 +360,133 @@ abstract class _TradePosition implements TradePosition {
   _$$TradePositionImplCopyWith<_$TradePositionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+TradePositionPatch _$TradePositionPatchFromJson(Map<String, dynamic> json) {
+  return _TradePositionPatch.fromJson(json);
+}
+
+/// @nodoc
+mixin _$TradePositionPatch {
+  CreatorPatch? get holder => throw _privateConstructorUsedError;
+  AddressesPatch? get addresses => throw _privateConstructorUsedError;
+  String? get createdAt => throw _privateConstructorUsedError;
+  String? get type => throw _privateConstructorUsedError;
+  double? get amount => throw _privateConstructorUsedError;
+  double? get amountUSD => throw _privateConstructorUsedError;
+  double? get balance => throw _privateConstructorUsedError;
+  double? get balanceUSD => throw _privateConstructorUsedError;
+
+  /// Serializes this TradePositionPatch to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$TradePositionPatchImpl implements _TradePositionPatch {
+  const _$TradePositionPatchImpl({
+    this.holder,
+    this.addresses,
+    this.createdAt,
+    this.type,
+    this.amount,
+    this.amountUSD,
+    this.balance,
+    this.balanceUSD,
+  });
+
+  factory _$TradePositionPatchImpl.fromJson(Map<String, dynamic> json) =>
+      _$$TradePositionPatchImplFromJson(json);
+
+  @override
+  final CreatorPatch? holder;
+  @override
+  final AddressesPatch? addresses;
+  @override
+  final String? createdAt;
+  @override
+  final String? type;
+  @override
+  final double? amount;
+  @override
+  final double? amountUSD;
+  @override
+  final double? balance;
+  @override
+  final double? balanceUSD;
+
+  @override
+  String toString() {
+    return 'TradePositionPatch(holder: $holder, addresses: $addresses, createdAt: $createdAt, type: $type, amount: $amount, amountUSD: $amountUSD, balance: $balance, balanceUSD: $balanceUSD)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$TradePositionPatchImpl &&
+            (identical(other.holder, holder) || other.holder == holder) &&
+            (identical(other.addresses, addresses) ||
+                other.addresses == addresses) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.type, type) || other.type == type) &&
+            (identical(other.amount, amount) || other.amount == amount) &&
+            (identical(other.amountUSD, amountUSD) ||
+                other.amountUSD == amountUSD) &&
+            (identical(other.balance, balance) || other.balance == balance) &&
+            (identical(other.balanceUSD, balanceUSD) ||
+                other.balanceUSD == balanceUSD));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    holder,
+    addresses,
+    createdAt,
+    type,
+    amount,
+    amountUSD,
+    balance,
+    balanceUSD,
+  );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$TradePositionPatchImplToJson(this);
+  }
+}
+
+abstract class _TradePositionPatch implements TradePositionPatch {
+  const factory _TradePositionPatch({
+    final CreatorPatch? holder,
+    final AddressesPatch? addresses,
+    final String? createdAt,
+    final String? type,
+    final double? amount,
+    final double? amountUSD,
+    final double? balance,
+    final double? balanceUSD,
+  }) = _$TradePositionPatchImpl;
+
+  factory _TradePositionPatch.fromJson(Map<String, dynamic> json) =
+      _$TradePositionPatchImpl.fromJson;
+
+  @override
+  CreatorPatch? get holder;
+  @override
+  AddressesPatch? get addresses;
+  @override
+  String? get createdAt;
+  @override
+  String? get type;
+  @override
+  double? get amount;
+  @override
+  double? get amountUSD;
+  @override
+  double? get balance;
+  @override
+  double? get balanceUSD;
+}

@@ -182,3 +182,70 @@ abstract class _Addresses implements Addresses {
   _$$AddressesImplCopyWith<_$AddressesImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+AddressesPatch _$AddressesPatchFromJson(Map<String, dynamic> json) {
+  return _AddressesPatch.fromJson(json);
+}
+
+/// @nodoc
+mixin _$AddressesPatch {
+  String? get blockchain => throw _privateConstructorUsedError;
+  String? get ionConnect => throw _privateConstructorUsedError;
+
+  /// Serializes this AddressesPatch to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$AddressesPatchImpl implements _AddressesPatch {
+  const _$AddressesPatchImpl({this.blockchain, this.ionConnect});
+
+  factory _$AddressesPatchImpl.fromJson(Map<String, dynamic> json) =>
+      _$$AddressesPatchImplFromJson(json);
+
+  @override
+  final String? blockchain;
+  @override
+  final String? ionConnect;
+
+  @override
+  String toString() {
+    return 'AddressesPatch(blockchain: $blockchain, ionConnect: $ionConnect)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$AddressesPatchImpl &&
+            (identical(other.blockchain, blockchain) ||
+                other.blockchain == blockchain) &&
+            (identical(other.ionConnect, ionConnect) ||
+                other.ionConnect == ionConnect));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, blockchain, ionConnect);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$AddressesPatchImplToJson(this);
+  }
+}
+
+abstract class _AddressesPatch implements AddressesPatch {
+  const factory _AddressesPatch({
+    final String? blockchain,
+    final String? ionConnect,
+  }) = _$AddressesPatchImpl;
+
+  factory _AddressesPatch.fromJson(Map<String, dynamic> json) =
+      _$AddressesPatchImpl.fromJson;
+
+  @override
+  String? get blockchain;
+  @override
+  String? get ionConnect;
+}

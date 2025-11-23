@@ -48,8 +48,28 @@ class TokenLatestTrades extends _$TokenLatestTrades {
 
     // Listen to updates and prepend them
     subscription.stream.listen((newTrade) {
-      final currentList = state.valueOrNull ?? [];
-      state = AsyncValue.data([newTrade, ...currentList]);
+      if (newTrade.position == null || newTrade.creator == null) return;
+      final existIndex = state.valueOrNull?.indexWhere(
+            (element) =>
+                element.position.createdAt == newTrade.position!.createdAt &&
+                element.position.addresses.ionConnect == newTrade.position!.addresses.ionConnect,
+          ) ??
+          -1;
+
+      if (existIndex >= 0) {
+        final existTrade = state.value![existIndex];
+        final existTradeJson = existTrade.toJson()..addAll(newTrade.toJson());
+        final patchedTrade = analytics.LatestTrade.fromJson(existTradeJson);
+
+        final currentList = state.value!.toList();
+        currentList[existIndex] = patchedTrade;
+        state = AsyncValue.data(currentList);
+      } else {
+        if (newTrade is analytics.LatestTrade) {
+          final currentList = state.valueOrNull ?? [];
+          state = AsyncValue.data([newTrade, ...currentList]);
+        }
+      }
     });
   }
 

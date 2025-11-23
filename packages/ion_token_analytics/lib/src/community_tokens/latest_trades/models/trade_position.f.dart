@@ -8,7 +8,7 @@ part 'trade_position.f.freezed.dart';
 part 'trade_position.f.g.dart';
 
 @freezed
-class TradePosition with _$TradePosition {
+class TradePosition with _$TradePosition implements TradePositionPatch {
   const factory TradePosition({
     required Creator holder,
     required Addresses addresses,
@@ -21,4 +21,20 @@ class TradePosition with _$TradePosition {
   }) = _TradePosition;
 
   factory TradePosition.fromJson(Map<String, dynamic> json) => _$TradePositionFromJson(json);
+}
+
+@Freezed(copyWith: false)
+class TradePositionPatch with _$TradePositionPatch {
+  const factory TradePositionPatch({
+    CreatorPatch? holder,
+    AddressesPatch? addresses,
+    String? createdAt,
+    String? type,
+    double? amount,
+    double? amountUSD,
+    double? balance,
+    double? balanceUSD,
+  }) = _TradePositionPatch;
+
+  factory TradePositionPatch.fromJson(Map<String, dynamic> json) => _$TradePositionPatchFromJson(json);
 }

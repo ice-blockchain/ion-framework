@@ -211,3 +211,69 @@ abstract class _LatestTrade implements LatestTrade {
   _$$LatestTradeImplCopyWith<_$LatestTradeImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+LatestTradePatch _$LatestTradePatchFromJson(Map<String, dynamic> json) {
+  return _LatestTradePatch.fromJson(json);
+}
+
+/// @nodoc
+mixin _$LatestTradePatch {
+  CreatorPatch? get creator => throw _privateConstructorUsedError;
+  TradePositionPatch? get position => throw _privateConstructorUsedError;
+
+  /// Serializes this LatestTradePatch to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$LatestTradePatchImpl implements _LatestTradePatch {
+  const _$LatestTradePatchImpl({this.creator, this.position});
+
+  factory _$LatestTradePatchImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LatestTradePatchImplFromJson(json);
+
+  @override
+  final CreatorPatch? creator;
+  @override
+  final TradePositionPatch? position;
+
+  @override
+  String toString() {
+    return 'LatestTradePatch(creator: $creator, position: $position)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$LatestTradePatchImpl &&
+            (identical(other.creator, creator) || other.creator == creator) &&
+            (identical(other.position, position) ||
+                other.position == position));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, creator, position);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$LatestTradePatchImplToJson(this);
+  }
+}
+
+abstract class _LatestTradePatch implements LatestTradePatch {
+  const factory _LatestTradePatch({
+    final CreatorPatch? creator,
+    final TradePositionPatch? position,
+  }) = _$LatestTradePatchImpl;
+
+  factory _LatestTradePatch.fromJson(Map<String, dynamic> json) =
+      _$LatestTradePatchImpl.fromJson;
+
+  @override
+  CreatorPatch? get creator;
+  @override
+  TradePositionPatch? get position;
+}
