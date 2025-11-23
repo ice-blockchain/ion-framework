@@ -2,7 +2,6 @@
 
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/models/ohlcv_candle.f.dart';
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_stream_transformer.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class OhlcvCandlesRepositoryImpl implements OhlcvCandlesRepository {
@@ -11,7 +10,7 @@ class OhlcvCandlesRepositoryImpl implements OhlcvCandlesRepository {
   final NetworkClient _client;
 
   @override
-  Future<NetworkSubscription<List<OhlcvCandle>>> subscribeToOhlcvCandles({
+  Future<NetworkSubscription<OhlcvCandle>> subscribeToOhlcvCandles({
     required String ionConnectAddress,
     required String interval,
   }) async {
@@ -22,7 +21,7 @@ class OhlcvCandlesRepositoryImpl implements OhlcvCandlesRepository {
     );
 
     // Apply transformer
-    final transformedStream = rawSubscription.stream.transform(OhlcvCandlesStreamTransformer());
+    final transformedStream = rawSubscription.stream.map((event) => event as OhlcvCandle);
 
     return NetworkSubscription(stream: transformedStream, close: rawSubscription.close);
   }

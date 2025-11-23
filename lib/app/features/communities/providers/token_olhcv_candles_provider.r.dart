@@ -8,7 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'token_olhcv_candles_provider.r.g.dart';
 
 @riverpod
-Stream<List<OhlcvCandle>> tokenOhlcvCandles(
+Stream<OhlcvCandle> tokenOhlcvCandles(
   Ref ref,
   String ionConnectAddress,
   String interval,

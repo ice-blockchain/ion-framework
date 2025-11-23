@@ -4,7 +4,7 @@ import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/models/oh
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
 abstract class OhlcvCandlesRepository {
-  Future<NetworkSubscription<List<OhlcvCandle>>> subscribeToOhlcvCandles({
+  Future<NetworkSubscription<OhlcvCandle>> subscribeToOhlcvCandles({
     required String ionConnectAddress,
     required String interval,
   });
