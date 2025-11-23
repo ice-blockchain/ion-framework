@@ -11,13 +11,14 @@ part 'token_latest_trades_provider.r.g.dart';
 class TokenLatestTrades extends _$TokenLatestTrades {
   late String _masterPubkey;
   late int _limit;
+  List<analytics.LatestTrade> _currentTrades = [];
 
   @override
-  Future<List<analytics.LatestTrade>> build(
+  Stream<List<analytics.LatestTrade>> build(
     String masterPubkey, {
     int limit = 10,
     int offset = 0,
-  }) async {
+  }) async* {
     _masterPubkey = masterPubkey;
     _limit = limit;
 
@@ -29,55 +30,45 @@ class TokenLatestTrades extends _$TokenLatestTrades {
       limit: limit,
       offset: offset,
     );
+    _currentTrades = initialTrades;
+    yield _currentTrades;
 
     // 2. Subscribe to real-time updates
-    await _subscribeToUpdates(client, masterPubkey);
-
-    return initialTrades;
-  }
-
-  Future<void> _subscribeToUpdates(
-    analytics.IonTokenAnalyticsClient client,
-    String masterPubkey,
-  ) async {
     final subscription = await client.communityTokens.subscribeToLatestTrades(
       ionConnectAddress: masterPubkey,
     );
 
     ref.onDispose(subscription.close);
 
-    // Listen to updates and prepend them
-    subscription.stream.listen((newTrade) {
-      final existIndex = state.valueOrNull?.indexWhere(
-            (element) =>
-                element.position.createdAt == newTrade.position?.createdAt &&
-                element.position.addresses.ionConnect == newTrade.position?.addresses?.ionConnect,
-          ) ??
-          -1;
+    // 3. Listen to updates and prepend them
+    await for (final newTrade in subscription.stream) {
+      final existIndex = _currentTrades.indexWhere(
+        (element) =>
+            element.position.createdAt == newTrade.position?.createdAt &&
+            element.position.addresses.ionConnect == newTrade.position?.addresses?.ionConnect,
+      );
 
       if (existIndex >= 0) {
-        final existTrade = state.value![existIndex];
-        final existTradeJson = existTrade.toJson()..addAll(newTrade.toJson());
-        final patchedTrade = analytics.LatestTrade.fromJson(existTradeJson);
+        final existTrade = _currentTrades[existIndex];
+        final existTradeJson = existTrade.toJson();
+        final patchedTrade = analytics.LatestTrade.fromJson(existTradeJson..addAll(newTrade.toJson()));
 
-        final currentList = state.value!.toList();
-        currentList[existIndex] = patchedTrade;
-        state = AsyncValue.data(currentList);
+        _currentTrades = List.of(_currentTrades);
+        _currentTrades[existIndex] = patchedTrade;
       } else {
         if (newTrade is analytics.LatestTrade) {
-          final currentList = state.valueOrNull ?? [];
-          state = AsyncValue.data([newTrade, ...currentList]);
+          _currentTrades = [newTrade, ..._currentTrades];
         }
       }
-    });
+      yield _currentTrades;
+    }
   }
 
   Future<void> loadMore() async {
-    final currentList = state.valueOrNull;
-    if (currentList == null) return;
+    if (_currentTrades.isEmpty) return;
 
     final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-    final currentCount = currentList.length;
+    final currentCount = _currentTrades.length;
 
     try {
       final moreTrades = await client.communityTokens.fetchLatestTrades(
@@ -87,7 +78,8 @@ class TokenLatestTrades extends _$TokenLatestTrades {
       );
 
       if (moreTrades.isNotEmpty) {
-        state = AsyncValue.data([...currentList, ...moreTrades]);
+        _currentTrades = [..._currentTrades, ...moreTrades];
+        state = AsyncValue.data(_currentTrades);
       }
     } catch (e, st) {
       Logger.error(e, stackTrace: st, message: 'Error loading more trades');

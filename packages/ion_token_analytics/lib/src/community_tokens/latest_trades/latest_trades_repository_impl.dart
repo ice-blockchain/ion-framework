@@ -27,8 +27,15 @@ class LatestTradesRepositoryImpl implements LatestTradesRepository {
       '/community-tokens/$ionConnectAddress/latest-trades',
     );
 
-    final stream = subscription.stream.map(LatestTradePatch.fromJson);
-
+    final stream = subscription.stream.map((json) {
+      try {
+        final data = LatestTrade.fromJson(json);
+        return data;
+      } catch (_) {
+        final patch = LatestTradePatch.fromJson(json);
+        return patch;
+      }
+    });
     return NetworkSubscription(stream: stream, close: subscription.close);
   }
 }
