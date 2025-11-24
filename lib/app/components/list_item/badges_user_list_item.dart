@@ -24,6 +24,7 @@ class BadgesUserListItem extends ConsumerWidget {
     this.onTap,
     this.iceBadge = false,
     this.isSelected = false,
+    this.isVerifiedOptimisticOnLoading = false,
     this.avatarSize,
     super.key,
   });
@@ -44,6 +45,7 @@ class BadgesUserListItem extends ConsumerWidget {
   final bool iceBadge;
   final bool isSelected;
   final double? avatarSize;
+  final bool isVerifiedOptimisticOnLoading;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -57,7 +59,14 @@ class BadgesUserListItem extends ConsumerWidget {
     // Any time we fetch user metadata we also fetch badges via the search extension.
     // So by the time we have user metadata, we assume that we also have badges that proves the nickname ownership
     // and verification status.
-    final isUserVerified = hasMetadata && ref.watch(isUserVerifiedProvider(masterPubkey));
+    final isUserVerified = (!hasMetadata && isVerifiedOptimisticOnLoading) ||
+        (hasMetadata &&
+            ref.watch(
+              isUserVerifiedProvider(
+                masterPubkey,
+                optimisticOnLoading: isVerifiedOptimisticOnLoading,
+              ),
+            ));
     final isNicknameProven = !hasMetadata || ref.watch(isNicknameProvenProvider(masterPubkey));
 
     return ListItem.user(
