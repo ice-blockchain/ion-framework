@@ -14,7 +14,8 @@ class YourPositionCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final position = ref.watch(
-      tokenMarketInfoProvider(masterPubkey).select((value) => value.valueOrNull?.marketData.position),
+      tokenMarketInfoProvider(masterPubkey)
+          .select((value) => value.valueOrNull?.marketData.position),
     );
 
     if (position == null) {
