@@ -3,7 +3,6 @@
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/data_sources/featured_tokens_data_source_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository.dart';
-import 'package:ion_token_analytics/src/core/network_client.dart';
 
 // MOCK REPOSITORY: Streams a list of featured CommunityTokens with periodic updates.
 // Uses FeaturedTokensDataSourceMock to get raw JSON, then parses it with fromJson().
