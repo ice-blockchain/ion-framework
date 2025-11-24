@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 /// Deeply merges two JSON-like maps.
 ///
 /// [original] is the base map.
