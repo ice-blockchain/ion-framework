@@ -8,7 +8,7 @@ struct NotificationTranslationResult {
     let avatarFilePath: String?
     let attachmentFilePaths: String?
     let notificationType: PushNotificationType?
-    let conversationId: String?
+    let groupKey: String?
 }
 
 class NotificationTranslationService {
@@ -109,14 +109,21 @@ class NotificationTranslationService {
         }
         
         let media = await data.getMediaPlaceholders()
-
+        
+        let groupKey: String?
+        if notificationType.isChat {
+            groupKey = getConversationId(from: data.decryptedEvent)
+        } else {
+            groupKey = getNotificationGroupKey(from: data.mainEntity)
+        }
+        
         return NotificationTranslationResult(
             title: result.title,
             body: result.body,
             avatarFilePath: media.avatar,
             attachmentFilePaths: media.attachment,
             notificationType: notificationType,
-            conversationId: getConversationId(from: data.decryptedEvent)
+            groupKey: groupKey
         )
     }
 
@@ -357,5 +364,35 @@ class NotificationTranslationService {
         
         return rumorMasterPubkey == currentPubkey
     }
+    
+    /// Get the notification groupKey for cancellation purposes
+    /// For reactions/reposts/quotes, returns the target entity reference
+    /// For other entities, returns the entity's own reference
+    private func getNotificationGroupKey(from entity: IonConnectEntity?) -> String? {
+        guard let entity = entity else {
+            return nil
+        }
+        
+        if let reaction = entity as? ReactionEntity {
+            return reaction.data.eventReference.toString()
+        } else if let genericRepost = entity as? GenericRepostEntity {
+            return genericRepost.data.eventReference.toString()
+        } else if let repost = entity as? RepostEntity {
+            return repost.data.eventReference.toString()
+        } else if let modifiablePost = entity as? ModifiablePostEntity {
+            if let quotedEvent = modifiablePost.data.quotedEvent {
+                return quotedEvent.eventReference.toString()
+            } else if let parentEvent = modifiablePost.data.parentEvent {
+                return parentEvent.eventReference
+            }
+        } else if let post = entity as? PostEntity {
+            if let quotedEvent = post.data.quotedEvent {
+                return quotedEvent.eventReference.toString()
+            } else if let parentEvent = post.data.parentEvent {
+                return parentEvent.eventReference
+            }
+        }
+        
+        return entity.toEventReference().toString()
+    }
 }
-

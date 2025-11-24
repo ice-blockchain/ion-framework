@@ -42,7 +42,7 @@ class NotificationService: UNNotificationServiceExtension {
                     incrementBadge(appBadgeCounter: appBadgeCounter, 
                                  mutableContent: mutableNotificationContent, 
                                  category: .inapp)
-                } else if let conversationId = result.conversationId {
+                } else if let conversationId = result.groupKey {
                     // Chat notification - check if we should increment
                     handleChatNotificationBadge(
                         conversationId: conversationId,
@@ -60,7 +60,7 @@ class NotificationService: UNNotificationServiceExtension {
                     body: result.body,
                     avatarFilePath: result.avatarFilePath,
                     attachmentFilePath: result.attachmentFilePaths,
-                    conversationId: result.conversationId
+                    groupKey: result.groupKey
                 )
             } catch {
                 // Hide notification if any error occurs during processing

@@ -337,7 +337,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   final avatar = parsedData?.avatar;
   final media = parsedData?.media;
-  final conversationId = parsedData?.conversationId;
+  final groupKey = parsedData?.groupKey;
 
   await notificationsService.showNotification(
     title: title,
@@ -345,7 +345,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     payload: jsonEncode(message.data),
     icon: avatar,
     attachment: media,
-    conversationId: conversationId,
+    groupKey: groupKey,
   );
 
   backgroundContainer.dispose();

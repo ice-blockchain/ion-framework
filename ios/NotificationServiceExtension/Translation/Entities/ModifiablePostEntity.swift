@@ -46,6 +46,10 @@ struct ModifiablePostEntity: IonConnectEntity {
             dTag: data.replaceableEventId.value
         )
     }
+    
+    func toEventReference() -> EventReference {
+        return toReplaceableEventReference()
+    }
 }
 
 struct ModifiablePostData {

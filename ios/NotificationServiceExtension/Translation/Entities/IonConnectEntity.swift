@@ -8,6 +8,7 @@ protocol IonConnectEntity {
     var masterPubkey: String { get }
     var signature: String { get }
     var createdAt: Int { get }
+    func toEventReference() -> EventReference
 }
 
 extension IonConnectEntity {
@@ -17,5 +18,10 @@ extension IonConnectEntity {
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
+    }
+    
+    // Default implementation for immutable entities
+    func toEventReference() -> EventReference {
+        return ImmutableEventReference(id: id, pubkey: pubkey, kind: 0, masterPubkey: masterPubkey)
     }
 }
