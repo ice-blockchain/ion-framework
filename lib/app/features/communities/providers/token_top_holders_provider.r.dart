@@ -46,7 +46,8 @@ class TokenTopHolders extends _$TokenTopHolders {
       } else {
         // Update phase
         final existIndex = currentList.indexWhere(
-          (element) => element.position.addresses.ionConnect == newTopHolder.position?.addresses?.ionConnect,
+          (element) =>
+              element.position.addresses.ionConnect == newTopHolder.position?.addresses?.ionConnect,
         );
 
         if (existIndex >= 0) {
