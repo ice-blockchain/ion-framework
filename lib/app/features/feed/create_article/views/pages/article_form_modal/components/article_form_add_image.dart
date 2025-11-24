@@ -11,6 +11,7 @@ import 'package:ion/app/features/feed/create_article/views/components/article_im
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
 import 'package:ion/app/features/user/providers/image_proccessor_notifier.m.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/keyboard/keyboard.dart';
 import 'package:ion/app/services/media_service/image_proccessing_config.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
@@ -18,11 +19,13 @@ class ArticleFormAddImage extends HookConsumerWidget {
   const ArticleFormAddImage({
     required this.selectedImage,
     required this.selectedImageUrl,
+    this.restorationFocusNode,
     super.key,
   });
 
   final ValueNotifier<MediaFile?> selectedImage;
   final ValueNotifier<String?> selectedImageUrl;
+  final FocusNode? restorationFocusNode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -36,28 +39,36 @@ class ArticleFormAddImage extends HookConsumerWidget {
       requestId: 'create_article_image',
       permissionType: Permission.photos,
       onGranted: () async {
-        if (context.mounted) {
-          final mediaFiles = await MediaPickerRoute(
-            isNeedFilterVideoByFormat: false,
-            maxSelection: 1,
-            mediaPickerType: MediaPickerType.image,
-          ).push<List<MediaFile>>(context);
+        if (!context.mounted) return;
 
-          if (mediaFiles != null && mediaFiles.isNotEmpty && context.mounted) {
-            selectedImageUrl.value = null;
+        hideKeyboard(context);
+        final mediaFiles = await MediaPickerRoute(
+          isNeedFilterVideoByFormat: false,
+          maxSelection: 1,
+          mediaPickerType: MediaPickerType.image,
+        ).push<List<MediaFile>>(context);
 
-            final cropUiSettings = mediaService.buildCropImageUiSettings(
-              context,
-              aspectRatioPresets: [CropAspectRatioPreset.ratio16x9],
+        if (!context.mounted || mediaFiles == null || mediaFiles.isEmpty) {
+          return;
+        }
+
+        selectedImageUrl.value = null;
+
+        final cropUiSettings = mediaService.buildCropImageUiSettings(
+          context,
+          aspectRatioPresets: [CropAspectRatioPreset.ratio16x9],
+        );
+
+        await ref
+            .read(imageProcessorNotifierProvider(ImageProcessingType.articleCover).notifier)
+            .process(
+              assetId: mediaFiles.first.path,
+              cropUiSettings: cropUiSettings,
             );
 
-            await ref
-                .read(imageProcessorNotifierProvider(ImageProcessingType.articleCover).notifier)
-                .process(
-                  assetId: mediaFiles.first.path,
-                  cropUiSettings: cropUiSettings,
-                );
-          }
+        // Restore focus after image processing completes
+        if (context.mounted) {
+          _restoreFocus(restorationFocusNode, context);
         }
       },
       requestDialog: const PermissionRequestSheet(permission: Permission.photos),
@@ -72,5 +83,27 @@ class ArticleFormAddImage extends HookConsumerWidget {
         },
       ),
     );
+  }
+
+  void _restoreFocus(FocusNode? focusNode, BuildContext context) {
+    if (focusNode == null || isKeyboardVisible(context)) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future<void>.delayed(const Duration(milliseconds: 200), () {
+        if (context.mounted && focusNode.canRequestFocus) {
+          // If already focused, unfocus first then refocus to trigger keyboard
+          if (focusNode.hasFocus) {
+            focusNode.unfocus();
+
+            Future<void>.delayed(
+              const Duration(milliseconds: 100),
+              focusNode.requestFocus,
+            );
+          } else {
+            focusNode.requestFocus();
+          }
+        }
+      });
+    });
   }
 }

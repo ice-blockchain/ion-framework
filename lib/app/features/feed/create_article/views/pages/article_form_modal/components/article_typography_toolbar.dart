@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:ion/app/features/feed/views/components/actions_toolbar/actions_toolbar.dart';
 import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_buttons.dart';
+import 'package:ion/app/services/keyboard/keyboard.dart';
 
 class ArticleTypographyToolbar extends StatelessWidget {
   const ArticleTypographyToolbar({
@@ -21,7 +22,10 @@ class ArticleTypographyToolbar extends StatelessWidget {
       actions: [
         ToolbarCloseButton(
           textEditorController: textEditorController,
-          onPressed: onClosePressed,
+          onPressed: () {
+            hideKeyboard(context);
+            onClosePressed();
+          },
         ),
         ToolbarH1Button(textEditorController: textEditorController),
         ToolbarH2Button(textEditorController: textEditorController),

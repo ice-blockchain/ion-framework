@@ -9,6 +9,7 @@ import 'package:ion/app/features/feed/create_post/model/create_post_option.dart'
 import 'package:ion/app/features/feed/providers/selected_entity_language_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
+import 'package:ion/app/services/keyboard/keyboard.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class LanguageButton extends ConsumerWidget {
@@ -27,7 +28,10 @@ class LanguageButton extends ConsumerWidget {
                   selectedEntityLanguageCode.confident) ||
               createOption == CreatePostOption.modify
           ? null
-          : () => EntityLanguageRoute().push<void>(context),
+          : () {
+              hideKeyboard(context);
+              EntityLanguageRoute().push<void>(context);
+            },
       label: selectedEntityLanguage != null
           ? selectedEntityLanguage.displayName
           : selectedEntityLanguageCode?.value ?? context.i18n.common_language,

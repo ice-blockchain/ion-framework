@@ -13,6 +13,7 @@ import 'package:ion/app/features/feed/create_post/views/components/character_lim
 import 'package:ion/app/features/feed/create_post/views/components/post_submit_button/post_submit_button.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/who_can_reply_settings_option.f.dart';
+import 'package:ion/app/features/feed/polls/providers/poll_draft_provider.r.dart';
 import 'package:ion/app/features/feed/providers/root_post_provider.r.dart';
 import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/actions_toolbar/actions_toolbar.dart';
@@ -25,6 +26,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
+import 'package:ion/app/services/keyboard/keyboard.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -162,14 +164,17 @@ class _WhoCanReplySection extends HookConsumerWidget {
               color: context.theme.appColors.primaryAccent,
             ),
             constraints: BoxConstraints(minHeight: 40.0.s),
-            onTap: () => showSimpleBottomSheet<void>(
-              context: context,
-              child: WhoCanReplySettingsModal(
-                title: createOption == CreatePostOption.video
-                    ? context.i18n.who_can_reply_settings_title_video
-                    : context.i18n.who_can_reply_settings_title_post,
-              ),
-            ),
+            onTap: () {
+              hideKeyboard(context);
+              showSimpleBottomSheet<void>(
+                context: context,
+                child: WhoCanReplySettingsModal(
+                  title: createOption == CreatePostOption.video
+                      ? context.i18n.who_can_reply_settings_title_video
+                      : context.i18n.who_can_reply_settings_title_post,
+                ),
+              );
+            },
           ),
         ),
       ],
@@ -213,9 +218,7 @@ class _ActionsSection extends StatelessWidget {
                 isVideo ? 1 : ModifiablePostEntity.contentMediaLimit - alreadyAttachedMediaCount,
             enabled: !isVideo,
           ),
-          ToolbarPollButton(
-            enabled: !isVideo,
-          ),
+          _KeyboardDismissingPollButton(enabled: !isVideo),
           ToolbarItalicButton(textEditorController: textEditorController),
           ToolbarBoldButton(textEditorController: textEditorController),
         ],
@@ -243,6 +246,27 @@ class _ActionsSection extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _KeyboardDismissingPollButton extends HookConsumerWidget {
+  const _KeyboardDismissingPollButton({
+    this.enabled = true,
+  });
+
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasPoll = ref.watch(pollDraftNotifierProvider).added;
+
+    return ToolbarPollButton(
+      enabled: !hasPoll && enabled,
+      onPressed: () {
+        hideKeyboard(context);
+        ref.read(pollDraftNotifierProvider.notifier).markPollAdded();
+      },
     );
   }
 }
