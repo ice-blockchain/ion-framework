@@ -241,17 +241,14 @@ bool isValidNicknameProofBadgeDefinition(
 }
 
 @riverpod
-bool isUserVerified(
-  Ref ref,
-  String pubkey,
-) {
+bool isUserVerified(Ref ref, String pubkey, {bool optimisticOnLoading = false}) {
   var profileBadgesData = ref.watch(cachedProfileBadgesDataProvider(pubkey))?.data;
 
   // Attempt network fetch if cache is empty; while loading, treat as not verified.
   if (profileBadgesData == null) {
     final res = ref.watch(profileBadgesDataProvider(pubkey));
     if (res.isLoading) {
-      return false;
+      return optimisticOnLoading;
     }
     profileBadgesData = res.valueOrNull;
   }
@@ -260,7 +257,7 @@ bool isUserVerified(
 
   // If still no data, we cannot prove verification.
   if (profileBadgesData == null) {
-    return false;
+    return optimisticOnLoading;
   }
 
   // 1) Find the first candidate entry that matches the verified badge definition.
@@ -274,7 +271,9 @@ bool isUserVerified(
     return false;
   }
 
-  return ref.watch(awardExistsStrictProvider(candidate.awardId, pubkey, pubkeys));
+  return optimisticOnLoading
+      ? ref.watch(awardExistsOptimisticProvider(candidate.awardId, pubkey, pubkeys))
+      : ref.watch(awardExistsStrictProvider(candidate.awardId, pubkey, pubkeys));
 }
 
 @riverpod
