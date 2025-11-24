@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_flow_action_notifier.r.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
+import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
@@ -35,6 +36,19 @@ Future<void> runSignUpThenLogin({
               kind: kind,
               password: password,
             );
+
+        // After auth completes, ensure relays are assigned for new users
+        final userIdentity = await ref.read(currentUserIdentityProvider.future);
+        final hasRelays =
+            userIdentity?.ionConnectRelays != null && userIdentity!.ionConnectRelays!.isNotEmpty;
+
+        if (!hasRelays) {
+          try {
+            await ref.read(currentUserIdentityProvider.notifier).assignUserRelays();
+          } catch (_) {
+            // Fallback to onboarding relay assignment
+          }
+        }
       },
       child: child,
     ),
