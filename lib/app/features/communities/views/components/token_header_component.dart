@@ -85,9 +85,16 @@ class _TokenIcon extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        ProfileAvatar(
-          pubkey: masterPubkey,
-          profileMode: ProfileMode.dark,
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12.s),
+            color: Colors.red,
+          ),
+          padding: const EdgeInsetsDirectional.all(8),
+          child: ProfileAvatar(
+            pubkey: masterPubkey,
+            profileMode: ProfileMode.dark,
+          ),
         ),
         PositionedDirectional(
           bottom: -6.0.s,
@@ -100,8 +107,7 @@ class _TokenIcon extends StatelessWidget {
               color: colors.primaryAccent,
             ),
             alignment: Alignment.center,
-            child:
-                Assets.svg.iconSearchFollow.icon(size: 18.0.s, color: colors.secondaryBackground),
+            child: Assets.svg.iconSearchFollow.icon(size: 18.0.s, color: colors.secondaryBackground),
           ),
         ),
       ],

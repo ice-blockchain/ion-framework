@@ -96,7 +96,7 @@ class TokenizedCommunityPage extends HookWidget {
           const CommentsSectionCompact(commentCount: 10),
         ],
         collapsedHeaderBuilder: (opacity) => Header(
-          pubkey: '',
+          pubkey: masterPubkey,
           opacity: opacity,
           showBackButton: true,
           textColor: context.theme.appColors.secondaryBackground,
@@ -116,6 +116,8 @@ class _ChartsTabView extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
+        // SliverToBoxAdapter(child: YourPositionCard(masterPubkey: masterPubkey)),
+        SliverToBoxAdapter(child: SizedBox(height: 12.0.s)),
         SliverToBoxAdapter(child: _TokenChart(masterPubkey: masterPubkey)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
         SliverToBoxAdapter(child: _TokenStats(masterPubkey: masterPubkey)),

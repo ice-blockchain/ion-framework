@@ -2,6 +2,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/models.dart';
+import 'package:ion_token_analytics/src/core/map_utils.dart';
 
 part 'community_token.f.freezed.dart';
 part 'community_token.f.g.dart';
@@ -33,6 +34,28 @@ class CommunityTokenPatch with _$CommunityTokenPatch {
     MarketDataPatch? marketData,
   }) = _CommunityTokenPatch;
 
-  factory CommunityTokenPatch.fromJson(Map<String, dynamic> json) =>
-      _$CommunityTokenPatchFromJson(json);
+  factory CommunityTokenPatch.fromJson(Map<String, dynamic> json) => _$CommunityTokenPatchFromJson(json);
+}
+
+extension CommunityTokenPatchExtension on CommunityTokenPatch {
+  bool isEmpty() {
+    return type == null &&
+        title == null &&
+        description == null &&
+        imageUrl == null &&
+        addresses == null &&
+        creator == null &&
+        marketData == null;
+  }
+}
+
+extension CommunityTokenExtension on CommunityToken {
+  CommunityToken merge(CommunityTokenPatch patch) {
+    final orgJson = toJson();
+    final patchJson = patch.toJson();
+
+    final mergedJson = deepMerge(orgJson, patchJson);
+
+    return CommunityToken.fromJson(mergedJson);
+  }
 }

@@ -15,10 +15,7 @@ class TokenInfoMockHandler {
       title: 'Mock Community Token',
       description: 'A mock community token for testing and development',
       imageUrl: 'https://i.pravatar.cc/150?img=10',
-      addresses: const Addresses(
-        blockchain: '0x1234567890abcdef',
-        ionConnect: 'mock_ion_address_1',
-      ),
+      addresses: const Addresses(blockchain: '0x1234567890abcdef', ionConnect: 'mock_ion_address_1'),
       creator: const Creator(
         name: 'mockCreator',
         display: 'Mock Creator',
@@ -31,6 +28,13 @@ class TokenInfoMockHandler {
         volume: _random.nextInt(1000000) + 100000,
         holders: _random.nextInt(500) + 50,
         priceUSD: _random.nextDouble() * 50 + 0.01,
+        position: Position(
+          amount: _random.nextInt(1000000) + 100000,
+          rank: _random.nextInt(500) + 50,
+          amountUSD: _random.nextDouble() * 50 + 0.01,
+          pnl: _random.nextDouble() * 50 + 0.01,
+          pnlPercentage: _random.nextDouble() * 50 + 0.01,
+        ),
       ),
     ),
     CommunityToken(
@@ -38,10 +42,7 @@ class TokenInfoMockHandler {
       title: 'Test Token 2',
       description: 'Another test token with different market data',
       imageUrl: 'https://i.pravatar.cc/150?img=20',
-      addresses: const Addresses(
-        blockchain: '0xfedcba0987654321',
-        ionConnect: 'mock_ion_address_2',
-      ),
+      addresses: const Addresses(blockchain: '0xfedcba0987654321', ionConnect: 'mock_ion_address_2'),
       creator: const Creator(
         name: 'testCreator',
         display: 'Test Creator',
@@ -54,6 +55,13 @@ class TokenInfoMockHandler {
         volume: _random.nextInt(1000000) + 100000,
         holders: _random.nextInt(500) + 50,
         priceUSD: _random.nextDouble() * 50 + 0.01,
+        position: Position(
+          amount: _random.nextInt(1000000) + 100000,
+          rank: _random.nextInt(500) + 50,
+          amountUSD: _random.nextDouble() * 50 + 0.01,
+          pnl: _random.nextDouble() * 50 + 0.01,
+          pnlPercentage: _random.nextDouble() * 50 + 0.01,
+        ),
       ),
     ),
     CommunityToken(
@@ -61,10 +69,7 @@ class TokenInfoMockHandler {
       title: 'Dev Token',
       description: 'Development token for local testing',
       imageUrl: 'https://i.pravatar.cc/150?img=30',
-      addresses: const Addresses(
-        blockchain: '0xabcd1234efgh5678',
-        ionConnect: 'mock_ion_address_3',
-      ),
+      addresses: const Addresses(blockchain: '0xabcd1234efgh5678', ionConnect: 'mock_ion_address_3'),
       creator: const Creator(
         name: 'devCreator',
         display: 'Dev Creator',
@@ -77,6 +82,13 @@ class TokenInfoMockHandler {
         volume: _random.nextInt(1000000) + 100000,
         holders: _random.nextInt(500) + 50,
         priceUSD: _random.nextDouble() * 50 + 0.01,
+        position: Position(
+          amount: _random.nextInt(1000000) + 100000,
+          rank: _random.nextInt(500) + 50,
+          amountUSD: _random.nextDouble() * 50 + 0.01,
+          pnl: _random.nextDouble() * 50 + 0.01,
+          pnlPercentage: _random.nextDouble() * 50 + 0.01,
+        ),
       ),
     ),
   ];

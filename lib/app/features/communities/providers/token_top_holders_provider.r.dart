@@ -46,19 +46,12 @@ class TokenTopHolders extends _$TokenTopHolders {
       } else {
         // Update phase
         final existIndex = currentList.indexWhere(
-          (element) =>
-              element.position.addresses.ionConnect == newTopHolder.position?.addresses?.ionConnect,
+          (element) => element.position.addresses.ionConnect == newTopHolder.position?.addresses?.ionConnect,
         );
 
         if (existIndex >= 0) {
           final existHolder = currentList[existIndex];
-
-          final existJson = existHolder.toJson();
-          final patchJson = newTopHolder.toJson();
-
-          existJson.addAll(patchJson);
-
-          final patchedHolder = analytics.TopHolder.fromJson(existJson);
+          final patchedHolder = existHolder.merge(newTopHolder);
 
           // Create a new list reference for state update
           currentList = List.from(currentList);

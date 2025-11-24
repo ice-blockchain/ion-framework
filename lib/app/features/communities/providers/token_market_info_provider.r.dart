@@ -30,8 +30,8 @@ Stream<CommunityToken?> tokenMarketInfo(Ref ref, String masterPubkey) async* {
         if (currentToken == null) {
           yield patch as CommunityToken;
         } else {
-          final currentTokenJson = currentToken.toJson()..addAll(patch.toJson());
-          yield CommunityToken.fromJson(currentTokenJson);
+          final patchedToken = currentToken.merge(patch);
+          yield patchedToken;
         }
         // }
       }
