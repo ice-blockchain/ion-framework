@@ -15,7 +15,6 @@ import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders
 import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository_impl.dart';
-import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class IonCommunityTokensService {
   IonCommunityTokensService._({
@@ -114,5 +113,28 @@ class IonCommunityTokensService {
 
   Future<ViewingSession> createViewingSession(TokenCategoryType type) {
     return _categoryTokensRepository.createViewingSession(type);
+  }
+
+  Future<PaginatedCategoryTokensData> getCategoryTokens({
+    required String sessionId,
+    required TokenCategoryType type,
+    String? keyword,
+    int limit = 20,
+    int offset = 0,
+  }) {
+    return _categoryTokensRepository.getCategoryTokens(
+      sessionId: sessionId,
+      type: type,
+      keyword: keyword,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<NetworkSubscription<CommunityTokenPatch>> subscribeToCategoryTokens({
+    required String sessionId,
+    required TokenCategoryType type,
+  }) {
+    return _categoryTokensRepository.subscribeToRealtimeUpdates(sessionId: sessionId, type: type);
   }
 }

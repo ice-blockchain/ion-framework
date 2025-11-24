@@ -2,7 +2,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/addresses.f.dart';
-import 'package:ion_token_analytics/src/community_tokens/token_info/models/patchable.dart';
+import 'package:ion_token_analytics/src/community_tokens/token_info/models/patch.dart';
 
 part 'addresses_patch.f.freezed.dart';
 part 'addresses_patch.f.g.dart';
