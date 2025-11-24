@@ -53,41 +53,39 @@ class CreatePostContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return KeyboardDismissOnTap(
-      child: SingleChildScrollView(
-        controller: scrollController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _VideoPreviewSection(attachedVideoNotifier: attachedVideoNotifier),
-            // Taking topics from the parent event, do not set language for replies.
-            if (parentEvent == null)
-              _HeaderControls(
-                children: [
-                  // Taking topics from the quoted event.
-                  if (quotedEvent == null)
-                    _TopicsButton(
-                      attachedMediaNotifier: attachedMediaNotifier,
-                      attachedVideoNotifier: attachedVideoNotifier,
-                      attachedMediaLinksNotifier: attachedMediaLinksNotifier,
-                      parentEvent: parentEvent,
-                      quotedEvent: quotedEvent,
-                    ),
-                  LanguageButton(createOption: createOption),
-                ],
-              ),
-            if (parentEvent != null) _ParentEntitySection(eventReference: parentEvent!),
-            _TextInputSection(
-              textEditorController: textEditorController,
-              createOption: createOption,
-              attachedMediaNotifier: attachedMediaNotifier,
-              attachedMediaLinksNotifier: attachedMediaLinksNotifier,
-              textEditorKey: textEditorKey,
-              scrollController: scrollController,
+    return SingleChildScrollView(
+      controller: scrollController,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _VideoPreviewSection(attachedVideoNotifier: attachedVideoNotifier),
+          // Taking topics from the parent event, do not set language for replies.
+          if (parentEvent == null)
+            _HeaderControls(
+              children: [
+                // Taking topics from the quoted event.
+                if (quotedEvent == null)
+                  _TopicsButton(
+                    attachedMediaNotifier: attachedMediaNotifier,
+                    attachedVideoNotifier: attachedVideoNotifier,
+                    attachedMediaLinksNotifier: attachedMediaLinksNotifier,
+                    parentEvent: parentEvent,
+                    quotedEvent: quotedEvent,
+                  ),
+                LanguageButton(createOption: createOption),
+              ],
             ),
-            if (quotedEvent != null) _QuotedEntitySection(eventReference: quotedEvent!),
-          ],
-        ),
+          if (parentEvent != null) _ParentEntitySection(eventReference: parentEvent!),
+          _TextInputSection(
+            textEditorController: textEditorController,
+            createOption: createOption,
+            attachedMediaNotifier: attachedMediaNotifier,
+            attachedMediaLinksNotifier: attachedMediaLinksNotifier,
+            textEditorKey: textEditorKey,
+            scrollController: scrollController,
+          ),
+          if (quotedEvent != null) _QuotedEntitySection(eventReference: quotedEvent!),
+        ],
       ),
     );
   }
