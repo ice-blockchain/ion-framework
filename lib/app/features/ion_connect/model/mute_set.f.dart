@@ -12,6 +12,7 @@ import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/replaceable_event_identifier.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 
 part 'mute_set.f.freezed.dart';
 
@@ -26,7 +27,9 @@ enum MuteSetType {
 }
 
 @Freezed(equal: false)
-class MuteSetEntity with IonConnectEntity, CacheableEntity, ReplaceableEntity, _$MuteSetEntity {
+class MuteSetEntity
+    with IonConnectEntity, CacheableEntity, ReplaceableEntity, _$MuteSetEntity
+    implements EntityEventSerializable, DbCacheableEntity {
   const factory MuteSetEntity({
     required String id,
     required String pubkey,
@@ -53,6 +56,9 @@ class MuteSetEntity with IonConnectEntity, CacheableEntity, ReplaceableEntity, _
       data: MuteSetData.fromEventMessage(eventMessage),
     );
   }
+
+  @override
+  FutureOr<EventMessage> toEntityEventMessage() => toEventMessage(data);
 
   static const int kind = 30007;
 }

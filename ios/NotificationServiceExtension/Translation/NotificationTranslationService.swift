@@ -322,23 +322,18 @@ class NotificationTranslationService {
         let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
         if cacheDB.openDatabase() {
             defer { cacheDB.closeDatabase() }
+            
+            // Check if user is muted (not_interested)
             let mutedUsers = cacheDB.getMutedUsers()
             if mutedUsers.contains(senderPubkey) {
-                NSLog("[NSE] Sender is muted: \(senderPubkey)")
+                NSLog("[NSE] Sender is muted (not_interested): \(senderPubkey)")
                 return true
             }
-        }
-        
-        let chatDB = ChatDatabase(keysStorage: keysStorage)
-        if chatDB.openDatabase() {
-            defer { chatDB.closeDatabase() }
-            let mutedConversationIds = chatDB.getMutedConversationIds(currentUserMasterPubkey: currentPubkey)
             
-            let sortedPubkeys = [senderPubkey, currentPubkey].sorted()
-            let conversationId = sortedPubkeys.joined(separator: "")
-            
-            if mutedConversationIds.contains(conversationId) {
-                NSLog("[NSE] Conversation is muted: \(conversationId)")
+            // Check if conversation is muted (chat_conversations)
+            let mutedConversationPubkeys = cacheDB.getMutedConversationPubkeys()
+            if mutedConversationPubkeys.contains(senderPubkey) {
+                NSLog("[NSE] Conversation with sender is muted (chat_conversations): \(senderPubkey)")
                 return true
             }
         }
