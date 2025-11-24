@@ -20,8 +20,13 @@ class Position with _$Position {
 
 @Freezed(copyWith: false)
 class PositionPatch with _$PositionPatch {
-  const factory PositionPatch({int? rank, double? amount, double? amountUSD, double? pnl, double? pnlPercentage}) =
-      _PositionPatch;
+  const factory PositionPatch({
+    int? rank,
+    double? amount,
+    double? amountUSD,
+    double? pnl,
+    double? pnlPercentage,
+  }) = _PositionPatch;
 
   factory PositionPatch.fromJson(Map<String, dynamic> json) => _$PositionPatchFromJson(json);
 }

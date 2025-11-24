@@ -49,7 +49,9 @@ class IonCommunityTokensService {
     return _tokenInfoRepository.getTokenInfo(ionConnectAddresses);
   }
 
-  Future<NetworkSubscription<List<CommunityTokenPatch>>> subscribeToTokenInfo(List<String> ionConnectAddresses) {
+  Future<NetworkSubscription<List<CommunityTokenPatch>>> subscribeToTokenInfo(
+    List<String> ionConnectAddresses,
+  ) {
     return _tokenInfoRepository.subscribeToTokenInfo(ionConnectAddresses);
   }
 
@@ -57,10 +59,15 @@ class IonCommunityTokensService {
     required String ionConnectAddress,
     required String interval,
   }) {
-    return _ohlcvCandlesRepository.subscribeToOhlcvCandles(ionConnectAddress: ionConnectAddress, interval: interval);
+    return _ohlcvCandlesRepository.subscribeToOhlcvCandles(
+      ionConnectAddress: ionConnectAddress,
+      interval: interval,
+    );
   }
 
-  Future<NetworkSubscription<Map<String, TradingStats>>> subscribeToTradingStats({required String ionConnectAddress}) {
+  Future<NetworkSubscription<Map<String, TradingStats>>> subscribeToTradingStats({
+    required String ionConnectAddress,
+  }) {
     return _tradingStatsRepository.subscribeToTradingStats(ionConnectAddress);
   }
 
@@ -71,11 +78,21 @@ class IonCommunityTokensService {
     return _topHoldersRepository.subscribeToTopHolders(ionConnectAddress, limit: limit);
   }
 
-  Future<List<LatestTrade>> fetchLatestTrades({required String ionConnectAddress, int limit = 10, int offset = 0}) {
-    return _latestTradesRepository.fetchLatestTrades(ionConnectAddress, limit: limit, offset: offset);
+  Future<List<LatestTrade>> fetchLatestTrades({
+    required String ionConnectAddress,
+    int limit = 10,
+    int offset = 0,
+  }) {
+    return _latestTradesRepository.fetchLatestTrades(
+      ionConnectAddress,
+      limit: limit,
+      offset: offset,
+    );
   }
 
-  Future<NetworkSubscription<LatestTradePatch>> subscribeToLatestTrades({required String ionConnectAddress}) {
+  Future<NetworkSubscription<LatestTradePatch>> subscribeToLatestTrades({
+    required String ionConnectAddress,
+  }) {
     return _latestTradesRepository.subscribeToLatestTrades(ionConnectAddress);
   }
 }

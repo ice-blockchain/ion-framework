@@ -20,7 +20,11 @@ class NetworkClientMock extends NetworkClient {
   final _tokenInfoHandler = TokenInfoMockHandler();
 
   @override
-  Future<T> get<T>(String path, {Map<String, dynamic>? queryParameters, Map<String, String>? headers}) async {
+  Future<T> get<T>(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Map<String, String>? headers,
+  }) async {
     if (path.contains('/latest-trades')) {
       final limit = queryParameters?['limit'] as int? ?? 10;
       return _latestTradesHandler.handleGet<T>(limit);

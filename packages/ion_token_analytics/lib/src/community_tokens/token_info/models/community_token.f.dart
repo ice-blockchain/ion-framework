@@ -33,5 +33,6 @@ class CommunityTokenPatch with _$CommunityTokenPatch {
     MarketDataPatch? marketData,
   }) = _CommunityTokenPatch;
 
-  factory CommunityTokenPatch.fromJson(Map<String, dynamic> json) => _$CommunityTokenPatchFromJson(json);
+  factory CommunityTokenPatch.fromJson(Map<String, dynamic> json) =>
+      _$CommunityTokenPatchFromJson(json);
 }
