@@ -91,13 +91,16 @@ class SendAssetFormController extends _$SendAssetFormController {
       );
 
       if (selectedOption == null) {
-        final coinData = await (await ref.watch(coinsServiceProvider.future))
-            .getCoinsByFilters(
-              network: network,
-              symbol: coin.coinsGroup.abbreviation,
-              symbolGroup: coin.coinsGroup.symbolGroup,
-            )
-            .then((coins) => coins.firstOrNull);
+        final coins = await (await ref.watch(coinsServiceProvider.future)).getCoinsByFilters(
+          network: network,
+          symbolGroup: coin.coinsGroup.symbolGroup,
+        );
+
+        final coinData = coins.firstWhereOrNull(
+              (e) => e.abbreviation == coin.coinsGroup.abbreviation,
+            ) ??
+            coins.firstOrNull;
+
         if (coinData != null) {
           selectedOption = CoinInWalletData(coin: coinData);
         }
@@ -113,7 +116,7 @@ class SendAssetFormController extends _$SendAssetFormController {
         assetData: coin.copyWith(
           selectedOption: selectedOption,
         ),
-        senderWallet: isCryptoWalletCorrect
+        senderWallet: isCryptoWalletCorrect || selectedOption == null
             ? state.senderWallet
             : wallets.firstWhereOrNull((w) => w.id == selectedOption!.walletId),
       );
