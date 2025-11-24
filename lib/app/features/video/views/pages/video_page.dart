@@ -80,27 +80,18 @@ class VideoPage extends HookConsumerWidget {
           Expanded(
             child: Stack(
               children: [
-                // Aligns the content to be with a small bottom padding when the bottom overlay should be shown
-                _ContentAlignment(
-                  addBottomPadding: !hideBottomOverlay,
-                  // Showing thumbnail with loading indicator underneath the video player
-                  // for better UX (no flickering on transition)
-                  child: Stack(
-                    children: [
-                      Center(
-                        child: _VideoThumbWidget(
-                          authorPubkey: authorPubkey,
-                          aspectRatio: aspectRatio,
-                          thumbnailUrl: thumbnailUrl,
-                          blurhash: blurhash,
-                        ),
-                      ),
-                      const CenteredLoadingIndicator(),
-                      if (playerController != null)
-                        _VideoPlayerWidget(controller: playerController),
-                    ],
+                // Showing thumbnail with loading indicator underneath the video player
+                // for better UX (no flickering on transition)
+                Center(
+                  child: _VideoThumbWidget(
+                    authorPubkey: authorPubkey,
+                    aspectRatio: aspectRatio,
+                    thumbnailUrl: thumbnailUrl,
+                    blurhash: blurhash,
                   ),
                 ),
+                const CenteredLoadingIndicator(),
+                if (playerController != null) _VideoPlayerWidget(controller: playerController),
                 if (playerController != null && !hideBottomOverlay)
                   Column(
                     children: [
@@ -116,24 +107,6 @@ class VideoPage extends HookConsumerWidget {
           if (!hideBottomOverlay) const _BottomNotch(),
         ],
       ),
-    );
-  }
-}
-
-class _ContentAlignment extends StatelessWidget {
-  const _ContentAlignment({required this.child, this.addBottomPadding = false});
-
-  final bool addBottomPadding;
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsetsDirectional.only(
-        bottom: addBottomPadding ? 42.0.s : 0,
-      ),
-      child: child,
     );
   }
 }
