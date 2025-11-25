@@ -1,44 +1,45 @@
-import 'package:dio/dio.dart';
+import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/repositories/api_repository.dart';
 import 'package:ion_swap_client/repositories/exolix_repository.dart';
 import 'package:ion_swap_client/repositories/lets_exchange_repository.dart';
 import 'package:ion_swap_client/repositories/relay_api_repository.dart';
 import 'package:ion_swap_client/repositories/swap_okx_repository.dart';
+import 'package:ion_swap_client/service_locator/network_service_locator.dart';
 
-class ApiRepositoryServiceLocator<T extends ApiRepository> {
+class ApiRepositoryServiceLocator {
   factory ApiRepositoryServiceLocator() {
-    return _instance as ApiRepositoryServiceLocator<T>;
+    return _instance;
   }
 
-  ApiRepositoryServiceLocator._internal();
+  ApiRepositoryServiceLocator._internal({
+    required NetworkServiceLocator networkServiceLocator,
+  }) : _networkServiceLocator = networkServiceLocator;
 
-  static final ApiRepositoryServiceLocator _instance = ApiRepositoryServiceLocator._internal();
+  static final ApiRepositoryServiceLocator _instance = ApiRepositoryServiceLocator._internal(
+    networkServiceLocator: NetworkServiceLocator(),
+  );
 
-  T? _repository;
+  final NetworkServiceLocator _networkServiceLocator;
 
-  T repository({
-    required Dio dio,
+  static final Map<Type, ApiRepository> _cache = {};
+
+  T get<T extends ApiRepository>({
+    required IONSwapConfig config,
   }) {
-    if (_repository != null) {
-      return _repository!;
+    if (_cache[T] != null) {
+      return _cache[T]! as T;
     }
 
-    _repository = _repositoryBuilder(
-      dio: dio,
-    );
-
-    return _repository!;
-  }
-
-  T _repositoryBuilder({
-    required Dio dio,
-  }) {
-    return switch (T) {
-      ExolixRepository => ExolixRepository(dio: dio) as T,
-      LetsExchangeRepository => LetsExchangeRepository(dio: dio) as T,
-      RelayApiRepository => RelayApiRepository(dio: dio) as T,
-      SwapOkxRepository => SwapOkxRepository(dio: dio) as T,
+    final repository = switch (T) {
+      ExolixRepository => ExolixRepository(dio: _networkServiceLocator.exolixDio(config: config)),
+      LetsExchangeRepository => LetsExchangeRepository(dio: _networkServiceLocator.letsExchangeDio(config: config)),
+      RelayApiRepository => RelayApiRepository(dio: _networkServiceLocator.relayDio(config: config)),
+      SwapOkxRepository => SwapOkxRepository(dio: _networkServiceLocator.okxDio(config: config)),
       _ => throw UnimplementedError('Repository $T is not implemented'),
     };
+
+    _cache[T] = repository;
+
+    return repository as T;
   }
 }

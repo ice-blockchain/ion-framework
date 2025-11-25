@@ -35,6 +35,9 @@ class SwapController {
     required SwapCoinParameters swapCoinData,
   }) async {
     try {
+      await _tryToCexSwap(swapCoinData);
+      return;
+
       if (swapCoinData.isBridge) {
         await _tryToBridge(swapCoinData);
         return;
@@ -130,5 +133,14 @@ class SwapController {
 
   Future<void> _tryToBridge(SwapCoinParameters swapCoinData) async {
     await _relayApiRepository.getQuote();
+  }
+
+  Future<void> _tryToCexSwap(SwapCoinParameters swapCoinData) async {
+    // TODO(ice-erebus): add exolis
+    await _swapOnLetsExchange(swapCoinData);
+  }
+
+  Future<void> _swapOnLetsExchange(SwapCoinParameters swapCoinData) async {
+    await _letsExchangeRepository.getCoins();
   }
 }

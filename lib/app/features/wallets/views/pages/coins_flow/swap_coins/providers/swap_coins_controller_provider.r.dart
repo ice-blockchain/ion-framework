@@ -104,22 +104,27 @@ class SwapCoinsController extends _$SwapCoinsController {
     if (sellCoin == null || buyCoin == null) {
       return;
     }
-
-    final swapController = await ref.read(ionSwapClientProvider.future);
-    await swapController.swapCoins(
-      // TODO(ice-erebus): add amount
-      swapCoinData: SwapCoinParameters(
-        isBridge: buyCoinGroup == sellCoinGroup,
-        amount: '1000',
-        buyCoinContractAddress: buyCoin.coin.contractAddress,
-        sellCoinContractAddress: sellCoin.coin.contractAddress,
-        buyCoinNetworkName: buyNetwork.displayName,
-        sellCoinNetworkName: sellNetwork.displayName,
-        buyNetworkId: buyNetwork.id,
-        sellNetworkId: sellNetwork.id,
-        userBuyAddress: userBuyAddress,
-        userSellAddress: userSellAddress,
-      ),
-    );
+    try {
+      final swapController = await ref.read(ionSwapClientProvider.future);
+      await swapController.swapCoins(
+        // TODO(ice-erebus): add amount
+        swapCoinData: SwapCoinParameters(
+          isBridge: buyCoinGroup == sellCoinGroup,
+          amount: '1000',
+          buyCoinContractAddress: buyCoin.coin.contractAddress,
+          sellCoinContractAddress: sellCoin.coin.contractAddress,
+          buyCoinNetworkName: buyNetwork.displayName,
+          sellCoinNetworkName: sellNetwork.displayName,
+          buyNetworkId: buyNetwork.id,
+          sellNetworkId: sellNetwork.id,
+          userBuyAddress: userBuyAddress,
+          userSellAddress: userSellAddress,
+        ),
+      );
+    } catch (e) {
+      throw Exception(
+        'Failed to swap coins: $e',
+      );
+    }
   }
 }
