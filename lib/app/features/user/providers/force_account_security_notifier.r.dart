@@ -23,9 +23,9 @@ part 'force_account_security_notifier.r.g.dart';
 
 class ForceAccountSecurityService {
   ForceAccountSecurityService({
-    required Duration Function() getEnforceDelay,
+    required Duration enforceDelay,
     required void Function() emitDialog,
-  })  : _getEnforceDelay = getEnforceDelay,
+  })  : _enforceDelay = enforceDelay,
         _emitDialog = emitDialog;
   bool _authenticated = false;
   UserMetadataEntity? _metadata;
@@ -36,7 +36,7 @@ class ForceAccountSecurityService {
   bool _splashCompleted = false;
   String? _masterPubkey;
 
-  final Duration Function() _getEnforceDelay;
+  final Duration _enforceDelay;
   final void Function() _emitDialog;
 
   Timer? _timer;
@@ -113,8 +113,7 @@ class ForceAccountSecurityService {
     if (_route != FeedRoute().location) return;
 
     // 9. enforce time
-    final enforceDelayDuration = _getEnforceDelay();
-    final enforceTime = metadata.createdAt.toDateTime.add(enforceDelayDuration);
+    final enforceTime = metadata.createdAt.toDateTime.add(_enforceDelay);
     final now = DateTime.now();
     final canShowPopUp = enforceTime.isBefore(now);
 
@@ -137,7 +136,7 @@ class ForceAccountSecurityService {
 @Riverpod(keepAlive: true)
 ForceAccountSecurityService forceAccountSecurityService(Ref ref) {
   final service = ForceAccountSecurityService(
-    getEnforceDelay: () => ref.read(envProvider.notifier).get<Duration>(
+    enforceDelay: ref.read(envProvider.notifier).get<Duration>(
           EnvVariable.ENFORCE_ACCOUNT_SECURITY_DELAY_IN_MINUTES,
         ),
     emitDialog: () {
