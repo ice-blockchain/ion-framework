@@ -35,8 +35,6 @@ class OkxHeaderInterceptor implements Interceptor {
     // Prepare request path (include query string if present)
     // Dio stores either a relative path or a full URL in `options.path`.
     // We normalize to just the path component, preserving the query string.
-
-
     final fullUrl = options.baseUrl + options.path;
     final pathToReplace = _getBaseUrl(
       fullUrl,
