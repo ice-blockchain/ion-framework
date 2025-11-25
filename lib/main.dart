@@ -9,7 +9,6 @@ import 'package:ion/app/features/core/providers/template_provider.r.dart';
 import 'package:ion/app/features/core/providers/theme_mode_provider.r.dart';
 import 'package:ion/app/features/core/views/components/app_lifecycle_observer.dart';
 import 'package:ion/app/features/core/views/components/content_scaler.dart';
-import 'package:ion/app/features/core/views/components/route_location_observer.dart';
 import 'package:ion/app/router/components/app_router_builder.dart';
 import 'package:ion/app/router/components/modal_wrapper/sheet_scope.dart';
 import 'package:ion/app/router/providers/go_router_provider.r.dart';
@@ -64,9 +63,7 @@ class IONApp extends ConsumerWidget {
             darkTheme: template.whenOrNull(data: (data) => buildDarkTheme(data.theme)),
             themeMode: appThemeMode,
             routerConfig: goRouter,
-            builder: (context, child) => RouteLocationObserver(
-              child: AppRouterBuilder(child: child),
-            ),
+            builder: (context, child) => AppRouterBuilder(child: child),
           ),
         ),
       ),

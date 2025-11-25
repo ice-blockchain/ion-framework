@@ -23,6 +23,7 @@ import 'package:ion/app/features/push_notifications/providers/notification_respo
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_router_listenable.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/router/providers/route_location_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -33,7 +34,14 @@ part 'go_router_provider.r.g.dart';
 GoRouter goRouter(Ref ref) {
   GoRouter.optionURLReflectsImperativeAPIs = true;
 
-  return GoRouter(
+  late final GoRouter router;
+
+  void updateRouteLocation() {
+    final fullPath = router.state.fullPath ?? '';
+    ref.read(routeLocationProvider.notifier).setLocation(fullPath);
+  }
+
+  router = GoRouter(
     refreshListenable: AppRouterNotifier(ref),
     redirect: (context, state) async {
       final initState = ref.read(initAppProvider);
@@ -84,6 +92,16 @@ GoRouter goRouter(Ref ref) {
     debugLogDiagnostics: ref.read(featureFlagsProvider.notifier).get(LoggerFeatureFlag.logRouters),
     navigatorKey: rootNavigatorKey,
   );
+
+  // Listen to route changes
+  router.routerDelegate.addListener(updateRouteLocation);
+
+  ref.onDispose(() {
+    router.routerDelegate.removeListener(updateRouteLocation);
+    router.dispose();
+  });
+
+  return router;
 }
 
 Future<String?> _mainRedirect({

@@ -30,7 +30,7 @@ class ForceAccountSecurityService {
   bool _authenticated = false;
   UserMetadataEntity? _metadata;
   bool _delegationComplete = false;
-  bool _secured = false;
+  bool _secured = true;
   String _route = '';
   AppLifecycleState _lifecycle = AppLifecycleState.resumed;
   bool _splashCompleted = false;
@@ -145,55 +145,46 @@ ForceAccountSecurityService forceAccountSecurityService(Ref ref) {
     },
   );
 
-  ref.onDispose(service.dispose);
-
-  // Seed initial values
-  service
-    ..onSplashCompleted(splashCompleted: ref.read(splashProvider))
-    ..onAuthenticated(authenticated: ref.read(authProvider).value?.isAuthenticated ?? false)
-    ..onMasterPubkey(ref.read(currentPubkeySelectorProvider))
-    ..onUserMetadata(ref.read(currentUserMetadataProvider).valueOrNull)
-    ..onDelegationComplete(
-      delegationComplete: ref.read(delegationCompleteProvider).valueOrNull.falseOrValue,
-    )
-    ..onSecured(secured: ref.read(isCurrentUserSecuredProvider).valueOrNull ?? false)
-    ..onRouteChanged(ref.read(routeLocationProvider))
-    ..onLifecycleChanged(ref.read(appLifecycleProvider));
-
-  // Listen to changes afterwards
   ref
+    ..onDispose(service.dispose)
     ..listen<bool>(
       splashProvider,
+      fireImmediately: true,
       (_, bool next) {
         service.onSplashCompleted(splashCompleted: next);
       },
     )
     ..listen<AsyncValue<AuthState>>(
       authProvider,
+      fireImmediately: true,
       (_, AsyncValue<AuthState> next) {
         service.onAuthenticated(authenticated: next.valueOrNull?.isAuthenticated ?? false);
       },
     )
     ..listen<String?>(
       currentPubkeySelectorProvider,
+      fireImmediately: true,
       (_, String? next) {
         service.onMasterPubkey(next);
       },
     )
     ..listen<AsyncValue<UserMetadataEntity?>>(
       currentUserMetadataProvider,
+      fireImmediately: true,
       (_, AsyncValue<UserMetadataEntity?> next) {
         service.onUserMetadata(next.valueOrNull);
       },
     )
     ..listen<AsyncValue<bool>>(
       delegationCompleteProvider,
+      fireImmediately: true,
       (_, AsyncValue<bool> next) {
         service.onDelegationComplete(delegationComplete: next.valueOrNull.falseOrValue);
       },
     )
     ..listen<AsyncValue<bool>>(
       isCurrentUserSecuredProvider,
+      fireImmediately: true,
       (_, AsyncValue<bool> next) {
         final value = next.valueOrNull;
         if (value != null) {
@@ -203,12 +194,14 @@ ForceAccountSecurityService forceAccountSecurityService(Ref ref) {
     )
     ..listen<String>(
       routeLocationProvider,
+      fireImmediately: true,
       (_, String next) {
         service.onRouteChanged(next);
       },
     )
     ..listen<AppLifecycleState>(
       appLifecycleProvider,
+      fireImmediately: true,
       (_, AppLifecycleState next) {
         service.onLifecycleChanged(next);
       },
