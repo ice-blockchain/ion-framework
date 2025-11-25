@@ -7,6 +7,7 @@ part 'exolix_transaction.m.g.dart';
 class ExolixTransaction with _$ExolixTransaction {
   factory ExolixTransaction({
     required String id,
+    required num amount,
     required TransactionStatus status,
     required String depositAddress,
   }) = _ExolixTransaction;

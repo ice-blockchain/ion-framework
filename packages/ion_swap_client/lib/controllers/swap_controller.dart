@@ -14,6 +14,11 @@ import 'package:ion_swap_client/repositories/lets_exchange_repository.dart';
 import 'package:ion_swap_client/repositories/relay_api_repository.dart';
 import 'package:ion_swap_client/repositories/swap_okx_repository.dart';
 
+typedef SendCoinCallback = Future<void> Function({
+  required String depositAddress,
+  required num amount,
+});
+
 class SwapController {
   SwapController({
     required SwapOkxRepository swapOkxRepository,
@@ -38,11 +43,9 @@ class SwapController {
 
   Future<void> swapCoins({
     required SwapCoinParameters swapCoinData,
+    required SendCoinCallback sendCoinCallback,
   }) async {
     try {
-      await _tryToCexSwap(swapCoinData);
-      return;
-
       if (swapCoinData.isBridge) {
         await _tryToBridge(swapCoinData);
         return;
@@ -50,9 +53,13 @@ class SwapController {
 
       if (swapCoinData.sellNetworkId == swapCoinData.buyNetworkId) {
         await _tryToSwapOnSameNetwork(swapCoinData);
-        // TODO(ice-erebus): implement CEX
         return;
       }
+
+      await _tryToCexSwap(
+        swapCoinData,
+        sendCoinCallback,
+      );
     } catch (e) {
       throw IonSwapException(
         'Failed to swap coins: $e',
@@ -117,7 +124,7 @@ class SwapController {
     return supportedChain;
   }
 
-  // TODO(ice-erebus): implement actual logic
+  // TODO(ice-erebus): implement actual logic (this one in PR with UI)
   SwapQuoteData _pickBestOkxQuote(List<SwapQuoteData> quotes) {
     return quotes.first;
   }
@@ -130,17 +137,12 @@ class SwapController {
     return contractAddress.isEmpty ? null : contractAddress;
   }
 
-  String? _getTokenAddressForExolix(String contractAddress) {
-    return contractAddress.isEmpty ? '0' : contractAddress;
-  }
-
   T _processOkxResponse<T>(OkxApiResponse<T> response) {
     final responseCode = int.tryParse(response.code);
     if (responseCode == 0) {
       return response.data;
     }
 
-    // TODO(ice-erebus): implement actual error handling
     throw Exception('Failed to process OKX response: $responseCode');
   }
 
@@ -148,10 +150,18 @@ class SwapController {
     await _relayApiRepository.getQuote();
   }
 
-  Future<void> _tryToCexSwap(SwapCoinParameters swapCoinData) async {
-    // TODO(ice-erebus): add exolis
-    await _swapOnExolix(swapCoinData);
-    // await _swapOnLetsExchange(swapCoinData);
+  Future<void> _tryToCexSwap(
+    SwapCoinParameters swapCoinData,
+    SendCoinCallback sendCoinCallback,
+  ) async {
+    try {
+      await _swapOnExolix(
+        swapCoinData,
+        sendCoinCallback,
+      );
+    } catch (e) {
+      await _swapOnLetsExchange(swapCoinData);
+    }
   }
 
   Future<void> _swapOnLetsExchange(SwapCoinParameters swapCoinData) async {
@@ -199,7 +209,10 @@ class SwapController {
     );
   }
 
-  Future<void> _swapOnExolix(SwapCoinParameters swapCoinData) async {
+  Future<void> _swapOnExolix(
+    SwapCoinParameters swapCoinData,
+    SendCoinCallback sendCoinCallback,
+  ) async {
     final sellCoins = await _exolixRepository.getCoins(
       coinCode: swapCoinData.sellCoinCode,
     );
@@ -215,10 +228,8 @@ class SwapController {
       throw Exception('Exolix: Coins pair not found');
     }
 
-    final sellNetwork = sellCoin.networks
-        .firstWhereOrNull((e) => e.contract == _getTokenAddressForExolix(swapCoinData.sellCoinContractAddress));
-    final buyNetwork = buyCoin.networks
-        .firstWhereOrNull((e) => e.contract == _getTokenAddressForExolix(swapCoinData.buyCoinContractAddress));
+    final sellNetwork = sellCoin.networks.firstWhereOrNull((e) => e.name == swapCoinData.sellCoinNetworkName);
+    final buyNetwork = buyCoin.networks.firstWhereOrNull((e) => e.name == swapCoinData.buyCoinNetworkName);
 
     if (sellNetwork == null || buyNetwork == null) {
       throw Exception('Exolix: Coins networks not found');
@@ -232,7 +243,7 @@ class SwapController {
       amount: swapCoinData.amount,
     );
 
-    await _exolixRepository.createTransaction(
+    final transaction = await _exolixRepository.createTransaction(
       coinFrom: sellCoin.code,
       networkFrom: sellNetwork.network,
       coinTo: buyCoin.code,
@@ -240,6 +251,11 @@ class SwapController {
       amount: swapCoinData.amount,
       withdrawalAddress: swapCoinData.userBuyAddress,
       withdrawalExtraId: swapCoinData.buyExtraId.isNotEmpty ? swapCoinData.buyExtraId : null,
+    );
+
+    await sendCoinCallback(
+      depositAddress: transaction.depositAddress,
+      amount: transaction.amount,
     );
   }
 }

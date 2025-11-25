@@ -6,13 +6,13 @@ part 'exolix_rate.m.g.dart';
 @freezed
 class ExolixRate with _$ExolixRate {
   factory ExolixRate({
-    required int fromAmount,
-    required int toAmount,
-    required int rate,
+    required num fromAmount,
+    required num toAmount,
+    required num rate,
     required String? message,
-    required int minAmount,
-    required int withdrawMin,
-    required int maxAmount,
+    required num minAmount,
+    required num withdrawMin,
+    required num maxAmount,
   }) = _ExolixRate;
 
   factory ExolixRate.fromJson(Map<String, dynamic> json) => _$ExolixRateFromJson(json);
