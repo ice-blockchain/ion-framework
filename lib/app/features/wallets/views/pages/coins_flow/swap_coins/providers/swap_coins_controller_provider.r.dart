@@ -1,15 +1,23 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:collection/collection.dart';
+import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
+import 'package:ion/app/features/wallets/model/send_asset_form_data.f.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
+import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/network_fee_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/swap_coins_modal_page.dart';
 import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'swap_coins_controller_provider.r.g.dart';
+
+typedef OnVerifyIdentitySwapCallback = Future<void> Function(SendAssetFormData);
 
 @Riverpod(keepAlive: true)
 class SwapCoinsController extends _$SwapCoinsController {
@@ -88,6 +96,7 @@ class SwapCoinsController extends _$SwapCoinsController {
   Future<void> swapCoins({
     required String userSellAddress,
     required String userBuyAddress,
+    required OnVerifyIdentitySwapCallback onVerifyIdentitySwapCallback,
   }) async {
     final sellNetwork = state.sellNetwork;
     final buyNetwork = state.buyNetwork;
@@ -108,7 +117,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     try {
       final swapController = await ref.read(ionSwapClientProvider.future);
       await swapController.swapCoins(
-        // TODO(ice-erebus): add amount
+        // TODO(ice-erebus): actual data
         swapCoinData: SwapCoinParameters(
           isBridge: buyCoinGroup == sellCoinGroup,
           amount: '200',
@@ -122,10 +131,22 @@ class SwapCoinsController extends _$SwapCoinsController {
           userSellAddress: userSellAddress,
           buyCoinCode: buyCoin.coin.abbreviation,
           sellCoinCode: sellCoin.coin.abbreviation,
-
           /// it's extra id used for some coins
           /// since ion provides only personal wallets for use it's fixed
           buyExtraId: buyNetwork.isMemoSupported ? 'Online' : '',
+        ),
+        sendCoinCallback: ({
+          required String depositAddress,
+          required num amount,
+        }) =>
+            _sendCoinCallback(
+          depositAddress: depositAddress,
+          amount: amount,
+          onVerifyIdentitySwapCallback: onVerifyIdentitySwapCallback,
+          memo: sellNetwork.isMemoSupported ? 'Online' : null,
+          sellAddress: userSellAddress,
+          sellNetwork: sellNetwork,
+          sellCoin: sellCoin,
         ),
       );
     } catch (e) {
@@ -133,5 +154,51 @@ class SwapCoinsController extends _$SwapCoinsController {
         'Failed to swap coins: $e',
       );
     }
+  }
+
+  /// Used to send coins to address in cases where
+  /// we need to send coins by ourselves to blockchain
+  Future<void> _sendCoinCallback({
+    required String sellAddress,
+    required CoinInWalletData sellCoin,
+    required NetworkData sellNetwork,
+    required String depositAddress,
+    required num amount,
+    required OnVerifyIdentitySwapCallback onVerifyIdentitySwapCallback,
+    required String? memo,
+  }) async {
+    final walletView = await ref.read(walletViewByAddressProvider(sellAddress).future);
+
+    final networkFeeInfo = await ref.read(
+      networkFeeProvider(
+        walletId: walletView?.id,
+        network: sellNetwork,
+        transferredCoin: sellCoin.coin,
+      ).future,
+    );
+
+    final wallets = await ref.read(
+      walletViewCryptoWalletsProvider(walletViewId: walletView?.id).future,
+    );
+
+    await onVerifyIdentitySwapCallback(
+      SendAssetFormData(
+        arrivalDateTime: DateTime.now().microsecondsSinceEpoch,
+        receiverAddress: depositAddress,
+        assetData: CryptoAssetToSendData.coin(
+          coinsGroup: state.sellCoin!,
+          amount: amount.toDouble(),
+        ),
+        memo: memo,
+        walletView: walletView,
+        network: sellNetwork,
+        networkFeeOptions: networkFeeInfo?.networkFeeOptions ?? [],
+        selectedNetworkFeeOption: networkFeeInfo?.networkFeeOptions.firstOrNull,
+        networkNativeToken: networkFeeInfo?.networkNativeToken,
+        senderWallet: wallets.firstWhereOrNull(
+          (wallet) => wallet.network == sellNetwork.id,
+        ),
+      ),
+    );
   }
 }
