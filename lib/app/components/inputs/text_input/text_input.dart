@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/inputs/hooks/use_node_focused.dart';
+import 'package:ion/app/components/inputs/text_input/components/text_field_context_menu.dart';
 import 'package:ion/app/components/inputs/text_input/components/text_input_decoration.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
@@ -147,6 +148,7 @@ class TextInput extends HookWidget {
       obscuringCharacter: '*',
       validator: validate,
       autovalidateMode: autoValidateMode,
+      contextMenuBuilder: buildTextFieldContextMenu,
       decoration: TextInputDecoration(
         context: context,
         verified: verified,

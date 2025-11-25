@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/inputs/text_input/ion_text_field.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
@@ -316,7 +317,7 @@ class _TokenCard extends ConsumerWidget {
                   ),
                 SizedBox(
                   width: 150.0.s,
-                  child: TextField(
+                  child: IonTextField(
                     readOnly: coinsGroup == null,
                     keyboardType: TextInputType.number,
                     style: textStyles.headline2.copyWith(
