@@ -1038,6 +1038,7 @@
   "latest_trades_title": "Neueste Trades",
   "trade_buy": "KAUF",
   "trade_sell": "VERKAUF",
+  "your_position_card_title": "Deine Position",
   "tokenized_community_chart_tab": "Chart",
   "tokenized_community_holders_tab": "Inhaber",
   "tokenized_community_trades_tab": "Trades",

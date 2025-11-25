@@ -8,6 +8,7 @@ import 'package:ion/app/components/layouts/collapsing_header_tabs_layout.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/models/trading_stats_formatted.dart';
+import 'package:ion/app/features/communities/pages/components/your_position_card.dart';
 import 'package:ion/app/features/communities/providers/token_latest_trades_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_olhcv_candles_provider.r.dart';
@@ -117,8 +118,7 @@ class _ChartsTabView extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
-        // SliverToBoxAdapter(child: YourPositionCard(masterPubkey: masterPubkey)),
-        SliverToBoxAdapter(child: SizedBox(height: 12.0.s)),
+        SliverToBoxAdapter(child: YourPositionCard(masterPubkey: masterPubkey)),
         // TODO: remove, just for enterign global categories page
         SliverToBoxAdapter(
           child: Padding(

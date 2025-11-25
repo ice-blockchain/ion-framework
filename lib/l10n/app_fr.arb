@@ -1038,6 +1038,7 @@
   "latest_trades_title": "Dernières transactions",
   "trade_buy": "ACHAT",
   "trade_sell": "VENTE",
+  "your_position_card_title": "Votre position",
   "tokenized_community_chart_tab": "Graphique",
   "tokenized_community_holders_tab": "Détenteurs",
   "tokenized_community_trades_tab": "Transactions",

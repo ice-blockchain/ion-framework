@@ -1038,6 +1038,7 @@
     "latest_trades_title": "最新成交",
     "trade_buy": "买入",
     "trade_sell": "卖出",
+    "your_position_card_title": "持仓",
     "tokenized_community_chart_tab": "图表",
     "tokenized_community_holders_tab": "持有者",
     "tokenized_community_trades_tab": "交易",
