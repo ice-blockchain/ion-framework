@@ -91,12 +91,13 @@ class CategoryTokensDataSourceMock {
   // Repository will calculate hasMore based on response.length == limit.
   Future<List<Map<String, dynamic>>> getLatestTokens({
     String? keyword,
+    String? type,
     int limit = 20,
     int offset = 0,
   }) async {
     await Future<void>.delayed(const Duration(seconds: 2));
 
-    final cacheKey = 'latest:${keyword ?? ''}';
+    final cacheKey = 'latest:${type ?? ''}:${keyword ?? ''}';
     final allTokens = _mockDataCache[cacheKey] ??= _generateMockTokens('latest', keyword);
 
     final endIndex = (offset + limit).clamp(0, allTokens.length);
@@ -110,7 +111,7 @@ class CategoryTokensDataSourceMock {
   // - Randomly sends updates OR new items (full token object)
   // Updates format: {addresses: {ionConnect: "..."}, marketData: {...}} (partial, matches full structure)
   // New items format: full token object
-  Stream<Map<String, dynamic>> subscribeToLatestRealtimeUpdates() {
+  Stream<Map<String, dynamic>> subscribeToLatestRealtimeUpdates({String? keyword, String? type}) {
     final controller = StreamController<Map<String, dynamic>>();
 
     Timer.periodic(const Duration(seconds: 15), (timer) {

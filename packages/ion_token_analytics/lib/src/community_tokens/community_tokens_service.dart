@@ -5,6 +5,8 @@ import 'package:ion_token_analytics/src/community_tokens/category_tokens/categor
 import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository.dart';
+import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository.dart';
@@ -24,6 +26,7 @@ class IonCommunityTokensService {
     required TopHoldersRepository topHoldersRepository,
     required LatestTradesRepository latestTradesRepository,
     required FeaturedTokensRepository featuredTokensRepository,
+    required LatestTokensRepository latestTokensRepository,
     required CategoryTokensRepository categoryTokensRepository,
   }) : _tokenInfoRepository = tokenInfoRepository,
        _ohlcvCandlesRepository = ohlcvCandlesRepository,
@@ -31,6 +34,7 @@ class IonCommunityTokensService {
        _topHoldersRepository = topHoldersRepository,
        _latestTradesRepository = latestTradesRepository,
        _featuredTokensRepository = featuredTokensRepository,
+       _latestTokensRepository = latestTokensRepository,
        _categoryTokensRepository = categoryTokensRepository;
 
   final TokenInfoRepository _tokenInfoRepository;
@@ -39,6 +43,7 @@ class IonCommunityTokensService {
   final TopHoldersRepository _topHoldersRepository;
   final LatestTradesRepository _latestTradesRepository;
   final FeaturedTokensRepository _featuredTokensRepository;
+  final LatestTokensRepository _latestTokensRepository;
   final CategoryTokensRepository _categoryTokensRepository;
 
   static Future<IonCommunityTokensService> create({required NetworkClient networkClient}) async {
@@ -51,6 +56,7 @@ class IonCommunityTokensService {
       topHoldersRepository: TopHoldersRepositoryImpl(networkClient),
       latestTradesRepository: LatestTradesRepositoryImpl(networkClient),
       featuredTokensRepository: FeaturedTokensRepositoryMock(),
+      latestTokensRepository: LatestTokensRepositoryMock(),
       categoryTokensRepository: CategoryTokensRepositoryMock(),
     );
     return service;
@@ -109,6 +115,27 @@ class IonCommunityTokensService {
 
   Future<NetworkSubscription<List<CommunityToken>>> subscribeToFeaturedTokens() {
     return _featuredTokensRepository.subscribeToFeaturedTokens();
+  }
+
+  Future<PaginatedCategoryTokensData> getLatestTokens({
+    String? keyword,
+    String? type,
+    int limit = 20,
+    int offset = 0,
+  }) {
+    return _latestTokensRepository.getLatestTokens(
+      keyword: keyword,
+      type: type,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<NetworkSubscription<CommunityTokenPatch>> subscribeToLatestTokens({
+    String? keyword,
+    String? type,
+  }) {
+    return _latestTokensRepository.subscribeToLatestTokens(keyword: keyword, type: type);
   }
 
   Future<ViewingSession> createViewingSession(TokenCategoryType type) {
