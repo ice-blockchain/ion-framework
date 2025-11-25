@@ -396,7 +396,9 @@ class PubkeyChangeWithExistingUser extends _$PubkeyChangeWithExistingUser {
 @Riverpod(keepAlive: true)
 class UserSwitching extends _$UserSwitching {
   @override
-  bool build() => true;
+  bool build() {
+    return false;
+  }
 
   void active() {
     state = true;
