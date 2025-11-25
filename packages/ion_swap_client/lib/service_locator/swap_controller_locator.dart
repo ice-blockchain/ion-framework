@@ -37,6 +37,7 @@ class SwapControllerLocator {
       exolixRepository: exolixRepository,
       letsExchangeRepository: letsExchangeRepository,
       chainsIdsRepository: ChainsIdsRepository(),
+      config: config,
     );
 
     return _swapCoinsController!;

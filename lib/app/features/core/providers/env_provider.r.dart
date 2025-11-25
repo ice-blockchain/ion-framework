@@ -48,6 +48,7 @@ enum EnvVariable {
   LETS_EXCHANGE_API_KEY,
   LETS_EXCHANGE_API_URL,
   EXOLIX_API_KEY,
+  LETS_EXCHANGE_API_AFFILIATE_ID, 
   EXOLIX_API_URL
 }
 
@@ -128,6 +129,7 @@ class Env extends _$Env {
       EnvVariable.LETS_EXCHANGE_API_URL => const String.fromEnvironment('LETS_EXCHANGE_API_URL') as T,
       EnvVariable.EXOLIX_API_KEY => const String.fromEnvironment('EXOLIX_API_KEY') as T,
       EnvVariable.EXOLIX_API_URL => const String.fromEnvironment('EXOLIX_API_URL') as T,
+      EnvVariable.LETS_EXCHANGE_API_AFFILIATE_ID => const String.fromEnvironment('LETS_EXCHANGE_API_AFFILIATE_ID') as T,
     };
   }
 }

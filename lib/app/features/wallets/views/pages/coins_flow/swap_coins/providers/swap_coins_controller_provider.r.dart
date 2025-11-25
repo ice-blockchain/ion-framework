@@ -104,13 +104,14 @@ class SwapCoinsController extends _$SwapCoinsController {
     if (sellCoin == null || buyCoin == null) {
       return;
     }
+
     try {
       final swapController = await ref.read(ionSwapClientProvider.future);
       await swapController.swapCoins(
         // TODO(ice-erebus): add amount
         swapCoinData: SwapCoinParameters(
           isBridge: buyCoinGroup == sellCoinGroup,
-          amount: '1000',
+          amount: '0.03',
           buyCoinContractAddress: buyCoin.coin.contractAddress,
           sellCoinContractAddress: sellCoin.coin.contractAddress,
           buyCoinNetworkName: buyNetwork.displayName,
@@ -119,6 +120,12 @@ class SwapCoinsController extends _$SwapCoinsController {
           sellNetworkId: sellNetwork.id,
           userBuyAddress: userBuyAddress,
           userSellAddress: userSellAddress,
+          buyCoinCode: buyCoin.coin.abbreviation,
+          sellCoinCode: sellCoin.coin.abbreviation,
+
+          /// it's extra id used for some coins
+          /// since ion provides only personal wallets for use it's fixed
+          buyExtraId: buyNetwork.isMemoSupported ? 'Online' : '',
         ),
       );
     } catch (e) {

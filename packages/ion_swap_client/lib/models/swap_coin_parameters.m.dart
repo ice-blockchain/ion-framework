@@ -21,6 +21,13 @@ class SwapCoinParameters with _$SwapCoinParameters {
     required String amount,
 
     required bool isBridge,
+
+    required String sellCoinCode,
+    required String buyCoinCode,
+
+    /// Used for lets exchange. It's extra id used for some coins,
+    /// fox example for XPR it's memo
+    required String buyExtraId,
   }) = _SwapCoinParameters;
 
   factory SwapCoinParameters.fromJson(Map<String, dynamic> json) => _$SwapCoinParametersFromJson(json);
