@@ -198,7 +198,6 @@ class IONIdentityWallets {
     final userId = _extractUserIdService.extractUserId(username: username);
     return _walletViewsService.deleteWalletView(walletViewId, userId);
   }
-  
 
   Future<Map<String, dynamic>> makeTransfer(
     Wallet wallet,
