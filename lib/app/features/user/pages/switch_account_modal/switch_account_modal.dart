@@ -57,7 +57,7 @@ class SwitchAccountModal extends HookConsumerWidget {
               SwitchAccountModalList(
                 onSelectUser: () {
                   if (!enableAccountManagement) {
-                    ref.read(userSwitchingProvider.notifier).active();
+                    ref.read(userSwitchInProgressProvider.notifier).startSwitching();
                   }
                 },
               ),

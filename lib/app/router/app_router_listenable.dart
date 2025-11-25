@@ -18,7 +18,7 @@ class AppRouterNotifier extends ChangeNotifier {
       ..listen(initAppProvider, (_, __) => notifyListeners())
       ..listen(splashProvider, (_, __) => notifyListeners())
       ..listen(onboardingCompleteProvider, (_, __) => notifyListeners())
-      ..listen(userSwitchingProvider, (_, __) => notifyListeners())
+      ..listen(userSwitchInProgressProvider, (_, __) => notifyListeners())
       ..listen(databasesReadyNotifierProvider, (_, __) => notifyListeners())
       ..listen(
         androidSoftUpdateProvider.select((state) => state.isUpdateAvailable),

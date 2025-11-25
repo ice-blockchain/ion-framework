@@ -34,6 +34,6 @@ class DatabasesInitializer extends _$DatabasesInitializer {
 
     ref.read(databasesReadyNotifierProvider.notifier).ready();
     await Future<void>.delayed(const Duration(milliseconds: 100));
-    ref.read(userSwitchingProvider.notifier).reset();
+    ref.read(userSwitchInProgressProvider.notifier).completeSwitching();
   }
 }

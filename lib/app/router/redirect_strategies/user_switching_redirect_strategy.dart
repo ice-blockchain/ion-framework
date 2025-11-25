@@ -14,7 +14,7 @@ class UserSwitchingRedirectStrategy implements RedirectStrategy {
     required String location,
     required Ref ref,
   }) async {
-    final isUserSwitching = ref.read(userSwitchingProvider);
+    final isUserSwitching = ref.read(userSwitchInProgressProvider);
     if (!isUserSwitching) {
       return null;
     }
@@ -23,7 +23,7 @@ class UserSwitchingRedirectStrategy implements RedirectStrategy {
     final isDatabasesReady = ref.read(databasesReadyNotifierProvider).falseOrValue;
 
     if (isAuthenticated && isDatabasesReady) {
-      ref.read(userSwitchingProvider.notifier).reset();
+      ref.read(userSwitchInProgressProvider.notifier).completeSwitching();
       return null;
     } else {
       return SwitchUserLoaderRoute().location;

@@ -169,7 +169,7 @@ class Auth extends _$Auth {
     _usersCountAtNewUserFlowStart =
         (await ref.read(authenticatedIdentityKeyNamesStreamProvider.future)).length - 1;
 
-    ref.read(userSwitchProvider.notifier).trigger();
+    ref.read(userSwitchEventProvider.notifier).trigger();
     await Future<void>.delayed(const Duration(milliseconds: 300));
 
     await ref.read(currentIdentityKeyNameSelectorProvider.notifier).setCurrentIdentityKeyName(null);
@@ -187,7 +187,7 @@ class Auth extends _$Auth {
 
     final currentUser = ref.read(currentIdentityKeyNameSelectorProvider);
     if (currentUser != null) {
-      ref.read(userSwitchProvider.notifier).trigger();
+      ref.read(userSwitchEventProvider.notifier).trigger();
       await Future<void>.delayed(const Duration(milliseconds: 300));
 
       await ref
@@ -207,8 +207,8 @@ class Auth extends _$Auth {
 
     if (isUserSwitching) {
       ref.read(databasesReadyNotifierProvider.notifier).notReady();
-      ref.read(userSwitchingProvider.notifier).active();
-      ref.read(userSwitchProvider.notifier).trigger();
+      ref.read(userSwitchInProgressProvider.notifier).startSwitching();
+      ref.read(userSwitchEventProvider.notifier).trigger();
       await Future<void>.delayed(const Duration(milliseconds: 300));
     } else {
       _isNewUserFlowActive = false;
@@ -325,21 +325,9 @@ void onLogout(Ref ref, void Function() callback) {
   });
 }
 
-@Riverpod(keepAlive: true)
-class UserSwitch extends _$UserSwitch {
-  @override
-  int build() {
-    return 0;
-  }
-
-  void trigger() {
-    state = state + 1;
-  }
-}
-
 void onUserSwitch(Ref ref, void Function() callback) {
   ref.listen<int>(
-    userSwitchProvider,
+    userSwitchEventProvider,
     (prev, next) {
       if (prev != null && prev != next) {
         callback();
@@ -394,17 +382,23 @@ class PubkeyChangeWithExistingUser extends _$PubkeyChangeWithExistingUser {
 }
 
 @Riverpod(keepAlive: true)
-class UserSwitching extends _$UserSwitching {
+class UserSwitchInProgress extends _$UserSwitchInProgress {
   @override
-  bool build() {
-    return false;
+  bool build() => false;
+
+  void startSwitching() => state = true;
+
+  void completeSwitching() => state = false;
+}
+
+@Riverpod(keepAlive: true)
+class UserSwitchEvent extends _$UserSwitchEvent {
+  @override
+  int build() {
+    return 0;
   }
 
-  void active() {
-    state = true;
-  }
-
-  void reset() {
-    state = false;
+  void trigger() {
+    state = state + 1;
   }
 }
