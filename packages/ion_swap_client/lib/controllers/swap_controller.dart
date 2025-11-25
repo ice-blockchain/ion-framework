@@ -2,6 +2,8 @@
 
 import 'package:collection/collection.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
+import 'package:ion_swap_client/ion_swap_config.dart';
+import 'package:ion_swap_client/models/lets_exchange_coin.m.dart';
 import 'package:ion_swap_client/models/okx_api_response.m.dart';
 import 'package:ion_swap_client/models/swap_chain_data.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
@@ -19,17 +21,20 @@ class SwapController {
     required ChainsIdsRepository chainsIdsRepository,
     required ExolixRepository exolixRepository,
     required LetsExchangeRepository letsExchangeRepository,
+    required IONSwapConfig config,
   })  : _swapOkxRepository = swapOkxRepository,
         _chainsIdsRepository = chainsIdsRepository,
         _relayApiRepository = relayApiRepository,
         _exolixRepository = exolixRepository,
-        _letsExchangeRepository = letsExchangeRepository;
+        _letsExchangeRepository = letsExchangeRepository,
+        _config = config;
 
   final SwapOkxRepository _swapOkxRepository;
   final RelayApiRepository _relayApiRepository;
   final ExolixRepository _exolixRepository;
   final LetsExchangeRepository _letsExchangeRepository;
   final ChainsIdsRepository _chainsIdsRepository;
+  final IONSwapConfig _config;
 
   Future<void> swapCoins({
     required SwapCoinParameters swapCoinData,
@@ -58,8 +63,8 @@ class SwapController {
   // Returns true if swap was successful, false otherwise
   Future<bool> _tryToSwapOnSameNetwork(SwapCoinParameters swapCoinData) async {
     final okxChain = await _isOkxChainSupported(swapCoinData.sellCoinNetworkName);
-    final sellTokenAddress = _getTokenAddress(swapCoinData.sellCoinContractAddress);
-    final buyTokenAddress = _getTokenAddress(swapCoinData.buyCoinContractAddress);
+    final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoinContractAddress);
+    final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoinContractAddress);
 
     if (okxChain != null) {
       final quotesResponse = await _swapOkxRepository.getQuotes(
@@ -117,8 +122,12 @@ class SwapController {
     return quotes.first;
   }
 
-  String _getTokenAddress(String contractAddress) {
+  String _getTokenAddressForOkx(String contractAddress) {
     return contractAddress.isEmpty ? '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' : contractAddress;
+  }
+
+  String? _getTokenAddressForLetsExchange(String contractAddress) {
+    return contractAddress.isEmpty ? null : contractAddress;
   }
 
   T _processOkxResponse<T>(OkxApiResponse<T> response) {
@@ -141,6 +150,47 @@ class SwapController {
   }
 
   Future<void> _swapOnLetsExchange(SwapCoinParameters swapCoinData) async {
-    await _letsExchangeRepository.getCoins();
+    final coins = await _letsExchangeRepository.getCoins();
+    final activeCoins = coins.where((e) => e.isCoinActive);
+
+    final sellCoin = activeCoins.firstWhereOrNull((e) => e.code == swapCoinData.sellCoinCode);
+    final buyCoin = activeCoins.firstWhereOrNull((e) => e.code == swapCoinData.buyCoinCode);
+
+    if (sellCoin == null || buyCoin == null) {
+      throw Exception("Let's Exchnage: Coins pair not found");
+    }
+
+    final sellNetwork = sellCoin.networks.firstWhereOrNull(
+      (e) => e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.sellCoinContractAddress),
+    );
+
+    final buyNetwork = buyCoin.networks.firstWhereOrNull(
+      (e) => e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.buyCoinContractAddress),
+    );
+
+    if (sellNetwork == null || buyNetwork == null) {
+      throw Exception("Let's Exchnage: Coins networks not found");
+    }
+
+    final rateInfo = await _letsExchangeRepository.getRates(
+      from: sellCoin.code,
+      to: buyCoin.code,
+      networkFrom: sellNetwork.code,
+      networkTo: buyNetwork.code,
+      amount: swapCoinData.amount,
+      affiliateId: _config.letsExchangeAffiliateId,
+    );
+
+    await _letsExchangeRepository.createTransaction(
+      coinFrom: sellCoin.code,
+      coinTo: buyCoin.code,
+      networkFrom: sellNetwork.code,
+      networkTo: buyNetwork.code,
+      depositAmount: swapCoinData.amount,
+      withdrawalAddress: swapCoinData.userBuyAddress,
+      affiliateId: _config.letsExchangeAffiliateId,
+      rateId: rateInfo.rateId,
+      withdrawalExtraId: swapCoinData.buyExtraId,
+    );
   }
 }

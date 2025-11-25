@@ -11,6 +11,7 @@ class IONSwapConfig {
     required this.exolixApiUrl,
     required this.letsExchangeApiKey,
     required this.letsExchangeApiUrl,
+    required this.letsExchangeAffiliateId,
     this.interceptors = const [],
   });
 
@@ -26,6 +27,7 @@ class IONSwapConfig {
 
   final String letsExchangeApiKey;
   final String letsExchangeApiUrl;
+  final String letsExchangeAffiliateId;
 
   final List<Interceptor> interceptors;
 
