@@ -7,8 +7,19 @@ import 'package:ion_token_analytics/src/core/map_utils.dart';
 part 'community_token.f.freezed.dart';
 part 'community_token.f.g.dart';
 
+abstract class CommunityTokenBase {
+  String? get type;
+  String? get title;
+  String? get description;
+  String? get imageUrl;
+  AddressesBase? get addresses;
+  CreatorBase? get creator;
+  MarketDataBase? get marketData;
+  String? get createdAt;
+}
+
 @freezed
-class CommunityToken with _$CommunityToken implements CommunityTokenPatch {
+class CommunityToken with _$CommunityToken implements CommunityTokenBase {
   const factory CommunityToken({
     required String type,
     required String title,
@@ -24,7 +35,7 @@ class CommunityToken with _$CommunityToken implements CommunityTokenPatch {
 }
 
 @Freezed(copyWith: false)
-class CommunityTokenPatch with _$CommunityTokenPatch {
+class CommunityTokenPatch with _$CommunityTokenPatch implements CommunityTokenBase {
   const factory CommunityTokenPatch({
     String? type,
     String? title,

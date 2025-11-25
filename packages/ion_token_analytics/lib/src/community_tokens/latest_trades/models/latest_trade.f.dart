@@ -8,8 +8,13 @@ import 'package:ion_token_analytics/src/core/map_utils.dart';
 part 'latest_trade.f.freezed.dart';
 part 'latest_trade.f.g.dart';
 
+abstract class LatestTradeBase {
+  CreatorBase? get creator;
+  TradePositionBase? get position;
+}
+
 @freezed
-class LatestTrade with _$LatestTrade implements LatestTradePatch {
+class LatestTrade with _$LatestTrade implements LatestTradeBase {
   const factory LatestTrade({required Creator creator, required TradePosition position}) =
       _LatestTrade;
 
@@ -17,7 +22,7 @@ class LatestTrade with _$LatestTrade implements LatestTradePatch {
 }
 
 @Freezed(copyWith: false)
-class LatestTradePatch with _$LatestTradePatch {
+class LatestTradePatch with _$LatestTradePatch implements LatestTradeBase {
   const factory LatestTradePatch({CreatorPatch? creator, TradePositionPatch? position}) =
       _LatestTradePatch;
 

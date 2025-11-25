@@ -51,10 +51,15 @@ class TokenLatestTrades extends _$TokenLatestTrades {
       if (existIndex >= 0) {
         final existTrade = _currentTrades[existIndex];
 
-        final patchedTrade = existTrade.merge(newTrade);
+        if (newTrade is analytics.LatestTradePatch) {
+          final patchedTrade = existTrade.merge(newTrade);
 
-        _currentTrades = List.of(_currentTrades);
-        _currentTrades[existIndex] = patchedTrade;
+          _currentTrades = List.of(_currentTrades);
+          _currentTrades[existIndex] = patchedTrade;
+        } else if (newTrade is analytics.LatestTrade) {
+          _currentTrades = List.of(_currentTrades);
+          _currentTrades[existIndex] = newTrade;
+        }
       } else {
         if (newTrade is analytics.LatestTrade) {
           _currentTrades = [newTrade, ..._currentTrades];

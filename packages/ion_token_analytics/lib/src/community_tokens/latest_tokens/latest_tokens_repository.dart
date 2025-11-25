@@ -12,7 +12,7 @@ abstract class LatestTokensRepository {
     int offset = 0,
   });
 
-  Future<NetworkSubscription<CommunityTokenPatch>> subscribeToLatestTokens({
+  Future<NetworkSubscription<CommunityTokenBase>> subscribeToLatestTokens({
     String? keyword,
     String? type,
   });

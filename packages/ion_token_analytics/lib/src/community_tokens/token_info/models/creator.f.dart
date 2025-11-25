@@ -6,7 +6,7 @@ part 'creator.f.freezed.dart';
 part 'creator.f.g.dart';
 
 @freezed
-class Creator with _$Creator implements CreatorPatch {
+class Creator with _$Creator implements CreatorBase {
   const factory Creator({
     required String name,
     required String display,
@@ -18,8 +18,16 @@ class Creator with _$Creator implements CreatorPatch {
   factory Creator.fromJson(Map<String, dynamic> json) => _$CreatorFromJson(json);
 }
 
+abstract class CreatorBase {
+  String? get name;
+  String? get display;
+  bool? get verified;
+  String? get avatar;
+  String? get ionConnect;
+}
+
 @Freezed(copyWith: false)
-class CreatorPatch with _$CreatorPatch {
+class CreatorPatch with _$CreatorPatch implements CreatorBase {
   const factory CreatorPatch({
     String? name,
     String? display,

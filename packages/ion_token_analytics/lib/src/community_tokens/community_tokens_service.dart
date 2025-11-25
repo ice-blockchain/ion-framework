@@ -88,7 +88,7 @@ class IonCommunityTokensService {
     return _tradingStatsRepository.subscribeToTradingStats(ionConnectAddress);
   }
 
-  Future<NetworkSubscription<TopHolderPatch>> subscribeToTopHolders({
+  Future<NetworkSubscription<TopHolderBase>> subscribeToTopHolders({
     required String ionConnectAddress,
     required int limit,
   }) {
@@ -107,7 +107,7 @@ class IonCommunityTokensService {
     );
   }
 
-  Future<NetworkSubscription<LatestTradePatch>> subscribeToLatestTrades({
+  Future<NetworkSubscription<LatestTradeBase>> subscribeToLatestTrades({
     required String ionConnectAddress,
   }) {
     return _latestTradesRepository.subscribeToLatestTrades(ionConnectAddress);
@@ -131,7 +131,7 @@ class IonCommunityTokensService {
     );
   }
 
-  Future<NetworkSubscription<CommunityTokenPatch>> subscribeToLatestTokens({
+  Future<NetworkSubscription<CommunityTokenBase>> subscribeToLatestTokens({
     String? keyword,
     String? type,
   }) {

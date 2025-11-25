@@ -25,7 +25,7 @@ class LatestTradesRepositoryImpl implements LatestTradesRepository {
   }
 
   @override
-  Future<NetworkSubscription<LatestTradePatch>> subscribeToLatestTrades(
+  Future<NetworkSubscription<LatestTradeBase>> subscribeToLatestTrades(
     String ionConnectAddress,
   ) async {
     final subscription = await _client.subscribe<Map<String, dynamic>>(

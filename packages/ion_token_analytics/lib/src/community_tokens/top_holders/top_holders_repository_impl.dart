@@ -11,7 +11,7 @@ class TopHoldersRepositoryImpl implements TopHoldersRepository {
   final NetworkClient _client;
 
   @override
-  Future<NetworkSubscription<TopHolderPatch>> subscribeToTopHolders(
+  Future<NetworkSubscription<TopHolderBase>> subscribeToTopHolders(
     String ionConnectAddress, {
     required int limit,
   }) async {

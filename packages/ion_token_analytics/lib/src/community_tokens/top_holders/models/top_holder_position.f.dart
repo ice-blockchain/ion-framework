@@ -7,8 +7,18 @@ import 'package:ion_token_analytics/src/community_tokens/token_info/models/creat
 part 'top_holder_position.f.freezed.dart';
 part 'top_holder_position.f.g.dart';
 
+abstract class TopHolderPositionBase {
+  CreatorBase? get holder;
+  String? get type;
+  int? get rank;
+  double? get amount;
+  double? get amountUSD;
+  double? get supplyShare;
+  AddressesBase? get addresses;
+}
+
 @freezed
-class TopHolderPosition with _$TopHolderPosition implements TopHolderPositionPatch {
+class TopHolderPosition with _$TopHolderPosition implements TopHolderPositionBase {
   const factory TopHolderPosition({
     required Creator holder,
     required String type,
@@ -24,7 +34,7 @@ class TopHolderPosition with _$TopHolderPosition implements TopHolderPositionPat
 }
 
 @Freezed(copyWith: false)
-class TopHolderPositionPatch with _$TopHolderPositionPatch {
+class TopHolderPositionPatch with _$TopHolderPositionPatch implements TopHolderPositionBase {
   const factory TopHolderPositionPatch({
     CreatorPatch? holder,
     String? type,

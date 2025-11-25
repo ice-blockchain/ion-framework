@@ -6,8 +6,16 @@ import 'package:ion_token_analytics/src/community_tokens/token_info/models/model
 part 'market_data.f.freezed.dart';
 part 'market_data.f.g.dart';
 
+abstract class MarketDataBase {
+  double? get marketCap;
+  double? get volume;
+  int? get holders;
+  double? get priceUSD;
+  PositionBase? get position;
+}
+
 @freezed
-class MarketData with _$MarketData implements MarketDataPatch {
+class MarketData with _$MarketData implements MarketDataBase {
   const factory MarketData({
     required double marketCap,
     required double volume,
@@ -20,7 +28,7 @@ class MarketData with _$MarketData implements MarketDataPatch {
 }
 
 @Freezed(copyWith: false)
-class MarketDataPatch with _$MarketDataPatch {
+class MarketDataPatch with _$MarketDataPatch implements MarketDataBase {
   const factory MarketDataPatch({
     double? marketCap,
     double? volume,

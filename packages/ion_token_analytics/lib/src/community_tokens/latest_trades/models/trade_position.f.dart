@@ -7,8 +7,19 @@ import 'package:ion_token_analytics/src/community_tokens/token_info/models/creat
 part 'trade_position.f.freezed.dart';
 part 'trade_position.f.g.dart';
 
+abstract class TradePositionBase {
+  CreatorBase? get holder;
+  AddressesBase? get addresses;
+  String? get createdAt;
+  String? get type;
+  double? get amount;
+  double? get amountUSD;
+  double? get balance;
+  double? get balanceUSD;
+}
+
 @freezed
-class TradePosition with _$TradePosition implements TradePositionPatch {
+class TradePosition with _$TradePosition implements TradePositionBase {
   const factory TradePosition({
     required Creator holder,
     required Addresses addresses,
@@ -24,7 +35,7 @@ class TradePosition with _$TradePosition implements TradePositionPatch {
 }
 
 @Freezed(copyWith: false)
-class TradePositionPatch with _$TradePositionPatch {
+class TradePositionPatch with _$TradePositionPatch implements TradePositionBase {
   const factory TradePositionPatch({
     CreatorPatch? holder,
     AddressesPatch? addresses,

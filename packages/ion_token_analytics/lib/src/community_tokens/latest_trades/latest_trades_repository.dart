@@ -9,5 +9,5 @@ abstract class LatestTradesRepository {
     int offset = 0,
   });
 
-  Future<NetworkSubscription<LatestTradePatch>> subscribeToLatestTrades(String ionConnectAddress);
+  Future<NetworkSubscription<LatestTradeBase>> subscribeToLatestTrades(String ionConnectAddress);
 }

@@ -30,7 +30,7 @@ class TokenTopHolders extends _$TokenTopHolders {
 
     await for (final newTopHolder in subscription.stream) {
       if (isInitialLoad) {
-        if (newTopHolder.isEmpty()) {
+        if (newTopHolder is analytics.TopHolderPatch && newTopHolder.isEmpty()) {
           // End of initial load
           isInitialLoad = false;
           currentList = List.from(initialItems);
@@ -52,11 +52,16 @@ class TokenTopHolders extends _$TokenTopHolders {
 
         if (existIndex >= 0) {
           final existHolder = currentList[existIndex];
+          if (newTopHolder is analytics.TopHolderPatch) {
           final patchedHolder = existHolder.merge(newTopHolder);
 
           // Create a new list reference for state update
           currentList = List.from(currentList);
           currentList[existIndex] = patchedHolder;
+          } else if (newTopHolder is analytics.TopHolder) {
+            currentList = List.from(currentList);
+            currentList[existIndex] = newTopHolder;
+          }
 
           currentList.sort((a, b) => a.position.rank.compareTo(b.position.rank));
           yield currentList;

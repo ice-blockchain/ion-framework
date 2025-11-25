@@ -8,8 +8,13 @@ import 'package:ion_token_analytics/src/core/map_utils.dart';
 part 'top_holder.f.freezed.dart';
 part 'top_holder.f.g.dart';
 
+abstract class TopHolderBase {
+  CreatorBase? get creator;
+  TopHolderPositionBase? get position;
+}
+
 @freezed
-class TopHolder with _$TopHolder implements TopHolderPatch {
+class TopHolder with _$TopHolder implements TopHolderBase {
   const factory TopHolder({required Creator creator, required TopHolderPosition position}) =
       _TopHolder;
 
@@ -17,7 +22,7 @@ class TopHolder with _$TopHolder implements TopHolderPatch {
 }
 
 @Freezed(copyWith: false)
-class TopHolderPatch with _$TopHolderPatch {
+class TopHolderPatch with _$TopHolderPatch implements TopHolderBase {
   const factory TopHolderPatch({CreatorPatch? creator, TopHolderPositionPatch? position}) =
       _TopHolderPatch;
 

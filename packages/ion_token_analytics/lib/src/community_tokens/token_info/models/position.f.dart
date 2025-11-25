@@ -6,7 +6,7 @@ part 'position.f.freezed.dart';
 part 'position.f.g.dart';
 
 @freezed
-class Position with _$Position implements PositionPatch {
+class Position with _$Position implements PositionBase {
   const factory Position({
     required int rank,
     required double amount,
@@ -18,8 +18,16 @@ class Position with _$Position implements PositionPatch {
   factory Position.fromJson(Map<String, dynamic> json) => _$PositionFromJson(json);
 }
 
+abstract class PositionBase {
+  int? get rank;
+  double? get amount;
+  double? get amountUSD;
+  double? get pnl;
+  double? get pnlPercentage;
+}
+
 @Freezed(copyWith: false)
-class PositionPatch with _$PositionPatch {
+class PositionPatch with _$PositionPatch implements PositionBase {
   const factory PositionPatch({
     int? rank,
     double? amount,
