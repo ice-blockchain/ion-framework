@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:ion_token_analytics/ion_token_analytics.dart';
-import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class TopHoldersMockHandler {
   final _random = Random();
