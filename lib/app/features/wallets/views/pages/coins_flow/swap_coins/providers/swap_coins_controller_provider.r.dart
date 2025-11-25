@@ -103,12 +103,17 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellCoinGroup = state.sellCoin;
     final buyCoinGroup = state.buyCoin;
 
-    if (sellCoinGroup == null || buyCoinGroup == null || sellNetwork == null || buyNetwork == null) {
+    if (sellCoinGroup == null ||
+        buyCoinGroup == null ||
+        sellNetwork == null ||
+        buyNetwork == null) {
       return;
     }
 
-    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-    final buyCoin = buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
+    final sellCoin =
+        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final buyCoin =
+        buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
 
     if (sellCoin == null || buyCoin == null) {
       return;
@@ -131,6 +136,7 @@ class SwapCoinsController extends _$SwapCoinsController {
           userSellAddress: userSellAddress,
           buyCoinCode: buyCoin.coin.abbreviation,
           sellCoinCode: sellCoin.coin.abbreviation,
+
           /// it's extra id used for some coins
           /// since ion provides only personal wallets for use it's fixed
           buyExtraId: buyNetwork.isMemoSupported ? 'Online' : '',
