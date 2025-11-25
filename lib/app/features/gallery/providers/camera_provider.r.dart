@@ -119,8 +119,7 @@ class CameraControllerNotifier extends _$CameraControllerNotifier {
         // Check if this is a non-recoverable error (e.g., permissions)
         // Pixel format errors should be retried with lower presets
         final errorMessage = e.toString().toLowerCase();
-        final isNonRecoverableError =
-            errorMessage.contains('permission') ||
+        final isNonRecoverableError = errorMessage.contains('permission') ||
             errorMessage.contains('authorization') ||
             errorMessage.contains('not authorized');
 
