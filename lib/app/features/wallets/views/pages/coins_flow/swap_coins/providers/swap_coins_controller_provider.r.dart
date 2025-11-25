@@ -132,7 +132,6 @@ class SwapCoinsController extends _$SwapCoinsController {
           userSellAddress: userSellAddress,
           buyCoinCode: buyCoin.coin.abbreviation,
           sellCoinCode: sellCoin.coin.abbreviation,
-
           /// it's extra id used for some coins
           /// since ion provides only personal wallets for use it's fixed
           buyExtraId: buyNetwork.isMemoSupported ? 'Online' : '',
