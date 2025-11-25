@@ -140,6 +140,11 @@
   "channel_created_message": "The channel has been created",
   "channel_edit": "Edit channel",
   "channel_join": "Join channel",
+  "chart_label": "Chart",
+  "chart_stats_buys": "Buys",
+  "chart_stats_net_buy": "Net Buy",
+  "chart_stats_sells": "Sells",
+  "chart_stats_volume": "Vol",
   "chat_add_poll_title": "New poll",
   "chat_delete_modal_description": "Are you sure you want to delete all selected chats?",
   "chat_delete_modal_description_single": "Are you sure you want to delete this chat?",
@@ -527,6 +532,7 @@
   "invite_friends_summary_defi_text": "DeFi",
   "invite_friends_summary_referrals_text": "Total referrals",
   "invite_friends_summary_upgrades_text": "Upgrades",
+  "latest_trades_title": "Latest Trades",
   "maintenance_page_description": "We’re making some quick improvements behind the scenes. Everything will be back to normal soon. Please try again later.",
   "maintenance_page_title": "We’ll be back shortly",
   "members_count": "{count, plural, =1 {{count} member} other {{count} members}}",
@@ -643,6 +649,7 @@
   "profile_help": "Help Center",
   "profile_location": "Location",
   "profile_log_out": "Log out {nickname}",
+  "profile_login_with_new_account": "Login with new account",
   "profile_no_account_found": "We couldn't find this account",
   "profile_none": "None",
   "profile_notifications_popup_title": "Account notifications",
@@ -670,7 +677,6 @@
   "profile_send_option_title": "Send payment",
   "profile_stories": "Stories",
   "profile_switch_user_header": "User accounts",
-  "profile_login_with_new_account": "Login with new account",
   "profile_token_be_first_to_buy": "Be the first to buy",
   "profile_token_buy": "Buy",
   "profile_videos": "Videos",
@@ -800,10 +806,24 @@
   "suggestions_loading_description": "Search for the user you want to mention",
   "tokenized_communities_top_tokens": "Top Tokens",
   "tokenized_communities_trending_tokens": "Trending Tokens",
+  "tokenized_community_chart_tab": "Chart",
+  "tokenized_community_comments_tab": "Comments",
+  "tokenized_community_holders_tab": "Holders",
+  "tokenized_community_trades_tab": "Trades",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Add a link",
+  "top_holders_title": "Top holders ({count})",
+  "@top_holders_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "topics_add": "Add",
   "topics_title": "Topics",
+  "trade_buy": "BUY",
+  "trade_sell": "SELL",
   "transaction_details_timeline_executing": "In the process of execution",
   "transaction_details_timeline_failed": "Failed",
   "transaction_details_timeline_pending": "Pending",
@@ -1029,26 +1049,5 @@
   "who_can_reply_settings_title_story": "Who can reply to this story",
   "who_can_reply_settings_title_video": "Who can reply to this video",
   "who_can_reply_settings_verified_accounts": "Verified accounts",
-  "write_a_message": "Write a message...",
-  "nsfw_blocked_dialog_body_android": "This media cannot be published because it contains material considered inappropriate under Play Store guidelines.",
-  "chart_label": "Chart",
-  "chart_stats_volume": "Vol",
-  "chart_stats_buys": "Buys",
-  "chart_stats_sells": "Sells",
-  "chart_stats_net_buy": "Net Buy",
-  "latest_trades_title": "Latest Trades",
-  "trade_buy": "BUY",
-  "trade_sell": "SELL",
-  "tokenized_community_chart_tab": "Chart",
-  "tokenized_community_holders_tab": "Holders",
-  "tokenized_community_trades_tab": "Trades",
-  "tokenized_community_comments_tab": "Comments",
-  "top_holders_title": "Top holders ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  }
+  "write_a_message": "Write a message..."
 }

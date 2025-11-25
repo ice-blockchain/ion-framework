@@ -2,9 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:intl/intl.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/models/token_header_data.dart';
+import 'package:ion/app/features/communities/utils/formatters.dart';
 import 'package:ion/app/features/communities/utils/position_formatters.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/components/profile_avatar/profile_avatar.dart';
@@ -122,26 +122,24 @@ class _TokenInfo extends StatelessWidget {
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
+          spacing: 4.0.s,
           children: [
             Text(
               displayName,
               style: texts.subtitle2.copyWith(color: Colors.white),
             ),
-            if (verified) ...[
-              SizedBox(width: 4.0.s),
-              Assets.svg.iconBadgeVerify.icon(size: 18.0.s),
-            ],
+            if (verified) Assets.svg.iconBadgeVerify.icon(size: 18.0.s),
           ],
         ),
         SizedBox(height: 4.0.s),
         Row(
           mainAxisSize: MainAxisSize.min,
+          spacing: 6.0.s,
           children: [
             Text(
               handle,
               style: texts.caption3.copyWith(color: Colors.white),
             ),
-            SizedBox(width: 6.0.s),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
               decoration: BoxDecoration(
@@ -149,7 +147,7 @@ class _TokenInfo extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6.0.s),
               ),
               child: Text(
-                _formatPrice(priceUsd),
+                formatPrice(priceUsd),
                 style: texts.caption.copyWith(
                   color: colors.primaryText,
                   fontWeight: FontWeight.bold,
@@ -160,33 +158,6 @@ class _TokenInfo extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  String _formatPrice(double price) {
-    if (price >= 1) {
-      return NumberFormat.currency(symbol: r'$', decimalDigits: 2).format(price);
-    }
-    // Handle small prices with subscript notation similar to PriceLabelFormatter
-    final abs = price.abs();
-    if (abs == 0) return r'$0.00';
-
-    final expStr = abs.toStringAsExponential(12);
-    final match = RegExp(r'^(\d(?:\.\d+)?)e([+-]\d+)$').firstMatch(expStr);
-    if (match == null) {
-      return NumberFormat.currency(symbol: r'$', decimalDigits: 4).format(price);
-    }
-
-    final mantissaStr = match.group(1)!;
-    final exponent = int.parse(match.group(2)!);
-
-    if (exponent >= -1) {
-      return NumberFormat.currency(symbol: r'$', decimalDigits: 4).format(price);
-    }
-
-    final digits = mantissaStr.replaceAll('.', '');
-    final trailing = digits.isEmpty ? '0' : (digits.length >= 3 ? digits.substring(0, 3) : digits);
-
-    return '\$0.0₄$trailing';
   }
 }
 

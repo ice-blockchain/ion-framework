@@ -107,7 +107,7 @@ class _TradeRow extends StatelessWidget {
     );
 
     return InkWell(
-      onTap: onTap == null ? null : () => onTap!(trade),
+      onTap: () => onTap?.call(trade),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 6.0.s),
         child: Row(
@@ -171,16 +171,18 @@ class _TitleAndMeta extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          spacing: 4.0.s,
           children: [
-            Text(name, style: texts.subtitle3.copyWith(color: colors.primaryText)),
-            if (handle.isNotEmpty) ...[
-              SizedBox(width: 4.0.s),
-              Text(handle, style: texts.caption2.copyWith(color: colors.quaternaryText)),
-            ],
-            if (verified) ...[
-              SizedBox(width: 4.0.s),
-              Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
-            ],
+            Text(
+              name,
+              style: texts.subtitle3.copyWith(color: colors.primaryText),
+            ),
+            if (handle.isNotEmpty)
+              Text(
+                handle,
+                style: texts.caption2.copyWith(color: colors.quaternaryText),
+              ),
+            if (verified) Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
           ],
         ),
         SizedBox(height: 2.0.s),

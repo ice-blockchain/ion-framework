@@ -140,6 +140,11 @@
   "channel_created_message": "Le canal a été créé",
   "channel_edit": "Modifier le canal",
   "channel_join": "Rejoindre le canal",
+  "chart_label": "Graphique",
+  "chart_stats_buys": "Achats",
+  "chart_stats_net_buy": "Achat net",
+  "chart_stats_sells": "Ventes",
+  "chart_stats_volume": "Vol",
   "chat_add_poll_title": "Nouveau sondage",
   "chat_delete_modal_description": "Êtes-vous sûr de vouloir supprimer toutes les conversations sélectionnées ?",
   "chat_delete_modal_description_single": "Êtes-vous sûr de vouloir supprimer cette conversation ?",
@@ -527,6 +532,7 @@
   "invite_friends_summary_defi_text": "DeFi",
   "invite_friends_summary_referrals_text": "Total des parrainages",
   "invite_friends_summary_upgrades_text": "Améliorations",
+  "latest_trades_title": "Dernières transactions",
   "maintenance_page_description": "Nous effectuons quelques améliorations rapides en coulisses. Tout reviendra bientôt à la normale. Veuillez réessayer plus tard.",
   "maintenance_page_title": "Nous serons bientôt de retour",
   "members_count": "{count, plural, =1 {{count} membre} other {{count} membres}}",
@@ -643,6 +649,7 @@
   "profile_help": "Centre d'aide",
   "profile_location": "Localisation",
   "profile_log_out": "Déconnecter {nickname}",
+  "profile_login_with_new_account": "Se connecter avec un nouveau compte",
   "profile_no_account_found": "Nous n'avons pas pu trouver ce compte",
   "profile_none": "Aucun",
   "profile_notifications_popup_title": "Notifications du compte",
@@ -670,7 +677,6 @@
   "profile_send_option_title": "Envoyer un paiement",
   "profile_stories": "Histoires",
   "profile_switch_user_header": "Comptes utilisateur",
-  "profile_login_with_new_account": "Se connecter avec un nouveau compte",
   "profile_token_be_first_to_buy": "Soyez le premier à acheter",
   "profile_token_buy": "Acheter",
   "profile_videos": "Vidéos",
@@ -800,10 +806,24 @@
   "suggestions_loading_description": "Recherchez l'utilisateur que vous souhaitez mentionner",
   "tokenized_communities_top_tokens": "Meilleurs jetons",
   "tokenized_communities_trending_tokens": "Jetons tendance",
+  "tokenized_community_chart_tab": "Graphique",
+  "tokenized_community_comments_tab": "Commentaires",
+  "tokenized_community_holders_tab": "Détenteurs",
+  "tokenized_community_trades_tab": "Transactions",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Ajouter un lien",
+  "top_holders_title": "Principaux détenteurs ({count})",
+  "@top_holders_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "topics_add": "Ajouter",
   "topics_title": "Sujets",
+  "trade_buy": "ACHAT",
+  "trade_sell": "VENTE",
   "transaction_details_timeline_executing": "En cours d'exécution",
   "transaction_details_timeline_failed": "Échoué",
   "transaction_details_timeline_pending": "En attente",
@@ -1029,25 +1049,5 @@
   "who_can_reply_settings_title_story": "Qui peut répondre à cette histoire",
   "who_can_reply_settings_title_video": "Qui peut répondre à cette vidéo",
   "who_can_reply_settings_verified_accounts": "Comptes vérifiés",
-  "write_a_message": "Écrire un message...",
-  "chart_label": "Graphique",
-  "chart_stats_volume": "Vol",
-  "chart_stats_buys": "Achats",
-  "chart_stats_sells": "Ventes",
-  "chart_stats_net_buy": "Achat net",
-  "latest_trades_title": "Dernières transactions",
-  "trade_buy": "ACHAT",
-  "trade_sell": "VENTE",
-  "tokenized_community_chart_tab": "Graphique",
-  "tokenized_community_holders_tab": "Détenteurs",
-  "tokenized_community_trades_tab": "Transactions",
-  "tokenized_community_comments_tab": "Commentaires",
-  "top_holders_title": "Principaux détenteurs ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  }
+  "write_a_message": "Écrire un message..."
 }

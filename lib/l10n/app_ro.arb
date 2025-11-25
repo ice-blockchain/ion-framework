@@ -140,6 +140,11 @@
   "channel_created_message": "Canalul a fost creat",
   "channel_edit": "Editează canalul",
   "channel_join": "Alătură-te canalului",
+  "chart_label": "Grafic",
+  "chart_stats_buys": "Cumpărări",
+  "chart_stats_net_buy": "Cumpărări nete",
+  "chart_stats_sells": "Vânzări",
+  "chart_stats_volume": "Vol",
   "chat_add_poll_title": "Sondaj nou",
   "chat_delete_modal_description": "Sunteți sigur că doriți să ștergeți toate conversațiile selectate?",
   "chat_delete_modal_description_single": "Sunteți sigur că doriți să ștergeți această conversație?",
@@ -527,6 +532,7 @@
   "invite_friends_summary_defi_text": "DeFi",
   "invite_friends_summary_referrals_text": "Recomandări totale",
   "invite_friends_summary_upgrades_text": "Actualizări",
+  "latest_trades_title": "Ultimele tranzacții",
   "maintenance_page_description": "Facem îmbunătățiri rapide în culise. Totul va reveni la normal în curând. Vă rugăm să încercați din nou mai târziu.",
   "maintenance_page_title": "Vom reveni în curând",
   "members_count": "{count, plural, =1 {{count} membru} other {{count} membri}}",
@@ -643,6 +649,7 @@
   "profile_help": "Centru de ajutor",
   "profile_location": "Locație",
   "profile_log_out": "Deconectează-te de la {nickname}",
+  "profile_login_with_new_account": "Conectează-te cu un cont nou",
   "profile_no_account_found": "Nu am putut găsi acest cont",
   "profile_none": "Niciunul",
   "profile_notifications_popup_title": "Notificări cont",
@@ -670,7 +677,6 @@
   "profile_send_option_title": "Trimite plată",
   "profile_stories": "Povești",
   "profile_switch_user_header": "Conturi utilizator",
-  "profile_login_with_new_account": "Conectează-te cu un cont nou",
   "profile_token_be_first_to_buy": "Fii primul care cumpără",
   "profile_token_buy": "Cumpără",
   "profile_videos": "Video-uri",
@@ -800,10 +806,24 @@
   "suggestions_loading_description": "Caută utilizatorul pe care vrei să-l menționezi",
   "tokenized_communities_top_tokens": "Tokenuri de top",
   "tokenized_communities_trending_tokens": "Tokenuri în tendință",
+  "tokenized_community_chart_tab": "Grafic",
+  "tokenized_community_comments_tab": "Comentarii",
+  "tokenized_community_holders_tab": "Deținători",
+  "tokenized_community_trades_tab": "Tranzacții",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Adaugă un link",
+  "top_holders_title": "Principalii deținători ({count})",
+  "@top_holders_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "topics_add": "Adaugă",
   "topics_title": "Subiecte",
+  "trade_buy": "CUMPĂRĂ",
+  "trade_sell": "VINDE",
   "transaction_details_timeline_executing": "În proces de execuție",
   "transaction_details_timeline_failed": "Eșuat",
   "transaction_details_timeline_pending": "În așteptare",
@@ -1029,25 +1049,5 @@
   "who_can_reply_settings_title_story": "Cine poate răspunde la această poveste",
   "who_can_reply_settings_title_video": "Cine poate răspunde la acest video",
   "who_can_reply_settings_verified_accounts": "Conturi verificate",
-  "write_a_message": "Scrie un mesaj...",
-  "chart_label": "Grafic",
-  "chart_stats_volume": "Vol",
-  "chart_stats_buys": "Cumpărări",
-  "chart_stats_sells": "Vânzări",
-  "chart_stats_net_buy": "Cumpărări nete",
-  "latest_trades_title": "Ultimele tranzacții",
-  "trade_buy": "CUMPĂRĂ",
-  "trade_sell": "VINDE",
-  "tokenized_community_chart_tab": "Grafic",
-  "tokenized_community_holders_tab": "Deținători",
-  "tokenized_community_trades_tab": "Tranzacții",
-  "tokenized_community_comments_tab": "Comentarii",
-  "top_holders_title": "Principalii deținători ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  }
+  "write_a_message": "Scrie un mesaj..."
 }

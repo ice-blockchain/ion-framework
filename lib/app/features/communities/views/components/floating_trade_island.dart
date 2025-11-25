@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -76,8 +78,7 @@ class _PillButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final texts = context.theme.appTextThemes;
-    final iconWidget =
-        flipIconUp ? Transform.rotate(angle: 3.141592653589793, child: leading) : leading;
+    final iconWidget = flipIconUp ? Transform.rotate(angle: math.pi, child: leading) : leading;
 
     return GestureDetector(
       onTap: onTap,

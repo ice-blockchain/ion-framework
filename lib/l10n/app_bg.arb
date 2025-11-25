@@ -140,6 +140,11 @@
   "channel_created_message": "Каналът беше създаден",
   "channel_edit": "Редактирай канал",
   "channel_join": "Присъедини се към канала",
+  "chart_label": "Графика",
+  "chart_stats_buys": "Покупки",
+  "chart_stats_net_buy": "Нетни покупки",
+  "chart_stats_sells": "Продажби",
+  "chart_stats_volume": "Обем",
   "chat_add_poll_title": "Ново анкетиране",
   "chat_delete_modal_description": "Сигурни ли сте, че искате да изтриете всички избрани чатове?",
   "chat_delete_modal_description_single": "Сигурни ли сте, че искате да изтриете този чат?",
@@ -527,6 +532,7 @@
   "invite_friends_summary_defi_text": "DeFi",
   "invite_friends_summary_referrals_text": "Общо препоръки",
   "invite_friends_summary_upgrades_text": "Надстройки",
+  "latest_trades_title": "Последни сделки",
   "maintenance_page_description": "Правим някои бързи подобрения зад кулисите. Всичко ще се върне към нормално скоро. Моля, опитайте отново по-късно.",
   "maintenance_page_title": "Ще се върнем скоро",
   "members_count": "{count, plural, =1 {{count} член} other {{count} членове}}",
@@ -643,6 +649,7 @@
   "profile_help": "Център за помощ",
   "profile_location": "Местоположение",
   "profile_log_out": "Изход от {nickname}",
+  "profile_login_with_new_account": "Влезте с нов акаунт",
   "profile_no_account_found": "Не успяхме да намерим този акаунт",
   "profile_none": "Нищо",
   "profile_notifications_popup_title": "Известия за акаунта",
@@ -670,7 +677,6 @@
   "profile_send_option_title": "Изпрати плащане",
   "profile_stories": "Истории",
   "profile_switch_user_header": "Потребителски акаунти",
-  "profile_login_with_new_account": "Влезте с нов акаунт",
   "profile_token_be_first_to_buy": "Бъдете първият, който купува",
   "profile_token_buy": "Купи",
   "profile_videos": "Видеа",
@@ -800,10 +806,24 @@
   "suggestions_loading_description": "Търсете потребителя, който искате да споменете",
   "tokenized_communities_top_tokens": "Топ токени",
   "tokenized_communities_trending_tokens": "Популярни токени",
+  "tokenized_community_chart_tab": "Графика",
+  "tokenized_community_comments_tab": "Коментари",
+  "tokenized_community_holders_tab": "Притежатели",
+  "tokenized_community_trades_tab": "Сделки",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Добави връзка",
+  "top_holders_title": "Топ притежатели ({count})",
+  "@top_holders_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "topics_add": "Добави",
   "topics_title": "Теми",
+  "trade_buy": "КУПУВАНЕ",
+  "trade_sell": "ПРОДАВАНЕ",
   "transaction_details_timeline_executing": "В процес на изпълнение",
   "transaction_details_timeline_failed": "Неуспешно",
   "transaction_details_timeline_pending": "В очакване",
@@ -1029,25 +1049,5 @@
   "who_can_reply_settings_title_story": "Кой може да отговаря на тази история",
   "who_can_reply_settings_title_video": "Кой може да отговаря на това видео",
   "who_can_reply_settings_verified_accounts": "Верифицирани акаунти",
-  "write_a_message": "Напишете съобщение...",
-  "chart_label": "Графика",
-  "chart_stats_volume": "Обем",
-  "chart_stats_buys": "Покупки",
-  "chart_stats_sells": "Продажби",
-  "chart_stats_net_buy": "Нетни покупки",
-  "latest_trades_title": "Последни сделки",
-  "trade_buy": "КУПУВАНЕ",
-  "trade_sell": "ПРОДАВАНЕ",
-  "tokenized_community_chart_tab": "Графика",
-  "tokenized_community_holders_tab": "Притежатели",
-  "tokenized_community_trades_tab": "Сделки",
-  "tokenized_community_comments_tab": "Коментари",
-  "top_holders_title": "Топ притежатели ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  }
+  "write_a_message": "Напишете съобщение..."
 }

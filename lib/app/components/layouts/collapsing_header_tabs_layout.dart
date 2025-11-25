@@ -120,8 +120,8 @@ class CollapsingHeaderTabsLayout extends HookWidget {
               ),
             ),
           ),
-          _IgnorePointerWrapper(
-            shouldWrap: opacity <= 0.5,
+          IgnorePointer(
+            ignoring: opacity <= 0.5,
             child: Opacity(
               opacity: opacity,
               child: NavigationAppBar(
@@ -163,16 +163,5 @@ class CollapsingHeaderTabsLayout extends HookWidget {
         ],
       ),
     );
-  }
-}
-
-class _IgnorePointerWrapper extends StatelessWidget {
-  const _IgnorePointerWrapper({required this.child, required this.shouldWrap});
-  final Widget child;
-  final bool shouldWrap;
-
-  @override
-  Widget build(BuildContext context) {
-    return shouldWrap ? IgnorePointer(child: child) : child;
   }
 }
