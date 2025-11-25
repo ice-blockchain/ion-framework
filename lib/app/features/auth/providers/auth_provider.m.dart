@@ -17,6 +17,7 @@ import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/user/providers/biometrics_provider.r.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
+import 'package:ion/app/services/database/database_ready_notifier.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -205,7 +206,7 @@ class Auth extends _$Auth {
     final isUserSwitching = currentUser != null && currentUser != identityKeyName;
 
     if (isUserSwitching) {
-      // Activate user switching flag for router redirect logic
+      ref.read(databasesReadyNotifierProvider.notifier).notReady();
       ref.read(userSwitchingProvider.notifier).active();
       ref.read(userSwitchProvider.notifier).trigger();
       await Future<void>.delayed(const Duration(milliseconds: 300));
@@ -395,7 +396,7 @@ class PubkeyChangeWithExistingUser extends _$PubkeyChangeWithExistingUser {
 @Riverpod(keepAlive: true)
 class UserSwitching extends _$UserSwitching {
   @override
-  bool build() => false;
+  bool build() => true;
 
   void active() {
     state = true;

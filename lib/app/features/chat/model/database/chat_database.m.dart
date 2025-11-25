@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
@@ -22,7 +21,6 @@ import 'package:ion/app/features/chat/model/database/chat_database.m.steps.dart'
 import 'package:ion/app/features/chat/model/group_subject.f.dart';
 import 'package:ion/app/features/chat/model/message_reaction.f.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
-import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_tags_converter.dart';
@@ -30,6 +28,8 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
+import 'package:ion/app/services/database/database_manager_service.r.dart';
+import 'package:ion/app/services/database/database_ready_notifier.r.dart';
 import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
 import 'package:ion/app/utils/directory.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -53,19 +53,23 @@ part 'tables/reaction_table.dart';
 
 @Riverpod(keepAlive: true)
 ChatDatabase chatDatabase(Ref ref) {
-  final pubkey = ref.watch(currentPubkeySelectorProvider);
+  keepAliveWhenAuthenticated(ref);
+
+  final pubkey = ref.watch(databasesReadyPubkeyProvider);
 
   if (pubkey == null) {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  final appGroup = Platform.isIOS
-      ? ref.watch(envProvider.notifier).get<String>(EnvVariable.FOUNDATION_APP_GROUP)
-      : null;
-  final database = ChatDatabase(pubkey, appGroupId: appGroup);
+  final manager = ref.watch(databaseManagerServiceProvider);
+  final database = manager.getChatDatabase(pubkey);
 
-  onLogout(ref, database.close);
-  onUserSwitch(ref, database.close);
+  if (database == null) {
+    throw UserMasterPubkeyNotFoundException();
+  }
+
+  onLogout(ref, () => unawaited(manager.closeChatDatabase()));
+  onUserSwitch(ref, () => unawaited(manager.closeChatDatabase()));
 
   return database;
 }

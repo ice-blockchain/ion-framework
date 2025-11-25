@@ -5,11 +5,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/onboarding_complete_provider.r.dart';
 import 'package:ion/app/features/core/providers/init_provider.r.dart';
-import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/feed/providers/android_soft_update.m.dart';
 import 'package:ion/app/features/force_update/providers/force_update_provider.r.dart';
-import 'package:ion/app/features/wallets/providers/wallets_initializer_provider.r.dart';
+import 'package:ion/app/services/database/database_ready_notifier.r.dart';
 
 class AppRouterNotifier extends ChangeNotifier {
   AppRouterNotifier(this.ref) {
@@ -20,8 +19,7 @@ class AppRouterNotifier extends ChangeNotifier {
       ..listen(splashProvider, (_, __) => notifyListeners())
       ..listen(onboardingCompleteProvider, (_, __) => notifyListeners())
       ..listen(userSwitchingProvider, (_, __) => notifyListeners())
-      ..listen(mainWalletProvider, (_, __) => notifyListeners())
-      ..listen(walletsInitializerNotifierProvider, (_, __) => notifyListeners())
+      ..listen(databasesReadyNotifierProvider, (_, __) => notifyListeners())
       ..listen(
         androidSoftUpdateProvider.select((state) => state.isUpdateAvailable),
         (_, __) => notifyListeners(),

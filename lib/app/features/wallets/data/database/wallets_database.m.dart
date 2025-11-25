@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:io';
+import 'dart:async';
 
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
@@ -9,7 +9,6 @@ import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/wallets/data/database/dao/transactions_visibility_status_dao.m.dart';
 import 'package:ion/app/features/wallets/data/database/tables/coins_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/crypto_wallets_table.d.dart';
@@ -21,6 +20,8 @@ import 'package:ion/app/features/wallets/data/database/tables/sync_coins_table.d
 import 'package:ion/app/features/wallets/data/database/tables/transaction_visibility_status_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transactions_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.steps.dart';
+import 'package:ion/app/services/database/database_manager_service.r.dart';
+import 'package:ion/app/services/database/database_ready_notifier.r.dart';
 import 'package:ion/app/utils/directory.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -30,19 +31,21 @@ part 'wallets_database.m.g.dart';
 WalletsDatabase walletsDatabase(Ref ref) {
   keepAliveWhenAuthenticated(ref);
 
-  final pubkey = ref.watch(currentPubkeySelectorProvider);
+  final pubkey = ref.watch(databasesReadyPubkeyProvider);
 
   if (pubkey == null) {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  final appGroup = Platform.isIOS
-      ? ref.watch(envProvider.notifier).get<String>(EnvVariable.FOUNDATION_APP_GROUP)
-      : null;
-  final database = WalletsDatabase(pubkey, appGroupId: appGroup);
+  final manager = ref.watch(databaseManagerServiceProvider);
+  final database = manager.getWalletsDatabase(pubkey);
 
-  onLogout(ref, database.close);
-  onUserSwitch(ref, database.close);
+  if (database == null) {
+    throw UserMasterPubkeyNotFoundException();
+  }
+
+  onLogout(ref, () => unawaited(manager.closeWalletsDatabase()));
+  onUserSwitch(ref, () => unawaited(manager.closeWalletsDatabase()));
 
   return database;
 }

@@ -119,17 +119,11 @@ Future<String?> _mainRedirect({
     ref: ref,
   );
   if (userSwitchingRedirect != null) {
-    if (location != userSwitchingRedirect) {
-      return userSwitchingRedirect;
-    } else {
-      return null;
-    }
+    return _gotoLocation(userSwitchingRedirect, currentLocation: location);
   }
 
   final isAuthenticated = (ref.read(authProvider).valueOrNull?.isAuthenticated).falseOrValue;
-
   final onboardingComplete = ref.read(onboardingCompleteProvider).valueOrNull;
-
   final hasNotificationsPermission = ref.read(hasPermissionProvider(Permission.notifications));
 
   final isOnSplash = location.startsWith(SplashRoute().location);
@@ -141,43 +135,21 @@ Future<String?> _mainRedirect({
 
   if (!isAuthenticated && !isOnAuth) {
     final introLocation = IntroRoute().location;
-    if (location != introLocation) {
-      return introLocation;
-    }
-
-    return null;
+    return _gotoLocation(introLocation, currentLocation: location);
   }
 
   if (isAuthenticated && onboardingComplete != null) {
-    // Don't redirect to feed if user switching is in progress
-    final isUserSwitching = ref.read(userSwitchingProvider);
-    if (isUserSwitching) {
-      return null;
-    }
-
     if (onboardingComplete) {
       if (isOnSplash || isOnAuth || isOnIntro) {
         final feedLocation = FeedRoute().location;
-        if (location != feedLocation) {
-          return feedLocation;
-        }
-
-        return null;
+        return _gotoLocation(feedLocation, currentLocation: location);
       } else if (isOnOnboarding) {
         if (hasNotificationsPermission) {
           final feedLocation = FeedRoute().location;
-          if (location != feedLocation) {
-            return feedLocation;
-          }
-
-          return null;
+          return _gotoLocation(feedLocation, currentLocation: location);
         } else {
           final notificationsLocation = NotificationsRoute().location;
-          if (location != notificationsLocation) {
-            return notificationsLocation;
-          }
-
-          return null;
+          return _gotoLocation(notificationsLocation, currentLocation: location);
         }
       }
     }
@@ -191,11 +163,7 @@ Future<String?> _mainRedirect({
         !isOnMediaPicker &&
         !(hasUserMetadata && relaysAssigned)) {
       final fillProfileLocation = FillProfileRoute().location;
-      if (location != fillProfileLocation) {
-        return fillProfileLocation;
-      }
-
-      return null;
+      return _gotoLocation(fillProfileLocation, currentLocation: location);
     }
 
     if (!onboardingComplete &&
@@ -206,13 +174,16 @@ Future<String?> _mainRedirect({
         !delegationComplete) {
       ref.read(uiEventQueueNotifierProvider.notifier).emit(const ShowLinkNewDeviceDialogEvent());
       final feedLocation = FeedRoute().location;
-      if (location != feedLocation) {
-        return feedLocation;
-      }
-
-      return null;
+      return _gotoLocation(feedLocation, currentLocation: location);
     }
   }
 
   return null;
+}
+
+String? _gotoLocation(
+  String nextLocation, {
+  required String currentLocation,
+}) {
+  return currentLocation != nextLocation ? nextLocation : null;
 }
