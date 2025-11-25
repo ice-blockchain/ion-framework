@@ -7,6 +7,10 @@ class IONSwapConfig {
     required this.okxPassphrase,
     required this.okxApiUrl,
     required this.relayBaseUrl,
+    required this.exolixApiKey,
+    required this.exolixApiUrl,
+    required this.letsExchangeApiKey,
+    required this.letsExchangeApiUrl,
     this.interceptors = const [],
   });
 
@@ -14,6 +18,15 @@ class IONSwapConfig {
   final String okxSignKey;
   final String okxPassphrase;
   final String okxApiUrl;
-  final List<Interceptor> interceptors;
+
   final String relayBaseUrl;
+
+  final String exolixApiKey;
+  final String exolixApiUrl;
+
+  final String letsExchangeApiKey;
+  final String letsExchangeApiUrl;
+
+  final List<Interceptor> interceptors;
+
 }
