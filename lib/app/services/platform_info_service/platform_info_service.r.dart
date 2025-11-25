@@ -15,6 +15,8 @@ class PlatformInfoService {
   String get name => _delegate.name;
 
   Future<String> get version => _delegate.version;
+
+  Future<String?> get deviceModel => _delegate.deviceModel;
 }
 
 abstract class PlatformInfoDelegate {
@@ -29,6 +31,8 @@ abstract class PlatformInfoDelegate {
   String get name;
 
   Future<String> get version;
+
+  Future<String?> get deviceModel;
 }
 
 class AndroidPlatformInfoDelegate implements PlatformInfoDelegate {
@@ -40,6 +44,12 @@ class AndroidPlatformInfoDelegate implements PlatformInfoDelegate {
     final info = await DeviceInfoPlugin().androidInfo;
     return info.version.sdkInt.toString();
   }
+
+  @override
+  Future<String?> get deviceModel async {
+    final info = await DeviceInfoPlugin().androidInfo;
+    return info.model;
+  }
 }
 
 class IOSPlatformInfoDelegate implements PlatformInfoDelegate {
@@ -50,6 +60,12 @@ class IOSPlatformInfoDelegate implements PlatformInfoDelegate {
   Future<String> get version async {
     final info = await DeviceInfoPlugin().iosInfo;
     return info.systemVersion;
+  }
+
+  @override
+  Future<String?> get deviceModel async {
+    final info = await DeviceInfoPlugin().iosInfo;
+    return info.utsname.machine;
   }
 }
 

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:collection/collection.dart';
@@ -12,6 +13,7 @@ import 'package:ion/app/features/core/permissions/providers/permissions_provider
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/gallery/data/models/camera_state.f.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/platform_info_service/platform_info_service.r.dart';
 import 'package:mime/mime.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -82,10 +84,11 @@ class CameraControllerNotifier extends _$CameraControllerNotifier {
   }
 
   Future<CameraController> _createCameraController(CameraDescription camera) async {
-    _cameraController = CameraController(
-      camera,
-      ResolutionPreset.max,
-    );
+    // Use ultraHigh for iPhone 17+ to avoid unsupported btp2 pixel format
+    // See: https://github.com/flutter/flutter/issues/175828
+    final resolutionPreset = await _getOptimalResolutionPreset();
+
+    _cameraController = CameraController(camera, resolutionPreset);
 
     try {
       await _cameraController?.initialize();
@@ -96,6 +99,49 @@ class CameraControllerNotifier extends _$CameraControllerNotifier {
       await _disposeCamera();
       throw Exception('Camera initialization error: $e');
     }
+  }
+
+  /// Returns the optimal resolution preset based on the device.
+  /// iPhone 17+ models require ultraHigh due to unsupported btp2 format at max resolution.
+  Future<ResolutionPreset> _getOptimalResolutionPreset() async {
+    if (!Platform.isIOS) {
+      return ResolutionPreset.max;
+    }
+
+    try {
+      final platformInfo = ref.read(platformInfoServiceProvider);
+      final deviceModel = await platformInfo.deviceModel;
+
+      if (deviceModel == null) {
+        return ResolutionPreset.max;
+      }
+
+      // Check if device is iPhone 17 or newer
+      // iPhone 17 models start with: iPhone17,1 iPhone17,2 iPhone17,3 iPhone17,4
+      if (_isIPhone17OrNewer(deviceModel)) {
+        Logger.log('Detected iPhone 17+: $deviceModel - using ResolutionPreset.ultraHigh');
+        return ResolutionPreset.ultraHigh;
+      }
+
+      return ResolutionPreset.max;
+    } catch (e) {
+      Logger.log('Error detecting device model, defaulting to max: $e');
+      return ResolutionPreset.max;
+    }
+  }
+
+  /// Checks if the device is iPhone 17 or newer based on the model identifier.
+  bool _isIPhone17OrNewer(String model) {
+    // iPhone model identifiers follow the pattern: iPhoneX,Y
+    // where X is the generation number
+    final match = RegExp(r'iPhone(\d+),\d+').firstMatch(model);
+    if (match == null) return false;
+
+    final generation = int.tryParse(match.group(1) ?? '');
+    if (generation == null) return false;
+
+    // iPhone 17 and newer models have generation >= 17
+    return generation >= 17;
   }
 
   Future<void> pauseCamera() async {
