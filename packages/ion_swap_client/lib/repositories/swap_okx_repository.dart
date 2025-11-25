@@ -79,7 +79,9 @@ class SwapOkxRepository implements ApiRepository {
     return OkxApiResponse.fromJson(
       response.data as Map<String, dynamic>,
       (json) =>
-          (json as List<dynamic>?)?.map((e) => ApproveTransactionData.fromJson(e as Map<String, dynamic>)).toList() ??
+          (json as List<dynamic>?)
+              ?.map((e) => ApproveTransactionData.fromJson(e as Map<String, dynamic>))
+              .toList() ??
           [],
     );
   }

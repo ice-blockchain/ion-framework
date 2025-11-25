@@ -178,11 +178,16 @@ class SwapController {
     }
 
     final sellNetwork = sellCoin.networks.firstWhereOrNull(
-      (e) => e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.sellCoinContractAddress),
+      (e) =>
+          e.contractAddress ==
+          _getTokenAddressForLetsExchange(
+            swapCoinData.sellCoinContractAddress,
+          ),
     );
 
     final buyNetwork = buyCoin.networks.firstWhereOrNull(
-      (e) => e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.buyCoinContractAddress),
+      (e) =>
+          e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.buyCoinContractAddress),
     );
 
     if (sellNetwork == null || buyNetwork == null) {
@@ -230,8 +235,10 @@ class SwapController {
       throw Exception('Exolix: Coins pair not found');
     }
 
-    final sellNetwork = sellCoin.networks.firstWhereOrNull((e) => e.name == swapCoinData.sellCoinNetworkName);
-    final buyNetwork = buyCoin.networks.firstWhereOrNull((e) => e.name == swapCoinData.buyCoinNetworkName);
+    final sellNetwork =
+        sellCoin.networks.firstWhereOrNull((e) => e.name == swapCoinData.sellCoinNetworkName);
+    final buyNetwork =
+        buyCoin.networks.firstWhereOrNull((e) => e.name == swapCoinData.buyCoinNetworkName);
 
     if (sellNetwork == null || buyNetwork == null) {
       throw Exception('Exolix: Coins networks not found');
