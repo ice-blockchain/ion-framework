@@ -5,7 +5,6 @@ import 'package:ion_swap_client/repositories/exolix_repository.dart';
 import 'package:ion_swap_client/repositories/lets_exchange_repository.dart';
 import 'package:ion_swap_client/repositories/relay_api_repository.dart';
 import 'package:ion_swap_client/repositories/swap_okx_repository.dart';
-import 'package:ion_swap_client/service_locator/network_service_locator.dart';
 import 'package:ion_swap_client/service_locator/repositories/api_repository_service_locator.dart';
 
 class SwapControllerLocator {
@@ -26,19 +25,11 @@ class SwapControllerLocator {
       return _swapCoinsController!;
     }
 
-    final networkServiceLocator = NetworkServiceLocator();
-    final okxRepository = ApiRepositoryServiceLocator<SwapOkxRepository>().repository(
-      dio: networkServiceLocator.okxDio(config: config),
-    );
-    final relayApiRepository = ApiRepositoryServiceLocator<RelayApiRepository>().repository(
-      dio: networkServiceLocator.relayDio(config: config),
-    );
-    final exolixRepository = ApiRepositoryServiceLocator<ExolixRepository>().repository(
-      dio: networkServiceLocator.exolixDio(config: config),
-    );
-    final letsExchangeRepository = ApiRepositoryServiceLocator<LetsExchangeRepository>().repository(
-      dio: networkServiceLocator.letsExchangeDio(config: config),
-    );
+    final apiRepositoryServiceLocator = ApiRepositoryServiceLocator();
+    final okxRepository = apiRepositoryServiceLocator.get<SwapOkxRepository>(config: config);
+    final relayApiRepository = apiRepositoryServiceLocator.get<RelayApiRepository>(config: config);
+    final exolixRepository = apiRepositoryServiceLocator.get<ExolixRepository>(config: config);
+    final letsExchangeRepository = apiRepositoryServiceLocator.get<LetsExchangeRepository>(config: config);
 
     _swapCoinsController = SwapController(
       swapOkxRepository: okxRepository,
