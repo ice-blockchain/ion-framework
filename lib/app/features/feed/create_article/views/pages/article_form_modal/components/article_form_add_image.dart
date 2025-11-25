@@ -41,7 +41,6 @@ class ArticleFormAddImage extends HookConsumerWidget {
       onGranted: () async {
         if (!context.mounted) return;
 
-        hideKeyboard(context);
         final mediaFiles = await MediaPickerRoute(
           isNeedFilterVideoByFormat: false,
           maxSelection: 1,
@@ -89,21 +88,17 @@ class ArticleFormAddImage extends HookConsumerWidget {
     if (focusNode == null || isKeyboardVisible(context)) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future<void>.delayed(const Duration(milliseconds: 200), () {
-        if (context.mounted && focusNode.canRequestFocus) {
-          // If already focused, unfocus first then refocus to trigger keyboard
-          if (focusNode.hasFocus) {
-            focusNode.unfocus();
-
-            Future<void>.delayed(
-              const Duration(milliseconds: 100),
-              focusNode.requestFocus,
-            );
-          } else {
-            focusNode.requestFocus();
-          }
+      if (context.mounted && focusNode.canRequestFocus) {
+        // If already focused, unfocus first then refocus to trigger keyboard
+        if (focusNode.hasFocus) {
+          focusNode.unfocus();
         }
-      });
+
+        Future<void>.delayed(
+          const Duration(milliseconds: 100),
+          focusNode.requestFocus,
+        );
+      }
     });
   }
 }
