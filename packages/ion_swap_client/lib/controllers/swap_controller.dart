@@ -52,8 +52,10 @@ class SwapController {
       }
 
       if (swapCoinData.sellNetworkId == swapCoinData.buyNetworkId) {
-        await _tryToSwapOnSameNetwork(swapCoinData);
-        return;
+        final success = await _tryToSwapOnSameNetwork(swapCoinData);
+        if (success) {
+          return;
+        }
       }
 
       await _tryToCexSwap(
