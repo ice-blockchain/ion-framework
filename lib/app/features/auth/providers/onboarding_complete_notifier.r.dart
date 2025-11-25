@@ -23,6 +23,8 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
+import 'package:ion/app/features/user/providers/relays/ranked_user_relays_provider.r.dart';
+import 'package:ion/app/features/user/providers/relays/relevant_user_relays_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_social_profile_provider.r.dart';
@@ -131,7 +133,16 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
     }
     final followees = ref.read(onboardingDataProvider).followees;
 
-    return ref.read(currentUserIdentityProvider.notifier).assignUserRelays(followees: followees);
+    final relays =
+        await ref.read(currentUserIdentityProvider.notifier).assignUserRelays(followees: followees);
+
+    // Invalidate all relay providers so they rebuild with new relays
+    ref
+      ..invalidate(rankedCurrentUserRelaysProvider)
+      ..invalidate(rankedRelevantCurrentUserRelaysUrlsProvider)
+      ..invalidate(relevantCurrentUserRelaysProvider);
+
+    return relays;
   }
 
   Future<EventMessage> _buildUserRelaysEvent({
