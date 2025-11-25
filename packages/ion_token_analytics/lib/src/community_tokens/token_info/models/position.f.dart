@@ -6,7 +6,7 @@ part 'position.f.freezed.dart';
 part 'position.f.g.dart';
 
 @freezed
-class Position with _$Position {
+class Position with _$Position implements PositionPatch {
   const factory Position({
     required int rank,
     required double amount,

@@ -8,7 +8,7 @@ part 'community_token.f.freezed.dart';
 part 'community_token.f.g.dart';
 
 @freezed
-class CommunityToken with _$CommunityToken {
+class CommunityToken with _$CommunityToken implements CommunityTokenPatch {
   const factory CommunityToken({
     required String type,
     required String title,

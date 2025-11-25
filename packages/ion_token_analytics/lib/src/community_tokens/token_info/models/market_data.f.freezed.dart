@@ -33,21 +33,31 @@ mixin _$MarketData {
   /// Create a copy of MarketData
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $MarketDataCopyWith<MarketData> get copyWith => throw _privateConstructorUsedError;
+  $MarketDataCopyWith<MarketData> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $MarketDataCopyWith<$Res> {
-  factory $MarketDataCopyWith(MarketData value, $Res Function(MarketData) then) =
-      _$MarketDataCopyWithImpl<$Res, MarketData>;
+  factory $MarketDataCopyWith(
+    MarketData value,
+    $Res Function(MarketData) then,
+  ) = _$MarketDataCopyWithImpl<$Res, MarketData>;
   @useResult
-  $Res call({double marketCap, double volume, int holders, double priceUSD, Position? position});
+  $Res call({
+    double marketCap,
+    double volume,
+    int holders,
+    double priceUSD,
+    Position? position,
+  });
 
   $PositionCopyWith<$Res>? get position;
 }
 
 /// @nodoc
-class _$MarketDataCopyWithImpl<$Res, $Val extends MarketData> implements $MarketDataCopyWith<$Res> {
+class _$MarketDataCopyWithImpl<$Res, $Val extends MarketData>
+    implements $MarketDataCopyWith<$Res> {
   _$MarketDataCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -109,22 +119,34 @@ class _$MarketDataCopyWithImpl<$Res, $Val extends MarketData> implements $Market
 }
 
 /// @nodoc
-abstract class _$$MarketDataImplCopyWith<$Res> implements $MarketDataCopyWith<$Res> {
-  factory _$$MarketDataImplCopyWith(_$MarketDataImpl value, $Res Function(_$MarketDataImpl) then) =
-      __$$MarketDataImplCopyWithImpl<$Res>;
+abstract class _$$MarketDataImplCopyWith<$Res>
+    implements $MarketDataCopyWith<$Res> {
+  factory _$$MarketDataImplCopyWith(
+    _$MarketDataImpl value,
+    $Res Function(_$MarketDataImpl) then,
+  ) = __$$MarketDataImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({double marketCap, double volume, int holders, double priceUSD, Position? position});
+  $Res call({
+    double marketCap,
+    double volume,
+    int holders,
+    double priceUSD,
+    Position? position,
+  });
 
   @override
   $PositionCopyWith<$Res>? get position;
 }
 
 /// @nodoc
-class __$$MarketDataImplCopyWithImpl<$Res> extends _$MarketDataCopyWithImpl<$Res, _$MarketDataImpl>
+class __$$MarketDataImplCopyWithImpl<$Res>
+    extends _$MarketDataCopyWithImpl<$Res, _$MarketDataImpl>
     implements _$$MarketDataImplCopyWith<$Res> {
-  __$$MarketDataImplCopyWithImpl(_$MarketDataImpl _value, $Res Function(_$MarketDataImpl) _then)
-    : super(_value, _then);
+  __$$MarketDataImplCopyWithImpl(
+    _$MarketDataImpl _value,
+    $Res Function(_$MarketDataImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of MarketData
   /// with the given fields replaced by the non-null parameter values.
@@ -175,7 +197,8 @@ class _$MarketDataImpl implements _MarketData {
     this.position,
   });
 
-  factory _$MarketDataImpl.fromJson(Map<String, dynamic> json) => _$$MarketDataImplFromJson(json);
+  factory _$MarketDataImpl.fromJson(Map<String, dynamic> json) =>
+      _$$MarketDataImplFromJson(json);
 
   @override
   final double marketCap;
@@ -198,16 +221,20 @@ class _$MarketDataImpl implements _MarketData {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$MarketDataImpl &&
-            (identical(other.marketCap, marketCap) || other.marketCap == marketCap) &&
+            (identical(other.marketCap, marketCap) ||
+                other.marketCap == marketCap) &&
             (identical(other.volume, volume) || other.volume == volume) &&
             (identical(other.holders, holders) || other.holders == holders) &&
-            (identical(other.priceUSD, priceUSD) || other.priceUSD == priceUSD) &&
-            (identical(other.position, position) || other.position == position));
+            (identical(other.priceUSD, priceUSD) ||
+                other.priceUSD == priceUSD) &&
+            (identical(other.position, position) ||
+                other.position == position));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, marketCap, volume, holders, priceUSD, position);
+  int get hashCode =>
+      Object.hash(runtimeType, marketCap, volume, holders, priceUSD, position);
 
   /// Create a copy of MarketData
   /// with the given fields replaced by the non-null parameter values.
@@ -232,7 +259,8 @@ abstract class _MarketData implements MarketData {
     final Position? position,
   }) = _$MarketDataImpl;
 
-  factory _MarketData.fromJson(Map<String, dynamic> json) = _$MarketDataImpl.fromJson;
+  factory _MarketData.fromJson(Map<String, dynamic> json) =
+      _$MarketDataImpl.fromJson;
 
   @override
   double get marketCap;
@@ -249,7 +277,8 @@ abstract class _MarketData implements MarketData {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$MarketDataImplCopyWith<_$MarketDataImpl> get copyWith => throw _privateConstructorUsedError;
+  _$$MarketDataImplCopyWith<_$MarketDataImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 MarketDataPatch _$MarketDataPatchFromJson(Map<String, dynamic> json) {
@@ -303,16 +332,20 @@ class _$MarketDataPatchImpl implements _MarketDataPatch {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$MarketDataPatchImpl &&
-            (identical(other.marketCap, marketCap) || other.marketCap == marketCap) &&
+            (identical(other.marketCap, marketCap) ||
+                other.marketCap == marketCap) &&
             (identical(other.volume, volume) || other.volume == volume) &&
             (identical(other.holders, holders) || other.holders == holders) &&
-            (identical(other.priceUSD, priceUSD) || other.priceUSD == priceUSD) &&
-            (identical(other.position, position) || other.position == position));
+            (identical(other.priceUSD, priceUSD) ||
+                other.priceUSD == priceUSD) &&
+            (identical(other.position, position) ||
+                other.position == position));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, marketCap, volume, holders, priceUSD, position);
+  int get hashCode =>
+      Object.hash(runtimeType, marketCap, volume, holders, priceUSD, position);
 
   @override
   Map<String, dynamic> toJson() {
@@ -329,7 +362,8 @@ abstract class _MarketDataPatch implements MarketDataPatch {
     final PositionPatch? position,
   }) = _$MarketDataPatchImpl;
 
-  factory _MarketDataPatch.fromJson(Map<String, dynamic> json) = _$MarketDataPatchImpl.fromJson;
+  factory _MarketDataPatch.fromJson(Map<String, dynamic> json) =
+      _$MarketDataPatchImpl.fromJson;
 
   @override
   double? get marketCap;

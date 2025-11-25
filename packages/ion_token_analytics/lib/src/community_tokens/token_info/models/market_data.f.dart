@@ -7,7 +7,7 @@ part 'market_data.f.freezed.dart';
 part 'market_data.f.g.dart';
 
 @freezed
-class MarketData with _$MarketData {
+class MarketData with _$MarketData implements MarketDataPatch {
   const factory MarketData({
     required double marketCap,
     required double volume,
