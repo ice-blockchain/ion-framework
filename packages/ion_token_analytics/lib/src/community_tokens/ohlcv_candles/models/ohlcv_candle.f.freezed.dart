@@ -34,25 +34,15 @@ mixin _$OhlcvCandle {
   /// Create a copy of OhlcvCandle
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $OhlcvCandleCopyWith<OhlcvCandle> get copyWith =>
-      throw _privateConstructorUsedError;
+  $OhlcvCandleCopyWith<OhlcvCandle> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $OhlcvCandleCopyWith<$Res> {
-  factory $OhlcvCandleCopyWith(
-    OhlcvCandle value,
-    $Res Function(OhlcvCandle) then,
-  ) = _$OhlcvCandleCopyWithImpl<$Res, OhlcvCandle>;
+  factory $OhlcvCandleCopyWith(OhlcvCandle value, $Res Function(OhlcvCandle) then) =
+      _$OhlcvCandleCopyWithImpl<$Res, OhlcvCandle>;
   @useResult
-  $Res call({
-    int timestamp,
-    double open,
-    double high,
-    double low,
-    double close,
-    double volume,
-  });
+  $Res call({int timestamp, double open, double high, double low, double close, double volume});
 }
 
 /// @nodoc
@@ -110,32 +100,22 @@ class _$OhlcvCandleCopyWithImpl<$Res, $Val extends OhlcvCandle>
 }
 
 /// @nodoc
-abstract class _$$OhlcvCandleImplCopyWith<$Res>
-    implements $OhlcvCandleCopyWith<$Res> {
+abstract class _$$OhlcvCandleImplCopyWith<$Res> implements $OhlcvCandleCopyWith<$Res> {
   factory _$$OhlcvCandleImplCopyWith(
     _$OhlcvCandleImpl value,
     $Res Function(_$OhlcvCandleImpl) then,
   ) = __$$OhlcvCandleImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    int timestamp,
-    double open,
-    double high,
-    double low,
-    double close,
-    double volume,
-  });
+  $Res call({int timestamp, double open, double high, double low, double close, double volume});
 }
 
 /// @nodoc
 class __$$OhlcvCandleImplCopyWithImpl<$Res>
     extends _$OhlcvCandleCopyWithImpl<$Res, _$OhlcvCandleImpl>
     implements _$$OhlcvCandleImplCopyWith<$Res> {
-  __$$OhlcvCandleImplCopyWithImpl(
-    _$OhlcvCandleImpl _value,
-    $Res Function(_$OhlcvCandleImpl) _then,
-  ) : super(_value, _then);
+  __$$OhlcvCandleImplCopyWithImpl(_$OhlcvCandleImpl _value, $Res Function(_$OhlcvCandleImpl) _then)
+    : super(_value, _then);
 
   /// Create a copy of OhlcvCandle
   /// with the given fields replaced by the non-null parameter values.
@@ -192,8 +172,7 @@ class _$OhlcvCandleImpl implements _OhlcvCandle {
     required this.volume,
   });
 
-  factory _$OhlcvCandleImpl.fromJson(Map<String, dynamic> json) =>
-      _$$OhlcvCandleImplFromJson(json);
+  factory _$OhlcvCandleImpl.fromJson(Map<String, dynamic> json) => _$$OhlcvCandleImplFromJson(json);
 
   @override
   final int timestamp;
@@ -218,8 +197,7 @@ class _$OhlcvCandleImpl implements _OhlcvCandle {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$OhlcvCandleImpl &&
-            (identical(other.timestamp, timestamp) ||
-                other.timestamp == timestamp) &&
+            (identical(other.timestamp, timestamp) || other.timestamp == timestamp) &&
             (identical(other.open, open) || other.open == open) &&
             (identical(other.high, high) || other.high == high) &&
             (identical(other.low, low) || other.low == low) &&
@@ -229,8 +207,7 @@ class _$OhlcvCandleImpl implements _OhlcvCandle {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, timestamp, open, high, low, close, volume);
+  int get hashCode => Object.hash(runtimeType, timestamp, open, high, low, close, volume);
 
   /// Create a copy of OhlcvCandle
   /// with the given fields replaced by the non-null parameter values.
@@ -256,8 +233,7 @@ abstract class _OhlcvCandle implements OhlcvCandle {
     required final double volume,
   }) = _$OhlcvCandleImpl;
 
-  factory _OhlcvCandle.fromJson(Map<String, dynamic> json) =
-      _$OhlcvCandleImpl.fromJson;
+  factory _OhlcvCandle.fromJson(Map<String, dynamic> json) = _$OhlcvCandleImpl.fromJson;
 
   @override
   int get timestamp;
@@ -276,6 +252,5 @@ abstract class _OhlcvCandle implements OhlcvCandle {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$OhlcvCandleImplCopyWith<_$OhlcvCandleImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$OhlcvCandleImplCopyWith<_$OhlcvCandleImpl> get copyWith => throw _privateConstructorUsedError;
 }

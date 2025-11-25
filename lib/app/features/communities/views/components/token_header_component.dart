@@ -100,7 +100,8 @@ class _TokenIcon extends StatelessWidget {
               color: colors.primaryAccent,
             ),
             alignment: Alignment.center,
-            child: Assets.svg.iconSearchFollow.icon(size: 18.0.s, color: colors.secondaryBackground),
+            child:
+                Assets.svg.iconSearchFollow.icon(size: 18.0.s, color: colors.secondaryBackground),
           ),
         ),
       ],

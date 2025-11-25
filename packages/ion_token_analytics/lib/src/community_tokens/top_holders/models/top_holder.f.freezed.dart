@@ -30,8 +30,7 @@ mixin _$TopHolder {
   /// Create a copy of TopHolder
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $TopHolderCopyWith<TopHolder> get copyWith =>
-      throw _privateConstructorUsedError;
+  $TopHolderCopyWith<TopHolder> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -46,8 +45,7 @@ abstract class $TopHolderCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$TopHolderCopyWithImpl<$Res, $Val extends TopHolder>
-    implements $TopHolderCopyWith<$Res> {
+class _$TopHolderCopyWithImpl<$Res, $Val extends TopHolder> implements $TopHolderCopyWith<$Res> {
   _$TopHolderCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -97,12 +95,9 @@ class _$TopHolderCopyWithImpl<$Res, $Val extends TopHolder>
 }
 
 /// @nodoc
-abstract class _$$TopHolderImplCopyWith<$Res>
-    implements $TopHolderCopyWith<$Res> {
-  factory _$$TopHolderImplCopyWith(
-    _$TopHolderImpl value,
-    $Res Function(_$TopHolderImpl) then,
-  ) = __$$TopHolderImplCopyWithImpl<$Res>;
+abstract class _$$TopHolderImplCopyWith<$Res> implements $TopHolderCopyWith<$Res> {
+  factory _$$TopHolderImplCopyWith(_$TopHolderImpl value, $Res Function(_$TopHolderImpl) then) =
+      __$$TopHolderImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({Creator creator, TopHolderPosition position});
@@ -114,13 +109,10 @@ abstract class _$$TopHolderImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$TopHolderImplCopyWithImpl<$Res>
-    extends _$TopHolderCopyWithImpl<$Res, _$TopHolderImpl>
+class __$$TopHolderImplCopyWithImpl<$Res> extends _$TopHolderCopyWithImpl<$Res, _$TopHolderImpl>
     implements _$$TopHolderImplCopyWith<$Res> {
-  __$$TopHolderImplCopyWithImpl(
-    _$TopHolderImpl _value,
-    $Res Function(_$TopHolderImpl) _then,
-  ) : super(_value, _then);
+  __$$TopHolderImplCopyWithImpl(_$TopHolderImpl _value, $Res Function(_$TopHolderImpl) _then)
+    : super(_value, _then);
 
   /// Create a copy of TopHolder
   /// with the given fields replaced by the non-null parameter values.
@@ -147,8 +139,7 @@ class __$$TopHolderImplCopyWithImpl<$Res>
 class _$TopHolderImpl implements _TopHolder {
   const _$TopHolderImpl({required this.creator, required this.position});
 
-  factory _$TopHolderImpl.fromJson(Map<String, dynamic> json) =>
-      _$$TopHolderImplFromJson(json);
+  factory _$TopHolderImpl.fromJson(Map<String, dynamic> json) => _$$TopHolderImplFromJson(json);
 
   @override
   final Creator creator;
@@ -166,8 +157,7 @@ class _$TopHolderImpl implements _TopHolder {
         (other.runtimeType == runtimeType &&
             other is _$TopHolderImpl &&
             (identical(other.creator, creator) || other.creator == creator) &&
-            (identical(other.position, position) ||
-                other.position == position));
+            (identical(other.position, position) || other.position == position));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -194,8 +184,7 @@ abstract class _TopHolder implements TopHolder {
     required final TopHolderPosition position,
   }) = _$TopHolderImpl;
 
-  factory _TopHolder.fromJson(Map<String, dynamic> json) =
-      _$TopHolderImpl.fromJson;
+  factory _TopHolder.fromJson(Map<String, dynamic> json) = _$TopHolderImpl.fromJson;
 
   @override
   Creator get creator;
@@ -206,8 +195,7 @@ abstract class _TopHolder implements TopHolder {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$TopHolderImplCopyWith<_$TopHolderImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$TopHolderImplCopyWith<_$TopHolderImpl> get copyWith => throw _privateConstructorUsedError;
 }
 
 TopHolderPatch _$TopHolderPatchFromJson(Map<String, dynamic> json) {
@@ -247,8 +235,7 @@ class _$TopHolderPatchImpl implements _TopHolderPatch {
         (other.runtimeType == runtimeType &&
             other is _$TopHolderPatchImpl &&
             (identical(other.creator, creator) || other.creator == creator) &&
-            (identical(other.position, position) ||
-                other.position == position));
+            (identical(other.position, position) || other.position == position));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -267,8 +254,7 @@ abstract class _TopHolderPatch implements TopHolderPatch {
     final TopHolderPositionPatch? position,
   }) = _$TopHolderPatchImpl;
 
-  factory _TopHolderPatch.fromJson(Map<String, dynamic> json) =
-      _$TopHolderPatchImpl.fromJson;
+  factory _TopHolderPatch.fromJson(Map<String, dynamic> json) = _$TopHolderPatchImpl.fromJson;
 
   @override
   CreatorPatch? get creator;

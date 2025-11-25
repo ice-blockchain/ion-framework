@@ -33,8 +33,7 @@ mixin _$Position {
   /// Create a copy of Position
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $PositionCopyWith<Position> get copyWith =>
-      throw _privateConstructorUsedError;
+  $PositionCopyWith<Position> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -42,18 +41,11 @@ abstract class $PositionCopyWith<$Res> {
   factory $PositionCopyWith(Position value, $Res Function(Position) then) =
       _$PositionCopyWithImpl<$Res, Position>;
   @useResult
-  $Res call({
-    int rank,
-    double amount,
-    double amountUSD,
-    double pnl,
-    double pnlPercentage,
-  });
+  $Res call({int rank, double amount, double amountUSD, double pnl, double pnlPercentage});
 }
 
 /// @nodoc
-class _$PositionCopyWithImpl<$Res, $Val extends Position>
-    implements $PositionCopyWith<$Res> {
+class _$PositionCopyWithImpl<$Res, $Val extends Position> implements $PositionCopyWith<$Res> {
   _$PositionCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -101,31 +93,19 @@ class _$PositionCopyWithImpl<$Res, $Val extends Position>
 }
 
 /// @nodoc
-abstract class _$$PositionImplCopyWith<$Res>
-    implements $PositionCopyWith<$Res> {
-  factory _$$PositionImplCopyWith(
-    _$PositionImpl value,
-    $Res Function(_$PositionImpl) then,
-  ) = __$$PositionImplCopyWithImpl<$Res>;
+abstract class _$$PositionImplCopyWith<$Res> implements $PositionCopyWith<$Res> {
+  factory _$$PositionImplCopyWith(_$PositionImpl value, $Res Function(_$PositionImpl) then) =
+      __$$PositionImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    int rank,
-    double amount,
-    double amountUSD,
-    double pnl,
-    double pnlPercentage,
-  });
+  $Res call({int rank, double amount, double amountUSD, double pnl, double pnlPercentage});
 }
 
 /// @nodoc
-class __$$PositionImplCopyWithImpl<$Res>
-    extends _$PositionCopyWithImpl<$Res, _$PositionImpl>
+class __$$PositionImplCopyWithImpl<$Res> extends _$PositionCopyWithImpl<$Res, _$PositionImpl>
     implements _$$PositionImplCopyWith<$Res> {
-  __$$PositionImplCopyWithImpl(
-    _$PositionImpl _value,
-    $Res Function(_$PositionImpl) _then,
-  ) : super(_value, _then);
+  __$$PositionImplCopyWithImpl(_$PositionImpl _value, $Res Function(_$PositionImpl) _then)
+    : super(_value, _then);
 
   /// Create a copy of Position
   /// with the given fields replaced by the non-null parameter values.
@@ -176,8 +156,7 @@ class _$PositionImpl implements _Position {
     required this.pnlPercentage,
   });
 
-  factory _$PositionImpl.fromJson(Map<String, dynamic> json) =>
-      _$$PositionImplFromJson(json);
+  factory _$PositionImpl.fromJson(Map<String, dynamic> json) => _$$PositionImplFromJson(json);
 
   @override
   final int rank;
@@ -202,8 +181,7 @@ class _$PositionImpl implements _Position {
             other is _$PositionImpl &&
             (identical(other.rank, rank) || other.rank == rank) &&
             (identical(other.amount, amount) || other.amount == amount) &&
-            (identical(other.amountUSD, amountUSD) ||
-                other.amountUSD == amountUSD) &&
+            (identical(other.amountUSD, amountUSD) || other.amountUSD == amountUSD) &&
             (identical(other.pnl, pnl) || other.pnl == pnl) &&
             (identical(other.pnlPercentage, pnlPercentage) ||
                 other.pnlPercentage == pnlPercentage));
@@ -211,8 +189,7 @@ class _$PositionImpl implements _Position {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, rank, amount, amountUSD, pnl, pnlPercentage);
+  int get hashCode => Object.hash(runtimeType, rank, amount, amountUSD, pnl, pnlPercentage);
 
   /// Create a copy of Position
   /// with the given fields replaced by the non-null parameter values.
@@ -237,8 +214,7 @@ abstract class _Position implements Position {
     required final double pnlPercentage,
   }) = _$PositionImpl;
 
-  factory _Position.fromJson(Map<String, dynamic> json) =
-      _$PositionImpl.fromJson;
+  factory _Position.fromJson(Map<String, dynamic> json) = _$PositionImpl.fromJson;
 
   @override
   int get rank;
@@ -255,8 +231,7 @@ abstract class _Position implements Position {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$PositionImplCopyWith<_$PositionImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$PositionImplCopyWith<_$PositionImpl> get copyWith => throw _privateConstructorUsedError;
 }
 
 PositionPatch _$PositionPatchFromJson(Map<String, dynamic> json) {
@@ -278,13 +253,7 @@ mixin _$PositionPatch {
 /// @nodoc
 @JsonSerializable()
 class _$PositionPatchImpl implements _PositionPatch {
-  const _$PositionPatchImpl({
-    this.rank,
-    this.amount,
-    this.amountUSD,
-    this.pnl,
-    this.pnlPercentage,
-  });
+  const _$PositionPatchImpl({this.rank, this.amount, this.amountUSD, this.pnl, this.pnlPercentage});
 
   factory _$PositionPatchImpl.fromJson(Map<String, dynamic> json) =>
       _$$PositionPatchImplFromJson(json);
@@ -312,8 +281,7 @@ class _$PositionPatchImpl implements _PositionPatch {
             other is _$PositionPatchImpl &&
             (identical(other.rank, rank) || other.rank == rank) &&
             (identical(other.amount, amount) || other.amount == amount) &&
-            (identical(other.amountUSD, amountUSD) ||
-                other.amountUSD == amountUSD) &&
+            (identical(other.amountUSD, amountUSD) || other.amountUSD == amountUSD) &&
             (identical(other.pnl, pnl) || other.pnl == pnl) &&
             (identical(other.pnlPercentage, pnlPercentage) ||
                 other.pnlPercentage == pnlPercentage));
@@ -321,8 +289,7 @@ class _$PositionPatchImpl implements _PositionPatch {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, rank, amount, amountUSD, pnl, pnlPercentage);
+  int get hashCode => Object.hash(runtimeType, rank, amount, amountUSD, pnl, pnlPercentage);
 
   @override
   Map<String, dynamic> toJson() {
@@ -339,8 +306,7 @@ abstract class _PositionPatch implements PositionPatch {
     final double? pnlPercentage,
   }) = _$PositionPatchImpl;
 
-  factory _PositionPatch.fromJson(Map<String, dynamic> json) =
-      _$PositionPatchImpl.fromJson;
+  factory _PositionPatch.fromJson(Map<String, dynamic> json) = _$PositionPatchImpl.fromJson;
 
   @override
   int? get rank;

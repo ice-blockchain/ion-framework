@@ -30,16 +30,13 @@ mixin _$LatestTrade {
   /// Create a copy of LatestTrade
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $LatestTradeCopyWith<LatestTrade> get copyWith =>
-      throw _privateConstructorUsedError;
+  $LatestTradeCopyWith<LatestTrade> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $LatestTradeCopyWith<$Res> {
-  factory $LatestTradeCopyWith(
-    LatestTrade value,
-    $Res Function(LatestTrade) then,
-  ) = _$LatestTradeCopyWithImpl<$Res, LatestTrade>;
+  factory $LatestTradeCopyWith(LatestTrade value, $Res Function(LatestTrade) then) =
+      _$LatestTradeCopyWithImpl<$Res, LatestTrade>;
   @useResult
   $Res call({Creator creator, TradePosition position});
 
@@ -99,8 +96,7 @@ class _$LatestTradeCopyWithImpl<$Res, $Val extends LatestTrade>
 }
 
 /// @nodoc
-abstract class _$$LatestTradeImplCopyWith<$Res>
-    implements $LatestTradeCopyWith<$Res> {
+abstract class _$$LatestTradeImplCopyWith<$Res> implements $LatestTradeCopyWith<$Res> {
   factory _$$LatestTradeImplCopyWith(
     _$LatestTradeImpl value,
     $Res Function(_$LatestTradeImpl) then,
@@ -119,10 +115,8 @@ abstract class _$$LatestTradeImplCopyWith<$Res>
 class __$$LatestTradeImplCopyWithImpl<$Res>
     extends _$LatestTradeCopyWithImpl<$Res, _$LatestTradeImpl>
     implements _$$LatestTradeImplCopyWith<$Res> {
-  __$$LatestTradeImplCopyWithImpl(
-    _$LatestTradeImpl _value,
-    $Res Function(_$LatestTradeImpl) _then,
-  ) : super(_value, _then);
+  __$$LatestTradeImplCopyWithImpl(_$LatestTradeImpl _value, $Res Function(_$LatestTradeImpl) _then)
+    : super(_value, _then);
 
   /// Create a copy of LatestTrade
   /// with the given fields replaced by the non-null parameter values.
@@ -149,8 +143,7 @@ class __$$LatestTradeImplCopyWithImpl<$Res>
 class _$LatestTradeImpl implements _LatestTrade {
   const _$LatestTradeImpl({required this.creator, required this.position});
 
-  factory _$LatestTradeImpl.fromJson(Map<String, dynamic> json) =>
-      _$$LatestTradeImplFromJson(json);
+  factory _$LatestTradeImpl.fromJson(Map<String, dynamic> json) => _$$LatestTradeImplFromJson(json);
 
   @override
   final Creator creator;
@@ -168,8 +161,7 @@ class _$LatestTradeImpl implements _LatestTrade {
         (other.runtimeType == runtimeType &&
             other is _$LatestTradeImpl &&
             (identical(other.creator, creator) || other.creator == creator) &&
-            (identical(other.position, position) ||
-                other.position == position));
+            (identical(other.position, position) || other.position == position));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -196,8 +188,7 @@ abstract class _LatestTrade implements LatestTrade {
     required final TradePosition position,
   }) = _$LatestTradeImpl;
 
-  factory _LatestTrade.fromJson(Map<String, dynamic> json) =
-      _$LatestTradeImpl.fromJson;
+  factory _LatestTrade.fromJson(Map<String, dynamic> json) = _$LatestTradeImpl.fromJson;
 
   @override
   Creator get creator;
@@ -208,8 +199,7 @@ abstract class _LatestTrade implements LatestTrade {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$LatestTradeImplCopyWith<_$LatestTradeImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$LatestTradeImplCopyWith<_$LatestTradeImpl> get copyWith => throw _privateConstructorUsedError;
 }
 
 LatestTradePatch _$LatestTradePatchFromJson(Map<String, dynamic> json) {
@@ -249,8 +239,7 @@ class _$LatestTradePatchImpl implements _LatestTradePatch {
         (other.runtimeType == runtimeType &&
             other is _$LatestTradePatchImpl &&
             (identical(other.creator, creator) || other.creator == creator) &&
-            (identical(other.position, position) ||
-                other.position == position));
+            (identical(other.position, position) || other.position == position));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -269,8 +258,7 @@ abstract class _LatestTradePatch implements LatestTradePatch {
     final TradePositionPatch? position,
   }) = _$LatestTradePatchImpl;
 
-  factory _LatestTradePatch.fromJson(Map<String, dynamic> json) =
-      _$LatestTradePatchImpl.fromJson;
+  factory _LatestTradePatch.fromJson(Map<String, dynamic> json) = _$LatestTradePatchImpl.fromJson;
 
   @override
   CreatorPatch? get creator;

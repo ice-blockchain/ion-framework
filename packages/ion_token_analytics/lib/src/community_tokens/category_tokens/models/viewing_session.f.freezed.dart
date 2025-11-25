@@ -30,16 +30,13 @@ mixin _$ViewingSession {
   /// Create a copy of ViewingSession
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ViewingSessionCopyWith<ViewingSession> get copyWith =>
-      throw _privateConstructorUsedError;
+  $ViewingSessionCopyWith<ViewingSession> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $ViewingSessionCopyWith<$Res> {
-  factory $ViewingSessionCopyWith(
-    ViewingSession value,
-    $Res Function(ViewingSession) then,
-  ) = _$ViewingSessionCopyWithImpl<$Res, ViewingSession>;
+  factory $ViewingSessionCopyWith(ViewingSession value, $Res Function(ViewingSession) then) =
+      _$ViewingSessionCopyWithImpl<$Res, ViewingSession>;
   @useResult
   $Res call({String id, int ttl});
 }
@@ -76,8 +73,7 @@ class _$ViewingSessionCopyWithImpl<$Res, $Val extends ViewingSession>
 }
 
 /// @nodoc
-abstract class _$$ViewingSessionImplCopyWith<$Res>
-    implements $ViewingSessionCopyWith<$Res> {
+abstract class _$$ViewingSessionImplCopyWith<$Res> implements $ViewingSessionCopyWith<$Res> {
   factory _$$ViewingSessionImplCopyWith(
     _$ViewingSessionImpl value,
     $Res Function(_$ViewingSessionImpl) then,
@@ -153,10 +149,7 @@ class _$ViewingSessionImpl implements _ViewingSession {
   @override
   @pragma('vm:prefer-inline')
   _$$ViewingSessionImplCopyWith<_$ViewingSessionImpl> get copyWith =>
-      __$$ViewingSessionImplCopyWithImpl<_$ViewingSessionImpl>(
-        this,
-        _$identity,
-      );
+      __$$ViewingSessionImplCopyWithImpl<_$ViewingSessionImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -165,13 +158,10 @@ class _$ViewingSessionImpl implements _ViewingSession {
 }
 
 abstract class _ViewingSession implements ViewingSession {
-  const factory _ViewingSession({
-    required final String id,
-    required final int ttl,
-  }) = _$ViewingSessionImpl;
+  const factory _ViewingSession({required final String id, required final int ttl}) =
+      _$ViewingSessionImpl;
 
-  factory _ViewingSession.fromJson(Map<String, dynamic> json) =
-      _$ViewingSessionImpl.fromJson;
+  factory _ViewingSession.fromJson(Map<String, dynamic> json) = _$ViewingSessionImpl.fromJson;
 
   @override
   String get id;

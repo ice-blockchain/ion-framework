@@ -36,16 +36,13 @@ mixin _$TradePosition {
   /// Create a copy of TradePosition
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $TradePositionCopyWith<TradePosition> get copyWith =>
-      throw _privateConstructorUsedError;
+  $TradePositionCopyWith<TradePosition> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $TradePositionCopyWith<$Res> {
-  factory $TradePositionCopyWith(
-    TradePosition value,
-    $Res Function(TradePosition) then,
-  ) = _$TradePositionCopyWithImpl<$Res, TradePosition>;
+  factory $TradePositionCopyWith(TradePosition value, $Res Function(TradePosition) then) =
+      _$TradePositionCopyWithImpl<$Res, TradePosition>;
   @useResult
   $Res call({
     Creator holder,
@@ -147,8 +144,7 @@ class _$TradePositionCopyWithImpl<$Res, $Val extends TradePosition>
 }
 
 /// @nodoc
-abstract class _$$TradePositionImplCopyWith<$Res>
-    implements $TradePositionCopyWith<$Res> {
+abstract class _$$TradePositionImplCopyWith<$Res> implements $TradePositionCopyWith<$Res> {
   factory _$$TradePositionImplCopyWith(
     _$TradePositionImpl value,
     $Res Function(_$TradePositionImpl) then,
@@ -280,17 +276,13 @@ class _$TradePositionImpl implements _TradePosition {
         (other.runtimeType == runtimeType &&
             other is _$TradePositionImpl &&
             (identical(other.holder, holder) || other.holder == holder) &&
-            (identical(other.addresses, addresses) ||
-                other.addresses == addresses) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt) &&
+            (identical(other.addresses, addresses) || other.addresses == addresses) &&
+            (identical(other.createdAt, createdAt) || other.createdAt == createdAt) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.amount, amount) || other.amount == amount) &&
-            (identical(other.amountUSD, amountUSD) ||
-                other.amountUSD == amountUSD) &&
+            (identical(other.amountUSD, amountUSD) || other.amountUSD == amountUSD) &&
             (identical(other.balance, balance) || other.balance == balance) &&
-            (identical(other.balanceUSD, balanceUSD) ||
-                other.balanceUSD == balanceUSD));
+            (identical(other.balanceUSD, balanceUSD) || other.balanceUSD == balanceUSD));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -333,8 +325,7 @@ abstract class _TradePosition implements TradePosition {
     required final double balanceUSD,
   }) = _$TradePositionImpl;
 
-  factory _TradePosition.fromJson(Map<String, dynamic> json) =
-      _$TradePositionImpl.fromJson;
+  factory _TradePosition.fromJson(Map<String, dynamic> json) = _$TradePositionImpl.fromJson;
 
   @override
   Creator get holder;
@@ -425,17 +416,13 @@ class _$TradePositionPatchImpl implements _TradePositionPatch {
         (other.runtimeType == runtimeType &&
             other is _$TradePositionPatchImpl &&
             (identical(other.holder, holder) || other.holder == holder) &&
-            (identical(other.addresses, addresses) ||
-                other.addresses == addresses) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt) &&
+            (identical(other.addresses, addresses) || other.addresses == addresses) &&
+            (identical(other.createdAt, createdAt) || other.createdAt == createdAt) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.amount, amount) || other.amount == amount) &&
-            (identical(other.amountUSD, amountUSD) ||
-                other.amountUSD == amountUSD) &&
+            (identical(other.amountUSD, amountUSD) || other.amountUSD == amountUSD) &&
             (identical(other.balance, balance) || other.balance == balance) &&
-            (identical(other.balanceUSD, balanceUSD) ||
-                other.balanceUSD == balanceUSD));
+            (identical(other.balanceUSD, balanceUSD) || other.balanceUSD == balanceUSD));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)

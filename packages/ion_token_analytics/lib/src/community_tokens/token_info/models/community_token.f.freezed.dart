@@ -36,16 +36,13 @@ mixin _$CommunityToken {
   /// Create a copy of CommunityToken
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $CommunityTokenCopyWith<CommunityToken> get copyWith =>
-      throw _privateConstructorUsedError;
+  $CommunityTokenCopyWith<CommunityToken> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $CommunityTokenCopyWith<$Res> {
-  factory $CommunityTokenCopyWith(
-    CommunityToken value,
-    $Res Function(CommunityToken) then,
-  ) = _$CommunityTokenCopyWithImpl<$Res, CommunityToken>;
+  factory $CommunityTokenCopyWith(CommunityToken value, $Res Function(CommunityToken) then) =
+      _$CommunityTokenCopyWithImpl<$Res, CommunityToken>;
   @useResult
   $Res call({
     String type,
@@ -158,8 +155,7 @@ class _$CommunityTokenCopyWithImpl<$Res, $Val extends CommunityToken>
 }
 
 /// @nodoc
-abstract class _$$CommunityTokenImplCopyWith<$Res>
-    implements $CommunityTokenCopyWith<$Res> {
+abstract class _$$CommunityTokenImplCopyWith<$Res> implements $CommunityTokenCopyWith<$Res> {
   factory _$$CommunityTokenImplCopyWith(
     _$CommunityTokenImpl value,
     $Res Function(_$CommunityTokenImpl) then,
@@ -293,17 +289,12 @@ class _$CommunityTokenImpl implements _CommunityToken {
             other is _$CommunityTokenImpl &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.title, title) || other.title == title) &&
-            (identical(other.description, description) ||
-                other.description == description) &&
-            (identical(other.imageUrl, imageUrl) ||
-                other.imageUrl == imageUrl) &&
-            (identical(other.addresses, addresses) ||
-                other.addresses == addresses) &&
+            (identical(other.description, description) || other.description == description) &&
+            (identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl) &&
+            (identical(other.addresses, addresses) || other.addresses == addresses) &&
             (identical(other.creator, creator) || other.creator == creator) &&
-            (identical(other.marketData, marketData) ||
-                other.marketData == marketData) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+            (identical(other.marketData, marketData) || other.marketData == marketData) &&
+            (identical(other.createdAt, createdAt) || other.createdAt == createdAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -326,10 +317,7 @@ class _$CommunityTokenImpl implements _CommunityToken {
   @override
   @pragma('vm:prefer-inline')
   _$$CommunityTokenImplCopyWith<_$CommunityTokenImpl> get copyWith =>
-      __$$CommunityTokenImplCopyWithImpl<_$CommunityTokenImpl>(
-        this,
-        _$identity,
-      );
+      __$$CommunityTokenImplCopyWithImpl<_$CommunityTokenImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -349,8 +337,7 @@ abstract class _CommunityToken implements CommunityToken {
     final String? createdAt,
   }) = _$CommunityTokenImpl;
 
-  factory _CommunityToken.fromJson(Map<String, dynamic> json) =
-      _$CommunityTokenImpl.fromJson;
+  factory _CommunityToken.fromJson(Map<String, dynamic> json) = _$CommunityTokenImpl.fromJson;
 
   @override
   String get type;
@@ -442,17 +429,12 @@ class _$CommunityTokenPatchImpl implements _CommunityTokenPatch {
             other is _$CommunityTokenPatchImpl &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.title, title) || other.title == title) &&
-            (identical(other.description, description) ||
-                other.description == description) &&
-            (identical(other.imageUrl, imageUrl) ||
-                other.imageUrl == imageUrl) &&
-            (identical(other.addresses, addresses) ||
-                other.addresses == addresses) &&
+            (identical(other.description, description) || other.description == description) &&
+            (identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl) &&
+            (identical(other.addresses, addresses) || other.addresses == addresses) &&
             (identical(other.creator, creator) || other.creator == creator) &&
-            (identical(other.marketData, marketData) ||
-                other.marketData == marketData) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+            (identical(other.marketData, marketData) || other.marketData == marketData) &&
+            (identical(other.createdAt, createdAt) || other.createdAt == createdAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
