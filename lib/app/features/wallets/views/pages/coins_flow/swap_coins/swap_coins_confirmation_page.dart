@@ -434,7 +434,6 @@ class _SwapButton extends ConsumerWidget {
             return;
           }
 
-          // TODO(ice-erebus): implement swap action
           ref.read(swapCoinsControllerProvider.notifier).swapCoins(
                 userBuyAddress: buyAddress,
                 userSellAddress: sellAddress,
