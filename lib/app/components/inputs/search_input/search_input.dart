@@ -7,6 +7,7 @@ import 'package:ion/app/components/inputs/hooks/use_text_changed.dart';
 import 'package:ion/app/components/inputs/search_input/components/cancel_button.dart';
 import 'package:ion/app/components/inputs/search_input/components/search_clear_button.dart';
 import 'package:ion/app/components/inputs/search_input/components/search_loading_indicator.dart';
+import 'package:ion/app/components/inputs/text_input/ion_text_field.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
@@ -67,7 +68,7 @@ class SearchInput extends HookWidget {
         Expanded(
           child: SizedBox(
             height: height,
-            child: TextField(
+            child: IonTextField(
               onTap: () => onTap?.call(searchController.text),
               focusNode: focusNode,
               style: context.theme.appTextThemes.body.copyWith(

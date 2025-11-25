@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/back_hardware_button_interceptor/back_hardware_button_interceptor.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/inputs/text_input/ion_text_field.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/components/text_editor/components/suggestions_container.dart';
@@ -160,7 +161,7 @@ class ArticleFormModal extends HookConsumerWidget {
                         end: ScreenSideOffset.defaultSmallMargin,
                         top: ScreenSideOffset.defaultSmallMargin,
                       ),
-                      child: TextField(
+                      child: IonTextField(
                         controller: articleState.titleController,
                         focusNode: articleState.titleFocusNode,
                         autofocus: true,

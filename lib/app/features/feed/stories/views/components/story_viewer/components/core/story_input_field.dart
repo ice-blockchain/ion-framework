@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/inputs/hooks/use_node_focused.dart';
+import 'package:ion/app/components/inputs/text_input/ion_text_field.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_reply_provider.r.dart';
@@ -68,7 +69,7 @@ class StoryInputField extends HookConsumerWidget {
                 filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                 child: Stack(
                   children: [
-                    TextField(
+                    IonTextField(
                       minLines: 1,
                       maxLines: 4,
                       scrollPhysics: const BouncingScrollPhysics(),
