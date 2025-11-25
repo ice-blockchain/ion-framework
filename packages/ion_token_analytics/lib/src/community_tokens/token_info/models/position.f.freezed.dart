@@ -277,14 +277,14 @@ mixin _$PositionPatch {
 
 /// @nodoc
 @JsonSerializable()
-class _$PositionPatchImpl implements _PositionPatch {
+class _$PositionPatchImpl extends _PositionPatch {
   const _$PositionPatchImpl({
     this.rank,
     this.amount,
     this.amountUSD,
     this.pnl,
     this.pnlPercentage,
-  });
+  }) : super._();
 
   factory _$PositionPatchImpl.fromJson(Map<String, dynamic> json) =>
       _$$PositionPatchImplFromJson(json);
@@ -330,7 +330,7 @@ class _$PositionPatchImpl implements _PositionPatch {
   }
 }
 
-abstract class _PositionPatch implements PositionPatch {
+abstract class _PositionPatch extends PositionPatch {
   const factory _PositionPatch({
     final int? rank,
     final double? amount,
@@ -338,6 +338,7 @@ abstract class _PositionPatch implements PositionPatch {
     final double? pnl,
     final double? pnlPercentage,
   }) = _$PositionPatchImpl;
+  const _PositionPatch._() : super._();
 
   factory _PositionPatch.fromJson(Map<String, dynamic> json) =
       _$PositionPatchImpl.fromJson;

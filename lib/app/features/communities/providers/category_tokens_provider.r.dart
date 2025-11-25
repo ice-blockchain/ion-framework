@@ -191,17 +191,20 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     if (existingIndex != -1) {
       // Token exists - treat as update and merge
       final existing = state.browsingItems[existingIndex];
-      final updated = patch.merge(existing);
+      final updated = existing.merge(patch);
       final updatedItems = List<CommunityToken>.from(state.browsingItems);
       updatedItems[existingIndex] = updated;
       state = state.copyWith(browsingItems: updatedItems);
     } else {
       // Token doesn't exist - attempt to build a full token from patch
-      final newToken = patch.toEntityOrNull();
-      if (newToken != null) {
+      // final newToken = patch.toEntityOrNull();
+      try {
+        final newToken = CommunityToken.fromJson(patch.toJson());
         state = state.copyWith(
           browsingItems: [newToken, ...state.browsingItems],
         );
+      } catch (e) {
+        return;
       }
     }
   }

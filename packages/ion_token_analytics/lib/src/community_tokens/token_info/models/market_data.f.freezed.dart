@@ -299,14 +299,14 @@ mixin _$MarketDataPatch {
 
 /// @nodoc
 @JsonSerializable()
-class _$MarketDataPatchImpl implements _MarketDataPatch {
+class _$MarketDataPatchImpl extends _MarketDataPatch {
   const _$MarketDataPatchImpl({
     this.marketCap,
     this.volume,
     this.holders,
     this.priceUSD,
     this.position,
-  });
+  }) : super._();
 
   factory _$MarketDataPatchImpl.fromJson(Map<String, dynamic> json) =>
       _$$MarketDataPatchImplFromJson(json);
@@ -353,7 +353,7 @@ class _$MarketDataPatchImpl implements _MarketDataPatch {
   }
 }
 
-abstract class _MarketDataPatch implements MarketDataPatch {
+abstract class _MarketDataPatch extends MarketDataPatch {
   const factory _MarketDataPatch({
     final double? marketCap,
     final double? volume,
@@ -361,6 +361,7 @@ abstract class _MarketDataPatch implements MarketDataPatch {
     final double? priceUSD,
     final PositionPatch? position,
   }) = _$MarketDataPatchImpl;
+  const _MarketDataPatch._() : super._();
 
   factory _MarketDataPatch.fromJson(Map<String, dynamic> json) =
       _$MarketDataPatchImpl.fromJson;

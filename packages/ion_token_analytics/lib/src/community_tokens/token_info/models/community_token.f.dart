@@ -33,6 +33,7 @@ class CommunityTokenPatch with _$CommunityTokenPatch {
     AddressesPatch? addresses,
     CreatorPatch? creator,
     MarketDataPatch? marketData,
+    String? createdAt,
   }) = _CommunityTokenPatch;
 
   factory CommunityTokenPatch.fromJson(Map<String, dynamic> json) =>

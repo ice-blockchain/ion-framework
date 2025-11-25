@@ -49,6 +49,7 @@ _$CommunityTokenPatchImpl _$$CommunityTokenPatchImplFromJson(
   marketData: json['marketData'] == null
       ? null
       : MarketDataPatch.fromJson(json['marketData'] as Map<String, dynamic>),
+  createdAt: json['createdAt'] as String?,
 );
 
 Map<String, dynamic> _$$CommunityTokenPatchImplToJson(
@@ -61,4 +62,5 @@ Map<String, dynamic> _$$CommunityTokenPatchImplToJson(
   if (instance.addresses?.toJson() case final value?) 'addresses': value,
   if (instance.creator?.toJson() case final value?) 'creator': value,
   if (instance.marketData?.toJson() case final value?) 'marketData': value,
+  if (instance.createdAt case final value?) 'createdAt': value,
 };

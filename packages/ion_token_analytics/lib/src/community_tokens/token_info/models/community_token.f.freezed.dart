@@ -390,6 +390,7 @@ mixin _$CommunityTokenPatch {
   AddressesPatch? get addresses => throw _privateConstructorUsedError;
   CreatorPatch? get creator => throw _privateConstructorUsedError;
   MarketDataPatch? get marketData => throw _privateConstructorUsedError;
+  String? get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this CommunityTokenPatch to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -406,6 +407,7 @@ class _$CommunityTokenPatchImpl implements _CommunityTokenPatch {
     this.addresses,
     this.creator,
     this.marketData,
+    this.createdAt,
   });
 
   factory _$CommunityTokenPatchImpl.fromJson(Map<String, dynamic> json) =>
@@ -425,10 +427,12 @@ class _$CommunityTokenPatchImpl implements _CommunityTokenPatch {
   final CreatorPatch? creator;
   @override
   final MarketDataPatch? marketData;
+  @override
+  final String? createdAt;
 
   @override
   String toString() {
-    return 'CommunityTokenPatch(type: $type, title: $title, description: $description, imageUrl: $imageUrl, addresses: $addresses, creator: $creator, marketData: $marketData)';
+    return 'CommunityTokenPatch(type: $type, title: $title, description: $description, imageUrl: $imageUrl, addresses: $addresses, creator: $creator, marketData: $marketData, createdAt: $createdAt)';
   }
 
   @override
@@ -446,7 +450,9 @@ class _$CommunityTokenPatchImpl implements _CommunityTokenPatch {
                 other.addresses == addresses) &&
             (identical(other.creator, creator) || other.creator == creator) &&
             (identical(other.marketData, marketData) ||
-                other.marketData == marketData));
+                other.marketData == marketData) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -460,6 +466,7 @@ class _$CommunityTokenPatchImpl implements _CommunityTokenPatch {
     addresses,
     creator,
     marketData,
+    createdAt,
   );
 
   @override
@@ -477,6 +484,7 @@ abstract class _CommunityTokenPatch implements CommunityTokenPatch {
     final AddressesPatch? addresses,
     final CreatorPatch? creator,
     final MarketDataPatch? marketData,
+    final String? createdAt,
   }) = _$CommunityTokenPatchImpl;
 
   factory _CommunityTokenPatch.fromJson(Map<String, dynamic> json) =
@@ -496,4 +504,6 @@ abstract class _CommunityTokenPatch implements CommunityTokenPatch {
   CreatorPatch? get creator;
   @override
   MarketDataPatch? get marketData;
+  @override
+  String? get createdAt;
 }
