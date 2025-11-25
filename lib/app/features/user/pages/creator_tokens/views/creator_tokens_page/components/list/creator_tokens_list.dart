@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/providers/category_tokens_provider.r.dart';
+import 'package:ion/app/features/communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list_item.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -15,6 +16,8 @@ class CreatorTokensList extends HookConsumerWidget {
     required this.tabType,
     super.key,
   });
+
+  // TODO: unify latest/category list rendering and ensure data providers stay cached across tab switches.
 
   final String pubkey;
   final CreatorTokensTabType tabType;
@@ -32,10 +35,40 @@ class CreatorTokensList extends HookConsumerWidget {
     final categoryType = _categoryType;
 
     if (categoryType == null) {
-      return const SliverToBoxAdapter(
-        child: Center(
-          child: Text('Latest category not yet implemented'),
-        ),
+      final state = ref.watch(latestTokensNotifierProvider);
+      final items = state.browsingItems;
+      final isInitialLoading = state.browsingIsInitialLoading;
+
+      if (isInitialLoading && items.isEmpty) {
+        return const SliverToBoxAdapter(
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+
+      if (items.isEmpty) {
+        return SliverToBoxAdapter(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(32.0.s),
+              child: const Text('No creator tokens found'),
+            ),
+          ),
+        );
+      }
+
+      return SliverList.builder(
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final token = items[index];
+          return ScreenSideOffset.small(
+            child: CreatorTokensListItem(
+              key: ValueKey(token.addresses.ionConnect),
+              token: token,
+            ),
+          );
+        },
       );
     }
 

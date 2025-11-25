@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/features/communities/providers/category_tokens_provider.r.dart';
+import 'package:ion/app/features/communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_tab_header.dart';
@@ -15,6 +16,8 @@ class CreatorTokensTabContent extends HookConsumerWidget {
     required this.tabType,
     super.key,
   });
+
+  // TODO: deduplicate trending/top/latest wiring and keep providers alive when tabs are switched.
 
   final String pubkey;
   final CreatorTokensTabType tabType;
@@ -32,15 +35,22 @@ class CreatorTokensTabContent extends HookConsumerWidget {
     final categoryType = _categoryType;
 
     if (categoryType == null) {
-      return CustomScrollView(
+      // Not Top or Trending, so it's Latest
+      final state = ref.watch(latestTokensNotifierProvider);
+      final hasMore = state.browsingHasMore;
+
+      return LoadMoreBuilder(
+        hasMore: hasMore,
+        onLoadMore: () async {
+          await ref.read(latestTokensNotifierProvider.notifier).loadMore();
+        },
         slivers: [
           SliverToBoxAdapter(
             child: CreatorTokensTabHeader(tabType: tabType),
           ),
-          const SliverToBoxAdapter(
-            child: Center(
-              child: Text('Latest category not yet implemented'),
-            ),
+          CreatorTokensList(
+            pubkey: pubkey,
+            tabType: tabType,
           ),
         ],
       );
