@@ -20,7 +20,7 @@ class UserSwitchingRedirectStrategy implements RedirectStrategy {
     }
 
     final isAuthenticated = (ref.read(authProvider).valueOrNull?.isAuthenticated).falseOrValue;
-    final isDatabasesReady = ref.read(databasesReadyNotifierProvider).falseOrValue;
+    final isDatabasesReady = ref.read(databasesReadyNotifierProvider);
 
     if (isAuthenticated && isDatabasesReady) {
       ref.read(userSwitchInProgressProvider.notifier).completeSwitching();

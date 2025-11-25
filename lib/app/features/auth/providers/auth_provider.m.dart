@@ -169,6 +169,7 @@ class Auth extends _$Auth {
     _usersCountAtNewUserFlowStart =
         (await ref.read(authenticatedIdentityKeyNamesStreamProvider.future)).length - 1;
 
+    ref.read(databasesReadyNotifierProvider.notifier).notReady();
     ref.read(userSwitchEventProvider.notifier).trigger();
     await Future<void>.delayed(const Duration(milliseconds: 300));
 
@@ -180,13 +181,13 @@ class Auth extends _$Auth {
   }
 
   Future<void> clearCurrentUserForAuthentication() async {
-    state = const AsyncValue.loading();
     _isNewUserFlowActive = true;
     _usersCountAtNewUserFlowStart =
         (await ref.read(authenticatedIdentityKeyNamesStreamProvider.future)).length;
 
     final currentUser = ref.read(currentIdentityKeyNameSelectorProvider);
     if (currentUser != null) {
+      ref.read(databasesReadyNotifierProvider.notifier).notReady();
       ref.read(userSwitchEventProvider.notifier).trigger();
       await Future<void>.delayed(const Duration(milliseconds: 300));
 

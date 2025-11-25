@@ -28,7 +28,7 @@ String? databasesReadyPubkey(Ref ref) {
   return (database != null) ? pubkey : null;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class DatabasesReadyNotifier extends _$DatabasesReadyNotifier {
   @override
   bool build() => false;
