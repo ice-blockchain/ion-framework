@@ -6,6 +6,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:ion/app/components/text_editor/text_editor.dart';
 import 'package:ion/app/features/feed/create_article/views/pages/article_form_modal/components/article_main_toolbar.dart';
 import 'package:ion/app/features/feed/create_article/views/pages/article_form_modal/components/article_typography_toolbar.dart';
+import 'package:ion/app/services/keyboard/keyboard.dart';
 
 class ArticleFormToolbar extends HookWidget {
   const ArticleFormToolbar({
@@ -27,6 +28,7 @@ class ArticleFormToolbar extends HookWidget {
           ? ArticleTypographyToolbar(
               textEditorController: textEditorController,
               onClosePressed: () {
+                hideKeyboard(context);
                 isTypographyToolbarVisible.value = false;
               },
             )
