@@ -7,4 +7,10 @@ class LetsExchangeRepository implements ApiRepository {
   }) : _dio = dio;
 
   final Dio _dio;
+
+  Future<void> getCoins() async {
+    final response = await _dio.get(
+      '/v2/coins',
+    );
+  }
 }
