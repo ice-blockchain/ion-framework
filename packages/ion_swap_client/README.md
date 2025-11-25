@@ -4,3 +4,4 @@ The IonSwapLibrary library is a Dart-based client that simplifies interaction wi
 
 - **Swap**: using OKX Api
 - **Bridge**: using Relay Api
+- **CEX + DEX**: using Let's exchange and Exolix
