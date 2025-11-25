@@ -12,7 +12,8 @@ class ExolixTransaction with _$ExolixTransaction {
     required String depositAddress,
   }) = _ExolixTransaction;
 
-  factory ExolixTransaction.fromJson(Map<String, dynamic> json) => _$ExolixTransactionFromJson(json);
+  factory ExolixTransaction.fromJson(Map<String, dynamic> json) =>
+      _$ExolixTransactionFromJson(json);
 }
 
 enum TransactionStatus {

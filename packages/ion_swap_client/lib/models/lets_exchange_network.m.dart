@@ -8,10 +8,8 @@ class LetsExchangeNetwork with _$LetsExchangeNetwork {
   factory LetsExchangeNetwork({
     required String code,
     required String name,
-    @JsonKey(name: 'is_active')
-    required int isActive,
-    @JsonKey(name: 'contract_address')
-    required String? contractAddress,
+    @JsonKey(name: 'is_active') required int isActive,
+    @JsonKey(name: 'contract_address') required String? contractAddress,
   }) = _LetsExchangeNetwork;
 
   factory LetsExchangeNetwork.fromJson(Map<String, dynamic> json) =>

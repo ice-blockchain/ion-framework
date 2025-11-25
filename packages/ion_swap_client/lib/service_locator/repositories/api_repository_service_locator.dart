@@ -31,10 +31,26 @@ class ApiRepositoryServiceLocator {
     }
 
     final repository = switch (T) {
-      ExolixRepository => ExolixRepository(dio: _networkServiceLocator.exolixDio(config: config)),
-      LetsExchangeRepository => LetsExchangeRepository(dio: _networkServiceLocator.letsExchangeDio(config: config)),
-      RelayApiRepository => RelayApiRepository(dio: _networkServiceLocator.relayDio(config: config)),
-      SwapOkxRepository => SwapOkxRepository(dio: _networkServiceLocator.okxDio(config: config)),
+      ExolixRepository => ExolixRepository(
+          dio: _networkServiceLocator.exolixDio(
+            config: config,
+          ),
+        ),
+      LetsExchangeRepository => LetsExchangeRepository(
+          dio: _networkServiceLocator.letsExchangeDio(
+            config: config,
+          ),
+        ),
+      RelayApiRepository => RelayApiRepository(
+          dio: _networkServiceLocator.relayDio(
+            config: config,
+          ),
+        ),
+      SwapOkxRepository => SwapOkxRepository(
+          dio: _networkServiceLocator.okxDio(
+            config: config,
+          ),
+        ),
       _ => throw UnimplementedError('Repository $T is not implemented'),
     };
 
