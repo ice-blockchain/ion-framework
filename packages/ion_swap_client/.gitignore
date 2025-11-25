@@ -29,3 +29,6 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 /build/
 /coverage/
+
+!lib/**/*.g.dart
+!lib/**/*.freezed.dart

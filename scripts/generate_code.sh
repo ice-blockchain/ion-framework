@@ -8,3 +8,4 @@ source "$(dirname "$0")/utils.sh"
 # https://pub.dev/packages/widgetbook
 use_asdf dart run build_runner clean
 use_asdf dart run build_runner build --delete-conflicting-outputs
+
