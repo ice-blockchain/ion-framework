@@ -37,7 +37,6 @@ class LetsExchangeRepository implements ApiRepository {
         'network_to': networkTo,
         'amount': amount,
         'affiliate_id': affiliateId,
-        'float': true,
       },
     );
 
@@ -65,7 +64,6 @@ class LetsExchangeRepository implements ApiRepository {
         'network_to': networkTo,
         'deposit_amount': depositAmount,
         'affiliate_id': affiliateId,
-        'float': true,
         'withdrawal_address': withdrawalAddress,
         'rate_id': rateId,
         'withdrawal_extra_id': withdrawalExtraId,

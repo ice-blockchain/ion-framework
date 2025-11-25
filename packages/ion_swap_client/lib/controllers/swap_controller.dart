@@ -130,6 +130,10 @@ class SwapController {
     return contractAddress.isEmpty ? null : contractAddress;
   }
 
+  String? _getTokenAddressForExolix(String contractAddress) {
+    return contractAddress.isEmpty ? '0' : contractAddress;
+  }
+
   T _processOkxResponse<T>(OkxApiResponse<T> response) {
     final responseCode = int.tryParse(response.code);
     if (responseCode == 0) {
@@ -146,7 +150,8 @@ class SwapController {
 
   Future<void> _tryToCexSwap(SwapCoinParameters swapCoinData) async {
     // TODO(ice-erebus): add exolis
-    await _swapOnLetsExchange(swapCoinData);
+    await _swapOnExolix(swapCoinData);
+    // await _swapOnLetsExchange(swapCoinData);
   }
 
   Future<void> _swapOnLetsExchange(SwapCoinParameters swapCoinData) async {
@@ -191,6 +196,50 @@ class SwapController {
       affiliateId: _config.letsExchangeAffiliateId,
       rateId: rateInfo.rateId,
       withdrawalExtraId: swapCoinData.buyExtraId,
+    );
+  }
+
+  Future<void> _swapOnExolix(SwapCoinParameters swapCoinData) async {
+    final sellCoins = await _exolixRepository.getCoins(
+      coinCode: swapCoinData.sellCoinCode,
+    );
+
+    final buyCoins = await _exolixRepository.getCoins(
+      coinCode: swapCoinData.buyCoinCode,
+    );
+
+    final sellCoin = sellCoins.firstWhereOrNull((e) => e.code == swapCoinData.sellCoinCode);
+    final buyCoin = buyCoins.firstWhereOrNull((e) => e.code == swapCoinData.buyCoinCode);
+
+    if (sellCoin == null || buyCoin == null) {
+      throw Exception('Exolix: Coins pair not found');
+    }
+
+    final sellNetwork = sellCoin.networks
+        .firstWhereOrNull((e) => e.contract == _getTokenAddressForExolix(swapCoinData.sellCoinContractAddress));
+    final buyNetwork = buyCoin.networks
+        .firstWhereOrNull((e) => e.contract == _getTokenAddressForExolix(swapCoinData.buyCoinContractAddress));
+
+    if (sellNetwork == null || buyNetwork == null) {
+      throw Exception('Exolix: Coins networks not found');
+    }
+
+    await _exolixRepository.getRates(
+      coinFrom: sellCoin.code,
+      networkFrom: sellNetwork.network,
+      coinTo: buyCoin.code,
+      networkTo: buyNetwork.network,
+      amount: swapCoinData.amount,
+    );
+
+    await _exolixRepository.createTransaction(
+      coinFrom: sellCoin.code,
+      networkFrom: sellNetwork.network,
+      coinTo: buyCoin.code,
+      networkTo: buyNetwork.network,
+      amount: swapCoinData.amount,
+      withdrawalAddress: swapCoinData.userBuyAddress,
+      withdrawalExtraId: swapCoinData.buyExtraId.isNotEmpty ? swapCoinData.buyExtraId : null,
     );
   }
 }
