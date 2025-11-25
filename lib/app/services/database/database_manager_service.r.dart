@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/following_feed_database.m.dart';
@@ -19,12 +20,33 @@ DatabaseManagerService databaseManagerService(Ref ref) {
 }
 
 class DatabaseManagerService {
-  final Map<String, WalletsDatabase> _walletsDatabases = {};
-  final Map<String, FollowingFeedDatabase> _followingFeedDatabases = {};
-  final Map<String, BlockUserDatabase> _blockUserDatabases = {};
-  final Map<String, NotificationsDatabase> _notificationsDatabases = {};
-  final Map<String, ChatDatabase> _chatDatabases = {};
-  final Map<String, OptimisticUiDatabase> _optimisticUiDatabases = {};
+  DatabaseManagerService() {
+    _walletsStore = _DatabaseStore<WalletsDatabase>(
+      (pubkey, appGroup) => WalletsDatabase(pubkey, appGroupId: appGroup),
+    );
+    _followingFeedStore = _DatabaseStore<FollowingFeedDatabase>(
+      (pubkey, _) => FollowingFeedDatabase(pubkey),
+    );
+    _blockUserStore = _DatabaseStore<BlockUserDatabase>(
+      (pubkey, _) => BlockUserDatabase(pubkey),
+    );
+    _notificationsStore = _DatabaseStore<NotificationsDatabase>(
+      (pubkey, _) => NotificationsDatabase(pubkey),
+    );
+    _chatStore = _DatabaseStore<ChatDatabase>(
+      (pubkey, appGroup) => ChatDatabase(pubkey, appGroupId: appGroup),
+    );
+    _optimisticUiStore = _DatabaseStore<OptimisticUiDatabase>(
+      (pubkey, _) => OptimisticUiDatabase(pubkey),
+    );
+  }
+
+  late final _DatabaseStore<WalletsDatabase> _walletsStore;
+  late final _DatabaseStore<FollowingFeedDatabase> _followingFeedStore;
+  late final _DatabaseStore<BlockUserDatabase> _blockUserStore;
+  late final _DatabaseStore<NotificationsDatabase> _notificationsStore;
+  late final _DatabaseStore<ChatDatabase> _chatStore;
+  late final _DatabaseStore<OptimisticUiDatabase> _optimisticUiStore;
 
   Future<void> initializeDatabases({
     required String pubkey,
@@ -32,150 +54,100 @@ class DatabaseManagerService {
   }) async {
     await closeAllDatabases();
 
-    await _createWalletsDatabaseInternal(pubkey: pubkey, appGroup: appGroup);
-    await _createFollowingFeedDatabaseInternal(pubkey: pubkey, appGroup: appGroup);
-    await _createBlockUserDatabaseInternal(pubkey: pubkey, appGroup: appGroup);
-    await _createOptimisticUiDatabaseInternal(pubkey: pubkey, appGroup: appGroup);
-    await _createNotificationsDatabaseInternal(pubkey: pubkey, appGroup: appGroup);
-    await _createChatDatabaseInternal(pubkey: pubkey, appGroup: appGroup);
-  }
-
-  Future<WalletsDatabase> _createWalletsDatabaseInternal({
-    required String pubkey,
-    String? appGroup,
-  }) async {
-    final db = WalletsDatabase(pubkey, appGroupId: appGroup);
-    await db.customSelect('SELECT 1').getSingle();
-    _walletsDatabases[pubkey] = db;
-
-    return db;
-  }
-
-  Future<FollowingFeedDatabase> _createFollowingFeedDatabaseInternal({
-    required String pubkey,
-    String? appGroup,
-  }) async {
-    final db = FollowingFeedDatabase(pubkey);
-    await db.customSelect('SELECT 1').getSingle();
-    _followingFeedDatabases[pubkey] = db;
-
-    return db;
-  }
-
-  Future<BlockUserDatabase> _createBlockUserDatabaseInternal({
-    required String pubkey,
-    String? appGroup,
-  }) async {
-    final db = BlockUserDatabase(pubkey);
-    await db.customSelect('SELECT 1').getSingle();
-    _blockUserDatabases[pubkey] = db;
-
-    return db;
-  }
-
-  Future<NotificationsDatabase> _createNotificationsDatabaseInternal({
-    required String pubkey,
-    String? appGroup,
-  }) async {
-    final db = NotificationsDatabase(pubkey);
-    await db.customSelect('SELECT 1').getSingle();
-    _notificationsDatabases[pubkey] = db;
-
-    return db;
-  }
-
-  Future<ChatDatabase> _createChatDatabaseInternal({
-    required String pubkey,
-    String? appGroup,
-  }) async {
-    final db = ChatDatabase(pubkey, appGroupId: appGroup);
-    await db.customSelect('SELECT 1').getSingle();
-    _chatDatabases[pubkey] = db;
-
-    return db;
-  }
-
-  Future<OptimisticUiDatabase> _createOptimisticUiDatabaseInternal({
-    required String pubkey,
-    String? appGroup,
-  }) async {
-    final db = OptimisticUiDatabase(pubkey);
-    await db.customSelect('SELECT 1').getSingle();
-    _optimisticUiDatabases[pubkey] = db;
-
-    return db;
+    await Future.wait([
+      _walletsStore.createAndStore(pubkey, appGroup),
+      _followingFeedStore.createAndStore(pubkey, appGroup),
+      _blockUserStore.createAndStore(pubkey, appGroup),
+      _notificationsStore.createAndStore(pubkey, appGroup),
+      _chatStore.createAndStore(pubkey, appGroup),
+      _optimisticUiStore.createAndStore(pubkey, appGroup),
+    ]);
   }
 
   WalletsDatabase? getWalletsDatabase(String pubkey) {
-    return _walletsDatabases[pubkey];
+    return _walletsStore.get(pubkey);
   }
 
   FollowingFeedDatabase? getFollowingFeedDatabase(String pubkey) {
-    return _followingFeedDatabases[pubkey];
+    return _followingFeedStore.get(pubkey);
   }
 
   BlockUserDatabase? getBlockUserDatabase(String pubkey) {
-    return _blockUserDatabases[pubkey];
+    return _blockUserStore.get(pubkey);
   }
 
   NotificationsDatabase? getNotificationsDatabase(String pubkey) {
-    return _notificationsDatabases[pubkey];
+    return _notificationsStore.get(pubkey);
   }
 
   ChatDatabase? getChatDatabase(String pubkey) {
-    return _chatDatabases[pubkey];
+    return _chatStore.get(pubkey);
   }
 
   OptimisticUiDatabase? getOptimisticUiDatabase(String pubkey) {
-    return _optimisticUiDatabases[pubkey];
+    return _optimisticUiStore.get(pubkey);
   }
 
   Future<void> closeWalletsDatabase() async {
-    for (final db in _walletsDatabases.values) {
-      await db.close();
-    }
+    await _walletsStore.closeAll();
   }
 
   Future<void> closeFollowingFeedDatabase() async {
-    for (final db in _followingFeedDatabases.values) {
-      await db.close();
-    }
+    await _followingFeedStore.closeAll();
   }
 
   Future<void> closeBlockUserDatabase() async {
-    for (final db in _blockUserDatabases.values) {
-      await db.close();
-    }
+    await _blockUserStore.closeAll();
   }
 
   Future<void> closeNotificationsDatabase() async {
-    for (final db in _notificationsDatabases.values) {
-      await db.close();
-    }
+    await _notificationsStore.closeAll();
   }
 
   Future<void> closeChatDatabase() async {
-    for (final db in _chatDatabases.values) {
-      await db.close();
-    }
+    await _chatStore.closeAll();
   }
 
   Future<void> closeOptimisticUiDatabase() async {
-    for (final db in _optimisticUiDatabases.values) {
-      await db.close();
-    }
+    await _optimisticUiStore.closeAll();
   }
 
   Future<void> closeAllDatabases() async {
-    await closeWalletsDatabase();
-    await closeFollowingFeedDatabase();
-    await closeBlockUserDatabase();
-    await closeNotificationsDatabase();
-    await closeChatDatabase();
-    await closeOptimisticUiDatabase();
+    await Future.wait([
+      _walletsStore.closeAll(),
+      _followingFeedStore.closeAll(),
+      _blockUserStore.closeAll(),
+      _notificationsStore.closeAll(),
+      _chatStore.closeAll(),
+      _optimisticUiStore.closeAll(),
+    ]);
   }
 
   Future<void> dispose() async {
     await closeAllDatabases();
+  }
+}
+
+class _DatabaseStore<T extends GeneratedDatabase> {
+  _DatabaseStore(this._factory);
+
+  final Map<String, T> _databases = {};
+  final T Function(String pubkey, String? appGroup) _factory;
+
+  Future<void> createAndStore(String pubkey, String? appGroup) async {
+    final db = _factory(pubkey, appGroup);
+    await db.customSelect('SELECT 1').getSingle();
+    _databases[pubkey] = db;
+  }
+
+  T? get(String pubkey) {
+    return _databases[pubkey];
+  }
+
+  Future<void> closeAll() async {
+    for (final db in _databases.values) {
+      await db.close();
+    }
+    _databases.clear();
   }
 }
