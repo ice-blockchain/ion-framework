@@ -79,6 +79,7 @@ class _KeyboardDismissingMediaButtonDelegate extends ToolbarMediaButtonDelegate 
 
   @override
   void onMediaSelected(List<MediaFile>? mediaFiles) {
+    // this is needed because quill editor handles keyboard visibility a bit differently than the regular text editor
     hideKeyboard(context);
     delegate.onMediaSelected(mediaFiles);
   }
