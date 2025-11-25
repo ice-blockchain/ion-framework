@@ -5,8 +5,9 @@ import 'package:ion_swap_client/models/approve_transaction_data.m.dart';
 import 'package:ion_swap_client/models/okx_api_response.m.dart';
 import 'package:ion_swap_client/models/swap_chain_data.m.dart';
 import 'package:ion_swap_client/models/swap_quote_data.m.dart';
+import 'package:ion_swap_client/repositories/api_repository.dart';
 
-class SwapOkxRepository {
+class SwapOkxRepository implements ApiRepository {
   SwapOkxRepository({
     required Dio dio,
   }) : _dio = dio;
