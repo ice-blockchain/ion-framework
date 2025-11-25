@@ -17,7 +17,7 @@ class BackupWithCloudSuccessPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final goToSecureAccountOptions = useGoToSecureAccountOptions(ref);
+    final goToSecureAccountOptions = usePopToSecureAccountOptions(ref);
 
     return SheetContent(
       body: Padding(

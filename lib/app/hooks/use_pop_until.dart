@@ -31,6 +31,6 @@ VoidCallback usePopUntil({
 
       popUntil();
     },
-    [],
+    [routeLocation],
   );
 }

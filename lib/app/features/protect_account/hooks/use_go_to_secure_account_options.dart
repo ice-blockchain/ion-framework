@@ -7,7 +7,7 @@ import 'package:ion/app/features/protect_account/secure_account/providers/user_d
 import 'package:ion/app/hooks/use_pop_until.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
-VoidCallback useGoToSecureAccountOptions(WidgetRef ref) {
+VoidCallback usePopToSecureAccountOptions(WidgetRef ref) {
   final popUntil = usePopUntil(routeLocation: SecureAccountOptionsRoute().location);
   return useCallback(
     () {

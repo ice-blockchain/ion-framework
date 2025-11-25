@@ -17,7 +17,7 @@ class AuthenticatorDeleteSuccessPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = context.i18n;
-    final goToSecureAccountOptions = useGoToSecureAccountOptions(ref);
+    final goToSecureAccountOptions = usePopToSecureAccountOptions(ref);
 
     return SheetContent(
       body: Column(

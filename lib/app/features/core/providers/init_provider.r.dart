@@ -72,7 +72,7 @@ Future<void> initApp(Ref ref) async {
     ..listen(userPublicWalletsSyncProvider, noop)
     ..listen(userRelaysSyncProvider, noop)
     ..listen(userAwardsSyncProvider, noop)
-    ..listen(forceAccountSecurityNotifierProvider, noop)
+    ..listen(forceAccountSecurityServiceProvider, noop)
     ..listen(userChatRelaysSyncProvider, noop)
     ..listen(userFileStorageRelaysSyncProvider, noop)
     ..listen(feedBookmarksSyncProvider, noop)

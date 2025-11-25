@@ -22,7 +22,7 @@ class TwoFaSuccessStep extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = context.i18n;
 
-    final goToSecureAccountOptions = useGoToSecureAccountOptions(ref);
+    final goToSecureAccountOptions = usePopToSecureAccountOptions(ref);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
