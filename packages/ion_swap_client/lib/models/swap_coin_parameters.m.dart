@@ -8,20 +8,14 @@ class SwapCoinParameters with _$SwapCoinParameters {
   factory SwapCoinParameters({
     required String sellNetworkId,
     required String buyNetworkId,
-
     required String userSellAddress,
     required String userBuyAddress,
-
     required String sellCoinContractAddress,
     required String buyCoinContractAddress,
-
     required String sellCoinNetworkName,
-    required String buyCoinNetworkName,   
-
+    required String buyCoinNetworkName,
     required String amount,
-
     required bool isBridge,
-
     required String sellCoinCode,
     required String buyCoinCode,
 
@@ -30,5 +24,6 @@ class SwapCoinParameters with _$SwapCoinParameters {
     required String buyExtraId,
   }) = _SwapCoinParameters;
 
-  factory SwapCoinParameters.fromJson(Map<String, dynamic> json) => _$SwapCoinParametersFromJson(json);
+  factory SwapCoinParameters.fromJson(Map<String, dynamic> json) =>
+      _$SwapCoinParametersFromJson(json);
 }

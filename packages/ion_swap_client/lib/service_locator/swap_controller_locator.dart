@@ -29,7 +29,9 @@ class SwapControllerLocator {
     final okxRepository = apiRepositoryServiceLocator.get<SwapOkxRepository>(config: config);
     final relayApiRepository = apiRepositoryServiceLocator.get<RelayApiRepository>(config: config);
     final exolixRepository = apiRepositoryServiceLocator.get<ExolixRepository>(config: config);
-    final letsExchangeRepository = apiRepositoryServiceLocator.get<LetsExchangeRepository>(config: config);
+    final letsExchangeRepository = apiRepositoryServiceLocator.get<LetsExchangeRepository>(
+      config: config,
+    );
 
     _swapCoinsController = SwapController(
       swapOkxRepository: okxRepository,
