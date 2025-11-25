@@ -22,6 +22,10 @@ Future<SwapController> ionSwapClient(Ref ref) async {
     okxPassphrase: env.get(EnvVariable.OKX_PASSPHRASE),
     okxApiUrl: env.get(EnvVariable.OKX_API_URL),
     relayBaseUrl: env.get(EnvVariable.RELAY_BASE_URL),
+    exolixApiKey: env.get(EnvVariable.EXOLIX_API_KEY),
+    exolixApiUrl: env.get(EnvVariable.EXOLIX_API_URL),
+    letsExchangeApiKey: env.get(EnvVariable.LETS_EXCHANGE_API_KEY),
+    letsExchangeApiUrl: env.get(EnvVariable.LETS_EXCHANGE_API_URL),
     interceptors: [
       if (logger != null) logger,
     ],

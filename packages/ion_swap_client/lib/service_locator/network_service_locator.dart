@@ -1,8 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:ion_swap_client/ion_swap_config.dart';
+import 'package:ion_swap_client/utils/auth_header_interceptor.dart';
 import 'package:ion_swap_client/utils/okx_header_interceptor.dart';
 
-class NetworkServiceLocator with _OkxDio, _RelayDio {
+class NetworkServiceLocator with _OkxDio, _RelayDio, _ExolixDio, _LetsExchangeDio {
   factory NetworkServiceLocator() {
     return _instance;
   }
@@ -60,6 +61,64 @@ mixin _RelayDio {
     dio.interceptors.addAll(config.interceptors);
 
     _relayDioInstance = dio;
+    return dio;
+  }
+}
+
+mixin _LetsExchangeDio {
+  Dio? _letsExchangeDioInstance;
+
+  Dio letsExchangeDio({
+    required IONSwapConfig config,
+  }) {
+    if (_letsExchangeDioInstance != null) {
+      return _letsExchangeDioInstance!;
+    }
+
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: config.letsExchangeApiUrl,
+      ),
+    );
+    dio.interceptors.addAll(config.interceptors);
+
+    dio.interceptors.add(
+      AuthHeaderInterceptor(
+        apiKey: config.letsExchangeApiKey,
+        isBearer: true,
+      ),
+    );
+
+    _letsExchangeDioInstance = dio;
+    return dio;
+  }
+}
+
+mixin _ExolixDio {
+  Dio? _exolixDioInstance;
+
+  Dio exolixDio({
+    required IONSwapConfig config,
+  }) {
+    if (_exolixDioInstance != null) {
+      return _exolixDioInstance!;
+    }
+
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: config.exolixApiUrl,
+      ),
+    );
+    dio.interceptors.addAll(config.interceptors);
+
+    dio.interceptors.add(
+      AuthHeaderInterceptor(
+        apiKey: config.exolixApiKey,
+        isBearer: false,
+      ),
+    );
+
+    _exolixDioInstance = dio;
     return dio;
   }
 }

@@ -7,6 +7,8 @@ import 'package:ion_swap_client/models/swap_chain_data.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_data.m.dart';
 import 'package:ion_swap_client/repositories/chains_ids_repository.dart';
+import 'package:ion_swap_client/repositories/exolix_repository.dart';
+import 'package:ion_swap_client/repositories/lets_exchange_repository.dart';
 import 'package:ion_swap_client/repositories/relay_api_repository.dart';
 import 'package:ion_swap_client/repositories/swap_okx_repository.dart';
 
@@ -15,12 +17,18 @@ class SwapController {
     required SwapOkxRepository swapOkxRepository,
     required RelayApiRepository relayApiRepository,
     required ChainsIdsRepository chainsIdsRepository,
+    required ExolixRepository exolixRepository,
+    required LetsExchangeRepository letsExchangeRepository,
   })  : _swapOkxRepository = swapOkxRepository,
         _chainsIdsRepository = chainsIdsRepository,
-        _relayApiRepository = relayApiRepository;
+        _relayApiRepository = relayApiRepository,
+        _exolixRepository = exolixRepository,
+        _letsExchangeRepository = letsExchangeRepository;
 
   final SwapOkxRepository _swapOkxRepository;
   final RelayApiRepository _relayApiRepository;
+  final ExolixRepository _exolixRepository;
+  final LetsExchangeRepository _letsExchangeRepository;
   final ChainsIdsRepository _chainsIdsRepository;
 
   Future<void> swapCoins({
