@@ -105,7 +105,11 @@ class OkxHeaderInterceptor implements Interceptor {
       return path;
     }
 
-    final queryString = queryParameters.entries.map((entry) => '${entry.key}=${entry.value}').join('&');
+    final queryString = queryParameters.entries
+        .map(
+          (entry) => '${entry.key}=${entry.value}',
+        )
+        .join('&');
 
     return '$path?$queryString';
   }

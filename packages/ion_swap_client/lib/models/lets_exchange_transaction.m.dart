@@ -9,5 +9,6 @@ class LetsExchangeTransaction with _$LetsExchangeTransaction {
     @JsonKey(name: 'transaction_id') required String transactionId,
   }) = _LetsExchangeTransaction;
 
-  factory LetsExchangeTransaction.fromJson(Map<String, dynamic> json) => _$LetsExchangeTransactionFromJson(json);
+  factory LetsExchangeTransaction.fromJson(Map<String, dynamic> json) =>
+      _$LetsExchangeTransactionFromJson(json);
 }
