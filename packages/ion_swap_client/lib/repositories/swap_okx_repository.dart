@@ -100,8 +100,6 @@ class SwapOkxRepository implements ApiRepository {
         'fromTokenAddress': fromTokenAddress,
         'toTokenAddress': toTokenAddress,
         'userWalletAddress': userWalletAddress,
-        // TODO(ice-erebus): ask for this data
-        'slippagePercent': '0.5',
       },
     );
   }
