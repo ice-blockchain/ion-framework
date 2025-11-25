@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -10,8 +11,8 @@ import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
-import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_main_modal/wallet_main_modal_list_item.dart';
 import 'package:ion/app/hooks/use_on_receive_funds_flow.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -21,7 +22,12 @@ import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class WalletMainModalPage extends HookConsumerWidget {
-  const WalletMainModalPage({super.key});
+  const WalletMainModalPage({
+    super.key,
+    this.symbolGroup,
+  });
+
+  final String? symbolGroup;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -79,8 +85,19 @@ class WalletMainModalPage extends HookConsumerWidget {
           );
     }
 
-    final skipSelectCoinRoute = type == WalletMainModalListItem.send &&
-        ref.read(sendAssetFormControllerProvider).assetData is CoinAssetToSendData;
+    ref.invalidate(sendAssetFormControllerProvider);
+
+    final symbolGroup = this.symbolGroup;
+    if (symbolGroup != null) {
+      final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
+      final coinsGroup =
+          walletView?.coinGroups.firstWhereOrNull((e) => e.symbolGroup == symbolGroup);
+      if (coinsGroup != null) {
+        ref.read(sendAssetFormControllerProvider.notifier).setCoin(coinsGroup, walletView);
+      }
+    }
+
+    final skipSelectCoinRoute = symbolGroup != null;
     context.pushReplacement(
       _getSubRouteLocation(type, skipSelectCoinRoute: skipSelectCoinRoute),
     );
