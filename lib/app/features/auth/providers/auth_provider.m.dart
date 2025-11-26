@@ -395,11 +395,7 @@ class UserSwitchInProgress extends _$UserSwitchInProgress {
 @Riverpod(keepAlive: true)
 class UserSwitchEvent extends _$UserSwitchEvent {
   @override
-  int build() {
-    return 0;
-  }
+  int build() => 0;
 
-  void trigger() {
-    state = state + 1;
-  }
+  void trigger() => state = state + 1;
 }
