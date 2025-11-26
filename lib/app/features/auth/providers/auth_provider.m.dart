@@ -323,7 +323,6 @@ class CurrentIdentityKeyNameStore extends _$CurrentIdentityKeyNameStore {
 void onLogout(Ref ref, void Function() callback) {
   ref.listen(authProvider.select((state) => state.valueOrNull?.isAuthenticated), (prev, next) {
     if (prev != null && prev == true && next == false) {
-      print('onLogout');
       callback();
     }
   });
