@@ -169,9 +169,7 @@ class Auth extends _$Auth {
     _usersCountAtNewUserFlowStart =
         (await ref.read(authenticatedIdentityKeyNamesStreamProvider.future)).length - 1;
 
-    ref.read(databasesReadyNotifierProvider.notifier).notReady();
-    ref.read(userSwitchEventProvider.notifier).trigger();
-    await Future<void>.delayed(const Duration(milliseconds: 300));
+    await _prepareUserSwitch();
 
     await ref.read(currentIdentityKeyNameSelectorProvider.notifier).setCurrentIdentityKeyName(null);
     final ionIdentity = await ref.read(ionIdentityProvider.future);
@@ -187,9 +185,7 @@ class Auth extends _$Auth {
 
     final currentUser = ref.read(currentIdentityKeyNameSelectorProvider);
     if (currentUser != null) {
-      ref.read(databasesReadyNotifierProvider.notifier).notReady();
-      ref.read(userSwitchEventProvider.notifier).trigger();
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      await _prepareUserSwitch();
 
       await ref
           .read(currentIdentityKeyNameSelectorProvider.notifier)
@@ -207,10 +203,7 @@ class Auth extends _$Auth {
     final isUserSwitching = currentUser != null && currentUser != identityKeyName;
 
     if (isUserSwitching) {
-      ref.read(databasesReadyNotifierProvider.notifier).notReady();
-      ref.read(userSwitchInProgressProvider.notifier).startSwitching();
-      ref.read(userSwitchEventProvider.notifier).trigger();
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      await _prepareUserSwitch(markInProgress: true);
     } else {
       _isNewUserFlowActive = false;
     }
@@ -230,6 +223,15 @@ class Auth extends _$Auth {
     ref
       ..invalidate(currentPubkeySelectorProvider)
       ..invalidateSelf();
+  }
+
+  Future<void> _prepareUserSwitch({bool markInProgress = false}) async {
+    ref.read(databasesReadyNotifierProvider.notifier).notReady();
+    if (markInProgress) {
+      ref.read(userSwitchInProgressProvider.notifier).startSwitching();
+    }
+    ref.read(userSwitchEventProvider.notifier).trigger();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
   }
 }
 
