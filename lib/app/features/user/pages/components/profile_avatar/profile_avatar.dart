@@ -14,21 +14,22 @@ class ProfileAvatar extends ConsumerWidget {
     required this.pubkey,
     this.showAvatarPicker = false,
     this.profileMode = ProfileMode.light,
+    this.size,
     super.key,
   });
-
-  static double get pictureSize => 65.0.s;
 
   static BorderRadiusGeometry get borderRadius => BorderRadius.circular(16.0.s);
 
   final String pubkey;
   final bool showAvatarPicker;
   final ProfileMode profileMode;
+  final double? size;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
     final avatarUrl = userPreviewData?.data.avatarUrl;
+    final pictureSize = size ?? 65.0.s;
 
     return showAvatarPicker
         ? AvatarPicker(

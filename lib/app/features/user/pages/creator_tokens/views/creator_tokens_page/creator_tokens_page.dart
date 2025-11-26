@@ -8,6 +8,7 @@ import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.d
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/tabs_header/tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/communities/providers/featured_tokens_provider.r.dart';
 import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel.dart';
@@ -16,15 +17,14 @@ import 'package:ion/app/features/user/pages/profile_page/cant_find_profile_page.
 import 'package:ion/app/features/user/pages/profile_page/components/header/header.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/pages/profile_page/profile_skeleton.dart';
-import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
-import 'package:ion/app/hooks/use_watch_once.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class CreatorTokensPage extends HookConsumerWidget {
   const CreatorTokensPage({
@@ -61,32 +61,44 @@ class CreatorTokensPage extends HookConsumerWidget {
 
     final (:opacity) = useAnimatedOpacityOnScroll(scrollController, topOffset: paddingTop);
 
-    // TODO: Replace followListProvider with creator tokens provider
-    // Using followeePubkeys as temporary mock data
-    final masterPubkeys =
-        ref.watch(followListProvider(masterPubkey)).valueOrNull?.masterPubkeys ?? [];
+    // Get featured tokens
+    final featuredTokensAsync = ref.watch(featuredTokensProvider);
 
-    // Initialize with first carousel item if available, otherwise use masterPubkey
-    final initialPubkey = masterPubkeys.isNotEmpty ? masterPubkeys.first : masterPubkey;
-    final selectedPubkey = useState(initialPubkey);
+    // Get list of featured tokens
+    final featuredTokens = featuredTokensAsync.when<List<CommunityToken>>(
+      data: (List<CommunityToken> tokens) => tokens,
+      loading: () => <CommunityToken>[],
+      error: (_, __) => <CommunityToken>[],
+    );
 
-    // Update selectedPubkey when masterPubkeys changes and current value is not in the list
+    // Create stable identifier for the list (to avoid unnecessary useEffect triggers)
+    final tokensIdentifier = featuredTokens.map((t) => t.addresses.ionConnect).join(',');
+
+    final initialToken = featuredTokens.isNotEmpty ? featuredTokens.first : null;
+    final selectedToken = useState<CommunityToken?>(initialToken);
+
+    // Update selectedToken when featuredTokens list actually changes
     useEffect(
       () {
-        if (masterPubkeys.isNotEmpty && !masterPubkeys.contains(selectedPubkey.value)) {
-          selectedPubkey.value = masterPubkeys.first;
+        if (featuredTokens.isNotEmpty) {
+          // If no token is selected, or selected token is no longer in the list, select first
+          if (selectedToken.value == null ||
+              !featuredTokens.any(
+                (t) => t.addresses.ionConnect == selectedToken.value!.addresses.ionConnect,
+              )) {
+            selectedToken.value = featuredTokens.first;
+          }
+        } else {
+          // If list becomes empty, clear selection to avoid showing stale data
+          selectedToken.value = null;
         }
         return null;
       },
-      [masterPubkeys],
+      [tokensIdentifier],
     );
 
-    // Get avatar URL from selected pubkey's metadata
-    final avatarUrl = useWatchOnce(
-      ref,
-      userPreviewDataProvider(selectedPubkey.value)
-          .select((value) => value.valueOrNull?.data.avatarUrl),
-    );
+    // Get avatar URL from selected token's creator
+    final avatarUrl = selectedToken.value?.creator.avatar ?? '';
     final avatarColors = useAvatarColors(avatarUrl);
 
     final backgroundColor = context.theme.appColors.secondaryBackground;
@@ -125,12 +137,14 @@ class CreatorTokensPage extends HookConsumerWidget {
                             ),
                             Padding(
                               padding: EdgeInsetsDirectional.only(top: 70.0.s, bottom: 44.0.s),
-                              child: CreatorTokensCarousel(
-                                items: masterPubkeys,
-                                onItemChanged: (item) {
-                                  selectedPubkey.value = item;
-                                },
-                              ),
+                              child: featuredTokens.isEmpty
+                                  ? const SizedBox.shrink()
+                                  : CreatorTokensCarousel(
+                                      tokens: featuredTokens,
+                                      onItemChanged: (token) {
+                                        selectedToken.value = token;
+                                      },
+                                    ),
                             ),
                           ],
                         ),
@@ -177,7 +191,7 @@ class CreatorTokensPage extends HookConsumerWidget {
                   ),
                   title: Header(
                     opacity: opacity,
-                    pubkey: selectedPubkey.value,
+                    pubkey: selectedToken.value?.creator.ionConnect ?? masterPubkey,
                     showBackButton: true,
                     textColor: context.theme.appColors.secondaryBackground,
                   ),

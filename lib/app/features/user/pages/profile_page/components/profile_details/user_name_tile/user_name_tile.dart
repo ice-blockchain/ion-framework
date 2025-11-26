@@ -15,6 +15,7 @@ class UserNameTile extends ConsumerWidget {
     required this.pubkey,
     this.profileMode = ProfileMode.light,
     this.showProfileTokenPrice = false,
+    this.priceUsd,
     this.mainAxisAlignment = MainAxisAlignment.center,
     this.isDecoratedNichname = false,
     super.key,
@@ -25,6 +26,7 @@ class UserNameTile extends ConsumerWidget {
   final String pubkey;
   final ProfileMode profileMode;
   final bool showProfileTokenPrice;
+  final double? priceUsd;
   final MainAxisAlignment mainAxisAlignment;
   final bool isDecoratedNichname;
 
@@ -97,12 +99,11 @@ class UserNameTile extends ConsumerWidget {
                 ),
               ),
             if (!isDecoratedNichname) nichnameWidget,
-            if (showProfileTokenPrice)
+            if (showProfileTokenPrice && priceUsd != null)
               Padding(
                 padding: EdgeInsetsDirectional.only(start: 8.0.s),
-                child: const ProfileTokenPrice(
-                  //TODO: replace mock data
-                  amount: 0.14,
+                child: ProfileTokenPrice(
+                  amount: priceUsd!,
                 ),
               ),
           ],
