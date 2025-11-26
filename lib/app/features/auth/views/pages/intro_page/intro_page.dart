@@ -37,9 +37,8 @@ class IntroPage extends HookConsumerWidget {
 
     final videoController = videoControllerProviderState.valueOrNull;
 
-    final isDelegateAccessEnabled = ref
-        .watch(featureFlagsProvider.notifier)
-        .get(DelegateAccessFeatureFlag.delegateAccessEnabled);
+    final isMultiAccountsEnabled =
+        ref.watch(featureFlagsProvider.notifier).get(MultiAccountsFeatureFlag.multiAccountsEnabled);
 
     final isSwitchAccountEnabled = ref.watch(
       authProvider
@@ -68,7 +67,7 @@ class IntroPage extends HookConsumerWidget {
                 child: _SafeVideoPlayer(controller: videoController),
               ),
             ),
-          if (isDelegateAccessEnabled && isSwitchAccountEnabled)
+          if (isMultiAccountsEnabled && isSwitchAccountEnabled)
             PositionedDirectional(
               top: MediaQuery.paddingOf(context).top + 16.0.s,
               end: 16.0.s,
