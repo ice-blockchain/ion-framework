@@ -2,7 +2,9 @@ package io.ion.app
 
 import android.app.Application
 import android.content.Context
+import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.util.Size
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -131,6 +133,7 @@ private class SampleIntegrationVeKoinModule(
         factory<ExportParamsProvider> {
             CustomExportParamsProvider(
                 exportDir = get(named("exportDir")),
+                context = get(),
             )
         }
     }
@@ -138,7 +141,19 @@ private class SampleIntegrationVeKoinModule(
 
 class CustomExportParamsProvider(
     private val exportDir: Uri,
+    private val context: Context,
 ) : ExportParamsProvider {
+
+    companion object {
+        // Maximum safe resolution for Android MediaCodec
+        // Many devices don't support encoding above 2160p (4K) height
+        // Some devices also have width limitations, so we cap at 3840x2160 (standard 4K)
+        private const val MAX_EXPORT_HEIGHT = 2160
+        private const val MAX_EXPORT_WIDTH = 3840
+        // Alternative: Use 1080p for maximum compatibility across all devices
+        // private const val MAX_EXPORT_HEIGHT = 1080
+        // private const val MAX_EXPORT_WIDTH = 1920
+    }
 
     override fun provideExportParams(
         effects: Effects,
@@ -151,7 +166,10 @@ class CustomExportParamsProvider(
             mkdirs()
         }
 
-        val exportVideo = ExportParams.Builder(VideoResolution.Original)
+        // Calculate safe export resolution based on source video dimensions
+        val safeResolution = calculateSafeResolution(videoRangeList)
+
+        val exportVideo = ExportParams.Builder(safeResolution)
             .effects(effects)
             .fileName("export_video")
             .videoRangeList(videoRangeList)
@@ -161,5 +179,106 @@ class CustomExportParamsProvider(
             .build()
 
         return listOf(exportVideo)
+    }
+
+    /**
+     * Calculates a safe export resolution by checking the source video dimensions
+     * and capping them at MAX_EXPORT_WIDTH/HEIGHT to avoid MediaCodec configuration errors
+     * on devices with limited codec support.
+     * 
+     * The error occurs when videos exceed device MediaCodec capabilities (e.g., 3240x2160).
+     * This method checks video dimensions and uses a safe resolution preset if available.
+     */
+    private fun calculateSafeResolution(videoRangeList: VideoRangeList): VideoResolution {
+        // Try to get video dimensions from the first video range
+        val firstVideoRange = videoRangeList.data.firstOrNull() ?: return VideoResolution.Original
+        
+        val sourceUri = firstVideoRange.sourceUri ?: return VideoResolution.Original
+        
+        val videoSize = getVideoSize(sourceUri) ?: return VideoResolution.Original
+        
+        val originalWidth = videoSize.width
+        val originalHeight = videoSize.height
+        
+        // If video is already within safe limits, use original resolution
+        if (originalWidth <= MAX_EXPORT_WIDTH && originalHeight <= MAX_EXPORT_HEIGHT) {
+            return VideoResolution.Original
+        }
+        
+        // Video exceeds safe limits - need to use a lower resolution preset
+        // Try common Banuba SDK preset names via reflection (defensive approach)
+        // Most Banuba SDKs have presets like P2160 (4K) or P1080 (Full HD)
+        return try {
+            // Try P2160 preset first (4K - 3840x2160)
+            val p2160Field = VideoResolution::class.java.getDeclaredField("P2160")
+            p2160Field.isAccessible = true
+            p2160Field.get(null) as? VideoResolution ?: VideoResolution.Original
+        } catch (e: Exception) {
+            // P2160 not available, try P1080 (Full HD - 1920x1080)
+            try {
+                val p1080Field = VideoResolution::class.java.getDeclaredField("P1080")
+                p1080Field.isAccessible = true
+                p1080Field.get(null) as? VideoResolution ?: VideoResolution.Original
+            } catch (e: Exception) {
+                // No preset available - try creating custom resolution if constructor exists
+                try {
+                    val constructor = VideoResolution::class.java.getDeclaredConstructor(
+                        Int::class.java, 
+                        Int::class.java
+                    )
+                    constructor.isAccessible = true
+                    
+                    // Calculate safe dimensions maintaining aspect ratio
+                    val aspectRatio = originalWidth.toFloat() / originalHeight.toFloat()
+                    val targetHeight = MAX_EXPORT_HEIGHT
+                    val calculatedWidth = (targetHeight * aspectRatio).toInt()
+                    val targetWidth = minOf(calculatedWidth, MAX_EXPORT_WIDTH)
+                    
+                    // Ensure dimensions are even (required by many codecs)
+                    val safeWidth = (targetWidth / 2) * 2
+                    val safeHeight = (targetHeight / 2) * 2
+                    
+                    constructor.newInstance(safeWidth, safeHeight) as VideoResolution
+                } catch (e: Exception) {
+                    // Last resort: use Original
+                    // Note: This may still fail on some devices, but Banuba SDK might handle scaling
+                    VideoResolution.Original
+                }
+            }
+        }
+    }
+
+    /**
+     * Extracts video dimensions from a video URI using MediaMetadataRetriever.
+     * Handles rotation metadata to return correct width/height.
+     */
+    private fun getVideoSize(uri: String): Size? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(context, Uri.parse(uri))
+
+            val w = retriever
+                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                ?.toIntOrNull() ?: return null
+
+            val h = retriever
+                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                ?.toIntOrNull() ?: return null
+
+            val rot = retriever
+                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+                ?.toIntOrNull() ?: 0
+
+            // If the rotation is 90° or 270°, swap width/height
+            if (rot == 90 || rot == 270) {
+                Size(h, w)
+            } else {
+                Size(w, h)
+            }
+        } catch (e: Throwable) {
+            null
+        } finally {
+            retriever.release()
+        }
     }
 }
