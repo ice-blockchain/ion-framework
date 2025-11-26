@@ -289,17 +289,17 @@ Stream<Iterable<String>> authenticatedIdentityKeyNamesStream(Ref ref) async* {
 
 @Riverpod(keepAlive: true)
 class CurrentIdentityKeyNameStore extends _$CurrentIdentityKeyNameStore {
-  static const String currentIdentityKeyNameKey = 'Auth:currentIdentityKeyName';
+  static const String _currentIdentityKeyNameKey = 'Auth:currentIdentityKeyName';
 
   @override
   Future<String?> build() async {
     final localStorage = await ref.watch(localStorageAsyncProvider.future);
-    return localStorage.getString(currentIdentityKeyNameKey);
+    return localStorage.getString(_currentIdentityKeyNameKey);
   }
 
   Future<void> setCurrentIdentityKeyName(String identityKeyName) async {
     final localStorage = await ref.read(localStorageAsyncProvider.future);
-    await localStorage.setString(currentIdentityKeyNameKey, identityKeyName);
+    await localStorage.setString(_currentIdentityKeyNameKey, identityKeyName);
 
     state = AsyncData(identityKeyName);
   }
@@ -309,12 +309,12 @@ class CurrentIdentityKeyNameStore extends _$CurrentIdentityKeyNameStore {
     String identityKeyName,
   ) async {
     final sharedPreferencesFoundation = await ref.read(sharedPreferencesFoundationProvider.future);
-    await sharedPreferencesFoundation.setString(currentIdentityKeyNameKey, identityKeyName);
+    await sharedPreferencesFoundation.setString(_currentIdentityKeyNameKey, identityKeyName);
   }
 
   Future<void> clearCurrentIdentityKeyName() async {
     final localStorage = await ref.read(localStorageAsyncProvider.future);
-    await localStorage.remove(currentIdentityKeyNameKey);
+    await localStorage.remove(_currentIdentityKeyNameKey);
 
     state = const AsyncData(null);
   }
