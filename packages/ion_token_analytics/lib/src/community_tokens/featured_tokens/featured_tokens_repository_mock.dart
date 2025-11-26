@@ -12,7 +12,9 @@ class FeaturedTokensRepositoryMock implements FeaturedTokensRepository {
   final FeaturedTokensDataSourceMock _dataSource;
 
   @override
-  Future<NetworkSubscription<List<CommunityToken>>> subscribeToFeaturedTokens() async {
+  Future<NetworkSubscription<List<CommunityToken>>> subscribeToFeaturedTokens({
+    String? type,
+  }) async {
     final featuredTokensSubscription = _dataSource.subscribeToFeaturedTokens();
     final tokenStream = featuredTokensSubscription.map(
       (jsonList) => jsonList.map(CommunityToken.fromJson).toList(),
