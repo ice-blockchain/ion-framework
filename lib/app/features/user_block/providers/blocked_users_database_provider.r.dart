@@ -29,7 +29,6 @@ BlockUserDatabase blockedUsersDatabase(Ref ref) {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  onLogout(ref, () => unawaited(manager.closeBlockUserDatabase()));
   onUserSwitch(ref, () => unawaited(manager.closeBlockUserDatabase()));
 
   return database;

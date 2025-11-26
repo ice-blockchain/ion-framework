@@ -68,7 +68,6 @@ ChatDatabase chatDatabase(Ref ref) {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  onLogout(ref, () => unawaited(manager.closeChatDatabase()));
   onUserSwitch(ref, () => unawaited(manager.closeChatDatabase()));
 
   return database;

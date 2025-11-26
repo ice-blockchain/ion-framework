@@ -41,7 +41,6 @@ FollowingFeedDatabase followingFeedDatabase(Ref ref) {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  onLogout(ref, () => unawaited(manager.closeFollowingFeedDatabase()));
   onUserSwitch(ref, () => unawaited(manager.closeFollowingFeedDatabase()));
 
   return database;

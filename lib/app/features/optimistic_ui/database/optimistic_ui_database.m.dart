@@ -34,7 +34,6 @@ OptimisticUiDatabase optimisticUiDatabase(Ref ref) {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  onLogout(ref, () => unawaited(manager.closeOptimisticUiDatabase()));
   onUserSwitch(ref, () => unawaited(manager.closeOptimisticUiDatabase()));
 
   return database;

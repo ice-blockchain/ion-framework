@@ -44,7 +44,6 @@ WalletsDatabase walletsDatabase(Ref ref) {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  onLogout(ref, () => unawaited(manager.closeWalletsDatabase()));
   onUserSwitch(ref, () => unawaited(manager.closeWalletsDatabase()));
 
   return database;

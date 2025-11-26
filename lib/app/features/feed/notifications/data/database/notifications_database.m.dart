@@ -42,7 +42,6 @@ NotificationsDatabase notificationsDatabase(Ref ref) {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  onLogout(ref, () => unawaited(manager.closeNotificationsDatabase()));
   onUserSwitch(ref, () => unawaited(manager.closeNotificationsDatabase()));
 
   return database;

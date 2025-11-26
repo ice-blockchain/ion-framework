@@ -13,7 +13,7 @@ part 'onboarding_complete_provider.r.g.dart';
 
 @Riverpod(keepAlive: true)
 Future<bool?> onboardingComplete(Ref ref) async {
-  onUserSwitch(ref, () {
+  onLogout(ref, () {
     ref.invalidateSelf();
   });
 

@@ -231,7 +231,7 @@ class Auth extends _$Auth {
       ref.read(userSwitchInProgressProvider.notifier).startSwitching();
     }
     ref.read(userSwitchEventProvider.notifier).trigger();
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 300));
   }
 }
 
@@ -323,6 +323,7 @@ class CurrentIdentityKeyNameStore extends _$CurrentIdentityKeyNameStore {
 void onLogout(Ref ref, void Function() callback) {
   ref.listen(authProvider.select((state) => state.valueOrNull?.isAuthenticated), (prev, next) {
     if (prev != null && prev == true && next == false) {
+      print('onLogout');
       callback();
     }
   });
@@ -343,7 +344,6 @@ void onUserSwitch(Ref ref, void Function() callback) {
 void keepAliveWhenAuthenticated(Ref ref) {
   final keepAlive = ref.keepAlive();
   onLogout(ref, keepAlive.close);
-  onUserSwitch(ref, keepAlive.close);
 }
 
 void onLogin(Ref ref, void Function() callback) {
