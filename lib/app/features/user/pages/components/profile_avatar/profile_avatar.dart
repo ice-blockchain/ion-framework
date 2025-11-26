@@ -14,7 +14,7 @@ class ProfileAvatar extends ConsumerWidget {
     required this.pubkey,
     this.showAvatarPicker = false,
     this.profileMode = ProfileMode.light,
-    this.size = 65,
+    this.size,
     super.key,
   });
 
@@ -27,9 +27,9 @@ class ProfileAvatar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pictureSize = size ?? 65.0.s;
     final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
     final avatarUrl = userPreviewData?.data.avatarUrl;
+    final pictureSize = size ?? 65.0.s;
 
     return showAvatarPicker
         ? AvatarPicker(
