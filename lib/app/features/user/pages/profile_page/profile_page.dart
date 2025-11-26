@@ -47,20 +47,20 @@ class ProfilePage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
 
+    final currentUserToken = ref.watch(tokenMarketInfoProvider(masterPubkey));
+
+    if (userMetadata.isLoading && !userMetadata.hasValue || (currentUserToken.isLoading)) {
+      return ProfileSkeleton(showBackButton: showBackButton);
+    }
+
     final tokenizedCommunitiesEnabled = ref
         .watch(featureFlagsProvider.notifier)
         .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
-
-    final currentUserToken = ref.watch(tokenMarketInfoProvider(masterPubkey));
 
     final profileMode = currentUserToken.hasValue && tokenizedCommunitiesEnabled
         ? ProfileMode.dark
         : ProfileMode.light;
     final statusBarHeight = MediaQuery.paddingOf(context).top;
-
-    if (userMetadata.isLoading && !userMetadata.hasValue) {
-      return ProfileSkeleton(showBackButton: showBackButton);
-    }
 
     final metadata = userMetadata.valueOrNull;
 
