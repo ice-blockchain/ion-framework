@@ -110,30 +110,27 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
         );
       }
     } else {
-      avatarWidget = StoryColoredBorder(
+      avatarWidget = StoryColoredBorderWrapper(
         size: size,
         color: context.theme.appColors.strokeElements,
         gradient: gradient,
+        borderRadius: borderRadius,
         isViewed: allStoriesViewed,
-        child: StoryColoredBorder(
-          size: size - 4.0.s,
-          color: context.theme.appColors.secondaryBackground,
-          child: imageUrl != null || imageWidget != null || defaultAvatar != null
-              ? Avatar(
-                  size: size - 8.0.s,
-                  imageUrl: imageUrl,
-                  imageWidget: imageWidget,
-                  defaultAvatar: defaultAvatar,
-                  borderRadius: borderRadius,
-                  fit: fit,
-                )
-              : IonConnectAvatar(
-                  size: size - 8.0.s,
-                  fit: fit,
-                  masterPubkey: pubkey,
-                  borderRadius: borderRadius,
-                ),
-        ),
+        child: imageUrl != null || imageWidget != null || defaultAvatar != null
+            ? Avatar(
+                size: size - 8.0.s,
+                imageUrl: imageUrl,
+                imageWidget: imageWidget,
+                defaultAvatar: defaultAvatar,
+                borderRadius: borderRadius,
+                fit: fit,
+              )
+            : IonConnectAvatar(
+                size: size - 8.s,
+                fit: fit,
+                masterPubkey: pubkey,
+                borderRadius: borderRadius,
+              ),
       );
     }
 

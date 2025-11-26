@@ -49,23 +49,19 @@ class StoryItemContent extends HookConsumerWidget {
               alignment: Alignment.bottomCenter,
               children: [
                 if (gradient != null)
-                  StoryColoredBorder(
-                    size: width,
+                  StoryColoredBorderWrapper(
                     color: context.theme.appColors.strokeElements,
                     gradient: gradient,
                     isViewed: isViewed,
-                    child: StoryColoredBorder(
-                      size: width - borderSize * 2,
-                      color: context.theme.appColors.secondaryBackground,
-                      child: IonConnectAvatar(
-                        size: width - borderSize * 4,
-                        masterPubkey: pubkey,
-                      ),
+                    size: width - borderSize * 2,
+                    child: IonConnectAvatar(
+                      size: width - borderSize * 6,
+                      masterPubkey: pubkey,
                     ),
                   )
                 else
                   IonConnectAvatar(
-                    size: width - borderSize * 2,
+                    size: width - borderSize * 6,
                     masterPubkey: pubkey,
                   ),
                 if (child != null) child!,

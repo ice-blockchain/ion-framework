@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:ion/app/components/shapes/hexagon_path.dart';
 import 'package:ion/app/components/shapes/shape.dart';
 import 'package:ion/app/extensions/extensions.dart';
 
-class StoryColoredBorder extends StatelessWidget {
-  const StoryColoredBorder({
+class StoryColoredBorderWrapper extends StatelessWidget {
+  const StoryColoredBorderWrapper({
     required this.size,
     super.key,
     this.hexagon = false,
     this.color,
     this.gradient,
     this.isViewed = false,
+    this.borderRadius,
     this.child,
   });
 
@@ -25,6 +27,8 @@ class StoryColoredBorder extends StatelessWidget {
   final Gradient? gradient;
 
   final bool isViewed;
+
+  final BorderRadiusGeometry? borderRadius;
 
   final Widget? child;
 
@@ -51,9 +55,14 @@ class StoryColoredBorder extends StatelessWidget {
               width: size,
               height: size,
               decoration: BoxDecoration(
-                gradient: effectiveGradient,
-                borderRadius: BorderRadius.circular(size * 0.3),
-                color: effectiveColor,
+                borderRadius: borderRadius?.add(BorderRadiusGeometry.circular(4.s)) ??
+                    BorderRadius.circular(size * 0.3),
+                border: effectiveGradient == null
+                    ? GradientBoxBorder(
+                        gradient: LinearGradient(colors: [effectiveColor!, effectiveColor]),
+                        width: 2.s,
+                      )
+                    : GradientBoxBorder(gradient: effectiveGradient, width: 2.s),
               ),
               child: Center(child: child),
             ),

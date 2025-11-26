@@ -57,9 +57,11 @@ class ProfilePage extends HookConsumerWidget {
         .watch(featureFlagsProvider.notifier)
         .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
 
-    final profileMode = currentUserToken.hasValue && tokenizedCommunitiesEnabled
+    var profileMode = currentUserToken.hasValue && tokenizedCommunitiesEnabled
         ? ProfileMode.dark
         : ProfileMode.light;
+
+    profileMode = ProfileMode.dark;
     final statusBarHeight = MediaQuery.paddingOf(context).top;
 
     final metadata = userMetadata.valueOrNull;
@@ -148,14 +150,16 @@ class ProfilePage extends HookConsumerWidget {
         expandedHeader: Column(
           children: [
             SizedBox(
-              height: (profileMode == ProfileMode.dark ? statusBarHeight : 0) + 12.0.s,
+              height: (profileMode == ProfileMode.dark ? statusBarHeight : 0) + 27.0.s,
             ),
             Stack(
               clipBehavior: Clip.none,
               children: [
                 ProfileAvatar(
+                  size: 89.s,
                   profileMode: profileMode,
                   pubkey: masterPubkey,
+                  borderRadius: BorderRadius.circular(18.0.s),
                 ),
                 PositionedDirectional(
                   bottom: -6.0.s,
