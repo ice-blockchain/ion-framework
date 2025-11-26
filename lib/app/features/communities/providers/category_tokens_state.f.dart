@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:ion/app/features/communities/providers/tokens_state.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 part 'category_tokens_state.f.freezed.dart';
 
 @freezed
-class CategoryTokensState with _$CategoryTokensState {
+class CategoryTokensState with _$CategoryTokensState implements TokensState {
   const factory CategoryTokensState({
     @Default([]) List<CommunityToken> browsingItems,
     @Default(0) int browsingOffset,
@@ -21,4 +22,22 @@ class CategoryTokensState with _$CategoryTokensState {
     String? sessionId,
     String? searchQuery,
   }) = _CategoryTokensState;
+
+  const CategoryTokensState._();
+
+  @override
+  bool get isSearchMode => searchQuery?.isNotEmpty ?? false;
+
+  @override
+  List<CommunityToken> get activeItems => isSearchMode ? searchItems : browsingItems;
+
+  @override
+  bool get activeHasMore => isSearchMode ? searchHasMore : browsingHasMore;
+
+  @override
+  bool get activeIsLoading => isSearchMode ? searchIsLoading : browsingIsLoading;
+
+  @override
+  bool get activeIsInitialLoading =>
+      isSearchMode ? searchIsInitialLoading : browsingIsInitialLoading;
 }
