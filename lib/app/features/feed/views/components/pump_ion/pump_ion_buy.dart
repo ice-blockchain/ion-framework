@@ -101,9 +101,11 @@ class PumpIonBuy extends HookConsumerWidget {
                           bottom: 24.0.s,
                         ),
                       ),
-                      const PositionedDirectional(
+                      PositionedDirectional(
                         bottom: 0,
-                        child: BuyButton(),
+                        child: BuyButton(
+                          masterPubkey: masterPubkey,
+                        ),
                       ),
                     ],
                   ),

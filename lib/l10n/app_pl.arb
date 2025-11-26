@@ -1049,5 +1049,26 @@
   "who_can_reply_settings_title_story": "Kto może odpowiadać na tę historię",
   "who_can_reply_settings_title_video": "Kto może odpowiadać na to wideo",
   "who_can_reply_settings_verified_accounts": "Zweryfikowane konta",
-  "write_a_message": "Napisz wiadomość..."
+  "write_a_message": "Napisz wiadomość...",
+  "chart_label": "Wykres",
+  "chart_stats_volume": "Wol.",
+  "chart_stats_buys": "Kupna",
+  "chart_stats_sells": "Sprzedaże",
+  "chart_stats_net_buy": "Zakupy netto",
+  "latest_trades_title": "Ostatnie transakcje",
+  "trade_buy": "KUP",
+  "trade_sell": "SPRZEDAJ",
+  "your_position_card_title": "Twoja pozycja",
+  "tokenized_community_chart_tab": "Wykres",
+  "tokenized_community_holders_tab": "Posiadacze",
+  "tokenized_community_trades_tab": "Transakcje",
+  "tokenized_community_comments_tab": "Komentarze",
+  "top_holders_title": "Najwięksi posiadacze ({count})",
+  "@top_holders_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

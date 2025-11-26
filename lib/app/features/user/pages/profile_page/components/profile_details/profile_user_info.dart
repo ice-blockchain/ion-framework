@@ -68,7 +68,7 @@ class ProfileUserInfo extends ConsumerWidget {
                 ),
               ),
             ),
-            ProfileTokenStats(data: ProfileTokenStatsData.mock()),
+            ProfileTokenStats(data: ProfileTokenStatsData.mock(), masterPubkey: pubkey),
           ],
         ),
       );

@@ -25,7 +25,6 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_deta
 import 'package:ion/app/features/user/pages/profile_page/components/profile_main_action.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/tab_entities_list.dart';
 import 'package:ion/app/features/user/pages/profile_page/profile_skeleton.dart';
-import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -46,12 +45,14 @@ class ProfilePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
-    final isVerifiedUser = ref.watch(isUserVerifiedProvider(masterPubkey));
-    final tokenizedCommunitiesEnabled = ref
-        .watch(featureFlagsProvider.notifier)
-        .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
-    final profileMode =
-        isVerifiedUser && tokenizedCommunitiesEnabled ? ProfileMode.dark : ProfileMode.light;
+    // final isVerifiedUser = ref.watch(isUserVerifiedProvider(masterPubkey));
+    // final tokenizedCommunitiesEnabled = ref
+    //     .watch(featureFlagsProvider.notifier)
+    //     .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
+    // final profileMode =
+    //     isVerifiedUser && tokenizedCommunitiesEnabled ? ProfileMode.dark : ProfileMode.light;
+    //TODO: remove this
+    const profileMode = ProfileMode.dark;
     final statusBarHeight = MediaQuery.paddingOf(context).top;
 
     if (userMetadata.isLoading && !userMetadata.hasValue) {
@@ -117,7 +118,6 @@ class ProfilePage extends HookConsumerWidget {
       extendBodyBehindAppBar: profileMode == ProfileMode.dark,
       body: CollapsingHeaderTabsLayout(
         backgroundColor: context.theme.appColors.secondaryBackground,
-        newUiMode: profileMode == ProfileMode.dark,
         showBackButton: showBackButton,
         avatarUrl: avatarUrl,
         tabs: UserContentType.values,
@@ -182,16 +182,22 @@ class ProfilePage extends HookConsumerWidget {
         ),
         headerActionsBuilder: (menuCloseSignal) => Row(
           mainAxisSize: MainAxisSize.min,
-          spacing: 8.0.s,
           children: [
-            if (profileMode == ProfileMode.dark)
-              ProfileActions(pubkey: masterPubkey, profileMode: profileMode),
-            if (isDelegateAccessEnabled)
+            if (profileMode == ProfileMode.dark) ...[
+              ProfileActions(
+                pubkey: masterPubkey,
+                profileMode: profileMode,
+              ),
+              SizedBox(width: 8.0.s),
+            ],
+            if (isDelegateAccessEnabled) ...[
               GestureDetector(
                 onTap: () =>
                     SwitchUserAccountRoute(selectedUserPubkey: masterPubkey).push<void>(context),
                 child: Assets.svg.iconSwitchProfile.icon(size: 24.0.s),
               ),
+              SizedBox(width: 8.0.s),
+            ],
             ProfileContextMenu(
               pubkey: masterPubkey,
               profileMode: profileMode,
