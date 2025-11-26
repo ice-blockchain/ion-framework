@@ -96,11 +96,13 @@ class BanubaService {
     bool coverSelectionEnabled = true,
   }) async {
     feedVideoPlaybackEnabledNotifier.disablePlayback();
+    Logger.log('___ BanubaService disabled Playback, initializing video editor');
     await platformChannel.invokeMethod(
       methodInitVideoEditor,
       env.get<String>(EnvVariable.BANUBA_TOKEN),
     );
 
+    Logger.log('___ BanubaService Video editor Initialized, starting video editor');
     final result = await platformChannel.invokeMethod(
       methodStartVideoEditorTrimmer,
       {
@@ -109,6 +111,7 @@ class BanubaService {
         argCoverSelectionEnabled: coverSelectionEnabled,
       },
     );
+    Logger.log('___ BanubaService Video editor compeles, result: $result');
     feedVideoPlaybackEnabledNotifier.enablePlayback();
 
     if (result is Map) {
@@ -199,13 +202,14 @@ Future<MediaFile?> editMedia(
           }
         }
       }
-
+      Logger.log('___ EditVideo start, filePath: $filePath');
       // Normal flow for iOS or non-AV1 Android videos: use Banuba editor
       final editVideoData = await ref.read(banubaServiceProvider).editVideo(
             filePath,
             maxVideoDuration: maxVideoDuration,
             coverSelectionEnabled: videoCoverSelectionEnabled,
           );
+      Logger.log('___ EditVideo finished,editVideoData: $editVideoData');
       if (editVideoData == null) return null;
       return mediaFile.copyWith(path: editVideoData.newPath, thumb: editVideoData.thumb);
     case MediaType.unknown || MediaType.audio:
