@@ -20,6 +20,7 @@ class FeatureFlags extends _$FeatureFlags {
       ChatFeatureFlag.hideChatBookmark: true,
       TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled: true,
       DelegateAccessFeatureFlag.delegateAccessEnabled: false,
+      // TODO(linus): disable multi-accounts feature flag by default
       MultiAccountsFeatureFlag.multiAccountsEnabled: true,
 
       /// Log flags
