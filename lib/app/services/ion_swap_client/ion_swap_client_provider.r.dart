@@ -26,7 +26,9 @@ Future<SwapController> ionSwapClient(Ref ref) async {
     exolixApiUrl: env.get(EnvVariable.CRYPTOCURRENCIES_CEX_EXOLIX_API_URL),
     letsExchangeApiKey: env.get(EnvVariable.CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_KEY),
     letsExchangeApiUrl: env.get(EnvVariable.CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_URL),
-    letsExchangeAffiliateId: env.get(EnvVariable.CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_AFFILIATE_ID),
+    letsExchangeAffiliateId: env.get(
+      EnvVariable.CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_AFFILIATE_ID,
+    ),
     interceptors: [
       if (logger != null) logger,
     ],
