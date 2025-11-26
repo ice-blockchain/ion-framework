@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
+import 'package:ion/app/features/wallets/hooks/use_check_wallet_address_available.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
@@ -39,6 +40,22 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
         ),
       );
     }
+
+    useCheckWalletAddressAvailable(
+      ref,
+      network: sellNetwork,
+      coinsGroup: sellCoins,
+      onAddressFound: (address) => sellAddress.value = address,
+      keys: [sellNetwork, sellCoins],
+    );
+
+    useCheckWalletAddressAvailable(
+      ref,
+      network: buyNetwork,
+      coinsGroup: buyCoins,
+      onAddressFound: (address) => buyAddress.value = address,
+      keys: [buyNetwork, buyCoins],
+    );
 
     return SheetContent(
       body: SingleChildScrollView(
