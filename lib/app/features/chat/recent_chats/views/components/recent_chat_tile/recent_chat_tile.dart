@@ -151,6 +151,7 @@ class RecentChatTile extends HookConsumerWidget {
                         imageWidget: avatarWidget,
                         defaultAvatar: defaultAvatar,
                         useRandomGradient: true,
+                        margin: 8.0.s,
                       )
                     else
                       Avatar(

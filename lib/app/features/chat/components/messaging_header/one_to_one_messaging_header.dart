@@ -83,6 +83,7 @@ class OneToOneMessagingHeader extends ConsumerWidget {
                       size: 36.0.s,
                       useRandomGradient: true,
                       imageUrl: receiverPicture,
+                      margin: 8.0.s,
                     ),
                   SizedBox(width: 10.0.s),
                   Expanded(

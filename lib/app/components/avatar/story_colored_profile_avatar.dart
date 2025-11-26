@@ -36,6 +36,7 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
     required this.pubkey,
     required this.size,
     this.borderRadius,
+    this.margin,
     this.fit,
     this.imageUrl,
     this.imageWidget,
@@ -48,6 +49,7 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
   final String pubkey;
   final double size;
   final BorderRadiusGeometry? borderRadius;
+  final double? margin;
   final BoxFit? fit;
   final String? imageUrl;
   final Widget? imageWidget;
@@ -118,7 +120,7 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
         isViewed: allStoriesViewed,
         child: imageUrl != null || imageWidget != null || defaultAvatar != null
             ? Avatar(
-                size: size - 8.0.s,
+                size: size - (margin ?? 10.0.s),
                 imageUrl: imageUrl,
                 imageWidget: imageWidget,
                 defaultAvatar: defaultAvatar,
@@ -126,7 +128,7 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
                 fit: fit,
               )
             : IonConnectAvatar(
-                size: size - 8.s,
+                size: size - (margin ?? 10.0.s),
                 fit: fit,
                 masterPubkey: pubkey,
                 borderRadius: borderRadius,
