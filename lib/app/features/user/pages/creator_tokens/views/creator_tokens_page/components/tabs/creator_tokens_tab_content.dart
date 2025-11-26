@@ -38,6 +38,14 @@ class CreatorTokensTabContent extends HookConsumerWidget {
     }
   }
 
+  Future<void> _refresh(WidgetRef ref) async {
+    if (tabType.isLatest) {
+      await ref.read(latestTokensNotifierProvider.notifier).refresh();
+    } else {
+      await ref.read(categoryTokensNotifierProvider(tabType.categoryType!).notifier).refresh();
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     useAutomaticKeepAlive();
@@ -67,6 +75,10 @@ class CreatorTokensTabContent extends HookConsumerWidget {
     return LoadMoreBuilder(
       hasMore: state.activeHasMore,
       onLoadMore: () => _loadMore(ref),
+      builder: (context, slivers) => RefreshIndicator(
+        onRefresh: () => _refresh(ref),
+        child: CustomScrollView(slivers: slivers),
+      ),
       slivers: [
         CreatorTokensSearchBar(
           controller: searchController,
