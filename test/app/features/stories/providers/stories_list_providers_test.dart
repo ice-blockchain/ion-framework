@@ -10,6 +10,7 @@ import 'package:ion/app/features/feed/providers/feed_for_you_content_provider.m.
 import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/stories_count_provider.r.dart';
+import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../fixtures/posts/post_fixtures.dart';
@@ -68,6 +69,7 @@ ProviderContainer _containerWith(List<ModifiablePostEntity> posts) {
       currentUserFeedStoryProvider.overrideWith(
         () => _FakeCurrentUserStory(null),
       ),
+      blockedUsersPubkeysSelectorProvider.overrideWith((_) => <String>[]),
       for (final post in posts) storiesCountProvider(post.masterPubkey).overrideWith((_) => 1),
     ],
   );
@@ -134,6 +136,7 @@ void main() {
           currentUserFeedStoryProvider.overrideWith(
             () => _FakeCurrentUserStory(deletedStory),
           ),
+          blockedUsersPubkeysSelectorProvider.overrideWith((_) => <String>[]),
         ],
       );
 
