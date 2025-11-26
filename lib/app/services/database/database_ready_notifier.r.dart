@@ -33,11 +33,7 @@ class DatabasesReadyNotifier extends _$DatabasesReadyNotifier {
   @override
   bool build() => false;
 
-  void ready() {
-    state = true;
-  }
+  void ready() => state = true;
 
-  void notReady() {
-    state = false;
-  }
+  void notReady() => state = false;
 }

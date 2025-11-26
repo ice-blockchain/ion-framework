@@ -64,6 +64,23 @@ class DatabaseManagerService {
     ]);
   }
 
+  Future<void> closeAllDatabases() async {
+    await Future.wait([
+      _walletsStore.closeAll(),
+      _followingFeedStore.closeAll(),
+      _blockUserStore.closeAll(),
+      _notificationsStore.closeAll(),
+      _chatStore.closeAll(),
+      _optimisticUiStore.closeAll(),
+    ]);
+  }
+
+  Future<void> dispose() async {
+    await closeAllDatabases();
+  }
+
+  // NOTE(ice-linus): Get database by pubkey
+
   WalletsDatabase? getWalletsDatabase(String pubkey) {
     return _walletsStore.get(pubkey);
   }
@@ -88,6 +105,8 @@ class DatabaseManagerService {
     return _optimisticUiStore.get(pubkey);
   }
 
+  // NOTE(ice-linus): Close database
+
   Future<void> closeWalletsDatabase() async {
     await _walletsStore.closeAll();
   }
@@ -111,21 +130,6 @@ class DatabaseManagerService {
   Future<void> closeOptimisticUiDatabase() async {
     await _optimisticUiStore.closeAll();
   }
-
-  Future<void> closeAllDatabases() async {
-    await Future.wait([
-      _walletsStore.closeAll(),
-      _followingFeedStore.closeAll(),
-      _blockUserStore.closeAll(),
-      _notificationsStore.closeAll(),
-      _chatStore.closeAll(),
-      _optimisticUiStore.closeAll(),
-    ]);
-  }
-
-  Future<void> dispose() async {
-    await closeAllDatabases();
-  }
 }
 
 class _DatabaseStore<T extends GeneratedDatabase> {
@@ -148,6 +152,5 @@ class _DatabaseStore<T extends GeneratedDatabase> {
     for (final db in _databases.values) {
       await db.close();
     }
-    _databases.clear();
   }
 }

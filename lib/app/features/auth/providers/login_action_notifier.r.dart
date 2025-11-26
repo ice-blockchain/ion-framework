@@ -39,8 +39,8 @@ class LoginActionNotifier extends _$LoginActionNotifier {
       ];
 
       try {
-        final authState = await ref.read(authProvider.future);
-        final oldAuthenticatedUsers = authState.authenticatedIdentityKeyNames;
+        final authStateBeforeLogin = await ref.read(authProvider.future);
+        final previouslyAuthenticatedUsers = authStateBeforeLogin.authenticatedIdentityKeyNames;
 
         final username = await ionIdentity(username: keyName).auth.login(
               config: config,
@@ -48,7 +48,8 @@ class LoginActionNotifier extends _$LoginActionNotifier {
               localCredsOnly: localCredsOnly,
             );
 
-        if (oldAuthenticatedUsers.contains(username)) {
+        final isSwitchingToExistingAccount = previouslyAuthenticatedUsers.contains(username);
+        if (isSwitchingToExistingAccount) {
           await ref.read(authProvider.notifier).setCurrentUser(username);
         }
       } on NoLocalPasskeyCredsFoundIONIdentityException {

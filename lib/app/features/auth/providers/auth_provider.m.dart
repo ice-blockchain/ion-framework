@@ -359,6 +359,8 @@ void keepAliveWhileUnauthenticated(Ref ref) {
   onLogin(ref, keepAlive.close);
 }
 
+// NOTE(ice-linus): Invalidates feed, stories, and follow list providers
+// when switching between existing users to clear cached data for the previous account.
 @Riverpod(keepAlive: true)
 class PubkeyChangeWithExistingUser extends _$PubkeyChangeWithExistingUser {
   @override
@@ -383,6 +385,8 @@ class PubkeyChangeWithExistingUser extends _$PubkeyChangeWithExistingUser {
   }
 }
 
+// NOTE(ice-linus): Tracks whether user switching is currently in progress,
+// used by redirect strategy to show loading screen during account switch.
 @Riverpod(keepAlive: true)
 class UserSwitchInProgress extends _$UserSwitchInProgress {
   @override
@@ -393,6 +397,8 @@ class UserSwitchInProgress extends _$UserSwitchInProgress {
   void completeSwitching() => state = false;
 }
 
+// NOTE(ice-linus): Event counter that increments on each user switch,
+// used by onUserSwitch to trigger callbacks when account changes.
 @Riverpod(keepAlive: true)
 class UserSwitchEvent extends _$UserSwitchEvent {
   @override

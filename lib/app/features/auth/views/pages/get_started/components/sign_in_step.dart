@@ -202,9 +202,10 @@ class SignInStep extends HookConsumerWidget {
     required SuggestBiometricsCallback onSuggestToAddBiometrics,
   }) async {
     final authState = await ref.read(authProvider.future);
-    final authenticatedUsers = authState.authenticatedIdentityKeyNames;
+    final currentAuthenticatedUsers = authState.authenticatedIdentityKeyNames;
 
-    if (authenticatedUsers.contains(username)) {
+    final isSwitchingToExistingAccount = currentAuthenticatedUsers.contains(username);
+    if (isSwitchingToExistingAccount) {
       await ref.read(authProvider.notifier).setCurrentUser(username);
       return;
     }
