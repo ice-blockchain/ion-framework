@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/repositories/api_repository.dart';
 import 'package:ion_swap_client/repositories/exolix_repository.dart';
@@ -41,11 +43,7 @@ class ApiRepositoryServiceLocator {
             config: config,
           ),
         ),
-      RelayApiRepository => RelayApiRepository(
-          dio: _networkServiceLocator.relayDio(
-            config: config,
-          ),
-        ),
+      RelayApiRepository => RelayApiRepository(),
       SwapOkxRepository => SwapOkxRepository(
           dio: _networkServiceLocator.okxDio(
             config: config,
