@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/components/select_coin_modal_page.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/filtered_swap_coins_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/swap_coins_modal_page.dart';
 
@@ -26,6 +27,7 @@ class SwapSelectCoinPage extends ConsumerWidget {
       showBackButton: true,
       showCloseButton: false,
       title: context.i18n.wallet_select_coin,
+      coinsProvider: filteredSwapCoinsProvider,
       onCoinSelected: (value) async {
         final result = await ref.read(swapCoinsControllerProvider.notifier).selectCoin(
               type: type,

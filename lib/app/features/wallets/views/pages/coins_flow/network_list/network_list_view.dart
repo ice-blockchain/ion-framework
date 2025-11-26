@@ -47,11 +47,8 @@ class NetworkListView extends HookConsumerWidget {
       NetworkListViewType.send =>
         ref.watch(sendAssetFormControllerProvider).assetData.as<CoinAssetToSendData>()?.coinsGroup,
       NetworkListViewType.receive => ref.watch(receiveCoinsFormControllerProvider).selectedCoin!,
-      NetworkListViewType.request => ref
-          .watch(requestCoinsFormControllerProvider)
-          .assetData
-          .as<CoinAssetToSendData>()
-          ?.coinsGroup,
+      NetworkListViewType.request =>
+        ref.watch(requestCoinsFormControllerProvider).assetData.as<CoinAssetToSendData>()?.coinsGroup,
       NetworkListViewType.swapSell => ref.watch(swapCoinsControllerProvider).sellCoin,
       NetworkListViewType.swapBuy => ref.watch(swapCoinsControllerProvider).buyCoin,
     };
@@ -62,11 +59,16 @@ class NetworkListView extends HookConsumerWidget {
         ? const AsyncValue<List<CoinInWalletData>>.loading()
         : ref.watch(syncedCoinsBySymbolGroupProvider(coinsGroup.symbolGroup));
 
+    final shouldFilterByWallet = type == NetworkListViewType.swapSell || type == NetworkListViewType.swapBuy;
+    final displayCoins = coinsState.hasValue
+        ? (shouldFilterByWallet ? coinsState.value!.where((coin) => coin.walletId != null).toList() : coinsState.value!)
+        : <CoinInWalletData>[];
+
     final child = coinsState.hasValue
         ? _NetworksList(
-            itemCount: coinsState.value!.length,
+            itemCount: displayCoins.length,
             itemBuilder: (BuildContext context, int index) {
-              final coin = coinsState.value![index];
+              final coin = displayCoins[index];
               return NetworkItem(
                 coinInWallet: coin,
                 network: coin.coin.network,
@@ -83,7 +85,7 @@ class NetworkListView extends HookConsumerWidget {
             },
           )
         : _LoadingState(itemCount: coinsGroup?.coins.length ?? 1);
-
+        
     return SheetContent(
       body: Column(
         mainAxisSize: MainAxisSize.min,

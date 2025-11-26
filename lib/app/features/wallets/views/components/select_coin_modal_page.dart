@@ -13,6 +13,7 @@ class SelectCoinModalPage extends ConsumerWidget {
     required this.onCoinSelected,
     this.showBackButton = false,
     this.showCloseButton = true,
+    this.coinsProvider,
     super.key,
   });
 
@@ -20,10 +21,11 @@ class SelectCoinModalPage extends ConsumerWidget {
   final ValueChanged<CoinsGroup> onCoinSelected;
   final bool showBackButton;
   final bool showCloseButton;
+  final ProviderListenable<AsyncValue<List<CoinsGroup>>>? coinsProvider;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final coinsResult = ref.watch(filteredCoinsNotifierProvider);
+    final coinsResult = coinsProvider != null ? ref.watch(coinsProvider!) : ref.watch(filteredCoinsNotifierProvider);
 
     return SheetContent(
       body: CoinsListView(

@@ -42,24 +42,6 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
       );
     }
 
-    useCheckWalletAddressAvailable(
-      ref,
-      network: sellNetwork,
-      coinsGroup: sellCoins,
-      onAddressFound: (address) => sellAddress.value = address,
-      onAddressMissing: () => AddressNotFoundRoute().push<void>(ref.context),
-      keys: [sellNetwork, sellCoins],
-    );
-
-    useCheckWalletAddressAvailable(
-      ref,
-      network: buyNetwork,
-      coinsGroup: buyCoins,
-      onAddressFound: (address) => buyAddress.value = address,
-      onAddressMissing: () => AddressNotFoundRoute().push<void>(ref.context),
-      keys: [buyNetwork, buyCoins],
-    );
-
     return SheetContent(
       body: SingleChildScrollView(
         child: Column(
