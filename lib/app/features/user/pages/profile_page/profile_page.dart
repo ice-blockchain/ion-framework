@@ -7,6 +7,7 @@ import 'package:ion/app/components/layouts/collapsing_header_tabs_layout.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
@@ -45,14 +46,16 @@ class ProfilePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
-    // final isVerifiedUser = ref.watch(isUserVerifiedProvider(masterPubkey));
-    // final tokenizedCommunitiesEnabled = ref
-    //     .watch(featureFlagsProvider.notifier)
-    //     .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
-    // final profileMode =
-    //     isVerifiedUser && tokenizedCommunitiesEnabled ? ProfileMode.dark : ProfileMode.light;
-    //TODO: remove this
-    const profileMode = ProfileMode.dark;
+
+    final tokenizedCommunitiesEnabled = ref
+        .watch(featureFlagsProvider.notifier)
+        .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
+
+    final currentUserToken = ref.watch(tokenMarketInfoProvider(masterPubkey));
+
+    final profileMode = currentUserToken.hasValue && tokenizedCommunitiesEnabled
+        ? ProfileMode.dark
+        : ProfileMode.light;
     final statusBarHeight = MediaQuery.paddingOf(context).top;
 
     if (userMetadata.isLoading && !userMetadata.hasValue) {
@@ -115,10 +118,10 @@ class ProfilePage extends HookConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.theme.appColors.secondaryBackground,
-      extendBodyBehindAppBar: profileMode == ProfileMode.dark,
       body: CollapsingHeaderTabsLayout(
         backgroundColor: context.theme.appColors.secondaryBackground,
         showBackButton: showBackButton,
+        newUiMode: profileMode == ProfileMode.dark,
         avatarUrl: avatarUrl,
         tabs: UserContentType.values,
         collapsedHeaderBuilder: (opacity) => Header(
@@ -151,8 +154,8 @@ class ProfilePage extends HookConsumerWidget {
               clipBehavior: Clip.none,
               children: [
                 ProfileAvatar(
-                  pubkey: masterPubkey,
                   profileMode: profileMode,
+                  pubkey: masterPubkey,
                 ),
                 PositionedDirectional(
                   bottom: -6.0.s,
@@ -200,8 +203,8 @@ class ProfilePage extends HookConsumerWidget {
             ],
             ProfileContextMenu(
               pubkey: masterPubkey,
-              profileMode: profileMode,
               closeSignal: menuCloseSignal,
+              profileMode: profileMode,
             ),
           ],
         ),
