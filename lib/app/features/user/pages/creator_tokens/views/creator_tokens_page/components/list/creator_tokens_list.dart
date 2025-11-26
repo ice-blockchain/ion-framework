@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/components/nothing_is_found/nothing_is_found.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
-import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list_item.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list_skeleton.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class CreatorTokensList extends StatelessWidget {
@@ -20,22 +21,12 @@ class CreatorTokensList extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isInitialLoading && items.isEmpty) {
       return const SliverToBoxAdapter(
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: CreatorTokensListSkeleton(),
       );
     }
 
     if (items.isEmpty) {
-      return SliverToBoxAdapter(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(32.0.s),
-            // TODO: localize or UI component
-            child: const Text('No creator tokens found'),
-          ),
-        ),
-      );
+      return const NothingIsFound();
     }
 
     return SliverList.builder(
