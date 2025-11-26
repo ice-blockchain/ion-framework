@@ -57,7 +57,6 @@ class CategoryTokensDataSourceMock {
 
     // For trending/top: send new items every 2 seconds (for testing)
     // For latest: keep original behavior (updates or new items every 15 seconds)
-    final isTrendingOrTop = type == 'trending' || type == 'top';
     const interval = Duration(seconds: 2);
 
     final timer = Timer.periodic(interval, (timer) {
