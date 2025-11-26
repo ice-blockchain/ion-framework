@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:dio/dio.dart';
 import 'package:ion_swap_client/models/exolix_coin.m.dart';
 import 'package:ion_swap_client/models/exolix_rate.m.dart';

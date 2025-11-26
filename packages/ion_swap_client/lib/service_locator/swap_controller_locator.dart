@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:ion_swap_client/controllers/swap_controller.dart';
 import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/repositories/chains_ids_repository.dart';

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 class IonSwapException implements Exception {
   const IonSwapException([this.message]);
 
