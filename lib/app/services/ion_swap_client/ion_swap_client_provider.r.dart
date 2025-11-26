@@ -17,16 +17,16 @@ Future<SwapController> ionSwapClient(Ref ref) async {
   final logger = Logger.talkerDioLogger;
 
   final config = IONSwapConfig(
-    okxApiKey: env.get(EnvVariable.OKX_API_KEY),
-    okxSignKey: env.get(EnvVariable.OKX_SIGN_KEY),
-    okxPassphrase: env.get(EnvVariable.OKX_PASSPHRASE),
-    okxApiUrl: env.get(EnvVariable.OKX_API_URL),
-    relayBaseUrl: env.get(EnvVariable.RELAY_BASE_URL),
-    exolixApiKey: env.get(EnvVariable.EXOLIX_API_KEY),
-    exolixApiUrl: env.get(EnvVariable.EXOLIX_API_URL),
-    letsExchangeApiKey: env.get(EnvVariable.LETS_EXCHANGE_API_KEY),
-    letsExchangeApiUrl: env.get(EnvVariable.LETS_EXCHANGE_API_URL),
-    letsExchangeAffiliateId: env.get(EnvVariable.LETS_EXCHANGE_API_AFFILIATE_ID),
+    okxApiKey: env.get(EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_API_KEY),
+    okxSignKey: env.get(EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_SIGN_KEY),
+    okxPassphrase: env.get(EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_PASSPHRASE),
+    okxApiUrl: env.get(EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_API_URL),
+    relayBaseUrl: env.get(EnvVariable.CRYPTOCURRENCIES_BRIDGE_RELAY_BASE_URL),
+    exolixApiKey: env.get(EnvVariable.CRYPTOCURRENCIES_CEX_EXOLIX_API_KEY),
+    exolixApiUrl: env.get(EnvVariable.CRYPTOCURRENCIES_CEX_EXOLIX_API_URL),
+    letsExchangeApiKey: env.get(EnvVariable.CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_KEY),
+    letsExchangeApiUrl: env.get(EnvVariable.CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_URL),
+    letsExchangeAffiliateId: env.get(EnvVariable.CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_AFFILIATE_ID),
     interceptors: [
       if (logger != null) logger,
     ],
