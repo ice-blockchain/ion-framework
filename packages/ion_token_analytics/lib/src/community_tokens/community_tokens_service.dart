@@ -158,7 +158,7 @@ class IonCommunityTokensService {
     );
   }
 
-  Future<NetworkSubscription<CommunityTokenPatch>> subscribeToCategoryTokens({
+  Future<NetworkSubscription<CommunityTokenBase>> subscribeToCategoryTokens({
     required String sessionId,
     required TokenCategoryType type,
   }) {

@@ -12,7 +12,7 @@ part 'category_tokens_provider.r.g.dart';
 @riverpod
 class CategoryTokensNotifier extends _$CategoryTokensNotifier {
   static const int _limit = 10;
-  NetworkSubscription<CommunityTokenPatch>? _realtimeSubscription;
+  NetworkSubscription<CommunityTokenBase>? _realtimeSubscription;
   late final TokenCategoryType _type;
 
   @override
@@ -174,37 +174,64 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
       type: type,
     );
 
-    _realtimeSubscription!.stream.listen(_handleRealtimeUpdate);
+    _realtimeSubscription!.stream.listen(_handleRealtimeEvent);
   }
 
-  void _handleRealtimeUpdate(CommunityTokenPatch patch) {
-    // Extract ionConnect from patch to identify the token
-    final ionConnect = patch.addresses?.ionConnect;
-    if (ionConnect == null) {
+  void _handleRealtimeEvent(CommunityTokenBase event) {
+    if (event is CommunityToken) {
+      _prependToken(event);
       return;
     }
+
+    if (event is CommunityTokenPatch) {
+      _applyPatch(event);
+    }
+  }
+
+  void _prependToken(CommunityToken token) {
+    final existingIndex = state.browsingItems.indexWhere(
+      (item) => item.addresses.ionConnect == token.addresses.ionConnect,
+    );
+
+    if (existingIndex != -1) {
+      // Token exists - update it
+      final updatedItems = List<CommunityToken>.from(state.browsingItems);
+      updatedItems[existingIndex] = token;
+      state = state.copyWith(browsingItems: updatedItems);
+      return;
+    }
+
+    // New token - prepend to list.
+    // Note: Offset is NOT incremented here because the viewing session on backend
+    // handles offset tracking for realtime items. REST API pagination is session-aware.
+    state = state.copyWith(
+      browsingItems: [token, ...state.browsingItems],
+    );
+  }
+
+  void _applyPatch(CommunityTokenPatch patch) {
+    final ionConnect = patch.addresses?.ionConnect;
+    if (ionConnect == null) return;
 
     final existingIndex = state.browsingItems.indexWhere(
       (token) => token.addresses.ionConnect == ionConnect,
     );
 
     if (existingIndex != -1) {
-      // Token exists - treat as update and merge
+      // Token exists - merge the patch
       final existing = state.browsingItems[existingIndex];
       final updated = existing.merge(patch);
       final updatedItems = List<CommunityToken>.from(state.browsingItems);
       updatedItems[existingIndex] = updated;
       state = state.copyWith(browsingItems: updatedItems);
     } else {
-      // Token doesn't exist - attempt to build a full token from patch
-      // final newToken = patch.toEntityOrNull();
       try {
         final newToken = CommunityToken.fromJson(patch.toJson());
         state = state.copyWith(
           browsingItems: [newToken, ...state.browsingItems],
         );
-      } catch (e) {
-        return;
+      } catch (_) {
+        // Ignore patches that can't form a full entity.
       }
     }
   }

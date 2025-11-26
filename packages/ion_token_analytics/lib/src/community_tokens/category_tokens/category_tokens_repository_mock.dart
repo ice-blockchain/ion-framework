@@ -43,7 +43,7 @@ class CategoryTokensRepositoryMock implements CategoryTokensRepository {
   }
 
   @override
-  Future<NetworkSubscription<CommunityTokenPatch>> subscribeToRealtimeUpdates({
+  Future<NetworkSubscription<CommunityTokenBase>> subscribeToRealtimeUpdates({
     required String sessionId,
     required TokenCategoryType type,
   }) async {
@@ -52,12 +52,18 @@ class CategoryTokensRepositoryMock implements CategoryTokensRepository {
       type: type.value,
     );
 
-    final patchStream = jsonStream.map((json) {
-      return CommunityTokenPatch.fromJson(json);
+    // Try to parse as full CommunityToken first (new items),
+    // fall back to CommunityTokenPatch (updates).
+    final stream = jsonStream.map<CommunityTokenBase>((json) {
+      try {
+        return CommunityToken.fromJson(json);
+      } catch (_) {
+        return CommunityTokenPatch.fromJson(json);
+      }
     });
 
-    return NetworkSubscription<CommunityTokenPatch>(
-      stream: patchStream,
+    return NetworkSubscription<CommunityTokenBase>(
+      stream: stream,
       close: () async {
         _dataSource.close();
       },

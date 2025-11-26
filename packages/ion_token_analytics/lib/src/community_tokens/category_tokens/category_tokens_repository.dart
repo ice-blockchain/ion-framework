@@ -15,7 +15,7 @@ abstract class CategoryTokensRepository {
     int offset = 0,
   });
 
-  Future<NetworkSubscription<CommunityTokenPatch>> subscribeToRealtimeUpdates({
+  Future<NetworkSubscription<CommunityTokenBase>> subscribeToRealtimeUpdates({
     required String sessionId,
     required TokenCategoryType type,
   });
