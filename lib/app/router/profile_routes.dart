@@ -351,7 +351,9 @@ class CreatorTokensRoute extends BaseRouteData with _$CreatorTokensRoute {
 class TokenizedCommunityRoute extends BaseRouteData with _$TokenizedCommunityRoute {
   TokenizedCommunityRoute({required this.masterPubkey})
       : super(
-          child: const TokenizedCommunityPage(),
+          child: TokenizedCommunityPage(
+            masterPubkey: masterPubkey,
+          ),
         );
 
   final String masterPubkey;

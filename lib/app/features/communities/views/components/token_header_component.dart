@@ -131,26 +131,24 @@ class _TokenInfo extends StatelessWidget {
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
+          spacing: 4.0.s,
           children: [
             Text(
               displayName,
               style: texts.subtitle2.copyWith(color: Colors.white),
             ),
-            if (verified) ...[
-              SizedBox(width: 4.0.s),
-              Assets.svg.iconBadgeVerify.icon(size: 18.0.s),
-            ],
+            if (verified) Assets.svg.iconBadgeVerify.icon(size: 18.0.s),
           ],
         ),
         SizedBox(height: 4.0.s),
         Row(
           mainAxisSize: MainAxisSize.min,
+          spacing: 6.0.s,
           children: [
             Text(
               handle,
               style: texts.caption3.copyWith(color: Colors.white),
             ),
-            SizedBox(width: 6.0.s),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
               decoration: BoxDecoration(

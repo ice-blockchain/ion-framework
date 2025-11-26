@@ -104,16 +104,13 @@ class _TradeRow extends StatelessWidget {
     final texts = context.theme.appTextThemes;
     final i18n = context.i18n;
 
-    final position = trade.position;
-    final holder = position.holder;
-    final time = DateTime.parse(position.createdAt);
-    final isBuy = position.type == 'buy';
-
-    final timeText = formatShortTimestamp(time, context: context);
-    final amountText = formatDoubleCompact(position.amount);
-    final usdText = formatUSD(position.amountUSD);
-    final badgeColor = isBuy ? colors.success : colors.lossRed;
-    final badgeText = isBuy ? i18n.trade_buy : i18n.trade_sell;
+    //TODO: change type to int
+    final timeText = formatShortTimestamp(DateTime.parse(trade.position.createdAt));
+    final amountText = formatDoubleCompact(trade.position.amount);
+    final usdText = formatUSD(trade.position.amountUSD);
+    //TODO: use enum
+    final badgeColor = trade.position.type == 'buy' ? colors.success : colors.lossRed;
+    final badgeText = trade.position.type == 'buy' ? i18n.trade_buy : i18n.trade_sell;
 
     final badge = Container(
       padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 1.0.s),
@@ -134,12 +131,13 @@ class _TradeRow extends StatelessWidget {
           children: [
             Row(
               children: [
-                _Avatar(url: holder.avatar),
+                _Avatar(url: trade.position.holder.avatar),
                 SizedBox(width: 8.0.s),
                 _TitleAndMeta(
-                  name: holder.display,
-                  handle: holder.name.isNotEmpty ? '@${holder.name}' : '',
-                  verified: holder.verified,
+                  name: trade.position.holder.display,
+                  handle: trade.position.holder.name,
+                  //TODO: add verified
+                  verified: true,
                   meta: '$amountText • \$$usdText • $timeText',
                 ),
               ],
