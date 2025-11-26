@@ -53,11 +53,11 @@ class TokenTopHolders extends _$TokenTopHolders {
         if (existIndex >= 0) {
           final existHolder = currentList[existIndex];
           if (newTopHolder is analytics.TopHolderPatch) {
-          final patchedHolder = existHolder.merge(newTopHolder);
+            final patchedHolder = existHolder.merge(newTopHolder);
 
-          // Create a new list reference for state update
-          currentList = List.from(currentList);
-          currentList[existIndex] = patchedHolder;
+            // Create a new list reference for state update
+            currentList = List.from(currentList);
+            currentList[existIndex] = patchedHolder;
           } else if (newTopHolder is analytics.TopHolder) {
             currentList = List.from(currentList);
             currentList[existIndex] = newTopHolder;
