@@ -7,7 +7,7 @@ import 'dart:math';
 // Returns raw JSON data that simulates REST API and WebSocket responses.
 class CategoryTokensDataSourceMock {
   final _random = Random();
-  Timer? _realtimeTimer;
+  final List<Timer> _realtimeTimers = [];
   final Map<String, List<Map<String, dynamic>>> _mockDataCache = {};
 
   // Creates a viewing session for the given category type.
@@ -60,28 +60,26 @@ class CategoryTokensDataSourceMock {
     final isTrendingOrTop = type == 'trending' || type == 'top';
     const interval = Duration(seconds: 2);
 
-    _realtimeTimer = Timer.periodic(interval, (timer) {
+    final timer = Timer.periodic(interval, (timer) {
       if (controller.isClosed) {
         timer.cancel();
+        _realtimeTimers.remove(timer);
         return;
       }
 
-      // For trending/top: always send new items (for testing)
-      // For latest: randomly send updates or new items
-      if (isTrendingOrTop) {
+      // Randomly send updates (40%) or new items (60%)
+      final scenario = _random.nextInt(10);
+      if (scenario < 4) {
+        // 40% chance: send update for existing item
+        final update = _generateUpdate(type, prefix);
+        controller.add(update);
+      } else {
+        // 60% chance: send new item
         final newItem = _generateNewItem(type, prefix);
         controller.add(newItem);
-      } else {
-        final scenario = _random.nextInt(2);
-        if (scenario == 0) {
-          final update = _generateUpdate(type, prefix);
-          controller.add(update);
-        } else {
-          final newItem = _generateNewItem(type, prefix);
-          controller.add(newItem);
-        }
       }
     });
+    _realtimeTimers.add(timer);
 
     return controller.stream;
   }
@@ -114,9 +112,10 @@ class CategoryTokensDataSourceMock {
   Stream<Map<String, dynamic>> subscribeToLatestRealtimeUpdates({String? keyword, String? type}) {
     final controller = StreamController<Map<String, dynamic>>();
 
-    Timer.periodic(const Duration(seconds: 15), (timer) {
+    final timer = Timer.periodic(const Duration(seconds: 15), (timer) {
       if (controller.isClosed) {
         timer.cancel();
+        _realtimeTimers.remove(timer);
         return;
       }
 
@@ -130,13 +129,17 @@ class CategoryTokensDataSourceMock {
         controller.add(newItem);
       }
     });
+    _realtimeTimers.add(timer);
 
     return controller.stream;
   }
 
-  // Closes the real-time subscription and cancels the timer.
+  // Closes the real-time subscription and cancels all timers.
   void close() {
-    _realtimeTimer?.cancel();
+    for (final timer in _realtimeTimers) {
+      timer.cancel();
+    }
+    _realtimeTimers.clear();
   }
 
   // Generates mock token data for initial load and pagination.

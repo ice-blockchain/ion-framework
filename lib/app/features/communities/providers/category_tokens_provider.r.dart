@@ -18,6 +18,12 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
   @override
   CategoryTokensState build(TokenCategoryType type) {
     _type = type;
+
+    ref.onDispose(() async {
+      await _realtimeSubscription?.close();
+      _realtimeSubscription = null;
+    });
+
     Future.microtask(_initialize);
 
     return const CategoryTokensState();
@@ -194,16 +200,12 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     );
 
     if (existingIndex != -1) {
-      // Token exists - update it
       final updatedItems = List<CommunityToken>.from(state.browsingItems);
       updatedItems[existingIndex] = token;
       state = state.copyWith(browsingItems: updatedItems);
       return;
     }
 
-    // New token - prepend to list.
-    // Note: Offset is NOT incremented here because the viewing session on backend
-    // handles offset tracking for realtime items. REST API pagination is session-aware.
     state = state.copyWith(
       browsingItems: [token, ...state.browsingItems],
     );
@@ -218,7 +220,6 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     );
 
     if (existingIndex != -1) {
-      // Token exists - merge the patch
       final existing = state.browsingItems[existingIndex];
       final updated = existing.merge(patch);
       final updatedItems = List<CommunityToken>.from(state.browsingItems);

@@ -41,9 +41,7 @@ class LatestTokensNotifier extends _$LatestTokensNotifier {
   }
 
   Future<void> _loadInitial() async {
-    if (state.browsingIsLoading || state.browsingIsInitialLoading) {
-      return;
-    }
+    if (state.browsingIsLoading || state.browsingIsInitialLoading) return;
 
     state = state.copyWith(
       browsingIsInitialLoading: true,
