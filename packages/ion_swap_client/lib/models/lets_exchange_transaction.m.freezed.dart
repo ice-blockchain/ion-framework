@@ -22,6 +22,9 @@ LetsExchangeTransaction _$LetsExchangeTransactionFromJson(Map<String, dynamic> j
 mixin _$LetsExchangeTransaction {
   @JsonKey(name: 'transaction_id')
   String get transactionId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'deposit_amount')
+  String get depositAmount => throw _privateConstructorUsedError;
+  String get deposit => throw _privateConstructorUsedError;
 
   /// Serializes this LetsExchangeTransaction to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -39,7 +42,10 @@ abstract class $LetsExchangeTransactionCopyWith<$Res> {
           LetsExchangeTransaction value, $Res Function(LetsExchangeTransaction) then) =
       _$LetsExchangeTransactionCopyWithImpl<$Res, LetsExchangeTransaction>;
   @useResult
-  $Res call({@JsonKey(name: 'transaction_id') String transactionId});
+  $Res call(
+      {@JsonKey(name: 'transaction_id') String transactionId,
+      @JsonKey(name: 'deposit_amount') String depositAmount,
+      String deposit});
 }
 
 /// @nodoc
@@ -58,11 +64,21 @@ class _$LetsExchangeTransactionCopyWithImpl<$Res, $Val extends LetsExchangeTrans
   @override
   $Res call({
     Object? transactionId = null,
+    Object? depositAmount = null,
+    Object? deposit = null,
   }) {
     return _then(_value.copyWith(
       transactionId: null == transactionId
           ? _value.transactionId
           : transactionId // ignore: cast_nullable_to_non_nullable
+              as String,
+      depositAmount: null == depositAmount
+          ? _value.depositAmount
+          : depositAmount // ignore: cast_nullable_to_non_nullable
+              as String,
+      deposit: null == deposit
+          ? _value.deposit
+          : deposit // ignore: cast_nullable_to_non_nullable
               as String,
     ) as $Val);
   }
@@ -76,7 +92,10 @@ abstract class _$$LetsExchangeTransactionImplCopyWith<$Res>
       __$$LetsExchangeTransactionImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({@JsonKey(name: 'transaction_id') String transactionId});
+  $Res call(
+      {@JsonKey(name: 'transaction_id') String transactionId,
+      @JsonKey(name: 'deposit_amount') String depositAmount,
+      String deposit});
 }
 
 /// @nodoc
@@ -93,11 +112,21 @@ class __$$LetsExchangeTransactionImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? transactionId = null,
+    Object? depositAmount = null,
+    Object? deposit = null,
   }) {
     return _then(_$LetsExchangeTransactionImpl(
       transactionId: null == transactionId
           ? _value.transactionId
           : transactionId // ignore: cast_nullable_to_non_nullable
+              as String,
+      depositAmount: null == depositAmount
+          ? _value.depositAmount
+          : depositAmount // ignore: cast_nullable_to_non_nullable
+              as String,
+      deposit: null == deposit
+          ? _value.deposit
+          : deposit // ignore: cast_nullable_to_non_nullable
               as String,
     ));
   }
@@ -106,7 +135,10 @@ class __$$LetsExchangeTransactionImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$LetsExchangeTransactionImpl implements _LetsExchangeTransaction {
-  _$LetsExchangeTransactionImpl({@JsonKey(name: 'transaction_id') required this.transactionId});
+  _$LetsExchangeTransactionImpl(
+      {@JsonKey(name: 'transaction_id') required this.transactionId,
+      @JsonKey(name: 'deposit_amount') required this.depositAmount,
+      required this.deposit});
 
   factory _$LetsExchangeTransactionImpl.fromJson(Map<String, dynamic> json) =>
       _$$LetsExchangeTransactionImplFromJson(json);
@@ -114,10 +146,15 @@ class _$LetsExchangeTransactionImpl implements _LetsExchangeTransaction {
   @override
   @JsonKey(name: 'transaction_id')
   final String transactionId;
+  @override
+  @JsonKey(name: 'deposit_amount')
+  final String depositAmount;
+  @override
+  final String deposit;
 
   @override
   String toString() {
-    return 'LetsExchangeTransaction(transactionId: $transactionId)';
+    return 'LetsExchangeTransaction(transactionId: $transactionId, depositAmount: $depositAmount, deposit: $deposit)';
   }
 
   @override
@@ -126,12 +163,15 @@ class _$LetsExchangeTransactionImpl implements _LetsExchangeTransaction {
         (other.runtimeType == runtimeType &&
             other is _$LetsExchangeTransactionImpl &&
             (identical(other.transactionId, transactionId) ||
-                other.transactionId == transactionId));
+                other.transactionId == transactionId) &&
+            (identical(other.depositAmount, depositAmount) ||
+                other.depositAmount == depositAmount) &&
+            (identical(other.deposit, deposit) || other.deposit == deposit));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, transactionId);
+  int get hashCode => Object.hash(runtimeType, transactionId, depositAmount, deposit);
 
   /// Create a copy of LetsExchangeTransaction
   /// with the given fields replaced by the non-null parameter values.
@@ -151,8 +191,9 @@ class _$LetsExchangeTransactionImpl implements _LetsExchangeTransaction {
 
 abstract class _LetsExchangeTransaction implements LetsExchangeTransaction {
   factory _LetsExchangeTransaction(
-          {@JsonKey(name: 'transaction_id') required final String transactionId}) =
-      _$LetsExchangeTransactionImpl;
+      {@JsonKey(name: 'transaction_id') required final String transactionId,
+      @JsonKey(name: 'deposit_amount') required final String depositAmount,
+      required final String deposit}) = _$LetsExchangeTransactionImpl;
 
   factory _LetsExchangeTransaction.fromJson(Map<String, dynamic> json) =
       _$LetsExchangeTransactionImpl.fromJson;
@@ -160,6 +201,11 @@ abstract class _LetsExchangeTransaction implements LetsExchangeTransaction {
   @override
   @JsonKey(name: 'transaction_id')
   String get transactionId;
+  @override
+  @JsonKey(name: 'deposit_amount')
+  String get depositAmount;
+  @override
+  String get deposit;
 
   /// Create a copy of LetsExchangeTransaction
   /// with the given fields replaced by the non-null parameter values.

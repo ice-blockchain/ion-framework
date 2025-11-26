@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
@@ -97,23 +98,20 @@ class SwapCoinsController extends _$SwapCoinsController {
     required String userSellAddress,
     required String userBuyAddress,
     required OnVerifyIdentitySwapCallback onVerifyIdentitySwapCallback,
+    required VoidCallback onSwapSuccess,
+    required VoidCallback onSwapError,
   }) async {
     final sellNetwork = state.sellNetwork;
     final buyNetwork = state.buyNetwork;
     final sellCoinGroup = state.sellCoin;
     final buyCoinGroup = state.buyCoin;
 
-    if (sellCoinGroup == null ||
-        buyCoinGroup == null ||
-        sellNetwork == null ||
-        buyNetwork == null) {
+    if (sellCoinGroup == null || buyCoinGroup == null || sellNetwork == null || buyNetwork == null) {
       return;
     }
 
-    final sellCoin =
-        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-    final buyCoin =
-        buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
+    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final buyCoin = buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
 
     if (sellCoin == null || buyCoin == null) {
       return;
@@ -125,7 +123,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         // TODO(ice-erebus): actual data
         swapCoinData: SwapCoinParameters(
           isBridge: buyCoinGroup == sellCoinGroup,
-          amount: '10',
+          amount: '0.1',
           buyCoinContractAddress: buyCoin.coin.contractAddress,
           sellCoinContractAddress: sellCoin.coin.contractAddress,
           buyCoinNetworkName: buyNetwork.displayName,
@@ -144,18 +142,28 @@ class SwapCoinsController extends _$SwapCoinsController {
         sendCoinCallback: ({
           required String depositAddress,
           required num amount,
-        }) =>
-            _sendCoinCallback(
-          depositAddress: depositAddress,
-          amount: amount,
-          onVerifyIdentitySwapCallback: onVerifyIdentitySwapCallback,
-          memo: sellNetwork.isMemoSupported ? 'Online' : null,
-          sellAddress: userSellAddress,
-          sellNetwork: sellNetwork,
-          sellCoin: sellCoin,
-        ),
+        }) async {
+          try {
+            await _sendCoinCallback(
+              depositAddress: depositAddress,
+              amount: amount,
+              onVerifyIdentitySwapCallback: onVerifyIdentitySwapCallback,
+              memo: sellNetwork.isMemoSupported ? 'Online' : null,
+              sellAddress: userSellAddress,
+              sellNetwork: sellNetwork,
+              sellCoin: sellCoin,
+            );
+
+            onSwapSuccess();
+          } catch (e) {
+            onSwapError();
+            rethrow;
+          }
+        },
       );
     } catch (e) {
+      onSwapError();
+
       throw Exception(
         'Failed to swap coins: $e',
       );
@@ -175,16 +183,20 @@ class SwapCoinsController extends _$SwapCoinsController {
   }) async {
     final walletView = await ref.read(walletViewByAddressProvider(sellAddress).future);
 
+    final wallets = await ref.read(
+      walletViewCryptoWalletsProvider(walletViewId: walletView?.id).future,
+    );
+
+    final senderWallet = wallets.firstWhereOrNull(
+      (wallet) => wallet.network == sellNetwork.id,
+    );
+
     final networkFeeInfo = await ref.read(
       networkFeeProvider(
-        walletId: walletView?.id,
+        walletId: senderWallet?.id,
         network: sellNetwork,
         transferredCoin: sellCoin.coin,
       ).future,
-    );
-
-    final wallets = await ref.read(
-      walletViewCryptoWalletsProvider(walletViewId: walletView?.id).future,
     );
 
     await onVerifyIdentitySwapCallback(
@@ -194,6 +206,8 @@ class SwapCoinsController extends _$SwapCoinsController {
         assetData: CryptoAssetToSendData.coin(
           coinsGroup: state.sellCoin!,
           amount: amount.toDouble(),
+          associatedAssetWithSelectedOption: networkFeeInfo?.sendableAsset,
+          selectedOption: sellCoin,
         ),
         memo: memo,
         walletView: walletView,
@@ -201,9 +215,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         networkFeeOptions: networkFeeInfo?.networkFeeOptions ?? [],
         selectedNetworkFeeOption: networkFeeInfo?.networkFeeOptions.firstOrNull,
         networkNativeToken: networkFeeInfo?.networkNativeToken,
-        senderWallet: wallets.firstWhereOrNull(
-          (wallet) => wallet.network == sellNetwork.id,
-        ),
+        senderWallet: senderWallet,
       ),
     );
   }
