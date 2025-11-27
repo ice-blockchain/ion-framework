@@ -27,13 +27,7 @@ Future<SecurityMethods> securityAccountController(Ref ref) async {
 }
 
 @riverpod
-Future<bool> is2FAEnabledForCurrentUser(Ref ref) async {
+Future<bool> isCurrentUserSecured(Ref ref) async {
   final securityMethodsState = await ref.watch(securityAccountControllerProvider.future);
-  return securityMethodsState.enabledTypes.isNotEmpty;
-}
-
-@riverpod
-Future<bool> isBackupEnabledForCurrentUser(Ref ref) async {
-  final securityMethodsState = await ref.watch(securityAccountControllerProvider.future);
-  return securityMethodsState.isBackupEnabled;
+  return securityMethodsState.enabledTypes.isNotEmpty && securityMethodsState.isBackupEnabled;
 }

@@ -7,11 +7,11 @@ import 'package:ion/app/components/card/info_card.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/features/protect_account/hooks/use_go_to_secure_account_options.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class RecoveryKeysSuccessPage extends ConsumerWidget {
+class RecoveryKeysSuccessPage extends HookConsumerWidget {
   const RecoveryKeysSuccessPage({
     super.key,
   });
@@ -19,6 +19,7 @@ class RecoveryKeysSuccessPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = context.i18n;
+    final goToSecureAccountOptions = usePopToSecureAccountOptions(ref);
 
     return SheetContent(
       body: Column(
@@ -40,7 +41,7 @@ class RecoveryKeysSuccessPage extends ConsumerWidget {
           ),
           ScreenSideOffset.large(
             child: Button(
-              onPressed: () => SecureAccountOptionsRoute().replace(context),
+              onPressed: goToSecureAccountOptions,
               label: Text(locale.button_back_to_security),
               mainAxisSize: MainAxisSize.max,
             ),

@@ -7,16 +7,17 @@ import 'package:ion/app/components/card/info_card.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/features/protect_account/hooks/use_go_to_secure_account_options.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class AuthenticatorDeleteSuccessPage extends ConsumerWidget {
+class AuthenticatorDeleteSuccessPage extends HookConsumerWidget {
   const AuthenticatorDeleteSuccessPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = context.i18n;
+    final goToSecureAccountOptions = usePopToSecureAccountOptions(ref);
 
     return SheetContent(
       body: Column(
@@ -40,7 +41,7 @@ class AuthenticatorDeleteSuccessPage extends ConsumerWidget {
             child: Button(
               mainAxisSize: MainAxisSize.max,
               label: Text(locale.button_back_to_security),
-              onPressed: () => SecureAccountOptionsRoute().replace(context),
+              onPressed: goToSecureAccountOptions,
             ),
           ),
           ScreenBottomOffset(margin: 16.0.s),
