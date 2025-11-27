@@ -1049,5 +1049,26 @@
   "who_can_reply_settings_title_story": "Bu hikayeye kim yanıtlayabilir",
   "who_can_reply_settings_title_video": "Bu videoya kim yanıtlayabilir",
   "who_can_reply_settings_verified_accounts": "Doğrulanmış hesaplar",
-  "write_a_message": "Mesaj yazın..."
+  "write_a_message": "Mesaj yazın...",
+  "chart_label": "Grafik",
+  "chart_stats_volume": "Hacim",
+  "chart_stats_buys": "Alışlar",
+  "chart_stats_sells": "Satışlar",
+  "chart_stats_net_buy": "Net alış",
+  "latest_trades_title": "En son işlemler",
+  "trade_buy": "AL",
+  "trade_sell": "SAT",
+  "your_position_card_title": "Pozisyonun",
+  "tokenized_community_chart_tab": "Grafik",
+  "tokenized_community_holders_tab": "Sahipler",
+  "tokenized_community_trades_tab": "İşlemler",
+  "tokenized_community_comments_tab": "Yorumlar",
+  "top_holders_title": "En büyük sahipler ({count})",
+  "@top_holders_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
