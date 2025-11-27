@@ -102,7 +102,8 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
         await _sendFollowListToFollowees(
           followList: followList,
           userMetadata: userMetadata,
-          userDelegationEvent: userDelegationEvent,
+          userDelegationEvent: userDelegationEvent ??
+              await (await ref.read(currentUserDelegationProvider.future))?.toEntityEventMessage(),
         );
       },
     );
