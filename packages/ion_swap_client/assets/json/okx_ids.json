@@ -1,0 +1,11 @@
+[
+  { "name": "Avalanche", "networkId": 43114 },
+  { "name": "Arbitrum One", "networkId": 42161 },
+  { "name": "Optimism", "networkId": 10 },
+  { "name": "Polygon", "networkId": 137 },
+  { "name": "Solana", "networkId": 501 },
+  { "name": "Base", "networkId": 8453 },
+  { "name": "Ton", "networkId": 607 },
+  { "name": "Tron", "networkId": 195 },
+  { "name": "Ethereum", "networkId": 1 }
+]

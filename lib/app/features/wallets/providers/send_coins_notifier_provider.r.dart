@@ -48,15 +48,18 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
     return null;
   }
 
-  Future<void> send(OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity) async {
+  Future<void> send(
+    OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity, [
+    SendAssetFormData? sendAssetFormData,
+  ]) async {
     if (state.isLoading) return;
 
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
-      final form = ref.read(sendAssetFormControllerProvider);
+      final form = sendAssetFormData ?? ref.read(sendAssetFormControllerProvider);
 
-      final coinAssetData = _extractCoinAssetData(form);
+      final coinAssetData = _extractCoinAssetData(form!);
       final (senderWallet, sendableAsset, selectedOption) =
           _validateFormComponents(form, coinAssetData);
 
