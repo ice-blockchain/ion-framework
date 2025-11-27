@@ -1,56 +1,42 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/nothing_is_found/nothing_is_found.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
-import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list_item.dart';
-import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list_skeleton.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-class CreatorTokensList extends HookConsumerWidget {
+class CreatorTokensList extends StatelessWidget {
   const CreatorTokensList({
-    required this.pubkey,
-    required this.tabType,
+    required this.items,
+    required this.isInitialLoading,
     super.key,
   });
 
-  final String pubkey;
-  final CreatorTokensTabType tabType;
+  final List<CommunityToken> items;
+  final bool isInitialLoading;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // TODO: Replace followListProvider with creator tokens category provider
-    // Using followeePubkeys as temporary mock data
-    final items = ref.watch(followListProvider(pubkey)).valueOrNull?.masterPubkeys;
-
-    if (items == null) {
+  Widget build(BuildContext context) {
+    if (isInitialLoading && items.isEmpty) {
       return const SliverToBoxAdapter(
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: CreatorTokensListSkeleton(),
       );
     }
 
     if (items.isEmpty) {
-      return SliverToBoxAdapter(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(32.0.s),
-            child: const Text('No creator tokens found'),
-          ),
-        ),
-      );
+      return const NothingIsFound();
     }
 
     return SliverList.builder(
       itemCount: items.length,
       itemBuilder: (context, index) {
-        final itemPubkey = items[index];
+        final token = items[index];
         return ScreenSideOffset.small(
           child: CreatorTokensListItem(
-            key: ValueKey(itemPubkey),
-            pubkey: itemPubkey,
+            key: ValueKey(token.addresses.ionConnect),
+            token: token,
           ),
         );
       },

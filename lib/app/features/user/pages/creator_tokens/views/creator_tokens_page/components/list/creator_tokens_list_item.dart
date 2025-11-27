@@ -5,41 +5,35 @@ import 'package:flutter_svg/svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class CreatorTokensListItem extends ConsumerWidget {
   const CreatorTokensListItem({
-    required this.pubkey,
+    required this.token,
     super.key,
   });
 
-  final String pubkey;
+  final CommunityToken token;
 
   static double get itemHeight => 35.0.s;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final displayName = ref.watch(
-      userPreviewDataProvider(pubkey).select(userPreviewDisplayNameSelector),
-    );
-
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
       child: BadgesUserListItem(
-        title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
-        trailing: const _TokenPriceLabel(
-          //TODO: replace mock data
-          price: 0.14,
+        title: Text(token.creator.display, strutStyle: const StrutStyle(forceStrutHeight: true)),
+        trailing: _TokenPriceLabel(
+          price: token.marketData.priceUSD,
         ),
-        subtitle: const _CreatorStatsWidget(
-          //TODO: replace mock data
-          amount: 54757440,
-          transactions: 134231,
-          groups: 43400,
+        subtitle: _CreatorStatsWidget(
+          marketCap: token.marketData.marketCap,
+          volume: token.marketData.volume,
+          holders: token.marketData.holders,
         ),
-        masterPubkey: pubkey,
+        masterPubkey: token.creator.ionConnect,
       ),
     );
   }
@@ -81,14 +75,14 @@ class _TokenPriceLabel extends StatelessWidget {
 
 class _CreatorStatsWidget extends StatelessWidget {
   const _CreatorStatsWidget({
-    required this.amount,
-    required this.transactions,
-    required this.groups,
+    required this.marketCap,
+    required this.volume,
+    required this.holders,
   });
 
-  final int amount;
-  final int transactions;
-  final int groups;
+  final double marketCap;
+  final double volume;
+  final int holders;
 
   @override
   Widget build(BuildContext context) {
@@ -100,12 +94,12 @@ class _CreatorStatsWidget extends StatelessWidget {
     );
 
     final stats = [
-      (icon: Assets.svg.iconMemeMarketcap, value: formatCount(amount)),
-      (icon: Assets.svg.iconMemeMarkers, value: formatCount(transactions)),
+      (icon: Assets.svg.iconMemeMarketcap, value: formatCount(marketCap.toInt())),
+      (icon: Assets.svg.iconMemeMarkers, value: formatCount(volume.toInt())),
       (
         icon: Assets.svg.iconSearchGroups,
         value: formatDouble(
-          groups.toDouble(),
+          holders.toDouble(),
           minimumFractionDigits: 0,
         )
       ),

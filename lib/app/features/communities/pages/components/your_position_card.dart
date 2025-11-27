@@ -50,9 +50,9 @@ class YourPositionCard extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ProfileAvatar(
-                    size: 43.0.s,
                     pubkey: masterPubkey,
                     profileMode: ProfileMode.dark,
+                    size: 49.s,
                   ),
                   SizedBox(width: 10.s),
                   Column(
