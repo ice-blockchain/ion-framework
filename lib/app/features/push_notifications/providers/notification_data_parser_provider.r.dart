@@ -4,6 +4,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/conversation_identifier.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
+import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -23,7 +28,7 @@ class NotificationParsedData {
     required this.notificationType,
     this.avatar,
     this.media,
-    this.conversationId,
+    this.groupKey,
   });
 
   final String title;
@@ -31,7 +36,7 @@ class NotificationParsedData {
   final PushNotificationType notificationType;
   final String? avatar;
   final String? media;
-  final String? conversationId;
+  final String? groupKey;
 }
 
 class NotificationDataParser {
@@ -103,8 +108,9 @@ class NotificationDataParser {
 
     final (avatar, media) = await data.getMediaPlaceholders();
 
-    final conversationId =
-        notificationType.isChat ? await _getConversationId(data.decryptedEvent) : null;
+    final groupKey = notificationType.isChat
+        ? await _getConversationId(data.decryptedEvent)
+        : _getNotificationGroupKey(data.mainEntity);
 
     return NotificationParsedData(
       title: result.title,
@@ -112,8 +118,45 @@ class NotificationDataParser {
       avatar: avatar,
       media: media,
       notificationType: notificationType,
-      conversationId: conversationId,
+      groupKey: groupKey,
     );
+  }
+
+  /// Gets the group key for a notification based on the entity type.
+  /// For reactions, reposts, and quotes, use the target entity's reference.
+  /// For other entities, use the entity's own reference.
+  String _getNotificationGroupKey(IonConnectEntity entity) {
+    if (entity is ReactionEntity) {
+      // For reactions, use the event being reacted to
+      return entity.data.eventReference.toString();
+    } else if (entity is GenericRepostEntity) {
+      // For reposts, use the event being reposted
+      return entity.data.eventReference.toString();
+    } else if (entity is RepostEntity) {
+      // For reposts, use the event being reposted
+      return entity.data.eventReference.toString();
+    } else if (entity is ModifiablePostEntity) {
+      // Check if this is a quote or reply
+      if (entity.data.quotedEvent != null) {
+        // For quotes, use the quoted event's reference
+        return entity.data.quotedEvent!.eventReference.toString();
+      } else if (entity.data.parentEvent != null) {
+        // For replies, use the parent event's reference
+        return entity.data.parentEvent!.eventReference.toString();
+      }
+    } else if (entity is PostEntity) {
+      // Check if this is a quote or reply
+      if (entity.data.quotedEvent != null) {
+        // For quotes, use the quoted event's reference
+        return entity.data.quotedEvent!.eventReference.toString();
+      } else if (entity.data.parentEvent != null) {
+        // For replies, use the parent event's reference
+        return entity.data.parentEvent!.eventReference.toString();
+      }
+    }
+
+    // For all other cases (follows, mentions, content), use the entity's own reference
+    return entity.toEventReference().toString();
   }
 
   Future<String?> _getConversationId(EventMessage? event) async {

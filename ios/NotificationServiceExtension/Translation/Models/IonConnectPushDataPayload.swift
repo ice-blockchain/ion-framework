@@ -165,6 +165,33 @@ class IonConnectPushDataPayload: Decodable {
         return try? EventParser.parse(event)
     }
 
+    /// Check if this notification is about a self-interaction (user interacting with their own content)
+    func isSelfInteraction(currentPubkey: String) -> Bool {
+        guard let entity = mainEntity else {
+            return false
+        }
+        
+        if entity.masterPubkey == currentPubkey {
+            if entity is ReactionEntity ||
+               entity is GenericRepostEntity ||
+               entity is RepostEntity {
+                return true
+            }
+            
+            if let modifiablePost = entity as? ModifiablePostEntity,
+               modifiablePost.data.quotedEvent != nil || modifiablePost.data.parentEvent != nil {
+                return true
+            }
+            
+            if let post = entity as? PostEntity,
+               post.data.quotedEvent != nil || post.data.parentEvent != nil {
+                return true
+            }
+        }
+        
+        return false
+    }
+
     func getNotificationType(currentPubkey: String, keysStorage: KeysStorage) -> PushNotificationType? {
         guard let entity = mainEntity else {
             return nil

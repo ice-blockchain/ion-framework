@@ -37,6 +37,15 @@ class PostEntity: IonConnectEntity {
             data: PostData.fromEventMessage(eventMessage)
         )
     }
+    
+    func toEventReference() -> EventReference {
+        return ImmutableEventReference(
+            id: id,
+            pubkey: pubkey,
+            kind: PostEntity.kind,
+            masterPubkey: masterPubkey
+        )
+    }
 }
 
 struct PostData {

@@ -45,4 +45,13 @@ struct FollowListEntity: IonConnectEntity {
             pubkeys: pubkeys
         )
     }
+    
+    func toEventReference() -> EventReference {
+        return ImmutableEventReference(
+            id: id,
+            pubkey: pubkey,
+            kind: FollowListEntity.kind,
+            masterPubkey: masterPubkey
+        )
+    }
 }
