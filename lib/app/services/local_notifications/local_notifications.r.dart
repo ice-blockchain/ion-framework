@@ -58,14 +58,14 @@ class LocalNotificationsService {
     String? payload,
     String? icon,
     String? attachment,
-    String? conversationId,
+    String? groupKey,
   }) async {
     final notificationDetails = await _buildNotificationDetails(
       avatarUrl: icon,
       attachmentUrl: attachment,
       userName: title,
       textMessage: body,
-      conversationId: conversationId,
+      groupKey: groupKey,
     );
 
     await _plugin.show(
@@ -107,7 +107,7 @@ class LocalNotificationsService {
     String? attachmentUrl,
     String? userName,
     String? textMessage,
-    String? conversationId,
+    String? groupKey,
   }) async {
     Person? messagePerson;
     String? avatarFilePath;
@@ -151,8 +151,8 @@ class LocalNotificationsService {
       largeIcon: attachmentFilePath != null ? FilePathAndroidBitmap(attachmentFilePath) : null,
       styleInformation: styleInformation,
       shortcutId: const Uuid().v4(),
-      groupKey: conversationId ?? userName,
-      tag: conversationId,
+      groupKey: groupKey ?? userName,
+      tag: groupKey,
     );
 
     final iOSPerson = DarwinCommunicationPerson(
@@ -162,7 +162,7 @@ class LocalNotificationsService {
     );
 
     final iOSPlatformChannelSpecifics = DarwinCommunicationNotificationDetails(
-      conversationIdentifier: conversationId ?? userName ?? 'ion_miscellaneous',
+      conversationIdentifier: groupKey ?? userName ?? 'ion_miscellaneous',
       messages: [
         DarwinCommunicationMessage(
           text: textMessage ?? '',

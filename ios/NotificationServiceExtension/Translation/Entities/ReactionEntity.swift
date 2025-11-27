@@ -86,4 +86,13 @@ struct ReactionEntity: IonConnectEntity {
             data: try ReactionData.fromEventMessage(eventMessage)
         )
     }
+    
+    func toEventReference() -> EventReference {
+        return ImmutableEventReference(
+            id: id,
+            pubkey: pubkey,
+            kind: ReactionEntity.kind,
+            masterPubkey: masterPubkey
+        )
+    }
 }

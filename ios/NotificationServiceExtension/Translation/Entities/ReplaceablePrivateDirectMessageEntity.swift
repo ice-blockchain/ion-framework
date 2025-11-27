@@ -7,6 +7,7 @@ import UIKit
 struct ReplaceablePrivateDirectMessageData {
     let content: String
     let recipient: String
+    let messageId: String
     let media: [MediaItem]
     let relatedPubkeys: [RelatedPubkey]?
     let primaryAudio: MediaItem?
@@ -20,6 +21,7 @@ struct ReplaceablePrivateDirectMessageData {
     init(
         content: String,
         recipient: String,
+        messageId: String,
         media: [MediaItem] = [],
         relatedPubkeys: [RelatedPubkey]? = nil,
         primaryAudio: MediaItem? = nil,
@@ -30,6 +32,7 @@ struct ReplaceablePrivateDirectMessageData {
     ) {
         self.content = content
         self.recipient = recipient
+        self.messageId = messageId
         self.media = media
         self.relatedPubkeys = relatedPubkeys
         self.primaryAudio = primaryAudio
@@ -56,6 +59,11 @@ struct ReplaceablePrivateDirectMessageData {
         var recipient = ""
         if let pTags = tagsByType["p"], !pTags.isEmpty, pTags[0].count >= 2 {
             recipient = pTags[0][1]
+        }
+        
+        var messageId = ""
+        if let dTags = tagsByType["d"], !dTags.isEmpty, dTags[0].count >= 2 {
+            messageId = dTags[0][1]
         }
 
         let mediaItems = MediaItem.parseImeta(tagsByType["imeta"])
@@ -96,6 +104,7 @@ struct ReplaceablePrivateDirectMessageData {
         return ReplaceablePrivateDirectMessageData(
             content: content,
             recipient: recipient,
+            messageId: messageId,
             media: mediaItems,
             relatedPubkeys: relatedPubkeys,
             primaryAudio: primaryAudio,
@@ -194,6 +203,14 @@ struct ReplaceablePrivateDirectMessageEntity: IonConnectEntity {
             signature: eventMessage.sig ?? "",
             createdAt: eventMessage.createdAt,
             data: ReplaceablePrivateDirectMessageData.fromEventMessage(eventMessage)
+        )
+    }
+    
+    func toEventReference() -> EventReference {
+        return ReplaceableEventReference(
+            masterPubkey: masterPubkey,
+            kind: ReplaceablePrivateDirectMessageEntity.kind,
+            dTag: data.messageId
         )
     }
 }

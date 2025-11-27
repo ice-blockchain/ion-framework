@@ -13,12 +13,14 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
+import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
@@ -26,6 +28,7 @@ import 'package:ion/app/features/push_notifications/data/models/ion_connect_push
 import 'package:ion/app/features/push_notifications/providers/app_translations_provider.m.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_data_parser_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
@@ -119,7 +122,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   final data = await IonConnectPushDataPayload.fromEncoded(
     message.data,
-    unwrapGift: (eventMassage) async {
+    unwrapGift: (eventMessage) async {
       final messageContainer = ProviderContainer(
         observers: [Logger.talkerRiverpodObserver],
         overrides: [
@@ -178,7 +181,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           },
         );
 
-        final event = await giftUnwrapService.unwrap(eventMassage, validate: false);
+        final event = await giftUnwrapService.unwrap(eventMessage, validate: false);
         Logger.log('☁️ Background push notification unwrap event: $event');
 
         final cachedEntity = await messageContainer
@@ -222,6 +225,32 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       }
     },
   );
+
+  // Skip notification if it's user's own gift wrap
+  if (_shouldSkipOwnGiftWrap(data: data, currentPubkey: currentUserPubkeyFromStorage)) {
+    Logger.log('☁️ Background push notification: Skipping own gift wrap');
+    backgroundContainer.dispose();
+    return;
+  }
+
+  // Skip notifications for self-interactions (e.g., quoting/reposting own content)
+  if (currentUserPubkeyFromStorage != null &&
+      data.isSelfInteraction(currentPubkey: currentUserPubkeyFromStorage)) {
+    Logger.log('☁️ Background push notification: Skipping self-interaction');
+    backgroundContainer.dispose();
+    return;
+  }
+
+  // Skip notifications from muted users or muted conversations
+  if (_shouldSkipMutedNotification(
+    data: data,
+    currentPubkey: currentUserPubkeyFromStorage,
+    backgroundContainer: backgroundContainer,
+  )) {
+    Logger.log('☁️ Background push notification: Skipping muted user/conversation');
+    backgroundContainer.dispose();
+    return;
+  }
 
   // Build a dedicated container for parsing that has the current pubkey override,
   // so providers that need it (e.g., wallets DB) can resolve in a background isolate.
@@ -308,7 +337,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   final avatar = parsedData?.avatar;
   final media = parsedData?.media;
-  final conversationId = parsedData?.conversationId;
+  final groupKey = parsedData?.groupKey;
 
   await notificationsService.showNotification(
     title: title,
@@ -316,10 +345,82 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     payload: jsonEncode(message.data),
     icon: avatar,
     attachment: media,
-    conversationId: conversationId,
+    groupKey: groupKey,
   );
 
   backgroundContainer.dispose();
+}
+
+/// Check if notification should be skipped because user/conversation is muted
+bool _shouldSkipMutedNotification({
+  required IonConnectPushDataPayload data,
+  required String? currentPubkey,
+  required ProviderContainer backgroundContainer,
+}) {
+  // Check if this is a gift wrap (chat) notification
+  if (data.event.kind != IonConnectGiftWrapEntity.kind) {
+    return false;
+  }
+
+  if (currentPubkey == null) {
+    return false;
+  }
+
+  // Get the sender's pubkey from decrypted event
+  final decryptedEvent = data.decryptedEvent;
+  if (decryptedEvent == null) {
+    return false;
+  }
+
+  final senderPubkey = decryptedEvent.masterPubkey;
+
+  // Create a container to check muted users
+  final mutedCheckContainer = ProviderContainer(
+    observers: [Logger.talkerRiverpodObserver],
+    overrides: [
+      _backgroundCurrentPubkeyOverride(currentPubkey),
+    ],
+  );
+
+  try {
+    // Check if sender is muted
+    final mutedUsers = mutedCheckContainer.read(cachedMutedUsersProvider)?.data.masterPubkeys ?? [];
+    if (mutedUsers.contains(senderPubkey)) {
+      return true;
+    }
+
+    // Check if conversation is muted
+    final mutedConversations = mutedCheckContainer.read(mutedConversationsProvider).valueOrNull;
+    if (mutedConversations != null) {
+      final mutedPubkeys = mutedConversations.data.masterPubkeys;
+      if (mutedPubkeys.contains(senderPubkey)) {
+        return true;
+      }
+    }
+
+    return false;
+  } finally {
+    mutedCheckContainer.dispose();
+  }
+}
+
+/// Check if the gift wrap notification should be skipped because it's from the current user
+bool _shouldSkipOwnGiftWrap({
+  required IonConnectPushDataPayload data,
+  required String? currentPubkey,
+}) {
+  if (currentPubkey == null) {
+    return true;
+  }
+
+  if (data.event.kind == IonConnectGiftWrapEntity.kind) {
+    final decryptedEvent = data.decryptedEvent;
+    if (decryptedEvent != null) {
+      return decryptedEvent.masterPubkey == currentPubkey;
+    }
+  }
+
+  return false;
 }
 
 // Reusable override for background containers that need the current master pubkey.
