@@ -231,6 +231,8 @@ class Auth extends _$Auth {
       ref.read(userSwitchInProgressProvider.notifier).startSwitching();
     }
     ref.read(userSwitchEventProvider.notifier).trigger();
+    // NOTE(ice-linus): Wait for database providers to close old databases
+    // via onUserSwitch before initializing new ones
     await Future<void>.delayed(const Duration(milliseconds: 300));
   }
 }
