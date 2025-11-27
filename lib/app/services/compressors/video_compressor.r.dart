@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/core/model/mime_type.dart';
@@ -28,6 +29,7 @@ import 'package:ion/app/services/media_service/ffmpeg_commands_config.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/media_service/video_info_service.r.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
+import 'package:ion/app/utils/video_codec_detector.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'video_compressor.r.g.dart';
@@ -87,12 +89,16 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     required this.imageCompressor,
     required this.videoInfoService,
     required this.nativeVideoCompressor,
+    required this.videoCodecDetector,
   });
 
   final CompressExecutor compressExecutor;
   final ImageCompressor imageCompressor;
   final VideoInfoService videoInfoService;
   final NativeVideoCompressor nativeVideoCompressor;
+  final VideoCodecDetector videoCodecDetector;
+
+  static const MethodChannel _channel = MethodChannel('ion/video_compression');
 
   String _formatBytes(int bytes) {
     final megabytes = bytes / (1024 * 1024);
@@ -260,38 +266,35 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
   }) async {
     try {
       var thumbPath = thumb;
-      final sessionResultCompleter = Completer<FFmpegSession>();
 
       // If no external thumb was provided, extract a single frame from the video
       if (thumbPath == null) {
         final outputPath = await generateOutputPath();
-        final session = await compressExecutor.execute(
-          FFmpegCommands.extractThumbnail(
-            videoPath: videoFile.path,
-            outputPath: outputPath,
-            timestamp: timestamp ?? '00:00:01.000',
-          ),
-          sessionResultCompleter,
-        );
 
-        await sessionResultCompleter.future;
-
-        final returnCode = await session.getReturnCode();
-        if (!ReturnCode.isSuccess(returnCode)) {
-          final logs = await session.getAllLogsAsString();
-          final videoInfo = await videoInfoService.getVideoInformation(videoFile.path);
-          throw ExtractThumbnailException(
-            returnCode,
-            context: {
-              'video_duration_seconds': videoFile.duration ?? videoInfo.duration.inSeconds,
-              'video_resolution': '${videoInfo.width}x${videoInfo.height}',
-              'thumbnail_timestamp': timestamp,
-              'ffmpeg_return_code': returnCode?.toString(),
-              'ffmpeg_logs': logs,
-            },
+        // Check if video is AV1 and use native Android method as fallback
+        final isAV1 = await videoCodecDetector.isAV1Video(videoFile.path);
+        if (isAV1 && Platform.isAndroid) {
+          try {
+            await _extractThumbnailNative(videoFile.path, outputPath, timestamp);
+            thumbPath = outputPath;
+          } catch (nativeError) {
+            Logger.warning(
+              'Native thumbnail extraction failed for AV1 video, falling back to FFmpeg: $nativeError',
+            );
+            // Fall through to FFmpeg attempt
+            thumbPath = await _extractThumbnailFFmpeg(
+              videoFile.path,
+              outputPath,
+              timestamp,
+            );
+          }
+        } else {
+          thumbPath = await _extractThumbnailFFmpeg(
+            videoFile.path,
+            outputPath,
+            timestamp,
           );
         }
-        thumbPath = outputPath;
       }
 
       final compressedImage = await imageCompressor.compress(
@@ -310,6 +313,84 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
       rethrow;
     }
   }
+
+  Future<String> _extractThumbnailFFmpeg(
+    String videoPath,
+    String outputPath,
+    String? timestamp,
+  ) async {
+    final sessionResultCompleter = Completer<FFmpegSession>();
+    final session = await compressExecutor.execute(
+      FFmpegCommands.extractThumbnail(
+        videoPath: videoPath,
+        outputPath: outputPath,
+        timestamp: timestamp ?? '00:00:01.000',
+      ),
+      sessionResultCompleter,
+    );
+
+    await sessionResultCompleter.future;
+
+    final returnCode = await session.getReturnCode();
+    if (!ReturnCode.isSuccess(returnCode)) {
+      final logs = await session.getAllLogsAsString();
+      final videoInfo = await videoInfoService.getVideoInformation(videoPath);
+      final videoCodec = await videoInfoService.getVideoCodec(videoPath);
+      throw ExtractThumbnailException(
+        returnCode,
+        context: {
+          'video_duration_seconds': videoInfo.duration.inSeconds,
+          'video_resolution': '${videoInfo.width}x${videoInfo.height}',
+          'video_codec': videoCodec ?? 'unknown',
+          'thumbnail_timestamp': timestamp,
+          'ffmpeg_return_code': returnCode?.toString(),
+          'ffmpeg_logs': logs,
+        },
+      );
+    }
+    return outputPath;
+  }
+
+  /// Parses a timestamp string in HH:MM:SS.mmm format to microseconds.
+  /// Returns null if parsing fails.
+  int? _parseTimestampToMicroseconds(String timestamp) {
+    try {
+      // Format: HH:MM:SS.mmm - parse using regex for cleaner extraction
+      final match = RegExp(r'^(\d+):(\d+):(\d+)(?:\.(\d+))?$').firstMatch(timestamp);
+      if (match == null) return null;
+
+      final hours = int.parse(match.group(1)!);
+      final minutes = int.parse(match.group(2)!);
+      final seconds = int.parse(match.group(3)!);
+      final milliseconds = match.group(4) != null ? int.parse(match.group(4)!) : 0;
+
+      return Duration(
+        hours: hours,
+        minutes: minutes,
+        seconds: seconds,
+        milliseconds: milliseconds,
+      ).inMicroseconds;
+    } catch (e) {
+      Logger.warning('Failed to parse timestamp $timestamp: $e');
+      return null;
+    }
+  }
+
+  Future<void> _extractThumbnailNative(
+    String videoPath,
+    String outputPath,
+    String? timestamp,
+  ) async {
+    // Parse timestamp to microseconds, default to 1 second if parsing fails
+    final timeUs =
+        timestamp != null ? _parseTimestampToMicroseconds(timestamp) ?? 1000000 : 1000000;
+
+    await _channel.invokeMethod('extractThumbnail', {
+      'videoPath': videoPath,
+      'outputPath': outputPath,
+      'timeUs': timeUs,
+    });
+  }
 }
 
 @Riverpod(keepAlive: true)
@@ -318,4 +399,5 @@ VideoCompressor videoCompressor(Ref ref) => VideoCompressor(
       imageCompressor: ref.read(imageCompressorProvider),
       videoInfoService: ref.read(videoInfoServiceProvider),
       nativeVideoCompressor: ref.read(nativeVideoCompressorProvider),
+      videoCodecDetector: ref.read(videoCodecDetectorProvider),
     );
