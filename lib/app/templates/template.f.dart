@@ -5,7 +5,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/templates/converters.dart';
 
 part 'template.f.freezed.dart';
-
 part 'template.f.g.dart';
 
 @freezed
@@ -45,11 +44,13 @@ class TemplateColors with _$TemplateColors {
     Color lossRed,
     Color anakiwa,
     Color shadow,
+    Color profitGreen,
   ) = _TemplateColors;
 
   factory TemplateColors.fromJson(Map<String, dynamic> json) => _$TemplateColorsFromJson(json);
 
   factory TemplateColors.empty() => const TemplateColors(
+        Colors.transparent,
         Colors.transparent,
         Colors.transparent,
         Colors.transparent,

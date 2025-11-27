@@ -3,16 +3,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/communities/models/token_header_data.dart';
 import 'package:ion/app/features/communities/utils/formatters.dart';
 import 'package:ion/app/features/communities/utils/position_formatters.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/components/profile_avatar/profile_avatar.dart';
+import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class TokenHeaderComponent extends StatelessWidget {
   const TokenHeaderComponent({
-    required this.data,
+    required this.token,
+    required this.masterPubkey,
     this.onBackPressed,
     this.onBookmarkPressed,
     this.onMorePressed,
@@ -21,7 +23,8 @@ class TokenHeaderComponent extends StatelessWidget {
     super.key,
   });
 
-  final TokenHeaderData data;
+  final CommunityToken? token;
+  final String masterPubkey;
   final VoidCallback? onBackPressed;
   final VoidCallback? onBookmarkPressed;
   final VoidCallback? onMorePressed;
@@ -32,6 +35,10 @@ class TokenHeaderComponent extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.paddingOf(context).top;
 
+    if (token == null) {
+      return const SizedBox.shrink();
+    }
+
     return SizedBox(
       height: 316.0.s,
       child: Stack(
@@ -41,19 +48,19 @@ class TokenHeaderComponent extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(height: statusBarHeight + 12.0.s),
-                const _TokenIcon(),
+                _TokenIcon(masterPubkey: masterPubkey),
                 SizedBox(height: 6.0.s),
                 _TokenInfo(
-                  displayName: data.displayName,
-                  handle: data.handle,
-                  priceUsd: data.priceUsd,
-                  verified: data.verified,
+                  displayName: token!.creator.display,
+                  handle: prefixUsername(username: token!.creator.name, context: context),
+                  priceUsd: token!.marketData.priceUSD,
+                  verified: token!.creator.verified,
                 ),
                 SizedBox(height: 16.0.s),
                 _StatsRow(
-                  marketCapUsd: data.marketCapUsd,
-                  holdersCount: data.holdersCount,
-                  volumeUsd: data.volumeUsd,
+                  marketCapUsd: token!.marketData.marketCap,
+                  holdersCount: token!.marketData.holders,
+                  volumeUsd: token!.marketData.volume,
                   abbreviateCount: abbreviateCount,
                   formatUsd: formatUsd,
                 ),
@@ -67,7 +74,9 @@ class TokenHeaderComponent extends StatelessWidget {
 }
 
 class _TokenIcon extends StatelessWidget {
-  const _TokenIcon();
+  const _TokenIcon({required this.masterPubkey});
+
+  final String masterPubkey;
 
   @override
   Widget build(BuildContext context) {
@@ -76,8 +85,8 @@ class _TokenIcon extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        const ProfileAvatar(
-          pubkey: 'pubkey',
+        ProfileAvatar(
+          pubkey: masterPubkey,
           profileMode: ProfileMode.dark,
         ),
         PositionedDirectional(

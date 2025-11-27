@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/communities/models/latest_trade.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class LatestTradesComponent extends StatelessWidget {
   const LatestTradesComponent({
@@ -13,6 +13,7 @@ class LatestTradesComponent extends StatelessWidget {
     this.maxVisible = 5,
     this.onViewAllPressed,
     this.onTapTrade,
+    this.onLoadMore,
     super.key,
   });
 
@@ -20,6 +21,7 @@ class LatestTradesComponent extends StatelessWidget {
   final int maxVisible;
   final VoidCallback? onViewAllPressed;
   final ValueChanged<LatestTrade>? onTapTrade;
+  final VoidCallback? onLoadMore;
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +74,18 @@ class LatestTradesComponent extends StatelessWidget {
                   ),
               ],
             ),
+            if (onLoadMore != null) ...[
+              SizedBox(height: 12.0.s),
+              Center(
+                child: TextButton(
+                  onPressed: onLoadMore,
+                  child: Text(
+                    'Load More',
+                    style: texts.caption.copyWith(color: colors.primaryAccent),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -90,11 +104,13 @@ class _TradeRow extends StatelessWidget {
     final texts = context.theme.appTextThemes;
     final i18n = context.i18n;
 
-    final timeText = formatShortTimestamp(trade.time, context: context);
-    final amountText = formatDoubleCompact(trade.amount);
-    final usdText = formatUSD(trade.usd);
-    final badgeColor = trade.side == TradeSide.buy ? colors.success : colors.lossRed;
-    final badgeText = trade.side == TradeSide.buy ? i18n.trade_buy : i18n.trade_sell;
+    //TODO: change type to int
+    final timeText = formatShortTimestamp(DateTime.parse(trade.position.createdAt));
+    final amountText = formatDoubleCompact(trade.position.amount);
+    final usdText = formatUSD(trade.position.amountUSD);
+    //TODO: use enum
+    final badgeColor = trade.position.type == 'buy' ? colors.success : colors.lossRed;
+    final badgeText = trade.position.type == 'buy' ? i18n.trade_buy : i18n.trade_sell;
 
     final badge = Container(
       padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 1.0.s),
@@ -107,7 +123,7 @@ class _TradeRow extends StatelessWidget {
     );
 
     return InkWell(
-      onTap: () => onTap?.call(trade),
+      onTap: onTap == null ? null : () => onTap!(trade),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 6.0.s),
         child: Row(
@@ -115,12 +131,13 @@ class _TradeRow extends StatelessWidget {
           children: [
             Row(
               children: [
-                _Avatar(url: trade.avatarUrl),
+                _Avatar(url: trade.position.holder.avatar),
                 SizedBox(width: 8.0.s),
                 _TitleAndMeta(
-                  name: trade.displayName,
-                  handle: trade.handle,
-                  verified: trade.verified,
+                  name: trade.position.holder.display,
+                  handle: trade.position.holder.name,
+                  //TODO: add verified
+                  verified: true,
                   meta: '$amountText • \$$usdText • $timeText',
                 ),
               ],
@@ -171,18 +188,16 @@ class _TitleAndMeta extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          spacing: 4.0.s,
           children: [
-            Text(
-              name,
-              style: texts.subtitle3.copyWith(color: colors.primaryText),
-            ),
-            if (handle.isNotEmpty)
-              Text(
-                handle,
-                style: texts.caption2.copyWith(color: colors.quaternaryText),
-              ),
-            if (verified) Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
+            Text(name, style: texts.subtitle3.copyWith(color: colors.primaryText)),
+            if (handle.isNotEmpty) ...[
+              SizedBox(width: 4.0.s),
+              Text(handle, style: texts.caption2.copyWith(color: colors.quaternaryText)),
+            ],
+            if (verified) ...[
+              SizedBox(width: 4.0.s),
+              Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
+            ],
           ],
         ),
         SizedBox(height: 2.0.s),

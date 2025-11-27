@@ -2,9 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/communities/models/top_holder.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class TopHoldersComponent extends StatelessWidget {
   const TopHoldersComponent({
@@ -70,7 +70,7 @@ class TopHoldersComponent extends StatelessWidget {
                   _TopHolderRow(
                     rank: i + 1,
                     holder: visible[i],
-                    amountText: _formatAmount(visible[i].amount),
+                    amountText: _formatAmount(visible[i].position.amount),
                     onTap: onTapHolder,
                   ),
               ],
@@ -113,7 +113,7 @@ class _TopHolderRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(12.0.s),
       ),
       child: Text(
-        '${holder.percentShare.toStringAsFixed(2)}%',
+        '${holder.position.supplyShare.toStringAsFixed(2)}%',
         style: texts.caption2
             .copyWith(color: colors.primaryText, height: 18 / texts.caption2.fontSize!),
       ),
@@ -130,11 +130,11 @@ class _TopHolderRow extends StatelessWidget {
               children: [
                 _RankBadge(rank: rank),
                 SizedBox(width: 12.0.s),
-                _Avatar(url: holder.avatarUrl),
+                _Avatar(url: holder.position.holder.avatar),
                 SizedBox(width: 8.0.s),
                 _NameAndAmount(
-                  name: holder.displayName,
-                  handle: holder.handle,
+                  name: holder.position.holder.display,
+                  handle: holder.position.holder.name,
                   amountText: amountText,
                 ),
               ],

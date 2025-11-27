@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/communities/utils/formatters.dart';
 
 class ChartStatsComponent extends StatelessWidget {
   const ChartStatsComponent({
@@ -12,6 +11,7 @@ class ChartStatsComponent extends StatelessWidget {
     required this.buysText,
     required this.sellsText,
     required this.netBuyText,
+    required this.isNetBuyPositive,
     required this.onTimeframeTap,
     super.key,
   });
@@ -22,6 +22,7 @@ class ChartStatsComponent extends StatelessWidget {
   final String buysText;
   final String sellsText;
   final String netBuyText;
+  final bool isNetBuyPositive;
   final ValueChanged<int> onTimeframeTap;
 
   @override
@@ -79,7 +80,7 @@ class ChartStatsComponent extends StatelessWidget {
                 _KpiColumn(
                   title: i18n.chart_stats_net_buy,
                   value: netBuyText,
-                  valueColor: colors.success,
+                  valueColor: isNetBuyPositive ? colors.success : colors.lossRed,
                   crossAxisAlignment: CrossAxisAlignment.end,
                 ),
               ],
@@ -132,7 +133,7 @@ class _TimeframeChip extends StatelessWidget {
             ),
             SizedBox(height: 4.0.s),
             Text(
-              formatPercent(data.percent),
+              _formatPercent(data.percent),
               textAlign: TextAlign.center,
               style: texts.body.copyWith(color: changeColor, height: 18 / texts.body.fontSize!),
             ),
@@ -189,4 +190,9 @@ class TimeframeChange {
 
   final String label; // e.g. '5m'
   final double percent; // e.g. -0.55
+}
+
+String _formatPercent(double p) {
+  final sign = p >= 0 ? '+' : '';
+  return '$sign${p.toStringAsFixed(2)}%';
 }

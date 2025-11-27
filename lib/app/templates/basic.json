@@ -32,7 +32,8 @@
         "postContent": "#0F1419",
         "lossRed": "#FF396E",
         "anakiwa": "#91D4FF",
-        "shadow": "#2D62D9"
+        "shadow": "#2D62D9",
+        "profitGreen": "#00FF00"
       },
       "dark": {
         "primaryAccent": "#0166FF",
@@ -65,7 +66,8 @@
         "postContent": "#0F1419",
         "lossRed": "#FF396E",
         "anakiwa": "#91D4FF",
-        "shadow": "#2D62D9"
+        "shadow": "#2D62D9",
+        "profitGreen": "#00FF00"
       }
     },
     "textThemes": {
