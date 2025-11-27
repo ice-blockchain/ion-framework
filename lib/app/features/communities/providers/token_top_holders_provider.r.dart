@@ -3,7 +3,7 @@
 import 'dart:async';
 
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart' as analytics;
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'token_top_holders_provider.r.g.dart';
@@ -11,7 +11,7 @@ part 'token_top_holders_provider.r.g.dart';
 @riverpod
 class TokenTopHolders extends _$TokenTopHolders {
   @override
-  Stream<List<analytics.TopHolder>> build(
+  Stream<List<TopHolder>> build(
     String masterPubkey, {
     required int limit,
   }) async* {
@@ -24,13 +24,13 @@ class TokenTopHolders extends _$TokenTopHolders {
     ref.onDispose(subscription.close);
 
     // Buffer for the initial load
-    final initialItems = <analytics.TopHolder>[];
+    final initialItems = <TopHolder>[];
     var isInitialLoad = true;
-    var currentList = <analytics.TopHolder>[];
+    var currentList = <TopHolder>[];
 
     await for (final newTopHolder in subscription.stream) {
       if (isInitialLoad) {
-        if (newTopHolder is analytics.TopHolderPatch && newTopHolder.isEmpty()) {
+        if (newTopHolder is TopHolderPatch && newTopHolder.isEmpty()) {
           // End of initial load
           isInitialLoad = false;
           currentList = List.from(initialItems);
@@ -39,7 +39,7 @@ class TokenTopHolders extends _$TokenTopHolders {
           yield currentList;
         } else {
           // Accumulate items
-          if (newTopHolder is analytics.TopHolder) {
+          if (newTopHolder is TopHolder) {
             initialItems.add(newTopHolder);
           }
         }
@@ -52,13 +52,13 @@ class TokenTopHolders extends _$TokenTopHolders {
 
         if (existIndex >= 0) {
           final existHolder = currentList[existIndex];
-          if (newTopHolder is analytics.TopHolderPatch) {
+          if (newTopHolder is TopHolderPatch) {
             final patchedHolder = existHolder.merge(newTopHolder);
 
             // Create a new list reference for state update
             currentList = List.from(currentList);
             currentList[existIndex] = patchedHolder;
-          } else if (newTopHolder is analytics.TopHolder) {
+          } else if (newTopHolder is TopHolder) {
             currentList = List.from(currentList);
             currentList[existIndex] = newTopHolder;
           }
@@ -67,8 +67,8 @@ class TokenTopHolders extends _$TokenTopHolders {
           yield currentList;
         } else {
           // New item added after initial load
-          if (newTopHolder is analytics.TopHolder) {
-            final newList = List<analytics.TopHolder>.from(currentList)
+          if (newTopHolder is TopHolder) {
+            final newList = List<TopHolder>.from(currentList)
               ..insert(0, newTopHolder)
               ..sort((a, b) => a.position.rank.compareTo(b.position.rank));
             yield newList;
