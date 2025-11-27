@@ -57,7 +57,7 @@ class ProfilePage extends HookConsumerWidget {
         .watch(featureFlagsProvider.notifier)
         .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
 
-    final profileMode = tokenizedCommunitiesEnabled ? ProfileMode.dark : ProfileMode.light;
+    const profileMode = true ? ProfileMode.dark : ProfileMode.light;
 
     final statusBarHeight = MediaQuery.paddingOf(context).top;
 
@@ -120,7 +120,6 @@ class ProfilePage extends HookConsumerWidget {
       body: CollapsingHeaderTabsLayout(
         backgroundColor: context.theme.appColors.secondaryBackground,
         showBackButton: showBackButton,
-        newUiMode: profileMode == ProfileMode.dark,
         avatarUrl: avatarUrl,
         tabs: UserContentType.values,
         collapsedHeaderBuilder: (opacity) => Header(
