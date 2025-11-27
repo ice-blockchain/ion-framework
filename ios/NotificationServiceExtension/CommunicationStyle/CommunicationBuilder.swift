@@ -10,7 +10,7 @@ struct CommunicationPushData {
     let body: String
     let avatarFilePath: String?
     let attachmentFilePath: String?
-    let conversationId: String?
+    let groupKey: String?
 }
 
 final class CommunicationBuilder {
@@ -20,8 +20,7 @@ final class CommunicationBuilder {
     ) async -> UNMutableNotificationContent? {
         var resultContent = content
 
-        // Use conversationId if available, otherwise fallback to title
-        let conversationIdentifier = communicationPushData.conversationId ?? communicationPushData.title
+        let conversationIdentifier = communicationPushData.groupKey ?? communicationPushData.title
         let groupName = communicationPushData.title
         resultContent.threadIdentifier = conversationIdentifier
 

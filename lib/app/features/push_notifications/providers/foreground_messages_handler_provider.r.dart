@@ -7,12 +7,14 @@ import 'package:go_router/go_router.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
+import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/push_notifications/data/models/ion_connect_push_data_payload.f.dart';
 import 'package:ion/app/features/push_notifications/providers/configure_firebase_app_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_data_parser_provider.r.dart';
+import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/firebase/firebase_messaging_service_provider.r.dart';
@@ -55,6 +57,17 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
       return;
     }
 
+    // Skip notifications for self-interactions (e.g., quoting/reposting own content)
+    final currentPubkey = ref.read(currentPubkeySelectorProvider);
+    if (currentPubkey != null && data.isSelfInteraction(currentPubkey: currentPubkey)) {
+      return;
+    }
+
+    // Skip notifications from muted users or muted conversations
+    if (_shouldSkipMutedNotification(data)) {
+      return;
+    }
+
     final parser = await ref.read(notificationDataParserProvider.future);
     final parsedData = await parser.parse(
       data,
@@ -87,8 +100,40 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
       payload: jsonEncode(response.data),
       icon: avatar,
       attachment: media,
-      conversationId: parsedData?.conversationId,
+      groupKey: parsedData?.groupKey,
     );
+  }
+
+  bool _shouldSkipMutedNotification(IonConnectPushDataPayload data) {
+    // Check if this is a gift wrap (chat) notification
+    if (data.event.kind != IonConnectGiftWrapEntity.kind) {
+      return false;
+    }
+
+    // Get the sender's pubkey from decrypted event
+    final decryptedEvent = data.decryptedEvent;
+    if (decryptedEvent == null) {
+      return false;
+    }
+
+    final senderPubkey = decryptedEvent.masterPubkey;
+
+    // Check if sender is muted
+    final mutedUsers = ref.read(cachedMutedUsersProvider)?.data.masterPubkeys ?? [];
+    if (mutedUsers.contains(senderPubkey)) {
+      return true;
+    }
+
+    // Check if conversation is muted
+    final mutedConversations = ref.read(mutedConversationsProvider).valueOrNull;
+    if (mutedConversations != null) {
+      final mutedPubkeys = mutedConversations.data.masterPubkeys;
+      if (mutedPubkeys.contains(senderPubkey)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   Future<bool> _shouldSkipOwnGiftWrap({

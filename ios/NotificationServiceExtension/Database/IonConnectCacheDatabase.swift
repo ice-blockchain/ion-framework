@@ -2,6 +2,7 @@
 
 import Foundation
 import SQLite3
+import os.log
 
 class IonConnectCacheDatabase: DatabaseManager {
     
@@ -16,12 +17,13 @@ class IonConnectCacheDatabase: DatabaseManager {
     /// Override to use a fixed database name (not pubkey-based)
     override func openDatabase() -> Bool {
         guard let databasePath = getDatabasePath() else {
-            NSLog("[NSE] \(logPrefix) database not found")
+            NSLog("[NSE] \(logPrefix) database path not found")
             return false
         }
         
         if sqlite3_open(databasePath, &database) != SQLITE_OK {
-            NSLog("[NSE] \(logPrefix) sqlite3_open failed: %@", String(cString: sqlite3_errmsg(database)))
+            let errorMsg = String(cString: sqlite3_errmsg(database))
+            NSLog("[NSE] \(logPrefix) sqlite3_open failed: \(errorMsg)")
             sqlite3_close(database)
             database = nil
             return false
@@ -142,6 +144,115 @@ class IonConnectCacheDatabase: DatabaseManager {
         )
     }
         
+    /// Gets muted user pubkeys from the database
+    /// - Parameter currentUserMasterPubkey: The current user's master pubkey
+    /// - Returns: Array of muted user master pubkeys
+    func getMutedUsers() -> [String] {
+        guard let db = database else {
+            NSLog("[NSE] \(logPrefix) Database is nil for muted users - did you call openDatabase()?")
+            return []
+        }
+        
+        guard let userPubkey = keysStorage.getCurrentPubkey() else {
+            NSLog("[NSE] \(logPrefix) No current pubkey for muted users")
+            return []
+        }
+        
+        let cacheKey = "30007:\(userPubkey):not_interested"
+        
+        let query = """
+            SELECT tags FROM event_messages_table
+            WHERE cache_key = ?
+        """
+        
+        var statement: OpaquePointer?
+        
+        guard sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK else {
+            let errorMsg = String(cString: sqlite3_errmsg(db))
+            NSLog("[NSE] \(logPrefix) Failed to prepare query for muted users: \(errorMsg)")
+            return []
+        }
+        
+        defer {
+            sqlite3_finalize(statement)
+        }
+        
+        sqlite3_bind_text(statement, 1, (cacheKey as NSString).utf8String, -1, nil)
+        
+        var mutedUsers: [String] = []
+        
+        if sqlite3_step(statement) == SQLITE_ROW {
+            if let tagsPtr = sqlite3_column_text(statement, 0) {
+                let tagsJson = String(cString: tagsPtr)
+                
+                if let data = tagsJson.data(using: .utf8),
+                   let tags = try? JSONDecoder().decode([[String]].self, from: data) {
+                    for tag in tags {
+                        if tag.count >= 2 && tag[0] == "p" {
+                            mutedUsers.append(tag[1])
+                        }
+                    }
+                }
+            }
+        }
+        
+        return mutedUsers
+    }
+    
+    /// Gets muted conversation master pubkeys from the database
+    /// - Returns: Array of muted master pubkeys for chat conversations
+    func getMutedConversationPubkeys() -> [String] {
+        guard let db = database else {
+            NSLog("[NSE] \(logPrefix) Database is nil for muted conversations")
+            return []
+        }
+        
+        guard let userPubkey = keysStorage.getCurrentPubkey() else {
+            NSLog("[NSE] \(logPrefix) No current pubkey for muted conversations")
+            return []
+        }
+        
+        let cacheKey = "30007:\(userPubkey):chat_conversations"
+        
+        let query = """
+            SELECT tags FROM event_messages_table
+            WHERE cache_key = ?
+        """
+        
+        var statement: OpaquePointer?
+        
+        guard sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK else {
+            let errorMsg = String(cString: sqlite3_errmsg(db))
+            NSLog("[NSE] \(logPrefix) Failed to prepare query for muted conversations: \(errorMsg)")
+            return []
+        }
+        
+        defer {
+            sqlite3_finalize(statement)
+        }
+        
+        sqlite3_bind_text(statement, 1, (cacheKey as NSString).utf8String, -1, nil)
+        
+        var mutedPubkeys: [String] = []
+        
+        if sqlite3_step(statement) == SQLITE_ROW {
+            if let tagsPtr = sqlite3_column_text(statement, 0) {
+                let tagsJson = String(cString: tagsPtr)
+                
+                if let data = tagsJson.data(using: .utf8),
+                   let tags = try? JSONDecoder().decode([[String]].self, from: data) {
+                    for tag in tags {
+                        if tag.count >= 2 && tag[0] == "p" {
+                            mutedPubkeys.append(tag[1])
+                        }
+                    }
+                }
+            }
+        }
+        
+        return mutedPubkeys
+    }
+    
     /// Gets the database file path in the app group container
     private func getDatabasePath() -> String? {
         let appGroupIdentifier = keysStorage.storage.appGroupIdentifier
@@ -161,3 +272,4 @@ class IonConnectCacheDatabase: DatabaseManager {
         return dbPath
     }
 }
+

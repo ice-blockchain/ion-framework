@@ -59,4 +59,13 @@ struct GenericRepostEntity: IonConnectEntity {
             data: GenericRepostData.fromEventMessage(eventMessage)
         )
     }
+    
+    func toEventReference() -> EventReference {
+        return ImmutableEventReference(
+            id: id,
+            pubkey: pubkey,
+            kind: GenericRepostEntity.kind,
+            masterPubkey: masterPubkey
+        )
+    }
 }

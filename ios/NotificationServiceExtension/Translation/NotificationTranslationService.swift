@@ -8,7 +8,7 @@ struct NotificationTranslationResult {
     let avatarFilePath: String?
     let attachmentFilePaths: String?
     let notificationType: PushNotificationType?
-    let conversationId: String?
+    let groupKey: String?
 }
 
 class NotificationTranslationService {
@@ -55,6 +55,23 @@ class NotificationTranslationService {
             return nil
         }
 
+        if shouldSkipOwnGiftWrap(data: data, currentPubkey: currentPubkey) {
+            NSLog("[NSE] Skipping own gift wrap notification")
+            return nil
+        }
+
+        // Skip notifications from muted users or muted conversations
+        if shouldSkipMutedNotification(data: data, currentPubkey: currentPubkey, keysStorage: keysStorage) {
+            NSLog("[NSE] Skipping notification from muted user or conversation")
+            return nil
+        }
+
+        // Skip notifications for self-interactions (e.g., quoting/reposting own content)
+        if data.isSelfInteraction(currentPubkey: currentPubkey) {
+            NSLog("[NSE] Skipping self-interaction notification")
+            return nil
+        }
+
         let dataIsValid = data.validate(currentPubkey: currentPubkey)
 
         if !dataIsValid {
@@ -92,14 +109,21 @@ class NotificationTranslationService {
         }
         
         let media = await data.getMediaPlaceholders()
-
+        
+        let groupKey: String?
+        if notificationType.isChat {
+            groupKey = getConversationId(from: data.decryptedEvent)
+        } else {
+            groupKey = getNotificationGroupKey(from: data.mainEntity)
+        }
+        
         return NotificationTranslationResult(
             title: result.title,
             body: result.body,
             avatarFilePath: media.avatar,
             attachmentFilePaths: media.attachment,
             notificationType: notificationType,
-            conversationId: getConversationId(from: data.decryptedEvent)
+            groupKey: groupKey
         )
     }
 
@@ -288,5 +312,87 @@ class NotificationTranslationService {
         }
         
         return nil
+    }
+    
+    /// Check if notification should be skipped because user/conversation is muted
+    private func shouldSkipMutedNotification(data: IonConnectPushDataPayload, currentPubkey: String, keysStorage: KeysStorage) -> Bool {
+        guard data.event.kind == IonConnectGiftWrapEntity.kind else {
+            return false
+        }
+        
+        guard let decryptedEvent = data.decryptedEvent else {
+            return false
+        }
+        
+        guard let senderPubkey = try? decryptedEvent.masterPubkey() else { return false }
+        
+        let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
+        if cacheDB.openDatabase() {
+            defer { cacheDB.closeDatabase() }
+            
+            // Check if user is muted (not_interested)
+            let mutedUsers = cacheDB.getMutedUsers()
+            if mutedUsers.contains(senderPubkey) {
+                NSLog("[NSE] Sender is muted (not_interested): \(senderPubkey)")
+                return true
+            }
+            
+            // Check if conversation is muted (chat_conversations)
+            let mutedConversationPubkeys = cacheDB.getMutedConversationPubkeys()
+            if mutedConversationPubkeys.contains(senderPubkey) {
+                NSLog("[NSE] Conversation with sender is muted (chat_conversations): \(senderPubkey)")
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    /// Check if the gift wrap notification should be skipped because it's from the current user
+    private func shouldSkipOwnGiftWrap(data: IonConnectPushDataPayload, currentPubkey: String) -> Bool {
+        guard data.event.kind == IonConnectGiftWrapEntity.kind else {
+            return false
+        }
+        
+        guard let decryptedEvent = data.decryptedEvent else {
+            return false
+        }
+        
+        guard let rumorMasterPubkey = try? decryptedEvent.masterPubkey() else {
+            return false
+        }
+        
+        return rumorMasterPubkey == currentPubkey
+    }
+    
+    /// Get the notification groupKey for cancellation purposes
+    /// For reactions/reposts/quotes, returns the target entity reference
+    /// For other entities, returns the entity's own reference
+    private func getNotificationGroupKey(from entity: IonConnectEntity?) -> String? {
+        guard let entity = entity else {
+            return nil
+        }
+        
+        if let reaction = entity as? ReactionEntity {
+            return reaction.data.eventReference.toString()
+        } else if let genericRepost = entity as? GenericRepostEntity {
+            return genericRepost.data.eventReference.toString()
+        } else if let repost = entity as? RepostEntity {
+            return repost.data.eventReference.toString()
+        } else if let modifiablePost = entity as? ModifiablePostEntity {
+            if let quotedEvent = modifiablePost.data.quotedEvent {
+                return quotedEvent.eventReference.toString()
+            } else if let parentEvent = modifiablePost.data.parentEvent {
+                return parentEvent.eventReference
+            }
+        } else if let post = entity as? PostEntity {
+            if let quotedEvent = post.data.quotedEvent {
+                return quotedEvent.eventReference.toString()
+            } else if let parentEvent = post.data.parentEvent {
+                return parentEvent.eventReference
+            }
+        }
+        
+        return entity.toEventReference().toString()
     }
 }
