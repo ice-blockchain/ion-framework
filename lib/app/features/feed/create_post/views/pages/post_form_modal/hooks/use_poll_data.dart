@@ -26,7 +26,7 @@ void usePollData(
         };
 
         if (pollData != null) {
-          final voteCounts = ref.watch(pollVoteCountsProvider(eventReference, pollData));
+          final voteCounts = ref.read(pollVoteCountsProvider(eventReference, pollData));
           final totalVotes = PollUtils.calculateTotalVotes(voteCounts);
           final pollDraft = PollUtils.pollDataToPollDraft(pollData, isVoted: totalVotes > 0);
           WidgetsBinding.instance.addPostFrameCallback(
