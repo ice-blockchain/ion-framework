@@ -2,7 +2,7 @@
 
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart' as analytics;
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'token_latest_trades_provider.r.g.dart';
@@ -11,10 +11,10 @@ part 'token_latest_trades_provider.r.g.dart';
 class TokenLatestTrades extends _$TokenLatestTrades {
   late String _masterPubkey;
   late int _limit;
-  List<analytics.LatestTrade> _currentTrades = [];
+  List<LatestTrade> _currentTrades = [];
 
   @override
-  Stream<List<analytics.LatestTrade>> build(
+  Stream<List<LatestTrade>> build(
     String masterPubkey, {
     int limit = 10,
     int offset = 0,
@@ -51,17 +51,17 @@ class TokenLatestTrades extends _$TokenLatestTrades {
       if (existIndex >= 0) {
         final existTrade = _currentTrades[existIndex];
 
-        if (newTrade is analytics.LatestTradePatch) {
+        if (newTrade is LatestTradePatch) {
           final patchedTrade = existTrade.merge(newTrade);
 
           _currentTrades = List.of(_currentTrades);
           _currentTrades[existIndex] = patchedTrade;
-        } else if (newTrade is analytics.LatestTrade) {
+        } else if (newTrade is LatestTrade) {
           _currentTrades = List.of(_currentTrades);
           _currentTrades[existIndex] = newTrade;
         }
       } else {
-        if (newTrade is analytics.LatestTrade) {
+        if (newTrade is LatestTrade) {
           _currentTrades = [newTrade, ..._currentTrades];
         }
       }
