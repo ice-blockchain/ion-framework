@@ -4,7 +4,7 @@ dependency_overrides:
   flutter_quill:
     git:
       url: https://github.com/ice-blockchain/flutter-quill.git
-      ref: 7ec539f457432813c8789b9f1336602aae70a436
+      ref: 47f085232de6f5d5f098198e470227dbd3542f83
   ion_identity_client:
     path: packages/ion_identity_client
   ion_lint_rules:
