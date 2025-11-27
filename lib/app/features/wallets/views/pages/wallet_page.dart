@@ -9,8 +9,6 @@ import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.d
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/core/model/feature_flags.dart';
-import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
@@ -57,10 +55,6 @@ class WalletPage extends HookConsumerWidget {
       [],
     );
 
-    final tokenizedCommunitiesEnabled = ref
-        .watch(featureFlagsProvider.notifier)
-        .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
-
     return Scaffold(
       appBar: NavigationAppBar.root(
         title: const WalletHeader(),
@@ -68,10 +62,8 @@ class WalletPage extends HookConsumerWidget {
         scrollController: scrollController,
         actions: [
           const ScanButton(),
-          if (tokenizedCommunitiesEnabled) ...[
-            SizedBox(width: 8.s),
-            const CardButton(),
-          ],
+          SizedBox(width: 8.s),
+          const CardButton(),
         ],
       ),
       body: ScrollToTopWrapper(
