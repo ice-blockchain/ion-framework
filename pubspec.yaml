@@ -22,6 +22,7 @@ dependencies:
   audio_waveforms: ^1.3.0
   back_button_interceptor: ^7.0.3
   bech32: ^0.2.2
+  bip340: ^0.3.0
   blurhash_ffi: ^1.2.7
   btc_address_validate_swan: ^1.2.1
   cached_network_image: ^3.4.1
