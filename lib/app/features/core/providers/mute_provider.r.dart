@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'mute_provider.r.g.dart';
@@ -64,6 +65,18 @@ class GlobalMuteNotifier extends _$GlobalMuteNotifier {
 
     if (success) {
       state = willBeMuted;
+    }
+  }
+
+  Future<void> enableSystemVolumeUI({required bool enable}) async {
+    try {
+      await _focusChannel.invokeMethod('showSystemUI', enable);
+    } on PlatformException catch (e, stackTrace) {
+      Logger.log(
+        'Failed to ${enable ? 'enable' : 'disable'} volume indicator',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 }

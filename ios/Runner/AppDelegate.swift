@@ -131,9 +131,38 @@ class AudioVolumeObserver: NSObject {
         self.channel = FlutterMethodChannel(name: "audio_volume_channel", binaryMessenger: flutterEngine.binaryMessenger)
         super.init()
         self.hostView = view
+        setupMethodChannel()
         configureSessionIfNeeded()
-        installHiddenVolumeView()
         startObserving()
+    }
+
+    private func setupMethodChannel() {
+        channel.setMethodCallHandler {
+            [weak self] call, result in
+            guard let self = self else {
+                return
+            }
+
+            switch call.method {
+            case "showSystemUI":
+                if let show = call.arguments as? Bool {
+                    self.showSystemUI(show)
+                    result(true)
+                } else {
+                    result(FlutterError(code: "INVALID_ARGUMENT", message: "Expected a boolean argument.", details: nil))
+                }
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        }
+    }
+
+    public func showSystemUI(_ show: Bool) {
+        if !show {
+            installHiddenVolumeView()
+        } else {
+            removeHiddenVolumeView()
+        }
     }
 
     private func configureSessionIfNeeded() {
@@ -161,6 +190,11 @@ class AudioVolumeObserver: NSObject {
         volumeView = vv
     }
 
+    private func removeHiddenVolumeView() {
+        volumeView?.removeFromSuperview()
+        volumeView = nil
+    }
+
     private func startObserving() {
         let session = AVAudioSession.sharedInstance()
         lastVolume = session.outputVolume
@@ -178,6 +212,7 @@ class AudioVolumeObserver: NSObject {
     deinit {
         volumeObservation?.invalidate()
         volumeObservation = nil
+        removeHiddenVolumeView()
     }
 }
 
