@@ -429,8 +429,44 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
   }
 
-  Future<List<String>> _getDataSourceRelays() {
-    return ref.read(rankedRelevantCurrentUserRelaysUrlsProvider.future);
+  Future<List<String>> _getDataSourceRelays({required int limit}) async {
+    final currentValue = ref.read(rankedRelevantCurrentUserRelaysUrlsProvider).valueOrNull;
+    if (currentValue != null && currentValue.length >= limit) {
+      return currentValue;
+    }
+
+    final completer = Completer<List<String>>();
+    dynamic subscription;
+
+    final timeout = Timer(const Duration(seconds: 3), () {
+      if (!completer.isCompleted) {
+        final currentValue =
+            ref.read(rankedRelevantCurrentUserRelaysUrlsProvider).valueOrNull ?? [];
+        completer.complete(currentValue);
+      }
+    });
+
+    subscription = ref.listen(
+      rankedRelevantCurrentUserRelaysUrlsProvider,
+      (previous, next) {
+        if (!completer.isCompleted) {
+          final relays = next.value ?? [];
+          if (relays.length >= limit) {
+            timeout.cancel();
+            subscription.close();
+            completer.complete(relays);
+          }
+        }
+      },
+      fireImmediately: true,
+    );
+
+    try {
+      return await completer.future;
+    } finally {
+      timeout.cancel();
+      subscription.close();
+    }
   }
 
   /// Refreshes the pagination state for the given modifier.
@@ -443,7 +479,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   ///
   /// This method must be called on every request iteration.
   Future<void> _refreshModifierPagination({required FeedModifier modifier}) async {
-    final dataSourceRelays = await _getDataSourceRelays();
+    final dataSourceRelays = await _getDataSourceRelays(limit: feedType.pageSize);
 
     final interests = await _getInterestsForModifier(modifier);
 
