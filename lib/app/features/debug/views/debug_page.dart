@@ -39,71 +39,79 @@ class DebugPage extends ConsumerWidget {
           actions: const [NavigationCloseButton()],
         ),
         Flexible(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                if (appInfo != null)
-                  ListTile(
-                    title: Text(
-                      '${appInfo.appName} v${appInfo.version} build ${appInfo.buildNumber}',
-                      style: Theme.of(context).textTheme.titleMedium,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.8,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  if (appInfo != null)
+                    ListTile(
+                      title: Text(
+                        '${appInfo.appName} v${appInfo.version} build ${appInfo.buildNumber}',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                     ),
-                  ),
-                if (talker != null)
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.bug_report),
-                      title: const Text('View Debug Logs'),
-                      subtitle: const Text('Check application logs and diagnostics'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute<TalkerScreen>(
-                          builder: (context) => TalkerScreen(
-                            talker: talker,
+                  if (talker != null)
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.bug_report),
+                        title: const Text('View Debug Logs'),
+                        subtitle: const Text('Check application logs and diagnostics'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<TalkerScreen>(
+                            builder: (context) => TalkerScreen(
+                              talker: talker,
+                            ),
                           ),
                         ),
                       ),
                     ),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.storage),
+                      title: const Text('View Drift Databases'),
+                      subtitle: const Text('Explore database tables'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showDatabaseSelectionDialog(context, ref),
+                    ),
                   ),
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.storage),
-                    title: const Text('View Drift Databases'),
-                    subtitle: const Text('Explore database tables'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _showDatabaseSelectionDialog(context, ref),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.share),
+                      title: const Text('Export & Share Databases'),
+                      subtitle: const Text('Export database files and share them'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showExportDatabaseDialog(context, ref),
+                    ),
                   ),
-                ),
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.share),
-                    title: const Text('Export & Share Databases'),
-                    subtitle: const Text('Export database files and share them'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _showExportDatabaseDialog(context, ref),
-                  ),
-                ),
-                SizedBox(height: 16.0.s),
-                ExpansionTile(
-                  title: const Text('Feature Flags'),
-                  children: featureFlags.entries
-                      .map(
-                        (entry) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: ListTile(
-                            title: Text(entry.key.key),
-                            trailing: Icon(
-                              entry.value ? Icons.check_circle : Icons.cancel,
-                              color: entry.value ? Colors.green : Colors.red,
+                  SizedBox(height: 16.0.s),
+                  ExpansionTile(
+                    title: const Text('Feature Flags'),
+                    children: featureFlags.entries
+                        .map(
+                          (entry) => GestureDetector(
+                            onTap: () => ref.read(featureFlagsProvider.notifier).toggle(entry.key),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: ListTile(
+                                title: Text(entry.key.key),
+                                trailing: Icon(
+                                  entry.value ? Icons.check_circle : Icons.cancel,
+                                  color: entry.value ? Colors.green : Colors.red,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ],
+                        )
+                        .toList(),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

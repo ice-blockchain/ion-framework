@@ -36,3 +36,11 @@ String formatCount(int number) {
     return NumberFormat('#,##0', 'en_US').format(number);
   }
 }
+
+String getNumericSign(num value) {
+  if (value >= 0) {
+    return '+';
+  } else {
+    return '-';
+  }
+}

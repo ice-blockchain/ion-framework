@@ -1049,5 +1049,6 @@
   "who_can_reply_settings_title_story": "Qui peut répondre à cette histoire",
   "who_can_reply_settings_title_video": "Qui peut répondre à cette vidéo",
   "who_can_reply_settings_verified_accounts": "Comptes vérifiés",
-  "write_a_message": "Écrire un message..."
+  "write_a_message": "Écrire un message...",
+  "your_position_card_title": "Votre position"
 }

@@ -5,25 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
-import 'package:ion/app/features/user/model/profile_mode.dart';
+import 'package:ion/app/features/communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/profile_details/user_name_tile/user_name_tile.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
-import 'package:ion/app/hooks/use_watch_once.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class CreatorTokensCarousel extends HookConsumerWidget {
   const CreatorTokensCarousel({
-    required this.items,
+    required this.tokens,
     required this.onItemChanged,
     super.key,
   });
 
-  final List<String> items;
-  final void Function(String) onItemChanged;
+  final List<CommunityToken> tokens;
+  final void Function(CommunityToken) onItemChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,13 +31,13 @@ class CreatorTokensCarousel extends HookConsumerWidget {
         enlargeCenterPage: true,
         enableInfiniteScroll: false,
         enlargeStrategy: CenterPageEnlargeStrategy.zoom,
-        onPageChanged: (index, _) => onItemChanged(items[index]),
+        onPageChanged: (index, _) => onItemChanged(tokens[index]),
       ),
-      itemCount: items.length,
+      itemCount: tokens.length,
       itemBuilder: (context, index, realIndex) {
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: 24.0.s),
-          child: _CarouselCard(pubkey: items[index]),
+          child: _CarouselCard(token: tokens[index]),
         );
       },
     );
@@ -49,17 +46,14 @@ class CreatorTokensCarousel extends HookConsumerWidget {
 
 class _CarouselCard extends HookConsumerWidget {
   const _CarouselCard({
-    required this.pubkey,
+    required this.token,
   });
 
-  final String pubkey;
+  final CommunityToken token;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final avatarUrl = useWatchOnce(
-      ref,
-      userPreviewDataProvider(pubkey).select((value) => value.valueOrNull?.data.avatarUrl),
-    );
+    final avatarUrl = token.creator.avatar;
     final colors = useAvatarColors(avatarUrl);
 
     return Container(
@@ -68,7 +62,7 @@ class _CarouselCard extends HookConsumerWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: ProfileBackground(
-        key: ValueKey(pubkey),
+        key: ValueKey(token.addresses.ionConnect),
         colors: colors,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -79,24 +73,100 @@ class _CarouselCard extends HookConsumerWidget {
                 color: context.theme.appColors.primaryBackground,
               ),
               padding: EdgeInsets.all(2.0.s),
-              child: IonConnectAvatar(
-                size: 98.0.s,
-                masterPubkey: pubkey,
+              // FIXME: Replace with IonConnectAvatar when we have real ionConnect addresses.
+              // Currently using Image.network because mock tokens have fake addresses that don't
+              // correspond to real users. With real data, use:
+              // IonConnectAvatar(
+              //   size: 98.0.s,
+              //   masterPubkey: token.creator.ionConnect,
+              //   borderRadius: BorderRadius.circular(20.0.s),
+              // )
+              child: ClipRRect(
                 borderRadius: BorderRadius.circular(20.0.s),
+                child: avatarUrl.isNotEmpty
+                    ? Image.network(
+                        avatarUrl,
+                        width: 98.0.s,
+                        height: 98.0.s,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 98.0.s,
+                          height: 98.0.s,
+                          color: context.theme.appColors.tertiaryBackground,
+                        ),
+                      )
+                    : Container(
+                        width: 98.0.s,
+                        height: 98.0.s,
+                        color: context.theme.appColors.tertiaryBackground,
+                      ),
               ),
             ),
             SizedBox(height: 20.0.s),
-            UserNameTile(
-              pubkey: pubkey,
-              profileMode: ProfileMode.dark,
-              showProfileTokenPrice: true,
+            // TODO: Remove this entire Column after real data is available.
+            // Replace with: UserNameTile(
+            //   pubkey: token.creator.ionConnect,
+            //   profileMode: ProfileMode.dark,
+            //   showProfileTokenPrice: true,
+            //   priceUsd: token.marketData.priceUSD,
+            // )
+            // Currently using custom inline implementation because mock tokens have fake addresses
+            // that don't correspond to real users, so UserNameTile can't fetch user metadata.
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      token.creator.display,
+                      style: context.theme.appTextThemes.subtitle.copyWith(
+                        color: context.theme.appColors.secondaryBackground,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (token.creator.verified) ...[
+                      SizedBox(width: 4.0.s),
+                      Assets.svg.iconBadgeVerify.icon(
+                        size: 16.0.s,
+                        color: context.theme.appColors.secondaryBackground,
+                      ),
+                    ],
+                  ],
+                ),
+                SizedBox(height: 4.0.s),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '@${token.creator.name}',
+                      style: context.theme.appTextThemes.body2.copyWith(
+                        color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    SizedBox(width: 8.0.s),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 4.0.s),
+                      decoration: BoxDecoration(
+                        color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12.0.s),
+                      ),
+                      child: Text(
+                        MarketDataFormatter.formatPrice(token.marketData.priceUSD),
+                        style: context.theme.appTextThemes.caption2.copyWith(
+                          color: context.theme.appColors.secondaryBackground,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
             SizedBox(height: 20.0.s),
-            const _CreatorStatsWidget(
-              //TODO: replace mock data
-              amount: 43230430,
-              transactions: 990,
-              groups: 11320,
+            _CreatorStatsWidget(
+              marketCap: token.marketData.marketCap,
+              volume: token.marketData.volume,
+              holders: token.marketData.holders,
             ),
           ],
         ),
@@ -107,14 +177,14 @@ class _CarouselCard extends HookConsumerWidget {
 
 class _CreatorStatsWidget extends StatelessWidget {
   const _CreatorStatsWidget({
-    required this.amount,
-    required this.transactions,
-    required this.groups,
+    required this.marketCap,
+    required this.volume,
+    required this.holders,
   });
 
-  final int amount;
-  final int transactions;
-  final int groups;
+  final double marketCap;
+  final double volume;
+  final int holders;
 
   @override
   Widget build(BuildContext context) {
@@ -126,9 +196,9 @@ class _CreatorStatsWidget extends StatelessWidget {
     );
 
     final stats = [
-      (icon: Assets.svg.iconMemeMarketcap, value: formatCount(amount)),
-      (icon: Assets.svg.iconMemeMarkers, value: formatCount(transactions)),
-      (icon: Assets.svg.iconSearchGroups, value: formatCount(groups)),
+      (icon: Assets.svg.iconMemeMarketcap, value: formatCount(marketCap.toInt())),
+      (icon: Assets.svg.iconMemeMarkers, value: formatCount(volume.toInt())),
+      (icon: Assets.svg.iconSearchGroups, value: formatCount(holders)),
     ];
 
     return Container(

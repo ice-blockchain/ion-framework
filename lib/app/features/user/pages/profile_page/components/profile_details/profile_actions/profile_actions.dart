@@ -41,7 +41,7 @@ class ProfileActions extends ConsumerWidget {
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      spacing: 8.0.s,
+      spacing: 12.0.s,
       children: [
         if (profileMode != ProfileMode.dark) FollowUserButton(pubkey: pubkey),
         if (!hasPrivateWallets && canSendMessage)

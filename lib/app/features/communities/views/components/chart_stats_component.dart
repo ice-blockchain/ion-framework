@@ -12,6 +12,7 @@ class ChartStatsComponent extends StatelessWidget {
     required this.buysText,
     required this.sellsText,
     required this.netBuyText,
+    required this.isNetBuyPositive,
     required this.onTimeframeTap,
     super.key,
   });
@@ -22,6 +23,7 @@ class ChartStatsComponent extends StatelessWidget {
   final String buysText;
   final String sellsText;
   final String netBuyText;
+  final bool isNetBuyPositive;
   final ValueChanged<int> onTimeframeTap;
 
   @override
@@ -79,7 +81,7 @@ class ChartStatsComponent extends StatelessWidget {
                 _KpiColumn(
                   title: i18n.chart_stats_net_buy,
                   value: netBuyText,
-                  valueColor: colors.success,
+                  valueColor: isNetBuyPositive ? colors.success : colors.lossRed,
                   crossAxisAlignment: CrossAxisAlignment.end,
                 ),
               ],

@@ -12,6 +12,7 @@ class ProfileRoutes {
     TypedGoRoute<EditBookmarksRoute>(path: 'bookmarks_edit'),
     TypedGoRoute<FollowListRoute>(path: 'follow-list-fullstack'),
     TypedGoRoute<CreatorTokensRoute>(path: 'creator-tokens'),
+    TypedGoRoute<TokenizedCommunityRoute>(path: 'tokenized-community'),
     TypedShellRoute<ModalShellRouteData>(
       routes: [
         TypedGoRoute<CategorySelectRoute>(path: 'category-selector'),
@@ -342,6 +343,17 @@ class CreatorTokensRoute extends BaseRouteData with _$CreatorTokensRoute {
   CreatorTokensRoute({required this.masterPubkey})
       : super(
           child: CreatorTokensPage(masterPubkey: masterPubkey),
+        );
+
+  final String masterPubkey;
+}
+
+class TokenizedCommunityRoute extends BaseRouteData with _$TokenizedCommunityRoute {
+  TokenizedCommunityRoute({required this.masterPubkey})
+      : super(
+          child: TokenizedCommunityPage(
+            masterPubkey: masterPubkey,
+          ),
         );
 
   final String masterPubkey;

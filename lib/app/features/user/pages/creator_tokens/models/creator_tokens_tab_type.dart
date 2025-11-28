@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 enum CreatorTokensTabType implements TabType {
   trending,
@@ -41,4 +42,14 @@ enum CreatorTokensTabType implements TabType {
         return context.i18n.feed_advanced_search_category_latest;
     }
   }
+}
+
+extension CreatorTokensTabTypeX on CreatorTokensTabType {
+  bool get isLatest => this == CreatorTokensTabType.latest;
+
+  TokenCategoryType? get categoryType => switch (this) {
+        CreatorTokensTabType.trending => TokenCategoryType.trending,
+        CreatorTokensTabType.top => TokenCategoryType.top,
+        CreatorTokensTabType.latest => null,
+      };
 }

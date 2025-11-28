@@ -7,6 +7,7 @@ import 'package:ion/app/components/layouts/collapsing_header_tabs_layout.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
@@ -25,7 +26,6 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_deta
 import 'package:ion/app/features/user/pages/profile_page/components/profile_main_action.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/tab_entities_list.dart';
 import 'package:ion/app/features/user/pages/profile_page/profile_skeleton.dart';
-import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -46,17 +46,20 @@ class ProfilePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
-    final isVerifiedUser = ref.watch(isUserVerifiedProvider(masterPubkey));
+
+    final currentUserToken = ref.watch(tokenMarketInfoProvider(masterPubkey));
+
+    if (userMetadata.isLoading && !userMetadata.hasValue || (currentUserToken.isLoading)) {
+      return ProfileSkeleton(showBackButton: showBackButton);
+    }
+
     final tokenizedCommunitiesEnabled = ref
         .watch(featureFlagsProvider.notifier)
         .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
-    final profileMode =
-        isVerifiedUser && tokenizedCommunitiesEnabled ? ProfileMode.dark : ProfileMode.light;
-    final statusBarHeight = MediaQuery.paddingOf(context).top;
 
-    if (userMetadata.isLoading && !userMetadata.hasValue) {
-      return ProfileSkeleton(showBackButton: showBackButton);
-    }
+    final profileMode = tokenizedCommunitiesEnabled ? ProfileMode.dark : ProfileMode.light;
+
+    final statusBarHeight = MediaQuery.paddingOf(context).top;
 
     final metadata = userMetadata.valueOrNull;
 
@@ -114,11 +117,10 @@ class ProfilePage extends HookConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.theme.appColors.secondaryBackground,
-      extendBodyBehindAppBar: profileMode == ProfileMode.dark,
       body: CollapsingHeaderTabsLayout(
         backgroundColor: context.theme.appColors.secondaryBackground,
-        newUiMode: profileMode == ProfileMode.dark,
         showBackButton: showBackButton,
+        newUiMode: profileMode == ProfileMode.dark,
         avatarUrl: avatarUrl,
         tabs: UserContentType.values,
         collapsedHeaderBuilder: (opacity) => Header(
@@ -145,14 +147,14 @@ class ProfilePage extends HookConsumerWidget {
         expandedHeader: Column(
           children: [
             SizedBox(
-              height: (profileMode == ProfileMode.dark ? statusBarHeight : 0) + 12.0.s,
+              height: (profileMode == ProfileMode.dark ? statusBarHeight : 0) + 27.0.s,
             ),
             Stack(
               clipBehavior: Clip.none,
               children: [
                 ProfileAvatar(
-                  pubkey: masterPubkey,
                   profileMode: profileMode,
+                  pubkey: masterPubkey,
                 ),
                 PositionedDirectional(
                   bottom: -6.0.s,
@@ -184,18 +186,23 @@ class ProfilePage extends HookConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           spacing: 8.0.s,
           children: [
-            if (profileMode == ProfileMode.dark)
-              ProfileActions(pubkey: masterPubkey, profileMode: profileMode),
-            if (isDelegateAccessEnabled)
+            if (profileMode == ProfileMode.dark) ...[
+              ProfileActions(
+                pubkey: masterPubkey,
+                profileMode: profileMode,
+              ),
+            ],
+            if (isDelegateAccessEnabled) ...[
               GestureDetector(
                 onTap: () =>
                     SwitchUserAccountRoute(selectedUserPubkey: masterPubkey).push<void>(context),
                 child: Assets.svg.iconSwitchProfile.icon(size: 24.0.s),
               ),
+            ],
             ProfileContextMenu(
               pubkey: masterPubkey,
-              profileMode: profileMode,
               closeSignal: menuCloseSignal,
+              profileMode: profileMode,
             ),
           ],
         ),
