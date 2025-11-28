@@ -28,6 +28,20 @@ class LoginForm extends HookConsumerWidget {
     final authState = ref.watch(authProvider);
     final loginActionState = ref.watch(loginActionNotifierProvider);
 
+    useEffect(
+      () {
+        void listener() {
+          if (identityKeyNameController.text.isNotEmpty) {
+            ref.read(loginActionNotifierProvider.notifier).cancelAutoPasskeyLogin();
+          }
+        }
+
+        identityKeyNameController.addListener(listener);
+        return () => identityKeyNameController.removeListener(listener);
+      },
+      [identityKeyNameController],
+    );
+
     return Form(
       key: formKey.value,
       child: Column(
