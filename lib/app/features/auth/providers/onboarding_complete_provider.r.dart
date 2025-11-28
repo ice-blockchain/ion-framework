@@ -2,7 +2,6 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
 import 'package:ion/app/features/auth/providers/relays_assigned_provider.r.dart';
 import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
@@ -13,10 +12,6 @@ part 'onboarding_complete_provider.r.g.dart';
 
 @Riverpod(keepAlive: true)
 Future<bool?> onboardingComplete(Ref ref) async {
-  onLogout(ref, () {
-    ref.invalidateSelf();
-  });
-
   final mainWallet = await ref.watch(mainWalletProvider.future);
   final userIsReady = mainWallet?.signingKey.publicKey != null;
   if (!userIsReady) {

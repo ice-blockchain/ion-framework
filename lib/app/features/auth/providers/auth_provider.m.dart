@@ -7,16 +7,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/bool.dart';
 import 'package:ion/app/features/auth/providers/local_passkey_creds_provider.r.dart';
 import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
-import 'package:ion/app/features/feed/providers/counters/helpers/counter_cache_helpers.r.dart';
-import 'package:ion/app/features/feed/providers/feed_following_content_provider.m.dart';
-import 'package:ion/app/features/feed/providers/feed_for_you_content_provider.m.dart';
-import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
-import 'package:ion/app/features/feed/providers/feed_trending_videos_provider.r.dart';
-import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
-import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/user/providers/biometrics_provider.r.dart';
-import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/services/database/database_ready_notifier.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
@@ -231,7 +223,7 @@ class Auth extends _$Auth {
       ref.read(userSwitchInProgressProvider.notifier).startSwitching();
     }
     ref.read(userSwitchEventProvider.notifier).trigger();
-    // NOTE(ice-linus): Wait for database providers to close old databases
+    // NOTE: Wait for database providers to close old databases
     // via onUserSwitch before initializing new ones
     await Future<void>.delayed(const Duration(milliseconds: 300));
   }
@@ -361,33 +353,7 @@ void keepAliveWhileUnauthenticated(Ref ref) {
   onLogin(ref, keepAlive.close);
 }
 
-// NOTE(ice-linus): Invalidates feed, stories, and follow list providers
-// when switching between existing users to clear cached data for the previous account.
-@Riverpod(keepAlive: true)
-class PubkeyChangeWithExistingUser extends _$PubkeyChangeWithExistingUser {
-  @override
-  void build() {
-    ref.listen<String?>(
-      currentPubkeySelectorProvider,
-      (prev, next) async {
-        if (prev != null && next != null && prev != next) {
-          ref
-            ..invalidate(feedFollowingContentProvider)
-            ..invalidate(feedForYouContentProvider)
-            ..invalidate(feedPostsProvider)
-            ..invalidate(feedStoriesProvider)
-            ..invalidate(currentUserFeedStoryProvider)
-            ..invalidate(feedTrendingVideosProvider)
-            ..invalidate(currentUserFollowListProvider)
-            ..invalidate(quoteCounterUpdaterProvider);
-        }
-      },
-      fireImmediately: false,
-    );
-  }
-}
-
-// NOTE(ice-linus): Tracks whether user switching is currently in progress,
+// NOTE: Tracks whether user switching is currently in progress,
 // used by redirect strategy to show loading screen during account switch.
 @Riverpod(keepAlive: true)
 class UserSwitchInProgress extends _$UserSwitchInProgress {
@@ -399,7 +365,7 @@ class UserSwitchInProgress extends _$UserSwitchInProgress {
   void completeSwitching() => state = false;
 }
 
-// NOTE(ice-linus): Event counter that increments on each user switch,
+// NOTE: Event counter that increments on each user switch,
 // used by onUserSwitch to trigger callbacks when account changes.
 @Riverpod(keepAlive: true)
 class UserSwitchEvent extends _$UserSwitchEvent {

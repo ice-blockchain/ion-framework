@@ -119,7 +119,7 @@ Future<String?> _mainRedirect({
     ref: ref,
   );
   if (userSwitchingRedirect != null) {
-    return _gotoLocation(userSwitchingRedirect, currentLocation: location);
+    return userSwitchingRedirect;
   }
 
   final isAuthenticated = (ref.read(authProvider).valueOrNull?.isAuthenticated).falseOrValue;
@@ -135,21 +135,18 @@ Future<String?> _mainRedirect({
 
   if (!isAuthenticated && !isOnAuth) {
     final introLocation = IntroRoute().location;
-    return _gotoLocation(introLocation, currentLocation: location);
+    return introLocation;
   }
 
   if (isAuthenticated && onboardingComplete != null) {
     if (onboardingComplete) {
       if (isOnSplash || isOnAuth || isOnIntro) {
-        final feedLocation = FeedRoute().location;
-        return _gotoLocation(feedLocation, currentLocation: location);
+        return FeedRoute().location;
       } else if (isOnOnboarding) {
         if (hasNotificationsPermission) {
-          final feedLocation = FeedRoute().location;
-          return _gotoLocation(feedLocation, currentLocation: location);
+          return FeedRoute().location;
         } else {
-          final notificationsLocation = NotificationsRoute().location;
-          return _gotoLocation(notificationsLocation, currentLocation: location);
+          return NotificationsRoute().location;
         }
       }
     }
@@ -162,8 +159,7 @@ Future<String?> _mainRedirect({
         !isOnOnboarding &&
         !isOnMediaPicker &&
         !(hasUserMetadata && relaysAssigned)) {
-      final fillProfileLocation = FillProfileRoute().location;
-      return _gotoLocation(fillProfileLocation, currentLocation: location);
+      return FillProfileRoute().location;
     }
 
     if (!onboardingComplete &&
@@ -173,17 +169,9 @@ Future<String?> _mainRedirect({
         relaysAssigned &&
         !delegationComplete) {
       ref.read(uiEventQueueNotifierProvider.notifier).emit(const ShowLinkNewDeviceDialogEvent());
-      final feedLocation = FeedRoute().location;
-      return _gotoLocation(feedLocation, currentLocation: location);
+      return FeedRoute().location;
     }
   }
 
   return null;
-}
-
-String? _gotoLocation(
-  String nextLocation, {
-  required String currentLocation,
-}) {
-  return currentLocation != nextLocation ? nextLocation : null;
 }
