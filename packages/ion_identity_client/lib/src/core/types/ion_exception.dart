@@ -270,6 +270,10 @@ class PasskeyCancelledException extends IONIdentityException {
   }
 }
 
+class SignInCancelException extends IONIdentityException {
+  const SignInCancelException() : super('Sign in cancelled by client');
+}
+
 class InvalidEmailException extends IONIdentityException {
   InvalidEmailException() : super('Invalid email');
 
