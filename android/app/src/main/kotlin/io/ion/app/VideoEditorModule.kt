@@ -2,10 +2,14 @@ package io.ion.app
 
 import android.app.Application
 import android.content.Context
+import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.util.Log
+import android.util.Size
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import java.io.File
 import com.banuba.sdk.arcloud.data.source.ArEffectsRepositoryProvider
 import com.banuba.sdk.arcloud.di.ArCloudKoinModule
 import com.banuba.sdk.audiobrowser.di.AudioBrowserKoinModule
@@ -131,6 +135,7 @@ private class SampleIntegrationVeKoinModule(
         factory<ExportParamsProvider> {
             CustomExportParamsProvider(
                 exportDir = get(named("exportDir")),
+                context = get(),
             )
         }
     }
@@ -138,7 +143,21 @@ private class SampleIntegrationVeKoinModule(
 
 class CustomExportParamsProvider(
     private val exportDir: Uri,
+    private val context: Context,
 ) : ExportParamsProvider {
+
+    companion object {
+        private const val TAG = "BanubaExport___"
+        @JvmStatic
+        var exportStartTime: Long = 0
+            private set
+        @JvmStatic
+        var originalVideoSizeBytes: Long = 0
+            private set
+        @JvmStatic
+        var originalVideoResolution: String? = null
+            private set
+    }
 
     override fun provideExportParams(
         effects: Effects,
@@ -146,6 +165,21 @@ class CustomExportParamsProvider(
         musicEffects: List<MusicEffect>,
         videoVolume: Float
     ): List<ExportParams> {
+        // Log export start
+        exportStartTime = System.currentTimeMillis()
+        Log.d(TAG, "Starting Banuba video export...")
+
+        // Calculate original video size
+        originalVideoSizeBytes = calculateOriginalVideoSize(videoRangeList)
+        val originalSizeMB = originalVideoSizeBytes / (1024.0 * 1024.0)
+        Log.d(TAG, "Original video size before Banuba: ${String.format("%.2f", originalSizeMB)} MB")
+
+        // Extract original video resolution
+        originalVideoResolution = getOriginalVideoResolution(videoRangeList)
+        if (originalVideoResolution != null) {
+            Log.d(TAG, "Original video resolution: $originalVideoResolution")
+        }
+
         val exportSessionDir = exportDir.toFile().apply {
             deleteRecursively()
             mkdirs()
@@ -162,4 +196,52 @@ class CustomExportParamsProvider(
 
         return listOf(exportVideo)
     }
+
+    private fun calculateOriginalVideoSize(videoRangeList: VideoRangeList): Long {
+        var totalSize = 0L
+        for (videoRange in videoRangeList.data) {
+            val sourceUri = videoRange.sourceUri ?: continue
+            try {
+                val file = when {
+                    sourceUri.scheme == "file" -> File(sourceUri.path ?: "")
+                    else -> File(sourceUri.path ?: "")
+                }
+                if (file.exists()) {
+                    totalSize += file.length()
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Error calculating size for ${sourceUri}: ${e.message}")
+            }
+        }
+        return totalSize
+    }
+
+    private fun getOriginalVideoResolution(videoRangeList: VideoRangeList): String? {
+        val firstVideoRange = videoRangeList.data.firstOrNull() ?: return null
+        val sourceUri = firstVideoRange.sourceUri ?: return null
+        
+        return try {
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(context, sourceUri)
+            
+            val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull()
+            val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull()
+            val rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
+            
+            retriever.release()
+            
+            if (width != null && height != null) {
+                // Swap dimensions if rotated 90° or 270°
+                val finalWidth = if (rotation == 90 || rotation == 270) height else width
+                val finalHeight = if (rotation == 90 || rotation == 270) width else height
+                "${finalWidth}x${finalHeight}"
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Error extracting original video resolution: ${e.message}")
+            null
+        }
+    }
+
 }

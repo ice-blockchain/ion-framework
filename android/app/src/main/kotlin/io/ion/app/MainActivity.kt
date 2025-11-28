@@ -219,6 +219,7 @@ class MainActivity : FlutterFragmentActivity() {
                 if (exportResult == null) {
                     sendExportError("ERR_MISSING_EXPORT_RESULT", "")
                 } else {
+                    logExportMetrics(exportResult)
                     val data = prepareVideoExportData(exportResult)
                     sendExportSuccess(data)
                 }
@@ -229,6 +230,59 @@ class MainActivity : FlutterFragmentActivity() {
                 // User cancelled video editing - return null to indicate cancellation
                 sendExportSuccess(null)
             }
+        }
+    }
+
+    private fun logExportMetrics(exportResult: ExportResult.Success) {
+        try {
+            val exportEndTime = System.currentTimeMillis()
+            val exportStartTime = CustomExportParamsProvider.exportStartTime
+            val originalVideoSizeBytes = CustomExportParamsProvider.originalVideoSizeBytes
+
+            if (exportStartTime == 0L || originalVideoSizeBytes == 0L) {
+                Log.w("BanubaExport___", "Export metrics not available - start time or original size not tracked")
+                return
+            }
+
+            // Calculate export duration
+            val exportDurationSeconds = (exportEndTime - exportStartTime) / 1000.0
+
+            // Get exported video size
+            val exportedVideoFile = File(exportResult.videoList[0].sourceUri.path ?: "")
+            val exportedVideoSizeBytes = if (exportedVideoFile.exists()) {
+                exportedVideoFile.length()
+            } else {
+                0L
+            }
+
+            // Calculate metrics
+            val originalSizeMB = originalVideoSizeBytes / (1024.0 * 1024.0)
+            val exportedSizeMB = exportedVideoSizeBytes / (1024.0 * 1024.0)
+            val compressionRatio = if (originalVideoSizeBytes > 0) {
+                ((originalVideoSizeBytes - exportedVideoSizeBytes).toDouble() / originalVideoSizeBytes) * 100.0
+            } else {
+                0.0
+            }
+            val throughputMBps = if (exportDurationSeconds > 0.0) {
+                exportedSizeMB / exportDurationSeconds
+            } else {
+                0.0
+            }
+
+            // Get video resolutions
+            val originalResolution = CustomExportParamsProvider.originalVideoResolution ?: "Unknown"
+            val finalResolution = getVideoResolution(exportResult.videoList[0].sourceUri) ?: "Unknown"
+
+            // Log all metrics
+            Log.d("BanubaExport___", "Banuba export completed in: ${String.format("%.2f", exportDurationSeconds)} s")
+            Log.d("BanubaExport___", "Original video resolution: $originalResolution")
+            Log.d("BanubaExport___", "Final video resolution: $finalResolution")
+            Log.d("BanubaExport___", "Exported video size: ${String.format("%.2f", exportedSizeMB)} MB")
+            Log.d("BanubaExport___", "Compression ratio: ${String.format("%.1f", compressionRatio)}% size reduction")
+            Log.d("BanubaExport___", "Throughput: ${String.format("%.2f", throughputMBps)} MB/s")
+            Log.d("BanubaExport___", "Output video size: ${String.format("%.2f", exportedSizeMB)} MB")
+        } catch (e: Exception) {
+            Log.e("BanubaExport___", "Error logging export metrics: ${e.message}", e)
         }
     }
 
@@ -400,6 +454,11 @@ class MainActivity : FlutterFragmentActivity() {
         } finally {
             retriever.release()
         }
+    }
+
+    private fun getVideoResolution(uri: Uri): String? {
+        val size = getVideoSize(this, uri)
+        return size?.let { "${it.width}x${it.height}" }
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
