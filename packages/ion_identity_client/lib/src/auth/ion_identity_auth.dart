@@ -88,11 +88,13 @@ class IONIdentityAuth {
     required AuthConfig config,
     required List<TwoFAType> twoFATypes,
     required bool localCredsOnly,
+    Future<void>? cancel,
   }) =>
       loginUserService.login(
         config: config,
         twoFATypes: twoFATypes,
         localCredsOnly: localCredsOnly,
+        cancel: cancel,
       );
 
   Future<void> logOut() => logoutService.logOut();
