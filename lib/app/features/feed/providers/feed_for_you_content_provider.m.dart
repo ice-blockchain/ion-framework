@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/counter.dart';
@@ -430,15 +431,21 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }
 
   Future<List<String>> _getDataSourceRelays({required int limit}) async {
-    final currentValue = ref.read(rankedRelevantCurrentUserRelaysUrlsProvider).valueOrNull;
-    if (currentValue != null && currentValue.length >= limit) {
-      return currentValue;
+    final rankedRelays = ref.read(rankedRelevantCurrentUserRelaysUrlsProvider).valueOrNull;
+    if (rankedRelays != null && rankedRelays.length >= limit) {
+      return rankedRelays;
     }
 
-    final completer = Completer<List<String>>();
-    dynamic subscription;
+    return _waitForRelaysWithTimeout(limit: limit);
+  }
 
-    final timeout = Timer(const Duration(seconds: 3), () {
+  Future<List<String>> _waitForRelaysWithTimeout({
+    required int limit,
+    Duration timeout = const Duration(seconds: 3),
+  }) async {
+    final completer = Completer<List<String>>();
+
+    final timer = Timer(timeout, () {
       if (!completer.isCompleted) {
         final currentValue =
             ref.read(rankedRelevantCurrentUserRelaysUrlsProvider).valueOrNull ?? [];
@@ -446,14 +453,13 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       }
     });
 
-    subscription = ref.listen(
+    final subscription = ref.listen(
       rankedRelevantCurrentUserRelaysUrlsProvider,
       (previous, next) {
         if (!completer.isCompleted) {
-          final relays = next.value ?? [];
+          final relays = next.valueOrNull ?? [];
           if (relays.length >= limit) {
-            timeout.cancel();
-            subscription.close();
+            timer.cancel();
             completer.complete(relays);
           }
         }
@@ -464,7 +470,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     try {
       return await completer.future;
     } finally {
-      timeout.cancel();
+      timer.cancel();
       subscription.close();
     }
   }
