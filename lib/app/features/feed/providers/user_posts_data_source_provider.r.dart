@@ -2,6 +2,7 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
@@ -30,6 +31,18 @@ List<EntitiesDataSource>? userPostsDataSource(Ref ref, String pubkey) {
       currentPubkey: currentPubkey,
       forKind: PostEntity.kind,
     ).extensions,
+    ...SearchExtensions.withCounters(
+      currentPubkey: currentPubkey,
+      forKind: ArticleEntity.kind,
+    ).extensions,
+    ...SearchExtensions.withCounters(
+      currentPubkey: currentPubkey,
+      forKind: GenericRepostEntity.kind,
+    ).extensions,
+    ...SearchExtensions.withCounters(
+      currentPubkey: currentPubkey,
+      forKind: RepostEntity.kind,
+    ).extensions,
     ReferencesSearchExtension(contain: false),
     ExpirationSearchExtension(expiration: false),
   ]).toString();
@@ -40,6 +53,7 @@ List<EntitiesDataSource>? userPostsDataSource(Ref ref, String pubkey) {
       entityFilter: (entity) =>
           entity.masterPubkey == pubkey &&
           ((entity is ModifiablePostEntity && entity.data.parentEvent == null) ||
+              entity is ArticleEntity ||
               entity is GenericRepostEntity ||
               (entity is PostEntity && entity.data.parentEvent == null) ||
               entity is RepostEntity),
@@ -48,7 +62,9 @@ List<EntitiesDataSource>? userPostsDataSource(Ref ref, String pubkey) {
           ModifiablePostEntity.kind,
           PostEntity.kind,
           RepostEntity.kind,
+          ArticleEntity.kind,
           GenericRepostEntity.modifiablePostRepostKind,
+          GenericRepostEntity.articleRepostKind,
         ],
         authors: [pubkey],
         search: search,
