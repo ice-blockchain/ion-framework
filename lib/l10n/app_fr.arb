@@ -1050,25 +1050,5 @@
   "who_can_reply_settings_title_video": "Qui peut répondre à cette vidéo",
   "who_can_reply_settings_verified_accounts": "Comptes vérifiés",
   "write_a_message": "Écrire un message...",
-  "chart_label": "Graphique",
-  "chart_stats_volume": "Vol",
-  "chart_stats_buys": "Achats",
-  "chart_stats_sells": "Ventes",
-  "chart_stats_net_buy": "Achat net",
-  "latest_trades_title": "Dernières transactions",
-  "trade_buy": "ACHAT",
-  "trade_sell": "VENTE",
-  "your_position_card_title": "Votre position",
-  "tokenized_community_chart_tab": "Graphique",
-  "tokenized_community_holders_tab": "Détenteurs",
-  "tokenized_community_trades_tab": "Transactions",
-  "tokenized_community_comments_tab": "Commentaires",
-  "top_holders_title": "Principaux détenteurs ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  }
+  "your_position_card_title": "Votre position"
 }

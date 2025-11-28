@@ -1050,25 +1050,5 @@
   "who_can_reply_settings_title_video": "Кой може да отговаря на това видео",
   "who_can_reply_settings_verified_accounts": "Верифицирани акаунти",
   "write_a_message": "Напишете съобщение...",
-  "chart_label": "Графика",
-  "chart_stats_volume": "Обем",
-  "chart_stats_buys": "Покупки",
-  "chart_stats_sells": "Продажби",
-  "chart_stats_net_buy": "Нетни покупки",
-  "latest_trades_title": "Последни сделки",
-  "trade_buy": "КУПУВАНЕ",
-  "trade_sell": "ПРОДАВАНЕ",
-  "your_position_card_title": "Вашата позиция",
-  "tokenized_community_chart_tab": "Графика",
-  "tokenized_community_holders_tab": "Притежатели",
-  "tokenized_community_trades_tab": "Сделки",
-  "tokenized_community_comments_tab": "Коментари",
-  "top_holders_title": "Топ притежатели ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  }
+  "your_position_card_title": "Вашата позиция"
 }

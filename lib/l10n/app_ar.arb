@@ -1063,25 +1063,5 @@
   "who_can_reply_settings_title_video": "من يمكنه الرد على هذا الفيديو",
   "who_can_reply_settings_verified_accounts": "الحسابات المُوثقة",
   "write_a_message": "اكتب رسالة...",
-  "chart_label": "المخطط",
-  "chart_stats_volume": "حجم",
-  "chart_stats_buys": "شراء",
-  "chart_stats_sells": "بيع",
-  "chart_stats_net_buy": "صافي الشراء",
-  "latest_trades_title": "أحدث الصفقات",
-  "trade_buy": "شراء",
-  "trade_sell": "بيع",
-  "your_position_card_title": "أيتمكش",
-  "tokenized_community_chart_tab": "المخطط",
-  "tokenized_community_holders_tab": "الحائزون",
-  "tokenized_community_trades_tab": "الصفقات",
-  "tokenized_community_comments_tab": "التعليقات",
-  "top_holders_title": "أكبر الحائزين ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  }
+  "your_position_card_title": "أيتمكش"
 }

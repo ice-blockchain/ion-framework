@@ -1050,25 +1050,5 @@
   "who_can_reply_settings_title_video": "Cine poate răspunde la acest video",
   "who_can_reply_settings_verified_accounts": "Conturi verificate",
   "write_a_message": "Scrie un mesaj...",
-  "chart_label": "Grafic",
-  "chart_stats_volume": "Vol",
-  "chart_stats_buys": "Cumpărări",
-  "chart_stats_sells": "Vânzări",
-  "chart_stats_net_buy": "Cumpărări nete",
-  "latest_trades_title": "Ultimele tranzacții",
-  "trade_buy": "CUMPĂRĂ",
-  "trade_sell": "VINDE",
-  "your_position_card_title": "Poziția ta",
-  "tokenized_community_chart_tab": "Grafic",
-  "tokenized_community_holders_tab": "Deținători",
-  "tokenized_community_trades_tab": "Tranzacții",
-  "tokenized_community_comments_tab": "Comentarii",
-  "top_holders_title": "Principalii deținători ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  }
+  "your_position_card_title": "Poziția ta"
 }
