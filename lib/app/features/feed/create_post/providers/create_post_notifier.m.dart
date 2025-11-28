@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
@@ -45,7 +44,6 @@ import 'package:ion/app/features/ion_connect/model/related_event_marker.dart';
 import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/model/replaceable_event_identifier.f.dart';
-import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
 import 'package:ion/app/features/ion_connect/model/source_post_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_delete_file_notifier.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
@@ -102,13 +100,12 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       }.toList();
 
-      final richText = await _buildRichTextContentWithMediaLinks(
+      final contentWithMedia = await _buildContentWithMediaLinksDelta(
         content: postContent,
         media: media.values.toList(),
       );
 
-      final deltaJson = jsonDecode(richText.content) as List;
-      final conversion = await convertDeltaToPmoTags(deltaJson);
+      final conversion = await convertDeltaToPmoTags(contentWithMedia.toJson());
 
       final postData = ModifiablePostData(
         textContent: conversion.contentToSign,
@@ -128,7 +125,6 @@ class CreatePostNotifier extends _$CreatePostNotifier {
             parentEntity != null ? null : EntityDataWithSettings.build(whoCanReply: whoCanReply),
         expiration: _buildExpiration(),
         communityId: communityId,
-        richText: richText,
         poll: poll,
         language: _buildLanguageLabel(language),
       );
@@ -199,18 +195,16 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       ];
 
-      final richText = await _buildRichTextContentWithMediaLinks(
+      final contentWithMedia = await _buildContentWithMediaLinksDelta(
         content: postContent,
         media: modifiedMedia.values.toList(),
       );
 
       // Convert Delta to PMO tags before creating data model
-      final deltaJson = jsonDecode(richText.content) as List;
-      final conversion = await convertDeltaToPmoTags(deltaJson);
+      final conversion = await convertDeltaToPmoTags(contentWithMedia.toJson());
 
       final postData = modifiedEntity.data.copyWith(
         textContent: conversion.contentToSign,
-        richText: richText,
         media: modifiedMedia,
         relatedHashtags: relatedHashtags,
         relatedPubkeys:
@@ -269,7 +263,6 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         media: {},
         settings: null,
         expiration: null,
-        richText: null,
         poll: null,
         language: null,
       );
@@ -434,23 +427,6 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       ImmutableEventReference() => QuotedImmutableEvent(eventReference: quotedEventReference),
       _ => throw UnsupportedEventReference(quotedEventReference)
     };
-  }
-
-  Future<RichText> _buildRichTextContentWithMediaLinks({
-    required Delta content,
-    required List<MediaAttachment> media,
-  }) async {
-    final contentWithMedia = await _buildContentWithMediaLinksDelta(
-      content: content,
-      media: media,
-    );
-
-    final richText = RichText(
-      protocol: 'quill_delta',
-      content: jsonEncode(contentWithMedia.toJson()),
-    );
-
-    return richText;
   }
 
   Future<Delta> _buildContentWithMediaLinksDelta({

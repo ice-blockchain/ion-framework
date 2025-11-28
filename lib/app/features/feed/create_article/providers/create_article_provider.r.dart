@@ -29,7 +29,6 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
-import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_delete_file_notifier.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -89,11 +88,6 @@ class CreateArticle extends _$CreateArticle {
 
       final (imageUrl, updatedContent) = await (mainImageFuture, contentFuture).wait;
 
-      final richText = RichText(
-        protocol: 'quill_delta',
-        content: jsonEncode(updatedContent.toJson()),
-      );
-
       final markdownContent = convertDeltaToMarkdown(updatedContent);
 
       if (topics.isEmpty) {
@@ -118,7 +112,6 @@ class CreateArticle extends _$CreateArticle {
         publishedAt: publishedAt?.microsecondsSinceEpoch,
         settings: EntityDataWithSettings.build(whoCanReply: whoCanReply),
         imageColor: imageColor,
-        richText: richText,
         textContent: markdownContent,
         language: _buildLanguageLabel(language),
       );
@@ -159,7 +152,6 @@ class CreateArticle extends _$CreateArticle {
         media: {},
         colorLabel: null,
         settings: null,
-        richText: null,
         editingEndedAt: null,
         language: null,
       );
@@ -218,13 +210,7 @@ class CreateArticle extends _$CreateArticle {
         mediaAttachments: updatedMediaAttachments,
       );
 
-      final contentString = jsonEncode(updatedContent.toJson());
       final markdownContent = convertDeltaToMarkdown(updatedContent);
-
-      final richText = RichText(
-        protocol: 'quill_delta',
-        content: contentString,
-      );
 
       if (topics.contains(FeedInterests.unclassified) && topics.length > 1) {
         topics.remove(FeedInterests.unclassified);
@@ -252,8 +238,9 @@ class CreateArticle extends _$CreateArticle {
       }
 
       // Only remove media that is not referenced in content AND not in the modified media
+      final contentJson = jsonEncode(updatedContent.toJson());
       modifiedEntity.data.media.forEach((url, attachment) {
-        final urlInContent = contentString.contains(url);
+        final urlInContent = contentJson.contains(url);
         final urlToCheck = url.replaceAll('url ', '');
         final isInModifiedMedia = modifiedMedia.containsKey(url);
         final isOriginalImage = originalImageUrl != null && urlToCheck == originalImageUrl;
@@ -285,7 +272,6 @@ class CreateArticle extends _$CreateArticle {
         colorLabel: imageColor != null
             ? EntityLabel(values: [imageColor], namespace: EntityLabelNamespace.color)
             : null,
-        richText: richText,
         language: _buildLanguageLabel(language),
       );
 
