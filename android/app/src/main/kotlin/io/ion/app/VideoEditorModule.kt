@@ -151,7 +151,7 @@ class CustomExportParamsProvider(
             mkdirs()
         }
 
-        val exportVideo = ExportParams.Builder(VideoResolution.Original)
+        val exportVideo = ExportParams.Builder()
             .effects(effects)
             .fileName("export_video")
             .videoRangeList(videoRangeList)
