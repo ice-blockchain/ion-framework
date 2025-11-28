@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:flutter_quill/quill_delta.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
@@ -26,7 +24,6 @@ import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
 import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
-import 'package:ion/app/services/markdown/quill.dart';
 
 part 'article_data.f.freezed.dart';
 
@@ -164,24 +161,6 @@ class ArticleData
     );
   }
 
-  /// Converts rich text Delta to markdown content.
-  ///
-  /// Returns the markdown content, or falls back to textContent if conversion fails.
-  String _convertRichTextToMarkdown(String textContent, RichText? richText) {
-    if (richText != null) {
-      try {
-        final deltaJson = jsonDecode(richText.content) as List;
-        final delta = Delta.fromJson(deltaJson);
-        // Convert Delta to markdown
-        return deltaToMarkdown(delta);
-      } catch (e) {
-        // Fallback to existing textContent if conversion fails
-        return textContent;
-      }
-    }
-    return textContent;
-  }
-
   @override
   String get content => richText?.content ?? textContent;
 
@@ -191,13 +170,11 @@ class ArticleData
     List<List<String>> tags = const [],
     int? createdAt,
   }) async {
-    final contentToSign = _convertRichTextToMarkdown(textContent, richText);
-
     return EventMessage.fromData(
       signer: signer,
       createdAt: createdAt,
       kind: ArticleEntity.kind,
-      content: contentToSign,
+      content: textContent,
       tags: [
         ...tags,
         replaceableEventId.toTag(),

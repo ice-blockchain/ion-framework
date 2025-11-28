@@ -21,6 +21,7 @@ import 'package:ion/app/features/feed/data/models/feed_interests.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_interests_interaction.dart';
 import 'package:ion/app/features/feed/data/models/who_can_reply_settings_option.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_data.f.dart';
+import 'package:ion/app/features/feed/providers/content_conversion_provider.dart';
 import 'package:ion/app/features/feed/providers/counters/helpers/counter_cache_helpers.r.dart';
 import 'package:ion/app/features/feed/providers/counters/replies_count_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
@@ -101,8 +102,16 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       }.toList();
 
+      final richText = await _buildRichTextContentWithMediaLinks(
+        content: postContent,
+        media: media.values.toList(),
+      );
+
+      final deltaJson = jsonDecode(richText.content) as List;
+      final conversion = await convertDeltaToPmoTags(deltaJson);
+
       final postData = ModifiablePostData(
-        textContent: '',
+        textContent: conversion.contentToSign,
         media: media,
         replaceableEventId: ReplaceableEventIdentifier.generate(),
         publishedAt: _buildEntityPublishedAt(),
@@ -119,10 +128,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
             parentEntity != null ? null : EntityDataWithSettings.build(whoCanReply: whoCanReply),
         expiration: _buildExpiration(),
         communityId: communityId,
-        richText: await _buildRichTextContentWithMediaLinks(
-          content: postContent,
-          media: media.values.toList(),
-        ),
+        richText: richText,
         poll: poll,
         language: _buildLanguageLabel(language),
       );
@@ -133,6 +139,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         mentions: mentions,
         quotedEvent: quotedEvent,
         parentEntity: parentEntity,
+        pmoTags: conversion.pmoTags,
       );
 
       _createPostNotifierStreamController.add(post);
@@ -192,12 +199,18 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       ];
 
+      final richText = await _buildRichTextContentWithMediaLinks(
+        content: postContent,
+        media: modifiedMedia.values.toList(),
+      );
+
+      // Convert Delta to PMO tags before creating data model
+      final deltaJson = jsonDecode(richText.content) as List;
+      final conversion = await convertDeltaToPmoTags(deltaJson);
+
       final postData = modifiedEntity.data.copyWith(
-        textContent: '',
-        richText: await _buildRichTextContentWithMediaLinks(
-          content: postContent,
-          media: modifiedMedia.values.toList(),
-        ),
+        textContent: conversion.contentToSign,
+        richText: richText,
         media: modifiedMedia,
         relatedHashtags: relatedHashtags,
         relatedPubkeys:
@@ -288,10 +301,14 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     IonConnectEntity? parentEntity,
     List<FileMetadata> files = const [],
     List<RelatedPubkey> mentions = const [],
+    List<List<String>> pmoTags = const [],
   }) async {
     final ionNotifier = ref.read(ionConnectNotifierProvider.notifier);
 
-    final postEvent = await ionNotifier.sign(postData);
+    final postEvent = await ionNotifier.sign(
+      postData,
+      tags: pmoTags,
+    );
     final fileEvents = await Future.wait(files.map(ionNotifier.sign));
 
     final pubkeysToPublish = mentions.map((mention) => mention.value).toSet();

@@ -118,7 +118,15 @@ String deltaToMarkdown(Delta delta) {
 
   // Post-process to ensure <u> tags are preserved (not escaped)
   // The markdown converter might escape HTML, so we unescape <u> tags
-  return markdown.replaceAll(r'\<u\>', '<u>').replaceAll(r'\</u\>', '</u>');
+  final processedMarkdown = markdown.replaceAll(r'\<u\>', '<u>').replaceAll(r'\</u\>', '</u>');
+
+  // Add two spaces before single newlines to create hard breaks in markdown
+  // This ensures line breaks are preserved when converting back to Delta
+  // We don't modify newlines that already have two spaces, or double newlines (paragraphs)
+  return processedMarkdown.replaceAllMapped(
+    RegExp(r'(?<!  )\n(?!\n)'),
+    (match) => '  \n',
+  );
 }
 
 Delta markdownToDelta(String markdown) {

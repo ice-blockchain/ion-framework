@@ -195,17 +195,23 @@ abstract class DeltaMarkdownConverter {
     }
 
     var replacement = content;
+    final hasBold = attributes.containsKey('bold');
+    final hasItalic = attributes.containsKey('italic');
 
     // Apply formatting in order: code, bold, italic, strike, underline, link
     if (attributes.containsKey('code')) {
       replacement = '`$replacement`';
     }
-    if (attributes.containsKey('bold')) {
+
+    // Handle bold and italic together (must be before individual checks)
+    if (hasBold && hasItalic) {
+      replacement = '***$replacement***';
+    } else if (hasBold) {
       replacement = '**$replacement**';
-    }
-    if (attributes.containsKey('italic')) {
+    } else if (hasItalic) {
       replacement = '*$replacement*';
     }
+
     if (attributes.containsKey('strike')) {
       replacement = '~~$replacement~~';
     }
@@ -349,18 +355,37 @@ abstract class DeltaMarkdownConverter {
         continue;
       }
 
+      // Write any plain text before this tag (including newlines)
       if (tag.start > currentPos) {
-        buffer.write(plainText.substring(currentPos, tag.start));
+        final textBefore = plainText.substring(currentPos, tag.start);
+        // Add two spaces before single newlines to create hard breaks in markdown
+        // This ensures line breaks are preserved when converting back to Delta
+        final textWithHardBreaks = textBefore.replaceAllMapped(
+          RegExp(r'(?<!\n)\n(?!\n)'),
+          (match) => '  \n',
+        );
+        buffer.write(textWithHardBreaks);
       }
 
+      // Write the markdown replacement
       buffer.write(tag.replacement);
       currentPos = tag.end;
     }
 
+    // Write any remaining plain text after the last tag
     if (currentPos < plainText.length) {
-      buffer.write(plainText.substring(currentPos));
+      final textAfter = plainText.substring(currentPos);
+      // Add two spaces before single newlines to create hard breaks in markdown
+      final textWithHardBreaks = textAfter.replaceAllMapped(
+        RegExp(r'(?<!\n)\n(?!\n)'),
+        (match) => '  \n',
+      );
+      buffer.write(textWithHardBreaks);
     }
 
-    return markdownToDelta(buffer.toString());
+    final markdown = buffer.toString();
+    // Ensure the markdown ends with a newline for proper parsing
+    final markdownWithNewline = markdown.endsWith('\n') ? markdown : '$markdown\n';
+    return markdownToDelta(markdownWithNewline);
   }
 }

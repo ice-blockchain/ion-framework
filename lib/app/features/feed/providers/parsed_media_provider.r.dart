@@ -7,6 +7,9 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/services/markdown/quill.dart';
@@ -27,31 +30,45 @@ part 'parsed_media_provider.r.g.dart';
 ({Delta content, List<MediaAttachment> media}) parseMediaContent({
   required EntityDataWithMediaContent data,
 }) {
-  final EntityDataWithMediaContent(:content, :media, :richText) = data;
+  final EntityDataWithMediaContent(:media, :richText) = data;
+  
+  // Get the actual text content for fallback
+  // The content getter might return richText.content (JSON) if richText is set,
+  // so we need to get the actual plain text content
+  final textContent = switch (data) {
+    final ModifiablePostData d => d.textContent,
+    final PostData d => d.content,
+    final ArticleData d => d.textContent,
+    _ => data.content, // Fallback to content getter
+  };
 
   Delta? delta;
 
   // For articles (kind 30023), content should be 100% markdown only.
   // Check if content is markdown and prioritize it over delta.
-  final isMarkdownContent = isMarkdown(content);
+  final isMarkdownContent = isMarkdown(textContent);
 
   if (isMarkdownContent) {
     // Content is markdown - convert to delta (prioritize markdown for articles)
-    delta = markdownToDelta(content);
+    delta = markdownToDelta(textContent);
     final mediaDelta = _parseMediaContentDelta(delta: delta, media: media);
     return (content: processDeltaMatches(mediaDelta.content), media: mediaDelta.media);
   }
 
   // If not markdown, try delta from richText if available
   if (richText != null) {
-    final richTextDecoded = Delta.fromJson(jsonDecode(richText.content) as List<dynamic>);
-    final richTextDelta = processDelta(richTextDecoded);
-    final mediaDelta = _parseMediaContentDelta(delta: richTextDelta, media: media);
-    return (content: processDeltaMatches(mediaDelta.content), media: mediaDelta.media);
+    try {
+      final richTextDecoded = Delta.fromJson(jsonDecode(richText.content) as List<dynamic>);
+      final richTextDelta = processDelta(richTextDecoded);
+      final mediaDelta = _parseMediaContentDelta(delta: richTextDelta, media: media);
+      return (content: processDeltaMatches(mediaDelta.content), media: mediaDelta.media);
+    } catch (e) {
+      // If parsing fails, fall through to plain text fallback
+    }
   }
 
   // Fallback to plain text
-  delta = plainTextToDelta(content);
+  delta = plainTextToDelta(textContent);
   final mediaDeltaFallback = _parseMediaContentDelta(delta: delta, media: media);
   return (
     content: processDeltaMatches(mediaDeltaFallback.content),

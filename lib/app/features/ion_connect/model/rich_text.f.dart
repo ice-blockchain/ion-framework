@@ -52,7 +52,6 @@ class RichText with _$RichText {
       return null;
     }
 
-    // Map markdown (via PMO tags) to Delta
     final reconstructedDelta = DeltaMarkdownConverter.mapMarkdownToDelta(
       content,
       pmoTags,
