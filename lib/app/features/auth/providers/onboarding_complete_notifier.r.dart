@@ -101,7 +101,6 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
 
         await _sendFollowListToFollowees(
           followList: followList,
-          userMetadata: userMetadata,
         );
       },
     );
@@ -278,7 +277,6 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
 
   Future<void> _sendFollowListToFollowees({
     required FollowListData followList,
-    required UserMetadata userMetadata,
   }) async {
     if (followList.list.isEmpty) {
       return;
