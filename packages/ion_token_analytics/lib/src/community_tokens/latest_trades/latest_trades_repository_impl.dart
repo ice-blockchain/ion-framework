@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository.dart';
+import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class LatestTradesRepositoryImpl implements LatestTradesRepository {
   LatestTradesRepositoryImpl(this._client);

@@ -2,6 +2,7 @@
 
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository.dart';
+import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class FeaturedTokensRepositoryImpl implements FeaturedTokensRepository {
   FeaturedTokensRepositoryImpl(this._client);

@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository.dart';
+import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class TopHoldersRepositoryImpl implements TopHoldersRepository {
   TopHoldersRepositoryImpl(this._client);

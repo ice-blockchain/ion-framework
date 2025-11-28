@@ -184,13 +184,13 @@ class ProfilePage extends HookConsumerWidget {
         ),
         headerActionsBuilder: (menuCloseSignal) => Row(
           mainAxisSize: MainAxisSize.min,
+          spacing: 8.0.s,
           children: [
             if (profileMode == ProfileMode.dark) ...[
               ProfileActions(
                 pubkey: masterPubkey,
                 profileMode: profileMode,
               ),
-              SizedBox(width: 8.0.s),
             ],
             if (isDelegateAccessEnabled) ...[
               GestureDetector(
@@ -198,7 +198,6 @@ class ProfilePage extends HookConsumerWidget {
                     SwitchUserAccountRoute(selectedUserPubkey: masterPubkey).push<void>(context),
                 child: Assets.svg.iconSwitchProfile.icon(size: 24.0.s),
               ),
-              SizedBox(width: 8.0.s),
             ],
             ProfileContextMenu(
               pubkey: masterPubkey,

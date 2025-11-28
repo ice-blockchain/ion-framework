@@ -4,8 +4,8 @@ import 'package:ion_token_analytics/src/community_tokens/token_info/models/commu
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
-class TokenInfoRepositoryRemote implements TokenInfoRepository {
-  TokenInfoRepositoryRemote(this.client);
+class TokenInfoRepositoryImpl implements TokenInfoRepository {
+  TokenInfoRepositoryImpl(this.client);
 
   final NetworkClient client;
 
