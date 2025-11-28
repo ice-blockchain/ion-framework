@@ -53,12 +53,10 @@ Future<({String contentToSign, List<List<String>> pmoTags})> convertMarkdownToPm
 ) async {
   try {
     // Convert markdown → Delta → plain text + PMO tags
-    final delta = markdownToDelta(markdownContent);
-    final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
-    // Trim trailing newline that markdownToDelta adds
-    final contentToSign = result.text.trimRight();
+    // The converter automatically trims the trailing newline that markdownToDelta adds
+    final result = await DeltaMarkdownConverter.mapMarkdownToPmo(markdownContent);
     final pmoTags = result.tags.map((t) => t.toTag()).toList();
-    return (contentToSign: contentToSign, pmoTags: pmoTags);
+    return (contentToSign: result.text, pmoTags: pmoTags);
   } catch (e) {
     throw ContentConversionException(e, conversionType: 'markdown to PMO tags');
   }

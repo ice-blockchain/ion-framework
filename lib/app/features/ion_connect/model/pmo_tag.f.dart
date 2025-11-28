@@ -5,9 +5,6 @@ import 'package:ion/app/exceptions/exceptions.dart';
 
 part 'pmo_tag.f.freezed.dart';
 
-/// Result of the conversion containing plain text and PMO tags.
-typedef PmoConversionResult = ({String text, List<PmoTag> tags});
-
 /// Represents a PMO (Positional Markdown Override) tag.
 @freezed
 class PmoTag with _$PmoTag {
@@ -33,6 +30,9 @@ class PmoTag with _$PmoTag {
     final start = int.tryParse(indices[0]);
     final end = int.tryParse(indices[1]);
     if (start == null || end == null) {
+      throw IncorrectEventTagException(tag: tag.toString());
+    }
+    if (start > end) {
       throw IncorrectEventTagException(tag: tag.toString());
     }
     return PmoTag(start: start, end: end, replacement: tag[2]);

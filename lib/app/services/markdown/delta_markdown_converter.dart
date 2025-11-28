@@ -7,6 +7,9 @@ import 'package:ion/app/services/markdown/quill.dart';
 
 typedef _ParsedPmoTag = ({int start, int end, String replacement});
 
+/// Result of the conversion containing plain text and PMO tags.
+typedef PmoConversionResult = ({String text, List<PmoTag> tags});
+
 /// Abstract converter for Delta and Markdown transformations.
 abstract class DeltaMarkdownConverter {
   /// Maps a Delta JSON list to [PmoConversionResult].
@@ -63,6 +66,19 @@ abstract class DeltaMarkdownConverter {
     }
 
     return (text: buffer.toString(), tags: pmoTags);
+  }
+
+  /// Maps markdown content to plain text and PMO tags.
+  ///
+  /// This converts markdown → Delta → plain text + PMO tags.
+  /// Automatically trims the trailing newline that markdownToDelta adds.
+  ///
+  /// Returns a record containing the content to sign and the PMO tags.
+  static Future<PmoConversionResult> mapMarkdownToPmo(String markdownContent) async {
+    final delta = markdownToDelta(markdownContent);
+    final result = await mapDeltaToPmo(delta.toJson());
+    // Trim trailing newline that markdownToDelta adds
+    return (text: result.text.trimRight(), tags: result.tags);
   }
 
   /// Processes string content, handling newlines, block attributes, and inline attributes.
