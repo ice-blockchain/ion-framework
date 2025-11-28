@@ -131,9 +131,10 @@ class MediaEncryptionService {
       final decryptedFile = await File(tempFilePath).writeAsBytes(decryptedFileBytes);
 
       final mimeType = ionMimeTypeResolver.lookup(
-        decryptedFile.path,
-        headerBytes: decryptedFileBytes,
-      );
+            decryptedFile.path,
+            headerBytes: decryptedFileBytes,
+          ) ??
+          attachment.originalMimeType;
 
       final fileExtension = mimeType != null ? extensionFromMime(mimeType) ?? '' : '';
 
