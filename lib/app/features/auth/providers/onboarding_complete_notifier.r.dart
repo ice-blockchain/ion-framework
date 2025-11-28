@@ -102,8 +102,6 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
         await _sendFollowListToFollowees(
           followList: followList,
           userMetadata: userMetadata,
-          userDelegationEvent: userDelegationEvent ??
-              await (await ref.read(currentUserDelegationProvider.future))?.toEntityEventMessage(),
         );
       },
     );
@@ -281,31 +279,17 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
   Future<void> _sendFollowListToFollowees({
     required FollowListData followList,
     required UserMetadata userMetadata,
-    EventMessage? userDelegationEvent,
   }) async {
     if (followList.list.isEmpty) {
       return;
     }
 
+    final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
     final ionNotifier = ref.read(ionConnectNotifierProvider.notifier);
-
-    // Build metadata events from freshly created metadata/delegation.
-    final metadataEvents = <EventMessage>[];
-
-    final userMetadataEvent = await ionNotifier.sign(userMetadata);
-    metadataEvents.add(userMetadataEvent);
-
-    if (userDelegationEvent != null) {
-      metadataEvents.add(userDelegationEvent);
-    }
-
-    final userEventsMetadataBuilder = UserEventsMetadataBuilder(metadataEvents);
-    final followListEvent = await ionNotifier.sign(followList);
-
     await Future.wait(
       followList.list.map(
-        (followee) => ionNotifier.sendEvent(
-          followListEvent,
+        (followee) => ionNotifier.sendEntityData(
+          followList,
           actionSource: ActionSourceUser(followee.pubkey),
           metadataBuilders: [userEventsMetadataBuilder],
           cache: false,
