@@ -15,6 +15,7 @@ import 'package:ion/app/features/chat/providers/conversation_pubkeys_provider.r.
 import 'package:ion/app/features/chat/providers/exist_chat_conversation_id_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/providers/content_conversion.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
@@ -63,7 +64,22 @@ class StoryReply extends _$StoryReply {
             receiverMasterPubkeys: [story.masterPubkey, currentUserMasterPubkey],
           );
 
-      final storyEventMessage = await story.toEventMessage(story.data);
+      final storyData = story.data;
+      final deltaJson =
+          storyData.richText != null ? (jsonDecode(storyData.richText!.content) as List) : null;
+
+      final conversion = deltaJson != null
+          ? await convertDeltaToPmoTags(deltaJson)
+          : await convertMarkdownToPmoTags(storyData.textContent);
+
+      final storyDataWithConversion = storyData.copyWith(
+        textContent: conversion.contentToSign,
+      );
+
+      final storyEventMessage = await storyDataWithConversion.toEventMessage(
+        eventSigner,
+        tags: conversion.pmoTags,
+      );
       final storyAsContent = jsonEncode(storyEventMessage.toJson().last);
 
       final tags = [
