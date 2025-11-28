@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
 import 'package:ion/app/components/placeholder/ion_placeholder.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_post_menu_bottom_sheet.dart';
 import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
 import 'package:ion/app/features/feed/views/components/feed_network_image/feed_network_image.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/components/trending_video_author.dart';
@@ -128,13 +131,16 @@ class _VideoContainer extends StatelessWidget {
   }
 }
 
-class _TopControls extends StatelessWidget {
+class _TopControls extends ConsumerWidget {
   const _TopControls({required this.eventReference});
 
   final EventReference eventReference;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isOwnedByCurrentUser =
+        ref.watch(isCurrentUserSelectorProvider(eventReference.masterPubkey));
+
     return SizedBox(
       height: 40.0.s,
       child: Row(
@@ -151,9 +157,14 @@ class _TopControls extends StatelessWidget {
               end: 6.0.s,
               top: 12.0.s,
             ),
-            menuBuilder: (context) => PostMenuBottomSheet(
-              eventReference: eventReference,
-            ),
+            menuBuilder: (context) => isOwnedByCurrentUser
+                ? OwnPostMenuBottomSheet(
+                    eventReference: eventReference,
+                    onDelete: () => context.canPop(),
+                  )
+                : PostMenuBottomSheet(
+                    eventReference: eventReference,
+                  ),
           ),
         ],
       ),
