@@ -83,6 +83,14 @@ class QuillParseException extends IONException {
       : super(10014, 'Invalid content format for Quill Delta: $error');
 }
 
+class ContentConversionException extends IONException {
+  ContentConversionException(dynamic error, {String? conversionType})
+      : super(
+          10016,
+          'Failed to convert content${conversionType != null ? ' ($conversionType)' : ''}: $error',
+        );
+}
+
 class UnsupportedRepostException extends IONException {
   UnsupportedRepostException(dynamic eventInfo)
       : super(10015, 'Reposting event $eventInfo is not supported');

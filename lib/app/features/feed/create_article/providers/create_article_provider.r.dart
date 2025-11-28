@@ -15,6 +15,7 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_interests.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_interests_interaction.dart';
 import 'package:ion/app/features/feed/data/models/who_can_reply_settings_option.f.dart';
+import 'package:ion/app/features/feed/providers/content_conversion_provider.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/media_upload_provider.r.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
@@ -93,7 +94,7 @@ class CreateArticle extends _$CreateArticle {
         content: jsonEncode(updatedContent.toJson()),
       );
 
-      final markdownContent = deltaToMarkdown(updatedContent);
+      final markdownContent = convertDeltaToMarkdown(updatedContent);
 
       if (topics.isEmpty) {
         topics.add(FeedInterests.unclassified);
@@ -218,7 +219,7 @@ class CreateArticle extends _$CreateArticle {
       );
 
       final contentString = jsonEncode(updatedContent.toJson());
-      final markdownContent = deltaToMarkdown(updatedContent);
+      final markdownContent = convertDeltaToMarkdown(updatedContent);
 
       final richText = RichText(
         protocol: 'quill_delta',
