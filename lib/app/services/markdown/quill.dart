@@ -122,10 +122,20 @@ String deltaToMarkdown(Delta delta) {
 
   // Add two spaces before single newlines to create hard breaks in markdown
   // This ensures line breaks are preserved when converting back to Delta
-  // We don't modify newlines that already have two spaces, or double newlines (paragraphs)
+  // We don't modify newlines that already have two spaces, double newlines (paragraphs),
+  // or newlines inside code blocks (code blocks already preserve newlines)
   return processedMarkdown.replaceAllMapped(
-    RegExp(r'(?<!  )\n(?!\n)'),
-    (match) => '  \n',
+    RegExp(r'(?<!  )\n(?!\n)(?!```)'),
+    (match) {
+      // Check if this newline is inside a code block
+      final beforeMatch = processedMarkdown.substring(0, match.start);
+      final codeBlockOpenCount = beforeMatch.split('```').length - 1;
+      // If we have an odd number of ```, we're inside a code block
+      if (codeBlockOpenCount.isOdd) {
+        return '\n'; // Don't add spaces inside code blocks
+      }
+      return '  \n';
+    },
   );
 }
 
