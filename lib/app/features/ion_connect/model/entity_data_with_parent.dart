@@ -28,6 +28,11 @@ mixin EntityDataWithRelatedEvents<T extends RelatedEvent> {
     // return relatedEvents?.firstWhereOrNull((event) => event.marker == RelatedEventMarker.reply);
   }
 
+  bool get isReply {
+    return relatedEvents?.firstWhereOrNull((event) => event.marker == RelatedEventMarker.reply) !=
+        null;
+  }
+
   T? get rootRelatedEvent {
     return relatedEvents?.firstWhereOrNull((tag) => tag.marker == RelatedEventMarker.root);
   }
