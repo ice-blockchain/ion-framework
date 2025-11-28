@@ -2,6 +2,9 @@ package io.ion.app
 
 import android.app.Application
 import android.content.Context
+import android.media.MediaCodecInfo
+import android.media.MediaCodecList
+import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.Log
@@ -148,14 +151,10 @@ class CustomExportParamsProvider(
     companion object {
         private const val TAG = "CustomExportParams"
         
-        // Maximum safe resolution for Android MediaCodec
-        // Many devices don't support encoding above 2160p (4K) height
-        // Some devices also have width limitations, so we cap at 3840x2160 (standard 4K)
-        private const val MAX_EXPORT_HEIGHT = 2160
-        private const val MAX_EXPORT_WIDTH = 3840
-        // Alternative: Use 1080p for maximum compatibility across all devices
-        // private const val MAX_EXPORT_HEIGHT = 1080
-        // private const val MAX_EXPORT_WIDTH = 1920
+        // Fallback limits if codec capabilities cannot be queried
+        // These are conservative defaults that should work on most devices
+        private const val FALLBACK_MAX_EXPORT_HEIGHT = 2160
+        private const val FALLBACK_MAX_EXPORT_WIDTH = 3840
     }
 
     override fun provideExportParams(
@@ -191,15 +190,13 @@ class CustomExportParamsProvider(
 
     /**
      * Calculates a safe export resolution by checking the source video dimensions
-     * and capping them at MAX_EXPORT_WIDTH/HEIGHT to avoid MediaCodec configuration errors
-     * on devices with limited codec support.
+     * against actual device MediaCodec capabilities to avoid configuration errors.
      * 
      * The error occurs when videos exceed device MediaCodec capabilities (e.g., 3240x2160).
-     * This method checks video dimensions and uses a safe resolution preset if available.
+     * This method queries the actual codec capabilities and scales down only if necessary.
      */
     private fun calculateSafeResolution(videoRangeList: VideoRangeList): VideoResolution {
         Log.d(TAG, "calculateSafeResolution: Starting resolution calculation")
-        Log.d(TAG, "calculateSafeResolution: MAX_EXPORT_WIDTH = $MAX_EXPORT_WIDTH, MAX_EXPORT_HEIGHT = $MAX_EXPORT_HEIGHT")
         
         // Try to get video dimensions from the first video range
         val firstVideoRange = videoRangeList.data.firstOrNull()
@@ -227,80 +224,231 @@ class CustomExportParamsProvider(
         
         Log.d(TAG, "calculateSafeResolution: Original video dimensions = ${originalWidth}x${originalHeight}")
         
-        // If video is already within safe limits, use original resolution
-        if (originalWidth <= MAX_EXPORT_WIDTH && originalHeight <= MAX_EXPORT_HEIGHT) {
-            Log.d(TAG, "calculateSafeResolution: Video is within safe limits, using Original resolution")
+        // Query actual device codec capabilities
+        val codecLimits = getCodecCapabilities()
+
+        val maxWidth = codecLimits.maxWidth
+        val maxHeight = codecLimits.maxHeight
+        
+        Log.d(TAG, "calculateSafeResolution: Device codec limits - maxWidth=$maxWidth, maxHeight=$maxHeight")
+        
+        // If video is within device capabilities, use original resolution
+        if (originalWidth <= maxWidth && originalHeight <= maxHeight) {
+            Log.d(TAG, "calculateSafeResolution: Video is within device capabilities, using Original resolution")
             return VideoResolution.Original
         }
         
-        Log.w(TAG, "calculateSafeResolution: Video exceeds safe limits (${originalWidth}x${originalHeight} > ${MAX_EXPORT_WIDTH}x${MAX_EXPORT_HEIGHT}), attempting to use safe preset")
+        Log.w(TAG, "calculateSafeResolution: Video exceeds device capabilities (${originalWidth}x${originalHeight} > ${maxWidth}x${maxHeight}), scaling down")
         
-        // Video exceeds safe limits - need to use a lower resolution preset
-        // Try common Banuba SDK preset names via reflection (defensive approach)
-        // Most Banuba SDKs have presets like P2160 (4K) or P1080 (Full HD)
-        return try {
-            // Try P2160 preset first (4K - 3840x2160)
-            Log.d(TAG, "calculateSafeResolution: Attempting to use P2160 preset")
-            val p2160Field = VideoResolution::class.java.getDeclaredField("P2160")
-            p2160Field.isAccessible = true
-            val p2160Resolution = p2160Field.get(null) as? VideoResolution
-            if (p2160Resolution != null) {
-                Log.d(TAG, "calculateSafeResolution: Successfully using P2160 preset")
-                return p2160Resolution
+        // Video exceeds device capabilities - calculate safe dimensions maintaining aspect ratio
+        val aspectRatio = originalWidth.toFloat() / originalHeight.toFloat()
+        
+        // Calculate dimensions that fit within codec limits while maintaining aspect ratio
+        // Try fitting by height first, then by width if needed
+        val heightBasedWidth = (maxHeight * aspectRatio).toInt()
+        val widthBasedHeight = (maxWidth / aspectRatio).toInt()
+        
+        val targetWidth: Int
+        val targetHeight: Int
+        
+        if (heightBasedWidth <= maxWidth) {
+            // Fits by height constraint
+            targetWidth = heightBasedWidth
+            targetHeight = maxHeight
+        } else {
+            // Fits by width constraint
+            targetWidth = maxWidth
+            targetHeight = widthBasedHeight
+        }
+        
+        // Ensure dimensions are even (required by many codecs) and within limits
+        val safeWidth = ((targetWidth / 2) * 2).coerceAtMost(maxWidth)
+        val safeHeight = ((targetHeight / 2) * 2).coerceAtMost(maxHeight)
+        
+        Log.d(TAG, "calculateSafeResolution: Calculated safe dimensions = ${safeWidth}x${safeHeight} (aspect ratio = $aspectRatio, original = ${originalWidth}x${originalHeight})")
+        
+        // Find the best VideoResolution.Exact enum value that fits within device limits
+        val suitableResolution = findBestExactResolution(safeWidth, safeHeight, maxWidth, maxHeight, aspectRatio)
+        
+        if (suitableResolution != null) {
+            Log.d(TAG, "calculateSafeResolution: Using Exact resolution: $suitableResolution")
+            return suitableResolution
+        }
+        
+        // No suitable resolution found - log warning and use Original
+        // The export may fail, but we've logged enough info for debugging
+        Log.e(TAG, "calculateSafeResolution: No suitable resolution found for ${safeWidth}x${safeHeight}")
+        Log.e(TAG, "calculateSafeResolution: Device limits: ${maxWidth}x${maxHeight}, Video: ${originalWidth}x${originalHeight}")
+        Log.w(TAG, "calculateSafeResolution: Falling back to Original resolution - export may fail on this device")
+        return VideoResolution.Original
+    }
+    
+    /**
+     * Finds the best VideoResolution.Exact enum value that fits within device limits.
+     * The Exact enum has a 'size' property (height) and we need to calculate width based on aspect ratio.
+     */
+    private fun findBestExactResolution(
+        targetWidth: Int,
+        targetHeight: Int,
+        maxWidth: Int,
+        maxHeight: Int,
+        aspectRatio: Float
+    ): VideoResolution? {
+        try {
+            // Get the Exact enum class
+            val exactClass = Class.forName("com.banuba.sdk.core.VideoResolution\$Exact")
+            
+            // Get all enum values
+            val enumValues = exactClass.enumConstants as? Array<*>
+            if (enumValues == null) {
+                Log.w(TAG, "findBestExactResolution: Could not get Exact enum values")
+                return null
+            }
+            
+            Log.d(TAG, "findBestExactResolution: Found ${enumValues.size} Exact enum values")
+            
+            // Map enum values to their resolutions
+            val resolutionsWithDimensions = enumValues.mapNotNull { enumValue ->
+                try {
+                    val exactResolution = enumValue as? VideoResolution
+                    if (exactResolution == null) return@mapNotNull null
+                    
+                    // Get the 'size' property (height)
+                    val sizeField = exactResolution.javaClass.getDeclaredField("size")
+                    sizeField.isAccessible = true
+                    val height = sizeField.get(exactResolution) as? Int ?: 0
+                    
+                    if (height == 0) return@mapNotNull null
+                    
+                    // Calculate width based on aspect ratio (assuming 16:9 for standard presets)
+                    // For non-standard aspect ratios, we'll use the target aspect ratio
+                    val width = (height * aspectRatio).toInt()
+                    
+                    val name = (enumValue as? Enum<*>)?.name ?: "Unknown"
+                    Log.d(TAG, "findBestExactResolution: ${name} = ${width}x${height} (size=$height, aspectRatio=$aspectRatio)")
+                    
+                    ExactResolutionInfo(name, exactResolution, width, height)
+                } catch (e: Exception) {
+                    Log.d(TAG, "findBestExactResolution: Could not get dimensions for enum value: ${e.message}")
+                    null
+                }
+            }
+            
+            // Find the largest resolution that fits within device limits
+            val suitableResolution = resolutionsWithDimensions
+                .sortedByDescending { it.width * it.height } // Sort by total pixels (largest first)
+                .firstOrNull { resolution ->
+                    // Check if resolution fits within device limits
+                    // We need to ensure both width and height fit, accounting for aspect ratio
+                    val fitsByHeight = resolution.height <= maxHeight && (resolution.height * aspectRatio).toInt() <= maxWidth
+                    val fitsByWidth = resolution.width <= maxWidth && (resolution.width / aspectRatio).toInt() <= maxHeight
+                    fitsByHeight || fitsByWidth
+                }
+            
+            if (suitableResolution != null) {
+                Log.d(TAG, "findBestExactResolution: Selected ${suitableResolution.name} (${suitableResolution.width}x${suitableResolution.height})")
+                return suitableResolution.resolution
             } else {
-                Log.w(TAG, "calculateSafeResolution: P2160 field exists but is null, trying P1080")
-                VideoResolution.Original
+                Log.w(TAG, "findBestExactResolution: No suitable Exact resolution found")
+                // Try to find the smallest one that's at least close to our target
+                val closestResolution = resolutionsWithDimensions
+                    .minByOrNull { 
+                        val widthDiff = kotlin.math.abs(it.width - targetWidth)
+                        val heightDiff = kotlin.math.abs(it.height - targetHeight)
+                        widthDiff + heightDiff
+                    }
+                
+                if (closestResolution != null && 
+                    closestResolution.width <= maxWidth * 1.5f && 
+                    closestResolution.height <= maxHeight * 1.5f) {
+                    Log.d(TAG, "findBestExactResolution: Using closest available: ${closestResolution.name}")
+                    return closestResolution.resolution
+                }
             }
         } catch (e: Exception) {
-            Log.d(TAG, "calculateSafeResolution: P2160 preset not available: ${e.message}, trying P1080")
-            // P2160 not available, try P1080 (Full HD - 1920x1080)
-            try {
-                Log.d(TAG, "calculateSafeResolution: Attempting to use P1080 preset")
-                val p1080Field = VideoResolution::class.java.getDeclaredField("P1080")
-                p1080Field.isAccessible = true
-                val p1080Resolution = p1080Field.get(null) as? VideoResolution
-                if (p1080Resolution != null) {
-                    Log.d(TAG, "calculateSafeResolution: Successfully using P1080 preset")
-                    return p1080Resolution
-                } else {
-                    Log.w(TAG, "calculateSafeResolution: P1080 field exists but is null, trying custom resolution")
-                    VideoResolution.Original
-                }
-            } catch (e: Exception) {
-                Log.d(TAG, "calculateSafeResolution: P1080 preset not available: ${e.message}, trying custom resolution")
-                // No preset available - try creating custom resolution if constructor exists
-                try {
-                    Log.d(TAG, "calculateSafeResolution: Attempting to create custom resolution")
-                    val constructor = VideoResolution::class.java.getDeclaredConstructor(
-                        Int::class.java, 
-                        Int::class.java
-                    )
-                    constructor.isAccessible = true
-                    
-                    // Calculate safe dimensions maintaining aspect ratio
-                    val aspectRatio = originalWidth.toFloat() / originalHeight.toFloat()
-                    val targetHeight = MAX_EXPORT_HEIGHT
-                    val calculatedWidth = (targetHeight * aspectRatio).toInt()
-                    val targetWidth = minOf(calculatedWidth, MAX_EXPORT_WIDTH)
-                    
-                    // Ensure dimensions are even (required by many codecs)
-                    val safeWidth = (targetWidth / 2) * 2
-                    val safeHeight = (targetHeight / 2) * 2
-                    
-                    Log.d(TAG, "calculateSafeResolution: Creating custom resolution ${safeWidth}x${safeHeight} (aspect ratio = $aspectRatio)")
-                    val customResolution = constructor.newInstance(safeWidth, safeHeight) as VideoResolution
-                    Log.d(TAG, "calculateSafeResolution: Successfully created custom resolution = $customResolution")
-                    return customResolution
-                } catch (e: Exception) {
-                    Log.e(TAG, "calculateSafeResolution: Failed to create custom resolution: ${e.message}", e)
-                    // Last resort: use Original
-                    // Note: This may still fail on some devices, but Banuba SDK might handle scaling
-                    Log.w(TAG, "calculateSafeResolution: Falling back to Original resolution (may fail on some devices)")
-                    VideoResolution.Original
-                }
+            Log.e(TAG, "findBestExactResolution: Error finding Exact resolution: ${e.message}", e)
+        }
+        
+        return null
+    }
+    
+    /**
+     * Data class to hold Exact resolution information
+     */
+    private data class ExactResolutionInfo(
+        val name: String,
+        val resolution: VideoResolution,
+        val width: Int,
+        val height: Int
+    )
+    
+    /**
+     * Queries the device's MediaCodec encoder capabilities to determine maximum supported resolution.
+     * Returns fallback values if capabilities cannot be queried.
+     */
+    private fun getCodecCapabilities(): CodecLimits {
+        return try {
+            val codecList = MediaCodecList(MediaCodecList.REGULAR_CODECS)
+            
+            // Try to find an H.264 encoder (most common)
+            val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
+            
+            // Create a test format to find an encoder
+            // Use a common resolution that should be supported by most encoders
+            val testFormat = MediaFormat.createVideoFormat(mimeType, 1920, 1080)
+            testFormat.setInteger(
+                MediaFormat.KEY_COLOR_FORMAT,
+                MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
+            )
+            
+            val encoderName = codecList.findEncoderForFormat(testFormat)
+            
+            if (encoderName == null) {
+                Log.w(TAG, "getCodecCapabilities: No H.264 encoder found, using fallback limits")
+                return CodecLimits(FALLBACK_MAX_EXPORT_WIDTH, FALLBACK_MAX_EXPORT_HEIGHT)
             }
+            
+            Log.d(TAG, "getCodecCapabilities: Found encoder: $encoderName")
+            
+            val codecInfo = codecList.codecInfos.find { it.name == encoderName }
+            if (codecInfo == null) {
+                Log.w(TAG, "getCodecCapabilities: Codec info not found, using fallback limits")
+                return CodecLimits(FALLBACK_MAX_EXPORT_WIDTH, FALLBACK_MAX_EXPORT_HEIGHT)
+            }
+            
+            val capabilities = codecInfo.getCapabilitiesForType(mimeType)
+            val videoCapabilities = capabilities?.videoCapabilities
+            
+            if (videoCapabilities == null) {
+                Log.w(TAG, "getCodecCapabilities: Video capabilities not available, using fallback limits")
+                return CodecLimits(FALLBACK_MAX_EXPORT_WIDTH, FALLBACK_MAX_EXPORT_HEIGHT)
+            }
+            
+            val supportedWidths = videoCapabilities.supportedWidths
+            val supportedHeights = videoCapabilities.supportedHeights
+            
+            val maxWidth = supportedWidths.upper
+            val maxHeight = supportedHeights.upper
+            
+            Log.d(TAG, "getCodecCapabilities: Device supports - maxWidth=$maxWidth, maxHeight=$maxHeight")
+            Log.d(TAG, "getCodecCapabilities: Width range = [${supportedWidths.lower}, $maxWidth]")
+            Log.d(TAG, "getCodecCapabilities: Height range = [${supportedHeights.lower}, $maxHeight]")
+            
+            CodecLimits(maxWidth, maxHeight)
+        } catch (e: Exception) {
+            Log.e(TAG, "getCodecCapabilities: Error querying codec capabilities: ${e.message}", e)
+            Log.w(TAG, "getCodecCapabilities: Using fallback limits")
+            CodecLimits(FALLBACK_MAX_EXPORT_WIDTH, FALLBACK_MAX_EXPORT_HEIGHT)
         }
     }
+    
+    /**
+     * Data class to hold codec capability limits
+     */
+    private data class CodecLimits(
+        val maxWidth: Int,
+        val maxHeight: Int
+    )
 
     /**
      * Extracts video dimensions from a video URI using MediaMetadataRetriever.
