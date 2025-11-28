@@ -105,7 +105,7 @@ class _ProfitDetails extends StatelessWidget {
         ),
         SizedBox(width: 3.s),
         Text(
-          '${position.pnl > 0 ? '+' : '-'}${position.pnl.toStringAsFixed(2)} (${position.pnl > 0 ? '+' : '-'}${position.pnlPercentage.toStringAsFixed(2)}%)',
+          '${getNumericSign(position.pnl)}${position.pnl.toStringAsFixed(2)} (${getNumericSign(position.pnlPercentage)}${position.pnlPercentage.toStringAsFixed(2)}%)',
           style: context.theme.appTextThemes.body2
               .copyWith(color: context.theme.appColors.profitGreen),
         ),

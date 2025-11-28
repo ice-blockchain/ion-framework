@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/features/communities/utils/market_data_formatter.dart';
+import 'package:ion/app/utils/num.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class TradingStatsFormatted {
@@ -22,7 +23,7 @@ class TradingStatsFormatted {
     final sellsText = '${stats.numberOfSells}/\$$sellsAmount';
 
     final netBuyFormatted = MarketDataFormatter.formatCompactNumber(stats.netBuy.abs());
-    final netBuyText = stats.netBuy >= 0 ? '+$netBuyFormatted' : '-$netBuyFormatted';
+    final netBuyText = getNumericSign(stats.netBuy) + netBuyFormatted;
 
     return TradingStatsFormatted(
       volumeText: volumeText,
