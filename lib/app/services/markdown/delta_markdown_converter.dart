@@ -376,9 +376,19 @@ abstract class DeltaMarkdownConverter {
         final textBefore = plainText.substring(currentPos, tag.start);
         // Add two spaces before single newlines to create hard breaks in markdown
         // This ensures line breaks are preserved when converting back to Delta
+        // But don't add spaces inside code blocks (they already preserve newlines)
         final textWithHardBreaks = textBefore.replaceAllMapped(
           RegExp(r'(?<!\n)\n(?!\n)'),
-          (match) => '  \n',
+          (match) {
+            // Check if we're inside a code block by looking at the markdown buffer so far
+            final markdownSoFar = buffer.toString();
+            final codeBlockOpenCount = markdownSoFar.split('```').length - 1;
+            // If we have an odd number of ```, we're inside a code block
+            if (codeBlockOpenCount.isOdd) {
+              return '\n'; // Don't add spaces inside code blocks
+            }
+            return '  \n';
+          },
         );
         buffer.write(textWithHardBreaks);
       }
@@ -392,9 +402,19 @@ abstract class DeltaMarkdownConverter {
     if (currentPos < plainText.length) {
       final textAfter = plainText.substring(currentPos);
       // Add two spaces before single newlines to create hard breaks in markdown
+      // But don't add spaces inside code blocks (they already preserve newlines)
       final textWithHardBreaks = textAfter.replaceAllMapped(
         RegExp(r'(?<!\n)\n(?!\n)'),
-        (match) => '  \n',
+        (match) {
+          // Check if we're inside a code block by looking at the markdown buffer so far
+          final markdownSoFar = buffer.toString();
+          final codeBlockOpenCount = markdownSoFar.split('```').length - 1;
+          // If we have an odd number of ```, we're inside a code block
+          if (codeBlockOpenCount.isOdd) {
+            return '\n'; // Don't add spaces inside code blocks
+          }
+          return '  \n';
+        },
       );
       buffer.write(textWithHardBreaks);
     }
