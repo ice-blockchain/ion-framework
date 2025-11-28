@@ -31,7 +31,7 @@ part 'parsed_media_provider.r.g.dart';
   required EntityDataWithMediaContent data,
 }) {
   final EntityDataWithMediaContent(:media, :richText) = data;
-  
+
   // Get the actual text content for fallback
   // The content getter might return richText.content (JSON) if richText is set,
   // so we need to get the actual plain text content
