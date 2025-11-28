@@ -430,17 +430,17 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
   }
 
-  Future<List<String>> _getDataSourceRelays({required int limit}) async {
+  Future<List<String>> _getDataSourceRelays({required int min}) async {
     final rankedRelays = ref.read(rankedRelevantCurrentUserRelaysUrlsProvider).valueOrNull;
-    if (rankedRelays != null && rankedRelays.length >= limit) {
+    if (rankedRelays != null && rankedRelays.length >= min) {
       return rankedRelays;
     }
 
-    return _waitForRelaysWithTimeout(limit: limit);
+    return _waitForRelaysWithTimeout(min: min);
   }
 
   Future<List<String>> _waitForRelaysWithTimeout({
-    required int limit,
+    required int min,
     Duration timeout = const Duration(seconds: 3),
   }) async {
     final completer = Completer<List<String>>();
@@ -458,13 +458,11 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       (previous, next) {
         if (!completer.isCompleted) {
           final relays = next.valueOrNull ?? [];
-          if (relays.length >= limit) {
-            timer.cancel();
+          if (relays.length >= min) {
             completer.complete(relays);
           }
         }
       },
-      fireImmediately: true,
     );
 
     try {
@@ -485,7 +483,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   ///
   /// This method must be called on every request iteration.
   Future<void> _refreshModifierPagination({required FeedModifier modifier}) async {
-    final dataSourceRelays = await _getDataSourceRelays(limit: feedType.pageSize);
+    final dataSourceRelays = await _getDataSourceRelays(min: feedType.pageSize);
 
     final interests = await _getInterestsForModifier(modifier);
 
