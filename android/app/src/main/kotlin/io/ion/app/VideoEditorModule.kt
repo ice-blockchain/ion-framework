@@ -389,34 +389,57 @@ class CustomExportParamsProvider(
     private fun getCodecCapabilities(): CodecLimits {
         return try {
             val codecList = MediaCodecList(MediaCodecList.REGULAR_CODECS)
-            
-            // Try to find an H.264 encoder (most common)
             val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
             
-            // Create a test format to find an encoder
-            // Use a common resolution that should be supported by most encoders
-            val testFormat = MediaFormat.createVideoFormat(mimeType, 1920, 1080)
-            testFormat.setInteger(
-                MediaFormat.KEY_COLOR_FORMAT,
-                MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
-            )
+            // Iterate through all codecs to find an H.264 encoder
+            // Prefer hardware encoders over software ones
+            var encoderInfo: MediaCodecInfo? = null
             
-            val encoderName = codecList.findEncoderForFormat(testFormat)
+            // First, try to find a hardware encoder (usually better performance and more accurate limits)
+            for (codecInfo in codecList.codecInfos) {
+                if (!codecInfo.isEncoder) continue
+                
+                try {
+                    val supportedTypes = codecInfo.supportedTypes
+                    if (supportedTypes.contains(mimeType)) {
+                        // Prefer hardware encoders (usually contain vendor names like "mtk", "qcom", "exynos")
+                        val name = codecInfo.name.lowercase()
+                        if (name.contains("mtk") || name.contains("qcom") || name.contains("exynos") || 
+                            name.contains("qti") || name.contains("omx") && !name.contains("google")) {
+                            encoderInfo = codecInfo
+                            Log.d(TAG, "getCodecCapabilities: Found hardware encoder: ${codecInfo.name}")
+                            break
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "getCodecCapabilities: Error checking codec ${codecInfo.name}: ${e.message}")
+                }
+            }
             
-            if (encoderName == null) {
+            // If no hardware encoder found, try any encoder
+            if (encoderInfo == null) {
+                for (codecInfo in codecList.codecInfos) {
+                    if (!codecInfo.isEncoder) continue
+                    
+                    try {
+                        val supportedTypes = codecInfo.supportedTypes
+                        if (supportedTypes.contains(mimeType)) {
+                            encoderInfo = codecInfo
+                            Log.d(TAG, "getCodecCapabilities: Found encoder: ${codecInfo.name}")
+                            break
+                        }
+                    } catch (e: Exception) {
+                        Log.d(TAG, "getCodecCapabilities: Error checking codec ${codecInfo.name}: ${e.message}")
+                    }
+                }
+            }
+            
+            if (encoderInfo == null) {
                 Log.w(TAG, "getCodecCapabilities: No H.264 encoder found, using fallback limits")
                 return CodecLimits(FALLBACK_MAX_EXPORT_WIDTH, FALLBACK_MAX_EXPORT_HEIGHT)
             }
             
-            Log.d(TAG, "getCodecCapabilities: Found encoder: $encoderName")
-            
-            val codecInfo = codecList.codecInfos.find { it.name == encoderName }
-            if (codecInfo == null) {
-                Log.w(TAG, "getCodecCapabilities: Codec info not found, using fallback limits")
-                return CodecLimits(FALLBACK_MAX_EXPORT_WIDTH, FALLBACK_MAX_EXPORT_HEIGHT)
-            }
-            
-            val capabilities = codecInfo.getCapabilitiesForType(mimeType)
+            val capabilities = encoderInfo.getCapabilitiesForType(mimeType)
             val videoCapabilities = capabilities?.videoCapabilities
             
             if (videoCapabilities == null) {
