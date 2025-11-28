@@ -76,7 +76,7 @@ class StoryProgressBarContainer extends ConsumerWidget {
                         storiesLength: stories.length,
                         onSeenAll: () => userStoriesNotifier.advance(
                           onClose: () {
-                            if (context.mounted) {
+                            if (context.mounted && context.canPop()) {
                               context.pop();
                             }
                           },
