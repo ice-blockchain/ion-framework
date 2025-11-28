@@ -45,9 +45,10 @@ class ConversationEventMessageDao extends DatabaseAccessor<ChatDatabase>
       );
 
       await into(db.conversationMessageTable).insert(
-        ConversationMessageTableCompanion(
-          messageEventReference: Value(eventReference),
-          conversationId: Value(conversationId),
+        ConversationMessageTableCompanion.insert(
+          messageEventReference: eventReference,
+          conversationId: conversationId,
+          publishedAt: Value(event.publishedAt),
         ),
         mode: InsertMode.insertOrReplace,
       );

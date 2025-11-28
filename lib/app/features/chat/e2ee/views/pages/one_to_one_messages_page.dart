@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:async';
-
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -11,11 +10,10 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/components/messaging_header/one_to_one_messaging_header.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/e2ee/views/components/e2ee_conversation_empty_view.dart';
-import 'package:ion/app/features/chat/e2ee/views/components/e2ee_conversation_loading_view.dart';
 import 'package:ion/app/features/chat/e2ee/views/components/one_to_one_messages_list.dart';
-import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/chat/model/participiant_keys.f.dart';
 import 'package:ion/app/features/chat/providers/conversation_messages_provider.r.dart';
-import 'package:ion/app/features/chat/providers/exist_chat_conversation_id_provider.r.dart';
+import 'package:ion/app/features/chat/providers/exist_one_to_one_chat_conversation_id_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_edit_message_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_reply_message_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/chat_input_bar/chat_input_bar.dart';
@@ -26,7 +24,6 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
-import 'package:ion/app/services/uuid/generate_conversation_id.dart';
 
 class OneToOneMessagesPage extends HookConsumerWidget {
   const OneToOneMessagesPage({
@@ -38,37 +35,27 @@ class OneToOneMessagesPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final conversationId = useState<String?>(null);
+    final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider)!;
+    final conversationId = ref
+        .watch(
+          existOneToOneChatConversationIdProvider(
+            ParticipantKeys(keys: [receiverMasterPubkey, currentUserMasterPubkey].sorted()),
+          ),
+        )
+        .valueOrNull;
 
     useOnInit(
       () async {
-        final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
-
-        if (currentUserMasterPubkey == null) {
-          throw UserMasterPubkeyNotFoundException();
+        if (conversationId == null) {
+          return;
         }
 
-        final participantsMasterPubkeys = [
-          receiverMasterPubkey,
-          currentUserMasterPubkey,
-        ];
-
-        final existingConversationId = await ref.read(
-          existChatConversationIdProvider(participantsMasterPubkeys).future,
-        );
-
-        final conversationIdValue = existingConversationId ??
-            generateConversationId(
-              conversationType: ConversationType.oneToOne,
-              receiverMasterPubkeys: [receiverMasterPubkey, currentUserMasterPubkey],
-            );
-        conversationId.value = conversationIdValue;
-
         final localNotificationsService = await ref.read(localNotificationsServiceProvider.future);
-        await localNotificationsService.cancelByGroupKey(conversationIdValue);
+        await localNotificationsService.cancelByGroupKey(conversationId);
 
         await ref.read(userMetadataProvider(receiverMasterPubkey, cache: false).future);
       },
+      [conversationId],
     );
 
     final onSubmitted = useCallback(
@@ -87,13 +74,13 @@ class OneToOneMessagesPage extends HookConsumerWidget {
         await ref.read(sendE2eeChatMessageServiceProvider).sendMessage(
           content: content ?? '',
           mediaFiles: mediaFiles ?? [],
-          conversationId: conversationId.value!,
+          conversationId: conversationId!,
           editedMessage: editedMessage?.eventMessage,
           repliedMessage: repliedMessage?.eventMessage,
           participantsMasterPubkeys: [receiverMasterPubkey, currentPubkey],
         );
       },
-      [receiverMasterPubkey],
+      [receiverMasterPubkey, conversationId],
     );
 
     return Scaffold(
@@ -105,15 +92,15 @@ class OneToOneMessagesPage extends HookConsumerWidget {
             children: [
               _Header(
                 receiverMasterPubkey: receiverMasterPubkey,
-                conversationId: conversationId.value ?? '',
+                conversationId: conversationId ?? '',
               ),
-              _MessagesList(conversationId: conversationId.value),
+              Expanded(child: _MessagesList(conversationId: conversationId)),
               const EditMessageInfo(),
               const RepliedMessageInfo(),
               ChatInputBar(
                 onSubmitted: onSubmitted,
                 receiverMasterPubkey: receiverMasterPubkey,
-                conversationId: conversationId.value,
+                conversationId: conversationId ?? '',
               ),
             ],
           ),
@@ -141,72 +128,44 @@ class _Header extends HookConsumerWidget {
   }
 }
 
-class _MessagesList extends HookConsumerWidget {
-  const _MessagesList({required this.conversationId});
+class _MessagesList extends ConsumerWidget {
+  const _MessagesList({
+    required this.conversationId,
+  });
 
   final String? conversationId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final messages = conversationId == null
-        ? null
-        : ref.watch(conversationMessagesProvider(conversationId!, ConversationType.oneToOne));
+    if (conversationId == null) {
+      return const _MessageListEmptyView();
+    }
 
-    final loadingStartTime = useRef<DateTime?>(null);
-    final canShowContent = useState(false);
+    final asyncMessages = ref.watch(conversationMessagesProvider(conversationId!));
 
-    useEffect(
-      () {
-        if (messages == null || messages.isLoading) {
-          // Reset when loading starts
-          loadingStartTime.value = DateTime.now();
-          canShowContent.value = false;
-        } else if (messages.hasValue || messages.hasError) {
-          // Data or error arrived
-          final startTime = loadingStartTime.value;
-
-          if (startTime == null) {
-            // No loading was shown, show content immediately
-            canShowContent.value = true;
-          } else {
-            final elapsed = DateTime.now().difference(startTime);
-            final remaining = const Duration(seconds: 1) - elapsed;
-
-            if (remaining.isNegative) {
-              canShowContent.value = true;
-            } else {
-              Future.delayed(remaining, () {
-                if (context.mounted) {
-                  canShowContent.value = true;
-                }
-              });
-            }
-          }
+    return asyncMessages.when(
+      data: (messages) {
+        if (messages.isEmpty) {
+          return const E2eeConversationEmptyView();
         }
-        return null;
+        return OneToOneMessageList(messages, conversationId: conversationId!);
       },
-      [messages],
+      loading: () => const _MessageListEmptyView(),
+      error: (err, stack) {
+        return const _MessageListEmptyView();
+      },
     );
+  }
+}
 
-    return Expanded(
-      child: () {
-        // Show loading if actively loading OR if we have data but minimum duration hasn't passed
-        if (messages == null || messages.isLoading || !canShowContent.value) {
-          return const E2eeConversationLoadingView();
-        }
+class _MessageListEmptyView extends StatelessWidget {
+  const _MessageListEmptyView();
 
-        return messages.maybeWhen(
-          data: (msgs) {
-            if (msgs.isEmpty) {
-              return const E2eeConversationEmptyView();
-            }
-            return OneToOneMessageList(msgs);
-          },
-          orElse: () => ColoredBox(
-            color: context.theme.appColors.primaryBackground,
-          ),
-        );
-      }(),
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: context.theme.appColors.primaryBackground,
+      child: const SizedBox.expand(),
     );
   }
 }
