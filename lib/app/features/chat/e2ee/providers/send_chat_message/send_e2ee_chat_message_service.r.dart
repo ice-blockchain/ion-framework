@@ -40,6 +40,7 @@ import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:nip44/nip44.dart';
+import 'package:path/path.dart' as path;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'send_e2ee_chat_message_service.r.g.dart';
@@ -446,7 +447,19 @@ class SendE2eeChatMessageService {
 
     for (final mediaFile in mediaFiles) {
       final file = File(mediaFile.path);
-      final fileName = generateUuid();
+      final baseFileName = generateUuid();
+
+      var fileExtension = '';
+
+      // Try to get extension from original file path first
+      if (file.path.isNotEmpty) {
+        final originalExtension = path.extension(file.path);
+        if (originalExtension.isNotEmpty) {
+          fileExtension = originalExtension;
+        }
+      }
+
+      final fileName = '$baseFileName$fileExtension';
       final isVideo = MediaType.fromMimeType(mediaFile.originalMimeType ?? '') == MediaType.video;
 
       if (isVideo) {
