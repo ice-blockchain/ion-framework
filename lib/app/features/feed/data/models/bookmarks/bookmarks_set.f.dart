@@ -37,6 +37,7 @@ class BookmarksSetEntity
     required String signature,
     required int createdAt,
     required BookmarksSetData data,
+    EventMessage? eventMessage,
   }) = _BookmarksSetEntity;
 
   const BookmarksSetEntity._();
@@ -54,6 +55,7 @@ class BookmarksSetEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: BookmarksSetData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

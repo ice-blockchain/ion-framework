@@ -25,6 +25,7 @@ class GenericRepostEntity
     required String signature,
     required int createdAt,
     required GenericRepostData data,
+    EventMessage? eventMessage,
   }) = _GenericRepostEntity;
 
   const GenericRepostEntity._();
@@ -42,6 +43,7 @@ class GenericRepostEntity
       createdAt: eventMessage.createdAt,
       masterPubkey: eventMessage.masterPubkey,
       data: GenericRepostData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

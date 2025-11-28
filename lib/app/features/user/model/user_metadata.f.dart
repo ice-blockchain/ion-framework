@@ -29,6 +29,7 @@ class UserMetadataEntity
     required String signature,
     required int createdAt,
     required UserMetadata data,
+    EventMessage? eventMessage,
   }) = _UserMetadataEntity;
 
   const UserMetadataEntity._();
@@ -46,11 +47,12 @@ class UserMetadataEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: UserMetadata.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 
   @override
-  FutureOr<EventMessage> toEntityEventMessage() => toEventMessage(data);
+  FutureOr<EventMessage> toEntityEventMessage() => eventMessage ?? toEventMessage(data);
 
   static const int kind = 0;
 
