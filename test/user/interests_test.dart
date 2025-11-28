@@ -5,14 +5,15 @@ import 'package:ion/app/features/chat/community/models/entities/tags/master_pubk
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/model/interests.f.dart';
-import 'package:ion/app/services/ion_connect/ed25519_key_store.dart';
+
+import '../test_utils.dart';
 
 void main() {
   NostrDart.configure();
 
   group('Interests Tests', () {
     test('Interests.fromEventMessage should work when all data is there', () async {
-      final keyStore = await Ed25519KeyStore.generate();
+      final keyStore = await createTestSigner();
 
       final testEvent = await EventMessage.fromData(
         signer: keyStore,

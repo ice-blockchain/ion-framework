@@ -13,7 +13,6 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/entity_published_at.f.dart';
 import 'package:ion/app/features/ion_connect/model/replaceable_event_identifier.f.dart';
 import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
-import 'package:ion/app/services/ion_connect/ed25519_key_store.dart';
 import 'package:ion/app/services/markdown/delta_markdown_converter.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 
@@ -24,7 +23,7 @@ void main() {
     late EventSigner signer;
 
     setUpAll(() async {
-      signer = await Ed25519KeyStore.generate();
+      signer = await createTestSigner();
     });
 
     group('Delta to PMO conversion', () {
