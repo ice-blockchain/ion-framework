@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -16,21 +18,30 @@ import 'package:ion/app/features/feed/data/models/feed_modifier.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/services/database/database_manager_service.r.dart';
+import 'package:ion/app/services/database/database_ready_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'following_feed_database.m.g.dart';
 
 @Riverpod(keepAlive: true)
 FollowingFeedDatabase followingFeedDatabase(Ref ref) {
-  final pubkey = ref.watch(currentPubkeySelectorProvider);
+  keepAliveWhenAuthenticated(ref);
+
+  final pubkey = ref.watch(databasesReadyPubkeyProvider);
 
   if (pubkey == null) {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  final database = FollowingFeedDatabase(pubkey);
+  final manager = ref.watch(databaseManagerServiceProvider);
+  final database = manager.getFollowingFeedDatabase(pubkey);
 
-  onLogout(ref, database.close);
+  if (database == null) {
+    throw UserMasterPubkeyNotFoundException();
+  }
+
+  onUserSwitch(ref, () => unawaited(manager.closeFollowingFeedDatabase()));
 
   return database;
 }

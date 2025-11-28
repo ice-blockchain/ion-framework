@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/features/auth/data/models/twofa_type.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/protect_account/authenticator/data/adapter/twofa_type_adapter.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -38,11 +39,19 @@ class LoginActionNotifier extends _$LoginActionNotifier {
       ];
 
       try {
-        await ionIdentity(username: keyName).auth.login(
+        final authStateBeforeLogin = await ref.read(authProvider.future);
+        final previouslyAuthenticatedUsers = authStateBeforeLogin.authenticatedIdentityKeyNames;
+
+        final username = await ionIdentity(username: keyName).auth.login(
               config: config,
               twoFATypes: twoFATypes,
               localCredsOnly: localCredsOnly,
             );
+
+        final isSwitchingToExistingAccount = previouslyAuthenticatedUsers.contains(username);
+        if (isSwitchingToExistingAccount) {
+          await ref.read(authProvider.notifier).setCurrentUser(username);
+        }
       } on NoLocalPasskeyCredsFoundIONIdentityException {
         // Are we trying to suggest a passkey for empty identity key name?
         // If yes, and there're no local creds, do nothing

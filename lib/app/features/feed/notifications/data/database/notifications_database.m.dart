@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -17,21 +19,30 @@ import 'package:ion/app/features/feed/notifications/data/database/tables/subscri
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/services/database/database_manager_service.r.dart';
+import 'package:ion/app/services/database/database_ready_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'notifications_database.m.g.dart';
 
 @Riverpod(keepAlive: true)
 NotificationsDatabase notificationsDatabase(Ref ref) {
-  final pubkey = ref.watch(currentPubkeySelectorProvider);
+  keepAliveWhenAuthenticated(ref);
+
+  final pubkey = ref.watch(databasesReadyPubkeyProvider);
 
   if (pubkey == null) {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  final database = NotificationsDatabase(pubkey);
+  final manager = ref.watch(databaseManagerServiceProvider);
+  final database = manager.getNotificationsDatabase(pubkey);
 
-  onLogout(ref, database.close);
+  if (database == null) {
+    throw UserMasterPubkeyNotFoundException();
+  }
+
+  onUserSwitch(ref, () => unawaited(manager.closeNotificationsDatabase()));
 
   return database;
 }

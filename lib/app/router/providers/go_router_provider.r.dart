@@ -21,9 +21,11 @@ import 'package:ion/app/features/force_update/view/pages/app_update_modal.dart';
 import 'package:ion/app/features/push_notifications/providers/initial_notification_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_response_service.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/router/app_route_observer.dart';
 import 'package:ion/app/router/app_router_listenable.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/providers/route_location_provider.r.dart';
+import 'package:ion/app/router/redirect_strategies/user_switching_redirect_strategy.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -68,6 +70,7 @@ GoRouter goRouter(Ref ref) {
           error: initState.error.toString(),
           stackTrace: initState.stackTrace,
         );
+
         return ErrorRoute(message: initState.error.toString()).location;
       }
 
@@ -84,13 +87,15 @@ GoRouter goRouter(Ref ref) {
         return null;
       }
 
-      return _mainRedirect(location: state.matchedLocation, ref: ref);
+      final result = await _mainRedirect(location: state.matchedLocation, ref: ref);
+      return result;
     },
     routes: $appRoutes,
     errorBuilder: (context, state) => ErrorPage(message: state.error?.toString()),
     initialLocation: SplashRoute().location,
     debugLogDiagnostics: ref.read(featureFlagsProvider.notifier).get(LoggerFeatureFlag.logRouters),
     navigatorKey: rootNavigatorKey,
+    observers: [routeObserver],
   );
 
   // Listen to route changes
@@ -108,6 +113,15 @@ Future<String?> _mainRedirect({
   required String location,
   required Ref ref,
 }) async {
+  final userSwitchingStrategy = UserSwitchingRedirectStrategy();
+  final userSwitchingRedirect = await userSwitchingStrategy.getRedirect(
+    location: location,
+    ref: ref,
+  );
+  if (userSwitchingRedirect != null) {
+    return userSwitchingRedirect;
+  }
+
   final isAuthenticated = (ref.read(authProvider).valueOrNull?.isAuthenticated).falseOrValue;
   final onboardingComplete = ref.read(onboardingCompleteProvider).valueOrNull;
   final hasNotificationsPermission = ref.read(hasPermissionProvider(Permission.notifications));
@@ -117,14 +131,16 @@ Future<String?> _mainRedirect({
   final isOnOnboarding = location.contains('/${AuthRoutes.onboardingPrefix}/');
   final isOnMediaPicker = location.contains(MediaPickerRoutes.routesPrefix);
   final isOnFeed = location == FeedRoute().location;
+  final isOnIntro = location == IntroRoute().location;
 
   if (!isAuthenticated && !isOnAuth) {
-    return IntroRoute().location;
+    final introLocation = IntroRoute().location;
+    return introLocation;
   }
 
   if (isAuthenticated && onboardingComplete != null) {
     if (onboardingComplete) {
-      if (isOnSplash || isOnAuth) {
+      if (isOnSplash || isOnAuth || isOnIntro) {
         return FeedRoute().location;
       } else if (isOnOnboarding) {
         if (hasNotificationsPermission) {
