@@ -24,19 +24,16 @@ class CreatorTokensSearchBar extends StatelessWidget {
     return PinnedHeaderSliver(
       child: ColoredBox(
         color: context.theme.appColors.onPrimaryAccent,
-        child: Column(
-          children: [
-            SizedBox(height: 12.0.s),
-            ScreenSideOffset.small(
-              child: SearchInput(
-                controller: controller,
-                loading: loading,
-                onTextChanged: onTextChanged,
-                onCancelSearch: onCancelSearch,
-              ),
+        child: Padding(
+          padding: EdgeInsetsDirectional.only(top: 12.s, bottom: 8.s),
+          child: ScreenSideOffset.small(
+            child: SearchInput(
+              controller: controller,
+              loading: loading,
+              onTextChanged: onTextChanged,
+              onCancelSearch: onCancelSearch,
             ),
-            SizedBox(height: 8.0.s),
-          ],
+          ),
         ),
       ),
     );
