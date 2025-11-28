@@ -39,7 +39,9 @@ Map<String, PagedSource> getNextPageSources({
   }
 
   if (selected.length >= limit) {
-    return Map.fromEntries(selected.take(limit));
+    return Map.fromEntries(
+      (selected..shuffle()).take(limit),
+    );
   }
 
   if (selected.length < limit && remaining.isNotEmpty) {
@@ -51,5 +53,5 @@ Map<String, PagedSource> getNextPageSources({
     );
   }
 
-  return Map.fromEntries(selected);
+  return Map.fromEntries(selected..shuffle());
 }

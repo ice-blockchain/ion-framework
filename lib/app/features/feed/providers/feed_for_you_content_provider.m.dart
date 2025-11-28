@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/counter.dart';
@@ -429,8 +430,47 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
   }
 
-  Future<List<String>> _getDataSourceRelays() {
-    return ref.read(rankedRelevantCurrentUserRelaysUrlsProvider.future);
+  Future<List<String>> _getDataSourceRelays({required int min}) async {
+    final rankedRelays = ref.read(rankedRelevantCurrentUserRelaysUrlsProvider).valueOrNull;
+    if (rankedRelays != null && rankedRelays.length >= min) {
+      return rankedRelays;
+    }
+
+    return _waitForRelaysWithTimeout(min: min);
+  }
+
+  Future<List<String>> _waitForRelaysWithTimeout({
+    required int min,
+    Duration timeout = const Duration(seconds: 3),
+  }) async {
+    final completer = Completer<List<String>>();
+
+    final timer = Timer(timeout, () {
+      if (!completer.isCompleted) {
+        final currentValue =
+            ref.read(rankedRelevantCurrentUserRelaysUrlsProvider).valueOrNull ?? [];
+        completer.complete(currentValue);
+      }
+    });
+
+    final subscription = ref.listen(
+      rankedRelevantCurrentUserRelaysUrlsProvider,
+      (previous, next) {
+        if (!completer.isCompleted) {
+          final relays = next.valueOrNull ?? [];
+          if (relays.length >= min) {
+            completer.complete(relays);
+          }
+        }
+      },
+    );
+
+    try {
+      return await completer.future;
+    } finally {
+      timer.cancel();
+      subscription.close();
+    }
   }
 
   /// Refreshes the pagination state for the given modifier.
@@ -443,7 +483,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   ///
   /// This method must be called on every request iteration.
   Future<void> _refreshModifierPagination({required FeedModifier modifier}) async {
-    final dataSourceRelays = await _getDataSourceRelays();
+    final dataSourceRelays = await _getDataSourceRelays(min: feedType.pageSize);
 
     final interests = await _getInterestsForModifier(modifier);
 
