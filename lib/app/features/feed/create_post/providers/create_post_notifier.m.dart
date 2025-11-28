@@ -237,6 +237,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
           mentions: <RelatedPubkey>{...originalMentions, ...mentions}.toList(),
           quotedEvent: quotedEvent,
           parentEntity: parentEntity,
+          pmoTags: conversion.pmoTags,
         ),
       ]);
     });
