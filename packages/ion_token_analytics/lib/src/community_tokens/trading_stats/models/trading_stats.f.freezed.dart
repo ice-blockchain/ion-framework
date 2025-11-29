@@ -34,13 +34,16 @@ mixin _$TradingStats {
   /// Create a copy of TradingStats
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $TradingStatsCopyWith<TradingStats> get copyWith => throw _privateConstructorUsedError;
+  $TradingStatsCopyWith<TradingStats> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $TradingStatsCopyWith<$Res> {
-  factory $TradingStatsCopyWith(TradingStats value, $Res Function(TradingStats) then) =
-      _$TradingStatsCopyWithImpl<$Res, TradingStats>;
+  factory $TradingStatsCopyWith(
+    TradingStats value,
+    $Res Function(TradingStats) then,
+  ) = _$TradingStatsCopyWithImpl<$Res, TradingStats>;
   @useResult
   $Res call({
     double volumeUSD,
@@ -107,7 +110,8 @@ class _$TradingStatsCopyWithImpl<$Res, $Val extends TradingStats>
 }
 
 /// @nodoc
-abstract class _$$TradingStatsImplCopyWith<$Res> implements $TradingStatsCopyWith<$Res> {
+abstract class _$$TradingStatsImplCopyWith<$Res>
+    implements $TradingStatsCopyWith<$Res> {
   factory _$$TradingStatsImplCopyWith(
     _$TradingStatsImpl value,
     $Res Function(_$TradingStatsImpl) then,
@@ -214,8 +218,10 @@ class _$TradingStatsImpl implements _TradingStats {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TradingStatsImpl &&
-            (identical(other.volumeUSD, volumeUSD) || other.volumeUSD == volumeUSD) &&
-            (identical(other.numberOfBuys, numberOfBuys) || other.numberOfBuys == numberOfBuys) &&
+            (identical(other.volumeUSD, volumeUSD) ||
+                other.volumeUSD == volumeUSD) &&
+            (identical(other.numberOfBuys, numberOfBuys) ||
+                other.numberOfBuys == numberOfBuys) &&
             (identical(other.buysTotalAmountUSD, buysTotalAmountUSD) ||
                 other.buysTotalAmountUSD == buysTotalAmountUSD) &&
             (identical(other.numberOfSells, numberOfSells) ||
@@ -261,7 +267,8 @@ abstract class _TradingStats implements TradingStats {
     required final double netBuy,
   }) = _$TradingStatsImpl;
 
-  factory _TradingStats.fromJson(Map<String, dynamic> json) = _$TradingStatsImpl.fromJson;
+  factory _TradingStats.fromJson(Map<String, dynamic> json) =
+      _$TradingStatsImpl.fromJson;
 
   @override
   double get volumeUSD;

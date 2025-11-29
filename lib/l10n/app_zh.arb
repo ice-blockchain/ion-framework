@@ -812,14 +812,8 @@
   "tokenized_community_trades_tab": "交易",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "添加链接",
-  "top_holders_title": "顶级持有者 ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_title": "顶级持有者",
+  "top_holders_empty": "成为第一位持有者",
   "topics_add": "添加",
   "topics_title": "话题",
   "trade_buy": "买入",

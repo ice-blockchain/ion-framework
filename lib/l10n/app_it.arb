@@ -812,14 +812,8 @@
   "tokenized_community_trades_tab": "Operazioni",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Aggiungi un link",
-  "top_holders_title": "Principali detentori ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_title": "Principali detentori",
+  "top_holders_empty": "Diventa il primo detentore",
   "topics_add": "Aggiungi",
   "topics_title": "Argomenti",
   "trade_buy": "ACQUISTA",

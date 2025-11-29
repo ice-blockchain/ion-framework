@@ -812,14 +812,8 @@
   "tokenized_community_trades_tab": "İşlemler",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Bağlantı ekle",
-  "top_holders_title": "En büyük sahipler ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_title": "En büyük sahipler",
+  "top_holders_empty": "İlk sahip ol",
   "topics_add": "Ekle",
   "topics_title": "Konular",
   "trade_buy": "AL",

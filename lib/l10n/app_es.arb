@@ -812,14 +812,8 @@
   "tokenized_community_trades_tab": "Operaciones",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Agregar un enlace",
-  "top_holders_title": "Principales tenedores ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_title": "Principales tenedores",
+  "top_holders_empty": "Conviértete en el primer titular",
   "topics_add": "Agregar",
   "topics_title": "Temas",
   "trade_buy": "COMPRAR",

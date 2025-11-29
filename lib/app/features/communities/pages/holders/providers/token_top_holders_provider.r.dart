@@ -33,9 +33,11 @@ class TokenTopHolders extends _$TokenTopHolders {
         if (newTopHolder is TopHolderPatch && newTopHolder.isEmpty()) {
           // End of initial load
           isInitialLoad = false;
-          currentList = List.from(initialItems);
-          // Sort by rank initially if needed
-          // currentList.sort((a, b) => a.position.rank.compareTo(b.position.rank));
+          // Sort and enforce limit
+          initialItems.sort((a, b) => a.position.rank.compareTo(b.position.rank));
+          currentList = initialItems.take(limit).toList();
+
+          await Future<void>.delayed(const Duration(milliseconds: 3000));
           yield currentList;
         } else {
           // Accumulate items
@@ -71,7 +73,14 @@ class TokenTopHolders extends _$TokenTopHolders {
             final newList = List<TopHolder>.from(currentList)
               ..insert(0, newTopHolder)
               ..sort((a, b) => a.position.rank.compareTo(b.position.rank));
-            yield newList;
+
+            // Enforce limit
+            if (newList.length > limit) {
+              currentList = newList.sublist(0, limit);
+            } else {
+              currentList = newList;
+            }
+            yield currentList;
           }
         }
       }

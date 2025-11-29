@@ -812,14 +812,8 @@
   "tokenized_community_trades_tab": "Tranzacții",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Adaugă un link",
-  "top_holders_title": "Principalii deținători ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_title": "Principalii deținători",
+  "top_holders_empty": "Fii primul deținător",
   "topics_add": "Adaugă",
   "topics_title": "Subiecte",
   "trade_buy": "CUMPĂRĂ",

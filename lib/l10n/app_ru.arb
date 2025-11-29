@@ -812,14 +812,8 @@
   "tokenized_community_trades_tab": "Сделки",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Добавить ссылку",
-  "top_holders_title": "Топ держатели ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_title": "Топ держатели",
+  "top_holders_empty": "Станьте первым держателем",
   "topics_add": "Добавить",
   "topics_title": "Темы",
   "trade_buy": "ПОКУПКА",

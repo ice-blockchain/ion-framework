@@ -812,14 +812,8 @@
   "tokenized_community_trades_tab": "Trades",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Link hinzufügen",
-  "top_holders_title": "Top-Inhaber ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_title": "Top-Inhaber",
+  "top_holders_empty": "Werden Sie der erste Inhaber",
   "topics_add": "Hinzufügen",
   "topics_title": "Themen",
   "trade_buy": "KAUF",
