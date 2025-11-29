@@ -517,6 +517,7 @@
   "group_create_type_title": "Alege tipul de grup",
   "group_created_message": "Grupul a fost creat",
   "hodl_for": "HODL pentru {time}",
+  "holders": "Deținători",
   "hour": "{count, plural, =1{oră} other{ore}}",
   "identity_key_name_description": "Gândește-te la numele cheii de identitate ca la un identificator unic al contului tău. Vei avea nevoie de el pentru a te conecta și pentru a recupera contul, așa că păstrează-l în siguranță și nu-l uita",
   "identity_key_name_usage": "Folosește-l pentru a te conecta în orice aplicație securizată de",
@@ -812,14 +813,8 @@
   "tokenized_community_trades_tab": "Tranzacții",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Adaugă un link",
-  "top_holders_title": "Principalii deținători ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_empty": "Fii primul deținător",
+  "top_holders_title": "Principalii deținători",
   "topics_add": "Adaugă",
   "topics_title": "Subiecte",
   "trade_buy": "CUMPĂRĂ",

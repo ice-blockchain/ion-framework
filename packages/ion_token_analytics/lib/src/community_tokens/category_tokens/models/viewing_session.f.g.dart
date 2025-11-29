@@ -7,7 +7,11 @@ part of 'viewing_session.f.dart';
 // **************************************************************************
 
 _$ViewingSessionImpl _$$ViewingSessionImplFromJson(Map<String, dynamic> json) =>
-    _$ViewingSessionImpl(id: json['id'] as String, ttl: (json['ttl'] as num).toInt());
+    _$ViewingSessionImpl(
+      id: json['id'] as String,
+      ttl: (json['ttl'] as num).toInt(),
+    );
 
-Map<String, dynamic> _$$ViewingSessionImplToJson(_$ViewingSessionImpl instance) =>
-    <String, dynamic>{'id': instance.id, 'ttl': instance.ttl};
+Map<String, dynamic> _$$ViewingSessionImplToJson(
+  _$ViewingSessionImpl instance,
+) => <String, dynamic>{'id': instance.id, 'ttl': instance.ttl};

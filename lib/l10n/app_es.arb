@@ -517,6 +517,7 @@
   "group_create_type_title": "Elegir tipo de grupo",
   "group_created_message": "El grupo ha sido creado",
   "hodl_for": "HODL por {time}",
+  "holders": "Tenedores",
   "hour": "{count, plural, =1{hora} other{horas}}",
   "identity_key_name_description": "Piensa en el nombre de tu clave de identidad como un identificador único de tu cuenta. Lo necesitarás para iniciar sesión y recuperar tu cuenta, así que guárdalo de forma segura y no lo olvides",
   "identity_key_name_usage": "Úsalo para iniciar sesión en cualquier aplicación protegida por",
@@ -812,14 +813,8 @@
   "tokenized_community_trades_tab": "Operaciones",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Agregar un enlace",
-  "top_holders_title": "Principales tenedores ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_empty": "Conviértete en el primer titular",
+  "top_holders_title": "Principales tenedores",
   "topics_add": "Agregar",
   "topics_title": "Temas",
   "trade_buy": "COMPRAR",

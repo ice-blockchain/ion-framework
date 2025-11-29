@@ -517,6 +517,7 @@
   "group_create_type_title": "Choose group type",
   "group_created_message": "The group has been created",
   "hodl_for": "HODL for {time}",
+  "holders": "Holders",
   "hour": "{count, plural, =1{hour} other{hours}}",
   "identity_key_name_description": "Think of your identity key name as a unique identifier of your account. You'll need it to log in and recover your account, so keep it safe and don't forget it",
   "identity_key_name_usage": "Use it to log in on any app secured by",
@@ -812,14 +813,8 @@
   "tokenized_community_trades_tab": "Trades",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Add a link",
-  "top_holders_title": "Top holders ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_empty": "Become the first holder",
+  "top_holders_title": "Top holders",
   "topics_add": "Add",
   "topics_title": "Topics",
   "trade_buy": "BUY",

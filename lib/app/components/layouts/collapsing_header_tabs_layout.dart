@@ -28,6 +28,7 @@ class CollapsingHeaderTabsLayout extends HookWidget {
     this.newUiMode = true,
     this.showBackButton = true,
     this.backgroundColor,
+    this.applySafeAreaBottomPadding = true,
     super.key,
   });
 
@@ -40,6 +41,7 @@ class CollapsingHeaderTabsLayout extends HookWidget {
   final Widget Function(double opacity) collapsedHeaderBuilder;
   final Widget Function(OverlayMenuCloseSignal menuCloseSignal) headerActionsBuilder;
   final Color? backgroundColor;
+  final bool applySafeAreaBottomPadding;
 
   double get paddingTop => 60.0.s;
 
@@ -76,6 +78,7 @@ class CollapsingHeaderTabsLayout extends HookWidget {
             left: !newUiMode,
             right: !newUiMode,
             top: !newUiMode,
+            bottom: applySafeAreaBottomPadding,
             child: DefaultTabController(
               length: tabs.length,
               child: NotificationListener(

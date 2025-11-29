@@ -129,7 +129,7 @@ void main() {
     late Http2Client client;
 
     setUp(() {
-      client = Http2Client('51.75.87.132', port: 4443);
+      client = Http2Client('181.41.142.217', port: 4443);
     });
 
     test('connection lifecycle with sequential requests', () async {
