@@ -825,14 +825,8 @@
   "tokenized_community_trades_tab": "الصفقات",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "أضف رابط",
-  "top_holders_title": "أكبر الحائزين ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_title": "أكبر الحائزين",
+  "top_holders_empty": "كن أول حامل",
   "topics_add": "أضف",
   "topics_title": "المواضيع",
   "trade_buy": "شراء",

@@ -9,9 +9,9 @@ import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/models/trading_stats_formatted.dart';
 import 'package:ion/app/features/communities/pages/components/your_position_card.dart';
+import 'package:ion/app/features/communities/pages/holders/components/top_holders/top_holders.dart';
 import 'package:ion/app/features/communities/providers/token_latest_trades_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
-import 'package:ion/app/features/communities/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/communities/utils/timeframe_extension.dart';
 import 'package:ion/app/features/communities/utils/trading_stats_extension.dart';
@@ -20,7 +20,6 @@ import 'package:ion/app/features/communities/views/components/chart_stats_compon
 import 'package:ion/app/features/communities/views/components/comments_section_compact.dart';
 import 'package:ion/app/features/communities/views/components/latest_trades_component.dart';
 import 'package:ion/app/features/communities/views/components/token_header_component.dart';
-import 'package:ion/app/features/communities/views/components/top_holders_component.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/header/header.dart';
@@ -91,7 +90,7 @@ class TokenizedCommunityPage extends HookWidget {
         ),
         tabBarViews: [
           _ChartsTabView(masterPubkey: masterPubkey),
-          _TopHolders(masterPubkey: masterPubkey),
+          TopHolders(masterPubkey: masterPubkey),
           _LatestTrades(masterPubkey: masterPubkey),
           const CommentsSectionCompact(commentCount: 10),
         ],
@@ -133,7 +132,7 @@ class _ChartsTabView extends StatelessWidget {
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
         SliverToBoxAdapter(child: _TokenStats(masterPubkey: masterPubkey)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
-        SliverToBoxAdapter(child: _TopHolders(masterPubkey: masterPubkey)),
+        SliverToBoxAdapter(child: TopHolders(masterPubkey: masterPubkey)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
         SliverToBoxAdapter(child: _LatestTrades(masterPubkey: masterPubkey)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
@@ -233,33 +232,6 @@ class _TokenStats extends HookConsumerWidget {
       error: (error, stackTrace) {
         return const SizedBox.shrink();
       },
-    );
-  }
-}
-
-class _TopHolders extends HookConsumerWidget {
-  const _TopHolders({required this.masterPubkey});
-
-  static const int limit = 5;
-
-  final String masterPubkey;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final holdersAsync = ref.watch(tokenTopHoldersProvider(masterPubkey, limit: limit));
-
-    return holdersAsync.when(
-      data: (holders) {
-        if (holders.isEmpty) {
-          return const SizedBox.shrink();
-        }
-        return TopHoldersComponent(
-          holders: holders,
-          onViewAllPressed: () {},
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }
