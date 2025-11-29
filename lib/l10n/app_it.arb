@@ -517,6 +517,7 @@
   "group_create_type_title": "Scegli tipo di gruppo",
   "group_created_message": "Il gruppo è stato creato",
   "hodl_for": "HODL per {time}",
+  "holders": "Detentori",
   "hour": "{count, plural, =1{ora} other{ore}}",
   "identity_key_name_description": "Pensa al nome della tua chiave di identità come a un identificatore univoco del tuo account. Ne avrai bisogno per accedere e recuperare il tuo account, quindi tienilo al sicuro e non dimenticarlo",
   "identity_key_name_usage": "Usalo per accedere a qualsiasi app protetta da",
