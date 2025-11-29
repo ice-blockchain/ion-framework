@@ -9,12 +9,10 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 class HolderTile extends StatelessWidget {
   const HolderTile({
     required this.holder,
-    this.onTap,
     super.key,
   });
 
   final TopHolder holder;
-  final void Function(String masterPubkey)? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -24,21 +22,8 @@ class HolderTile extends StatelessWidget {
     final rank = holder.position.rank;
     final amountText = formatDoubleCompact(holder.position.amount);
 
-    final rightBadge = Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 2.0.s),
-      decoration: BoxDecoration(
-        color: colors.primaryBackground,
-        borderRadius: BorderRadius.circular(12.0.s),
-      ),
-      child: Text(
-        '${holder.position.supplyShare.toStringAsFixed(2)}%',
-        style: texts.caption2
-            .copyWith(color: colors.primaryText, height: 18 / texts.caption2.fontSize!),
-      ),
-    );
-
-    return InkWell(
-      onTap: onTap == null ? null : () => onTap!(holder.position.holder.ionConnect),
+    return GestureDetector(
+      onTap: () {},
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -55,7 +40,18 @@ class HolderTile extends StatelessWidget {
               ),
             ],
           ),
-          rightBadge,
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 2.0.s),
+            decoration: BoxDecoration(
+              color: colors.primaryBackground,
+              borderRadius: BorderRadius.circular(12.0.s),
+            ),
+            child: Text(
+              '${holder.position.supplyShare.toStringAsFixed(2)}%',
+              style: texts.caption2
+                  .copyWith(color: colors.primaryText, height: 18 / texts.caption2.fontSize!),
+            ),
+          ),
         ],
       ),
     );

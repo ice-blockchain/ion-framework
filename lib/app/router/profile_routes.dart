@@ -11,8 +11,11 @@ class ProfileRoutes {
     TypedGoRoute<BookmarksRoute>(path: 'bookmarks'),
     TypedGoRoute<EditBookmarksRoute>(path: 'bookmarks_edit'),
     TypedGoRoute<FollowListRoute>(path: 'follow-list-fullstack'),
-    TypedGoRoute<CreatorTokensRoute>(path: 'creator-tokens'),
-    TypedGoRoute<TokenizedCommunityRoute>(path: 'tokenized-community'),
+    TypedGoRoute<TokenizedCommunityRoute>(
+      path: 'tokenized-community-fullstack',
+    ),
+    TypedGoRoute<CreatorTokensRoute>(path: 'creator-tokens-fullstack'),
+    TypedGoRoute<HoldersRoute>(path: 'holders-fullstack'),
     TypedShellRoute<ModalShellRouteData>(
       routes: [
         TypedGoRoute<CategorySelectRoute>(path: 'category-selector'),
@@ -339,15 +342,6 @@ class FullscreenMediaRoute extends BaseRouteData with _$FullscreenMediaRoute {
   final String? framedEventReference;
 }
 
-class CreatorTokensRoute extends BaseRouteData with _$CreatorTokensRoute {
-  CreatorTokensRoute({required this.masterPubkey})
-      : super(
-          child: CreatorTokensPage(masterPubkey: masterPubkey),
-        );
-
-  final String masterPubkey;
-}
-
 class TokenizedCommunityRoute extends BaseRouteData with _$TokenizedCommunityRoute {
   TokenizedCommunityRoute({required this.masterPubkey})
       : super(
@@ -357,4 +351,22 @@ class TokenizedCommunityRoute extends BaseRouteData with _$TokenizedCommunityRou
         );
 
   final String masterPubkey;
+}
+
+class CreatorTokensRoute extends BaseRouteData with _$CreatorTokensRoute {
+  CreatorTokensRoute({required this.masterPubkey})
+      : super(
+          child: CreatorTokensPage(masterPubkey: masterPubkey),
+        );
+
+  final String masterPubkey;
+}
+
+class HoldersRoute extends BaseRouteData with _$HoldersRoute {
+  HoldersRoute({required this.externalAddress})
+      : super(
+          child: HoldersPage(externalAddress: externalAddress),
+        );
+
+  final String externalAddress;
 }

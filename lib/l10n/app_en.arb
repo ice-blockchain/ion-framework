@@ -812,6 +812,7 @@
   "tokenized_community_trades_tab": "Trades",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Add a link",
+  "holders": "Holders",
   "top_holders_title": "Top holders",
   "top_holders_empty": "Become the first holder",
   "topics_add": "Add",

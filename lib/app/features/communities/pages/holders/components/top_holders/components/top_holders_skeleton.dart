@@ -5,7 +5,9 @@ import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 
 class TopHoldersSkeleton extends StatelessWidget {
-  const TopHoldersSkeleton({super.key});
+  const TopHoldersSkeleton({required this.count, super.key});
+
+  final int count;
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +17,7 @@ class TopHoldersSkeleton extends StatelessWidget {
       child: ListView.separated(
         shrinkWrap: true,
         padding: EdgeInsets.zero,
+        itemCount: count,
         itemBuilder: (context, index) {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,7 +77,6 @@ class TopHoldersSkeleton extends StatelessWidget {
         separatorBuilder: (context, index) {
           return SizedBox(height: 9.0.s);
         },
-        itemCount: 3,
       ),
     );
   }
