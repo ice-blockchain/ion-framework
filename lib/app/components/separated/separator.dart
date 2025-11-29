@@ -36,3 +36,16 @@ class HorizontalSeparator extends StatelessWidget {
     );
   }
 }
+
+class SimpleSeparator extends StatelessWidget {
+  const SimpleSeparator({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Divider(
+      height: 4.s,
+      thickness: 4.s,
+      color: context.theme.appColors.onSecondaryBackground,
+    );
+  }
+}

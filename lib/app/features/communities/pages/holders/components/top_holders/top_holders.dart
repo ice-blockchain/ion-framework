@@ -7,6 +7,7 @@ import 'package:ion/app/features/communities/pages/holders/components/holder_til
 import 'package:ion/app/features/communities/pages/holders/components/top_holders/components/top_holders_empty.dart';
 import 'package:ion/app/features/communities/pages/holders/components/top_holders/components/top_holders_skeleton.dart';
 import 'package:ion/app/features/communities/pages/holders/providers/token_top_holders_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 const int holdersCountLimit = 5;
@@ -121,7 +122,7 @@ class _HeaderViewAllButton extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () {
-        // TODO: navigate to holders page
+        HoldersRoute(externalAddress: masterPubkey).push<void>(context);
       },
       behavior: HitTestBehavior.opaque,
       child: Padding(
@@ -160,14 +161,13 @@ class _TopHolderList extends ConsumerWidget {
             final holder = holders[index];
             return HolderTile(
               holder: holder,
-              onTap: (masterPubkey) {},
             );
           },
           separatorBuilder: (context, index) => SizedBox(height: 4.0.s),
         );
       },
       error: (error, stackTrace) => const SizedBox(),
-      loading: () => const TopHoldersSkeleton(),
+      loading: () => const TopHoldersSkeleton(count: 3),
     );
   }
 }

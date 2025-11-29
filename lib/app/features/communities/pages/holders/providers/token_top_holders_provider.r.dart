@@ -37,7 +37,6 @@ class TokenTopHolders extends _$TokenTopHolders {
           initialItems.sort((a, b) => a.position.rank.compareTo(b.position.rank));
           currentList = initialItems.take(limit).toList();
 
-          await Future<void>.delayed(const Duration(milliseconds: 3000));
           yield currentList;
         } else {
           // Accumulate items
