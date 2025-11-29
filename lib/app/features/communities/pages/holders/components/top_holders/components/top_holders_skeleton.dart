@@ -5,9 +5,10 @@ import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 
 class TopHoldersSkeleton extends StatelessWidget {
-  const TopHoldersSkeleton({required this.count, super.key});
+  const TopHoldersSkeleton({required this.count, required this.seperatorHeight, super.key});
 
   final int count;
+  final double seperatorHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +76,7 @@ class TopHoldersSkeleton extends StatelessWidget {
           );
         },
         separatorBuilder: (context, index) {
-          return SizedBox(height: 9.0.s);
+          return SizedBox(height: seperatorHeight);
         },
       ),
     );

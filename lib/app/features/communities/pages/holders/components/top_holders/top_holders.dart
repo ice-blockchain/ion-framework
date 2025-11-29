@@ -167,7 +167,7 @@ class _TopHolderList extends ConsumerWidget {
         );
       },
       error: (error, stackTrace) => const SizedBox(),
-      loading: () => const TopHoldersSkeleton(count: 3),
+      loading: () => TopHoldersSkeleton(count: holdersCountLimit, seperatorHeight: 4.0.s),
     );
   }
 }

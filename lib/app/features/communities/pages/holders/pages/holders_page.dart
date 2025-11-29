@@ -36,7 +36,12 @@ class HoldersPage extends HookConsumerWidget {
             child: LoadMoreBuilder(
               slivers: [
                 if (topHoldersAsync.isLoading && previousTopHolders.value.isEmpty)
-                  const SliverToBoxAdapter(child: TopHoldersSkeleton(count: 20))
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsetsDirectional.symmetric(horizontal: 16.s, vertical: 12.s),
+                      child: TopHoldersSkeleton(count: 20, seperatorHeight: 14.s),
+                    ),
+                  )
                 else
                   SliverList.builder(
                     itemCount: topHolders.length,
@@ -80,8 +85,8 @@ class _HolderListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsetsDirectional.only(
-        top: 12.s,
-        bottom: 7.s,
+        top: topPadding,
+        bottom: bottomPadding,
         start: 16.s,
         end: 16.s,
       ),

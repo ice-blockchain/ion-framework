@@ -72,6 +72,7 @@ class TokenizedCommunityPage extends HookWidget {
         backgroundColor: context.theme.appColors.secondaryBackground,
         avatarUrl: null,
         tabs: TokenizedCommunityTabType.values,
+        applySafeAreaBottomPadding: false,
         headerActionsBuilder: (menuCloseSignal) => Row(
           mainAxisSize: MainAxisSize.min,
           children: [
