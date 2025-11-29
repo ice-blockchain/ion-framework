@@ -517,6 +517,7 @@
   "group_create_type_title": "Wybierz typ grupy",
   "group_created_message": "Grupa została utworzona",
   "hodl_for": "HODL przez {time}",
+  "holders": "Posiadacze",
   "hour": "{count, plural, =1{godzina} other{godzin}}",
   "identity_key_name_description": "Myśl o nazwie klucza tożsamości jako o unikalnym identyfikatorze Twojego konta. Będziesz go potrzebować do logowania i odzyskiwania konta, więc przechowuj go bezpiecznie i nie zapomnij",
   "identity_key_name_usage": "Użyj go do logowania się w dowolnej aplikacji zabezpieczonej przez",
