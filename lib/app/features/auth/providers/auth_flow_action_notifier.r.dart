@@ -26,6 +26,9 @@ class AuthFlowActionNotifier extends _$AuthFlowActionNotifier {
       final ionIdentity = await ref.read(ionIdentityProvider.future);
       final earlyAccessEmail = ref.read(earlyAccessEmailProvider);
 
+      final authStateBeforeAction = await ref.read(authProvider.future);
+      final previouslyAuthenticatedUsers = authStateBeforeAction.authenticatedIdentityKeyNames;
+
       try {
         switch (kind) {
           case SignUpKind.passkey:
@@ -36,7 +39,10 @@ class AuthFlowActionNotifier extends _$AuthFlowActionNotifier {
                 .registerUserWithPassword(password ?? '', earlyAccessEmail);
         }
 
-        await ref.read(authProvider.notifier).handleSwitchingToExistingAccount(keyName);
+        await ref.read(authProvider.notifier).handleSwitchingToExistingAccount(
+              keyName,
+              currentAuthenticatedUsers: previouslyAuthenticatedUsers,
+            );
       } on UserAlreadyExistsException {
         try {
           await ionIdentity(username: keyName).auth.verifyUserLoginFlow();
@@ -57,7 +63,10 @@ class AuthFlowActionNotifier extends _$AuthFlowActionNotifier {
               );
         }
 
-        await ref.read(authProvider.notifier).handleSwitchingToExistingAccount(keyName);
+        await ref.read(authProvider.notifier).handleSwitchingToExistingAccount(
+              keyName,
+              currentAuthenticatedUsers: previouslyAuthenticatedUsers,
+            );
       } on PasskeyCancelledException {
         return;
       }
