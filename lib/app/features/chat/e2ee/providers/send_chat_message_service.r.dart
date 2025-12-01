@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
-import 'package:ion/app/features/chat/providers/exist_chat_conversation_id_provider.r.dart';
+import 'package:ion/app/features/chat/model/participiant_keys.f.dart';
+import 'package:ion/app/features/chat/providers/exist_one_to_one_chat_conversation_id_provider.r.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/uuid/generate_conversation_id.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -22,9 +24,12 @@ Future<SendChatMessageService> sendChatMessageService(Ref ref) async {
       if (currentUserMasterPubkey == null) {
         throw UserMasterPubkeyNotFoundException();
       }
-      final participantsMasterPubkeys = [masterPubkey, currentUserMasterPubkey];
+      final participantsMasterPubkeys =
+          ParticipantKeys(keys: [masterPubkey, currentUserMasterPubkey].sorted());
 
-      return ref.read(existChatConversationIdProvider(participantsMasterPubkeys).future);
+      return ref.read(
+        existOneToOneChatConversationIdProvider(participantsMasterPubkeys).future,
+      );
     },
   );
 }

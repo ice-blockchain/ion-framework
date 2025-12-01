@@ -68,10 +68,6 @@ class MessageItemWrapper extends HookConsumerWidget {
       messageItem: messageItem,
     );
 
-    if (deliveryStatus == MessageDeliveryStatus.deleted) {
-      return const SizedBox.shrink();
-    }
-
     final showReactDialog = useCallback(
       () async {
         try {

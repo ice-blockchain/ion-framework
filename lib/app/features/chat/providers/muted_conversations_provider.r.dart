@@ -2,11 +2,13 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
-import 'package:ion/app/features/chat/providers/exist_chat_conversation_id_provider.r.dart';
+import 'package:ion/app/features/chat/model/participiant_keys.f.dart';
+import 'package:ion/app/features/chat/providers/exist_one_to_one_chat_conversation_id_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/mute_set.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -88,14 +90,11 @@ class MutedConversations extends _$MutedConversations {
       return;
     }
 
-    final participantsMasterPubkeys = [masterPubkey, currentUserMasterPubkey];
+    final participantsMasterPubkeys =
+        ParticipantKeys(keys: [masterPubkey, currentUserMasterPubkey].sorted());
     final conversationId = await ref.read(
-          existChatConversationIdProvider(participantsMasterPubkeys).future,
-        ) ??
-        generateConversationId(
-          conversationType: ConversationType.oneToOne,
-          receiverMasterPubkeys: [masterPubkey, currentUserMasterPubkey],
-        );
+      existOneToOneChatConversationIdProvider(participantsMasterPubkeys).future,
+    );
     final localNotificationsService = await ref.read(localNotificationsServiceProvider.future);
     unawaited(localNotificationsService.cancelByGroupKey(conversationId));
   }

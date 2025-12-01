@@ -107,10 +107,6 @@ class ConversationMessageDataDao extends DatabaseAccessor<ChatDatabase>
           ..where((table) => table.messageEventReference.equalsValue(eventReference)))
         .watch()
         .map((rows) {
-      // If any of the rows are deleted, we consider the message as deleted
-      if (rows.any((row) => row.status == MessageDeliveryStatus.deleted)) {
-        return MessageDeliveryStatus.deleted;
-      } else
       // Check if any of the rows failed (message is not sent, only local copy is
       // written to the database)
       if (rows.any((row) => row.status == MessageDeliveryStatus.failed)) {
@@ -194,5 +190,4 @@ enum MessageDeliveryStatus {
   sent,
   received,
   read,
-  deleted;
 }

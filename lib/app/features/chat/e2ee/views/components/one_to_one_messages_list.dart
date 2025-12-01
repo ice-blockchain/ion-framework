@@ -10,6 +10,7 @@ import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message
 import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_message_status_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
+import 'package:ion/app/features/chat/providers/conversation_messages_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/components.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/document_message/document_message.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/post_message/post_message.dart';
@@ -21,9 +22,14 @@ import 'package:ion/app/utils/future.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
 class OneToOneMessageList extends HookConsumerWidget {
-  const OneToOneMessageList(this.messages, {super.key});
+  const OneToOneMessageList(
+    this.messages, {
+    required this.conversationId,
+    super.key,
+  });
 
-  final Map<DateTime, List<EventMessage>> messages;
+  final List<EventMessage> messages;
+  final String conversationId;
 
   static double _getEstimatedHeight(MessageType messageType) {
     switch (messageType) {
@@ -52,28 +58,10 @@ class OneToOneMessageList extends HookConsumerWidget {
     final scrollController = useScrollController();
     final listController = useMemoized(ListController.new);
 
-    final allMessages = useMemoized(
-      () => messages.values.expand((e) => e).toList()
-        ..sortByCompare((e) => e.publishedAt, (a, b) => b.compareTo(a)),
-      [messages],
-    );
-
     useEffect(
       () {
-        _markAsRead(ref, allMessages);
+        _markAsRead(ref, messages);
         return null;
-      },
-      [allMessages],
-    );
-
-    final dateHeaderLookup = useMemoized(
-      () {
-        final lookup = <String, DateTime>{};
-        for (final entry in messages.entries) {
-          final lastMessage = entry.value.last;
-          lookup[lastMessage.id] = entry.key;
-        }
-        return lookup;
       },
       [messages],
     );
@@ -88,21 +76,54 @@ class OneToOneMessageList extends HookConsumerWidget {
           curve: (c) => Curves.easeInOut,
         );
       },
-      [scrollController, listController],
+      [scrollController, listController, messages.length],
     );
 
     final onTapReply = useCallback(
-      (ReplaceablePrivateDirectMessageEntity entity) {
+      (ReplaceablePrivateDirectMessageEntity entity) async {
         final replyMessage = entity.data.relatedEvents?.singleOrNull;
 
         if (replyMessage != null) {
-          final replyMessageIndex = allMessages.indexWhere(
-            (element) => element.sharedId == replyMessage.eventReference.dTag,
+          final replySharedId = replyMessage.eventReference.dTag;
+
+          var replyMessageIndex = messages.indexWhere(
+            (element) => element.sharedId == replySharedId,
           );
-          animateToItem(replyMessageIndex);
+
+          if (replyMessageIndex == -1) {
+            replyMessageIndex = await ref
+                    .read(conversationMessagesProvider(conversationId).notifier)
+                    .ensureMessageLoaded(replySharedId) ??
+                -1;
+          }
+
+          if (replyMessageIndex != -1) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              animateToItem(replyMessageIndex);
+            });
+          }
         }
       },
-      [allMessages, scrollController, listController], // Optimized dependencies
+      [
+        messages,
+        conversationId,
+        scrollController,
+        listController,
+      ], // Optimized dependencies
+    );
+
+    useEffect(
+      () {
+        void listener() {
+          if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 20) {
+            ref.read(conversationMessagesProvider(conversationId).notifier).loadMore();
+          }
+        }
+
+        scrollController.addListener(listener);
+        return () => scrollController.removeListener(listener);
+      },
+      [scrollController],
     );
 
     return NotificationListener<ScrollUpdateNotification>(
@@ -119,82 +140,57 @@ class OneToOneMessageList extends HookConsumerWidget {
             color: context.theme.appColors.primaryBackground,
             child: SuperListView.builder(
               reverse: true,
-              cacheExtent: 2000,
-              itemCount: allMessages.length,
+              cacheExtent: 100,
+              itemCount: messages.length,
               controller: scrollController,
               listController: listController,
               key: const Key('one_to_one_messages_list'),
               padding: EdgeInsetsDirectional.only(bottom: 12.s),
-              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
               findChildIndexCallback: (key) {
                 final valueKey = key as ValueKey<String>;
-                return allMessages.indexWhere((e) => e.id == valueKey.value);
+                return messages.indexWhere((e) => e.id == valueKey.value);
               },
               // Add item extent estimation for better scroll performance
               extentEstimation: (index, dimensions) {
-                if (index == null || index >= allMessages.length) return 60.0.s; // Default height
-                final message = allMessages[index];
-                final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(message);
+                if (index == null || index >= messages.length) return 60.0.s; // Default height
+                final message = messages[index];
+                final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(
+                  message,
+                );
 
                 // Base height estimate for the message type
                 var estimatedHeight = _getEstimatedHeight(entity.data.messageType);
 
                 // Add date header height if this message shows a date
-                final hasDateHeader = dateHeaderLookup.containsKey(message.id);
-                if (hasDateHeader) {
+                if (_shouldShowDateHeader(index)) {
                   estimatedHeight += 50.0.s; // Date header height estimate
                 }
 
                 // Add margin spacing
-                final isLastMessageInConversation = index == 0;
-                final hasNextMessageFromAnotherUser =
-                    index > 0 && allMessages[index - 1].masterPubkey != message.masterPubkey;
-
-                if (!isLastMessageInConversation) {
-                  if (hasNextMessageFromAnotherUser) {
-                    estimatedHeight += 16.0;
-                  } else {
-                    estimatedHeight += 8.0;
-                  }
-                }
-
-                return estimatedHeight;
+                return estimatedHeight += _getBottomMargin(index);
               },
               itemBuilder: (context, index) {
-                final message = allMessages[index];
+                final message = messages[index];
 
-                final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(message);
-
-                final displayDate = dateHeaderLookup[message.id];
-
-                final isLastMessageInConversation = index == 0;
-
-                final hasNextMessageFromAnotherUser =
-                    index > 0 && allMessages[index - 1].masterPubkey != message.masterPubkey;
-
-                final isPreviousMessageFromAnotherDay = index > 0 &&
-                    !isSameDay(
-                      allMessages[index - 1].publishedAt.toDateTime,
-                      message.publishedAt.toDateTime,
-                    );
-
-                final margin = EdgeInsetsDirectional.only(
-                  bottom: isLastMessageInConversation || isPreviousMessageFromAnotherDay
-                      ? 0
-                      : hasNextMessageFromAnotherUser
-                          ? 16.0.s
-                          : 8.0.s,
+                final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(
+                  message,
                 );
+
+                final hasDateHeader = _shouldShowDateHeader(index);
+                final margin = EdgeInsetsDirectional.only(bottom: _getBottomMargin(index));
 
                 return Column(
                   key: ValueKey(message.id),
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (displayDate != null)
+                    if (hasDateHeader)
                       Center(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 12.0.s),
-                          child: ChatDateHeaderText(date: displayDate),
+                          child: ChatDateHeaderText(date: message.publishedAt.toDateTime),
                         ),
                       ),
                     switch (entity.data.messageType) {
@@ -253,7 +249,38 @@ class OneToOneMessageList extends HookConsumerWidget {
     );
   }
 
-  Future<void> _markAsRead(WidgetRef ref, List<EventMessage> allMessages) async {
+  bool _shouldShowDateHeader(int index) {
+    final currentMessageDate = messages[index].publishedAt.toDateTime;
+    final nextMessageDate =
+        index < messages.length - 1 ? messages[index + 1].publishedAt.toDateTime : null;
+    return nextMessageDate == null || (!isSameDay(currentMessageDate, nextMessageDate));
+  }
+
+  double _getBottomMargin(int index) {
+    final message = messages[index];
+    final isLastMessageInConversation = index == 0;
+    final hasNextMessageFromAnotherUser =
+        index > 0 && messages[index - 1].masterPubkey != message.masterPubkey;
+
+    final isPreviousMessageFromAnotherDay = index > 0 &&
+        !isSameDay(
+          messages[index - 1].publishedAt.toDateTime,
+          message.publishedAt.toDateTime,
+        );
+
+    if (isLastMessageInConversation || isPreviousMessageFromAnotherDay) {
+      return 0;
+    } else if (hasNextMessageFromAnotherUser) {
+      return 16.0.s;
+    } else {
+      return 8.0.s;
+    }
+  }
+
+  Future<void> _markAsRead(
+    WidgetRef ref,
+    List<EventMessage> allMessages,
+  ) async {
     final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
 
     final latestMessageFromReceiver =
