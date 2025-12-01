@@ -635,7 +635,7 @@
   "profile_articles_empty_list": "{username} не имеет статей",
   "profile_articles_empty_list_current_user": "У вас нет статей",
   "profile_bio": "Био",
-  "profile_create_new_account": "Создать новый аккаунт",
+  "profile_create_new_account": "Добавить аккаунт",
   "profile_creation_date": "Декабрь 2024",
   "profile_edit": "Редактировать профиль",
   "profile_empty_state": "Здесь пока ничего нет",
