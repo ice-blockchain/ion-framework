@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:appsflyer_sdk/appsflyer_sdk.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -116,11 +117,25 @@ Future<void> deepLinkHandler(Ref ref) async {
     });
   }
 
-  // used when app is running in background (warm start)
+  void closeOpenModalsIfNeeded() {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null || !context.mounted) {
+      return;
+    }
+
+    final router = GoRouter.maybeOf(context);
+    final isMainModalOpen = router?.state.isMainModalOpen ?? false;
+
+    if (isMainModalOpen || context.canPop()) {
+      Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
+    }
+  }
+
   ref.listen<String?>(deeplinkPathProvider, (prev, next) {
     if (next != null) {
+      closeOpenModalsIfNeeded();
       final currentContext = rootNavigatorKey.currentContext;
-      if (currentContext != null) {
+      if (currentContext != null && currentContext.mounted) {
         GoRouter.of(currentContext).push(next);
         ref.read(deeplinkPathProvider.notifier).clear();
       }
