@@ -12,6 +12,19 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/generated/assets.gen.dart';
 
+typedef CoinsListItemWrapper = Widget Function(
+  BuildContext context,
+  CoinsGroup group,
+  Widget child,
+);
+
+Widget _defaultCoinsListItemWrapper(
+  BuildContext context,
+  CoinsGroup group,
+  Widget child,
+) =>
+    child;
+
 class CoinsListView extends StatelessWidget {
   const CoinsListView({
     required this.onItemTap,
@@ -20,6 +33,7 @@ class CoinsListView extends StatelessWidget {
     required this.onQueryChanged,
     this.showBackButton = false,
     this.showCloseButton = true,
+    this.itemWrapperBuilder = _defaultCoinsListItemWrapper,
     super.key,
   });
 
@@ -29,6 +43,7 @@ class CoinsListView extends StatelessWidget {
   final AsyncValue<List<CoinsGroup>> coinsResult;
   final void Function(CoinsGroup group) onItemTap;
   final void Function(String query) onQueryChanged;
+  final CoinsListItemWrapper itemWrapperBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -68,10 +83,15 @@ class CoinsListView extends StatelessWidget {
                   );
                 },
                 itemBuilder: (BuildContext context, int index) {
+                  final coinsGroup = groups[index];
                   return ScreenSideOffset.small(
-                    child: CoinsGroupItem(
-                      coinsGroup: groups[index],
-                      onTap: () => onItemTap(groups[index]),
+                    child: itemWrapperBuilder(
+                      context,
+                      coinsGroup,
+                      CoinsGroupItem(
+                        coinsGroup: coinsGroup,
+                        onTap: () => onItemTap(coinsGroup),
+                      ),
                     ),
                   );
                 },
