@@ -17,8 +17,11 @@ class SendCoinModalPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final contactPubkey =
+        ref.watch(sendAssetFormControllerProvider.select((state) => state.contactPubkey));
     return SelectCoinModalPage(
       title: context.i18n.wallet_send_coins,
+      contactPubkey: contactPubkey,
       onCoinSelected: (value) {
         ref.read(sendAssetFormControllerProvider.notifier).setCoin(value);
         context.push(selectNetworkRouteLocationBuilder());
