@@ -130,8 +130,7 @@ class CreatorTokensTabContent extends HookConsumerWidget {
         CreatorTokensList(
           items: filteredItems,
           isInitialLoading: state.activeIsInitialLoading,
-          isSearchActive: isSearchActive,
-          searchQuery: debouncedQuery,
+          searchQuery: isSearchActive ? debouncedQuery : null,
         ),
       ],
     );

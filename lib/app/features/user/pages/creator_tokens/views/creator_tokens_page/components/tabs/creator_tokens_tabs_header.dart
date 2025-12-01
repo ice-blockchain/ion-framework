@@ -22,7 +22,6 @@ class CreatorTokensTabsHeader extends ConsumerWidget {
               tabs: CreatorTokensTabType.values,
             ),
           ),
-          // Search Icon
           Padding(
             padding: EdgeInsets.only(right: 16.0.s),
             child: GestureDetector(
