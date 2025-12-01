@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.da
 import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifier.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/keyboard/keyboard.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -103,6 +104,7 @@ class TopicsButton extends HookConsumerWidget {
   }
 
   void _onTap(BuildContext context) {
+    hideKeyboard(context);
     SelectTopicsRoute(feedType: type).push<void>(context);
   }
 }
