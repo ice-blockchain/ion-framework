@@ -49,9 +49,9 @@ class StoryViewerHeader extends ConsumerWidget {
     ];
 
     return PositionedDirectional(
-      top: 14.0.s,
+      top: 8.0.s,
       start: 16.0.s,
-      end: 22.0.s,
+      end: 16.0.s,
       child: StoryOverlayContentVisibilityWrapper(
         child: GestureDetector(
           onTap: () => ProfileRoute(pubkey: currentPost.masterPubkey).push<void>(context),
@@ -112,8 +112,9 @@ class StoryViewerHeader extends ConsumerWidget {
               ],
             ),
             trailing: HeaderActions(post: currentPost),
-            backgroundColor: Colors.transparent,
-            contentPadding: EdgeInsets.zero,
+            backgroundColor: context.theme.appColors.postContent.withValues(alpha: 0.50),
+            contentPadding: EdgeInsetsDirectional.symmetric(horizontal: 12.0.s, vertical: 9.0.s),
+            borderRadius: BorderRadius.all(Radius.circular(20.0.s)),
             constraints: BoxConstraints(minHeight: 30.0.s),
           ),
         ),
