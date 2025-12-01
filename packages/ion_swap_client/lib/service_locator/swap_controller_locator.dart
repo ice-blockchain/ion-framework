@@ -3,6 +3,9 @@
 import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/repositories/chains_ids_repository.dart';
 import 'package:ion_swap_client/service_locator/repositories/api_repository_service_locator.dart';
+import 'package:ion_swap_client/services/bridge_service.dart';
+import 'package:ion_swap_client/services/cex_service.dart';
+import 'package:ion_swap_client/services/dex_service.dart';
 import 'package:ion_swap_client/services/swap_service.dart';
 
 class SwapControllerLocator {
@@ -27,15 +30,22 @@ class SwapControllerLocator {
     final okxRepository = apiRepositoryServiceLocator.getSwapOkxRepository(config: config);
     final relayApiRepository = apiRepositoryServiceLocator.getRelayApiRepository(config: config);
     final exolixRepository = apiRepositoryServiceLocator.getExolixRepository(config: config);
-    final letsExchangeRepository = apiRepositoryServiceLocator.getLetsExchangeRepository(config: config);
+    final letsExchangeRepository =
+        apiRepositoryServiceLocator.getLetsExchangeRepository(config: config);
 
     _swapCoinsController = SwapService(
-      swapOkxRepository: okxRepository,
-      relayApiRepository: relayApiRepository,
-      exolixRepository: exolixRepository,
-      letsExchangeRepository: letsExchangeRepository,
-      chainsIdsRepository: ChainsIdsRepository(),
-      config: config,
+      okxService: DexService(
+        swapOkxRepository: okxRepository,
+        chainsIdsRepository: ChainsIdsRepository(),
+      ),
+      cexService: CexService(
+        letsExchangeRepository: letsExchangeRepository,
+        exolixRepository: exolixRepository,
+        config: config,
+      ),
+      bridgeService: BridgeService(
+        relayApiRepository: relayApiRepository,
+      ),
     );
 
     return _swapCoinsController!;

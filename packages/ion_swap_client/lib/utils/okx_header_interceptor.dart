@@ -108,7 +108,8 @@ class OkxHeaderInterceptor implements Interceptor {
 
     final queryString = queryParameters.entries
         .map(
-          (entry) => '${Uri.encodeQueryComponent(entry.key)}=${Uri.encodeQueryComponent(entry.value.toString())}',
+          (entry) =>
+              '${Uri.encodeQueryComponent(entry.key)}=${Uri.encodeQueryComponent(entry.value.toString())}',
         )
         .join('&');
 

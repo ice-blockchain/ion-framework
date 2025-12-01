@@ -60,7 +60,8 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       final form = ref.read(sendAssetFormControllerProvider);
 
       final coinAssetData = _extractCoinAssetData(form);
-      final (senderWallet, sendableAsset, selectedOption) = _validateFormComponents(form, coinAssetData);
+      final (senderWallet, sendableAsset, selectedOption) =
+          _validateFormComponents(form, coinAssetData);
 
       final walletView = await ref.read(currentWalletViewDataProvider.future);
 
@@ -74,10 +75,12 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
 
       result = await _waitForTransactionCompletion(senderWallet.id, result);
 
-      final nativeCoin =
-          await ref.read(coinsServiceProvider.future).then((service) => service.getNativeCoin(form.network!));
+      final nativeCoin = await ref
+          .read(coinsServiceProvider.future)
+          .then((service) => service.getNativeCoin(form.network!));
 
-      final nativeTokenTotalBalance = walletView.coins.firstWhereOrNull((coin) => coin.coin.id == nativeCoin?.id);
+      final nativeTokenTotalBalance =
+          walletView.coins.firstWhereOrNull((coin) => coin.coin.id == nativeCoin?.id);
 
       final isTransferringNativeToken = selectedOption.coin.native;
       final transferNativeTokenAmount = isTransferringNativeToken ? coinAssetData.amount : 0.0;

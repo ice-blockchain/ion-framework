@@ -162,7 +162,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         stackTrace: stackTrace,
         tag: 'swap_coins_failure',
       );
-      
+
       throw Exception(
         'Failed to swap coins: $e',
       );

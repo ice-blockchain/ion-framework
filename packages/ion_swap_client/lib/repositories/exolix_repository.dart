@@ -5,7 +5,7 @@ import 'package:ion_swap_client/models/exolix_coin.m.dart';
 import 'package:ion_swap_client/models/exolix_rate.m.dart';
 import 'package:ion_swap_client/models/exolix_transaction.m.dart';
 
-class ExolixRepository  {
+class ExolixRepository {
   ExolixRepository({
     required Dio dio,
   }) : _dio = dio;
