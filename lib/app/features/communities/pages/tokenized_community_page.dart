@@ -19,6 +19,7 @@ import 'package:ion/app/features/communities/utils/trading_stats_extension.dart'
 import 'package:ion/app/features/communities/views/components/chart_component.dart';
 import 'package:ion/app/features/communities/views/components/chart_stats_component.dart';
 import 'package:ion/app/features/communities/views/components/comments_section_compact.dart';
+import 'package:ion/app/features/communities/views/components/floating_trade_island.dart';
 import 'package:ion/app/features/communities/views/components/latest_trades_component.dart';
 import 'package:ion/app/features/communities/views/components/token_header_component.dart';
 import 'package:ion/app/features/communities/views/components/top_holders_component.dart';
@@ -105,6 +106,7 @@ class TokenizedCommunityPage extends HookWidget {
         ),
         expandedHeader: _TokenExpandedHeader(masterPubkey: masterPubkey),
       ),
+      floatingActionButton: FloatingTradeIsland(pubkey: masterPubkey),
     );
   }
 }

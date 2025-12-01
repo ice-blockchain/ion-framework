@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:convert';
+
 import 'package:ion/app/features/config/data/models/app_config_cache_strategy.dart';
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
 
 class TokenizedCommunitiesApi {
-  TokenizedCommunitiesApi({required ConfigRepository configRepository})
-      : _configRepository = configRepository;
+  TokenizedCommunitiesApi({
+    required ConfigRepository configRepository,
+  }) : _configRepository = configRepository;
 
   final ConfigRepository _configRepository;
 
@@ -13,6 +16,7 @@ class TokenizedCommunitiesApi {
       'tokenized_communities_bonding_curve_smart_contract_abi';
   static const String _bondingCurveAddressConfigName =
       'tokenized_communities_bonding_curve_smart_contract_address';
+  static const String _supportedSwapTokensConfigName = 'supported_swap_tokens';
 
   Future<String> fetchBondingCurveAbi() async {
     final abi = await _configRepository.getConfig<String>(
@@ -42,5 +46,14 @@ class TokenizedCommunitiesApi {
       );
     }
     return address;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchSupportedSwapTokens() async {
+    return _configRepository.getConfig<List<Map<String, dynamic>>>(
+      _supportedSwapTokensConfigName,
+      cacheStrategy: AppConfigCacheStrategy.localStorage,
+      parser: (data) => (jsonDecode(data) as List).cast<Map<String, dynamic>>(),
+      checkVersion: true,
+    );
   }
 }

@@ -4,21 +4,17 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/views/buy_sell_creator_token_dialog.dart';
+import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class FloatingTradeIsland extends StatelessWidget {
   const FloatingTradeIsland({
-    this.onBuyPressed,
-    this.onSellPressed,
-    this.buyLabel,
-    this.sellLabel,
+    required this.pubkey,
     super.key,
   });
 
-  final VoidCallback? onBuyPressed;
-  final VoidCallback? onSellPressed;
-  final String? buyLabel; // i18n provided externally
-  final String? sellLabel; // i18n provided externally
+  final String pubkey;
 
   @override
   Widget build(BuildContext context) {
@@ -42,16 +38,20 @@ class FloatingTradeIsland extends StatelessWidget {
             _PillButton(
               color: colors.success,
               leading: Assets.svg.iconButtonReceive.icon(size: 20.0.s, color: Colors.white),
-              label: buyLabel ?? i18n.trade_buy,
-              onTap: onBuyPressed,
+              label: i18n.trade_buy,
+              onTap: () {
+                showSimpleBottomSheet<void>(
+                  context: context,
+                  child: BuySellCreatorTokenDialog(creatorPubkey: pubkey),
+                );
+              },
               flipIconUp: true,
             ),
             SizedBox(width: 10.0.s),
             _PillButton(
               color: colors.lossRed,
               leading: Assets.svg.iconButtonReceive.icon(size: 20.0.s, color: Colors.white),
-              label: sellLabel ?? i18n.trade_sell,
-              onTap: onSellPressed,
+              label: i18n.trade_sell,
             ),
           ],
         ),

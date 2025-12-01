@@ -60,6 +60,21 @@ class TokenizedCommunitiesService {
     return txHash;
   }
 
+  Future<BigInt> getQuote({
+    required String ionConnectAddress,
+    required BigInt amountIn,
+    required String baseTokenAddress,
+  }) async {
+    final fromTokenBytes = _hexToBytes(baseTokenAddress);
+    final toTokenBytes = _encodeIdentifier(ionConnectAddress);
+
+    return repository.fetchQuote(
+      fromTokenIdentifier: fromTokenBytes,
+      toTokenIdentifier: toTokenBytes,
+      amountIn: amountIn,
+    );
+  }
+
   List<int> _encodeIdentifier(String identifier) {
     return utf8.encode(identifier);
   }
