@@ -107,6 +107,19 @@ class TokenAreaLineChart extends StatelessWidget {
                   .toList();
             },
           ),
+          getTouchedSpotIndicator: (barData, spotIndexes) {
+            return spotIndexes.map((index) {
+              return TouchedSpotIndicatorData(
+                FlLine(
+                  color: colors.primaryAccent.withValues(alpha: 0.3),
+                  strokeWidth: 0.5.s,
+                ),
+                const FlDotData(),
+              );
+            }).toList();
+          },
+          getTouchLineStart: (_, __) => 0,
+          getTouchLineEnd: (_, __) => double.infinity,
         ),
         lineBarsData: [
           LineChartBarData(
