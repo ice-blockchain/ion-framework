@@ -26,6 +26,7 @@ import 'package:ion/app/features/nsfw/models/nsfw_check_result.f.dart';
 import 'package:ion/app/features/nsfw/providers/media_nsfw_checker.r.dart';
 import 'package:ion/app/features/nsfw/widgets/nsfw_blocked_sheet.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/keyboard/keyboard.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
 class PostSubmitButton extends HookConsumerWidget {
@@ -87,6 +88,7 @@ class PostSubmitButton extends HookConsumerWidget {
       enabled: isSubmitButtonEnabled,
       loading: loading.value,
       onPressed: () async {
+        hideKeyboard(context);
         if (!shownTooltip.value && selectedTopics.isEmpty) {
           shownTooltip.value = true;
           ref.read(topicTooltipVisibilityNotifierProvider.notifier).show();
