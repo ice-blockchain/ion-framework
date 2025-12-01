@@ -107,11 +107,9 @@ class SendChatMedia extends _$SendChatMedia {
     await _cancellableOperation?.cancel();
     _cancelToken?.cancel('User cancelled upload');
 
-    // Get event reference before deleting the media record
     final eventReference =
         await ref.read(messageMediaDaoProvider).getEventReferenceById(messageMediaId);
 
-    // Delete the media record
     await ref.read(messageMediaDaoProvider).cancel(messageMediaId);
 
     // If no event reference, we can't check for message deletion
@@ -121,10 +119,7 @@ class SendChatMedia extends _$SendChatMedia {
       return;
     }
 
-    // Get eventMessageDaoProvider from chat_database
     final eventMessageDao = ref.read(eventMessageDaoProvider);
-
-    // Check if there are any remaining media records for this event
     final remainingMedia = await (ref.read(chatDatabaseProvider).select(
               ref.read(chatDatabaseProvider).messageMediaTable,
             )..where((t) => t.messageEventReference.equalsValue(eventReference)))
