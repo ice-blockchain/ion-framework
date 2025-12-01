@@ -38,14 +38,10 @@ class CreatorTokensSearchBar extends HookConsumerWidget {
 
     useOnInit(
       () {
-        // Clear search controller immediately (local state, safe during build)
         searchController.clear();
-        // Clear search query when search is first activated to show empty results
         ref.read(creatorTokensSearchProvider.notifier).clearSearch();
-        // Request focus after the frame is rendered to ensure the search bar is fully laid out
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          searchFocusNode.requestFocus();
-        });
+
+        searchFocusNode.requestFocus();
       },
       [isSearchActive],
     );
