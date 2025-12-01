@@ -51,6 +51,7 @@ Future<IonConnectCacheService> ionConnectPersistentCacheService(Ref ref) async {
   final cacheService = IonConnectCacheServiceDriftImpl(db: database);
 
   onLogout(ref, cacheService.clearDatabase);
+  onUserSwitch(ref, cacheService.clearDatabase);
 
   return cacheService;
 }
