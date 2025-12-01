@@ -448,7 +448,7 @@ class _SwapButton extends ConsumerWidget {
                         ) async {
                           await ref.read(sendCoinsNotifierProvider.notifier).send(
                                 onVerifyIdentity,
-                                sendAssetFormData,
+                                form: sendAssetFormData,
                               );
                         },
                         child: child,
