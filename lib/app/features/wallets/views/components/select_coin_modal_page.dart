@@ -13,6 +13,7 @@ class SelectCoinModalPage extends ConsumerWidget {
     required this.onCoinSelected,
     this.showBackButton = false,
     this.showCloseButton = true,
+    this.contactPubkey,
     super.key,
   });
 
@@ -20,16 +21,33 @@ class SelectCoinModalPage extends ConsumerWidget {
   final ValueChanged<CoinsGroup> onCoinSelected;
   final bool showBackButton;
   final bool showCloseButton;
+  final String? contactPubkey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final coinsResult = ref.watch(filteredCoinsNotifierProvider);
+    final selectableCoinsResult =
+        ref.watch(selectableFilteredCoinsProvider(contactPubkey: contactPubkey));
+    final coinsResult = selectableCoinsResult.whenData((state) => state.groups);
+    final enabledSymbolGroups = selectableCoinsResult.valueOrNull?.enabledSymbolGroups;
 
     return SheetContent(
       body: CoinsListView(
         showBackButton: showBackButton,
         showCloseButton: showCloseButton,
         coinsResult: coinsResult,
+        itemWrapperBuilder: (context, group, child) {
+          final isEnabled =
+              enabledSymbolGroups == null || enabledSymbolGroups.contains(group.symbolGroup);
+          if (isEnabled) {
+            return child;
+          }
+          return IgnorePointer(
+            child: Opacity(
+              opacity: 0.3,
+              child: child,
+            ),
+          );
+        },
         onItemTap: onCoinSelected,
         title: title,
         onQueryChanged: (String query) {
