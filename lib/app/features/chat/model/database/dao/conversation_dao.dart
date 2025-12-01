@@ -135,9 +135,11 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
   /// The list is sorted in descending order (newest first)
 
   Stream<List<ConversationListItem>> watch() {
-    final deletedMessagesSubquery = selectOnly(messageStatusTable)
-      ..addColumns([messageStatusTable.messageEventReference])
-      ..where(messageStatusTable.status.equals(MessageDeliveryStatus.deleted.index));
+    final eventMessageTableName = eventMessageTable.actualTableName;
+    final conversationTableName = conversationTable.actualTableName;
+    final lastActivityExpr = CustomExpression<DateTime>(
+      'COALESCE(MAX($eventMessageTableName.created_at), $conversationTableName.joined_at)',
+    );
 
     final query = select(conversationTable).join([
       innerJoin(
@@ -149,33 +151,31 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
         eventMessageTable.eventReference.equalsExp(conversationMessageTable.messageEventReference),
       ),
     ])
+      ..where(conversationMessageTable.isDeleted.equals(false))
       ..where(conversationTable.isHidden.equals(false))
-      ..where(
-        conversationMessageTable.messageEventReference.isNotInQuery(deletedMessagesSubquery),
-      )
-      ..addColumns([eventMessageTable.createdAt.max()])
+      ..addColumns([
+        lastActivityExpr,
+      ])
       ..groupBy([conversationTable.id])
+      ..orderBy([
+        OrderingTerm.desc(lastActivityExpr),
+      ])
       ..distinct;
 
     return query.watch().map((rows) {
-      final sortedRows = rows
-          .sortedBy<num>(
-        (e) =>
-            e.readTableOrNull(eventMessageTable)?.createdAt ??
-            e.readTable(conversationTable).joinedAt,
-      )
-          .map((row) {
+      return rows.map((row) {
+        final conv = row.readTable(conversationTable);
+        final event = row.readTableOrNull(eventMessageTable);
+
         return ConversationListItem(
-          type: row.readTable(conversationTable).type,
-          joinedAt: row.readTable(conversationTable).joinedAt,
-          conversationId: row.readTable(conversationTable).id,
-          isArchived: row.readTable(conversationTable).isArchived,
-          latestMessage: row.readTableOrNull(eventMessageTable)?.toEventMessage(),
+          type: conv.type,
+          joinedAt: conv.joinedAt,
+          conversationId: conv.id,
+          isArchived: conv.isArchived,
+          latestMessage: event?.toEventMessage(),
         );
       }).toList();
-
-      return sortedRows.reversed.toList();
-    }).distinct((l1, l2) => l1.equalsDeep(l2));
+    });
   }
 
   ///
