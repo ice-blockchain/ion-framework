@@ -56,20 +56,24 @@ class Poll extends ConsumerWidget {
             ),
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => _handlePollLengthTap(
-                ref,
-                draftPoll.lengthDays,
-                draftPoll.lengthHours,
-              ),
+              onTap: draftPoll.isVoted
+                  ? null
+                  : () => _handlePollLengthTap(
+                        ref,
+                        draftPoll.lengthDays,
+                        draftPoll.lengthHours,
+                      ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   PollLengthButton(
-                    onPollLengthPress: () => _handlePollLengthTap(
-                      ref,
-                      draftPoll.lengthDays,
-                      draftPoll.lengthHours,
-                    ),
+                    onPollLengthPress: () => draftPoll.isVoted
+                        ? {}
+                        : _handlePollLengthTap(
+                            ref,
+                            draftPoll.lengthDays,
+                            draftPoll.lengthHours,
+                          ),
                   ),
                   Text(
                     getFormattedPollLength(context, draftPoll.lengthDays, draftPoll.lengthHours),
@@ -82,7 +86,7 @@ class Poll extends ConsumerWidget {
             ),
           ],
         ),
-        if (onRemove != null)
+        if (onRemove != null && !draftPoll.isVoted)
           PollCloseButton(
             onClosePress: onRemove!,
           ),

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/polls/models/poll_answer.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_data.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_draft.f.dart';
 
@@ -69,6 +70,21 @@ class PollUtils {
       ttl: expiryTimestamp,
       title: '',
       options: pollOptions,
+    );
+  }
+
+  static PollDraft pollDataToPollDraft(PollData pollData, {required bool isVoted}) {
+    final pollAnswers = pollData.options.map((option) => PollAnswer(text: option)).toList();
+    final closingTime = pollData.closingTime ?? DateTime.now();
+    final remaining = closingTime.difference(DateTime.now());
+    final remainingHours = remaining.inHours - (remaining.inDays * 24);
+
+    return PollDraft(
+      answers: pollAnswers,
+      lengthDays: remaining.inDays,
+      lengthHours: remainingHours,
+      added: true,
+      isVoted: isVoted,
     );
   }
 }
