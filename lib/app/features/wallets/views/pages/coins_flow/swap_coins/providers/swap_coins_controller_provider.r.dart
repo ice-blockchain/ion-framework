@@ -12,6 +12,7 @@ import 'package:ion/app/features/wallets/providers/network_fee_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
+import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -152,10 +153,16 @@ class SwapCoinsController extends _$SwapCoinsController {
           memo: sellNetwork.isMemoSupported ? 'Online' : null,
           sellAddress: userSellAddress,
           sellNetwork: sellNetwork,
-          sellCoin: sellCoin,
+          sellCoinInWallet: sellCoin,
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await SentryService.logException(
+        e,
+        stackTrace: stackTrace,
+        tag: 'swap_coins_failure',
+      );
+      
       throw Exception(
         'Failed to swap coins: $e',
       );
@@ -166,7 +173,7 @@ class SwapCoinsController extends _$SwapCoinsController {
   /// we need to send coins by ourselves to blockchain
   Future<void> _sendCoinCallback({
     required String sellAddress,
-    required CoinInWalletData sellCoin,
+    required CoinInWalletData sellCoinInWallet,
     required NetworkData sellNetwork,
     required String depositAddress,
     required num amount,
@@ -179,7 +186,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       networkFeeProvider(
         walletId: walletView?.id,
         network: sellNetwork,
-        transferredCoin: sellCoin.coin,
+        transferredCoin: sellCoinInWallet.coin,
       ).future,
     );
 

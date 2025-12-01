@@ -4,9 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:ion_swap_client/models/lets_exchange_coin.m.dart';
 import 'package:ion_swap_client/models/lets_exchange_info.m.dart';
 import 'package:ion_swap_client/models/lets_exchange_transaction.m.dart';
-import 'package:ion_swap_client/repositories/api_repository.dart';
 
-class LetsExchangeRepository implements ApiRepository {
+class LetsExchangeRepository {
   LetsExchangeRepository({
     required Dio dio,
   }) : _dio = dio;
