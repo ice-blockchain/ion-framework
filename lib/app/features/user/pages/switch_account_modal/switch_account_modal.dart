@@ -57,7 +57,7 @@ class SwitchAccountModal extends HookConsumerWidget {
               SwitchAccountModalList(
                 onSelectUser: () {
                   if (enableAccountManagement) {
-                    SwitchUserLoaderRoute().go(context);
+                    FeedRoute().go(context);
                   }
                 },
               ),

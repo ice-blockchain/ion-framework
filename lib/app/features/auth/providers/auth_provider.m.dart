@@ -112,22 +112,28 @@ class Auth extends _$Auth {
         .setCurrentIdentityKeyName(identityKeyName);
   }
 
-  /// Handles switching to an existing account.
-  /// Returns true if switching was handled, false if the user is new.
+  /// Handles switching to an existing account
+  /// Returns true if switching was handled, false if the user is new
   Future<bool> handleSwitchingToExistingAccount(
-    String currentUsername,
+    String targetUsername,
     List<String>? currentAuthenticatedUsers,
   ) async {
     final authenticatedUsers =
         currentAuthenticatedUsers ?? state.valueOrNull?.authenticatedIdentityKeyNames ?? [];
-    final isSwitchingToExistingAccount = authenticatedUsers.contains(currentUsername);
+    final isSwitchingToExistingAccount = authenticatedUsers.contains(targetUsername);
+
+    final currentUser = ref.read(currentIdentityKeyNameSelectorProvider);
+    final needsUserChange = currentUser != targetUsername;
+
     if (!isSwitchingToExistingAccount) {
+      if (needsUserChange) {
+        await setCurrentUser(targetUsername);
+      }
       return false;
     }
 
-    final currentUser = ref.read(currentIdentityKeyNameSelectorProvider);
-    if (currentUser != currentUsername) {
-      await setCurrentUser(currentUsername);
+    if (needsUserChange) {
+      await setCurrentUser(targetUsername);
     }
     ref.read(userSwitchInProgressProvider.notifier).completeSwitching();
     return true;
