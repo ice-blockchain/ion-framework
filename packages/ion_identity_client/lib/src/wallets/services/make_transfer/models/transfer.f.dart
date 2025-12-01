@@ -267,3 +267,19 @@ class Aip21Transfer with _$Aip21Transfer implements Transfer {
 
   factory Aip21Transfer.fromJson(Map<String, dynamic> json) => _$Aip21TransferFromJson(json);
 }
+
+/// Represents an arbitrary EIP-1559 transaction for EVM networks.
+@freezed
+class Eip1559ContractCallTransfer with _$Eip1559ContractCallTransfer implements Transfer {
+  const factory Eip1559ContractCallTransfer({
+    required String to,
+    required String data,
+    required String value,
+    required String maxFeePerGas,
+    required String maxPriorityFeePerGas,
+    @Default('Eip1559') String kind,
+  }) = _Eip1559ContractCallTransfer;
+
+  factory Eip1559ContractCallTransfer.fromJson(Map<String, dynamic> json) =>
+      _$Eip1559ContractCallTransferFromJson(json);
+}

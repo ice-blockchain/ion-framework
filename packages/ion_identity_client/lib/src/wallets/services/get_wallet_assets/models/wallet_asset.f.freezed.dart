@@ -3733,7 +3733,6 @@ class _$WalletAssetTrc10Impl extends _WalletAssetTrc10 {
 
   @override
   final String tokenId;
-// contract address
   @override
   final String symbol;
   @override
@@ -4090,7 +4089,7 @@ abstract class _WalletAssetTrc10 extends WalletAsset {
   factory _WalletAssetTrc10.fromJson(Map<String, dynamic> json) =
       _$WalletAssetTrc10Impl.fromJson;
 
-  String get tokenId; // contract address
+  String get tokenId;
   @override
   String get symbol;
   @override
@@ -4655,7 +4654,6 @@ class _$WalletAssetAip21Impl extends _WalletAssetAip21 {
 
   @override
   final String metadata;
-// contract address
   @override
   final String symbol;
   @override
@@ -5013,7 +5011,7 @@ abstract class _WalletAssetAip21 extends WalletAsset {
   factory _WalletAssetAip21.fromJson(Map<String, dynamic> json) =
       _$WalletAssetAip21Impl.fromJson;
 
-  String get metadata; // contract address
+  String get metadata;
   @override
   String get symbol;
   @override
