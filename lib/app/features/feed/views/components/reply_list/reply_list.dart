@@ -24,6 +24,7 @@ class ReplyList extends ConsumerWidget {
     this.headers,
     this.onPullToRefresh,
     this.scrollController,
+    this.hideEmptyState = false,
     super.key,
   });
 
@@ -31,6 +32,7 @@ class ReplyList extends ConsumerWidget {
   final EventReference eventReference;
   final VoidCallback? onPullToRefresh;
   final ScrollController? scrollController;
+  final bool hideEmptyState;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,7 +53,7 @@ class ReplyList extends ConsumerWidget {
           if (headers != null) ...headers!,
           if (entities == null)
             const EntitiesListSkeleton()
-          else if (entities.isEmpty && !isKeyboardVisible)
+          else if (entities.isEmpty && !isKeyboardVisible && !hideEmptyState)
             const _EmptyState()
           else
             EntitiesList(
