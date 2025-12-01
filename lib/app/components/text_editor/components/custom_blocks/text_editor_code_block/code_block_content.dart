@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/inputs/text_input/ion_text_field.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/create_article/providers/draft_article_provider.m.dart';
 
@@ -41,7 +42,7 @@ class CodeBlockContent extends HookConsumerWidget {
             onRemoveBlock();
           }
         },
-        child: TextField(
+        child: IonTextField(
           controller: textController,
           readOnly: readOnly,
           onChanged: (value) {

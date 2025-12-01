@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/inputs/text_input/ion_text_field.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -48,7 +49,7 @@ class ChatTextField extends HookConsumerWidget {
       },
     );
 
-    return TextField(
+    return IonTextField(
       focusNode: textFieldFocusNode,
       controller: textFieldController,
       maxLines: 5,
