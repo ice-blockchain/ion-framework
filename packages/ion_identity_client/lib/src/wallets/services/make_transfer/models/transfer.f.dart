@@ -269,43 +269,17 @@ class Aip21Transfer with _$Aip21Transfer implements Transfer {
 }
 
 /// Represents an arbitrary EIP-1559 transaction for EVM networks.
-class Eip1559ContractCallTransfer extends Transfer {
-  const Eip1559ContractCallTransfer({
-    required this.to,
-    required this.data,
-    required this.value,
-    required this.maxFeePerGas,
-    required this.maxPriorityFeePerGas,
-    this.kind = 'Eip1559',
-  });
+@freezed
+class Eip1559ContractCallTransfer with _$Eip1559ContractCallTransfer implements Transfer {
+  const factory Eip1559ContractCallTransfer({
+    required String to,
+    required String data,
+    required String value,
+    required String maxFeePerGas,
+    required String maxPriorityFeePerGas,
+    @Default('Eip1559') String kind,
+  }) = _Eip1559ContractCallTransfer;
 
-  factory Eip1559ContractCallTransfer.fromJson(Map<String, dynamic> json) {
-    return Eip1559ContractCallTransfer(
-      kind: json['kind'] as String? ?? 'Eip1559',
-      to: json['to'] as String,
-      data: json['data'] as String,
-      value: json['value'] as String,
-      maxFeePerGas: json['maxFeePerGas'] as String,
-      maxPriorityFeePerGas: json['maxPriorityFeePerGas'] as String,
-    );
-  }
-
-  final String kind;
-  final String to;
-  final String data;
-  final String value;
-  final String maxFeePerGas;
-  final String maxPriorityFeePerGas;
-
-  @override
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'kind': kind,
-      'to': to,
-      'data': data,
-      'value': value,
-      'maxFeePerGas': maxFeePerGas,
-      'maxPriorityFeePerGas': maxPriorityFeePerGas,
-    };
-  }
+  factory Eip1559ContractCallTransfer.fromJson(Map<String, dynamic> json) =>
+      _$Eip1559ContractCallTransferFromJson(json);
 }

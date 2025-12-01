@@ -2995,3 +2995,271 @@ abstract class _Aip21Transfer implements Aip21Transfer {
   _$$Aip21TransferImplCopyWith<_$Aip21TransferImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+Eip1559ContractCallTransfer _$Eip1559ContractCallTransferFromJson(
+    Map<String, dynamic> json) {
+  return _Eip1559ContractCallTransfer.fromJson(json);
+}
+
+/// @nodoc
+mixin _$Eip1559ContractCallTransfer {
+  String get to => throw _privateConstructorUsedError;
+  String get data => throw _privateConstructorUsedError;
+  String get value => throw _privateConstructorUsedError;
+  String get maxFeePerGas => throw _privateConstructorUsedError;
+  String get maxPriorityFeePerGas => throw _privateConstructorUsedError;
+  String get kind => throw _privateConstructorUsedError;
+
+  /// Serializes this Eip1559ContractCallTransfer to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of Eip1559ContractCallTransfer
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $Eip1559ContractCallTransferCopyWith<Eip1559ContractCallTransfer>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $Eip1559ContractCallTransferCopyWith<$Res> {
+  factory $Eip1559ContractCallTransferCopyWith(
+          Eip1559ContractCallTransfer value,
+          $Res Function(Eip1559ContractCallTransfer) then) =
+      _$Eip1559ContractCallTransferCopyWithImpl<$Res,
+          Eip1559ContractCallTransfer>;
+  @useResult
+  $Res call(
+      {String to,
+      String data,
+      String value,
+      String maxFeePerGas,
+      String maxPriorityFeePerGas,
+      String kind});
+}
+
+/// @nodoc
+class _$Eip1559ContractCallTransferCopyWithImpl<$Res,
+        $Val extends Eip1559ContractCallTransfer>
+    implements $Eip1559ContractCallTransferCopyWith<$Res> {
+  _$Eip1559ContractCallTransferCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of Eip1559ContractCallTransfer
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? to = null,
+    Object? data = null,
+    Object? value = null,
+    Object? maxFeePerGas = null,
+    Object? maxPriorityFeePerGas = null,
+    Object? kind = null,
+  }) {
+    return _then(_value.copyWith(
+      to: null == to
+          ? _value.to
+          : to // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as String,
+      value: null == value
+          ? _value.value
+          : value // ignore: cast_nullable_to_non_nullable
+              as String,
+      maxFeePerGas: null == maxFeePerGas
+          ? _value.maxFeePerGas
+          : maxFeePerGas // ignore: cast_nullable_to_non_nullable
+              as String,
+      maxPriorityFeePerGas: null == maxPriorityFeePerGas
+          ? _value.maxPriorityFeePerGas
+          : maxPriorityFeePerGas // ignore: cast_nullable_to_non_nullable
+              as String,
+      kind: null == kind
+          ? _value.kind
+          : kind // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$Eip1559ContractCallTransferImplCopyWith<$Res>
+    implements $Eip1559ContractCallTransferCopyWith<$Res> {
+  factory _$$Eip1559ContractCallTransferImplCopyWith(
+          _$Eip1559ContractCallTransferImpl value,
+          $Res Function(_$Eip1559ContractCallTransferImpl) then) =
+      __$$Eip1559ContractCallTransferImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String to,
+      String data,
+      String value,
+      String maxFeePerGas,
+      String maxPriorityFeePerGas,
+      String kind});
+}
+
+/// @nodoc
+class __$$Eip1559ContractCallTransferImplCopyWithImpl<$Res>
+    extends _$Eip1559ContractCallTransferCopyWithImpl<$Res,
+        _$Eip1559ContractCallTransferImpl>
+    implements _$$Eip1559ContractCallTransferImplCopyWith<$Res> {
+  __$$Eip1559ContractCallTransferImplCopyWithImpl(
+      _$Eip1559ContractCallTransferImpl _value,
+      $Res Function(_$Eip1559ContractCallTransferImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of Eip1559ContractCallTransfer
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? to = null,
+    Object? data = null,
+    Object? value = null,
+    Object? maxFeePerGas = null,
+    Object? maxPriorityFeePerGas = null,
+    Object? kind = null,
+  }) {
+    return _then(_$Eip1559ContractCallTransferImpl(
+      to: null == to
+          ? _value.to
+          : to // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as String,
+      value: null == value
+          ? _value.value
+          : value // ignore: cast_nullable_to_non_nullable
+              as String,
+      maxFeePerGas: null == maxFeePerGas
+          ? _value.maxFeePerGas
+          : maxFeePerGas // ignore: cast_nullable_to_non_nullable
+              as String,
+      maxPriorityFeePerGas: null == maxPriorityFeePerGas
+          ? _value.maxPriorityFeePerGas
+          : maxPriorityFeePerGas // ignore: cast_nullable_to_non_nullable
+              as String,
+      kind: null == kind
+          ? _value.kind
+          : kind // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$Eip1559ContractCallTransferImpl
+    implements _Eip1559ContractCallTransfer {
+  const _$Eip1559ContractCallTransferImpl(
+      {required this.to,
+      required this.data,
+      required this.value,
+      required this.maxFeePerGas,
+      required this.maxPriorityFeePerGas,
+      this.kind = 'Eip1559'});
+
+  factory _$Eip1559ContractCallTransferImpl.fromJson(
+          Map<String, dynamic> json) =>
+      _$$Eip1559ContractCallTransferImplFromJson(json);
+
+  @override
+  final String to;
+  @override
+  final String data;
+  @override
+  final String value;
+  @override
+  final String maxFeePerGas;
+  @override
+  final String maxPriorityFeePerGas;
+  @override
+  @JsonKey()
+  final String kind;
+
+  @override
+  String toString() {
+    return 'Eip1559ContractCallTransfer(to: $to, data: $data, value: $value, maxFeePerGas: $maxFeePerGas, maxPriorityFeePerGas: $maxPriorityFeePerGas, kind: $kind)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$Eip1559ContractCallTransferImpl &&
+            (identical(other.to, to) || other.to == to) &&
+            (identical(other.data, data) || other.data == data) &&
+            (identical(other.value, value) || other.value == value) &&
+            (identical(other.maxFeePerGas, maxFeePerGas) ||
+                other.maxFeePerGas == maxFeePerGas) &&
+            (identical(other.maxPriorityFeePerGas, maxPriorityFeePerGas) ||
+                other.maxPriorityFeePerGas == maxPriorityFeePerGas) &&
+            (identical(other.kind, kind) || other.kind == kind));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, to, data, value, maxFeePerGas, maxPriorityFeePerGas, kind);
+
+  /// Create a copy of Eip1559ContractCallTransfer
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$Eip1559ContractCallTransferImplCopyWith<_$Eip1559ContractCallTransferImpl>
+      get copyWith => __$$Eip1559ContractCallTransferImplCopyWithImpl<
+          _$Eip1559ContractCallTransferImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$Eip1559ContractCallTransferImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _Eip1559ContractCallTransfer
+    implements Eip1559ContractCallTransfer {
+  const factory _Eip1559ContractCallTransfer(
+      {required final String to,
+      required final String data,
+      required final String value,
+      required final String maxFeePerGas,
+      required final String maxPriorityFeePerGas,
+      final String kind}) = _$Eip1559ContractCallTransferImpl;
+
+  factory _Eip1559ContractCallTransfer.fromJson(Map<String, dynamic> json) =
+      _$Eip1559ContractCallTransferImpl.fromJson;
+
+  @override
+  String get to;
+  @override
+  String get data;
+  @override
+  String get value;
+  @override
+  String get maxFeePerGas;
+  @override
+  String get maxPriorityFeePerGas;
+  @override
+  String get kind;
+
+  /// Create a copy of Eip1559ContractCallTransfer
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$Eip1559ContractCallTransferImplCopyWith<_$Eip1559ContractCallTransferImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}

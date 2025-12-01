@@ -14,9 +14,7 @@ class TokenizedCommunitiesService {
 
   Future<String> performBuy(CreatorTokenBuyRequest request) async {
     final fromTokenBytes = _hexToBytes(request.baseTokenAddress);
-    final toTokenBytes = _encodeIdentifier(
-      _ionConnectAddress(request.creatorPubkey),
-    );
+    final toTokenBytes = _encodeIdentifier(request.ionConnectAddress);
 
     final quote = await repository.fetchQuote(
       fromTokenIdentifier: fromTokenBytes,
@@ -64,10 +62,6 @@ class TokenizedCommunitiesService {
 
   List<int> _encodeIdentifier(String identifier) {
     return utf8.encode(identifier);
-  }
-
-  String _ionConnectAddress(String creatorPubkey) {
-    return '0:$creatorPubkey:';
   }
 
   BigInt _calculateMinReturn({

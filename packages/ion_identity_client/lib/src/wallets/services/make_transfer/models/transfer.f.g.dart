@@ -228,3 +228,25 @@ Map<String, dynamic> _$$Aip21TransferImplToJson(_$Aip21TransferImpl instance) =>
       'amount': instance.amount,
       'kind': instance.kind,
     };
+
+_$Eip1559ContractCallTransferImpl _$$Eip1559ContractCallTransferImplFromJson(
+        Map<String, dynamic> json) =>
+    _$Eip1559ContractCallTransferImpl(
+      to: json['to'] as String,
+      data: json['data'] as String,
+      value: json['value'] as String,
+      maxFeePerGas: json['maxFeePerGas'] as String,
+      maxPriorityFeePerGas: json['maxPriorityFeePerGas'] as String,
+      kind: json['kind'] as String? ?? 'Eip1559',
+    );
+
+Map<String, dynamic> _$$Eip1559ContractCallTransferImplToJson(
+        _$Eip1559ContractCallTransferImpl instance) =>
+    <String, dynamic>{
+      'to': instance.to,
+      'data': instance.data,
+      'value': instance.value,
+      'maxFeePerGas': instance.maxFeePerGas,
+      'maxPriorityFeePerGas': instance.maxPriorityFeePerGas,
+      'kind': instance.kind,
+    };

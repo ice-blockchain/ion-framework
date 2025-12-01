@@ -4,7 +4,7 @@ import 'package:ion_identity_client/ion_identity.dart';
 
 class CreatorTokenBuyRequest {
   CreatorTokenBuyRequest({
-    required this.creatorPubkey,
+    required this.ionConnectAddress,
     required this.amountIn,
     required this.slippagePercent,
     required this.walletId,
@@ -16,7 +16,7 @@ class CreatorTokenBuyRequest {
     required this.userActionSigner,
   });
 
-  final String creatorPubkey;
+  final String ionConnectAddress;
   final BigInt amountIn;
   final double slippagePercent;
   final String walletId;

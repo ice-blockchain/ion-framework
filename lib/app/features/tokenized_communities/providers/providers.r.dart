@@ -117,7 +117,7 @@ class BuyCreatorTokenNotifier extends _$BuyCreatorTokenNotifier {
       final maxPriorityFeePerGas = BigInt.from(1000000000); // 1 gwei
 
       final request = CreatorTokenBuyRequest(
-        creatorPubkey: creatorPubkey,
+        ionConnectAddress: '0:$creatorPubkey:',
         amountIn: amountIn,
         slippagePercent: slippagePercent,
         walletId: walletId,
