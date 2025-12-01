@@ -23,6 +23,7 @@ class PollAnswersListView extends ConsumerWidget {
         return PollAnswerItem(
           index: index,
           isLast: index != 0 && index == draftPoll.answers.length - 1,
+          readOnly: draftPoll.isVoted,
         );
       },
     );

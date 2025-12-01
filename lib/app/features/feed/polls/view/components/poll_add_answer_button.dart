@@ -21,6 +21,7 @@ class PollAddAnswerButton extends ConsumerWidget {
     return Align(
       alignment: AlignmentDirectional.centerStart,
       child: Button(
+        disabled: pollDraft.isVoted,
         style: ButtonStyle(
           padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
             EdgeInsetsDirectional.only(top: 8.0.s, bottom: 10.0.s),
