@@ -12,12 +12,14 @@ import 'package:ion/generated/assets.gen.dart';
 class PollAnswerItem extends HookConsumerWidget {
   const PollAnswerItem({
     required this.index,
+    required this.readOnly,
     this.isLast = false,
     super.key,
   });
 
   final int index;
   final bool isLast;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -68,6 +70,7 @@ class PollAnswerItem extends HookConsumerWidget {
                       child: IonTextField(
                         controller: textController,
                         focusNode: focusNode,
+                        enabled: !readOnly,
                         onChanged: (value) {
                           ref.read(pollDraftNotifierProvider.notifier).updateAnswer(index, value);
                         },
@@ -102,7 +105,7 @@ class PollAnswerItem extends HookConsumerWidget {
         SizedBox(
           width: 20.0.s,
           height: 20.0.s,
-          child: isLast
+          child: isLast && !readOnly
               ? GestureDetector(
                   onTap: () {
                     ref.read(pollDraftNotifierProvider.notifier).removeAnswer(index);
