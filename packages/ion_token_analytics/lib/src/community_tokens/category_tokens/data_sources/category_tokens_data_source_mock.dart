@@ -151,6 +151,7 @@ class CategoryTokensDataSourceMock {
         : type == 'top'
         ? 'top'
         : 'latest';
+    const tokenTypes = ['profile', 'post', 'video', 'article'];
 
     return List.generate(count, (index) {
       final name = _mockCreatorName(index);
@@ -163,7 +164,7 @@ class CategoryTokensDataSourceMock {
       }
 
       return {
-        'type': 'community',
+        'type': tokenTypes[_random.nextInt(tokenTypes.length)],
         'title': '$prefix Token ${index + 1}',
         'description': _generateDescription(index),
         'imageUrl': 'https://i.pravatar.cc/150?img=${index + 1}',
@@ -225,9 +226,10 @@ class CategoryTokensDataSourceMock {
   Map<String, dynamic> _generateNewItem(String type, String prefix) {
     final now = DateTime.now();
     final i = 1000 + _random.nextInt(1000);
+    const tokenTypes = ['profile', 'post', 'video', 'article'];
 
     return {
-      'type': 'community',
+      'type': tokenTypes[_random.nextInt(tokenTypes.length)],
       'title': '$prefix Token $i (NEW)',
       'description': 'Newly added token',
       'imageUrl': 'https://i.pravatar.cc/150?img=$i',

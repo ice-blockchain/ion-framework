@@ -40,10 +40,11 @@ class FeaturedTokensDataSourceMock {
   List<Map<String, dynamic>> _generateInitialMockJson() {
     final count = 5 + _random.nextInt(6); // 5-10 tokens
     final now = DateTime.now();
+    const tokenTypes = ['profile', 'post', 'video', 'article'];
 
     return List.generate(count, (index) {
       return {
-        'type': 'featured',
+        'type': tokenTypes[_random.nextInt(tokenTypes.length)],
         'title': _generateTitle(index),
         'description': _generateDescription(index),
         'imageUrl': 'https://i.pravatar.cc/150?img=${index + 1}',
