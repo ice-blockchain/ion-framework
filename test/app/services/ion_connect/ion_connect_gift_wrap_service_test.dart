@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/services/ion_connect/ed25519_key_store.dart';
 import 'package:ion/app/services/ion_connect/encrypted_message_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_gift_wrap_service.r.dart';
 import 'package:ion/app/utils/date.dart';
+
+import '../../../test_utils.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,8 +17,8 @@ void main() {
   late EventSigner receiverSigner;
 
   setUp(() async {
-    senderSigner = await Ed25519KeyStore.generate();
-    receiverSigner = await Ed25519KeyStore.generate();
+    senderSigner = await createTestSigner();
+    receiverSigner = await createTestSigner();
     final encryptedMessageService = EncryptedMessageService(
       eventSigner: senderSigner,
       currentUserPubkey: senderSigner.publicKey,

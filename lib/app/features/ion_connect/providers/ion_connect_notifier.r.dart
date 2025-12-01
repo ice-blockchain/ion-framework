@@ -394,6 +394,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
   Future<EventMessage> sign(
     EventSerializable entityData, {
     bool includeMasterPubkey = true,
+    List<List<String>> tags = const [],
   }) async {
     final mainWallet = await ref.read(mainWalletProvider.future);
 
@@ -410,6 +411,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     return entityData.toEventMessage(
       eventSigner,
       tags: [
+        ...tags,
         if (includeMasterPubkey) MasterPubkeyTag(value: mainWallet.signingKey.publicKey).toTag(),
       ],
     );
