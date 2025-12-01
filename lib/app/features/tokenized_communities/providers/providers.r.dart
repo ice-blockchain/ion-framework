@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:collection/collection.dart';
 import 'package:http/http.dart';
+import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
-import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_contract_providers.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_tx_builder.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_transaction_api.dart';
 import 'package:ion/app/features/tokenized_communities/data/tokenized_communities_api.dart';
 import 'package:ion/app/features/tokenized_communities/domain/tokenized_communities_repository.dart';
 import 'package:ion/app/features/tokenized_communities/domain/tokenized_communities_service.dart';
-import 'package:ion/app/features/tokenized_communities/models/creator_token_buy_request.dart';
+import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
+import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
-import 'package:ion_identity_client/ion_identity.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:web3dart/web3dart.dart';
@@ -24,7 +24,9 @@ Future<TokenizedCommunitiesApi> tokenizedCommunitiesApi(
   Ref ref,
 ) async {
   final configRepository = await ref.watch(configRepositoryProvider.future);
-  return TokenizedCommunitiesApi(configRepository: configRepository);
+  return TokenizedCommunitiesApi(
+    configRepository: configRepository,
+  );
 }
 
 @riverpod
@@ -86,51 +88,34 @@ Future<TokenizedCommunitiesService> tokenizedCommunitiesService(
 }
 
 @riverpod
-// TODO: remove this provider after UI is connected
-class BuyCreatorTokenNotifier extends _$BuyCreatorTokenNotifier {
-  @override
-  FutureOr<String?> build(String creatorPubkey) => null;
+Future<List<CoinData>> supportedSwapTokens(Ref ref) async {
+  final api = await ref.watch(tokenizedCommunitiesApiProvider.future);
+  final supportedTokensConfig = await api.fetchSupportedSwapTokens();
+  final coinsRepository = ref.watch(coinsRepositoryProvider);
 
-  Future<void> performBuy({
-    required UserActionSignerNew signer,
-  }) async {
-    state = const AsyncValue.loading();
+  final supportedAddresses =
+      supportedTokensConfig.map((e) => e['address'] as String).map((e) => e.toLowerCase()).toSet();
 
-    state = await AsyncValue.guard(() async {
-      final service = await ref.read(tokenizedCommunitiesServiceProvider.future);
+  final allCoins = await coinsRepository.getCoins();
 
-      // TODO: Get actual wallet data from providers
-      // For now using placeholder values
-      // final mainWallet = await ref.watch(mainWalletProvider.future);
-      final wallets = await ref.watch(walletsNotifierProvider.future);
-      final bscWallet = wallets.firstWhereOrNull((w) => w.network == 'BscTestnet');
+  final supportedCoins = allCoins.where((coin) {
+    return supportedAddresses.contains(coin.contractAddress.toLowerCase());
+  }).toList();
 
-      if (bscWallet == null) {
-        throw Exception('BscTestnet wallet not found');
-      }
-      final walletId = bscWallet.id;
-      final walletAddress = bscWallet.address;
-      const baseTokenAddress = '0x2c73996BaBF1a06c2C057177353293f7cA0907c8';
-      final amountIn = BigInt.from(1000000000000000000); // 1 token with 18 decimals
-      const slippagePercent = 1.0;
-      final maxFeePerGas = BigInt.from(20000000000); // 20 gwei
-      final maxPriorityFeePerGas = BigInt.from(1000000000); // 1 gwei
+  return supportedCoins;
+}
 
-      final request = CreatorTokenBuyRequest(
-        ionConnectAddress: '0:$creatorPubkey:',
-        amountIn: amountIn,
-        slippagePercent: slippagePercent,
-        walletId: walletId,
-        walletAddress: walletAddress!,
-        maxFeePerGas: maxFeePerGas,
-        maxPriorityFeePerGas: maxPriorityFeePerGas,
-        baseTokenAddress: baseTokenAddress,
-        tokenDecimals: 18,
-        userActionSigner: signer,
-      );
+@riverpod
+Future<CommunityToken> communityTokenInfo(
+  Ref ref,
+  String creatorPubkey,
+) async {
+  final ionConnectAddress = '0:$creatorPubkey:';
 
-      final txHash = await service.performBuy(request);
-      return txHash;
-    });
+  final token = await ref.watch(tokenMarketInfoProvider(ionConnectAddress).future);
+
+  if (token == null) {
+    throw Exception('Token info not found for $creatorPubkey');
   }
+  return token;
 }
