@@ -23,7 +23,7 @@ class CreatorTokensTabsHeader extends ConsumerWidget {
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(right: 16.0.s),
+            padding: EdgeInsetsDirectional.only(end: 16.0.s),
             child: GestureDetector(
               onTap: () {
                 ref.read(creatorTokensIsSearchActiveProvider.notifier).isSearching = true;
