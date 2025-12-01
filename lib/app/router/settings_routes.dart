@@ -15,7 +15,6 @@ class SettingsRoutes {
     TypedGoRoute<DelegateAccessRoute>(path: 'delegate-access'),
     TypedGoRoute<SelectDelegateUserRoute>(path: 'select-delegate-user'),
     TypedGoRoute<DelegateUserSelectedRoute>(path: 'delegate-user-selected/:selectedUserPubkey'),
-    TypedGoRoute<SwitchUserAccountRoute>(path: 'switch-user-account/:selectedUserPubkey'),
     ...ProtectAccountRoutes.routes,
   ];
 }
@@ -106,16 +105,6 @@ class DelegateUserSelectedRoute extends BaseRouteData with _$DelegateUserSelecte
   DelegateUserSelectedRoute({required this.selectedUserPubkey})
       : super(
           child: DelegateUserSelectedModal(selectedUserPubkey: selectedUserPubkey),
-          type: IceRouteType.bottomSheet,
-        );
-
-  final String selectedUserPubkey;
-}
-
-class SwitchUserAccountRoute extends BaseRouteData with _$SwitchUserAccountRoute {
-  SwitchUserAccountRoute({required this.selectedUserPubkey})
-      : super(
-          child: SwitchUserAccountModal(selectedUserPubkey: selectedUserPubkey),
           type: IceRouteType.bottomSheet,
         );
 

@@ -25,6 +25,7 @@ class AuthRoutes {
         TypedGoRoute<FillProfileRoute>(path: '$onboardingPrefix/fill-profile'),
         TypedGoRoute<DiscoverCreatorsRoute>(path: '$onboardingPrefix/discover-creators'),
         TypedGoRoute<NotificationsRoute>(path: '$onboardingPrefix/notifications'),
+        TypedGoRoute<SwitchAccountAuthRoute>(path: '$authPrefix/switch-account'),
       ],
     ),
   ];
@@ -146,6 +147,14 @@ class RestoreFromCloudNoKeysRoute extends BaseRouteData with _$RestoreFromCloudN
   RestoreFromCloudNoKeysRoute()
       : super(
           child: const RestoreFromCloudNoKeysAvailableModal(),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class SwitchAccountAuthRoute extends BaseRouteData with _$SwitchAccountAuthRoute {
+  SwitchAccountAuthRoute()
+      : super(
+          child: const SwitchAccountModal(enableAccountManagement: false),
           type: IceRouteType.bottomSheet,
         );
 }

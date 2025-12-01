@@ -116,7 +116,6 @@ import 'package:ion/app/features/settings/views/privacy_settings_modal.dart';
 import 'package:ion/app/features/settings/views/push_notifications_settings.dart';
 import 'package:ion/app/features/settings/views/select_delegate_user_modal.dart';
 import 'package:ion/app/features/settings/views/settings_modal.dart';
-import 'package:ion/app/features/settings/views/switch_user_account_modal.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/pages/holders_page.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/tokenized_community_page.dart';
 import 'package:ion/app/features/user/model/follow_type.dart';
