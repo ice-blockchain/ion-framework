@@ -3,6 +3,7 @@
 import 'package:collection/collection.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/ion_swap_config.dart';
+import 'package:ion_swap_client/models/chain_data.m.dart';
 import 'package:ion_swap_client/models/lets_exchange_coin.m.dart';
 import 'package:ion_swap_client/models/okx_api_response.m.dart';
 import 'package:ion_swap_client/models/swap_chain_data.m.dart';
@@ -19,8 +20,8 @@ typedef SendCoinCallback = Future<void> Function({
   required num amount,
 });
 
-class SwapController {
-  SwapController({
+class SwapService {
+  SwapService({
     required SwapOkxRepository swapOkxRepository,
     required RelayApiRepository relayApiRepository,
     required ChainsIdsRepository chainsIdsRepository,
@@ -62,7 +63,7 @@ class SwapController {
         swapCoinData,
         sendCoinCallback,
       );
-    } catch (e) {
+    } on Exception catch (e) {
       throw IonSwapException(
         'Failed to swap coins: $e',
       );
@@ -71,7 +72,7 @@ class SwapController {
 
   // Returns true if swap was successful, false otherwise
   Future<bool> _tryToSwapOnSameNetwork(SwapCoinParameters swapCoinData) async {
-    final okxChain = await _isOkxChainSupported(swapCoinData.sellCoinNetworkName);
+    final okxChain = await _getOkxChain(swapCoinData.sellCoinNetworkName);
     final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoinContractAddress);
     final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoinContractAddress);
 
@@ -102,6 +103,7 @@ class SwapController {
           userWalletAddress: swapCoinData.userSellAddress,
         );
 
+        // TODO(ice-erebus): replace to transaction
         await _swapOkxRepository.simulateSwap();
 
         return true;
@@ -111,16 +113,21 @@ class SwapController {
     return false;
   }
 
-  Future<SwapChainData?> _isOkxChainSupported(String networkName) async {
-    final supportedChainsIds = await _chainsIdsRepository.getOkxChainsIds();
-    final chainOkxIndex = supportedChainsIds.firstWhereOrNull(
+  Future<SwapChainData?> _getOkxChain(String networkName) async {
+    final results = await Future.wait([
+      _chainsIdsRepository.getOkxChainsIds(),
+      _swapOkxRepository.getSupportedChains(),
+    ]);
+
+    final supportedChainsIds = results[0] as List<ChainData>;
+    final supportedChainsResponse = results[1] as OkxApiResponse<List<SwapChainData>>;
+
+    final chainOkxData = supportedChainsIds.firstWhereOrNull(
       (chain) => chain.name.toLowerCase() == networkName.toLowerCase(),
     );
-
-    final supportedChainsResponse = await _swapOkxRepository.getSupportedChains();
     final supportedChains = _processOkxResponse(supportedChainsResponse);
     final supportedChain = supportedChains.firstWhereOrNull(
-      (chain) => chain.chainIndex == chainOkxIndex?.networkId,
+      (chain) => chain.chainIndex == chainOkxData?.networkId,
     );
 
     return supportedChain;
@@ -131,8 +138,10 @@ class SwapController {
     return quotes.first;
   }
 
+  String get _nativeTokenAddress => '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+
   String _getTokenAddressForOkx(String contractAddress) {
-    return contractAddress.isEmpty ? '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' : contractAddress;
+    return contractAddress.isEmpty ? _nativeTokenAddress : contractAddress;
   }
 
   String? _getTokenAddressForLetsExchange(String contractAddress) {
@@ -145,13 +154,15 @@ class SwapController {
       return response.data;
     }
 
-    throw Exception('Failed to process OKX response: $responseCode');
+    throw IonSwapException('Failed to process OKX response: $responseCode');
   }
 
+  // TODO(ice-erebus): implement actual logic (this one in PR with UI)
   Future<void> _tryToBridge(SwapCoinParameters swapCoinData) async {
     await _relayApiRepository.getQuote();
   }
 
+  // TODO(ice-erebus): change logic here which API to use based on quotes
   Future<void> _tryToCexSwap(
     SwapCoinParameters swapCoinData,
     SendCoinCallback sendCoinCallback,
@@ -161,7 +172,7 @@ class SwapController {
         swapCoinData,
         sendCoinCallback,
       );
-    } catch (e) {
+    } on Exception catch (_) {
       await _swapOnLetsExchange(swapCoinData);
     }
   }
@@ -174,24 +185,23 @@ class SwapController {
     final buyCoin = activeCoins.firstWhereOrNull((e) => e.code == swapCoinData.buyCoinCode);
 
     if (sellCoin == null || buyCoin == null) {
-      throw Exception("Let's Exchnage: Coins pair not found");
+      throw const IonSwapException("Let's Exchnage: Coins pair not found");
     }
 
+    final sellTokenAddress = _getTokenAddressForLetsExchange(
+      swapCoinData.sellCoinContractAddress,
+    );
+
     final sellNetwork = sellCoin.networks.firstWhereOrNull(
-      (e) =>
-          e.contractAddress ==
-          _getTokenAddressForLetsExchange(
-            swapCoinData.sellCoinContractAddress,
-          ),
+      (e) => e.contractAddress == sellTokenAddress,
     );
 
     final buyNetwork = buyCoin.networks.firstWhereOrNull(
-      (e) =>
-          e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.buyCoinContractAddress),
+      (e) => e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.buyCoinContractAddress),
     );
 
     if (sellNetwork == null || buyNetwork == null) {
-      throw Exception("Let's Exchnage: Coins networks not found");
+      throw const IonSwapException("Let's Exchnage: Coins networks not found");
     }
 
     final rateInfo = await _letsExchangeRepository.getRates(
@@ -232,16 +242,14 @@ class SwapController {
     final buyCoin = buyCoins.firstWhereOrNull((e) => e.code == swapCoinData.buyCoinCode);
 
     if (sellCoin == null || buyCoin == null) {
-      throw Exception('Exolix: Coins pair not found');
+      throw const IonSwapException('Exolix: Coins pair not found');
     }
 
-    final sellNetwork =
-        sellCoin.networks.firstWhereOrNull((e) => e.name == swapCoinData.sellCoinNetworkName);
-    final buyNetwork =
-        buyCoin.networks.firstWhereOrNull((e) => e.name == swapCoinData.buyCoinNetworkName);
+    final sellNetwork = sellCoin.networks.firstWhereOrNull((e) => e.name == swapCoinData.sellCoinNetworkName);
+    final buyNetwork = buyCoin.networks.firstWhereOrNull((e) => e.name == swapCoinData.buyCoinNetworkName);
 
     if (sellNetwork == null || buyNetwork == null) {
-      throw Exception('Exolix: Coins networks not found');
+      throw const IonSwapException('Exolix: Coins networks not found');
     }
 
     await _exolixRepository.getRates(

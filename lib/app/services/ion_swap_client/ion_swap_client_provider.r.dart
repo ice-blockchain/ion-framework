@@ -3,15 +3,15 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
-import 'package:ion_swap_client/controllers/swap_controller.dart';
 import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/service_locator/swap_controller_locator.dart';
+import 'package:ion_swap_client/services/swap_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ion_swap_client_provider.r.g.dart';
 
 @Riverpod(keepAlive: true)
-Future<SwapController> ionSwapClient(Ref ref) async {
+Future<SwapService> ionSwapClient(Ref ref) async {
   final env = ref.watch(envProvider.notifier);
 
   final logger = Logger.talkerDioLogger;
