@@ -2,53 +2,95 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/avatar/avatar.dart';
+import 'package:ion/app/components/avatar/default_avatar.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
-import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/features/user/pages/switch_account_modal/providers/switch_account_modal_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class AccountsTile extends ConsumerWidget {
-  const AccountsTile({
+class SwitchAccountModalTile extends ConsumerWidget {
+  const SwitchAccountModalTile({
     required this.identityKeyName,
+    required this.accountInfo,
+    required this.isCurrentUser,
+    required this.onSelectUser,
     super.key,
   });
 
   final String identityKeyName;
-
+  final SwitchAccountInfoModel? accountInfo;
+  final bool isCurrentUser;
+  final VoidCallback onSelectUser;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentIdentityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
-    final eventSigner = ref.watch(currentUserIonConnectEventSignerProvider).valueOrNull;
+    final modalNotifier = ref.read(switchAccountModalNotifierProvider.notifier);
 
-    if (eventSigner == null) {
-      return Skeleton(child: ListItem());
-    }
-
-    final userPreviewData = ref.watch(userPreviewDataProvider(eventSigner.publicKey)).valueOrNull;
-    final isCurrentUser = identityKeyName == currentIdentityKeyName;
-
-    if (userPreviewData == null) {
-      return Skeleton(child: ListItem());
+    if (accountInfo == null) {
+      return _DefaultUserTile(
+        identityKeyName: identityKeyName,
+        isCurrentUser: isCurrentUser,
+        onTap: () async {
+          if (!isCurrentUser) {
+            onSelectUser();
+            await modalNotifier.setCurrentUser(identityKeyName);
+          }
+        },
+      );
     }
 
     return BadgesUserListItem(
       isSelected: isCurrentUser,
-      onTap: () {
+      onTap: () async {
         if (!isCurrentUser) {
-          ref.read(authProvider.notifier).setCurrentUser(identityKeyName);
+          onSelectUser();
+          await modalNotifier.setCurrentUser(identityKeyName);
         }
       },
       title: Text(
-        userPreviewData.data.trimmedDisplayName,
+        accountInfo!.userPreview.data.trimmedDisplayName,
         strutStyle: const StrutStyle(forceStrutHeight: true),
       ),
-      subtitle: Text(prefixUsername(username: userPreviewData.data.name, context: context)),
-      masterPubkey: userPreviewData.masterPubkey,
+      subtitle: Text(
+        prefixUsername(username: accountInfo!.userPreview.data.name, context: context),
+      ),
+      masterPubkey: accountInfo!.masterPubkey,
+      trailing: isCurrentUser == true ? Assets.svg.iconBlockCheckboxOn.icon() : null,
+      contentPadding: EdgeInsets.symmetric(horizontal: 16.0.s),
+      backgroundColor: context.theme.appColors.tertiaryBackground,
+      borderRadius: ListItem.defaultBorderRadius,
+      constraints: ListItem.defaultConstraints,
+    );
+  }
+}
+
+class _DefaultUserTile extends StatelessWidget {
+  const _DefaultUserTile({
+    required this.identityKeyName,
+    required this.isCurrentUser,
+    required this.onTap,
+  });
+
+  final String identityKeyName;
+  final bool isCurrentUser;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListItem(
+      leading: Avatar(
+        imageWidget: DefaultAvatar(size: ListItem.defaultAvatarSize),
+        size: ListItem.defaultAvatarSize,
+        borderRadius: BorderRadius.circular(8.0.s),
+        fit: BoxFit.fitWidth,
+      ),
+      onTap: onTap,
+      title: Text(
+        identityKeyName,
+        strutStyle: const StrutStyle(forceStrutHeight: true),
+      ),
       trailing: isCurrentUser == true
           ? Assets.svg.iconBlockCheckboxOnblue.icon(color: context.theme.appColors.onPrimaryAccent)
           : null,

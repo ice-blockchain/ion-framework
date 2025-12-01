@@ -58,6 +58,7 @@ class StoryItemContent extends HookConsumerWidget {
                       size: width - borderSize * 2,
                       color: context.theme.appColors.secondaryBackground,
                       child: IonConnectAvatar(
+                        key: ValueKey(pubkey),
                         size: width - borderSize * 4,
                         masterPubkey: pubkey,
                       ),
@@ -65,6 +66,7 @@ class StoryItemContent extends HookConsumerWidget {
                   )
                 else
                   IonConnectAvatar(
+                    key: ValueKey(pubkey),
                     size: width - borderSize * 2,
                     masterPubkey: pubkey,
                   ),

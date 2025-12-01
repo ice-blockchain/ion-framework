@@ -26,6 +26,9 @@ class LoginForm extends HookConsumerWidget {
     final formKey = useRef(GlobalKey<FormState>());
 
     final authState = ref.watch(authProvider);
+    final isUserSwitching = ref.watch(userSwitchInProgressProvider).isSwitchingProgress;
+    final isAuthenticated =
+        !isUserSwitching && (authState.valueOrNull?.isAuthenticated).falseOrValue;
     final loginActionState = ref.watch(loginActionNotifierProvider);
 
     useEffect(
@@ -65,8 +68,7 @@ class LoginForm extends HookConsumerWidget {
           SizedBox(height: 16.0.s),
           Button(
             disabled: loginActionState.isLoading,
-            trailingIcon: loginActionState.isLoading ||
-                    (authState.valueOrNull?.isAuthenticated).falseOrValue
+            trailingIcon: loginActionState.isLoading || isAuthenticated
                 ? const IONLoadingIndicator()
                 : Assets.svg.iconButtonNext.icon(color: context.theme.appColors.onPrimaryAccent),
             onPressed: () {

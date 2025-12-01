@@ -108,9 +108,8 @@ class ProfilePage extends HookConsumerWidget {
       [userMetadata.value?.cacheKey],
     );
 
-    final isDelegateAccessEnabled = ref
-        .watch(featureFlagsProvider.notifier)
-        .get(DelegateAccessFeatureFlag.delegateAccessEnabled);
+    final isMultiAccountsEnabled =
+        ref.watch(featureFlagsProvider.notifier).get(MultiAccountsFeatureFlag.multiAccountsEnabled);
 
     return Scaffold(
       backgroundColor: context.theme.appColors.secondaryBackground,
@@ -189,10 +188,9 @@ class ProfilePage extends HookConsumerWidget {
                 profileMode: profileMode,
               ),
             ],
-            if (isDelegateAccessEnabled) ...[
+            if (isMultiAccountsEnabled) ...[
               GestureDetector(
-                onTap: () =>
-                    SwitchUserAccountRoute(selectedUserPubkey: masterPubkey).push<void>(context),
+                onTap: () => SwitchAccountRoute().push<void>(context),
                 child: Assets.svg.iconSwitchProfile.icon(size: 24.0.s),
               ),
             ],
