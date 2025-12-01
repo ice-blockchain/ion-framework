@@ -1,14 +1,17 @@
 package io.ion.app
 
+import android.graphics.Bitmap
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.media.MediaMetadataRetriever
 import android.media.MediaMuxer
 import android.util.Log
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
+import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.Semaphore
 
@@ -49,6 +52,33 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                     } finally {
                         compressionSemaphore.release()
                         Log.d(TAG, "Compression completed: $inputPath (${compressionSemaphore.availablePermits()} slots available)")
+                    }
+                }.start()
+            }
+
+            "extractThumbnail" -> {
+                val videoPath = call.argument<String>("videoPath")
+                val outputPath = call.argument<String>("outputPath")
+                // Handle both Int and Long from Dart
+                val timeUsValue = call.argument<Any>("timeUs")
+                val timeUs: Long = when (timeUsValue) {
+                    is Int -> timeUsValue.toLong()
+                    is Long -> timeUsValue
+                    else -> 1000000L // Default to 1 second
+                }
+
+                if (videoPath == null || outputPath == null) {
+                    result.error("INVALID_ARGUMENTS", "Missing required arguments", null)
+                    return
+                }
+
+                Thread {
+                    try {
+                        extractThumbnail(videoPath, outputPath, timeUs)
+                        result.success(null)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Thumbnail extraction failed", e)
+                        result.error("THUMBNAIL_EXTRACTION_FAILED", e.message, null)
                     }
                 }.start()
             }
@@ -477,6 +507,36 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         val min = 1_000_000L
         val max = 10_000_000L
         return bitrate.coerceIn(min, max).toInt()
+    }
+
+    private fun extractThumbnail(videoPath: String, outputPath: String, timeUs: Long) {
+        val retriever = MediaMetadataRetriever()
+        var outputStream: FileOutputStream? = null
+        try {
+            retriever.setDataSource(videoPath)
+            val bitmap = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+            
+            if (bitmap == null) {
+                throw RuntimeException("Failed to extract frame at time $timeUs")
+            }
+
+            val outputFile = File(outputPath)
+            outputFile.parentFile?.mkdirs()
+            outputStream = FileOutputStream(outputFile)
+            
+            // Save as WebP with quality 80
+            bitmap.compress(Bitmap.CompressFormat.WEBP, 80, outputStream)
+            outputStream.flush()
+            
+            if (!outputFile.exists() || outputFile.length() == 0L) {
+                throw RuntimeException("Output file was not created or is empty")
+            }
+            
+            Log.d(TAG, "Thumbnail extracted successfully: $outputPath")
+        } finally {
+            outputStream?.close()
+            retriever.release()
+        }
     }
 
     private data class VideoMetadata(
