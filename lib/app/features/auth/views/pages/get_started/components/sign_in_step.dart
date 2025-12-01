@@ -204,9 +204,11 @@ class SignInStep extends HookConsumerWidget {
     final authState = await ref.read(authProvider.future);
     final currentAuthenticatedUsers = authState.authenticatedIdentityKeyNames;
 
-    final isSwitchingToExistingAccount = await ref
-        .read(authProvider.notifier)
-        .handleSwitchingToExistingAccount(username, currentAuthenticatedUsers);
+    final isSwitchingToExistingAccount =
+        await ref.read(authProvider.notifier).handleSwitchingToExistingAccount(
+              username,
+              currentAuthenticatedUsers: currentAuthenticatedUsers,
+            );
     if (isSwitchingToExistingAccount) return;
 
     await ref.read(loginActionNotifierProvider.notifier).verifyUserLoginFlow(keyName: username);

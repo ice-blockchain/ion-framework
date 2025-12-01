@@ -115,9 +115,9 @@ class Auth extends _$Auth {
   /// Handles switching to an existing account
   /// Returns true if switching was handled, false if the user is new
   Future<bool> handleSwitchingToExistingAccount(
-    String targetUsername,
+    String targetUsername, {
     List<String>? currentAuthenticatedUsers,
-  ) async {
+  }) async {
     final authenticatedUsers =
         currentAuthenticatedUsers ?? state.valueOrNull?.authenticatedIdentityKeyNames ?? [];
     final isSwitchingToExistingAccount = authenticatedUsers.contains(targetUsername);

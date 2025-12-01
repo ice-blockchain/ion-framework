@@ -72,9 +72,10 @@ class LoginActionNotifier extends _$LoginActionNotifier {
               cancel: cancelCompleter?.future,
             );
 
-        await ref
-            .read(authProvider.notifier)
-            .handleSwitchingToExistingAccount(username, previouslyAuthenticatedUsers);
+        await ref.read(authProvider.notifier).handleSwitchingToExistingAccount(
+              username,
+              currentAuthenticatedUsers: previouslyAuthenticatedUsers,
+            );
       } on NoLocalPasskeyCredsFoundIONIdentityException {
         // Are we trying to suggest a passkey for empty identity key name?
         // If yes, and there're no local creds, do nothing
