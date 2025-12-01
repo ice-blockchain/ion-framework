@@ -84,7 +84,7 @@ class IONIdentityAuth {
   Future<LoginCapabilities> getLoginCapabilities() =>
       getLoginCapabilitiesService.getLoginCapabilities();
 
-  Future<void> login({
+  Future<String> login({
     required AuthConfig config,
     required List<TwoFAType> twoFATypes,
     required bool localCredsOnly,
