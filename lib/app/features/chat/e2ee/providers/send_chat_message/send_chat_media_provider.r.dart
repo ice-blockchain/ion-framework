@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:dio/dio.dart';
 import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/compress_chat_media_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
@@ -105,9 +106,50 @@ class SendChatMedia extends _$SendChatMedia {
   Future<void> cancel() async {
     await _cancellableOperation?.cancel();
     _cancelToken?.cancel('User cancelled upload');
+
+    // Get event reference before deleting the media record
+    final eventReference =
+        await ref.read(messageMediaDaoProvider).getEventReferenceById(messageMediaId);
+
+    // Delete the media record
     await ref.read(messageMediaDaoProvider).cancel(messageMediaId);
+
+    // If no event reference, we can't check for message deletion
+    if (eventReference == null) {
+      final compressionSessionId = await _sessionIdCompleter?.future;
+      await compressionSessionId?.cancel();
+      return;
+    }
+
+    // Get eventMessageDaoProvider from chat_database
+    final eventMessageDao = ref.read(eventMessageDaoProvider);
+
+    // Check if there are any remaining media records for this event
+    final remainingMedia = await (ref.read(chatDatabaseProvider).select(
+              ref.read(chatDatabaseProvider).messageMediaTable,
+            )..where((t) => t.messageEventReference.equalsValue(eventReference)))
+        .get();
+
+    // If no remaining media, check if we should delete the message
+    if (remainingMedia.isEmpty) {
+      final eventMessage = await eventMessageDao.getByReference(eventReference);
+      final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage);
+      final trimmedContent = entity.data.content.trim();
+      final quotedEvent = entity.data.quotedEvent;
+
+      // Delete message if it has no content, no quoted event, and no media
+      if (trimmedContent.isEmpty && quotedEvent == null) {
+        await eventMessageDao.deleteByEventReference(eventReference);
+      }
+    }
+
     final compressionSessionId = await _sessionIdCompleter?.future;
     await compressionSessionId?.cancel();
+  }
+
+  bool _isCancelled(CancelToken? cancelToken) {
+    return (_cancellableOperation?.isCanceled ?? false) ||
+        (cancelToken != null && cancelToken.isCancelled);
   }
 
   Future<List<MediaAttachment>> _processMedia(
@@ -123,6 +165,11 @@ class SendChatMedia extends _$SendChatMedia {
 
     final mediaType = MediaType.fromMimeType(mediaFile.mimeType ?? '');
 
+    // Check if operation was cancelled before processing
+    if (_isCancelled(cancelToken)) {
+      return [];
+    }
+
     String? blurHash;
     String? thumbUrl;
 
@@ -134,14 +181,19 @@ class SendChatMedia extends _$SendChatMedia {
         firstFrame,
       );
 
-      final thumbMediaAttachment = (await _processMedia(
+      final thumbAttachments = await _processMedia(
         thumbMediaFile,
         masterPubkey,
         randomCreatedAt,
         isThumbnail: true,
-      ))
-          .first;
+      );
 
+      // If cancelled during thumbnail processing, return empty list
+      if (thumbAttachments.isEmpty) {
+        return [];
+      }
+
+      final thumbMediaAttachment = thumbAttachments.first;
       mediaAttachments.add(thumbMediaAttachment);
       thumbUrl = thumbMediaAttachment.url;
       blurHash = await ref.read(generateBlurhashProvider(thumbMediaFile));
@@ -157,13 +209,19 @@ class SendChatMedia extends _$SendChatMedia {
             );
       }
 
-      final imageMediaAttachment = (await _processMedia(
+      final imageAttachments = await _processMedia(
         thumbMediaFile,
         masterPubkey,
         randomCreatedAt,
         isThumbnail: true,
-      ))
-          .first;
+      );
+
+      // If cancelled during thumbnail processing, return empty list
+      if (imageAttachments.isEmpty) {
+        return [];
+      }
+
+      final imageMediaAttachment = imageAttachments.first;
       mediaAttachments.add(imageMediaAttachment);
       thumbUrl = imageMediaAttachment.url;
       blurHash = await ref.read(generateBlurhashProvider(thumbMediaFile));
@@ -180,6 +238,11 @@ class SendChatMedia extends _$SendChatMedia {
           cancelToken: cancelToken,
         );
 
+    // Check if operation was cancelled before sending media metadata event
+    if (_isCancelled(cancelToken)) {
+      return [];
+    }
+
     final mediaMetadataEvent = await uploadResult.fileMetadata
         .copyWith(blurhash: blurHash, thumb: thumbUrl)
         .toEventMessage(
@@ -195,13 +258,16 @@ class SendChatMedia extends _$SendChatMedia {
       ],
     );
 
-    unawaited(
-      ref.read(ionConnectNotifierProvider.notifier).sendEvent(
-            mediaMetadataEvent,
-            actionSource: ActionSource.user(masterPubkey, anonymous: true),
-            cache: false,
-          ),
-    );
+    // Only send the event if not cancelled (check again in case cancellation happened during event creation)
+    if (!_isCancelled(cancelToken)) {
+      unawaited(
+        ref.read(ionConnectNotifierProvider.notifier).sendEvent(
+              mediaMetadataEvent,
+              actionSource: ActionSource.user(masterPubkey, anonymous: true),
+              cache: false,
+            ),
+      );
+    }
 
     final mediaAttachment = uploadResult.mediaAttachment.copyWith(
       blurhash: blurHash,
