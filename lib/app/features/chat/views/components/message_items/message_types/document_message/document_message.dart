@@ -20,6 +20,7 @@ import 'package:ion/app/features/chat/views/components/message_items/message_typ
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/services/share/share.dart';
+import 'package:ion/app/utils/file.dart';
 import 'package:ion/app/utils/filesize.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -135,11 +136,13 @@ class DocumentMessage extends HookConsumerWidget {
           if (repliedMessageItem != null) ReplyMessage(messageItem, repliedMessageItem, onTapReply),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () {
-              final fileName = mediaAttachment?.alt ?? '';
-
+            onTap: () async {
               if (localMediaPath != null) {
-                shareFile(localMediaPath, name: fileName);
+                final fileName = mediaAttachment?.alt ?? '';
+                final opened = await openFile(localMediaPath);
+                if (!opened) {
+                  await shareFile(localMediaPath, name: fileName);
+                }
               }
             },
             child: Row(
