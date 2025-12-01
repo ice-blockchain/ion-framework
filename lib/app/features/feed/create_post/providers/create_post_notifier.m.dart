@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
@@ -21,6 +20,7 @@ import 'package:ion/app/features/feed/data/models/feed_interests.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_interests_interaction.dart';
 import 'package:ion/app/features/feed/data/models/who_can_reply_settings_option.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_data.f.dart';
+import 'package:ion/app/features/feed/providers/content_conversion.dart';
 import 'package:ion/app/features/feed/providers/counters/helpers/counter_cache_helpers.r.dart';
 import 'package:ion/app/features/feed/providers/counters/replies_count_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
@@ -44,7 +44,6 @@ import 'package:ion/app/features/ion_connect/model/related_event_marker.dart';
 import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/model/replaceable_event_identifier.f.dart';
-import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
 import 'package:ion/app/features/ion_connect/model/source_post_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_delete_file_notifier.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
@@ -101,8 +100,15 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       }.toList();
 
+      final contentWithMedia = await _buildContentWithMediaLinksDelta(
+        content: postContent,
+        media: media.values.toList(),
+      );
+
+      final conversion = await convertDeltaToPmoTags(contentWithMedia.toJson());
+
       final postData = ModifiablePostData(
-        textContent: '',
+        textContent: conversion.contentToSign,
         media: media,
         replaceableEventId: ReplaceableEventIdentifier.generate(),
         publishedAt: _buildEntityPublishedAt(),
@@ -119,10 +125,6 @@ class CreatePostNotifier extends _$CreatePostNotifier {
             parentEntity != null ? null : EntityDataWithSettings.build(whoCanReply: whoCanReply),
         expiration: _buildExpiration(),
         communityId: communityId,
-        richText: await _buildRichTextContentWithMediaLinks(
-          content: postContent,
-          media: media.values.toList(),
-        ),
         poll: poll,
         language: _buildLanguageLabel(language),
       );
@@ -133,6 +135,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         mentions: mentions,
         quotedEvent: quotedEvent,
         parentEntity: parentEntity,
+        pmoTags: conversion.pmoTags,
       );
 
       _createPostNotifierStreamController.add(post);
@@ -192,12 +195,16 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       ];
 
+      final contentWithMedia = await _buildContentWithMediaLinksDelta(
+        content: postContent,
+        media: modifiedMedia.values.toList(),
+      );
+
+      // Convert Delta to PMO tags before creating data model
+      final conversion = await convertDeltaToPmoTags(contentWithMedia.toJson());
+
       final postData = modifiedEntity.data.copyWith(
-        textContent: '',
-        richText: await _buildRichTextContentWithMediaLinks(
-          content: postContent,
-          media: modifiedMedia.values.toList(),
-        ),
+        textContent: conversion.contentToSign,
         media: modifiedMedia,
         relatedHashtags: relatedHashtags,
         relatedPubkeys:
@@ -230,6 +237,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
           mentions: <RelatedPubkey>{...originalMentions, ...mentions}.toList(),
           quotedEvent: quotedEvent,
           parentEntity: parentEntity,
+          pmoTags: conversion.pmoTags,
         ),
       ]);
     });
@@ -256,7 +264,6 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         media: {},
         settings: null,
         expiration: null,
-        richText: null,
         poll: null,
         language: null,
       );
@@ -288,10 +295,14 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     IonConnectEntity? parentEntity,
     List<FileMetadata> files = const [],
     List<RelatedPubkey> mentions = const [],
+    List<List<String>> pmoTags = const [],
   }) async {
     final ionNotifier = ref.read(ionConnectNotifierProvider.notifier);
 
-    final postEvent = await ionNotifier.sign(postData);
+    final postEvent = await ionNotifier.sign(
+      postData,
+      tags: pmoTags,
+    );
     final fileEvents = await Future.wait(files.map(ionNotifier.sign));
 
     final pubkeysToPublish = mentions.map((mention) => mention.value).toSet();
@@ -417,23 +428,6 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       ImmutableEventReference() => QuotedImmutableEvent(eventReference: quotedEventReference),
       _ => throw UnsupportedEventReference(quotedEventReference)
     };
-  }
-
-  Future<RichText> _buildRichTextContentWithMediaLinks({
-    required Delta content,
-    required List<MediaAttachment> media,
-  }) async {
-    final contentWithMedia = await _buildContentWithMediaLinksDelta(
-      content: content,
-      media: media,
-    );
-
-    final richText = RichText(
-      protocol: 'quill_delta',
-      content: jsonEncode(contentWithMedia.toJson()),
-    );
-
-    return richText;
   }
 
   Future<Delta> _buildContentWithMediaLinksDelta({

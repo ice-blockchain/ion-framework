@@ -84,6 +84,8 @@ class PostData
     final quotedEventTag =
         tags[QuotedImmutableEvent.tagName] ?? tags[QuotedReplaceableEvent.tagName];
 
+    final richText = RichText.fromEventTags(tags, eventMessage.content);
+
     return PostData(
       content: eventMessage.content,
       media: EntityDataWithMediaContent.parseImeta(tags[MediaAttachment.tagName]),
@@ -95,6 +97,7 @@ class PostData
       relatedPubkeys: tags[RelatedPubkey.tagName]?.map(RelatedPubkey.fromTag).toList(),
       relatedHashtags: tags[RelatedHashtag.tagName]?.map(RelatedHashtag.fromTag).toList(),
       settings: tags[EventSetting.settingTagName]?.map(EventSetting.fromTag).toList(),
+      richText: richText,
     );
   }
 
@@ -105,7 +108,7 @@ class PostData
     EventSigner signer, {
     List<List<String>> tags = const [],
     int? createdAt,
-  }) {
+  }) async {
     return EventMessage.fromData(
       signer: signer,
       createdAt: createdAt,
@@ -120,6 +123,7 @@ class PostData
         if (relatedEvents != null) ...relatedEvents!.map((event) => event.toTag()),
         if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),
         if (settings != null) ...settings!.map((setting) => setting.toTag()),
+        // Posts (kind 1) use 100% text only with PMO tags, no rich_text tag
       ],
     );
   }

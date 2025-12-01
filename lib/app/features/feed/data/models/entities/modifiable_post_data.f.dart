@@ -111,11 +111,12 @@ class ModifiablePostData
     SourcePostReference? sourcePostReference,
     EntityLabel? language,
   }) = _ModifiablePostData;
-
   factory ModifiablePostData.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
     final quotedEventTag =
         tags[QuotedImmutableEvent.tagName] ?? tags[QuotedReplaceableEvent.tagName];
+
+    final richText = RichText.fromEventTags(tags, eventMessage.content);
 
     return ModifiablePostData(
       textContent: eventMessage.content,
@@ -136,8 +137,7 @@ class ModifiablePostData
       settings: tags[EventSetting.settingTagName]?.map(EventSetting.fromTag).toList(),
       communityId:
           tags[ConversationIdentifier.tagName]?.map(ConversationIdentifier.fromTag).first.value,
-      richText:
-          tags[RichText.tagName] != null ? RichText.fromTag(tags[RichText.tagName]!.first) : null,
+      richText: richText,
       poll: tags['poll']?.firstOrNull != null ? PollData.fromTag(tags['poll']!.first) : null,
       sourcePostReference: SourcePostReference.fromTags(eventMessage.tags),
       language: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.language),
@@ -147,14 +147,20 @@ class ModifiablePostData
   const ModifiablePostData._();
 
   @override
-  String get content => richText?.content ?? textContent;
+  String get content {
+    final rt = richText;
+    if (rt != null && rt.content.isNotEmpty) {
+      return rt.content;
+    }
+    return textContent;
+  }
 
   @override
   FutureOr<EventMessage> toEventMessage(
     EventSigner signer, {
     List<List<String>> tags = const [],
     int? createdAt,
-  }) {
+  }) async {
     final allTags = [
       ...tags,
       replaceableEventId.toTag(),
@@ -168,7 +174,7 @@ class ModifiablePostData
       if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),
       if (settings != null) ...settings!.map((setting) => setting.toTag()),
       if (communityId != null) ConversationIdentifier(value: communityId!).toTag(),
-      if (richText != null) richText!.toTag(),
+      // ModifiablePosts (kind 30175) use 100% text only with PMO tags, no rich_text tag
       if (poll != null) poll!.toTag(),
       if (sourcePostReference != null) sourcePostReference!.toTag(),
       if (language != null) ...language!.toTags(),
@@ -178,7 +184,7 @@ class ModifiablePostData
       signer: signer,
       createdAt: createdAt,
       kind: ModifiablePostEntity.kind,
-      content: richText != null ? '' : content,
+      content: textContent,
       tags: allTags,
     );
   }
