@@ -20,7 +20,7 @@ class OkxHeaderInterceptor implements Interceptor {
   final String baseUrl;
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+  Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     final dateFormat = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     final timestamp = dateFormat.format(DateTime.now().toUtc());
 
@@ -55,7 +55,7 @@ class OkxHeaderInterceptor implements Interceptor {
       return jsonEncode(data);
     }();
 
-    options.headers['OK-ACCESS-SIGN'] = _generateSign(
+    options.headers['OK-ACCESS-SIGN'] = await _generateSign(
       timestamp: timestamp,
       method: method,
       path: requestPathWithQueryParams,
@@ -77,22 +77,21 @@ class OkxHeaderInterceptor implements Interceptor {
     handler.next(response);
   }
 
-  String _generateSign({
+  Future<String> _generateSign({
     required String timestamp,
     required _RequestMethod method,
     required String path,
     required String body,
     required String secretKey,
-  }) {
+  }) async {
     final signString = '$timestamp${method.value}$path$body';
     final message = utf8.encode(signString);
     final keyBytes = utf8.encode(secretKey);
-    final macAlgorithm = Hmac.sha256().toSync();
+    final macAlgorithm = Hmac.sha256();
 
-    final mac = macAlgorithm.calculateMacSync(
+    final mac = await macAlgorithm.calculateMac(
       message,
-      secretKeyData: SecretKeyData(keyBytes),
-      nonce: const <int>[],
+      secretKey: SecretKey(keyBytes),
     );
     return base64Encode(mac.bytes);
   }
@@ -109,7 +108,7 @@ class OkxHeaderInterceptor implements Interceptor {
 
     final queryString = queryParameters.entries
         .map(
-          (entry) => '${entry.key}=${entry.value}',
+          (entry) => '${Uri.encodeQueryComponent(entry.key)}=${Uri.encodeQueryComponent(entry.value.toString())}',
         )
         .join('&');
 
