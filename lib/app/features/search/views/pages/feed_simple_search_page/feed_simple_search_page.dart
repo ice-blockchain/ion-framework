@@ -59,11 +59,19 @@ class FeedSimpleSearchPage extends HookConsumerWidget {
                         FeedSimpleSearchRoute(query: query).replace(context);
                       },
                       onClearHistory: ref.read(feedSearchHistoryProvider.notifier).clear,
+                      onDeleteQuery: (String query) {
+                        ref.read(feedSearchHistoryProvider.notifier).removeQueryFromHistory(query);
+                      },
                       itemBuilder: (context, index) {
                         final pubkey = history.pubKeys[index];
                         return SearchHistoryUserListItem(
                           pubkey: pubkey,
                           onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
+                          onDelete: () {
+                            ref
+                                .read(feedSearchHistoryProvider.notifier)
+                                .removeUserIdFromHistory(pubkey);
+                          },
                         );
                       },
                     )
