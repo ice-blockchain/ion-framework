@@ -6,14 +6,18 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
-import 'package:ion/app/components/tabs_header/tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/category_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/featured_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_search_bar.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_tab_content.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_tabs_header.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/providers/creator_tokens_search_provider.r.dart';
+import 'package:ion/app/features/user/pages/profile_page/cant_find_profile_page.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/header/header.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
@@ -91,6 +95,8 @@ class CreatorTokensPage extends HookConsumerWidget {
     final avatarUrl = selectedToken.value?.creator.avatar ?? '';
     final avatarColors = useImageColors(avatarUrl);
 
+    final isSearchActive = ref.watch(creatorTokensIsSearchActiveProvider);
+
     final backgroundColor = context.theme.appColors.secondaryBackground;
 
     final backButtonIcon = Assets.svg.iconProfileBack.icon(
@@ -139,17 +145,14 @@ class CreatorTokensPage extends HookConsumerWidget {
                           ],
                         ),
                       ),
-                      PinnedHeaderSliver(
-                        child: ColoredBox(
-                          color: context.theme.appColors.primaryText,
-                          child: const TabsHeader(
-                            tabs: CreatorTokensTabType.values,
-                          ),
+                      const PinnedHeaderSliver(
+                        child: CreatorTokensTabsHeader(),
+                      ),
+                      const CreatorTokensSearchBar(),
+                      if (!isSearchActive)
+                        const SliverToBoxAdapter(
+                          child: SectionSeparator(),
                         ),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SectionSeparator(),
-                      ),
                     ];
                   },
                   body: TabBarView(

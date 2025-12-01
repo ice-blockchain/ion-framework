@@ -10,7 +10,10 @@ import 'package:ion/app/features/tokenized_communities/providers/category_tokens
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_search_bar.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_filter_bar.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/providers/creator_tokens_filter_provider.r.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/providers/creator_tokens_search_provider.r.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class CreatorTokensTabContent extends HookConsumerWidget {
   const CreatorTokensTabContent({
@@ -44,21 +47,41 @@ class CreatorTokensTabContent extends HookConsumerWidget {
     }
   }
 
+  List<CommunityToken> _filterTokens(
+    List<CommunityToken> tokens,
+    CreatorTokensFilterType filterType,
+  ) {
+    if (filterType == CreatorTokensFilterType.allTokens) {
+      return tokens;
+    }
+
+    return tokens.where((token) {
+      final tokenType = CommunityTokenType.fromString(token.type);
+      if (filterType == CreatorTokensFilterType.creatorTokens) {
+        return tokenType.isCreatorToken;
+      } else {
+        // contentTokens filter
+        return !tokenType.isCreatorToken;
+      }
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     useAutomaticKeepAlive();
 
-    final searchController = useTextEditingController();
-    final searchQuery = useState('');
-    final debouncedQuery = useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '';
+    final globalSearchQuery = ref.watch(creatorTokensSearchProvider);
+    final isSearchActive = ref.watch(creatorTokensIsSearchActiveProvider);
+    final debouncedQuery = useDebounced(globalSearchQuery, const Duration(milliseconds: 300)) ?? '';
     final lastSearchedQuery = useRef<String?>(null);
+
+    // Watch filter state
+    final selectedFilter = ref.watch(creatorTokensFilterProvider(tabType));
 
     // Watch the appropriate provider based on tab type
     final state = tabType.isLatest
         ? ref.watch(latestTokensNotifierProvider)
         : ref.watch(categoryTokensNotifierProvider(tabType.categoryType!));
-
-    final searchInputIsLoading = state.isSearchMode && state.activeIsLoading;
 
     useEffect(
       () {
@@ -70,6 +93,25 @@ class CreatorTokensTabContent extends HookConsumerWidget {
       [debouncedQuery, tabType],
     );
 
+    useEffect(
+      () {
+        if (isSearchActive) {
+          // Clear the last searched query to allow new search when user starts typing
+          lastSearchedQuery.value = null;
+        }
+        return null;
+      },
+      [isSearchActive],
+    );
+
+    // Determine which items to show
+    // When search is active but query is empty, show empty list
+    final itemsToShow =
+        isSearchActive && debouncedQuery.isEmpty ? <CommunityToken>[] : state.activeItems;
+
+    // Apply filter to items
+    final filteredItems = _filterTokens(itemsToShow, selectedFilter);
+
     return LoadMoreBuilder(
       hasMore: state.activeHasMore,
       onLoadMore: () => _loadMore(ref),
@@ -78,19 +120,18 @@ class CreatorTokensTabContent extends HookConsumerWidget {
         child: CustomScrollView(slivers: slivers),
       ),
       slivers: [
-        CreatorTokensSearchBar(
-          controller: searchController,
-          loading: searchInputIsLoading,
-          onTextChanged: (value) => searchQuery.value = value,
-          onCancelSearch: () {
-            searchController.clear();
-            searchQuery.value = '';
-            _search(ref, '');
-          },
-        ),
+        if (!isSearchActive)
+          CreatorTokensFilterBar(
+            selectedFilter: selectedFilter,
+            onFilterChanged: (filter) {
+              ref.read(creatorTokensFilterProvider(tabType).notifier).filter = filter;
+            },
+          ),
         CreatorTokensList(
-          items: state.activeItems,
+          items: filteredItems,
           isInitialLoading: state.activeIsInitialLoading,
+          isSearchActive: isSearchActive,
+          searchQuery: debouncedQuery,
         ),
       ],
     );

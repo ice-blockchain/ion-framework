@@ -2,6 +2,7 @@
 
 export 'addresses.f.dart';
 export 'community_token.f.dart';
+export 'community_token_type.dart';
 export 'creator.f.dart';
 export 'market_data.f.dart';
 export 'patch.dart';
