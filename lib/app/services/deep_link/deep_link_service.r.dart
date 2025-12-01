@@ -58,6 +58,12 @@ SharedContentType mapEntityToSharedContentType(IonConnectEntity entity) {
 }
 
 @riverpod
+Future<void> appReady(Ref ref) async {
+  await ref.watch(initAppProvider.future);
+  await ref.watch(splashReadyProvider.future);
+}
+
+@riverpod
 Future<void> deepLinkHandler(Ref ref) async {
   // used only first time when app is opened from closed state (cold start)
   final appLinks = AppLinks();
@@ -71,10 +77,7 @@ Future<void> deepLinkHandler(Ref ref) async {
       final deepLinkService = ref.read(deepLinkServiceProvider);
       ref.read(splashProvider.notifier).animationCompleted = true;
 
-      final initApp = ref.read(initAppProvider);
-      if (initApp.isLoading) {
-        await ref.read(initAppProvider.future);
-      }
+      await ref.watch(appReadyProvider.future);
 
       final router = ref.read(goRouterProvider);
 
