@@ -430,6 +430,11 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
   }
 
+  /// Gets the data source relays to be used for fetching events.
+  /// If there are not enough relays available immediately (at least [min]),
+  /// wait for the relays to be ranked, with a timeout.
+  ///
+  /// [min]: The minimum number of relay URLs required.
   Future<List<String>> _getDataSourceRelays({required int min}) async {
     final rankedRelays = ref.read(rankedRelevantCurrentUserRelaysUrlsProvider).valueOrNull;
     if (rankedRelays != null && rankedRelays.length >= min) {
