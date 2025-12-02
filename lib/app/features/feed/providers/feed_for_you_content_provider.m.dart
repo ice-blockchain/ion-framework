@@ -430,39 +430,32 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }
 
   /// Gets the data source relays to be used for fetching events.
-  /// If there are not enough relays available immediately (at least [min]),
+  /// If there are not enough relays available immediately (at least [desiredAmount]),
   /// wait for the relays to be ranked, with a timeout.
   ///
-  /// [min]: The minimum number of relay URLs required.
-  Future<List<String>> _getDataSourceRelays({required int min}) async {
+  /// [desiredAmount]: The function will try to get at least this amount of relays,
+  ///   but if the timer expires first, it will return whatever is available.
+  Future<List<String>> _getDataSourceRelays({required int desiredAmount}) async {
     final rankedRelays = ref.read(rankedRelevantCurrentUserRelaysUrlsProvider).valueOrNull;
-    if (rankedRelays != null && rankedRelays.length >= min) {
+    if (rankedRelays != null && rankedRelays.length >= desiredAmount) {
       return rankedRelays;
     }
 
-    return _waitForRelaysWithTimeout(min: min);
+    return _waitForRelaysWithTimeout(desiredAmount: desiredAmount);
   }
 
   Future<List<String>> _waitForRelaysWithTimeout({
-    required int min,
+    required int desiredAmount,
     Duration timeout = const Duration(seconds: 1),
   }) async {
     final completer = Completer<List<String>>();
-
-    final timer = Timer(timeout, () {
-      if (!completer.isCompleted) {
-        final currentValue =
-            ref.read(rankedRelevantCurrentUserRelaysUrlsProvider).valueOrNull ?? [];
-        completer.complete(currentValue);
-      }
-    });
 
     final subscription = ref.listen(
       rankedRelevantCurrentUserRelaysUrlsProvider,
       (previous, next) {
         if (!completer.isCompleted) {
           final relays = next.valueOrNull ?? [];
-          if (relays.length >= min) {
+          if (relays.length >= desiredAmount) {
             completer.complete(relays);
           }
         }
@@ -470,9 +463,16 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     );
 
     try {
-      return await completer.future;
+      return await completer.future.timeout(
+        timeout,
+        onTimeout: () async {
+          // When timed out, return what we have or wait for at least one result -
+          //  the future completes right away if provider holds some value,
+          //  if not, it waits for the underlying stream to yield something.
+          return await ref.read(rankedRelevantCurrentUserRelaysUrlsProvider.future);
+        },
+      );
     } finally {
-      timer.cancel();
       subscription.close();
     }
   }
@@ -487,7 +487,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   ///
   /// This method must be called on every request iteration.
   Future<void> _refreshModifierPagination({required FeedModifier modifier}) async {
-    final dataSourceRelays = await _getDataSourceRelays(min: feedType.pageSize);
+    final dataSourceRelays = await _getDataSourceRelays(desiredAmount: feedType.pageSize);
 
     final interests = await _getInterestsForModifier(modifier);
 
