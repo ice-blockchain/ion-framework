@@ -14,7 +14,7 @@ class MockIonAdsPlatform implements IonAdsPlatform {
       required String iosAppKey,
       required bool hasConsent,
       bool testMode = false,
-      bool verbose = false}) async {}
+        bool verbose = false,}) async {}
 
   @override
   Future<bool> isAvailable(IonNativeAdPlacement placement) async => true;

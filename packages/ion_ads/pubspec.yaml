@@ -16,11 +16,11 @@ dependencies:
   meta: ^1.15.0
 
 dev_dependencies:
+  custom_lint: ^0.7.2
   flutter_test:
     sdk: flutter
-  very_good_analysis: ^6.0.0
-  custom_lint: ^0.7.2
   lints: ^5.0.0
+  very_good_analysis: ^6.0.0
 
 flutter:
   plugin:
