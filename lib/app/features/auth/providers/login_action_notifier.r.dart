@@ -31,17 +31,35 @@ void _logLoginError(
 
 @riverpod
 class LoginActionNotifier extends _$LoginActionNotifier {
-  Completer<void>? _autoPasskeyLoginCompleter;
+  bool _isAutoPasskeyLoginInProgress = false;
+  Completer<void>? _autoPasskeyCancelCompleter;
 
   @override
   FutureOr<void> build() {}
 
   void cancelAutoPasskeyLogin() {
-    final completer = _autoPasskeyLoginCompleter;
-    if (completer != null && !completer.isCompleted) {
-      completer.complete();
+    if (!_isAutoPasskeyLoginInProgress) {
+      return;
     }
-    _autoPasskeyLoginCompleter = null;
+
+    final cancelCompleter = _autoPasskeyCancelCompleter;
+    if (cancelCompleter != null && !cancelCompleter.isCompleted) {
+      cancelCompleter.complete();
+    }
+    _autoPasskeyCancelCompleter = null;
+    _isAutoPasskeyLoginInProgress = false;
+    state = const AsyncValue.data(null);
+
+    unawaited(_cancelCurrentPasskeyAuthentication());
+  }
+
+  Future<void> _cancelCurrentPasskeyAuthentication() async {
+    try {
+      final ionIdentity = await ref.read(ionIdentityProvider.future);
+      await ionIdentity(username: '').auth.cancelCurrentPasskeyAuthentication();
+    } catch (_) {
+      // Best-effort cancellation for in-progress auto passkey lookup.
+    }
   }
 
   Future<void> verifyUserLoginFlow({required String keyName}) async {
@@ -64,12 +82,13 @@ class LoginActionNotifier extends _$LoginActionNotifier {
     final isAutoPasskey = keyName.isEmpty && localCredsOnly;
     Completer<void>? cancelCompleter;
     if (isAutoPasskey) {
-      final completer = _autoPasskeyLoginCompleter;
-      if (completer != null && !completer.isCompleted) {
-        completer.complete();
+      final previousCancelCompleter = _autoPasskeyCancelCompleter;
+      if (previousCancelCompleter != null && !previousCancelCompleter.isCompleted) {
+        previousCancelCompleter.complete();
       }
       cancelCompleter = Completer<void>();
-      _autoPasskeyLoginCompleter = cancelCompleter;
+      _autoPasskeyCancelCompleter = cancelCompleter;
+      _isAutoPasskeyLoginInProgress = true;
     }
 
     state = await AsyncValue.guard(() async {
@@ -108,6 +127,8 @@ class LoginActionNotifier extends _$LoginActionNotifier {
         }
       } on SignInCancelException {
         return;
+      } on PasskeyCancelledException {
+        return;
       } catch (error, stackTrace) {
         _logLoginError(
           error,
@@ -116,8 +137,11 @@ class LoginActionNotifier extends _$LoginActionNotifier {
         );
         rethrow;
       } finally {
-        if (identical(_autoPasskeyLoginCompleter, cancelCompleter)) {
-          _autoPasskeyLoginCompleter = null;
+        if (isAutoPasskey) {
+          if (identical(_autoPasskeyCancelCompleter, cancelCompleter)) {
+            _autoPasskeyCancelCompleter = null;
+          }
+          _isAutoPasskeyLoginInProgress = false;
         }
       }
     });
