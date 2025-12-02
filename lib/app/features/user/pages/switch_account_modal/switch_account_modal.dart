@@ -56,6 +56,7 @@ class SwitchAccountModal extends HookConsumerWidget {
                   },
                 ),
               SwitchAccountModalList(
+                enableAccountManagement: enableAccountManagement,
                 onSelectUser: () {
                   if (enableAccountManagement) {
                     Navigator.of(context).pop();

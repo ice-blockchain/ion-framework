@@ -12,10 +12,12 @@ import 'package:ion/app/features/user/pages/switch_account_modal/providers/switc
 class SwitchAccountModalList extends ConsumerWidget {
   const SwitchAccountModalList({
     required this.onSelectUser,
+    required this.enableAccountManagement,
     super.key,
   });
 
   final VoidCallback onSelectUser;
+  final bool enableAccountManagement;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,7 +35,8 @@ class SwitchAccountModalList extends ConsumerWidget {
               .map(
                 (identityKeyName) => SwitchAccountModalTile(
                   identityKeyName: identityKeyName,
-                  isCurrentUser: identityKeyName == modalState.currentIdentityKeyName,
+                  isCurrentUser: enableAccountManagement &&
+                      identityKeyName == modalState.currentIdentityKeyName,
                   onSelectUser: onSelectUser,
                 ),
               )

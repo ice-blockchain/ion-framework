@@ -75,6 +75,7 @@ Future<AppBadgeCounter?> appBadgeCounter(Ref ref) async {
   final appBadge = AppBadgeCounter(sharedPreferencesFoundation);
 
   onLogout(ref, appBadge.clearAllBadges);
+  onUserSwitch(ref, appBadge.clearAllBadges);
 
   return appBadge;
 }

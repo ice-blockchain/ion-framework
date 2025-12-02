@@ -37,6 +37,9 @@ class IonConnectCache extends _$IonConnectCache {
     onLogout(ref, () {
       state = {};
     });
+    onUserSwitch(ref, () {
+      state = {};
+    });
     return {};
   }
 
