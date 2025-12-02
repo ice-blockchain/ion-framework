@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 /// Class representing the content type of the native media view.
 ///
 /// [contentName] The name of the content type.

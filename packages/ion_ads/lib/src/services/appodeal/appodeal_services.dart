@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 //ignore_for_file: constant_identifier_names
 class AppodealServices {
   static const int ADJUST = 0x01; // 0b0001
