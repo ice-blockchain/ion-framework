@@ -43,14 +43,9 @@ class ChatMainAppBar extends ConsumerWidget implements PreferredSizeWidget {
               }
             : null,
       ),
-      title: GestureDetector(
-        onDoubleTap: () {
-          AppTestRoute().push<void>(context);
-        },
-        child: Text(
-          context.i18n.chat_title,
-          style: context.theme.appTextThemes.subtitle2,
-        ),
+      title: Text(
+        context.i18n.chat_title,
+        style: context.theme.appTextThemes.subtitle2,
       ),
       actions: [
         AnimatedOpacity(

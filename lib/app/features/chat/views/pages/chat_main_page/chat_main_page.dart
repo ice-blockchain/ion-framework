@@ -28,9 +28,7 @@ class ChatMainPage extends HookConsumerWidget {
     final conversations = ref.watch(conversationsProvider);
 
     return Scaffold(
-      appBar: ChatMainAppBar(
-        scrollController: scrollController,
-      ),
+      appBar: ChatMainAppBar(scrollController: scrollController),
       body: ScrollToTopWrapper(
         scrollController: scrollController,
         child: ScreenSideOffset.small(
