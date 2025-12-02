@@ -45,9 +45,10 @@ class Appodeal {
   /// Log level verbose for [setLogLevel] method.
   static const LogLevelVerbose = 2;
 
-  static final _functions = Map<String, void Function(MethodCall call)?>();
+  static final _functions = <String, void Function(MethodCall call)?>{};
 
   // Handler for processing method calls.
+  //ignore: prefer_function_declarations_over_variables
   static final Future<dynamic> Function(MethodCall call) _handler = (call) async {
     _functions[call.method]?.call(call);
     _functions.remove(call.method);
