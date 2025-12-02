@@ -13,7 +13,7 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
   Future<List<CommunityToken>> getTokenInfo(List<String> ionConnectAddresses) async {
     try {
       final data = await client.get<List<dynamic>>(
-        '/v1/community-tokens',
+        '/v1/community-tokens/',
         queryParameters: {
           'externalAddresses':
               'ion_connect:0:634f8ac52ad90bf8544162fb4f45cc56f1fc91ca1220381e96b68eb792d822ea:',
@@ -29,24 +29,21 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
   }
 
   @override
-  Future<NetworkSubscription<List<CommunityTokenPatch>>> subscribeToTokenInfo(
+  Future<NetworkSubscription<CommunityTokenPatch>> subscribeToTokenInfo(
     List<String> ionConnectAddresses,
   ) async {
     try {
-      final subscription = await client.subscribeSse<List<dynamic>>(
-        '/v1sse/community-tokens',
+      final subscription = await client.subscribeSse<Map<String, dynamic>>(
+        '/v1sse/community-tokens/',
         queryParameters: {
           'externalAddresses':
               'ion_connect:0:634f8ac52ad90bf8544162fb4f45cc56f1fc91ca1220381e96b68eb792d822ea:',
         },
       );
 
-      final tokenStream = subscription.stream.map(
-        (data) =>
-            data.map((json) => CommunityTokenPatch.fromJson(json as Map<String, dynamic>)).toList(),
-      );
+      final tokenStream = subscription.stream.map(CommunityTokenPatch.fromJson);
 
-      return NetworkSubscription<List<CommunityTokenPatch>>(
+      return NetworkSubscription<CommunityTokenPatch>(
         stream: tokenStream,
         close: subscription.close,
       );

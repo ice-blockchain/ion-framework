@@ -67,7 +67,7 @@ class IonCommunityTokensService {
     return _tokenInfoRepository.getTokenInfo(ionConnectAddresses);
   }
 
-  Future<NetworkSubscription<List<CommunityTokenPatch>>> subscribeToTokenInfo(
+  Future<NetworkSubscription<CommunityTokenPatch>> subscribeToTokenInfo(
     List<String> ionConnectAddresses,
   ) {
     return _tokenInfoRepository.subscribeToTokenInfo(ionConnectAddresses);
