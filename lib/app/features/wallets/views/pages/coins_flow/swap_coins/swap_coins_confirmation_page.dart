@@ -7,13 +7,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
-import 'package:ion/app/features/wallets/hooks/use_check_wallet_address_available.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -41,24 +39,6 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
         ),
       );
     }
-
-    useCheckWalletAddressAvailable(
-      ref,
-      network: sellNetwork,
-      coinsGroup: sellCoins,
-      onAddressFound: (address) => sellAddress.value = address,
-      onAddressMissing: () => AddressNotFoundRoute().push<void>(ref.context),
-      keys: [sellNetwork, sellCoins],
-    );
-
-    useCheckWalletAddressAvailable(
-      ref,
-      network: buyNetwork,
-      coinsGroup: buyCoins,
-      onAddressFound: (address) => buyAddress.value = address,
-      onAddressMissing: () => AddressNotFoundRoute().push<void>(ref.context),
-      keys: [buyNetwork, buyCoins],
-    );
 
     return SheetContent(
       body: SingleChildScrollView(

@@ -49,18 +49,14 @@ class NetworkListView extends HookConsumerWidget {
       NetworkListViewType.send =>
         ref.watch(sendAssetFormControllerProvider).assetData.as<CoinAssetToSendData>()?.coinsGroup,
       NetworkListViewType.receive => ref.watch(receiveCoinsFormControllerProvider).selectedCoin!,
-      NetworkListViewType.request => ref
-          .watch(requestCoinsFormControllerProvider)
-          .assetData
-          .as<CoinAssetToSendData>()
-          ?.coinsGroup,
+      NetworkListViewType.request =>
+        ref.watch(requestCoinsFormControllerProvider).assetData.as<CoinAssetToSendData>()?.coinsGroup,
       NetworkListViewType.swapSell => ref.watch(swapCoinsControllerProvider).sellCoin,
       NetworkListViewType.swapBuy => ref.watch(swapCoinsControllerProvider).buyCoin,
     };
 
     final contactPubkey = switch (type) {
-      NetworkListViewType.send =>
-        ref.watch(sendAssetFormControllerProvider.select((state) => state.contactPubkey)),
+      NetworkListViewType.send => ref.watch(sendAssetFormControllerProvider.select((state) => state.contactPubkey)),
       NetworkListViewType.request =>
         ref.watch(requestCoinsFormControllerProvider.select((state) => state.contactPubkey)),
       _ => null,
@@ -93,6 +89,7 @@ class NetworkListView extends HookConsumerWidget {
         : _UnrestrictedNetworksList(
             coinsGroup: coinsGroup,
             onNetworkTap: onNetworkTap,
+            type: type,
           );
 
     return SheetContent(
@@ -182,10 +179,12 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
   const _UnrestrictedNetworksList({
     required this.coinsGroup,
     required this.onNetworkTap,
+    required this.type,
   });
 
   final CoinsGroup? coinsGroup;
   final Future<void> Function(NetworkData network) onNetworkTap;
+  final NetworkListViewType type;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -197,10 +196,15 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
       return _LoadingState(itemCount: coinsGroup?.coins.length ?? 1);
     }
 
+    final shouldFilterByWallet = type == NetworkListViewType.swapSell || type == NetworkListViewType.swapBuy;
+    final displayCoins = coinsState.hasValue
+        ? (shouldFilterByWallet ? coinsState.value!.where((coin) => coin.walletId != null).toList() : coinsState.value!)
+        : <CoinInWalletData>[];
+
     return _NetworksList(
-      itemCount: coinsState.value!.length,
+      itemCount: displayCoins.length,
       itemBuilder: (BuildContext context, int index) {
-        final coin = coinsState.value![index];
+        final coin = displayCoins[index];
         final network = coin.coin.network;
         return NetworkItem(
           coinInWallet: coin,
