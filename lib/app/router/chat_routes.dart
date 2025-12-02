@@ -6,7 +6,6 @@ class ChatRoutes {
   static const shareRoutePrefix = 'share';
 
   static const routes = <TypedRoute<RouteData>>[
-    TypedGoRoute<AppTestRoute>(path: 'app-test'),
     TypedGoRoute<ChatQuickSearchRoute>(path: 'chat-simple-search'),
     TypedGoRoute<ChatAdvancedSearchRoute>(path: 'chat-advanced-search'),
     TypedGoRoute<ArchivedChatsMainRoute>(path: 'archived-chats'),
@@ -80,10 +79,6 @@ class EditChannelRoute extends BaseRouteData with _$EditChannelRoute {
         );
 
   final String uuid;
-}
-
-class AppTestRoute extends BaseRouteData with _$AppTestRoute {
-  AppTestRoute() : super(child: const AppTestPage());
 }
 
 class ChatQuickSearchRoute extends BaseRouteData with _$ChatQuickSearchRoute {
