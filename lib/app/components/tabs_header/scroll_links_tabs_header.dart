@@ -5,8 +5,8 @@ import 'package:ion/app/components/tabs_header/tabs_header_tab.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
 
-/// A tab bar that scrolls to sections instead of switching tab content.
-/// Works like HTML anchor links - tapping a tab scrolls to the corresponding section.
+// A tab bar that scrolls to sections instead of switching tab content.
+// Works like HTML anchor links - tapping a tab scrolls to the corresponding section.
 class ScrollLinksTabsHeader extends StatelessWidget {
   const ScrollLinksTabsHeader({
     required this.tabs,
