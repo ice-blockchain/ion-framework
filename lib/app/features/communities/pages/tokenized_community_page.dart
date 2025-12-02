@@ -258,7 +258,6 @@ class _LatestTrades extends HookConsumerWidget {
         return LatestTradesComponent(
           trades: trades,
           onViewAllPressed: () {},
-          onLoadMore: () => ref.read(tokenLatestTradesProvider(masterPubkey).notifier).loadMore(),
         );
       },
       loading: () => const SizedBox.shrink(),
