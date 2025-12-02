@@ -10,19 +10,13 @@ import 'package:ion/app/features/user/model/tab_type_interface.dart';
 class ScrollLinksTabsHeader extends StatelessWidget {
   const ScrollLinksTabsHeader({
     required this.tabs,
-    required this.sectionKeys,
     required this.activeIndex,
-    this.scrollDuration = const Duration(milliseconds: 300),
-    this.scrollCurve = Curves.easeInOut,
     this.onTabTapped,
     super.key,
   });
 
   final List<TabType> tabs;
-  final List<GlobalKey> sectionKeys;
   final ValueNotifier<int> activeIndex;
-  final Duration scrollDuration;
-  final Curve scrollCurve;
   final ValueChanged<int>? onTabTapped;
 
   @override
@@ -39,37 +33,13 @@ class ScrollLinksTabsHeader extends StatelessWidget {
               return _ScrollLinkTab(
                 tabType: tabs[index],
                 isActive: isActive,
-                onTap: () => _scrollToSection(index),
+                onTap: () => onTabTapped?.call(index),
               );
             }),
           ),
         );
       },
     );
-  }
-
-  void _scrollToSection(int index) {
-    final key = sectionKeys[index];
-    final sectionContext = key.currentContext;
-
-    if (sectionContext != null) {
-      // TODO: not clean implementation, fix it (temproary solution)
-      // Optimistic update: notify controller to activate tab immediately
-      // This provides instant UI feedback before scroll completes
-      onTabTapped?.call(index);
-
-      // If no callback provided, fallback to direct update
-      if (onTabTapped == null) {
-        activeIndex.value = index;
-      }
-
-      // Then scroll to the section
-      Scrollable.ensureVisible(
-        sectionContext,
-        duration: scrollDuration,
-        curve: scrollCurve,
-      );
-    }
   }
 }
 

@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 class SectionVisibilityController {
@@ -25,18 +25,12 @@ class SectionVisibilityController {
   int? _findLowestVisibleIndex() {
     if (_visibility.isEmpty) return null;
     for (var i = 0; i < tabCount; i++) {
-      if (_visibility[i] == true) return i;
+      if (_visibility[i] ?? false) return i;
     }
     return null;
   }
-
-  void forceActivate(int index) {
-    activeTabIndexNotifier.value = index;
-  }
 }
 
-/// Result object that the hook returns.
-/// Very clean API for the widget using it.
 class SectionVisibilityState {
   SectionVisibilityState({
     required this.activeIndex,
@@ -44,23 +38,34 @@ class SectionVisibilityState {
     required this.controller,
   });
 
-  /// Current active tab index (listen to this).
   final ValueNotifier<int> activeIndex;
-
-  /// Visibility callbacks for each section.
   final List<ValueChanged<double>> callbacks;
-
-  /// The internal controller (exposed in case you need overrides).
   final SectionVisibilityController controller;
 
-  /// Manually activate a tab by index.
-  /// Use this when user taps a tab to provide immediate feedback.
-  void activateTab(int index) {
-    controller.forceActivate(index);
+  ValueChanged<int> createScrollToSection(
+    List<GlobalKey> sectionKeys, {
+    Duration duration = const Duration(milliseconds: 300),
+    Curve curve = Curves.easeInOut,
+  }) {
+    return (int index) {
+      // Optimistic update: activate tab immediately for instant UI feedback
+      activeIndex.value = index;
+
+      // Scroll to the section
+      final key = sectionKeys[index];
+      final sectionContext = key.currentContext;
+      if (sectionContext != null) {
+        Scrollable.ensureVisible(
+          sectionContext,
+          duration: duration,
+          curve: curve,
+        );
+      }
+    };
   }
 }
 
-/// Hook to manage section visibility + active tab index.
+// Hook to manage section visibility + active tab index.
 SectionVisibilityState useSectionVisibilityController(int tabCount) {
   final activeIndex = useState(0);
 

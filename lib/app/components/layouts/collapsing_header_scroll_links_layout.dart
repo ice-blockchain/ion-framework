@@ -149,7 +149,6 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
                   color: context.theme.appColors.primaryText,
                   child: ScrollLinksTabsHeader(
                     tabs: tabs,
-                    sectionKeys: sectionKeys,
                     activeIndex: activeIndex,
                     onTabTapped: onTabTapped,
                   ),
@@ -205,7 +204,7 @@ class _TokenizedCommunityGradient extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               gradient: RadialGradient(
-                center: const Alignment(0.8, 0.0),
+                center: const Alignment(0.8, 0),
                 radius: 1.2,
                 colors: [
                   _magentaColor.withValues(alpha: 0.8),

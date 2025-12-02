@@ -82,12 +82,19 @@ class TokenizedCommunityPage extends HookConsumerWidget {
     final visibilityState = useSectionVisibilityController(tabCount);
     final visibilityCallbacks = visibilityState.callbacks;
 
+    final scrollToSection = useMemoized(
+      () => visibilityState.createScrollToSection(
+        sectionKeys,
+      ),
+      [visibilityState, sectionKeys],
+    );
+
     return CollapsingHeaderScrollLinksLayout(
       backgroundColor: context.theme.appColors.secondaryBackground,
       tabs: TokenizedCommunityTabType.values,
       sectionKeys: sectionKeys,
       externalActiveIndex: visibilityState.activeIndex,
-      onTabTapped: visibilityState.activateTab,
+      onTabTapped: scrollToSection,
       expandedHeaderHeight: _expandedHeaderHeight,
       expandedHeader: TokenHeaderComponent(
         token: token,
