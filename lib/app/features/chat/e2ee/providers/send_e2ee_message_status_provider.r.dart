@@ -52,6 +52,7 @@ class SendE2eeMessageStatusService {
   Future<void> sendMessageStatus({
     required MessageDeliveryStatus status,
     required EventMessage messageEventMessage,
+    bool verifyCurrentStatus = true,
   }) async {
     if (!allowedStatus.contains(status)) {
       return;
@@ -61,7 +62,7 @@ class SendE2eeMessageStatusService {
         ReplaceablePrivateDirectMessageEntity.fromEventMessage(messageEventMessage)
             .toEventReference();
 
-    if (status == MessageDeliveryStatus.read) {
+    if (status == MessageDeliveryStatus.read && verifyCurrentStatus) {
       final currentStatus = await conversationMessageDataDaoProvider.checkMessageStatus(
         eventReference: eventReference,
         masterPubkey: currentUserMasterPubkey,
