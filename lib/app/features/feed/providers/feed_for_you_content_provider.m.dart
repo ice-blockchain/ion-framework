@@ -445,7 +445,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   Future<List<String>> _waitForRelaysWithTimeout({
     required int min,
-    Duration timeout = const Duration(seconds: 3),
+    Duration timeout = const Duration(seconds: 1),
   }) async {
     final completer = Completer<List<String>>();
 
