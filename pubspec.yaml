@@ -124,6 +124,8 @@ dependencies:
   in_app_review: ^2.0.11
   in_app_update: ^4.2.5
   intl: any
+  ion_ads:
+    path: packages/ion_ads
   ion_connect_cache:
     path: packages/ion_connect_cache
   ion_content_labeler:
@@ -136,8 +138,6 @@ dependencies:
     path: packages/ion_swap_client
   ion_token_analytics:
     path: packages/ion_token_analytics
-  ion_ads:
-    path: packages/ion_ads
   isolate_manager: ^6.1.0
   json_annotation: ^4.9.0
   listen_sharing_intent: ^1.9.2
