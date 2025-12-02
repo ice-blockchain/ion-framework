@@ -27,9 +27,11 @@ class SelectCoinModalPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectableCoinsResult = ref.watch(selectableFilteredCoinsProvider(contactPubkey: contactPubkey));
-    final coinsResult =
-        coinsProvider != null ? ref.watch(coinsProvider!) : selectableCoinsResult.whenData((state) => state.groups);
+    final selectableCoinsResult =
+        ref.watch(selectableFilteredCoinsProvider(contactPubkey: contactPubkey));
+    final coinsResult = coinsProvider != null
+        ? ref.watch(coinsProvider!)
+        : selectableCoinsResult.whenData((state) => state.groups);
     final enabledSymbolGroups = selectableCoinsResult.valueOrNull?.enabledSymbolGroups;
 
     return SheetContent(
@@ -38,7 +40,8 @@ class SelectCoinModalPage extends ConsumerWidget {
         showCloseButton: showCloseButton,
         coinsResult: coinsResult,
         itemWrapperBuilder: (context, group, child) {
-          final isEnabled = enabledSymbolGroups == null || enabledSymbolGroups.contains(group.symbolGroup);
+          final isEnabled =
+              enabledSymbolGroups == null || enabledSymbolGroups.contains(group.symbolGroup);
           if (isEnabled) {
             return child;
           }

@@ -37,7 +37,8 @@ class CexService {
     }
   }
 
-  Future<void> _swapOnLetsExchange(SwapCoinParameters swapCoinData, SendCoinCallback sendCoinCallback) async {
+  Future<void> _swapOnLetsExchange(
+      SwapCoinParameters swapCoinData, SendCoinCallback sendCoinCallback) async {
     final coins = await _letsExchangeRepository.getCoins();
     final activeCoins = coins.where((e) => e.isCoinActive);
 
@@ -57,7 +58,8 @@ class CexService {
     );
 
     final buyNetwork = buyCoin.networks.firstWhereOrNull(
-      (e) => e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.buyCoinContractAddress),
+      (e) =>
+          e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.buyCoinContractAddress),
     );
 
     if (sellNetwork == null || buyNetwork == null) {
@@ -103,17 +105,19 @@ class CexService {
       coinCode: swapCoinData.buyCoinCode,
     );
 
-    final sellCoin = sellCoins.firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.sellCoinCode.toLowerCase());
-    final buyCoin = buyCoins.firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.buyCoinCode.toLowerCase());
+    final sellCoin = sellCoins
+        .firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.sellCoinCode.toLowerCase());
+    final buyCoin = buyCoins
+        .firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.buyCoinCode.toLowerCase());
 
     if (sellCoin == null || buyCoin == null) {
       throw const IonSwapException('Exolix: Coins pair not found');
     }
 
-    final sellNetwork = sellCoin.networks
-        .firstWhereOrNull((e) => e.name.toLowerCase() == swapCoinData.sellCoinNetworkName.toLowerCase());
-    final buyNetwork =
-        buyCoin.networks.firstWhereOrNull((e) => e.name.toLowerCase() == swapCoinData.buyCoinNetworkName.toLowerCase());
+    final sellNetwork = sellCoin.networks.firstWhereOrNull(
+        (e) => e.name.toLowerCase() == swapCoinData.sellCoinNetworkName.toLowerCase());
+    final buyNetwork = buyCoin.networks.firstWhereOrNull(
+        (e) => e.name.toLowerCase() == swapCoinData.buyCoinNetworkName.toLowerCase());
 
     if (sellNetwork == null || buyNetwork == null) {
       throw const IonSwapException('Exolix: Coins networks not found');

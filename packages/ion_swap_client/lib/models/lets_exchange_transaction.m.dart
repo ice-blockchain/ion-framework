@@ -13,5 +13,6 @@ class LetsExchangeTransaction with _$LetsExchangeTransaction {
     required String deposit,
   }) = _LetsExchangeTransaction;
 
-  factory LetsExchangeTransaction.fromJson(Map<String, dynamic> json) => _$LetsExchangeTransactionFromJson(json);
+  factory LetsExchangeTransaction.fromJson(Map<String, dynamic> json) =>
+      _$LetsExchangeTransactionFromJson(json);
 }

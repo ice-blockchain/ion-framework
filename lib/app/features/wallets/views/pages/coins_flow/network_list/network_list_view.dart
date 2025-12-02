@@ -49,14 +49,18 @@ class NetworkListView extends HookConsumerWidget {
       NetworkListViewType.send =>
         ref.watch(sendAssetFormControllerProvider).assetData.as<CoinAssetToSendData>()?.coinsGroup,
       NetworkListViewType.receive => ref.watch(receiveCoinsFormControllerProvider).selectedCoin!,
-      NetworkListViewType.request =>
-        ref.watch(requestCoinsFormControllerProvider).assetData.as<CoinAssetToSendData>()?.coinsGroup,
+      NetworkListViewType.request => ref
+          .watch(requestCoinsFormControllerProvider)
+          .assetData
+          .as<CoinAssetToSendData>()
+          ?.coinsGroup,
       NetworkListViewType.swapSell => ref.watch(swapCoinsControllerProvider).sellCoin,
       NetworkListViewType.swapBuy => ref.watch(swapCoinsControllerProvider).buyCoin,
     };
 
     final contactPubkey = switch (type) {
-      NetworkListViewType.send => ref.watch(sendAssetFormControllerProvider.select((state) => state.contactPubkey)),
+      NetworkListViewType.send =>
+        ref.watch(sendAssetFormControllerProvider.select((state) => state.contactPubkey)),
       NetworkListViewType.request =>
         ref.watch(requestCoinsFormControllerProvider.select((state) => state.contactPubkey)),
       _ => null,
@@ -196,9 +200,12 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
       return _LoadingState(itemCount: coinsGroup?.coins.length ?? 1);
     }
 
-    final shouldFilterByWallet = type == NetworkListViewType.swapSell || type == NetworkListViewType.swapBuy;
+    final shouldFilterByWallet =
+        type == NetworkListViewType.swapSell || type == NetworkListViewType.swapBuy;
     final displayCoins = coinsState.hasValue
-        ? (shouldFilterByWallet ? coinsState.value!.where((coin) => coin.walletId != null).toList() : coinsState.value!)
+        ? (shouldFilterByWallet
+            ? coinsState.value!.where((coin) => coin.walletId != null).toList()
+            : coinsState.value!)
         : <CoinInWalletData>[];
 
     return _NetworksList(
