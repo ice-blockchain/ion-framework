@@ -9,12 +9,13 @@ import 'package:ion_ads/src/services/ads_platform.dart';
 
 class MockIonAdsPlatform implements IonAdsPlatform {
   @override
-  Future<void> initialize(
-      {required String androidAppKey,
-      required String iosAppKey,
-      required bool hasConsent,
-      bool testMode = false,
-        bool verbose = false,}) async {}
+  Future<void> initialize({
+    required String androidAppKey,
+    required String iosAppKey,
+    required bool hasConsent,
+    bool testMode = false,
+    bool verbose = false,
+  }) async {}
 
   @override
   Future<bool> isAvailable(IonNativeAdPlacement placement) async => true;
