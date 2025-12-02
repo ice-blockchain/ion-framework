@@ -9,7 +9,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 ///
 extension ExternalAddressExtension on ReplaceableEntity {
   String get externalAddress {
-    return 'ion_connect:0:e4ae4d68f1f20e804fe87ebaf2e0dfde16b3755bb1328185280d891ef1cffbae:';
+    return 'ion_connect:0:2e4cccd551746c503d7877b72ebb982927c91e91f8a977ed561e276fb9ae0301:';
     final String prefix;
 
     if (data is UserMetadata) {

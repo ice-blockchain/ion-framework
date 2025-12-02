@@ -14,7 +14,7 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 class TokenHeaderComponent extends StatelessWidget {
   const TokenHeaderComponent({
     required this.token,
-    required this.masterPubkey,
+    required this.externalAddress,
     this.onBackPressed,
     this.onBookmarkPressed,
     this.onMorePressed,
@@ -24,7 +24,7 @@ class TokenHeaderComponent extends StatelessWidget {
   });
 
   final CommunityToken? token;
-  final String masterPubkey;
+  final String externalAddress;
   final VoidCallback? onBackPressed;
   final VoidCallback? onBookmarkPressed;
   final VoidCallback? onMorePressed;
@@ -48,7 +48,7 @@ class TokenHeaderComponent extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(height: statusBarHeight + 12.0.s),
-                _TokenIcon(masterPubkey: masterPubkey),
+                _TokenIcon(masterPubkey: externalAddress),
                 SizedBox(height: 6.0.s),
                 _TokenInfo(
                   displayName: token!.creator.display,

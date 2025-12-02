@@ -4,9 +4,10 @@ part of '../list_item.dart';
 
 class _ListItemUser extends ListItem {
   _ListItemUser({
-    required String pubkey,
     required Widget title,
     required Widget subtitle,
+    String? pubkey,
+    Widget? avatarWidget,
     super.key,
     super.border,
     super.trailingPadding,
@@ -27,11 +28,13 @@ class _ListItemUser extends ListItem {
     double? avatarSize,
   }) : super(
           leading: leading ??
-              IonConnectAvatar(
-                key: ValueKey('avatar_$pubkey'),
-                size: avatarSize ?? ListItem.defaultAvatarSize,
-                masterPubkey: pubkey,
-              ),
+              (pubkey != null
+                  ? IonConnectAvatar(
+                      key: ValueKey('avatar_$pubkey'),
+                      size: avatarSize ?? ListItem.defaultAvatarSize,
+                      masterPubkey: pubkey,
+                    )
+                  : avatarWidget),
           borderRadius: borderRadius ?? BorderRadius.zero,
           contentPadding: contentPadding ?? EdgeInsets.zero,
           leadingPadding: leadingPadding ?? EdgeInsetsDirectional.only(end: 8.0.s),

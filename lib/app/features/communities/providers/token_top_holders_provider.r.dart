@@ -28,50 +28,53 @@ class TokenTopHolders extends _$TokenTopHolders {
     var isInitialLoad = true;
     var currentList = <TopHolder>[];
 
-    await for (final newTopHolder in subscription.stream) {
-      if (isInitialLoad) {
-        if (newTopHolder is TopHolderPatch && newTopHolder.isEmpty()) {
-          // End of initial load
-          isInitialLoad = false;
-          currentList = List.from(initialItems);
-          // Sort by rank initially if needed
-          // currentList.sort((a, b) => a.position.rank.compareTo(b.position.rank));
-          yield currentList;
-        } else {
-          // Accumulate items
-          if (newTopHolder is TopHolder) {
-            initialItems.add(newTopHolder);
+    await for (final newTopHolders in subscription.stream) {
+      for (final newTopHolder in newTopHolders) {
+        if (isInitialLoad) {
+          if (newTopHolder is TopHolderPatch && newTopHolder.isEmpty()) {
+            // End of initial load
+            isInitialLoad = false;
+            currentList = List.from(initialItems);
+            // Sort by rank initially if needed
+            // currentList.sort((a, b) => a.position.rank.compareTo(b.position.rank));
+            yield currentList;
+          } else {
+            // Accumulate items
+            if (newTopHolder is TopHolder) {
+              initialItems.add(newTopHolder);
+            }
           }
-        }
-      } else {
-        // Update phase
-        final existIndex = currentList.indexWhere(
-          (element) =>
-              element.position.addresses.ionConnect == newTopHolder.position?.addresses?.ionConnect,
-        );
-
-        if (existIndex >= 0) {
-          final existHolder = currentList[existIndex];
-          if (newTopHolder is TopHolderPatch) {
-            final patchedHolder = existHolder.merge(newTopHolder);
-
-            // Create a new list reference for state update
-            currentList = List.from(currentList);
-            currentList[existIndex] = patchedHolder;
-          } else if (newTopHolder is TopHolder) {
-            currentList = List.from(currentList);
-            currentList[existIndex] = newTopHolder;
-          }
-
-          currentList.sort((a, b) => a.position.rank.compareTo(b.position.rank));
-          yield currentList;
         } else {
-          // New item added after initial load
-          if (newTopHolder is TopHolder) {
-            final newList = List<TopHolder>.from(currentList)
-              ..insert(0, newTopHolder)
-              ..sort((a, b) => a.position.rank.compareTo(b.position.rank));
-            yield newList;
+          // Update phase
+          final existIndex = currentList.indexWhere(
+            (element) =>
+                element.position.addresses.ionConnect ==
+                newTopHolder.position?.addresses?.ionConnect,
+          );
+
+          if (existIndex >= 0) {
+            final existHolder = currentList[existIndex];
+            if (newTopHolder is TopHolderPatch) {
+              final patchedHolder = existHolder.merge(newTopHolder);
+
+              // Create a new list reference for state update
+              currentList = List.from(currentList);
+              currentList[existIndex] = patchedHolder;
+            } else if (newTopHolder is TopHolder) {
+              currentList = List.from(currentList);
+              currentList[existIndex] = newTopHolder;
+            }
+
+            currentList.sort((a, b) => a.position.rank.compareTo(b.position.rank));
+            yield currentList;
+          } else {
+            // New item added after initial load
+            if (newTopHolder is TopHolder) {
+              final newList = List<TopHolder>.from(currentList)
+                ..insert(0, newTopHolder)
+                ..sort((a, b) => a.position.rank.compareTo(b.position.rank));
+              yield newList;
+            }
           }
         }
       }

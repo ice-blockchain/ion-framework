@@ -9,19 +9,18 @@ import 'package:ion/app/features/components/user/user_info_summary/user_info_sum
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/relevant_followers/relevant_followers.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class ProfileUserInfo extends ConsumerWidget {
   const ProfileUserInfo({
     required this.pubkey,
     required this.profileMode,
-    required this.creatorTokenMarketData,
+    this.externalAddress,
     super.key,
   });
 
   final String pubkey;
   final ProfileMode profileMode;
-  final MarketData? creatorTokenMarketData;
+  final String? externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -70,7 +69,7 @@ class ProfileUserInfo extends ConsumerWidget {
                 ),
               ),
             ),
-            ProfileTokenStats(masterPubkey: pubkey, data: creatorTokenMarketData),
+            if (externalAddress != null) ProfileTokenStats(externalAddress: externalAddress!),
           ],
         ),
       );

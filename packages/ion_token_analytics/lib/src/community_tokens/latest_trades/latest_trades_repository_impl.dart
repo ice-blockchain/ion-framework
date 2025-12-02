@@ -17,31 +17,43 @@ class LatestTradesRepositoryImpl implements LatestTradesRepository {
     int limit = 10,
     int offset = 0,
   }) async {
-    final response = await _client.get<List<dynamic>>(
-      '/community-tokens/$ionConnectAddress/latest-trades',
-      queryParameters: {'limit': limit, 'offset': offset},
-    );
+    try {
+      final response = await _client.get<List<dynamic>>(
+        '/v1/community-tokens/$ionConnectAddress/latest-trades',
+        queryParameters: {'limit': limit, 'offset': offset},
+      );
 
-    return response.map((e) => LatestTrade.fromJson(e as Map<String, dynamic>)).toList();
+      if (response.isEmpty) {
+        return [];
+      }
+
+      return response.map((e) => LatestTrade.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (e) {
+      return [];
+    }
   }
 
   @override
   Future<NetworkSubscription<LatestTradeBase>> subscribeToLatestTrades(
     String ionConnectAddress,
   ) async {
-    final subscription = await _client.subscribe<Map<String, dynamic>>(
-      '/community-tokens/$ionConnectAddress/latest-trades',
-    );
+    try {
+      final subscription = await _client.subscribeSse<Map<String, dynamic>>(
+        '/v1sse/community-tokens/$ionConnectAddress/latest-trades',
+      );
 
-    final stream = subscription.stream.map((json) {
-      try {
-        final data = LatestTrade.fromJson(json);
-        return data;
-      } catch (_) {
-        final patch = LatestTradePatch.fromJson(json);
-        return patch;
-      }
-    });
-    return NetworkSubscription(stream: stream, close: subscription.close);
+      final stream = subscription.stream.map((json) {
+        try {
+          final data = LatestTrade.fromJson(json);
+          return data;
+        } catch (_) {
+          final patch = LatestTradePatch.fromJson(json);
+          return patch;
+        }
+      });
+      return NetworkSubscription(stream: stream, close: subscription.close);
+    } catch (e) {
+      rethrow;
+    }
   }
 }

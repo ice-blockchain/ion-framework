@@ -53,7 +53,7 @@ class ProfileDetails extends ConsumerWidget {
           FollowCounters(pubkey: pubkey, profileMode: profileMode),
           SizedBox(height: profileMode != ProfileMode.dark ? 12.0.s : 22.0.s),
           ProfileUserInfo(
-            creatorTokenMarketData: token?.marketData,
+            externalAddress: userMetadata.valueOrNull?.externalAddress,
             pubkey: pubkey,
             profileMode: profileMode,
           ),

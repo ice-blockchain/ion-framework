@@ -104,11 +104,9 @@ class _TradeRow extends StatelessWidget {
     final texts = context.theme.appTextThemes;
     final i18n = context.i18n;
 
-    //TODO: change type to int
     final timeText = formatShortTimestamp(DateTime.parse(trade.position.createdAt));
     final amountText = formatDoubleCompact(trade.position.amount);
     final usdText = formatUSD(trade.position.amountUSD);
-    //TODO: use enum
     final badgeColor = trade.position.type == 'buy' ? colors.success : colors.lossRed;
     final badgeText = trade.position.type == 'buy' ? i18n.trade_buy : i18n.trade_sell;
 
@@ -136,8 +134,7 @@ class _TradeRow extends StatelessWidget {
                 _TitleAndMeta(
                   name: trade.position.holder.display,
                   handle: trade.position.holder.name,
-                  //TODO: add verified
-                  verified: true,
+                  verified: trade.position.holder.verified,
                   meta: '$amountText • \$$usdText • $timeText',
                 ),
               ],

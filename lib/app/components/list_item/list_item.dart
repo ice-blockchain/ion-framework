@@ -39,9 +39,9 @@ class ListItem extends StatelessWidget {
         constraints = constraints ?? defaultConstraints;
 
   factory ListItem.user({
-    required String pubkey,
     required Widget title,
     required Widget subtitle,
+    String? pubkey,
     Key? key,
     Widget? leading,
     Widget? trailing,
@@ -57,6 +57,7 @@ class ListItem extends StatelessWidget {
     bool iceBadge,
     bool isSelected,
     double? avatarSize,
+    Widget? avatarWidget,
   }) = _ListItemUser;
 
   factory ListItem.dapp({

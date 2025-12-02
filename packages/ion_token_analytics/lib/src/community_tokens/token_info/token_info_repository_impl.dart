@@ -12,12 +12,17 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
   @override
   Future<CommunityToken?> getTokenInfo(String externalAddress) async {
     try {
-      final data = await client.get<List<dynamic>>(
+      final tokensRawData = await client.get<List<dynamic>>(
         '/v1/community-tokens/',
         queryParameters: {'externalAddresses': externalAddress},
       );
 
-      return data.map((json) => CommunityToken.fromJson(json as Map<String, dynamic>)).firstOrNull;
+      final tokenRawData = tokensRawData.firstOrNull;
+      if (tokenRawData == null) {
+        return null;
+      }
+
+      return CommunityToken.fromJson(tokenRawData as Map<String, dynamic>);
     } catch (e) {
       return null;
     }

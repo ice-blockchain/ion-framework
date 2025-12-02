@@ -10,6 +10,7 @@ import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/auth_event.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -22,6 +23,8 @@ Future<IonTokenAnalyticsClient> ionTokenAnalyticsClient(Ref ref) async {
       ref.watch(envProvider.notifier).get<String>(EnvVariable.ION_TOKEN_ANALYTICS_BASE_URL);
 
   final authToken = await ref.watch(tokenAnalyticsAuthTokenProvider);
+
+  Logger.log('IonTokenAnalyticsClient created with baseUrl: $baseUrl and authToken: $authToken');
 
   return IonTokenAnalyticsClient.create(
     options: IonTokenAnalyticsClientOptions(baseUrl: baseUrl, authToken: authToken),
