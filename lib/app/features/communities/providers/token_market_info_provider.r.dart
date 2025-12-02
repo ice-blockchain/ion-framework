@@ -19,6 +19,8 @@ Stream<CommunityToken?> tokenMarketInfo(Ref ref, String masterPubkey) async* {
       .firstOrNull;
   yield currentToken;
 
+  return;
+
   // 2. Subscribe to real-time updates
   final subscription = await client.communityTokens.subscribeToTokenInfo([masterPubkey]);
 
@@ -36,6 +38,10 @@ Stream<CommunityToken?> tokenMarketInfo(Ref ref, String masterPubkey) async* {
         // }
       }
     }
+  } catch (e, stackTrace) {
+    print(e);
+    print(stackTrace);
+    yield null;
   } finally {
     await subscription.close();
   }

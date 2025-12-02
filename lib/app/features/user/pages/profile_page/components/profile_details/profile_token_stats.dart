@@ -3,9 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats_data.dart';
+import 'package:ion/app/features/communities/utils/market_data_formatter.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class ProfileTokenStatsInfo extends StatelessWidget {
   const ProfileTokenStatsInfo({
@@ -13,7 +14,7 @@ class ProfileTokenStatsInfo extends StatelessWidget {
     super.key,
   });
 
-  final ProfileTokenStatsData? data;
+  final MarketData? data;
 
   @override
   Widget build(BuildContext context) {
@@ -34,15 +35,19 @@ class ProfileTokenStatsInfo extends StatelessWidget {
           children: [
             _StatItem(
               icon: Assets.svg.iconMemeMarketcap,
-              text: data!.marketCap,
+              text: data?.marketCap == null
+                  ? '--'
+                  : MarketDataFormatter.formatCompactNumber(data!.marketCap),
             ),
             _StatItem(
               icon: Assets.svg.iconMemeMarkers,
-              text: data!.price,
+              text: data?.priceUSD == null ? '--' : MarketDataFormatter.formatPrice(data!.priceUSD),
             ),
             _StatItem(
               icon: Assets.svg.iconSearchGroups,
-              text: data!.volume,
+              text: data?.volume == null
+                  ? '--'
+                  : MarketDataFormatter.formatCompactNumber(data!.volume),
             ),
           ],
         ),
@@ -58,7 +63,7 @@ class ProfileTokenStats extends StatelessWidget {
     super.key,
   });
 
-  final ProfileTokenStatsData? data;
+  final MarketData? data;
   final String masterPubkey;
 
   @override
@@ -83,17 +88,17 @@ class ProfileTokenStats extends StatelessWidget {
       children: [
         _StatItem(
           icon: Assets.svg.iconMemeMarketcap,
-          text: data!.marketCap,
+          text: MarketDataFormatter.formatCompactNumber(data!.marketCap),
           onTap: onStatItemTap,
         ),
         _StatItem(
           icon: Assets.svg.iconMemeMarkers,
-          text: data!.price,
+          text: MarketDataFormatter.formatPrice(data!.priceUSD),
           onTap: onStatItemTap,
         ),
         _StatItem(
           icon: Assets.svg.iconSearchGroups,
-          text: data!.volume,
+          text: MarketDataFormatter.formatCompactNumber(data!.volume),
           onTap: onStatItemTap,
         ),
         BuyButton(masterPubkey: masterPubkey),

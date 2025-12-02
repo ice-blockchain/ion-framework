@@ -18,7 +18,7 @@ class TopHoldersRepositoryImpl implements TopHoldersRepository {
   }) async {
     // Subscribe to the raw event stream
     final subscription = await _client.subscribe<Map<String, dynamic>>(
-      '/community-tokens/$ionConnectAddress/top-holders',
+      'v1sse/community-tokens/$ionConnectAddress/top-holders',
       queryParameters: {'limit': limit},
     );
 

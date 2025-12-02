@@ -21,13 +21,13 @@ CommunityToken _$CommunityTokenFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CommunityToken {
-  String get type => throw _privateConstructorUsedError;
+  CommunityTokenType get type => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
-  String get imageUrl => throw _privateConstructorUsedError;
   Addresses get addresses => throw _privateConstructorUsedError;
   Creator get creator => throw _privateConstructorUsedError;
   MarketData get marketData => throw _privateConstructorUsedError;
+  String? get imageUrl => throw _privateConstructorUsedError;
   String? get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this CommunityToken to a JSON map.
@@ -48,13 +48,13 @@ abstract class $CommunityTokenCopyWith<$Res> {
   ) = _$CommunityTokenCopyWithImpl<$Res, CommunityToken>;
   @useResult
   $Res call({
-    String type,
+    CommunityTokenType type,
     String title,
     String description,
-    String imageUrl,
     Addresses addresses,
     Creator creator,
     MarketData marketData,
+    String? imageUrl,
     String? createdAt,
   });
 
@@ -81,10 +81,10 @@ class _$CommunityTokenCopyWithImpl<$Res, $Val extends CommunityToken>
     Object? type = null,
     Object? title = null,
     Object? description = null,
-    Object? imageUrl = null,
     Object? addresses = null,
     Object? creator = null,
     Object? marketData = null,
+    Object? imageUrl = freezed,
     Object? createdAt = freezed,
   }) {
     return _then(
@@ -92,7 +92,7 @@ class _$CommunityTokenCopyWithImpl<$Res, $Val extends CommunityToken>
             type: null == type
                 ? _value.type
                 : type // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as CommunityTokenType,
             title: null == title
                 ? _value.title
                 : title // ignore: cast_nullable_to_non_nullable
@@ -100,10 +100,6 @@ class _$CommunityTokenCopyWithImpl<$Res, $Val extends CommunityToken>
             description: null == description
                 ? _value.description
                 : description // ignore: cast_nullable_to_non_nullable
-                      as String,
-            imageUrl: null == imageUrl
-                ? _value.imageUrl
-                : imageUrl // ignore: cast_nullable_to_non_nullable
                       as String,
             addresses: null == addresses
                 ? _value.addresses
@@ -117,6 +113,10 @@ class _$CommunityTokenCopyWithImpl<$Res, $Val extends CommunityToken>
                 ? _value.marketData
                 : marketData // ignore: cast_nullable_to_non_nullable
                       as MarketData,
+            imageUrl: freezed == imageUrl
+                ? _value.imageUrl
+                : imageUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
             createdAt: freezed == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -167,13 +167,13 @@ abstract class _$$CommunityTokenImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    String type,
+    CommunityTokenType type,
     String title,
     String description,
-    String imageUrl,
     Addresses addresses,
     Creator creator,
     MarketData marketData,
+    String? imageUrl,
     String? createdAt,
   });
 
@@ -202,10 +202,10 @@ class __$$CommunityTokenImplCopyWithImpl<$Res>
     Object? type = null,
     Object? title = null,
     Object? description = null,
-    Object? imageUrl = null,
     Object? addresses = null,
     Object? creator = null,
     Object? marketData = null,
+    Object? imageUrl = freezed,
     Object? createdAt = freezed,
   }) {
     return _then(
@@ -213,7 +213,7 @@ class __$$CommunityTokenImplCopyWithImpl<$Res>
         type: null == type
             ? _value.type
             : type // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as CommunityTokenType,
         title: null == title
             ? _value.title
             : title // ignore: cast_nullable_to_non_nullable
@@ -221,10 +221,6 @@ class __$$CommunityTokenImplCopyWithImpl<$Res>
         description: null == description
             ? _value.description
             : description // ignore: cast_nullable_to_non_nullable
-                  as String,
-        imageUrl: null == imageUrl
-            ? _value.imageUrl
-            : imageUrl // ignore: cast_nullable_to_non_nullable
                   as String,
         addresses: null == addresses
             ? _value.addresses
@@ -238,6 +234,10 @@ class __$$CommunityTokenImplCopyWithImpl<$Res>
             ? _value.marketData
             : marketData // ignore: cast_nullable_to_non_nullable
                   as MarketData,
+        imageUrl: freezed == imageUrl
+            ? _value.imageUrl
+            : imageUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
         createdAt: freezed == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -254,10 +254,10 @@ class _$CommunityTokenImpl implements _CommunityToken {
     required this.type,
     required this.title,
     required this.description,
-    required this.imageUrl,
     required this.addresses,
     required this.creator,
     required this.marketData,
+    this.imageUrl,
     this.createdAt,
   });
 
@@ -265,13 +265,11 @@ class _$CommunityTokenImpl implements _CommunityToken {
       _$$CommunityTokenImplFromJson(json);
 
   @override
-  final String type;
+  final CommunityTokenType type;
   @override
   final String title;
   @override
   final String description;
-  @override
-  final String imageUrl;
   @override
   final Addresses addresses;
   @override
@@ -279,11 +277,13 @@ class _$CommunityTokenImpl implements _CommunityToken {
   @override
   final MarketData marketData;
   @override
+  final String? imageUrl;
+  @override
   final String? createdAt;
 
   @override
   String toString() {
-    return 'CommunityToken(type: $type, title: $title, description: $description, imageUrl: $imageUrl, addresses: $addresses, creator: $creator, marketData: $marketData, createdAt: $createdAt)';
+    return 'CommunityToken(type: $type, title: $title, description: $description, addresses: $addresses, creator: $creator, marketData: $marketData, imageUrl: $imageUrl, createdAt: $createdAt)';
   }
 
   @override
@@ -295,13 +295,13 @@ class _$CommunityTokenImpl implements _CommunityToken {
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
-            (identical(other.imageUrl, imageUrl) ||
-                other.imageUrl == imageUrl) &&
             (identical(other.addresses, addresses) ||
                 other.addresses == addresses) &&
             (identical(other.creator, creator) || other.creator == creator) &&
             (identical(other.marketData, marketData) ||
                 other.marketData == marketData) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt));
   }
@@ -313,10 +313,10 @@ class _$CommunityTokenImpl implements _CommunityToken {
     type,
     title,
     description,
-    imageUrl,
     addresses,
     creator,
     marketData,
+    imageUrl,
     createdAt,
   );
 
@@ -339,13 +339,13 @@ class _$CommunityTokenImpl implements _CommunityToken {
 
 abstract class _CommunityToken implements CommunityToken {
   const factory _CommunityToken({
-    required final String type,
+    required final CommunityTokenType type,
     required final String title,
     required final String description,
-    required final String imageUrl,
     required final Addresses addresses,
     required final Creator creator,
     required final MarketData marketData,
+    final String? imageUrl,
     final String? createdAt,
   }) = _$CommunityTokenImpl;
 
@@ -353,19 +353,19 @@ abstract class _CommunityToken implements CommunityToken {
       _$CommunityTokenImpl.fromJson;
 
   @override
-  String get type;
+  CommunityTokenType get type;
   @override
   String get title;
   @override
   String get description;
-  @override
-  String get imageUrl;
   @override
   Addresses get addresses;
   @override
   Creator get creator;
   @override
   MarketData get marketData;
+  @override
+  String? get imageUrl;
   @override
   String? get createdAt;
 
@@ -383,7 +383,7 @@ CommunityTokenPatch _$CommunityTokenPatchFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CommunityTokenPatch {
-  String? get type => throw _privateConstructorUsedError;
+  CommunityTokenType? get type => throw _privateConstructorUsedError;
   String? get title => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
   String? get imageUrl => throw _privateConstructorUsedError;
@@ -414,7 +414,7 @@ class _$CommunityTokenPatchImpl implements _CommunityTokenPatch {
       _$$CommunityTokenPatchImplFromJson(json);
 
   @override
-  final String? type;
+  final CommunityTokenType? type;
   @override
   final String? title;
   @override
@@ -477,7 +477,7 @@ class _$CommunityTokenPatchImpl implements _CommunityTokenPatch {
 
 abstract class _CommunityTokenPatch implements CommunityTokenPatch {
   const factory _CommunityTokenPatch({
-    final String? type,
+    final CommunityTokenType? type,
     final String? title,
     final String? description,
     final String? imageUrl,
@@ -491,7 +491,7 @@ abstract class _CommunityTokenPatch implements CommunityTokenPatch {
       _$CommunityTokenPatchImpl.fromJson;
 
   @override
-  String? get type;
+  CommunityTokenType? get type;
   @override
   String? get title;
   @override

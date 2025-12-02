@@ -16,7 +16,8 @@ class WalletsNotifier extends _$WalletsNotifier {
 
     try {
       final ionIdentity = await ref.watch(ionIdentityClientProvider.future);
-      return await ionIdentity.wallets.getWallets();
+      final data = await ionIdentity.wallets.getWallets();
+      return data;
     } on NetworkException {
       throw WalletsLoadingException();
     }

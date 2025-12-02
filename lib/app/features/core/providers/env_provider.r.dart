@@ -41,6 +41,7 @@ enum EnvVariable {
   INDEXER_BASE_URL,
   NFT_IDENTITY_BASE_URL,
   SHARE_APP_NAME,
+  ION_TOKEN_ANALYTICS_BASE_URL,
 }
 
 @Riverpod(keepAlive: true)
@@ -125,6 +126,8 @@ class Env extends _$Env {
       EnvVariable.NFT_IDENTITY_BASE_URL =>
         const String.fromEnvironment('NFT_IDENTITY_BASE_URL') as T,
       EnvVariable.SHARE_APP_NAME => const String.fromEnvironment('SHARE_APP_NAME') as T,
+      EnvVariable.ION_TOKEN_ANALYTICS_BASE_URL =>
+        const String.fromEnvironment('ION_TOKEN_ANALYTICS_BASE_URL') as T,
     };
   }
 }
