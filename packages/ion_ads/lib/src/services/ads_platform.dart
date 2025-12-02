@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:flutter/widgets.dart';
 import 'package:ion_ads/src/models/ad_types.dart';
 import 'package:ion_ads/src/models/native_ad_asset.dart';
