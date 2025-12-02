@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/native_ad_asset.dart';
 
 class NativeVideoAd extends StatelessWidget {
-  const NativeVideoAd({super.key, required this.ad, this.overlay});
+  const NativeVideoAd({required this.ad, super.key, this.overlay});
 
   final IonNativeAdAsset ad;
   final Widget? overlay;

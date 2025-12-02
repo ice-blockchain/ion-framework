@@ -1,0 +1,128 @@
+platform :ios, '15.0'
+
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+  
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+install! 'cocoapods', :warn_for_multiple_pod_sources => false
+
+source 'https://cdn.cocoapods.org'
+source 'https://github.com/appodeal/CocoaPods.git'
+source 'https://github.com/bidon-io/CocoaPods_Specs.git'
+
+def appodeal
+   pod 'Appodeal', '3.10.0'
+   pod 'APDAmazonAdapter', '3.10.0.0'
+   pod 'APDAppLovinAdapter', '3.10.0.0'
+   pod 'APDAppLovinMAXAdapter', '3.10.0.0'
+   pod 'APDBidMachineAdapter', '3.10.0.0'
+   pod 'APDBidonAdapter', '3.10.0.0'
+   pod 'APDBigoAdsAdapter', '3.10.0.0'
+   pod 'APDDTExchangeAdapter', '3.10.0.0'
+   pod 'APDGoogleAdMobAdapter', '3.10.0.0'
+   pod 'APDIABAdapter', '3.10.0.0'
+   pod 'APDInMobiAdapter', '3.10.0.0'
+   pod 'APDIronSourceAdapter', '3.10.0.0'
+   pod 'APDLevelPlayAdapter', '3.10.0.0'
+   pod 'APDMetaAudienceNetworkAdapter', '3.10.0.0'
+   pod 'APDMintegralAdapter', '3.10.0.0'
+   pod 'APDMyTargetAdapter', '3.10.0.0'
+   pod 'APDSentryAdapter', '3.10.0.0'
+   pod 'APDUnityAdapter', '3.10.0.0'
+   pod 'APDVungleAdapter', '3.10.0.0'
+   pod 'APDYandexAdapter', '3.10.0.0'
+   pod 'AppLovinMediationAmazonAdMarketplaceAdapter', '5.3.0.0'
+   pod 'AppLovinMediationBidMachineAdapter', '3.4.0.0.0'
+   pod 'AppLovinMediationBidonAdapter', '0.11.0.0'
+   pod 'AppLovinMediationBigoAdsAdapter', '4.9.0.0'
+   pod 'AppLovinMediationByteDanceAdapter', '7.4.1.1.0'
+   pod 'AppLovinMediationChartboostAdapter', '9.9.2.1'
+   pod 'AppLovinMediationFacebookAdapter', '6.20.1.0'
+   pod 'AppLovinMediationFyberAdapter', '8.3.8.0'
+   pod 'AppLovinMediationGoogleAdManagerAdapter', '12.8.0.0'
+   pod 'AppLovinMediationGoogleAdapter', '12.8.0.0'
+   pod 'AppLovinMediationInMobiAdapter', '10.8.6.0'
+   pod 'AppLovinMediationIronSourceAdapter', '8.10.0.0.0'
+   pod 'AppLovinMediationMintegralAdapter', '7.7.9.0.0'
+   pod 'AppLovinMediationMobileFuseAdapter', '1.9.2.1'
+   pod 'AppLovinMediationMolocoAdapter', '3.12.0.0'
+   pod 'AppLovinMediationMyTargetAdapter', '5.33.0.0'
+   pod 'AppLovinMediationOguryPresageAdapter', '5.0.2.0'
+   pod 'AppLovinMediationPubMaticAdapter', '4.8.0.0'
+   pod 'AppLovinMediationSmaatoAdapter', '22.9.3.1'
+   pod 'AppLovinMediationUnityAdsAdapter', '4.16.0.0'
+   pod 'AppLovinMediationVerveAdapter', '3.6.0.0'
+   pod 'AppLovinMediationVungleAdapter', '7.5.2.0'
+   pod 'AppLovinMediationYandexAdapter', '7.14.1.0'
+   pod 'BidMachineAmazonAdapter', '3.4.0.0'
+   pod 'BidMachineIronSourceCustomAdapter', '3.4.0.0'
+   pod 'BidMachineMetaAudienceAdapter', '3.4.0.0'
+   pod 'BidMachineMintegralAdapter', '3.4.0.0'
+   pod 'BidMachineMyTargetAdapter', '3.4.0.0'
+   pod 'BidMachinePangleAdapter', '3.4.0.0'
+   pod 'BidMachineVungleAdapter', '3.4.0.0'
+   pod 'BidonAdapterAmazon', '0.11.0.0'
+   pod 'BidonAdapterBidMachine', '0.11.0.0'
+   pod 'BidonAdapterBigoAds', '0.11.0.0'
+   pod 'BidonAdapterChartboost', '0.11.0.0'
+   pod 'BidonAdapterDTExchange', '0.11.0.0'
+   pod 'BidonAdapterInMobi', '0.11.0.0'
+   pod 'BidonAdapterIronSource', '0.11.0.0'
+   pod 'BidonAdapterMetaAudienceNetwork', '0.11.0.0'
+   pod 'BidonAdapterMintegral', '0.11.0.0'
+   pod 'BidonAdapterMobileFuse', '0.11.0.0'
+   pod 'BidonAdapterMoloco', '0.11.0.0'
+   pod 'BidonAdapterMyTarget', '0.11.0.0'
+   pod 'BidonAdapterUnityAds', '0.11.0.0'
+   pod 'BidonAdapterVungle', '0.11.0.0'
+   pod 'BidonAdapterYandex', '0.11.0.0'
+   pod 'ISBidonCustomAdapter', '0.11.0.0'
+   pod 'IronSourceAPSAdapter', '4.3.21.0'
+   pod 'IronSourceAdMobAdapter', '4.3.69.0'
+   pod 'IronSourceAppLovinAdapter', '4.3.56.0'
+   pod 'IronSourceBidMachineAdapter', '4.3.20.0'
+   pod 'IronSourceBigoAdapter', '4.3.8.0'
+   pod 'IronSourceFacebookAdapter', '4.3.51.0'
+   pod 'IronSourceFyberAdapter', '4.3.44.0'
+   pod 'IronSourceInMobiAdapter', '4.3.30.0'
+   pod 'IronSourceMintegralAdapter', '4.3.37.0'
+   pod 'IronSourceMobileFuseAdapter', '4.3.8.1'
+   pod 'IronSourceMolocoAdapter', '4.3.22.0'
+   pod 'IronSourceMyTargetAdapter', '4.3.6.0'
+   pod 'IronSourceOguryAdapter', '4.3.3.1'
+   pod 'IronSourcePangleAdapter', '4.3.51.0'
+   pod 'IronSourceSmaatoAdapter', '4.3.17.1'
+   pod 'IronSourceUnityAdsAdapter', '4.3.54.0'
+   pod 'IronSourceVerveAdapter', '4.3.6.1'
+   pod 'IronSourceVungleAdapter', '4.3.46.0'
+   pod 'IronSourceYandexAdapter', '4.3.21.0'
+end
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+  appodeal
+  
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+  end
+end
