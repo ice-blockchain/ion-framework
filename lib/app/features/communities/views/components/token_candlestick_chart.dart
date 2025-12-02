@@ -5,8 +5,8 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/communities/utils/formatters.dart';
 import 'package:ion/app/features/communities/views/components/chart_component.dart';
 
 class TokenCandlestickChart extends StatelessWidget {
@@ -51,7 +51,7 @@ class TokenCandlestickChart extends StatelessWidget {
       xAxisStep = desiredBottom == 1 ? 1.0 : (candles.length - 1) / (desiredBottom - 1);
       for (var i = 0; i < desiredBottom; i++) {
         final idx = (i * xAxisStep).round().clamp(0, candles.length - 1);
-        indexToLabel[idx] = _formatDate(candles[idx].date);
+        indexToLabel[idx] = formatChartDate(candles[idx].date);
       }
     }
 
@@ -115,8 +115,4 @@ class TokenCandlestickChart extends StatelessWidget {
       ),
     );
   }
-}
-
-String _formatDate(DateTime d) {
-  return DateFormat('dd/MM').format(d);
 }

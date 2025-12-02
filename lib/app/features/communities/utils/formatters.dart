@@ -33,3 +33,13 @@ String formatPrice(double price) {
 
   return '\$0.0₄$trailing';
 }
+
+// Formats a DateTime for chart date labels (e.g., "15/03").
+String formatChartDate(DateTime date) {
+  return DateFormat('dd/MM').format(date);
+}
+
+// Formats a DateTime for chart time labels (e.g., "14:30").
+String formatChartTime(DateTime date) {
+  return DateFormat('H:mm').format(date);
+}

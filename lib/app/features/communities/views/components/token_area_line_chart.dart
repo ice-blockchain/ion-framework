@@ -4,17 +4,19 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/communities/utils/formatters.dart';
 import 'package:ion/app/features/communities/views/components/chart_component.dart';
 
 class TokenAreaLineChart extends StatelessWidget {
   const TokenAreaLineChart({
     required this.candles,
+    this.isLoading = false,
     super.key,
   });
 
   final List<ChartCandle> candles;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -46,11 +48,12 @@ class TokenAreaLineChart extends StatelessWidget {
       xAxisStep = (candles.length - 1) / (desiredBottom - 1);
       for (var i = 0; i < desiredBottom; i++) {
         final idx = (i * xAxisStep).round().clamp(0, candles.length - 1);
-        indexToLabel[idx] = _formatTime(candles[idx].date);
+            indexToLabel[idx] = formatChartTime(candles[idx].date);
       }
     }
 
-    final lineColor = colors.primaryAccent;
+    // In loading state we use a neutral/disabled color instead of blue.
+    final lineColor = isLoading ? colors.tertiaryText.withValues(alpha: 0.4) : colors.primaryAccent;
 
     return LineChart(
       LineChartData(
@@ -93,34 +96,37 @@ class TokenAreaLineChart extends StatelessWidget {
             ),
           ),
         ),
-        lineTouchData: LineTouchData(
-          touchTooltipData: LineTouchTooltipData(
-            getTooltipColor: (_) => colors.primaryBackground,
-            getTooltipItems: (touchedSpots) {
-              return touchedSpots
-                  .map(
-                    (spot) => LineTooltipItem(
-                      spot.y.toStringAsFixed(4),
-                      styles.caption2.copyWith(color: colors.primaryText),
-                    ),
-                  )
-                  .toList();
-            },
-          ),
-          getTouchedSpotIndicator: (barData, spotIndexes) {
-            return spotIndexes.map((index) {
-              return TouchedSpotIndicatorData(
-                FlLine(
-                  color: colors.primaryAccent.withValues(alpha: 0.3),
-                  strokeWidth: 0.5.s,
+        lineTouchData: !isLoading
+            ? LineTouchData(
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipColor: (_) => colors.primaryBackground,
+                  getTooltipItems: (touchedSpots) {
+                    return touchedSpots
+                        .map(
+                          (spot) => LineTooltipItem(
+                            spot.y.toStringAsFixed(4),
+                            styles.caption2.copyWith(color: colors.primaryText),
+                          ),
+                        )
+                        .toList();
+                  },
                 ),
-                const FlDotData(),
-              );
-            }).toList();
-          },
-          getTouchLineStart: (_, __) => 0,
-          getTouchLineEnd: (_, __) => double.infinity,
-        ),
+                getTouchedSpotIndicator: (barData, spotIndexes) {
+                  return spotIndexes.map((index) {
+                    return TouchedSpotIndicatorData(
+                      FlLine(
+                        color: colors.primaryAccent.withValues(alpha: 0.3),
+                        strokeWidth: 0.5.s,
+                      ),
+                      const FlDotData(),
+                    );
+                  }).toList();
+                },
+                getTouchLineStart: (_, __) => 0,
+                getTouchLineEnd: (_, __) => double.infinity,
+              )
+            // Disable interactions for loading/empty states.
+            : const LineTouchData(enabled: false),
         lineBarsData: [
           LineChartBarData(
             spots: spots,
@@ -155,6 +161,3 @@ class TokenAreaLineChart extends StatelessWidget {
   }
 }
 
-String _formatTime(DateTime d) {
-  return DateFormat('H:mm').format(d);
-}
