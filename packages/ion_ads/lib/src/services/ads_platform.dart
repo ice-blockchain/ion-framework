@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
-
-import '../models/ad_types.dart';
-import '../models/native_ad_asset.dart';
+import 'package:ion_ads/src/models/ad_types.dart';
+import 'package:ion_ads/src/models/native_ad_asset.dart';
 
 abstract class IonAdsPlatform {
   Future<void> initialize(
