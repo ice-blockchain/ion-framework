@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
@@ -13,15 +15,40 @@ class SectionVisibilityController {
   final int tabCount;
 
   final Map<int, bool> _visibility = {};
+  bool _ignoreVisibilityUpdates = false;
+  Timer? _ignoreTimer;
+
+  static const double _visibilityThreshold = 0.3; // 30% visible
 
   void update(int index, double fraction) {
-    final isVisible = fraction > 0;
+    // When threshold is 0, use strict > to avoid treating 0% as visible
+    // When threshold > 0, use >= to include threshold value
+    final isVisible = _visibilityThreshold == 0 ? fraction > 0 : fraction >= _visibilityThreshold;
     _visibility[index] = isVisible;
+
+    if (_ignoreVisibilityUpdates) {
+      return;
+    }
 
     final newIndex = _findLowestVisibleIndex();
     if (newIndex != null && newIndex != activeTabIndexNotifier.value) {
       activeTabIndexNotifier.value = newIndex;
     }
+  }
+
+  // Temporarily ignore visibility updates for the given duration.
+  // Used to prevent visibility detection from interfering with programmatic scrolls.
+  void ignoreUpdatesFor(Duration duration) {
+    _ignoreVisibilityUpdates = true;
+    _ignoreTimer?.cancel();
+    _ignoreTimer = Timer(duration, () {
+      _ignoreVisibilityUpdates = false;
+    });
+  }
+
+  void dispose() {
+    _ignoreTimer?.cancel();
+    _ignoreTimer = null;
   }
 
   int? _findLowestVisibleIndex() {
@@ -52,6 +79,12 @@ class SectionVisibilityState {
     return (int index) {
       // Optimistic update: activate tab immediately for instant UI feedback
       activeIndex.value = index;
+
+      // Ignore visibility updates during scroll animation + buffer to prevent
+      // visibility detection from switching tabs back during the scroll
+      controller.ignoreUpdatesFor(
+        duration + const Duration(milliseconds: 100), // 100ms buffer after scroll completes
+      );
 
       // Scroll to the section
       final key = sectionKeys[index];
