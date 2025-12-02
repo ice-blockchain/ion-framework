@@ -151,7 +151,9 @@ class CustomExportParamsProvider(
             mkdirs()
         }
 
-        val exportVideo = ExportParams.Builder(VideoResolution.Original)
+        // We cannot use VideoResolution.Original or VideoResolution.UHD cause it causes an
+        // unsupported size error on low level devices which does not support 4K video processing
+        val exportVideo = ExportParams.Builder()
             .effects(effects)
             .fileName("export_video")
             .videoRangeList(videoRangeList)
