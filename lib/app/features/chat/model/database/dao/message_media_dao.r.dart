@@ -72,6 +72,12 @@ class MessageMediaDao extends DatabaseAccessor<ChatDatabase> with _$MessageMedia
     );
   }
 
+  Future<EventReference?> getEventReferenceById(int id) async {
+    final record =
+        await (select(messageMediaTable)..where((t) => t.id.equals(id))).getSingleOrNull();
+    return record?.messageEventReference;
+  }
+
   Future<void> cancel(int id) async {
     await (delete(messageMediaTable)..where((t) => t.id.equals(id))).go();
   }
