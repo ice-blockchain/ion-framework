@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -19,13 +21,13 @@ class PostToken extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokenInfo = ref.watch(tokenMarketInfoProvider(eventReference.masterPubkey));
-    final isPostHasToken = tokenInfo.valueOrNull != null;
+    final hasToken = tokenInfo.valueOrNull != null;
 
-    return isPostHasToken
+    return hasToken
         ? Container(
             constraints: BoxConstraints(minWidth: 50.0.s),
             padding: padding,
-            alignment: AlignmentDirectional.centerStart,
+            alignment: AlignmentDirectional.center,
             child: Row(
               children: [
                 Assets.svg.iconMemeMarketcap.icon(

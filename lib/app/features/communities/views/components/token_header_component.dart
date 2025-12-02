@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
@@ -39,21 +37,19 @@ class TokenHeaderComponent extends StatelessWidget {
     return Column(
       children: [
         SizedBox(height: statusBarHeight + 20.0.s),
-        if (token != null)
-          Center(
-            child: _TokenImage(
-              imageUrl: token!.imageUrl,
-            ),
+        Center(
+          child: _TokenImage(
+            imageUrl: token!.imageUrl,
           ),
+        ),
         SizedBox(height: 12.0.s),
-        if (token != null)
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0.s),
-            child: _TokenContent(
-              masterPubkey: masterPubkey,
-              token: token!,
-            ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0.s),
+          child: _TokenContent(
+            masterPubkey: masterPubkey,
+            token: token!,
           ),
+        ),
         SizedBox(height: 16.0.s),
       ],
     );
@@ -80,7 +76,7 @@ class _TokenImage extends HookWidget {
                   imageColors.first,
                 ],
               )
-            : storyBorderGradients[Random().nextInt(storyBorderGradients.length)];
+            : storyBorderGradients[random.nextInt(storyBorderGradients.length)];
       },
       [imageColors],
     );
@@ -109,7 +105,7 @@ class _TokenImage extends HookWidget {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(4),
+          padding: EdgeInsets.all(4.0.s),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12.0.s),
             child: IonNetworkImage(
