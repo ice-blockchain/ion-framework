@@ -28,7 +28,7 @@ class BuyCreatorTokenNotifier extends _$BuyCreatorTokenNotifier {
       final amount = formState.amount;
 
       if (token == null || wallet == null || amount <= 0) {
-        throw Exception('Invalid form state: token, wallet, or amount is missing');
+        throw StateError('Invalid form state: token, wallet, or amount is missing');
       }
 
       if (wallet.address == null) {
