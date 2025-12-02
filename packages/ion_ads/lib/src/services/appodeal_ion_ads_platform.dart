@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 // import 'dart:io';
 //
 // import 'package:appodeal_flutter/appodeal_flutter.dart' as ap;

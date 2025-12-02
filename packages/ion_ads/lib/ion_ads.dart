@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 library ion_ads;
 
 export 'src/config/ads_colors.dart';

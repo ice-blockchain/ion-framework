@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'dart:io';
 
 //ignore_for_file: constant_identifier_names
