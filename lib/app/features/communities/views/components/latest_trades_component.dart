@@ -13,7 +13,6 @@ class LatestTradesComponent extends StatelessWidget {
     this.maxVisible = 5,
     this.onViewAllPressed,
     this.onTapTrade,
-    this.onLoadMore,
     super.key,
   });
 
@@ -21,7 +20,6 @@ class LatestTradesComponent extends StatelessWidget {
   final int maxVisible;
   final VoidCallback? onViewAllPressed;
   final ValueChanged<LatestTrade>? onTapTrade;
-  final VoidCallback? onLoadMore;
 
   @override
   Widget build(BuildContext context) {
@@ -74,18 +72,6 @@ class LatestTradesComponent extends StatelessWidget {
                   ),
               ],
             ),
-            if (onLoadMore != null) ...[
-              SizedBox(height: 12.0.s),
-              Center(
-                child: TextButton(
-                  onPressed: onLoadMore,
-                  child: Text(
-                    'Load More',
-                    style: texts.caption.copyWith(color: colors.primaryAccent),
-                  ),
-                ),
-              ),
-            ],
           ],
         ),
       ),
