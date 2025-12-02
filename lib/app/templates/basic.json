@@ -33,7 +33,8 @@
         "lossRed": "#FF396E",
         "anakiwa": "#91D4FF",
         "shadow": "#2D62D9",
-        "profitGreen": "#00FF00"
+        "profitGreen": "#00FF00",
+        "backgroundBlue": "#0D265E"
       },
       "dark": {
         "primaryAccent": "#0166FF",
@@ -67,7 +68,8 @@
         "lossRed": "#FF396E",
         "anakiwa": "#91D4FF",
         "shadow": "#2D62D9",
-        "profitGreen": "#00FF00"
+        "profitGreen": "#00FF00",
+        "backgroundBlue": "#0D265E"
       }
     },
     "textThemes": {
