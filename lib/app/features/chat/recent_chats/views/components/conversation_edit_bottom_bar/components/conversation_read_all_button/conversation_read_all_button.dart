@@ -38,6 +38,9 @@ class ConversationReadAllButton extends ConsumerWidget {
               await (await ref.read(sendE2eeMessageStatusServiceProvider.future)).sendMessageStatus(
                 status: MessageDeliveryStatus.read,
                 messageEventMessage: conversation.latestMessage!,
+                // We don't need to verify current status when marking all conversations as read as last
+                // message can be read but previous messages can have other status
+                verifyCurrentStatus: false,
               );
             }
           }),
