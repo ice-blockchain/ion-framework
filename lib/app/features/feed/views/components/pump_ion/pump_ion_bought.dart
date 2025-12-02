@@ -14,7 +14,6 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_back
 import 'package:ion/app/features/user/pages/profile_page/components/profile_balance.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_chart.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats_data.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/user_name_tile/user_name_tile.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_hodl.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -124,9 +123,7 @@ class PumpIonBought extends HookConsumerWidget {
                           ],
                         ),
                         SizedBox(height: 16.0.s),
-                        ProfileTokenStatsInfo(
-                          data: ProfileTokenStatsData.mock(),
-                        ),
+                        const ProfileTokenStatsInfo(),
                         SizedBox(height: 10.0.s),
                         ProfileHODL(
                           // TODO: replace with actual HODL time

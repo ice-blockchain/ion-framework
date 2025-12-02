@@ -1,10 +1,18 @@
 include: package:very_good_analysis/analysis_options.yaml
 
 analyzer:
-  errors:
-    avoid_slow_async_io: ignore
   plugins:
     - custom_lint
+
+  exclude:
+    - lib/**.g.dart
+    - lib/**.freezed.dart
+    - build/**
+    - scripts/**
+    - lib/generated/**
+
+  errors:
+    invalid_annotation_target: ignore
 
 linter:
   rules:

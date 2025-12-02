@@ -8,35 +8,42 @@ part of 'community_token.f.dart';
 
 _$CommunityTokenImpl _$$CommunityTokenImplFromJson(Map<String, dynamic> json) =>
     _$CommunityTokenImpl(
-      type: json['type'] as String,
+      type: $enumDecode(_$CommunityTokenTypeEnumMap, json['type']),
       title: json['title'] as String,
       description: json['description'] as String,
-      imageUrl: json['imageUrl'] as String,
       addresses: Addresses.fromJson(json['addresses'] as Map<String, dynamic>),
       creator: Creator.fromJson(json['creator'] as Map<String, dynamic>),
       marketData: MarketData.fromJson(
         json['marketData'] as Map<String, dynamic>,
       ),
+      imageUrl: json['imageUrl'] as String?,
       createdAt: json['createdAt'] as String?,
     );
 
 Map<String, dynamic> _$$CommunityTokenImplToJson(
   _$CommunityTokenImpl instance,
 ) => <String, dynamic>{
-  'type': instance.type,
+  'type': _$CommunityTokenTypeEnumMap[instance.type]!,
   'title': instance.title,
   'description': instance.description,
-  'imageUrl': instance.imageUrl,
   'addresses': instance.addresses.toJson(),
   'creator': instance.creator.toJson(),
   'marketData': instance.marketData.toJson(),
+  if (instance.imageUrl case final value?) 'imageUrl': value,
   if (instance.createdAt case final value?) 'createdAt': value,
+};
+
+const _$CommunityTokenTypeEnumMap = {
+  CommunityTokenType.profile: 'profile',
+  CommunityTokenType.post: 'post',
+  CommunityTokenType.video: 'video',
+  CommunityTokenType.article: 'article',
 };
 
 _$CommunityTokenPatchImpl _$$CommunityTokenPatchImplFromJson(
   Map<String, dynamic> json,
 ) => _$CommunityTokenPatchImpl(
-  type: json['type'] as String?,
+  type: $enumDecodeNullable(_$CommunityTokenTypeEnumMap, json['type']),
   title: json['title'] as String?,
   description: json['description'] as String?,
   imageUrl: json['imageUrl'] as String?,
@@ -55,7 +62,8 @@ _$CommunityTokenPatchImpl _$$CommunityTokenPatchImplFromJson(
 Map<String, dynamic> _$$CommunityTokenPatchImplToJson(
   _$CommunityTokenPatchImpl instance,
 ) => <String, dynamic>{
-  if (instance.type case final value?) 'type': value,
+  if (_$CommunityTokenTypeEnumMap[instance.type] case final value?)
+    'type': value,
   if (instance.title case final value?) 'title': value,
   if (instance.description case final value?) 'description': value,
   if (instance.imageUrl case final value?) 'imageUrl': value,

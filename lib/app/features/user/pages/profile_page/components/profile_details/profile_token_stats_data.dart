@@ -7,14 +7,6 @@ class ProfileTokenStatsData {
     required this.volume,
   });
 
-  factory ProfileTokenStatsData.mock() {
-    return const ProfileTokenStatsData(
-      marketCap: '43.23M',
-      price: r'$990',
-      volume: '1.1K',
-    );
-  }
-
   final String marketCap;
   final String price;
   final String volume;

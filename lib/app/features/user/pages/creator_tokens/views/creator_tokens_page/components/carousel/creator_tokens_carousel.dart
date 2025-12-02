@@ -85,7 +85,7 @@ class _CarouselCard extends HookConsumerWidget {
                 borderRadius: BorderRadius.circular(20.0.s),
                 child: avatarUrl.isNotEmpty
                     ? Image.network(
-                        avatarUrl,
+                        avatarUrl!,
                         width: 98.0.s,
                         height: 98.0.s,
                         fit: BoxFit.cover,
