@@ -40,6 +40,7 @@ class LoginUserService {
     required AuthConfig config,
     required List<TwoFAType> twoFATypes,
     required bool localCredsOnly,
+    Future<void>? cancel,
   }) async {
     final challenge = await dataSource.loginInit(username: username, twoFATypes: twoFATypes);
 
@@ -49,11 +50,20 @@ class LoginUserService {
       username: username,
       localCredsOnly: localCredsOnly,
     );
-    final assertion = await executor.execute(
+
+    final authFuture = executor.execute(
       username: username,
       challenge: challenge,
       localCredsOnly: localCredsOnly,
     );
+    final assertion = cancel == null
+        ? await authFuture
+        : await Future.any<AssertionRequestData>([
+            authFuture,
+            cancel.then<AssertionRequestData>(
+              (_) => throw const SignInCancelException(),
+            ),
+          ]);
 
     final tokens = await dataSource.loginComplete(
       challengeIdentifier: challenge.challengeIdentifier,
