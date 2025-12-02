@@ -429,8 +429,52 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     }
   }
 
-  Future<List<String>> _getDataSourceRelays() {
-    return ref.read(rankedRelevantCurrentUserRelaysUrlsProvider.future);
+  /// Gets the data source relays to be used for fetching events.
+  /// If there are not enough relays available immediately (at least [desiredAmount]),
+  /// wait for the relays to be ranked, with a timeout.
+  ///
+  /// [desiredAmount]: The function will try to get at least this amount of relays,
+  ///   but if the timer expires first, it will return whatever is available.
+  Future<List<String>> _getDataSourceRelays({required int desiredAmount}) async {
+    final rankedRelays = ref.read(rankedRelevantCurrentUserRelaysUrlsProvider).valueOrNull;
+    if (rankedRelays != null && rankedRelays.length >= desiredAmount) {
+      return rankedRelays;
+    }
+
+    return _waitForRelaysWithTimeout(desiredAmount: desiredAmount);
+  }
+
+  Future<List<String>> _waitForRelaysWithTimeout({
+    required int desiredAmount,
+    Duration timeout = const Duration(seconds: 1),
+  }) async {
+    final completer = Completer<List<String>>();
+
+    final subscription = ref.listen(
+      rankedRelevantCurrentUserRelaysUrlsProvider,
+      (previous, next) {
+        if (!completer.isCompleted) {
+          final relays = next.valueOrNull ?? [];
+          if (relays.length >= desiredAmount) {
+            completer.complete(relays);
+          }
+        }
+      },
+    );
+
+    try {
+      return await completer.future.timeout(
+        timeout,
+        onTimeout: () async {
+          // When timed out, return what we have or wait for at least one result -
+          //  the future completes right away if provider holds some value,
+          //  if not, it waits for the underlying stream to yield something.
+          return await ref.read(rankedRelevantCurrentUserRelaysUrlsProvider.future);
+        },
+      );
+    } finally {
+      subscription.close();
+    }
   }
 
   /// Refreshes the pagination state for the given modifier.
@@ -443,7 +487,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   ///
   /// This method must be called on every request iteration.
   Future<void> _refreshModifierPagination({required FeedModifier modifier}) async {
-    final dataSourceRelays = await _getDataSourceRelays();
+    final dataSourceRelays = await _getDataSourceRelays(desiredAmount: feedType.pageSize);
 
     final interests = await _getInterestsForModifier(modifier);
 

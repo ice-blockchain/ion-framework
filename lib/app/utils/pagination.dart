@@ -10,7 +10,7 @@ abstract class PagedSource {
 /// This function selects sources from the [sources] map that have more pages to load
 /// (`hasMore` is true). It prioritizes sources with the lowest current page number.
 ///
-/// Returns a map containing entries of sources to fetch next.
+/// Returns a map containing shuffled entries of sources to fetch next.
 Map<String, PagedSource> getNextPageSources({
   required Map<String, PagedSource> sources,
   required int limit,
@@ -39,7 +39,9 @@ Map<String, PagedSource> getNextPageSources({
   }
 
   if (selected.length >= limit) {
-    return Map.fromEntries(selected.take(limit));
+    return Map.fromEntries(
+      (selected..shuffle()).take(limit),
+    );
   }
 
   if (selected.length < limit && remaining.isNotEmpty) {
@@ -51,5 +53,5 @@ Map<String, PagedSource> getNextPageSources({
     );
   }
 
-  return Map.fromEntries(selected);
+  return Map.fromEntries(selected..shuffle());
 }
