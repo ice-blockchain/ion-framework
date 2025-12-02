@@ -10,6 +10,7 @@ import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_
 import 'package:ion/app/features/chat/recent_chats/views/components/conversation_edit_bottom_bar/conversation_edit_bottom_bar.dart';
 import 'package:ion/app/features/chat/views/components/unread_messages_counter.dart';
 import 'package:ion/app/features/wallets/views/components/unseen_transactions_counter.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/main_tabs/components/components.dart';
 import 'package:ion/app/utils/main_tab.dart';
 
@@ -87,8 +88,21 @@ class MainTabNavigation extends HookWidget {
     if (state.isMainModalOpen) {
       context.pop();
     } else {
-      context.push(currentTab.mainModalLocation);
+      final location = switch (currentTab) {
+        TabItem.wallet => _getWalletModalLocation(),
+        _ => currentTab.mainModalLocation,
+      };
+      context.push(location);
     }
+  }
+
+  String _getWalletModalLocation() {
+    final currentPath = state.fullPath ?? state.matchedLocation;
+    if (currentPath.contains('/${WalletRoutes.coinDetailsPath}')) {
+      final symbolGroup = state.uri.queryParameters['symbol-group'];
+      return WalletMainModalRoute(symbolGroup: symbolGroup).location;
+    }
+    return WalletMainModalRoute().location;
   }
 
   void _navigateToTab(BuildContext context, TabItem tabItem, {required bool initialLocation}) {
