@@ -93,7 +93,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       backgroundColor: context.theme.appColors.secondaryBackground,
       tabs: TokenizedCommunityTabType.values,
       sectionKeys: sectionKeys,
-      externalActiveIndex: visibilityState.activeIndex,
+      activeIndex: visibilityState.activeIndex.value,
       onTabTapped: scrollToSection,
       expandedHeaderHeight: _expandedHeaderHeight,
       expandedHeader: TokenHeaderComponent(

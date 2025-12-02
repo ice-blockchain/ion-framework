@@ -28,9 +28,9 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
     required this.sectionsBuilder,
     required this.collapsedTitle,
     required this.actions,
+    required this.activeIndex,
     this.showBackButton = true,
     this.backgroundColor,
-    this.externalActiveIndex,
     this.onTabTapped,
     this.floatingActionButton,
     super.key,
@@ -46,19 +46,13 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
   final List<Widget> actions;
   final Color? backgroundColor;
   final Widget? floatingActionButton;
+  final int activeIndex;
 
-  /// External active tab controller. If null, layout manages its own state.
-  final ValueNotifier<int>? externalActiveIndex;
-
-  /// Optional callback when a tab is tapped manually.
-  /// Used for optimistic tab updates (update immediately, not wait for scroll).
   final ValueChanged<int>? onTabTapped;
 
   @override
   Widget build(BuildContext context) {
     final scrollController = useScrollController();
-    final internalActiveIndex = useState(0);
-    final activeIndex = externalActiveIndex ?? internalActiveIndex;
     final collapseProgress = useState<double>(0);
 
     useEffect(

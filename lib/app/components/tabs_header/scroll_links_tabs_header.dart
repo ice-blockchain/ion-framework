@@ -16,29 +16,24 @@ class ScrollLinksTabsHeader extends StatelessWidget {
   });
 
   final List<TabType> tabs;
-  final ValueNotifier<int> activeIndex;
+  final int activeIndex;
   final ValueChanged<int>? onTabTapped;
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: activeIndex,
-      builder: (context, currentIndex, _) {
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.symmetric(horizontal: 6.0.s),
-          child: Row(
-            children: List.generate(tabs.length, (index) {
-              final isActive = index == currentIndex;
-              return _ScrollLinkTab(
-                tabType: tabs[index],
-                isActive: isActive,
-                onTap: () => onTabTapped?.call(index),
-              );
-            }),
-          ),
-        );
-      },
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: EdgeInsets.symmetric(horizontal: 6.0.s),
+      child: Row(
+        children: List.generate(tabs.length, (index) {
+          final isActive = index == activeIndex;
+          return _ScrollLinkTab(
+            tabType: tabs[index],
+            isActive: isActive,
+            onTap: () => onTabTapped?.call(index),
+          );
+        }),
+      ),
     );
   }
 }
