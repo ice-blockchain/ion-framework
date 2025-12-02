@@ -48,12 +48,7 @@ class NetworkClient {
     Object? data,
     Map<String, String>? queryParameters,
     Map<String, String>? headers,
-    int redirectCount = 0,
   }) async {
-    if (redirectCount > 5) {
-      throw Exception('Too many redirects');
-    }
-
     final response = await _client.request<T>(
       path,
       data: data,
@@ -64,57 +59,6 @@ class NetworkClient {
         headers: _addAuthorizationHeader(headers),
       ),
     );
-
-    if (response.statusCode != null &&
-        (response.statusCode! >= 300 && response.statusCode! < 400)) {
-      final location = response.headers?['location'];
-      if (location != null) {
-        final uri = Uri.parse(location);
-
-        // If the redirect is to the same host, we can reuse the client
-        if (!uri.hasScheme || (uri.host == _client.host && uri.port == _client.port)) {
-          return _request<T>(
-            uri.path,
-            method: method,
-            data: data,
-            queryParameters: uri.queryParameters.isNotEmpty ? uri.queryParameters : queryParameters,
-            headers: headers,
-            redirectCount: redirectCount + 1,
-          );
-        } else {
-          // If the redirect is to a different host, we need a new client
-          // For now, we'll just throw an error as we don't want to create
-          // arbitrary clients without proper lifecycle management,
-          // but for the specific case of 301 to same domain (just http->https or similar)
-          // we might want to handle it.
-
-          // However, the user's issue is likely a path redirect on the same host
-          // or a protocol upgrade.
-
-          // Let's implement a temporary client for external redirects to be robust
-          final tempClient = Http2Client(uri.host, port: uri.port, scheme: uri.scheme);
-          try {
-            final tempResponse = await tempClient.request<T>(
-              uri.path,
-              data: data,
-              queryParameters: uri.queryParameters,
-              options: Http2RequestOptions(
-                method: method,
-                timeout: _defaultTimeout,
-                headers: _addAuthorizationHeader(headers),
-              ),
-            );
-
-            if (tempResponse.statusCode != 200) {
-              throw Exception('Request failed with status ${tempResponse.statusCode}: $location');
-            }
-            return tempResponse.data as T;
-          } finally {
-            await tempClient.dispose();
-          }
-        }
-      }
-    }
 
     if (response.statusCode != 200) {
       //TODO: add custom exceptions with codes

@@ -19,23 +19,18 @@ Stream<CommunityToken?> tokenMarketInfo(Ref ref, String masterPubkey) async* {
       .firstOrNull;
   yield currentToken;
 
-  return;
-
   // 2. Subscribe to real-time updates
   final subscription = await client.communityTokens.subscribeToTokenInfo([masterPubkey]);
 
   try {
-    await for (final patches in subscription.stream) {
-      for (final patch in patches) {
-        //TODO: remove this when we integrate token info endpoint in BE
-        // if (patch.addresses?.ionConnect == masterPubkey) {
-        if (currentToken == null) {
-          yield patch as CommunityToken;
-        } else {
-          final patchedToken = currentToken.merge(patch);
-          yield patchedToken;
-        }
-        // }
+    await for (final patch in subscription.stream) {
+      //TODO: remove this when we integrate token info endpoint in BE
+      // if (patch.addresses?.ionConnect == masterPubkey) {
+      if (currentToken == null) {
+        yield patch as CommunityToken;
+      } else {
+        final patchedToken = currentToken.merge(patch);
+        yield patchedToken;
       }
     }
   } catch (e, stackTrace) {
