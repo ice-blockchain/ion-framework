@@ -64,7 +64,7 @@ class _ScrollLinkTab extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 10.0.s),
         decoration: BoxDecoration(
-          border: Border(
+          border: BorderDirectional(
             bottom: BorderSide(
               color: isActive ? activeColor : Colors.transparent,
               width: 2.s,
