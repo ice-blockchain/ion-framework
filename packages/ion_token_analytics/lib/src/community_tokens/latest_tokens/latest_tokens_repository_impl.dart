@@ -18,7 +18,7 @@ class LatestTokensRepositoryImpl implements LatestTokensRepository {
     int offset = 0,
   }) async {
     final response = await _client.get<List<dynamic>>(
-      '/community-tokens/latest',
+      '/v1/community-tokens/latest',
       queryParameters: {
         'limit': limit,
         'offset': offset,
@@ -35,26 +35,30 @@ class LatestTokensRepositoryImpl implements LatestTokensRepository {
   }
 
   @override
-  Future<NetworkSubscription<CommunityTokenBase>> subscribeToLatestTokens({
+  Future<NetworkSubscription<List<CommunityTokenBase>>> subscribeToLatestTokens({
     String? keyword,
     String? type,
   }) async {
-    final subscription = await _client.subscribe<Map<String, dynamic>>(
-      '/community-tokens/latest',
+    final subscription = await _client.subscribeSse<List<dynamic>>(
+      '/v1sse/community-tokens/latest',
       queryParameters: {
         if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
         if (type != null) 'type': type,
       },
     );
 
-    final stream = subscription.stream.map<CommunityTokenBase>((json) {
-      try {
-        return CommunityToken.fromJson(json);
-      } catch (_) {
-        return CommunityTokenPatch.fromJson(json);
+    final stream = subscription.stream.map<List<CommunityTokenBase>>((jsons) {
+      final items = <CommunityTokenBase>[];
+      for (final json in jsons) {
+        try {
+          items.add(CommunityToken.fromJson(json as Map<String, dynamic>));
+        } catch (_) {
+          items.add(CommunityTokenPatch.fromJson(json as Map<String, dynamic>));
+        }
       }
+      return items;
     });
 
-    return NetworkSubscription<CommunityTokenBase>(stream: stream, close: subscription.close);
+    return NetworkSubscription<List<CommunityTokenBase>>(stream: stream, close: subscription.close);
   }
 }

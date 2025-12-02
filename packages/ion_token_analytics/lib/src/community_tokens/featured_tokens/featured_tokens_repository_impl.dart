@@ -10,12 +10,9 @@ class FeaturedTokensRepositoryImpl implements FeaturedTokensRepository {
   final NetworkClient _client;
 
   @override
-  Future<NetworkSubscription<List<CommunityToken>>> subscribeToFeaturedTokens({
-    String? type,
-  }) async {
-    final subscription = await _client.subscribe<List<dynamic>>(
-      '/community-tokens/featured',
-      queryParameters: type != null ? {'type': type} : null,
+  Future<NetworkSubscription<List<CommunityToken>>> subscribeToFeaturedTokens() async {
+    final subscription = await _client.subscribeSse<List<dynamic>>(
+      '/v1sse/community-tokens/featured',
     );
 
     final stream = subscription.stream.map(

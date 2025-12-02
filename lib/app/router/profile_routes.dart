@@ -342,6 +342,15 @@ class FullscreenMediaRoute extends BaseRouteData with _$FullscreenMediaRoute {
   final String? framedEventReference;
 }
 
+class CreatorTokensRoute extends BaseRouteData with _$CreatorTokensRoute {
+  CreatorTokensRoute({required this.externalAddress})
+      : super(
+          child: CreatorTokensPage(externalAddress: externalAddress),
+        );
+
+  final String externalAddress;
+}
+
 class TokenizedCommunityRoute extends BaseRouteData with _$TokenizedCommunityRoute {
   TokenizedCommunityRoute({required this.externalAddress})
       : super(
@@ -354,12 +363,12 @@ class TokenizedCommunityRoute extends BaseRouteData with _$TokenizedCommunityRou
 }
 
 class CreatorTokensRoute extends BaseRouteData with _$CreatorTokensRoute {
-  CreatorTokensRoute({required this.masterPubkey})
+  CreatorTokensRoute({required this.externalAddress})
       : super(
-          child: CreatorTokensPage(masterPubkey: masterPubkey),
+          child: CreatorTokensPage(externalAddress: externalAddress),
         );
 
-  final String masterPubkey;
+  final String externalAddress;
 }
 
 class HoldersRoute extends BaseRouteData with _$HoldersRoute {

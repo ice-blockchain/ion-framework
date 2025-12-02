@@ -12,10 +12,14 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
 
   @override
   Future<ViewingSession> createViewingSession(TokenCategoryType type) async {
-    final response = await _client.post<Map<String, dynamic>>(
-      '/community-tokens/${type.value}/viewing-sessions',
-    );
-    return ViewingSession.fromJson(response);
+    try {
+      final response = await _client.post<Map<String, dynamic>>(
+        '/v1/community-tokens/${type.value}/viewing-sessions',
+      );
+      return ViewingSession.fromJson(response);
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override
@@ -27,7 +31,7 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
     int offset = 0,
   }) async {
     final response = await _client.get<List<dynamic>>(
-      '/community-tokens/${type.value}/viewing-sessions/$sessionId',
+      '/v1/community-tokens/${type.value}/viewing-sessions/$sessionId',
       queryParameters: {
         'limit': limit,
         'offset': offset,
@@ -43,23 +47,27 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
   }
 
   @override
-  Future<NetworkSubscription<CommunityTokenBase>> subscribeToRealtimeUpdates({
+  Future<NetworkSubscription<List<CommunityTokenBase>>> subscribeToRealtimeUpdates({
     required String sessionId,
     required TokenCategoryType type,
   }) async {
-    final subscription = await _client.subscribe<Map<String, dynamic>>(
-      '/community-tokens/${type.value}',
+    final subscription = await _client.subscribeSse<List<dynamic>>(
+      '/v1sse/community-tokens/${type.value}',
       queryParameters: {'viewingSessionId': sessionId},
     );
 
-    final stream = subscription.stream.map<CommunityTokenBase>((json) {
-      try {
-        return CommunityToken.fromJson(json);
-      } catch (_) {
-        return CommunityTokenPatch.fromJson(json);
+    final stream = subscription.stream.map<List<CommunityTokenBase>>((jsons) {
+      final items = <CommunityTokenBase>[];
+      for (final json in jsons) {
+        try {
+          items.add(CommunityToken.fromJson(json as Map<String, dynamic>));
+        } catch (_) {
+          items.add(CommunityTokenPatch.fromJson(json as Map<String, dynamic>));
+        }
       }
+      return items;
     });
 
-    return NetworkSubscription<CommunityTokenBase>(stream: stream, close: subscription.close);
+    return NetworkSubscription<List<CommunityTokenBase>>(stream: stream, close: subscription.close);
   }
 }

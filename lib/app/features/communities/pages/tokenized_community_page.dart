@@ -110,34 +110,34 @@ class TokenizedCommunityPage extends HookWidget {
 }
 
 class _ChartsTabView extends StatelessWidget {
-  const _ChartsTabView({required this.masterPubkey});
+  const _ChartsTabView({required this.externalAddress});
 
-  final String masterPubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(child: YourPositionCard(masterPubkey: masterPubkey)),
+        SliverToBoxAdapter(child: YourPositionCard(externalAddress: externalAddress)),
         // TODO: remove, just for enterign global categories page
         SliverToBoxAdapter(
           child: Padding(
             padding: EdgeInsets.all(16.0.s),
             child: TextButton(
               onPressed: () {
-                CreatorTokensRoute(masterPubkey: masterPubkey).push<void>(context);
+                CreatorTokensRoute(externalAddress: externalAddress).push<void>(context);
               },
               child: const Text('View Global Categories'),
             ),
           ),
         ),
-        SliverToBoxAdapter(child: _TokenChart(masterPubkey: masterPubkey)),
+        SliverToBoxAdapter(child: _TokenChart(externalAddress: externalAddress)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
-        SliverToBoxAdapter(child: _TokenStats(masterPubkey: masterPubkey)),
+        SliverToBoxAdapter(child: _TokenStats(externalAddress: externalAddress)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
-        SliverToBoxAdapter(child: TopHolders(masterPubkey: masterPubkey)),
+        SliverToBoxAdapter(child: TopHolders(masterPubkey: externalAddress)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
-        SliverToBoxAdapter(child: _LatestTrades(masterPubkey: masterPubkey)),
+        SliverToBoxAdapter(child: _LatestTrades(externalAddress: externalAddress)),
         SliverToBoxAdapter(child: HorizontalSeparator(height: 4.0.s)),
         const SliverToBoxAdapter(
           child: CommentsSectionCompact(commentCount: 10),
@@ -166,13 +166,13 @@ class _TokenExpandedHeader extends ConsumerWidget {
 }
 
 class _TokenChart extends HookConsumerWidget {
-  const _TokenChart({required this.masterPubkey});
+  const _TokenChart({required this.externalAddress});
 
-  final String masterPubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(masterPubkey));
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress));
     final token = tokenInfo.valueOrNull;
 
     // If token info is not yet available, render nothing (unchanged behaviour).
@@ -183,7 +183,7 @@ class _TokenChart extends HookConsumerWidget {
     final price = Decimal.parse(token.marketData.priceUSD.toStringAsFixed(4));
 
     return ChartComponent(
-      masterPubkey: masterPubkey,
+      masterPubkey: externalAddress,
       price: price,
       label: token.title,
     );
@@ -191,14 +191,14 @@ class _TokenChart extends HookConsumerWidget {
 }
 
 class _TokenStats extends HookConsumerWidget {
-  const _TokenStats({required this.masterPubkey});
+  const _TokenStats({required this.externalAddress});
 
-  final String masterPubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTimeframe = useState(0);
-    final tradingStatsAsync = ref.watch(tokenTradingStatsProvider(masterPubkey));
+    final tradingStatsAsync = ref.watch(tokenTradingStatsProvider(externalAddress));
 
     return tradingStatsAsync.when(
       data: (tradingStats) {
@@ -240,15 +240,15 @@ class _TokenStats extends HookConsumerWidget {
 }
 
 class _LatestTrades extends HookConsumerWidget {
-  const _LatestTrades({required this.masterPubkey});
+  const _LatestTrades({required this.externalAddress});
 
   static const int limit = 5;
 
-  final String masterPubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tradesAsync = ref.watch(tokenLatestTradesProvider(masterPubkey, limit: limit));
+    final tradesAsync = ref.watch(tokenLatestTradesProvider(externalAddress, limit: limit));
 
     return tradesAsync.when(
       data: (trades) {

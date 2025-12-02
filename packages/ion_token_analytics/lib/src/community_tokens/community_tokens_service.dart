@@ -2,11 +2,11 @@
 
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository.dart';
@@ -54,9 +54,9 @@ class IonCommunityTokensService {
       tradingStatsRepository: TradingStatsRepositoryImpl(networkClient),
       topHoldersRepository: TopHoldersRepositoryImpl(networkClient),
       latestTradesRepository: LatestTradesRepositoryImpl(networkClient),
-      featuredTokensRepository: FeaturedTokensRepositoryMock(),
-      latestTokensRepository: LatestTokensRepositoryMock(),
-      categoryTokensRepository: CategoryTokensRepositoryMock(),
+      featuredTokensRepository: FeaturedTokensRepositoryImpl(networkClient),
+      latestTokensRepository: LatestTokensRepositoryImpl(networkClient),
+      categoryTokensRepository: CategoryTokensRepositoryImpl(networkClient),
     );
     return service;
   }
@@ -93,21 +93,17 @@ class IonCommunityTokensService {
   }
 
   Future<List<LatestTrade>> fetchLatestTrades({
-    required String ionConnectAddress,
+    required String externalAddress,
     int limit = 10,
     int offset = 0,
   }) {
-    return _latestTradesRepository.fetchLatestTrades(
-      ionConnectAddress,
-      limit: limit,
-      offset: offset,
-    );
+    return _latestTradesRepository.fetchLatestTrades(externalAddress, limit: limit, offset: offset);
   }
 
   Future<NetworkSubscription<LatestTradeBase>> subscribeToLatestTrades({
-    required String ionConnectAddress,
+    required String externalAddress,
   }) {
-    return _latestTradesRepository.subscribeToLatestTrades(ionConnectAddress);
+    return _latestTradesRepository.subscribeToLatestTrades(externalAddress);
   }
 
   Future<NetworkSubscription<List<CommunityToken>>> subscribeToFeaturedTokens() {
@@ -128,7 +124,7 @@ class IonCommunityTokensService {
     );
   }
 
-  Future<NetworkSubscription<CommunityTokenBase>> subscribeToLatestTokens({
+  Future<NetworkSubscription<List<CommunityTokenBase>>> subscribeToLatestTokens({
     String? keyword,
     String? type,
   }) {
@@ -155,7 +151,7 @@ class IonCommunityTokensService {
     );
   }
 
-  Future<NetworkSubscription<CommunityTokenBase>> subscribeToCategoryTokens({
+  Future<NetworkSubscription<List<CommunityTokenBase>>> subscribeToCategoryTokens({
     required String sessionId,
     required TokenCategoryType type,
   }) {

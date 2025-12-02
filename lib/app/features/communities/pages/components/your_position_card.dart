@@ -15,14 +15,14 @@ import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class YourPositionCard extends HookConsumerWidget {
-  const YourPositionCard({required this.masterPubkey, super.key});
+  const YourPositionCard({required this.externalAddress, super.key});
 
-  final String masterPubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final position = ref.watch(
-      tokenMarketInfoProvider(masterPubkey)
+      tokenMarketInfoProvider(externalAddress)
           .select((value) => value.valueOrNull?.marketData.position),
     );
 
@@ -31,7 +31,7 @@ class YourPositionCard extends HookConsumerWidget {
     }
 
     final avatarUrl = ref.watch(
-      userMetadataProvider(masterPubkey).select((value) => value.valueOrNull?.data.avatarUrl),
+      userMetadataProvider(externalAddress).select((value) => value.valueOrNull?.data.avatarUrl),
     );
 
     final avatarColors = useAvatarColors(avatarUrl);
@@ -50,7 +50,7 @@ class YourPositionCard extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ProfileAvatar(
-                    pubkey: masterPubkey,
+                    pubkey: externalAddress,
                     profileMode: ProfileMode.dark,
                     size: 49.s,
                   ),

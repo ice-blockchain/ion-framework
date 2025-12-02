@@ -331,7 +331,7 @@ class Http2Client {
               final eventString = buffer.substring(0, index);
               buffer = buffer.substring(index + 2);
 
-              _processSseEvent<T>(eventString, controller);
+              _processSseEvent<T>(eventString, controller, path);
             }
           } else if (message is HeadersStreamMessage) {
             // Check status code?
@@ -389,7 +389,7 @@ class Http2Client {
     }
   }
 
-  void _processSseEvent<T>(String eventString, StreamController<T> controller) {
+  void _processSseEvent<T>(String eventString, StreamController<T> controller, String path) {
     final lines = eventString.split('\n');
     String? data;
     // String? event; // We could use this if we wanted to support named events
@@ -406,6 +406,7 @@ class Http2Client {
       // Handle 'event:', 'id:', 'retry:' if needed
     }
 
+    print(path);
     if (data != null) {
       if (T == String) {
         controller.add(data as T);
