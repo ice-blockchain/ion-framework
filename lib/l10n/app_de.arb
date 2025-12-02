@@ -1048,6 +1048,7 @@
   "who_can_reply_settings_verified_accounts": "Verifizierte Konten",
   "write_a_message": "Nachricht schreiben …",
   "your_position_card_title": "Deine Position",
+<<<<<<< HEAD
   "errorGettingSwapQuote": "Fehler beim Abrufen des Wechselkurses",
   "wallet_swap_confirmation_missing_coin_or_network_data": "Münze oder Netzwerk fehlen",
   "error_swap_80000": "Repeated request",
@@ -1093,5 +1094,11 @@
   "error_swap_unsupported_currency": "The specified currency is not supported for input or output.",
   "error_swap_unsupported_execution_type": "The execution type used is not supported for fee estimation or execution.",
   "error_swap_unsupported_route": "The swap route combination is not supported.",
-  "error_swap_user_recipient_mismatch": "User and recipient addresses must match for this type of swap."
+  "error_swap_user_recipient_mismatch": "User and recipient addresses must match for this type of swap.",
+  "token_stats_market_cap_title": "Market Cap",
+  "token_stats_market_cap_description": "The market capitalization in the script is the total market value of the cryptocurrency. It is calculated by multiplying the total supply of coins or tokens by the current market price of each individual coin or token. Market capitalization is a key metric used to measure the size and value of a cryptocurrency and used by investors to assess the attractiveness of a particular coin or token. It is also a useful tool for comparing different cryptocurrencies and determining which ones are the most valuable.",
+  "token_stats_volume_title": "Volume",
+  "token_stats_volume_description": "Volume refers to the total amount of the token that has been traded (bought and sold) over a specific period.\n\nA higher trading volume means there is strong activity and liquidity, making it easier to enter or exit positions. Low volume may indicate weak interest or higher price volatility due to limited buyers and sellers.",
+  "token_stats_holders_title": "Holders",
+  "token_stats_holders_description": "Holders represent the number of unique wallets that currently own the token.\n\nA rising number of holders is often a strong indicator of growing adoption, community interest, and broader distribution. While a healthy spread of ownership can contribute to long-term stability, tracking holder evolution over time can reveal increasing confidence and momentum around the project."
 }
