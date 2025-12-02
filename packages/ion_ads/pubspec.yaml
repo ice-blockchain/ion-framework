@@ -5,13 +5,14 @@ version: 0.1.0
 publish_to: none
 
 environment:
-  sdk: ">=3.5.4 <4.0.0"
-  flutter: ">=3.22.0"
+  sdk: ">=2.17.0 <4.0.0"
+  flutter: ">=1.20.0"
 
 dependencies:
+  collection: ^1.18.0
   flutter:
     sdk: flutter
-  collection: ^1.18.0
+  flutter_svg: ^2.0.16
   meta: ^1.15.0
 
 dev_dependencies:
@@ -22,5 +23,27 @@ dev_dependencies:
   lints: ^5.0.0
 
 flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.appodeal.appodeal_flutter
+        pluginClass: IonAppodealFlutterPlugin
+      ios:
+        pluginClass: IonAppodealFlutterPlugin
+
   uses-material-design: true
+  fonts:
+    - family: NotoSans
+      fonts:
+        - asset: assets/fonts/NotoSans-Light.ttf
+        - asset: assets/fonts/NotoSans-Medium.ttf
+        - asset: assets/fonts/NotoSans-Regular.ttf
+        - asset: assets/fonts/NotoSans-SemiBold.ttf
+  assets:
+    - assets/images/
+
+
+false_secrets:
+  - /example/android/app/google-services.json
+  - /example/ios/Runner/GoogleService-Info.plist
 
