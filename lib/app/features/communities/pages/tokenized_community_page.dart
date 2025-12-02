@@ -59,19 +59,22 @@ enum TokenizedCommunityTabType implements TabType {
   }
 }
 
-class TokenizedCommunityPage extends HookWidget {
+class TokenizedCommunityPage extends HookConsumerWidget {
   const TokenizedCommunityPage({required this.masterPubkey, super.key});
 
   final String masterPubkey;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(masterPubkey));
+    final token = tokenInfo.valueOrNull;
+
     return Scaffold(
       backgroundColor: context.theme.appColors.secondaryBackground,
       extendBodyBehindAppBar: true,
       body: CollapsingHeaderTabsLayout(
         backgroundColor: context.theme.appColors.secondaryBackground,
-        avatarUrl: null,
+        imageUrl: token?.imageUrl,
         tabs: TokenizedCommunityTabType.values,
         applySafeAreaBottomPadding: false,
         headerActionsBuilder: (menuCloseSignal) => Row(
@@ -80,15 +83,29 @@ class TokenizedCommunityPage extends HookWidget {
             ProfileAction(
               profileMode: ProfileMode.dark,
               assetName: Assets.svg.iconBookmarks,
-              onPressed: () {},
+              onPressed: () {
+                // TODO: implement bookmark action for post tokenized community
+              },
             ),
             SizedBox(width: 12.0.s),
             ProfileAction(
               profileMode: ProfileMode.dark,
               assetName: Assets.svg.iconMoreStoriesshadow,
-              onPressed: () {},
+              onPressed: () {
+                // TODO: implement more action for post tokenized community
+              },
             ),
           ],
+        ),
+        collapsedHeaderBuilder: (opacity) => Header(
+          pubkey: masterPubkey,
+          opacity: opacity,
+          showBackButton: true,
+          textColor: context.theme.appColors.secondaryBackground,
+        ),
+        expandedHeader: TokenHeaderComponent(
+          token: token,
+          masterPubkey: masterPubkey,
         ),
         tabBarViews: [
           _ChartsTabView(masterPubkey: masterPubkey),
@@ -96,13 +113,6 @@ class TokenizedCommunityPage extends HookWidget {
           _LatestTrades(masterPubkey: masterPubkey),
           const CommentsSectionCompact(commentCount: 10),
         ],
-        collapsedHeaderBuilder: (opacity) => Header(
-          pubkey: masterPubkey,
-          opacity: opacity,
-          showBackButton: true,
-          textColor: context.theme.appColors.secondaryBackground,
-        ),
-        expandedHeader: _TokenExpandedHeader(masterPubkey: masterPubkey),
       ),
       floatingActionButton: FloatingTradeIsland(pubkey: masterPubkey),
     );
@@ -144,23 +154,6 @@ class _ChartsTabView extends StatelessWidget {
         ),
         SliverToBoxAdapter(child: SizedBox(height: 120.0.s)),
       ],
-    );
-  }
-}
-
-class _TokenExpandedHeader extends ConsumerWidget {
-  const _TokenExpandedHeader({required this.masterPubkey});
-
-  final String masterPubkey;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(masterPubkey));
-    final token = tokenInfo.valueOrNull;
-
-    return TokenHeaderComponent(
-      token: token,
-      masterPubkey: masterPubkey,
     );
   }
 }

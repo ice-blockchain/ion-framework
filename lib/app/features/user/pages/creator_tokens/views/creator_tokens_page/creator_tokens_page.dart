@@ -113,7 +113,7 @@ class CreatorTokensPage extends HookConsumerWidget {
 
     // Get avatar URL from selected token's creator
     final avatarUrl = selectedToken.value?.creator.avatar ?? '';
-    final avatarColors = useAvatarColors(avatarUrl);
+    final avatarColors = useImageColors(avatarUrl);
 
     final backgroundColor = context.theme.appColors.secondaryBackground;
 

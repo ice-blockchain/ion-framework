@@ -54,7 +54,7 @@ class _CarouselCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final avatarUrl = token.creator.avatar;
-    final colors = useAvatarColors(avatarUrl);
+    final colors = useImageColors(avatarUrl);
 
     return Container(
       decoration: BoxDecoration(

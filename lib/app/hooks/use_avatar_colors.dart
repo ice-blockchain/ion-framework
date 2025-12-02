@@ -14,7 +14,7 @@ final Map<String, AvatarColors> _avatarColorsCache = {};
 
 /// Hook to extract two colors from the user's avatar using PaletteGenerator
 /// Returns null colors while loading, then returns extracted colors
-AvatarColors? useAvatarColors(String? avatarUrl) {
+AvatarColors? useImageColors(String? avatarUrl) {
   final paletteState = useState<PaletteGenerator?>(null);
   final isLoadingState = useState<bool>(false);
 

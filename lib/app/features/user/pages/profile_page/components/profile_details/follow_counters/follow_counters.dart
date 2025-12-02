@@ -2,11 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/dividers/gradient_vertical_divider.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/follow_type.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/gradient_vertical_devider.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters_cell.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user/providers/followers_count_provider.r.dart';
@@ -44,7 +44,7 @@ class FollowCounters extends ConsumerWidget {
     if (profileMode == ProfileMode.dark) {
       return Padding(
         padding: EdgeInsetsDirectional.symmetric(horizontal: 12.0.s),
-        child: const GradientVerticalDevider(),
+        child: const GradientVerticalDivider(),
       );
     }
     return VerticalDivider(

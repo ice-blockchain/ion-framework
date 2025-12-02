@@ -54,12 +54,16 @@ class ProfileTokenStatsInfo extends StatelessWidget {
 class ProfileTokenStats extends StatelessWidget {
   const ProfileTokenStats({
     required this.masterPubkey,
-    required this.data,
+    this.data,
+    this.shouldShowBuyButton = true,
+    this.mainAxisAlignment = MainAxisAlignment.spaceBetween,
     super.key,
   });
 
   final ProfileTokenStatsData? data;
   final String masterPubkey;
+  final bool shouldShowBuyButton;
+  final MainAxisAlignment mainAxisAlignment;
 
   @override
   Widget build(BuildContext context) {
@@ -75,11 +79,11 @@ class ProfileTokenStats extends StatelessWidget {
     }
 
     void onStatItemTap() {
-      TokenizedCommunityRoute(masterPubkey: masterPubkey).go(context);
+      TokenizedCommunityRoute(masterPubkey: masterPubkey).push<void>(context);
     }
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: mainAxisAlignment,
       children: [
         _StatItem(
           icon: Assets.svg.iconMemeMarketcap,
@@ -96,7 +100,7 @@ class ProfileTokenStats extends StatelessWidget {
           text: data!.volume,
           onTap: onStatItemTap,
         ),
-        BuyButton(masterPubkey: masterPubkey),
+        if (shouldShowBuyButton) BuyButton(masterPubkey: masterPubkey),
       ],
     );
   }
@@ -200,7 +204,7 @@ class BuyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => TokenizedCommunityRoute(masterPubkey: masterPubkey).go(context),
+      onTap: () => TokenizedCommunityRoute(masterPubkey: masterPubkey).push<void>(context),
       child: Container(
         height: height.s,
         padding: EdgeInsets.symmetric(horizontal: 22.0.s),

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/user/user_about/user_about.dart';
@@ -61,14 +62,8 @@ class ProfileUserInfo extends ConsumerWidget {
         child: Column(
           children: [
             info,
-            Container(
+            GradientHorizontalDivider(
               margin: EdgeInsetsDirectional.symmetric(vertical: 12.5.s),
-              height: 0.5,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0x00ffffff), Color(0xffe1eaf8), Color(0x00ffffff)],
-                ),
-              ),
             ),
             ProfileTokenStats(masterPubkey: pubkey, data: statsData),
           ],

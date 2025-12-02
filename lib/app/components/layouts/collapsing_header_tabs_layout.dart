@@ -19,7 +19,7 @@ import 'package:ion/generated/assets.gen.dart';
 
 class CollapsingHeaderTabsLayout extends HookWidget {
   const CollapsingHeaderTabsLayout({
-    required this.avatarUrl,
+    required this.imageUrl,
     required this.tabs,
     required this.expandedHeader,
     required this.tabBarViews,
@@ -29,10 +29,11 @@ class CollapsingHeaderTabsLayout extends HookWidget {
     this.showBackButton = true,
     this.backgroundColor,
     this.applySafeAreaBottomPadding = true,
+    this.onBackButtonPressed,
     super.key,
   });
 
-  final String? avatarUrl;
+  final String? imageUrl;
   final bool showBackButton;
   final bool newUiMode;
   final Widget expandedHeader;
@@ -42,6 +43,7 @@ class CollapsingHeaderTabsLayout extends HookWidget {
   final Widget Function(OverlayMenuCloseSignal menuCloseSignal) headerActionsBuilder;
   final Color? backgroundColor;
   final bool applySafeAreaBottomPadding;
+  final VoidCallback? onBackButtonPressed;
 
   double get paddingTop => 60.0.s;
 
@@ -50,7 +52,7 @@ class CollapsingHeaderTabsLayout extends HookWidget {
     final scrollController = useScrollController();
     final (:opacity) = useAnimatedOpacityOnScroll(scrollController, topOffset: paddingTop);
 
-    final avatarColors = useAvatarColors(avatarUrl);
+    final imageColors = useImageColors(imageUrl);
     final backgroundColor = this.backgroundColor ?? context.theme.appColors.secondaryBackground;
 
     final menuCloseSignal = useMemoized(OverlayMenuCloseSignal.new);
@@ -98,7 +100,7 @@ class CollapsingHeaderTabsLayout extends HookWidget {
                             if (newUiMode)
                               Positioned.fill(
                                 child: ProfileBackground(
-                                  colors: avatarColors,
+                                  colors: imageColors,
                                 ),
                               ),
                             expandedHeader,
@@ -136,7 +138,7 @@ class CollapsingHeaderTabsLayout extends HookWidget {
                 horizontalPadding: 0,
                 backgroundBuilder: newUiMode
                     ? () => ProfileBackground(
-                          colors: avatarColors,
+                          colors: imageColors,
                           disableDarkGradient: true,
                         )
                     : null,
@@ -159,7 +161,7 @@ class CollapsingHeaderTabsLayout extends HookWidget {
               top: statusBarHeight,
               start: 0,
               child: NavigationBackButton(
-                context.pop,
+                onBackButtonPressed ?? context.pop,
                 icon: backButtonIcon,
               ),
             ),

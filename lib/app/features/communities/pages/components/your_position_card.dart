@@ -34,7 +34,7 @@ class YourPositionCard extends HookConsumerWidget {
       userMetadataProvider(masterPubkey).select((value) => value.valueOrNull?.data.avatarUrl),
     );
 
-    final avatarColors = useAvatarColors(avatarUrl);
+    final avatarColors = useImageColors(avatarUrl);
 
     return Container(
       margin: EdgeInsetsDirectional.fromSTEB(16.s, 10.s, 16.s, 10.s),

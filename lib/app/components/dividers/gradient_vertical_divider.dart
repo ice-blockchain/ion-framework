@@ -3,8 +3,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:ion/app/extensions/extensions.dart';
 
-class GradientVerticalDevider extends StatelessWidget {
-  const GradientVerticalDevider({super.key});
+class GradientVerticalDivider extends StatelessWidget {
+  const GradientVerticalDivider({super.key});
 
   @override
   Widget build(BuildContext context) {

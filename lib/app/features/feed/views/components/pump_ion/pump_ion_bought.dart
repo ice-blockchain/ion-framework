@@ -39,7 +39,7 @@ class PumpIonBought extends HookConsumerWidget {
     final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
     final avatarUrl = userMetadata.valueOrNull?.data.avatarUrl;
 
-    final avatarColors = useAvatarColors(avatarUrl);
+    final avatarColors = useImageColors(avatarUrl);
 
     final gradient = useMemoized(
       () {
