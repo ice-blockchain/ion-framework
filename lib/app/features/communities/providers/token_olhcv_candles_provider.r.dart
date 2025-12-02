@@ -10,12 +10,12 @@ part 'token_olhcv_candles_provider.r.g.dart';
 @riverpod
 Stream<List<OhlcvCandle>> tokenOhlcvCandles(
   Ref ref,
-  String ionConnectAddress,
+  String externalAddress,
   String interval,
 ) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
   final subscription = await client.communityTokens.subscribeToOhlcvCandles(
-    ionConnectAddress: ionConnectAddress,
+    externalAddress: externalAddress,
     interval: interval,
   );
 

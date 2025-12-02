@@ -13,33 +13,28 @@ class TopHoldersRepositoryImpl implements TopHoldersRepository {
 
   @override
   Future<NetworkSubscription<List<TopHolderBase>>> subscribeToTopHolders(
-    String ionConnectAddress, {
+    String externalAddress, {
     required int limit,
   }) async {
-    try {
-      // Subscribe to the raw event stream
-      final subscription = await _client.subscribeSse<List<dynamic>>(
-        '/v1sse/community-tokens/$ionConnectAddress/top-holders',
-        queryParameters: {'limit': limit},
-      );
+    final subscription = await _client.subscribeSse<List<dynamic>>(
+      '/v1sse/community-tokens/$externalAddress/top-holders',
+      queryParameters: {'limit': limit},
+    );
 
-      final stream = subscription.stream.map((jsons) {
-        final list = <TopHolderBase>[];
-        for (final json in jsons) {
-          try {
-            final data = TopHolder.fromJson(json as Map<String, dynamic>);
-            list.add(data);
-          } catch (_) {
-            final patch = TopHolderPatch.fromJson(json as Map<String, dynamic>);
-            list.add(patch);
-          }
+    final stream = subscription.stream.map((jsons) {
+      final list = <TopHolderBase>[];
+      for (final json in jsons) {
+        try {
+          final data = TopHolder.fromJson(json as Map<String, dynamic>);
+          list.add(data);
+        } catch (_) {
+          final patch = TopHolderPatch.fromJson(json as Map<String, dynamic>);
+          list.add(patch);
         }
-        return list;
-      });
+      }
+      return list;
+    });
 
-      return NetworkSubscription(stream: stream, close: subscription.close);
-    } catch (e) {
-      rethrow;
-    }
+    return NetworkSubscription(stream: stream, close: subscription.close);
   }
 }

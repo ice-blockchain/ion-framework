@@ -70,26 +70,26 @@ class IonCommunityTokensService {
   }
 
   Future<NetworkSubscription<OhlcvCandle>> subscribeToOhlcvCandles({
-    required String ionConnectAddress,
+    required String externalAddress,
     required String interval,
   }) {
     return _ohlcvCandlesRepository.subscribeToOhlcvCandles(
-      ionConnectAddress: ionConnectAddress,
+      externalAddress: externalAddress,
       interval: interval,
     );
   }
 
   Future<NetworkSubscription<Map<String, TradingStats>>> subscribeToTradingStats({
-    required String ionConnectAddress,
+    required String externalAddress,
   }) {
-    return _tradingStatsRepository.subscribeToTradingStats(ionConnectAddress);
+    return _tradingStatsRepository.subscribeToTradingStats(externalAddress);
   }
 
   Future<NetworkSubscription<List<TopHolderBase>>> subscribeToTopHolders({
-    required String ionConnectAddress,
+    required String externalAddress,
     required int limit,
   }) {
-    return _topHoldersRepository.subscribeToTopHolders(ionConnectAddress, limit: limit);
+    return _topHoldersRepository.subscribeToTopHolders(externalAddress, limit: limit);
   }
 
   Future<List<LatestTrade>> fetchLatestTrades({

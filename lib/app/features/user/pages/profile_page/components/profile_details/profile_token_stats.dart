@@ -68,7 +68,13 @@ class ProfileTokenStats extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final token = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final tokenAsync = ref.watch(tokenMarketInfoProvider(externalAddress));
+
+    if (!tokenAsync.hasValue) {
+      return const SizedBox.shrink();
+    }
+
+    final token = tokenAsync.valueOrNull;
     if (token == null) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -206,7 +212,9 @@ class BuyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => TokenizedCommunityRoute(externalAddress: externalAddress).go(context),
+      onTap: () => {
+        //TODO: Buy flow
+      },
       child: Container(
         height: height.s,
         padding: EdgeInsets.symmetric(horizontal: 22.0.s),

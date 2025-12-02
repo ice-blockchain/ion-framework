@@ -10,11 +10,11 @@ part 'token_trading_stats_provider.r.g.dart';
 @riverpod
 Stream<Map<String, TradingStats>> tokenTradingStats(
   Ref ref,
-  String masterPubkey,
+  String externalAddress,
 ) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
   final subscription = await client.communityTokens.subscribeToTradingStats(
-    ionConnectAddress: masterPubkey,
+    externalAddress: externalAddress,
   );
 
   try {

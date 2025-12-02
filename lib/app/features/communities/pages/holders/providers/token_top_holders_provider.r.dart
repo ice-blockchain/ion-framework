@@ -12,12 +12,12 @@ part 'token_top_holders_provider.r.g.dart';
 class TokenTopHolders extends _$TokenTopHolders {
   @override
   Stream<List<TopHolder>> build(
-    String masterPubkey, {
+    String externalAddress, {
     required int limit,
   }) async* {
     final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
     final subscription = await client.communityTokens.subscribeToTopHolders(
-      ionConnectAddress: masterPubkey,
+      externalAddress: externalAddress,
       limit: limit,
     );
 

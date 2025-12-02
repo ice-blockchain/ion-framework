@@ -337,6 +337,8 @@ class Http2Client {
             // Check status code?
             final headers = _parseHeaders(message.headers);
             final status = headers[':status'];
+
+            print(path);
             if (status != null && status != '200') {
               controller.addError(Exception('SSE connection failed with status $status'));
             }

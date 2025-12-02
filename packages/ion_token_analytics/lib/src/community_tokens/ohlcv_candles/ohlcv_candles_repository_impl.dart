@@ -11,19 +11,22 @@ class OhlcvCandlesRepositoryImpl implements OhlcvCandlesRepository {
 
   @override
   Future<NetworkSubscription<OhlcvCandle>> subscribeToOhlcvCandles({
-    required String ionConnectAddress,
+    required String externalAddress,
     required String interval,
   }) async {
-    // Subscribe to raw stream (dynamic)
-    final subscription = await _client.subscribe<Map<String, dynamic>>(
-      '/community-tokens/$ionConnectAddress/ohlcv',
-      queryParameters: {'interval': interval},
-    );
-    final stream = subscription.stream.map((json) {
-      final data = OhlcvCandle.fromJson(json);
-      return data;
-    });
+    try {
+      final subscription = await _client.subscribeSse<Map<String, dynamic>>(
+        '/v1sse/community-tokens/$externalAddress/ohlcv',
+        queryParameters: {'interval': interval},
+      );
+      final stream = subscription.stream.map((json) {
+        final data = OhlcvCandle.fromJson(json);
+        return data;
+      });
 
-    return NetworkSubscription(stream: stream, close: subscription.close);
+      return NetworkSubscription(stream: stream, close: subscription.close);
+    } catch (e) {
+      rethrow;
+    }
   }
 }
