@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-
-import '../models/native_ad_asset.dart';
+import 'package:ion_ads/src/models/native_ad_asset.dart';
 
 class NativeStoryAd extends StatelessWidget {
-  const NativeStoryAd({super.key, required this.ad});
+  const NativeStoryAd({required this.ad, super.key});
   final IonNativeAdAsset ad;
 
   @override
