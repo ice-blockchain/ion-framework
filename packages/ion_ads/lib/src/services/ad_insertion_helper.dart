@@ -13,7 +13,7 @@ class AdInsertionHelper {
     if (contentCount <= 0 || baseInterval <= 0) return indices;
 
     final rng = Random(startOffset);
-    var next = max(1, baseInterval + rng.nextInt(randomDelta * 2 + 1) - randomDelta);
+    final next = max(1, baseInterval + rng.nextInt(randomDelta * 2 + 1) - randomDelta);
     var cursor = next;
     while (cursor < contentCount) {
       indices.add(cursor);

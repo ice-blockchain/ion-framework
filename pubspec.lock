@@ -114,14 +114,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
-  appodeal_flutter:
-    dependency: "direct main"
-    description:
-      name: appodeal_flutter
-      sha256: e252f4b52e5f035d8b0d4cc5c606c6e6d06dfc3d0104f45052d413ccd4a5fa9f
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.2"
   appsflyer_sdk:
     dependency: "direct main"
     description:

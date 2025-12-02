@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../models/native_ad_asset.dart';
+import 'package:ion_ads/src/models/native_ad_asset.dart';
 
 class NativeArticleAd extends StatelessWidget {
   const NativeArticleAd({super.key, required this.ad});
