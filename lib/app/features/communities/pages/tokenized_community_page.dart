@@ -8,6 +8,7 @@ import 'package:ion/app/components/layouts/collapsing_header_tabs_layout.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/models/trading_stats_formatted.dart';
+import 'package:ion/app/features/communities/pages/components/creator_header.dart';
 import 'package:ion/app/features/communities/pages/components/your_position_card.dart';
 import 'package:ion/app/features/communities/pages/holders/components/top_holders/top_holders.dart';
 import 'package:ion/app/features/communities/providers/token_latest_trades_provider.r.dart';
@@ -23,7 +24,6 @@ import 'package:ion/app/features/communities/views/components/latest_trades_comp
 import 'package:ion/app/features/communities/views/components/token_header_component.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/header/header.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_actions/profile_action.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -60,9 +60,9 @@ enum TokenizedCommunityTabType implements TabType {
 }
 
 class TokenizedCommunityPage extends HookWidget {
-  const TokenizedCommunityPage({required this.masterPubkey, super.key});
+  const TokenizedCommunityPage({required this.externalAddress, super.key});
 
-  final String masterPubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -91,20 +91,20 @@ class TokenizedCommunityPage extends HookWidget {
           ],
         ),
         tabBarViews: [
-          _ChartsTabView(masterPubkey: masterPubkey),
-          TopHolders(masterPubkey: masterPubkey),
-          _LatestTrades(masterPubkey: masterPubkey),
+          _ChartsTabView(masterPubkey: externalAddress),
+          TopHolders(masterPubkey: externalAddress),
+          _LatestTrades(masterPubkey: externalAddress),
           const CommentsSectionCompact(commentCount: 10),
         ],
-        collapsedHeaderBuilder: (opacity) => Header(
-          pubkey: masterPubkey,
+        collapsedHeaderBuilder: (opacity) => CreatorHeader(
+          externalAddress: externalAddress,
           opacity: opacity,
           showBackButton: true,
           textColor: context.theme.appColors.secondaryBackground,
         ),
-        expandedHeader: _TokenExpandedHeader(masterPubkey: masterPubkey),
+        expandedHeader: _TokenExpandedHeader(externalAddress: externalAddress),
       ),
-      floatingActionButton: FloatingTradeIsland(pubkey: masterPubkey),
+      floatingActionButton: FloatingTradeIsland(pubkey: externalAddress),
     );
   }
 }
@@ -149,18 +149,18 @@ class _ChartsTabView extends StatelessWidget {
 }
 
 class _TokenExpandedHeader extends ConsumerWidget {
-  const _TokenExpandedHeader({required this.masterPubkey});
+  const _TokenExpandedHeader({required this.externalAddress});
 
-  final String masterPubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(masterPubkey));
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress));
     final token = tokenInfo.valueOrNull;
 
     return TokenHeaderComponent(
       token: token,
-      masterPubkey: masterPubkey,
+      externalAddress: externalAddress,
     );
   }
 }

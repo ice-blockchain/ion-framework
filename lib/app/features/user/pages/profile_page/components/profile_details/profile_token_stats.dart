@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/communities/utils/market_data_formatter.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -56,31 +58,30 @@ class ProfileTokenStatsInfo extends StatelessWidget {
   }
 }
 
-class ProfileTokenStats extends StatelessWidget {
+class ProfileTokenStats extends ConsumerWidget {
   const ProfileTokenStats({
-    required this.masterPubkey,
-    required this.data,
+    required this.externalAddress,
     super.key,
   });
 
-  final MarketData? data;
-  final String masterPubkey;
+  final String externalAddress;
 
   @override
-  Widget build(BuildContext context) {
-    if (data == null) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final token = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    if (token == null) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const _BuyHint(),
           SizedBox(width: 8.0.s),
-          const BuyButton(masterPubkey: ''),
+          BuyButton(externalAddress: externalAddress),
         ],
       );
     }
 
     void onStatItemTap() {
-      TokenizedCommunityRoute(masterPubkey: masterPubkey).go(context);
+      TokenizedCommunityRoute(externalAddress: externalAddress).go(context);
     }
 
     return Row(
@@ -88,20 +89,20 @@ class ProfileTokenStats extends StatelessWidget {
       children: [
         _StatItem(
           icon: Assets.svg.iconMemeMarketcap,
-          text: MarketDataFormatter.formatCompactNumber(data!.marketCap),
+          text: MarketDataFormatter.formatCompactNumber(token.marketData.marketCap),
           onTap: onStatItemTap,
         ),
         _StatItem(
           icon: Assets.svg.iconMemeMarkers,
-          text: MarketDataFormatter.formatPrice(data!.priceUSD),
+          text: MarketDataFormatter.formatPrice(token.marketData.priceUSD),
           onTap: onStatItemTap,
         ),
         _StatItem(
           icon: Assets.svg.iconSearchGroups,
-          text: MarketDataFormatter.formatCompactNumber(data!.volume),
+          text: MarketDataFormatter.formatCompactNumber(token.marketData.volume),
           onTap: onStatItemTap,
         ),
-        BuyButton(masterPubkey: masterPubkey),
+        BuyButton(externalAddress: externalAddress),
       ],
     );
   }
@@ -194,18 +195,18 @@ class _BuyHint extends StatelessWidget {
 
 class BuyButton extends StatelessWidget {
   const BuyButton({
-    required this.masterPubkey,
+    required this.externalAddress,
     this.height = 23.0,
     super.key,
   });
 
-  final String masterPubkey;
+  final String externalAddress;
   final double height;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => TokenizedCommunityRoute(masterPubkey: masterPubkey).go(context),
+      onTap: () => TokenizedCommunityRoute(externalAddress: externalAddress).go(context),
       child: Container(
         height: height.s,
         padding: EdgeInsets.symmetric(horizontal: 22.0.s),

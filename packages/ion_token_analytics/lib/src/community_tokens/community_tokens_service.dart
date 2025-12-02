@@ -48,8 +48,6 @@ class IonCommunityTokensService {
   final CategoryTokensRepository _categoryTokensRepository;
 
   static Future<IonCommunityTokensService> create({required NetworkClient networkClient}) async {
-    // Base URL doesn't matter for mock
-
     final service = IonCommunityTokensService._(
       tokenInfoRepository: TokenInfoRepositoryImpl(networkClient),
       ohlcvCandlesRepository: OhlcvCandlesRepositoryImpl(networkClient),
@@ -87,7 +85,7 @@ class IonCommunityTokensService {
     return _tradingStatsRepository.subscribeToTradingStats(ionConnectAddress);
   }
 
-  Future<NetworkSubscription<TopHolderBase>> subscribeToTopHolders({
+  Future<NetworkSubscription<List<TopHolderBase>>> subscribeToTopHolders({
     required String ionConnectAddress,
     required int limit,
   }) {
