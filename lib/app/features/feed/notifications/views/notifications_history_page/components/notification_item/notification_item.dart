@@ -76,6 +76,7 @@ class NotificationItem extends HookConsumerWidget {
         children: [
           SizedBox(height: 16.0.s),
           ScreenSideOffset.small(
+            only: ScreenOffsetSide.left,
             child: NotificationIcons(notification: notification),
           ),
           SizedBox(height: 8.0.s),
