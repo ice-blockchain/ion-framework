@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/avatar/default_avatar.dart';
@@ -8,72 +9,76 @@ import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/switch_account_modal/providers/switch_account_modal_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class SwitchAccountModalTile extends ConsumerWidget {
+class SwitchAccountModalTile extends HookConsumerWidget {
   const SwitchAccountModalTile({
     required this.identityKeyName,
-    required this.accountInfo,
     required this.isCurrentUser,
     required this.onSelectUser,
     super.key,
   });
 
   final String identityKeyName;
-  final SwitchAccountInfoModel? accountInfo;
   final bool isCurrentUser;
   final VoidCallback onSelectUser;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final modalNotifier = ref.read(switchAccountModalNotifierProvider.notifier);
+    final details = ref.watch(switchAccountModalUserDetailsProvider(identityKeyName)).valueOrNull;
+    final masterPubkey = useMemoized(
+      () => details?.masterPubKey,
+      [details],
+    );
 
-    if (accountInfo == null) {
+    final userPreview =
+        masterPubkey != null ? ref.watch(userPreviewDataProvider(masterPubkey)).valueOrNull : null;
+
+    if (masterPubkey == null || userPreview == null) {
       return _DefaultUserTile(
-        identityKeyName: identityKeyName,
+        username: identityKeyName,
         isCurrentUser: isCurrentUser,
-        onTap: () async {
-          if (!isCurrentUser) {
-            onSelectUser();
-            await modalNotifier.setCurrentUser(identityKeyName);
-          }
-        },
+        onTap: () => _handleTap(ref),
       );
     }
 
     return BadgesUserListItem(
       isSelected: isCurrentUser,
-      onTap: () async {
-        if (!isCurrentUser) {
-          onSelectUser();
-          await modalNotifier.setCurrentUser(identityKeyName);
-        }
-      },
+      onTap: () => _handleTap(ref),
       title: Text(
-        accountInfo!.userPreview.data.trimmedDisplayName,
+        userPreview.data.trimmedDisplayName,
         strutStyle: const StrutStyle(forceStrutHeight: true),
       ),
       subtitle: Text(
-        prefixUsername(username: accountInfo!.userPreview.data.name, context: context),
+        prefixUsername(username: userPreview.data.name, context: context),
       ),
-      masterPubkey: accountInfo!.masterPubkey,
-      trailing: isCurrentUser == true ? Assets.svg.iconBlockCheckboxOn.icon() : null,
+      masterPubkey: masterPubkey,
+      trailing: isCurrentUser ? Assets.svg.iconBlockCheckboxOn.icon() : null,
       contentPadding: EdgeInsets.symmetric(horizontal: 16.0.s),
       backgroundColor: context.theme.appColors.tertiaryBackground,
       borderRadius: ListItem.defaultBorderRadius,
       constraints: ListItem.defaultConstraints,
     );
   }
+
+  Future<void> _handleTap(WidgetRef ref) async {
+    if (!isCurrentUser) {
+      onSelectUser();
+      await ref.read(switchAccountModalNotifierProvider.notifier).setCurrentUser(identityKeyName);
+    }
+  }
 }
 
 class _DefaultUserTile extends StatelessWidget {
   const _DefaultUserTile({
-    required this.identityKeyName,
+    required this.username,
     required this.isCurrentUser,
     required this.onTap,
   });
 
-  final String identityKeyName;
+  final String username;
   final bool isCurrentUser;
   final VoidCallback onTap;
 
@@ -88,10 +93,10 @@ class _DefaultUserTile extends StatelessWidget {
       ),
       onTap: onTap,
       title: Text(
-        identityKeyName,
+        username,
         strutStyle: const StrutStyle(forceStrutHeight: true),
       ),
-      trailing: isCurrentUser == true
+      trailing: isCurrentUser
           ? Assets.svg.iconBlockCheckboxOnblue.icon(color: context.theme.appColors.onPrimaryAccent)
           : null,
       contentPadding: EdgeInsets.symmetric(horizontal: 16.0.s),

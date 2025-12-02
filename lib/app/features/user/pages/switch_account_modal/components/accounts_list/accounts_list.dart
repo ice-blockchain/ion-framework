@@ -23,18 +23,17 @@ class SwitchAccountModalList extends ConsumerWidget {
 
     return modalStateAsync.when(
       data: (modalState) {
-        if (modalState.accounts.isEmpty) {
+        if (modalState.identityKeyNames.isEmpty) {
           return const SizedBox.shrink();
         }
 
         return SeparatedColumn(
           separator: SizedBox(height: 16.0.s),
-          children: modalState.accounts
+          children: modalState.identityKeyNames
               .map(
-                (account) => SwitchAccountModalTile(
-                  identityKeyName: account.identityKeyName,
-                  accountInfo: account.accountInfo,
-                  isCurrentUser: account.isCurrentUser,
+                (identityKeyName) => SwitchAccountModalTile(
+                  identityKeyName: identityKeyName,
+                  isCurrentUser: identityKeyName == modalState.currentIdentityKeyName,
                   onSelectUser: onSelectUser,
                 ),
               )

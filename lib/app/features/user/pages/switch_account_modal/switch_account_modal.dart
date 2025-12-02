@@ -29,7 +29,6 @@ class SwitchAccountModal extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userMetadataValue = ref.watch(currentUserMetadataProvider).valueOrNull;
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-    final modalNotifier = ref.read(switchAccountModalNotifierProvider.notifier);
 
     return SheetContent(
       body: ScreenSideOffset.small(
@@ -51,12 +50,15 @@ class SwitchAccountModal extends HookConsumerWidget {
                   label: context.i18n.profile_create_new_account,
                   onTap: () async {
                     Navigator.of(context).pop();
-                    await modalNotifier.clearCurrentUserForAuthentication();
+                    await ref
+                        .read(switchAccountModalNotifierProvider.notifier)
+                        .clearCurrentUserForAuthentication();
                   },
                 ),
               SwitchAccountModalList(
                 onSelectUser: () {
                   if (enableAccountManagement) {
+                    Navigator.of(context).pop();
                     FeedRoute().go(context);
                   }
                 },

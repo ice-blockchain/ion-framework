@@ -191,7 +191,12 @@ class ProfilePage extends HookConsumerWidget {
             if (isMultiAccountsEnabled) ...[
               GestureDetector(
                 onTap: () => SwitchAccountRoute().push<void>(context),
-                child: Assets.svg.iconSwitchProfile.icon(size: 24.0.s),
+                child: Assets.svg.iconSwitchProfile.icon(
+                  size: profileMode == ProfileMode.dark ? 21.0.s : 24.0.s,
+                  color: profileMode == ProfileMode.dark
+                      ? context.theme.appColors.secondaryBackground
+                      : null,
+                ),
               ),
             ],
             ProfileContextMenu(
