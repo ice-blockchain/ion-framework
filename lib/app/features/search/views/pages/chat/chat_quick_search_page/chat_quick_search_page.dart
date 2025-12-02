@@ -81,6 +81,7 @@ class ChatQuickSearchPage extends HookConsumerWidget {
                       itemBuilder: (context, index) {
                         final pubkey = history.pubKeys[index];
                         return SearchHistoryUserListItem(
+                          key: ValueKey(pubkey),
                           pubkey: pubkey,
                           onTap: () =>
                               ConversationRoute(receiverMasterPubkey: pubkey).push<void>(context),

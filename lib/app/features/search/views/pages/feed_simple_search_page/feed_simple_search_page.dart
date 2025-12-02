@@ -65,6 +65,7 @@ class FeedSimpleSearchPage extends HookConsumerWidget {
                       itemBuilder: (context, index) {
                         final pubkey = history.pubKeys[index];
                         return SearchHistoryUserListItem(
+                          key: ValueKey(pubkey),
                           pubkey: pubkey,
                           onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
                           onDelete: () {
