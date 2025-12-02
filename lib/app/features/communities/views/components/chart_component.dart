@@ -12,18 +12,21 @@ import 'package:ion/app/features/communities/utils/price_label_formatter.dart';
 import 'package:ion/app/features/communities/views/components/token_area_line_chart.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class ChartComponent extends HookConsumerWidget {
   const ChartComponent({
     required this.masterPubkey,
     required this.price,
     required this.label,
+    this.onTitleVisibilityChanged,
     super.key,
   });
 
   final String masterPubkey;
   final Decimal price;
   final String label;
+  final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -54,6 +57,7 @@ class ChartComponent extends HookConsumerWidget {
           isLoading: false,
           selectedRange: selectedRange.value,
           onRangeChanged: (range) => selectedRange.value = range,
+          onTitleVisibilityChanged: onTitleVisibilityChanged,
         );
       },
       error: (error, stackTrace) {
@@ -66,6 +70,7 @@ class ChartComponent extends HookConsumerWidget {
           isLoading: false,
           selectedRange: selectedRange.value,
           onRangeChanged: (range) => selectedRange.value = range,
+          onTitleVisibilityChanged: onTitleVisibilityChanged,
         );
       },
       loading: () {
@@ -77,6 +82,7 @@ class ChartComponent extends HookConsumerWidget {
           isLoading: true,
           selectedRange: selectedRange.value,
           onRangeChanged: null, // Disabled while loading
+          onTitleVisibilityChanged: onTitleVisibilityChanged,
         );
       },
     );
@@ -92,6 +98,7 @@ class _ChartContent extends StatelessWidget {
     required this.isLoading,
     required this.selectedRange,
     required this.onRangeChanged,
+    this.onTitleVisibilityChanged,
   });
 
   final Decimal price;
@@ -101,6 +108,7 @@ class _ChartContent extends StatelessWidget {
   final bool isLoading;
   final ChartTimeRange selectedRange;
   final ValueChanged<ChartTimeRange>? onRangeChanged;
+  final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +119,9 @@ class _ChartContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _ChartHeader(),
+          _ChartHeader(
+            onVisibilityChanged: onTitleVisibilityChanged,
+          ),
           SizedBox(height: 4.0.s),
           _ValueAndChange(
             price: price,
@@ -145,27 +155,41 @@ class _ChartContent extends StatelessWidget {
 String _formatPrice(Decimal p) => p.toStringAsFixed(4);
 
 class _ChartHeader extends StatelessWidget {
+  const _ChartHeader({this.onVisibilityChanged});
+
+  final ValueChanged<double>? onVisibilityChanged;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
     final texts = context.theme.appTextThemes;
     final i18n = context.i18n;
 
+    final titleRow = Row(
+      children: [
+        Assets.svg.iconCreatecoinNewcoin.icon(
+          size: 18.0.s,
+          color: colors.onTertiaryBackground,
+        ),
+        SizedBox(width: 6.0.s),
+        Text(
+          i18n.chart_label,
+          style: texts.subtitle3.copyWith(color: colors.onTertiaryBackground),
+        ),
+      ],
+    );
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.0.s),
-      child: Row(
-        children: [
-          Assets.svg.iconCreatecoinNewcoin.icon(
-            size: 18.0.s,
-            color: colors.onTertiaryBackground,
-          ),
-          SizedBox(width: 6.0.s),
-          Text(
-            i18n.chart_label,
-            style: texts.subtitle3.copyWith(color: colors.onTertiaryBackground),
-          ),
-        ],
-      ),
+      child: onVisibilityChanged != null
+          ? VisibilityDetector(
+              key: UniqueKey(),
+              onVisibilityChanged: (info) {
+                onVisibilityChanged?.call(info.visibleFraction);
+              },
+              child: titleRow,
+            )
+          : titleRow,
     );
   }
 }
