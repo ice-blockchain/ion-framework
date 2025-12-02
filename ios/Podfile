@@ -4,7 +4,7 @@ source 'https://github.com/sdk-banuba/banuba-sdk-podspecs.git'
 source 'https://github.com/tensorflow/tensorflow.git'
 
 # Uncomment this line to define a global platform for your project
-platform :ios, '15.0'
+platform :ios, '15.6'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -66,6 +66,7 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
 
     target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.6'
       # You can remove unused permissions here
       # for more information: https://github.com/BaseflowIT/flutter-permission-handler/blob/master/permission_handler/ios/Classes/PermissionHandlerEnums.h
       # e.g. when you don't need camera permission, just add 'PERMISSION_CAMERA=0'
