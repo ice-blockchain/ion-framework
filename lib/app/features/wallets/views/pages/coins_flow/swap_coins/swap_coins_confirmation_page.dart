@@ -2,11 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
+import 'package:ion/app/components/message_notification/models/message_notification_state.dart';
+import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
+import 'package:ion/app/features/wallets/hooks/use_check_wallet_address_available.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
@@ -39,6 +42,22 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
         ),
       );
     }
+
+    useCheckWalletAddressAvailable(
+      ref,
+      network: sellNetwork,
+      coinsGroup: sellCoins,
+      onAddressFound: (address) => sellAddress.value = address,
+      keys: [sellNetwork, sellCoins],
+    );
+
+    useCheckWalletAddressAvailable(
+      ref,
+      network: buyNetwork,
+      coinsGroup: buyCoins,
+      onAddressFound: (address) => buyAddress.value = address,
+      keys: [buyNetwork, buyCoins],
+    );
 
     return SheetContent(
       body: SingleChildScrollView(
@@ -401,11 +420,12 @@ class _SwapButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
+    final messageNotificationNotifier = ref.read(messageNotificationNotifierProvider.notifier);
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
-        onPressed: () {
+        onPressed: () async {
           final sellAddress = userSellAddress;
           final buyAddress = userBuyAddress;
 
@@ -413,6 +433,15 @@ class _SwapButton extends ConsumerWidget {
           if (sellAddress == null || buyAddress == null) {
             return;
           }
+
+          await _showMessage(
+            messageNotificationNotifier,
+            message: 'swap_in_progress',
+            icon: Assets.svg.iconSwap.icon(
+              color: colors.secondaryBackground,
+              size: 24.0.s,
+            ),
+          );
 
           ref.read(swapCoinsControllerProvider.notifier).swapCoins(
                 userBuyAddress: buyAddress,
@@ -436,11 +465,29 @@ class _SwapButton extends ConsumerWidget {
                     },
                   );
                 },
+                onSwapError: () {
+                  _showMessage(
+                    messageNotificationNotifier,
+                    message: 'swap_error',
+                    icon: Assets.svg.iconBlockKeywarning.icon(
+                      color: colors.attentionRed,
+                      size: 24.0.s,
+                    ),
+                    state: MessageNotificationState.error,
+                  );
+                },
+                onSwapSuccess: () {
+                  _showMessage(
+                    messageNotificationNotifier,
+                    message: 'swap_success',
+                    icon: Assets.svg.iconCheckSuccess.icon(
+                      color: colors.success,
+                      size: 24.0.s,
+                    ),
+                    state: MessageNotificationState.success,
+                  );
+                },
               );
-
-          if (context.mounted) {
-            context.pop(true);
-          }
         },
         label: Text(
           context.i18n.wallet_swap_confirmation_swap_button,
@@ -461,6 +508,21 @@ class _SwapButton extends ConsumerWidget {
             vertical: 16.0.s,
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _showMessage(
+    MessageNotificationNotifier notifier, {
+    required String message,
+    required Widget icon,
+    MessageNotificationState state = MessageNotificationState.info,
+  }) async {
+    notifier.show(
+      MessageNotification(
+        message: message,
+        icon: icon,
+        state: state,
       ),
     );
   }
