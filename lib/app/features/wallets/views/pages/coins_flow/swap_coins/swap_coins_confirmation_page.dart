@@ -443,7 +443,7 @@ class _SwapButton extends ConsumerWidget {
             ),
           );
 
-          ref.read(swapCoinsControllerProvider.notifier).swapCoins(
+          await ref.read(swapCoinsControllerProvider.notifier).swapCoins(
                 userBuyAddress: buyAddress,
                 userSellAddress: sellAddress,
                 onVerifyIdentitySwapCallback: (sendAssetFormData) async {

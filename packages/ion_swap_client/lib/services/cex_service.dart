@@ -38,7 +38,9 @@ class CexService {
   }
 
   Future<void> _swapOnLetsExchange(
-      SwapCoinParameters swapCoinData, SendCoinCallback sendCoinCallback) async {
+    SwapCoinParameters swapCoinData,
+    SendCoinCallback sendCoinCallback,
+  ) async {
     final coins = await _letsExchangeRepository.getCoins();
     final activeCoins = coins.where((e) => e.isCoinActive);
 
@@ -115,9 +117,11 @@ class CexService {
     }
 
     final sellNetwork = sellCoin.networks.firstWhereOrNull(
-        (e) => e.name.toLowerCase() == swapCoinData.sellCoinNetworkName.toLowerCase());
+      (e) => e.name.toLowerCase() == swapCoinData.sellCoinNetworkName.toLowerCase(),
+    );
     final buyNetwork = buyCoin.networks.firstWhereOrNull(
-        (e) => e.name.toLowerCase() == swapCoinData.buyCoinNetworkName.toLowerCase());
+      (e) => e.name.toLowerCase() == swapCoinData.buyCoinNetworkName.toLowerCase(),
+    );
 
     if (sellNetwork == null || buyNetwork == null) {
       throw const IonSwapException('Exolix: Coins networks not found');
