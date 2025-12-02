@@ -23,7 +23,7 @@ class SwapService {
   final DexService _okxService;
   final CexService _cexService;
   final BridgeService _bridgeService;
-  
+
   Future<void> swapCoins({
     required SwapCoinParameters swapCoinData,
     required SendCoinCallback sendCoinCallback,
