@@ -2,11 +2,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:ion/app/theme/app_colors.dart';
 import 'package:palette_generator/palette_generator.dart';
 
 typedef AvatarColors = ({Color first, Color second});
 
-const AvatarColors useAvatarFallbackColors = (first: Color(0xFFB43C4B), second: Color(0xFF3EB0FF));
+AvatarColors useAvatarFallbackColors = (
+  first: AppColorsExtension.defaultColors().raspberry,
+  second: AppColorsExtension.defaultColors().anakiwa,
+);
 
 /// Global cache for avatar colors to prevent expensive palette generation during scroll
 /// Key: avatar URL, Value: (color1, color2)

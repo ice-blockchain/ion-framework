@@ -37,6 +37,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     required this.anakiwa,
     required this.shadow,
     required this.profitGreen,
+    required this.backgroundBlue,
   });
 
   factory AppColorsExtension.fromTemplate(TemplateColors templateColors) {
@@ -73,6 +74,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       anakiwa: templateColors.anakiwa,
       shadow: templateColors.shadow,
       profitGreen: templateColors.profitGreen,
+      backgroundBlue: templateColors.backgroundBlue,
     );
   }
 
@@ -110,6 +112,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       anakiwa: const Color(0xFF91D4FF),
       shadow: const Color(0xFF2D62D9),
       profitGreen: const Color(0xFF00FF00),
+      backgroundBlue: const Color(0xFF0D265E),
     );
   }
 
@@ -145,6 +148,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   final Color anakiwa;
   final Color shadow;
   final Color profitGreen;
+  final Color backgroundBlue;
 
   @override
   ThemeExtension<AppColorsExtension> copyWith({
@@ -180,6 +184,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     Color? anakiwa,
     Color? shadow,
     Color? profitGreen,
+    Color? backgroundBlue,
   }) {
     return AppColorsExtension(
       primaryAccent: primaryAccent ?? this.primaryAccent,
@@ -214,6 +219,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       anakiwa: anakiwa ?? this.anakiwa,
       shadow: shadow ?? this.shadow,
       profitGreen: profitGreen ?? this.profitGreen,
+      backgroundBlue: backgroundBlue ?? this.backgroundBlue,
     );
   }
 
@@ -259,6 +265,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       anakiwa: Color.lerp(anakiwa, other.anakiwa, t)!,
       shadow: Color.lerp(shadow, other.shadow, t)!,
       profitGreen: Color.lerp(profitGreen, other.profitGreen, t)!,
+      backgroundBlue: Color.lerp(backgroundBlue, other.backgroundBlue, t)!,
     );
   }
 }

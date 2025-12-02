@@ -25,7 +25,7 @@ class ProfileBalance extends StatelessWidget {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: const Color(0xFF0D265E),
+        color: context.theme.appColors.backgroundBlue,
         borderRadius: BorderRadius.circular(16.0.s),
       ),
       child: Padding(

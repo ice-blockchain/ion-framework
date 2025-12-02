@@ -13,14 +13,14 @@ class GradientVerticalDivider extends StatelessWidget {
       child: Container(
         height: 25.0.s,
         width: 0.5.s,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
             colors: [
-              Color(0x00ffffff),
-              Color(0xccffffff),
-              Color(0x00ffffff),
+              context.theme.appColors.onPrimaryAccent,
+              context.theme.appColors.onPrimaryAccent.withValues(alpha: 0.8),
+              context.theme.appColors.onPrimaryAccent,
             ],
           ),
         ),
