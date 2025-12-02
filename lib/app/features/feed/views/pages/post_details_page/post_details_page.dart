@@ -11,6 +11,8 @@ import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/create_post/views/components/reply_input_field/reply_input_field.dart';
 import 'package:ion/app/features/feed/data/models/analytics_events.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/can_reply_notifier.r.dart';
 import 'package:ion/app/features/feed/views/components/post/post.dart';
 import 'package:ion/app/features/feed/views/components/reply_list/reply_list.dart';
@@ -18,6 +20,7 @@ import 'package:ion/app/features/feed/views/components/scroll_to_top_button/scro
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/services/analytics_service/analytics_service_provider.r.dart';
@@ -34,6 +37,9 @@ class PostDetailsPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final canReply = ref.watch(canReplyProvider(eventReference)).value ?? false;
     final scrollController = useScrollController();
+    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
+    final isReply = entity is ModifiablePostEntity && entity.data.isReply ||
+        entity is PostEntity && entity.data.isReply;
 
     useOnInit(() {
       ref.read(analyticsServiceProvider).logEvent(PostViewAnalyticsEvent(eventReference));
@@ -54,6 +60,7 @@ class PostDetailsPage extends HookConsumerWidget {
                     ReplyList(
                       eventReference: eventReference,
                       scrollController: scrollController,
+                      hideEmptyState: isReply,
                       onPullToRefresh: () {
                         ref.read(ionConnectCacheProvider.notifier).remove(
                               CacheableEntity.cacheKeyBuilder(
