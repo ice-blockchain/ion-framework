@@ -15,6 +15,7 @@ import 'package:ion/app/features/feed/notifications/views/notifications_history_
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_media.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
@@ -69,7 +70,7 @@ class NotificationItem extends HookConsumerWidget {
     }
 
     return GestureDetector(
-      onTap: () => _onTap(context, entity),
+      onTap: () => _onTap(context, ref, entity),
       behavior: HitTestBehavior.opaque,
       child: Column(
         children: [
@@ -130,7 +131,7 @@ class NotificationItem extends HookConsumerWidget {
     return false;
   }
 
-  void _onTap(BuildContext context, IonConnectEntity? entity) {
+  Future<void> _onTap(BuildContext context, WidgetRef ref, IonConnectEntity? entity) async {
     if (entity == null) {
       return;
     }
@@ -140,19 +141,38 @@ class NotificationItem extends HookConsumerWidget {
       _ => entity.toEventReference(),
     };
 
-    // Check if the entity is a story
     if (entity is ModifiablePostEntity && entity.isStory) {
-      StoryViewerRoute(
-        pubkey: entity.masterPubkey,
-        initialStoryReference: eventReference.encode(),
-      ).push<void>(context);
+      var storyViewerState = ref.read(
+        userStoriesViewingNotifierProvider(entity.masterPubkey),
+      );
+
+      if (storyViewerState.userStories.isEmpty) {
+        await ref
+            .read(
+              userStoriesViewingNotifierProvider(entity.masterPubkey).notifier,
+            )
+            .setUserStoryByReference(eventReference);
+
+        if (context.mounted) {
+          storyViewerState = ref.read(
+            userStoriesViewingNotifierProvider(entity.masterPubkey),
+          );
+        }
+      }
+
+      if (context.mounted && storyViewerState.userStories.isNotEmpty) {
+        await StoryViewerRoute(
+          pubkey: entity.masterPubkey,
+          initialStoryReference: eventReference.encode(),
+        ).push<void>(context);
+      }
       return;
     }
 
     if (eventReference.isArticleReference) {
-      ArticleDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
+      await ArticleDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
     } else {
-      PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
+      await PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
     }
   }
 }
