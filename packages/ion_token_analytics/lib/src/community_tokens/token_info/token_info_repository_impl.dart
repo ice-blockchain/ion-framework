@@ -10,35 +10,27 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
   final NetworkClient client;
 
   @override
-  Future<List<CommunityToken>> getTokenInfo(List<String> ionConnectAddresses) async {
+  Future<CommunityToken?> getTokenInfo(String externalAddress) async {
     try {
       final data = await client.get<List<dynamic>>(
         '/v1/community-tokens/',
-        queryParameters: {
-          'externalAddresses':
-              'ion_connect:0:634f8ac52ad90bf8544162fb4f45cc56f1fc91ca1220381e96b68eb792d822ea:',
-        },
+        queryParameters: {'externalAddresses': externalAddress},
       );
 
-      return data.map((json) => CommunityToken.fromJson(json as Map<String, dynamic>)).toList();
-    } catch (e, stackTrace) {
-      print(e);
-      print(stackTrace);
-      return [];
+      return data.map((json) => CommunityToken.fromJson(json as Map<String, dynamic>)).firstOrNull;
+    } catch (e) {
+      return null;
     }
   }
 
   @override
-  Future<NetworkSubscription<CommunityTokenPatch>> subscribeToTokenInfo(
-    List<String> ionConnectAddresses,
+  Future<NetworkSubscription<CommunityTokenPatch>?> subscribeToTokenInfo(
+    String externalAddress,
   ) async {
     try {
       final subscription = await client.subscribeSse<Map<String, dynamic>>(
         '/v1sse/community-tokens/',
-        queryParameters: {
-          'externalAddresses':
-              'ion_connect:0:634f8ac52ad90bf8544162fb4f45cc56f1fc91ca1220381e96b68eb792d822ea:',
-        },
+        queryParameters: {'externalAddresses': externalAddress},
       );
 
       final tokenStream = subscription.stream.map(CommunityTokenPatch.fromJson);
@@ -47,10 +39,8 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
         stream: tokenStream,
         close: subscription.close,
       );
-    } catch (e, stackTrace) {
-      print(e);
-      print(stackTrace);
-      rethrow;
+    } catch (e) {
+      return null;
     }
   }
 }
