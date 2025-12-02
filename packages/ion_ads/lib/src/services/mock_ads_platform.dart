@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-
-import '../models/ad_types.dart';
-import '../models/native_ad_asset.dart';
-import 'ads_platform.dart';
+import 'package:ion_ads/src/models/ad_types.dart';
+import 'package:ion_ads/src/models/native_ad_asset.dart';
+import 'package:ion_ads/src/services/ads_platform.dart';
 
 class MockIonAdsPlatform implements IonAdsPlatform {
   @override
@@ -24,15 +23,12 @@ class MockIonAdsPlatform implements IonAdsPlatform {
     Map<String, Object?>? targeting,
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
-    return IonNativeAdAsset(
+    return const IonNativeAdAsset(
       title: 'Sponsored by Acme',
       body: 'Discover the new Acme Widget that boosts your productivity.',
       callToAction: 'Learn more',
-      iconImage: null,
-      mediaContent: null,
       rating: 4.6,
       advertiser: 'Acme Inc.',
-      attributionText: 'Ad',
     );
   }
 

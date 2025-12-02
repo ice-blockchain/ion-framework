@@ -16,5 +16,7 @@ analyzer:
   exclude:
     - '**/*.g.dart'
     - '**/*.freezed.dart'
-    - 'example/**'
+    - 'example/build/**'
+    - 'example/ios/**'
+    - 'example/android/**'
 

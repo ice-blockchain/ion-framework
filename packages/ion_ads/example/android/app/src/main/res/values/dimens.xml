@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="apd_native_custom_content_margin_h">10dp</dimen>
+    <dimen name="apd_native_custom_content_margin_v">8dp</dimen>
+    <dimen name="apd_native_custom_icon_w_h">0dp</dimen>
+    <dimen name="apd_native_custom_icon_margin">8dp</dimen>
+    <dimen name="apd_native_custom_title_w">0dp</dimen>
+    <dimen name="apd_native_custom_title_margin">8dp</dimen>
+    <dimen name="apd_native_custom_description_w">0dp</dimen>
+    <dimen name="apd_native_custom_description_margin">8dp</dimen>
+    <dimen name="apd_native_custom_cta_margin">8dp</dimen>
+    <dimen name="apd_native_custom_cta_padding_h">20dp</dimen>
+    <dimen name="apd_native_custom_ad_attribution_elevation">2dp</dimen>
+</resources>
