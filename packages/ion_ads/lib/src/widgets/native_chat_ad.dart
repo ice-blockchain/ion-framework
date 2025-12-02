@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-
-import '../models/native_ad_asset.dart';
+import 'package:ion_ads/src/models/native_ad_asset.dart';
 
 class NativeChatAd extends StatelessWidget {
-  const NativeChatAd({super.key, required this.ad});
+  const NativeChatAd({required this.ad, super.key});
   final IonNativeAdAsset ad;
 
   @override
@@ -39,7 +38,7 @@ class NativeChatAd extends StatelessWidget {
                     onPressed: () {},
                     child: Text(ad.callToAction),
                   ),
-                )
+                ),
               ],
             ),
           ),
