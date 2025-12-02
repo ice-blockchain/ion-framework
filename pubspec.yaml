@@ -124,6 +124,8 @@ dependencies:
     path: packages/ion_identity_client
   ion_screenshot_detector:
     path: packages/ion_screenshot_detector
+  ion_swap_client:
+    path: packages/ion_swap_client
   ion_token_analytics:
     path: packages/ion_token_analytics
   isolate_manager: ^6.1.0
