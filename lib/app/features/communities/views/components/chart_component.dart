@@ -2,37 +2,109 @@
 
 import 'dart:math' as math;
 
-import 'package:collection/collection.dart';
 import 'package:decimal/decimal.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/communities/providers/token_olhcv_candles_provider.r.dart';
 import 'package:ion/app/features/communities/utils/price_label_formatter.dart';
+import 'package:ion/app/features/communities/views/components/token_area_line_chart.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-class ChartComponent extends StatelessWidget {
+class ChartComponent extends HookConsumerWidget {
   const ChartComponent({
+    required this.masterPubkey,
+    required this.price,
+    required this.label,
+    super.key,
+  });
+
+  final String masterPubkey;
+  final Decimal price;
+  final String label;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedRange = useState(ChartTimeRange.m15);
+
+    final candlesAsync = ref.watch(
+      tokenOhlcvCandlesProvider(
+        masterPubkey,
+        selectedRange.value.intervalString,
+      ),
+    );
+
+    // TODO: Calculate changePercent from candles instead of hardcoded value.
+    const changePercent = 145.84;
+
+    return candlesAsync.when(
+      data: (candles) {
+        final chartCandles = _mapOhlcvToChartCandles(candles);
+        final isEmpty = chartCandles.isEmpty;
+        final candlesToShow = isEmpty ? _buildFlatCandles(price) : chartCandles;
+        final displayChangePercent = isEmpty ? 0.0 : changePercent;
+
+        return _ChartContent(
+          price: price,
+          label: label,
+          changePercent: displayChangePercent,
+          candles: candlesToShow,
+          isLoading: false,
+          selectedRange: selectedRange.value,
+          onRangeChanged: (range) => selectedRange.value = range,
+        );
+      },
+      error: (error, stackTrace) {
+        // On error, show empty state (flat blue line)
+        return _ChartContent(
+          price: price,
+          label: label,
+          changePercent: 0,
+          candles: _buildFlatCandles(price),
+          isLoading: false,
+          selectedRange: selectedRange.value,
+          onRangeChanged: (range) => selectedRange.value = range,
+        );
+      },
+      loading: () {
+        return _ChartContent(
+          price: price,
+          label: label,
+          changePercent: 0,
+          candles: demoCandles,
+          isLoading: true,
+          selectedRange: selectedRange.value,
+          onRangeChanged: null, // Disabled while loading
+        );
+      },
+    );
+  }
+}
+
+class _ChartContent extends StatelessWidget {
+  const _ChartContent({
     required this.price,
     required this.label,
     required this.changePercent,
     required this.candles,
+    required this.isLoading,
     required this.selectedRange,
     required this.onRangeChanged,
-    super.key,
   });
 
   final Decimal price;
   final String label;
   final double changePercent;
   final List<ChartCandle> candles;
+  final bool isLoading;
   final ChartTimeRange selectedRange;
-  final ValueChanged<ChartTimeRange> onRangeChanged;
+  final ValueChanged<ChartTimeRange>? onRangeChanged;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
-
     return Container(
       color: colors.secondaryBackground,
       padding: EdgeInsets.symmetric(vertical: 16.0.s),
@@ -50,7 +122,10 @@ class ChartComponent extends StatelessWidget {
           Center(
             child: AspectRatio(
               aspectRatio: 1.7,
-              child: _FlCandlestickChart(candles: candles),
+              child: TokenAreaLineChart(
+                candles: candles,
+                isLoading: isLoading,
+              ),
             ),
           ),
           SizedBox(height: 4.0.s),
@@ -65,10 +140,6 @@ class ChartComponent extends StatelessWidget {
       ),
     );
   }
-}
-
-String _formatDate(DateTime d) {
-  return DateFormat('dd/MM').format(d);
 }
 
 String _formatPrice(Decimal p) => p.toStringAsFixed(4);
@@ -144,115 +215,8 @@ class _ValueAndChange extends StatelessWidget {
   }
 }
 
-class _FlCandlestickChart extends StatelessWidget {
-  const _FlCandlestickChart({
-    required this.candles,
-  });
-
-  final List<ChartCandle> candles;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.theme.appColors;
-    final styles = context.theme.appTextThemes;
-
-    if (candles.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final minY = candles.map((c) => c.low).reduce(math.min);
-    final maxY = candles.map((c) => c.high).reduce(math.max);
-
-    final candlestickSpots = candles
-        .asMap()
-        .entries
-        .mapIndexed(
-          (index, entry) => CandlestickSpot(
-            x: index.toDouble(),
-            open: entry.value.open,
-            high: entry.value.high,
-            low: entry.value.low,
-            close: entry.value.close,
-          ),
-        )
-        .toList();
-
-    // Build bottom labels from candle dates (max 8 evenly spaced)
-    final desiredBottom = math.min(8, candles.length);
-    final indexToLabel = <int, String>{};
-    double xAxisStep = 1;
-    if (desiredBottom > 0) {
-      xAxisStep = desiredBottom == 1 ? 1.0 : (candles.length - 1) / (desiredBottom - 1);
-      for (var i = 0; i < desiredBottom; i++) {
-        final idx = (i * xAxisStep).round().clamp(0, candles.length - 1);
-        indexToLabel[idx] = _formatDate(candles[idx].date);
-      }
-    }
-
-    return CandlestickChart(
-      CandlestickChartData(
-        minY: minY,
-        maxY: maxY,
-        borderData: FlBorderData(show: false),
-        candlestickSpots: candlestickSpots,
-        candlestickTouchData: CandlestickTouchData(enabled: false),
-        gridData: FlGridData(
-          drawHorizontalLine: false,
-          verticalInterval: xAxisStep,
-          getDrawingVerticalLine: (value) => FlLine(color: colors.onTertiaryFill, strokeWidth: 1),
-        ),
-        titlesData: FlTitlesData(
-          leftTitles: const AxisTitles(),
-          rightTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 35.0.s,
-              getTitlesWidget: (value, meta) => _PriceLabel(value: value),
-            ),
-          ),
-          topTitles: const AxisTitles(),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 26.0.s,
-              interval: xAxisStep,
-              getTitlesWidget: (value, meta) {
-                final i = value.round();
-                final text = indexToLabel[i];
-                if (text == null) return const SizedBox.shrink();
-                return Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Text(
-                    text,
-                    style: styles.caption5.copyWith(color: colors.tertiaryText),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        candlestickPainter: DefaultCandlestickPainter(
-          candlestickStyleProvider: (spot, index) {
-            final color = spot.isUp ? colors.success : colors.lossRed;
-
-            return CandlestickStyle(
-              lineColor: color,
-              lineWidth: 1.0.s,
-              bodyStrokeColor: color,
-              bodyStrokeWidth: 0,
-              bodyFillColor: color,
-              bodyWidth: 5.0.s,
-              bodyRadius: 0,
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _PriceLabel extends StatelessWidget {
-  const _PriceLabel({required this.value});
+class ChartPriceLabel extends StatelessWidget {
+  const ChartPriceLabel({required this.value, super.key});
   final double value;
 
   @override
@@ -306,6 +270,8 @@ extension on ChartTimeRange {
         ChartTimeRange.h1 => '1h',
         ChartTimeRange.d1 => '1d',
       };
+
+  String get intervalString => label;
 }
 
 class _RangeSelector extends StatelessWidget {
@@ -434,4 +400,42 @@ List<ChartCandle> _generateDemoCandles() {
   }
 
   return candles;
+}
+
+// Flat blue line for empty state (all candles at same price)
+List<ChartCandle> _buildFlatCandles(Decimal price) {
+  final now = DateTime.now();
+  const count = 20;
+  final value = double.tryParse(price.toString()) ?? 0;
+
+  return List<ChartCandle>.generate(count, (index) {
+    final date = now.subtract(Duration(minutes: (count - index) * 15));
+    return ChartCandle(
+      open: value,
+      high: value,
+      low: value,
+      close: value,
+      price: price,
+      date: date,
+    );
+  });
+}
+
+// Maps OHLCV candles from analytics package to ChartCandle format
+List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
+  return source
+      .map(
+        (candle) => ChartCandle(
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close,
+          price: Decimal.parse(candle.close.toString()),
+          date: DateTime.fromMillisecondsSinceEpoch(
+            candle.timestamp ~/ 1000, // timestamp is in microseconds
+            isUtc: true,
+          ),
+        ),
+      )
+      .toList();
 }

@@ -11,7 +11,6 @@ import 'package:ion/app/features/communities/models/trading_stats_formatted.dart
 import 'package:ion/app/features/communities/pages/components/your_position_card.dart';
 import 'package:ion/app/features/communities/providers/token_latest_trades_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
-import 'package:ion/app/features/communities/providers/token_olhcv_candles_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/communities/utils/timeframe_extension.dart';
@@ -28,7 +27,6 @@ import 'package:ion/app/features/user/pages/profile_page/components/header/heade
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_actions/profile_action.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 enum TokenizedCommunityTabType implements TabType {
   chart,
@@ -172,51 +170,22 @@ class _TokenChart extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedRange = useState(ChartTimeRange.m15);
     final tokenInfo = ref.watch(tokenMarketInfoProvider(masterPubkey));
     final token = tokenInfo.valueOrNull;
 
-    final candles = ref.watch(
-      tokenOhlcvCandlesProvider(
-        masterPubkey,
-        selectedRange.value.intervalString,
-      ),
-    );
+    // If token info is not yet available, render nothing (unchanged behaviour).
+    if (token == null) {
+      return const SizedBox.shrink();
+    }
 
-    return candles.when(
-      data: (candles) {
-        // Use token data if available, otherwise show loading/placeholder
-        if (token == null) {
-          return const SizedBox.shrink();
-        }
+    final price = Decimal.parse(token.marketData.priceUSD.toStringAsFixed(4));
 
-        return ChartComponent(
-          price: Decimal.parse(token.marketData.priceUSD.toStringAsFixed(4)),
-          label: token.title,
-          changePercent: 145.84, // TODO: Calculate from candles
-          candles: mapOhlcvToChartCandles(candles),
-          selectedRange: selectedRange.value,
-          onRangeChanged: (range) => selectedRange.value = range,
-        );
-      },
-      error: (error, stackTrace) {
-        return const SizedBox.shrink();
-      },
-      loading: () => const SizedBox.shrink(),
+    return ChartComponent(
+      masterPubkey: masterPubkey,
+      price: price,
+      label: token.title,
     );
   }
-}
-
-extension on ChartTimeRange {
-  String get intervalString => switch (this) {
-        ChartTimeRange.m1 => '1m',
-        ChartTimeRange.m3 => '3m',
-        ChartTimeRange.m5 => '5m',
-        ChartTimeRange.m15 => '15m',
-        ChartTimeRange.m30 => '30m',
-        ChartTimeRange.h1 => '1h',
-        ChartTimeRange.d1 => '1d',
-      };
 }
 
 class _TokenStats extends HookConsumerWidget {
@@ -323,22 +292,4 @@ class _LatestTrades extends HookConsumerWidget {
       },
     );
   }
-}
-
-List<ChartCandle> mapOhlcvToChartCandles(List<OhlcvCandle> source) {
-  return source
-      .map(
-        (candle) => ChartCandle(
-          open: candle.open,
-          high: candle.high,
-          low: candle.low,
-          close: candle.close,
-          price: Decimal.parse(candle.close.toString()),
-          date: DateTime.fromMillisecondsSinceEpoch(
-            candle.timestamp ~/ 1000, // timestamp is in microseconds
-            isUtc: true,
-          ),
-        ),
-      )
-      .toList();
 }
