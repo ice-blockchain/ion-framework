@@ -55,62 +55,65 @@ class TokenCandlestickChart extends StatelessWidget {
       }
     }
 
-    return CandlestickChart(
-      CandlestickChartData(
-        minY: minY,
-        maxY: maxY,
-        borderData: FlBorderData(show: false),
-        candlestickSpots: candlestickSpots,
-        candlestickTouchData: CandlestickTouchData(enabled: false),
-        gridData: FlGridData(
-          drawHorizontalLine: false,
-          verticalInterval: xAxisStep,
-          getDrawingVerticalLine: (value) => FlLine(color: colors.onTertiaryFill, strokeWidth: 1),
-        ),
-        titlesData: FlTitlesData(
-          leftTitles: const AxisTitles(),
-          rightTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 35.0.s,
-              getTitlesWidget: (value, meta) => ChartPriceLabel(value: value),
+    return ClipRect(
+      child: CandlestickChart(
+        CandlestickChartData(
+          minY: minY,
+          maxY: maxY,
+          clipData: const FlClipData.all(),
+          borderData: FlBorderData(show: false),
+          candlestickSpots: candlestickSpots,
+          candlestickTouchData: CandlestickTouchData(enabled: false),
+          gridData: FlGridData(
+            drawHorizontalLine: false,
+            verticalInterval: xAxisStep,
+            getDrawingVerticalLine: (value) => FlLine(color: colors.onTertiaryFill, strokeWidth: 1),
+          ),
+          titlesData: FlTitlesData(
+            leftTitles: const AxisTitles(),
+            rightTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 35.0.s,
+                getTitlesWidget: (value, meta) => ChartPriceLabel(value: value),
+              ),
+            ),
+            topTitles: const AxisTitles(),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 26.0.s,
+                interval: xAxisStep,
+                getTitlesWidget: (value, meta) {
+                  final i = value.round();
+                  final text = indexToLabel[i];
+                  if (text == null) return const SizedBox.shrink();
+                  return Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Text(
+                      text,
+                      style: styles.caption5.copyWith(color: colors.tertiaryText),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
-          topTitles: const AxisTitles(),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 26.0.s,
-              interval: xAxisStep,
-              getTitlesWidget: (value, meta) {
-                final i = value.round();
-                final text = indexToLabel[i];
-                if (text == null) return const SizedBox.shrink();
-                return Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Text(
-                    text,
-                    style: styles.caption5.copyWith(color: colors.tertiaryText),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        candlestickPainter: DefaultCandlestickPainter(
-          candlestickStyleProvider: (spot, index) {
-            final color = spot.isUp ? colors.success : colors.lossRed;
+          candlestickPainter: DefaultCandlestickPainter(
+            candlestickStyleProvider: (spot, index) {
+              final color = spot.isUp ? colors.success : colors.lossRed;
 
-            return CandlestickStyle(
-              lineColor: color,
-              lineWidth: 1.0.s,
-              bodyStrokeColor: color,
-              bodyStrokeWidth: 0,
-              bodyFillColor: color,
-              bodyWidth: 5.0.s,
-              bodyRadius: 0,
-            );
-          },
+              return CandlestickStyle(
+                lineColor: color,
+                lineWidth: 1.0.s,
+                bodyStrokeColor: color,
+                bodyStrokeWidth: 0,
+                bodyFillColor: color,
+                bodyWidth: 5.0.s,
+                bodyRadius: 0,
+              );
+            },
+          ),
         ),
       ),
     );
