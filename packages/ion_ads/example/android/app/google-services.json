@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "785362040133",
+    "firebase_url": "https://appodeal-sandbox.firebaseio.com",
+    "project_id": "appodeal-sandbox",
+    "storage_bucket": "appodeal-sandbox.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:785362040133:android:77aa069cb9b77f91c57a2c",
+        "android_client_info": {
+          "package_name": "com.appodealstack.demo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "785362040133-9odke8a112ah3a9d2dbl9gd2lrpm809c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwlWE5mcH3RTbABRPp7_bSio1vzsQmjqY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "785362040133-9odke8a112ah3a9d2dbl9gd2lrpm809c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
