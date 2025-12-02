@@ -192,7 +192,7 @@ class ConfirmationSheet extends ConsumerWidget {
                               ) async {
                                 await ref
                                     .read(sendCoinsNotifierProvider.notifier)
-                                    .send(onVerifyIdentity);
+                                    .send(onVerifyIdentity, form: formData);
                               },
                               child: child,
                             );

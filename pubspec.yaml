@@ -123,6 +123,8 @@ dependencies:
     path: packages/ion_identity_client
   ion_screenshot_detector:
     path: packages/ion_screenshot_detector
+  ion_swap_client:
+    path: packages/ion_swap_client
   isolate_manager: ^6.1.0
   json_annotation: ^4.8.1
   lottie: ^3.1.0

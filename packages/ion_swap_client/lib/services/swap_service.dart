@@ -1,0 +1,53 @@
+// SPDX-License-Identifier: ice License 1.0
+
+import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
+import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
+import 'package:ion_swap_client/services/bridge_service.dart';
+import 'package:ion_swap_client/services/cex_service.dart';
+import 'package:ion_swap_client/services/dex_service.dart';
+
+typedef SendCoinCallback = Future<void> Function({
+  required String depositAddress,
+  required num amount,
+});
+
+class SwapService {
+  SwapService({
+    required DexService okxService,
+    required CexService cexService,
+    required BridgeService bridgeService,
+  })  : _okxService = okxService,
+        _cexService = cexService,
+        _bridgeService = bridgeService;
+
+  final DexService _okxService;
+  final CexService _cexService;
+  final BridgeService _bridgeService;
+  Future<void> swapCoins({
+    required SwapCoinParameters swapCoinData,
+    required SendCoinCallback sendCoinCallback,
+  }) async {
+    try {
+      if (swapCoinData.isBridge) {
+        await _bridgeService.tryToBridge(swapCoinData);
+        return;
+      }
+
+      if (swapCoinData.sellNetworkId == swapCoinData.buyNetworkId) {
+        final success = await _okxService.tryToSwapDex(swapCoinData);
+        if (success) {
+          return;
+        }
+      }
+
+      await _cexService.tryToCexSwap(
+        swapCoinData,
+        sendCoinCallback,
+      );
+    } on Exception catch (e) {
+      throw IonSwapException(
+        'Failed to swap coins: $e',
+      );
+    }
+  }
+}
