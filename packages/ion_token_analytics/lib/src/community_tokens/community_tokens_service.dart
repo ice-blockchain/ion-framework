@@ -63,14 +63,12 @@ class IonCommunityTokensService {
     return service;
   }
 
-  Future<List<CommunityToken>> getTokenInfo(List<String> ionConnectAddresses) {
-    return _tokenInfoRepository.getTokenInfo(ionConnectAddresses);
+  Future<CommunityToken?> getTokenInfo(String externalAddress) {
+    return _tokenInfoRepository.getTokenInfo(externalAddress);
   }
 
-  Future<NetworkSubscription<CommunityTokenPatch>> subscribeToTokenInfo(
-    List<String> ionConnectAddresses,
-  ) {
-    return _tokenInfoRepository.subscribeToTokenInfo(ionConnectAddresses);
+  Future<NetworkSubscription<CommunityTokenPatch>?> subscribeToTokenInfo(String externalAddress) {
+    return _tokenInfoRepository.subscribeToTokenInfo(externalAddress);
   }
 
   Future<NetworkSubscription<OhlcvCandle>> subscribeToOhlcvCandles({
