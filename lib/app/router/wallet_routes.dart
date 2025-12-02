@@ -3,6 +3,8 @@
 part of 'app_routes.gr.dart';
 
 class WalletRoutes {
+  static const coinDetailsPath = 'coin-details';
+
   static const routes = <TypedRoute<RouteData>>[
     TypedShellRoute<ModalShellRouteData>(
       routes: [
@@ -25,7 +27,7 @@ class WalletRoutes {
     TypedShellRoute<ModalShellRouteData>(
       routes: [TypedGoRoute<ScanWalletRoute>(path: 'scan-wallet')],
     ),
-    TypedGoRoute<CoinsDetailsRoute>(path: 'coin-details'),
+    TypedGoRoute<CoinsDetailsRoute>(path: coinDetailsPath),
     TypedShellRoute<ModalShellRouteData>(
       routes: [
         TypedGoRoute<AddressNotFoundRoute>(path: 'address-not-found'),
