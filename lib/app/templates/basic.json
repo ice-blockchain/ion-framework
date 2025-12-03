@@ -34,7 +34,11 @@
         "anakiwa": "#91D4FF",
         "shadow": "#2D62D9",
         "profitGreen": "#00FF00",
-        "backgroundBlue": "#0D265E"
+        "backgroundBlue": "#0D265E",
+        "magenta": "#8F039B",
+        "allports": "#017C9F",
+        "forest": "#010008"
+
       },
       "dark": {
         "primaryAccent": "#0166FF",
@@ -69,7 +73,10 @@
         "anakiwa": "#91D4FF",
         "shadow": "#2D62D9",
         "profitGreen": "#00FF00",
-        "backgroundBlue": "#0D265E"
+        "backgroundBlue": "#0D265E",
+        "magenta": "#8F039B",
+        "allports": "#017C9F",
+        "forest": "#010008"
       }
     },
     "textThemes": {

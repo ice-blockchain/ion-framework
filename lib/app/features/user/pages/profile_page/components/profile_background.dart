@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 
 class ProfileBackground extends StatelessWidget {
@@ -46,8 +47,8 @@ class ProfileBackground extends StatelessWidget {
                     gradient: LinearGradient(
                       colors: [
                         Colors.transparent,
-                        Colors.black.withValues(alpha: 0.4),
-                        Colors.black,
+                        context.theme.appColors.forest.withValues(alpha: 0.4),
+                        context.theme.appColors.forest,
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,

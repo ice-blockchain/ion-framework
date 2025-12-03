@@ -2,14 +2,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:ion/app/theme/app_colors.dart';
 import 'package:palette_generator/palette_generator.dart';
 
 typedef AvatarColors = ({Color first, Color second});
 
 // Fallback avatar colors used while loading, no user avatar or on error
 AvatarColors useAvatarFallbackColors = (
-  first: const Color(0xFF017697),
-  second: const Color(0xFF8C0498),
+  first: AppColorsExtension.defaultColors().allports,
+  second: AppColorsExtension.defaultColors().magenta,
 );
 
 /// Global cache for avatar colors to prevent expensive palette generation during scroll
