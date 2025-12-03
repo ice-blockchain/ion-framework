@@ -6,6 +6,7 @@ import 'package:ion/app/components/overlay_menu/components/overlay_menu_item.dar
 import 'package:ion/app/components/overlay_menu/components/overlay_menu_item_separator.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
+import 'package:ion/app/components/shadow/svg_shadow.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
@@ -28,15 +29,19 @@ class OwnEntityMenu extends ConsumerWidget {
     this.iconColor,
     this.onDelete,
     this.padding = EdgeInsets.zero,
+    this.showShadow = false,
+    this.iconSize,
     super.key,
   });
 
-  static double get iconSize => 20.0.s;
+  static double get menuIconSize => 20.0.s;
 
   final EventReference eventReference;
   final Color? iconColor;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onDelete;
+  final bool showShadow;
+  final double? iconSize;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,6 +51,11 @@ class OwnEntityMenu extends ConsumerWidget {
         (entity is! ModifiablePostEntity && entity is! PostEntity && entity is! ArticleEntity)) {
       return const SizedBox.shrink();
     }
+
+    final icon = Assets.svg.iconMorePopup.icon(
+      color: iconColor ?? context.theme.appColors.onTertiaryBackground,
+      size: iconSize,
+    );
 
     return OverlayMenu(
       menuBuilder: (closeMenu) => Column(
@@ -58,7 +68,7 @@ class OwnEntityMenu extends ConsumerWidget {
                     minWidth: 75.0.s,
                     label: context.i18n.button_edit,
                     icon: Assets.svg.iconEditLink.icon(
-                      size: iconSize,
+                      size: menuIconSize,
                       color: context.theme.appColors.quaternaryText,
                     ),
                     onPressed: () {
@@ -92,7 +102,7 @@ class OwnEntityMenu extends ConsumerWidget {
                     minWidth: 75.0.s,
                     label: context.i18n.button_edit,
                     icon: Assets.svg.iconEditLink.icon(
-                      size: iconSize,
+                      size: menuIconSize,
                       color: context.theme.appColors.quaternaryText,
                     ),
                     onPressed: () {
@@ -109,7 +119,7 @@ class OwnEntityMenu extends ConsumerWidget {
                   label: context.i18n.post_menu_delete,
                   labelColor: context.theme.appColors.attentionRed,
                   icon: Assets.svg.iconBlockDelete.icon(
-                    size: iconSize,
+                    size: menuIconSize,
                     color: context.theme.appColors.attentionRed,
                   ),
                   onPressed: () async {
@@ -134,9 +144,7 @@ class OwnEntityMenu extends ConsumerWidget {
       ),
       child: Padding(
         padding: padding,
-        child: Assets.svg.iconMorePopup.icon(
-          color: iconColor ?? context.theme.appColors.onTertiaryBackground,
-        ),
+        child: showShadow ? SvgShadow(child: icon) : icon,
       ),
     );
   }

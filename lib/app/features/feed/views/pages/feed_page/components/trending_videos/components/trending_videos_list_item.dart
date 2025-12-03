@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/placeholder/ion_placeholder.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/views/components/feed_network_image/feed_network_image.dart';
+import 'package:ion/app/features/feed/views/components/overlay_menu/own_entity_menu.dart';
 import 'package:ion/app/features/feed/views/components/overlay_menu/user_info_menu.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/components/trending_video_author.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/components/trending_video_likes_button.dart';
@@ -127,13 +130,17 @@ class _VideoContainer extends StatelessWidget {
   }
 }
 
-class _TopControls extends StatelessWidget {
+class _TopControls extends ConsumerWidget {
   const _TopControls({required this.eventReference});
 
   final EventReference eventReference;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isOwnedByCurrentUser =
+        ref.watch(isCurrentUserSelectorProvider(eventReference.masterPubkey));
+    final menuPadding = EdgeInsetsDirectional.only(start: 6.0.s, end: 6.0.s, top: 12.0.s);
+
     return SizedBox(
       height: 40.0.s,
       child: Row(
@@ -141,17 +148,23 @@ class _TopControls extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           TrendingVideoLikesButton(eventReference: eventReference),
-          UserInfoMenu(
-            showShadow: true,
-            iconSize: 16.0.s,
-            eventReference: eventReference,
-            iconColor: context.theme.appColors.onPrimaryAccent,
-            padding: EdgeInsetsDirectional.only(
-              start: 6.0.s,
-              end: 6.0.s,
-              top: 12.0.s,
+          if (isOwnedByCurrentUser)
+            OwnEntityMenu(
+              showShadow: true,
+              iconSize: 16.0.s,
+              eventReference: eventReference,
+              iconColor: context.theme.appColors.onPrimaryAccent,
+              padding: menuPadding,
+              onDelete: context.canPop,
+            )
+          else
+            UserInfoMenu(
+              showShadow: true,
+              iconSize: 16.0.s,
+              eventReference: eventReference,
+              iconColor: context.theme.appColors.onPrimaryAccent,
+              padding: menuPadding,
             ),
-          ),
         ],
       ),
     );
