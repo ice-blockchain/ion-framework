@@ -22,13 +22,11 @@ Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) a
 
   final caseInsensitiveQuery = query.toLowerCase();
 
-  final lastConversationMessages = ref
-          .watch(conversationsProvider)
-          .value
-          ?.map((conversation) => conversation.latestMessage)
-          .nonNulls
-          .toList() ??
-      [];
+  // Get all current conversations and messages at the moment, do not listen for updates
+  final conversations = ref.read(conversationsProvider).valueOrNull ?? [];
+
+  final lastConversationMessages =
+      conversations.map((conversation) => conversation.latestMessage).nonNulls.toList();
 
   final lastConversationEntities = lastConversationMessages
       .map(ReplaceablePrivateDirectMessageEntity.fromEventMessage)
