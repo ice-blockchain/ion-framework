@@ -13,6 +13,10 @@ Future<List<CoinsGroup>> filteredSwapCoins(Ref ref) async {
 
   // Filter to only include coins where at least one network has a wallet
   return allCoins.where((coinGroup) {
+    if (coinGroup.abbreviation == 'ION') {
+      return false;
+    }
+
     return coinGroup.coins.any((coin) => coin.walletId != null);
   }).toList();
 }

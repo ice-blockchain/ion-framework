@@ -9,7 +9,6 @@ import 'package:ion/app/components/message_notification/models/message_notificat
 import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
-import 'package:ion/app/features/wallets/hooks/use_check_wallet_address_available.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
@@ -32,9 +31,6 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
     final buyCoins = ref.watch(swapCoinsControllerProvider).buyCoin;
     final buyNetwork = ref.watch(swapCoinsControllerProvider).buyNetwork;
 
-    final sellAddress = useState<String?>(null);
-    final buyAddress = useState<String?>(null);
-
     if (sellCoins == null || buyCoins == null || sellNetwork == null || buyNetwork == null) {
       return const Scaffold(
         body: Center(
@@ -42,22 +38,6 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
         ),
       );
     }
-
-    useCheckWalletAddressAvailable(
-      ref,
-      network: sellNetwork,
-      coinsGroup: sellCoins,
-      onAddressFound: (address) => sellAddress.value = address,
-      keys: [sellNetwork, sellCoins],
-    );
-
-    useCheckWalletAddressAvailable(
-      ref,
-      network: buyNetwork,
-      coinsGroup: buyCoins,
-      onAddressFound: (address) => buyAddress.value = address,
-      keys: [buyNetwork, buyCoins],
-    );
 
     return SheetContent(
       body: SingleChildScrollView(
@@ -91,10 +71,7 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
               },
             ),
             SizedBox(height: 32.0.s),
-            _SwapButton(
-              userSellAddress: sellAddress.value,
-              userBuyAddress: buyAddress.value,
-            ),
+            const _SwapButton(),
             SizedBox(height: 16.0.s),
           ],
         ),
@@ -408,13 +385,7 @@ class _Divider extends StatelessWidget {
 }
 
 class _SwapButton extends ConsumerWidget {
-  const _SwapButton({
-    this.userSellAddress,
-    this.userBuyAddress,
-  });
-
-  final String? userSellAddress;
-  final String? userBuyAddress;
+  const _SwapButton();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -426,14 +397,6 @@ class _SwapButton extends ConsumerWidget {
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
         onPressed: () async {
-          final sellAddress = userSellAddress;
-          final buyAddress = userBuyAddress;
-
-          // TODO(ice-erebus): add actual error handling
-          if (sellAddress == null || buyAddress == null) {
-            return;
-          }
-
           await _showMessage(
             messageNotificationNotifier,
             message: 'swap_in_progress',
@@ -444,50 +407,48 @@ class _SwapButton extends ConsumerWidget {
           );
 
           await ref.read(swapCoinsControllerProvider.notifier).swapCoins(
-                userBuyAddress: buyAddress,
-                userSellAddress: sellAddress,
-                onVerifyIdentitySwapCallback: (sendAssetFormData) async {
-                  await guardPasskeyDialog(
-                    ref.context,
-                    (child) {
-                      return RiverpodVerifyIdentityRequestBuilder(
-                        provider: sendCoinsNotifierProvider,
-                        requestWithVerifyIdentity: (
-                          OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity,
-                        ) async {
-                          await ref.read(sendCoinsNotifierProvider.notifier).send(
-                                onVerifyIdentity,
-                                form: sendAssetFormData,
-                              );
-                        },
-                        child: child,
-                      );
+            onVerifyIdentitySwapCallback: (sendAssetFormData) async {
+              await guardPasskeyDialog(
+                ref.context,
+                (child) {
+                  return RiverpodVerifyIdentityRequestBuilder(
+                    provider: sendCoinsNotifierProvider,
+                    requestWithVerifyIdentity: (
+                      OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity,
+                    ) async {
+                      await ref.read(sendCoinsNotifierProvider.notifier).send(
+                            onVerifyIdentity,
+                            form: sendAssetFormData,
+                          );
                     },
-                  );
-                },
-                onSwapError: () {
-                  _showMessage(
-                    messageNotificationNotifier,
-                    message: 'swap_error',
-                    icon: Assets.svg.iconBlockKeywarning.icon(
-                      color: colors.attentionRed,
-                      size: 24.0.s,
-                    ),
-                    state: MessageNotificationState.error,
-                  );
-                },
-                onSwapSuccess: () {
-                  _showMessage(
-                    messageNotificationNotifier,
-                    message: 'swap_success',
-                    icon: Assets.svg.iconCheckSuccess.icon(
-                      color: colors.success,
-                      size: 24.0.s,
-                    ),
-                    state: MessageNotificationState.success,
+                    child: child,
                   );
                 },
               );
+            },
+            onSwapError: () {
+              _showMessage(
+                messageNotificationNotifier,
+                message: 'swap_error',
+                icon: Assets.svg.iconBlockKeywarning.icon(
+                  color: colors.attentionRed,
+                  size: 24.0.s,
+                ),
+                state: MessageNotificationState.error,
+              );
+            },
+            onSwapSuccess: () {
+              _showMessage(
+                messageNotificationNotifier,
+                message: 'swap_success',
+                icon: Assets.svg.iconCheckSuccess.icon(
+                  color: colors.success,
+                  size: 24.0.s,
+                ),
+                state: MessageNotificationState.success,
+              );
+            },
+          );
         },
         label: Text(
           context.i18n.wallet_swap_confirmation_swap_button,

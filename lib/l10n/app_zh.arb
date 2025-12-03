@@ -1050,5 +1050,6 @@
   "who_can_reply_settings_title_video": "谁可以回复此视频",
   "who_can_reply_settings_verified_accounts": "经过验证的账户",
   "write_a_message": "写一条消息...",
-  "your_position_card_title": "持仓"
+  "your_position_card_title": "持仓",
+  "errorGettingSwapQuote": "获取交换价格时出错"
 }

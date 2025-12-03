@@ -1050,5 +1050,6 @@
   "who_can_reply_settings_title_video": "Chi può rispondere a questo video",
   "who_can_reply_settings_verified_accounts": "Account verificati",
   "write_a_message": "Scrivi un messaggio...",
-  "your_position_card_title": "La tua posizione"
+  "your_position_card_title": "La tua posizione",
+  "errorGettingSwapQuote": "Errore nel recuperare il prezzo di scambio"
 }
