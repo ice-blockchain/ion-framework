@@ -16,6 +16,20 @@ _$SwapQuoteInfoImpl _$$SwapQuoteInfoImplFromJson(Map<String, dynamic> json) =>
       networkFee: json['networkFee'] as String?,
       protocolFee: json['protocolFee'] as String?,
       slippage: json['slippage'] as String?,
+      exolixQuote: json['exolixQuote'] == null
+          ? null
+          : ExolixRate.fromJson(json['exolixQuote'] as Map<String, dynamic>),
+      letsExchangeQuote: json['letsExchangeQuote'] == null
+          ? null
+          : LetsExchangeInfo.fromJson(
+              json['letsExchangeQuote'] as Map<String, dynamic>),
+      okxQuote: json['okxQuote'] == null
+          ? null
+          : SwapQuoteData.fromJson(json['okxQuote'] as Map<String, dynamic>),
+      relayQuote: json['relayQuote'] == null
+          ? null
+          : RelayQuote.fromJson(json['relayQuote'] as Map<String, dynamic>),
+      relayDepositAmount: json['relayDepositAmount'] as String?,
     );
 
 Map<String, dynamic> _$$SwapQuoteInfoImplToJson(_$SwapQuoteInfoImpl instance) =>
@@ -27,6 +41,11 @@ Map<String, dynamic> _$$SwapQuoteInfoImplToJson(_$SwapQuoteInfoImpl instance) =>
       'networkFee': instance.networkFee,
       'protocolFee': instance.protocolFee,
       'slippage': instance.slippage,
+      'exolixQuote': instance.exolixQuote,
+      'letsExchangeQuote': instance.letsExchangeQuote,
+      'okxQuote': instance.okxQuote,
+      'relayQuote': instance.relayQuote,
+      'relayDepositAmount': instance.relayDepositAmount,
     };
 
 const _$SwapQuoteInfoTypeEnumMap = {

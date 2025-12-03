@@ -38,7 +38,7 @@ class ConversionInfoRow extends HookConsumerWidget {
 
     if (swapQuoteInfo == null) {
       return SizedBox(
-        height: 32.0.s,
+        height: 72.0.s,
       );
     }
 
