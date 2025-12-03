@@ -36,8 +36,6 @@ class LatestTradesComponent extends StatelessWidget {
     final buyTextWidth = _calculateTextWidth(i18n.trade_buy, badgeTextStyle);
     final sellTextWidth = _calculateTextWidth(i18n.trade_sell, badgeTextStyle);
 
-    // Take the longer label and add a small safety margin to avoid wrapping due to
-    // rounding / scaling differences between measurement and real layout.
     final baseTextWidth = buyTextWidth > sellTextWidth ? buyTextWidth : sellTextWidth;
     final widthBuffer = 2.0.s;
     final minTextWidth = baseTextWidth + widthBuffer;
