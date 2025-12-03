@@ -29,7 +29,6 @@ class SwapSelectCoinPage extends ConsumerWidget {
       coinsProvider: filteredSwapCoinsProvider,
       title: context.i18n.wallet_select_coin,
       onCoinSelected: (value) async {
-        
         final result = await ref.read(swapCoinsControllerProvider.notifier).selectCoin(
               type: type,
               coin: value,
