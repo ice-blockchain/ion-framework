@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
-
+import 'package:collection/collection.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/models/relay_quote.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
+import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/repositories/relay_api_repository.dart';
+import 'package:ion_swap_client/services/swap_service.dart';
 
 class BridgeService {
   BridgeService({
@@ -13,9 +15,28 @@ class BridgeService {
 
   final RelayApiRepository _relayApiRepository;
 
-  // TODO(ice-erebus): implement actual logic (this one in PR with UI)
-  Future<void> tryToBridge(SwapCoinParameters swapCoinData) async {
-    // await _relayApiRepository.getQuote();
+  Future<void> tryToBridge({
+    required SwapCoinParameters swapCoinData,
+    required SendCoinCallback sendCoinCallback,
+    required SwapQuoteInfo swapQuoteInfo,
+  }) async {
+    if (swapQuoteInfo.source == SwapQuoteInfoSource.relay) {
+      final relayQuote = swapQuoteInfo.relayQuote;
+      final relayDepositAmount = swapQuoteInfo.relayDepositAmount;
+      if (relayQuote == null || relayDepositAmount == null) {
+        throw const IonSwapException('Relay: Quote is required');
+      }
+
+      final depositStep = relayQuote.steps.firstWhereOrNull((step) => step.id == 'deposit')?.items.first;
+      if (depositStep == null) {
+        throw const IonSwapException('Relay: Deposit step is required');
+      }
+
+      await sendCoinCallback(
+        depositAddress: depositStep.data.to,
+        amount: num.parse(relayDepositAmount),
+      );
+    }
   }
 
   Future<RelayQuote> getQuote(SwapCoinParameters swapCoinData) async {

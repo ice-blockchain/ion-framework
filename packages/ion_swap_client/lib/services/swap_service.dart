@@ -29,23 +29,33 @@ class SwapService {
   Future<void> swapCoins({
     required SwapCoinParameters swapCoinData,
     required SendCoinCallback sendCoinCallback,
+    required SwapQuoteInfo swapQuoteInfo,
   }) async {
     try {
       if (swapCoinData.isBridge) {
-        await _bridgeService.tryToBridge(swapCoinData);
+        await _bridgeService.tryToBridge(
+          swapCoinData: swapCoinData,
+          sendCoinCallback: sendCoinCallback,
+          swapQuoteInfo: swapQuoteInfo,
+        );
         return;
       }
 
       if (swapCoinData.sellNetworkId == swapCoinData.buyNetworkId) {
-        final success = await _okxService.tryToSwapDex(swapCoinData);
+        final success = await _okxService.tryToSwapDex(
+          swapCoinData: swapCoinData,
+          swapQuoteInfo: swapQuoteInfo,
+        );
+
         if (success) {
           return;
         }
       }
 
       await _cexService.tryToCexSwap(
-        swapCoinData,
-        sendCoinCallback,
+        swapCoinData: swapCoinData,
+        sendCoinCallback: sendCoinCallback,
+        swapQuoteInfo: swapQuoteInfo,
       );
     } on Exception catch (e) {
       throw IonSwapException(
@@ -65,6 +75,8 @@ class SwapService {
           type: SwapQuoteInfoType.bridge,
           priceForSellTokenInBuyToken: double.parse(quote.details.rate),
           source: SwapQuoteInfoSource.relay,
+          relayQuote: quote,
+          relayDepositAmount: swapCoinData.amount,
         );
       }
 
@@ -75,9 +87,10 @@ class SwapService {
         }
 
         return SwapQuoteInfo(
-          type: SwapQuoteInfoType.bridge,
+          type: SwapQuoteInfoType.cexOrDex,
           priceForSellTokenInBuyToken: quote.priceForSellTokenInBuyToken,
           source: SwapQuoteInfoSource.okx,
+          okxQuote: quote,
         );
       }
 

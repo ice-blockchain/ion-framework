@@ -28,18 +28,39 @@ class CexService {
   final ExolixRepository _exolixRepository;
   final IONSwapConfig _config;
 
-  // TODO(ice-erebus): change logic here which API to use based on quotes
-  Future<void> tryToCexSwap(
-    SwapCoinParameters swapCoinData,
-    SendCoinCallback sendCoinCallback,
-  ) async {
+  Future<void> tryToCexSwap({
+    required SwapCoinParameters swapCoinData,
+    required SendCoinCallback sendCoinCallback,
+    required SwapQuoteInfo swapQuoteInfo,
+  }) async {
     try {
-      await _swapOnExolix(
-        swapCoinData,
-        sendCoinCallback,
-      );
-    } on Exception catch (_) {
-      await _swapOnLetsExchange(swapCoinData, sendCoinCallback);
+      if (swapQuoteInfo.source == SwapQuoteInfoSource.exolix) {
+        final exolixRate = swapQuoteInfo.exolixQuote;
+        if (exolixRate == null) {
+          throw const IonSwapException('Exolix: Rate is required');
+        }
+
+        await _swapOnExolix(
+          swapCoinData,
+          sendCoinCallback,
+          exolixRate,
+        );
+      } else if (swapQuoteInfo.source == SwapQuoteInfoSource.letsExchange) {
+        final letsExchangeInfo = swapQuoteInfo.letsExchangeQuote;
+        if (letsExchangeInfo == null) {
+          throw const IonSwapException('Lets Exchange: Rate is required');
+        }
+
+        await _swapOnLetsExchange(
+          swapCoinData,
+          sendCoinCallback,
+          letsExchangeInfo,
+        );
+      } else {
+        throw const IonSwapException('Failed to swap on Cex: Invalid quote source');
+      }
+    } on Exception catch (e) {
+      throw IonSwapException('Failed to swap on Cex: $e');
     }
   }
 
@@ -76,27 +97,54 @@ class CexService {
       buyNetwork: buyNetworkLetsExchange,
     );
 
-    final exolixRateDouble = exolixRate.rate.toDouble();
+    if (exolixRate == null && letsExchangeRate == null) {
+      throw const IonSwapException('Failed to get quote on Cex: No quote found');
+    } else if (exolixRate != null && letsExchangeRate != null) {
+      final exolixRateDouble = exolixRate.rate.toDouble();
 
-    final letsExchangeRateDouble = num.parse(letsExchangeRate.rate).toDouble();
-    if (exolixRateDouble > letsExchangeRateDouble) {
+      final letsExchangeRateDouble = num.parse(letsExchangeRate.rate).toDouble();
+      if (exolixRateDouble > letsExchangeRateDouble) {
+        return SwapQuoteInfo(
+          type: SwapQuoteInfoType.cexOrDex,
+          priceForSellTokenInBuyToken: exolixRateDouble,
+          source: SwapQuoteInfoSource.exolix,
+          exolixQuote: exolixRate,
+        );
+      }
+
+      return SwapQuoteInfo(
+        type: SwapQuoteInfoType.cexOrDex,
+        priceForSellTokenInBuyToken: letsExchangeRateDouble,
+        source: SwapQuoteInfoSource.letsExchange,
+        letsExchangeQuote: letsExchangeRate,
+      );
+    } else if (exolixRate != null) {
+      final exolixRateDouble = exolixRate.rate.toDouble();
+
       return SwapQuoteInfo(
         type: SwapQuoteInfoType.cexOrDex,
         priceForSellTokenInBuyToken: exolixRateDouble,
         source: SwapQuoteInfoSource.exolix,
+        exolixQuote: exolixRate,
+      );
+    } else if (letsExchangeRate != null) {
+      final letsExchangeRateDouble = num.parse(letsExchangeRate.rate).toDouble();
+
+      return SwapQuoteInfo(
+        type: SwapQuoteInfoType.cexOrDex,
+        priceForSellTokenInBuyToken: letsExchangeRateDouble,
+        source: SwapQuoteInfoSource.letsExchange,
+        letsExchangeQuote: letsExchangeRate,
       );
     }
 
-    return SwapQuoteInfo(
-      type: SwapQuoteInfoType.cexOrDex,
-      priceForSellTokenInBuyToken: letsExchangeRateDouble,
-      source: SwapQuoteInfoSource.letsExchange,
-    );
+    throw const IonSwapException('Failed to get quote on Cex: No quote found');
   }
 
   Future<void> _swapOnLetsExchange(
     SwapCoinParameters swapCoinData,
     SendCoinCallback sendCoinCallback,
+    LetsExchangeInfo letsExchangeInfo,
   ) async {
     final withdrawalAddress = swapCoinData.userBuyAddress;
     if (withdrawalAddress == null) {
@@ -104,14 +152,6 @@ class CexService {
     }
 
     final (sellCoin, buyCoin, sellNetwork, buyNetwork) = await _getSwapDataLetsExchange(swapCoinData: swapCoinData);
-
-    final rateInfo = await _getQuoteOnLetsExchange(
-      swapCoinData: swapCoinData,
-      sellCoin: sellCoin,
-      buyCoin: buyCoin,
-      sellNetwork: sellNetwork,
-      buyNetwork: buyNetwork,
-    );
 
     final transaction = await _letsExchangeRepository.createTransaction(
       coinFrom: sellCoin.code,
@@ -121,7 +161,7 @@ class CexService {
       depositAmount: swapCoinData.amount,
       withdrawalAddress: withdrawalAddress,
       affiliateId: _config.letsExchangeAffiliateId,
-      rateId: rateInfo.rateId,
+      rateId: letsExchangeInfo.rateId,
       withdrawalExtraId: swapCoinData.buyExtraId,
     );
 
@@ -131,38 +171,35 @@ class CexService {
     );
   }
 
-  Future<LetsExchangeInfo> _getQuoteOnLetsExchange({
+  Future<LetsExchangeInfo?> _getQuoteOnLetsExchange({
     required SwapCoinParameters swapCoinData,
     required LetsExchangeCoin sellCoin,
     required LetsExchangeCoin buyCoin,
     required LetsExchangeNetwork sellNetwork,
     required LetsExchangeNetwork buyNetwork,
   }) async {
-    final rateInfo = await _letsExchangeRepository.getRates(
-      from: sellCoin.code,
-      to: buyCoin.code,
-      networkFrom: sellNetwork.code,
-      networkTo: buyNetwork.code,
-      amount: swapCoinData.amount,
-      affiliateId: _config.letsExchangeAffiliateId,
-    );
+    try {
+      final rateInfo = await _letsExchangeRepository.getRates(
+        from: sellCoin.code,
+        to: buyCoin.code,
+        networkFrom: sellNetwork.code,
+        networkTo: buyNetwork.code,
+        amount: swapCoinData.amount,
+        affiliateId: _config.letsExchangeAffiliateId,
+      );
 
-    return rateInfo;
+      return rateInfo;
+    } on Exception catch (_) {
+      return null;
+    }
   }
 
   Future<void> _swapOnExolix(
     SwapCoinParameters swapCoinData,
     SendCoinCallback sendCoinCallback,
+    ExolixRate exolixRate,
   ) async {
     final (sellCoin, buyCoin, sellNetwork, buyNetwork) = await _getSwapDataExolix(swapCoinData: swapCoinData);
-
-    await _getQuoteOnExolix(
-      swapCoinData: swapCoinData,
-      sellCoin: sellCoin,
-      sellNetwork: sellNetwork,
-      buyCoin: buyCoin,
-      buyNetwork: buyNetwork,
-    );
 
     final withdrawalAddress = swapCoinData.userBuyAddress;
 
@@ -186,22 +223,26 @@ class CexService {
     );
   }
 
-  Future<ExolixRate> _getQuoteOnExolix({
+  Future<ExolixRate?> _getQuoteOnExolix({
     required SwapCoinParameters swapCoinData,
     required ExolixCoin sellCoin,
     required ExolixNetwork sellNetwork,
     required ExolixCoin buyCoin,
     required ExolixNetwork buyNetwork,
   }) async {
-    final rate = await _exolixRepository.getRates(
-      coinFrom: sellCoin.code,
-      networkFrom: sellNetwork.network,
-      coinTo: buyCoin.code,
-      networkTo: buyNetwork.network,
-      amount: swapCoinData.amount,
-    );
+    try {
+      final rate = await _exolixRepository.getRates(
+        coinFrom: sellCoin.code,
+        networkFrom: sellNetwork.network,
+        coinTo: buyCoin.code,
+        networkTo: buyNetwork.network,
+        amount: swapCoinData.amount,
+      );
 
-    return rate;
+      return rate;
+    } on Exception catch (_) {
+      return null;
+    }
   }
 
   Future<(ExolixCoin, ExolixCoin, ExolixNetwork, ExolixNetwork)> _getSwapDataExolix({

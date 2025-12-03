@@ -27,6 +27,11 @@ mixin _$SwapQuoteInfo {
   String? get networkFee => throw _privateConstructorUsedError;
   String? get protocolFee => throw _privateConstructorUsedError;
   String? get slippage => throw _privateConstructorUsedError;
+  ExolixRate? get exolixQuote => throw _privateConstructorUsedError;
+  LetsExchangeInfo? get letsExchangeQuote => throw _privateConstructorUsedError;
+  SwapQuoteData? get okxQuote => throw _privateConstructorUsedError;
+  RelayQuote? get relayQuote => throw _privateConstructorUsedError;
+  String? get relayDepositAmount => throw _privateConstructorUsedError;
 
   /// Serializes this SwapQuoteInfo to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -51,7 +56,17 @@ abstract class $SwapQuoteInfoCopyWith<$Res> {
       int? swapImpact,
       String? networkFee,
       String? protocolFee,
-      String? slippage});
+      String? slippage,
+      ExolixRate? exolixQuote,
+      LetsExchangeInfo? letsExchangeQuote,
+      SwapQuoteData? okxQuote,
+      RelayQuote? relayQuote,
+      String? relayDepositAmount});
+
+  $ExolixRateCopyWith<$Res>? get exolixQuote;
+  $LetsExchangeInfoCopyWith<$Res>? get letsExchangeQuote;
+  $SwapQuoteDataCopyWith<$Res>? get okxQuote;
+  $RelayQuoteCopyWith<$Res>? get relayQuote;
 }
 
 /// @nodoc
@@ -76,6 +91,11 @@ class _$SwapQuoteInfoCopyWithImpl<$Res, $Val extends SwapQuoteInfo>
     Object? networkFee = freezed,
     Object? protocolFee = freezed,
     Object? slippage = freezed,
+    Object? exolixQuote = freezed,
+    Object? letsExchangeQuote = freezed,
+    Object? okxQuote = freezed,
+    Object? relayQuote = freezed,
+    Object? relayDepositAmount = freezed,
   }) {
     return _then(_value.copyWith(
       type: null == type
@@ -106,7 +126,83 @@ class _$SwapQuoteInfoCopyWithImpl<$Res, $Val extends SwapQuoteInfo>
           ? _value.slippage
           : slippage // ignore: cast_nullable_to_non_nullable
               as String?,
+      exolixQuote: freezed == exolixQuote
+          ? _value.exolixQuote
+          : exolixQuote // ignore: cast_nullable_to_non_nullable
+              as ExolixRate?,
+      letsExchangeQuote: freezed == letsExchangeQuote
+          ? _value.letsExchangeQuote
+          : letsExchangeQuote // ignore: cast_nullable_to_non_nullable
+              as LetsExchangeInfo?,
+      okxQuote: freezed == okxQuote
+          ? _value.okxQuote
+          : okxQuote // ignore: cast_nullable_to_non_nullable
+              as SwapQuoteData?,
+      relayQuote: freezed == relayQuote
+          ? _value.relayQuote
+          : relayQuote // ignore: cast_nullable_to_non_nullable
+              as RelayQuote?,
+      relayDepositAmount: freezed == relayDepositAmount
+          ? _value.relayDepositAmount
+          : relayDepositAmount // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
+  }
+
+  /// Create a copy of SwapQuoteInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ExolixRateCopyWith<$Res>? get exolixQuote {
+    if (_value.exolixQuote == null) {
+      return null;
+    }
+
+    return $ExolixRateCopyWith<$Res>(_value.exolixQuote!, (value) {
+      return _then(_value.copyWith(exolixQuote: value) as $Val);
+    });
+  }
+
+  /// Create a copy of SwapQuoteInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $LetsExchangeInfoCopyWith<$Res>? get letsExchangeQuote {
+    if (_value.letsExchangeQuote == null) {
+      return null;
+    }
+
+    return $LetsExchangeInfoCopyWith<$Res>(_value.letsExchangeQuote!, (value) {
+      return _then(_value.copyWith(letsExchangeQuote: value) as $Val);
+    });
+  }
+
+  /// Create a copy of SwapQuoteInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SwapQuoteDataCopyWith<$Res>? get okxQuote {
+    if (_value.okxQuote == null) {
+      return null;
+    }
+
+    return $SwapQuoteDataCopyWith<$Res>(_value.okxQuote!, (value) {
+      return _then(_value.copyWith(okxQuote: value) as $Val);
+    });
+  }
+
+  /// Create a copy of SwapQuoteInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $RelayQuoteCopyWith<$Res>? get relayQuote {
+    if (_value.relayQuote == null) {
+      return null;
+    }
+
+    return $RelayQuoteCopyWith<$Res>(_value.relayQuote!, (value) {
+      return _then(_value.copyWith(relayQuote: value) as $Val);
+    });
   }
 }
 
@@ -125,7 +221,21 @@ abstract class _$$SwapQuoteInfoImplCopyWith<$Res>
       int? swapImpact,
       String? networkFee,
       String? protocolFee,
-      String? slippage});
+      String? slippage,
+      ExolixRate? exolixQuote,
+      LetsExchangeInfo? letsExchangeQuote,
+      SwapQuoteData? okxQuote,
+      RelayQuote? relayQuote,
+      String? relayDepositAmount});
+
+  @override
+  $ExolixRateCopyWith<$Res>? get exolixQuote;
+  @override
+  $LetsExchangeInfoCopyWith<$Res>? get letsExchangeQuote;
+  @override
+  $SwapQuoteDataCopyWith<$Res>? get okxQuote;
+  @override
+  $RelayQuoteCopyWith<$Res>? get relayQuote;
 }
 
 /// @nodoc
@@ -148,6 +258,11 @@ class __$$SwapQuoteInfoImplCopyWithImpl<$Res>
     Object? networkFee = freezed,
     Object? protocolFee = freezed,
     Object? slippage = freezed,
+    Object? exolixQuote = freezed,
+    Object? letsExchangeQuote = freezed,
+    Object? okxQuote = freezed,
+    Object? relayQuote = freezed,
+    Object? relayDepositAmount = freezed,
   }) {
     return _then(_$SwapQuoteInfoImpl(
       type: null == type
@@ -178,6 +293,26 @@ class __$$SwapQuoteInfoImplCopyWithImpl<$Res>
           ? _value.slippage
           : slippage // ignore: cast_nullable_to_non_nullable
               as String?,
+      exolixQuote: freezed == exolixQuote
+          ? _value.exolixQuote
+          : exolixQuote // ignore: cast_nullable_to_non_nullable
+              as ExolixRate?,
+      letsExchangeQuote: freezed == letsExchangeQuote
+          ? _value.letsExchangeQuote
+          : letsExchangeQuote // ignore: cast_nullable_to_non_nullable
+              as LetsExchangeInfo?,
+      okxQuote: freezed == okxQuote
+          ? _value.okxQuote
+          : okxQuote // ignore: cast_nullable_to_non_nullable
+              as SwapQuoteData?,
+      relayQuote: freezed == relayQuote
+          ? _value.relayQuote
+          : relayQuote // ignore: cast_nullable_to_non_nullable
+              as RelayQuote?,
+      relayDepositAmount: freezed == relayDepositAmount
+          ? _value.relayDepositAmount
+          : relayDepositAmount // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -192,7 +327,12 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
       this.swapImpact,
       this.networkFee,
       this.protocolFee,
-      this.slippage});
+      this.slippage,
+      this.exolixQuote,
+      this.letsExchangeQuote,
+      this.okxQuote,
+      this.relayQuote,
+      this.relayDepositAmount});
 
   factory _$SwapQuoteInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$SwapQuoteInfoImplFromJson(json);
@@ -211,10 +351,20 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
   final String? protocolFee;
   @override
   final String? slippage;
+  @override
+  final ExolixRate? exolixQuote;
+  @override
+  final LetsExchangeInfo? letsExchangeQuote;
+  @override
+  final SwapQuoteData? okxQuote;
+  @override
+  final RelayQuote? relayQuote;
+  @override
+  final String? relayDepositAmount;
 
   @override
   String toString() {
-    return 'SwapQuoteInfo(type: $type, priceForSellTokenInBuyToken: $priceForSellTokenInBuyToken, source: $source, swapImpact: $swapImpact, networkFee: $networkFee, protocolFee: $protocolFee, slippage: $slippage)';
+    return 'SwapQuoteInfo(type: $type, priceForSellTokenInBuyToken: $priceForSellTokenInBuyToken, source: $source, swapImpact: $swapImpact, networkFee: $networkFee, protocolFee: $protocolFee, slippage: $slippage, exolixQuote: $exolixQuote, letsExchangeQuote: $letsExchangeQuote, okxQuote: $okxQuote, relayQuote: $relayQuote, relayDepositAmount: $relayDepositAmount)';
   }
 
   @override
@@ -235,7 +385,17 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
             (identical(other.protocolFee, protocolFee) ||
                 other.protocolFee == protocolFee) &&
             (identical(other.slippage, slippage) ||
-                other.slippage == slippage));
+                other.slippage == slippage) &&
+            (identical(other.exolixQuote, exolixQuote) ||
+                other.exolixQuote == exolixQuote) &&
+            (identical(other.letsExchangeQuote, letsExchangeQuote) ||
+                other.letsExchangeQuote == letsExchangeQuote) &&
+            (identical(other.okxQuote, okxQuote) ||
+                other.okxQuote == okxQuote) &&
+            (identical(other.relayQuote, relayQuote) ||
+                other.relayQuote == relayQuote) &&
+            (identical(other.relayDepositAmount, relayDepositAmount) ||
+                other.relayDepositAmount == relayDepositAmount));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -248,7 +408,12 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
       swapImpact,
       networkFee,
       protocolFee,
-      slippage);
+      slippage,
+      exolixQuote,
+      letsExchangeQuote,
+      okxQuote,
+      relayQuote,
+      relayDepositAmount);
 
   /// Create a copy of SwapQuoteInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -274,7 +439,12 @@ abstract class _SwapQuoteInfo implements SwapQuoteInfo {
       final int? swapImpact,
       final String? networkFee,
       final String? protocolFee,
-      final String? slippage}) = _$SwapQuoteInfoImpl;
+      final String? slippage,
+      final ExolixRate? exolixQuote,
+      final LetsExchangeInfo? letsExchangeQuote,
+      final SwapQuoteData? okxQuote,
+      final RelayQuote? relayQuote,
+      final String? relayDepositAmount}) = _$SwapQuoteInfoImpl;
 
   factory _SwapQuoteInfo.fromJson(Map<String, dynamic> json) =
       _$SwapQuoteInfoImpl.fromJson;
@@ -293,6 +463,16 @@ abstract class _SwapQuoteInfo implements SwapQuoteInfo {
   String? get protocolFee;
   @override
   String? get slippage;
+  @override
+  ExolixRate? get exolixQuote;
+  @override
+  LetsExchangeInfo? get letsExchangeQuote;
+  @override
+  SwapQuoteData? get okxQuote;
+  @override
+  RelayQuote? get relayQuote;
+  @override
+  String? get relayDepositAmount;
 
   /// Create a copy of SwapQuoteInfo
   /// with the given fields replaced by the non-null parameter values.

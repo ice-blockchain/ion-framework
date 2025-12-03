@@ -42,6 +42,8 @@ class SwapCoinsController extends _$SwapCoinsController {
         buyNetwork: null,
         swapQuoteInfo: null,
         amount: 0,
+        isQuoteError: false,
+        isQuoteLoading: false,
         quoteAmount: null,
       );
 
@@ -196,8 +198,13 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellCoinGroup = state.sellCoin;
     final buyCoinGroup = state.buyCoin;
     final amount = state.amount;
+    final swapQuoteInfo = state.swapQuoteInfo;
 
-    if (sellCoinGroup == null || buyCoinGroup == null || sellNetwork == null || buyNetwork == null) {
+    if (sellCoinGroup == null ||
+        buyCoinGroup == null ||
+        sellNetwork == null ||
+        buyNetwork == null ||
+        swapQuoteInfo == null) {
       return;
     }
 
@@ -226,6 +233,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     try {
       final swapController = await ref.read(ionSwapClientProvider.future);
       await swapController.swapCoins(
+        swapQuoteInfo: swapQuoteInfo,
         swapCoinData: swapCoinParameters,
         sendCoinCallback: ({
           required String depositAddress,

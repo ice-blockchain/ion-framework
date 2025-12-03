@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -429,58 +431,60 @@ class _SwapButton extends ConsumerWidget {
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
         onPressed: () async {
-          await _showMessage(
-            messageNotificationNotifier,
-            message: 'swap_in_progress',
-            icon: Assets.svg.iconSwap.icon(
-              color: colors.secondaryBackground,
-              size: 24.0.s,
+          unawaited(
+            _showMessage(
+              messageNotificationNotifier,
+              message: context.i18n.wallet_swapping_coins,
+              icon: Assets.svg.iconSwap.icon(
+                color: colors.secondaryBackground,
+                size: 24.0.s,
+              ),
             ),
           );
 
           await ref.read(swapCoinsControllerProvider.notifier).swapCoins(
-            onVerifyIdentitySwapCallback: (sendAssetFormData) async {
-              await guardPasskeyDialog(
-                ref.context,
-                (child) {
-                  return RiverpodVerifyIdentityRequestBuilder(
-                    provider: sendCoinsNotifierProvider,
-                    requestWithVerifyIdentity: (
-                      OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity,
-                    ) async {
-                      await ref.read(sendCoinsNotifierProvider.notifier).send(
-                            onVerifyIdentity,
-                            form: sendAssetFormData,
-                          );
+                onVerifyIdentitySwapCallback: (sendAssetFormData) async {
+                  await guardPasskeyDialog(
+                    ref.context,
+                    (child) {
+                      return RiverpodVerifyIdentityRequestBuilder(
+                        provider: sendCoinsNotifierProvider,
+                        requestWithVerifyIdentity: (
+                          OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity,
+                        ) async {
+                          await ref.read(sendCoinsNotifierProvider.notifier).send(
+                                onVerifyIdentity,
+                                form: sendAssetFormData,
+                              );
+                        },
+                        child: child,
+                      );
                     },
-                    child: child,
+                  );
+                },
+                onSwapError: () {
+                  _showMessage(
+                    messageNotificationNotifier,
+                    message: context.i18n.wallet_swap_failed,
+                    icon: Assets.svg.iconBlockKeywarning.icon(
+                      color: colors.attentionRed,
+                      size: 24.0.s,
+                    ),
+                    state: MessageNotificationState.error,
+                  );
+                },
+                onSwapSuccess: () {
+                  _showMessage(
+                    messageNotificationNotifier,
+                    message: context.i18n.wallet_swapped_coins,
+                    icon: Assets.svg.iconCheckSuccess.icon(
+                      color: colors.success,
+                      size: 24.0.s,
+                    ),
+                    state: MessageNotificationState.success,
                   );
                 },
               );
-            },
-            onSwapError: () {
-              _showMessage(
-                messageNotificationNotifier,
-                message: 'swap_error',
-                icon: Assets.svg.iconBlockKeywarning.icon(
-                  color: colors.attentionRed,
-                  size: 24.0.s,
-                ),
-                state: MessageNotificationState.error,
-              );
-            },
-            onSwapSuccess: () {
-              _showMessage(
-                messageNotificationNotifier,
-                message: 'swap_success',
-                icon: Assets.svg.iconCheckSuccess.icon(
-                  color: colors.success,
-                  size: 24.0.s,
-                ),
-                state: MessageNotificationState.success,
-              );
-            },
-          );
         },
         label: Text(
           context.i18n.wallet_swap_confirmation_swap_button,
