@@ -225,6 +225,21 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
     }).distinct();
   }
 
+  /// Watches for deleted messages in a conversation (only emits on changes, skips initial state)
+  Stream<List<EventReference>> watchDeletedMessages(String conversationId) {
+    final query = select(conversationMessageTable)
+      ..where((t) => t.isDeleted.equals(true))
+      ..where((t) => t.conversationId.equals(conversationId));
+
+    return query
+        .watch()
+        .map((rows) {
+          return rows.map((row) => row.messageEventReference).toList();
+        })
+        .distinct()
+        .skip(1);
+  }
+
   Future<void> removeMessagesFromDatabase(
     List<EventReference> eventReferences,
   ) async {
