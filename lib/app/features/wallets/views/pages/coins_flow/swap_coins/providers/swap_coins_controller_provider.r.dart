@@ -372,6 +372,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       state = state.copyWith(
         isQuoteLoading: false,
         swapQuoteInfo: null,
+        isQuoteError: true,
       );
     }
   }
