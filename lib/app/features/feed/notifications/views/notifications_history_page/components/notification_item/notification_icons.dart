@@ -17,13 +17,13 @@ class NotificationIcons extends StatelessWidget {
 
   static double get separator => 4.0.s;
 
-  static int get iconsCount => 10;
+  static int get visibleIconsCount => 10;
 
   @override
   Widget build(BuildContext context) {
     final iconSize = ((MediaQuery.sizeOf(context).width - ScreenSideOffset.defaultSmallMargin * 2) -
-            separator * (iconsCount - 1)) /
-        iconsCount;
+            separator * (visibleIconsCount - 1)) /
+        (visibleIconsCount + 0.5); // last icon should be half visible as a hint to scroll option
 
     return Row(
       children: [
@@ -37,22 +37,32 @@ class NotificationIcons extends StatelessWidget {
           ),
           child: notification.asset.icon(size: 18.0.s, color: Colors.white),
         ),
-        ...notification.pubkeys.take(iconsCount - 1).map((pubkey) {
-          return Padding(
-            key: ValueKey(pubkey),
-            padding: EdgeInsetsDirectional.only(start: separator),
-            child: GestureDetector(
-              onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
-              child: IonConnectAvatar(
-                size: iconSize,
-                fit: BoxFit.cover,
-                masterPubkey: pubkey,
-                borderRadius: BorderRadius.circular(10.0.s),
-                network: true,
-              ),
+        SizedBox(width: separator / 2),
+        Expanded(
+          child: SizedBox(
+            height: iconSize,
+            child: ListView.separated(
+              padding: EdgeInsetsGeometry.directional(start: separator / 2),
+              scrollDirection: Axis.horizontal,
+              itemCount: notification.pubkeys.length,
+              separatorBuilder: (context, index) => SizedBox(width: separator),
+              itemBuilder: (context, index) {
+                final pubkey = notification.pubkeys[index];
+                return GestureDetector(
+                  key: ValueKey(pubkey),
+                  onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
+                  child: IonConnectAvatar(
+                    size: iconSize,
+                    fit: BoxFit.cover,
+                    masterPubkey: pubkey,
+                    borderRadius: BorderRadius.circular(10.0.s),
+                    network: true,
+                  ),
+                );
+              },
             ),
-          );
-        }),
+          ),
+        ),
       ],
     );
   }
