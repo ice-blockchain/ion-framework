@@ -24,7 +24,7 @@
   "authenticator_is_linked_to_account": "Dein Konto ist mit der Authenticator-App verknüpft",
   "authenticator_lastpass": "LastPass Authenticator",
   "authenticator_microsoft": "Microsoft Authenticator",
-  "authenticator_protected_description": "Dein Authenticator wurde erfolgreich konfiguriert und du bist jetzt geschützt",
+  "authenticator_protected_de scription": "Dein Authenticator wurde erfolgreich konfiguriert und du bist jetzt geschützt",
   "authenticator_setup_description": "Um den Schlüssel zu verknüpfen, benötigst du eine der folgenden Authenticator-Apps",
   "authenticator_setup_key": "Einrichtungsschlüssel",
   "authenticator_setup_title": "Authenticator-Einrichtung",
@@ -1047,5 +1047,6 @@
   "who_can_reply_settings_title_video": "Wer kann auf dieses Video antworten",
   "who_can_reply_settings_verified_accounts": "Verifizierte Konten",
   "write_a_message": "Nachricht schreiben …",
-  "your_position_card_title": "Deine Position"
+  "your_position_card_title": "Deine Position",
+  "errorGettingSwapQuote": "Fehler beim Abrufen des Wechselkurses"
 }

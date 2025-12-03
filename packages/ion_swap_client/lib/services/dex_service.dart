@@ -45,12 +45,17 @@ class DexService {
           amount: swapCoinData.amount,
         );
 
+        final userSellAddress = swapCoinData.userSellAddress;
+        if (userSellAddress == null) {
+          throw const IonSwapException('OKX: User sell address is required');
+        }
+
         await _swapOkxRepository.swap(
           chainIndex: quote.chainIndex,
           amount: swapCoinData.amount,
           toTokenAddress: buyTokenAddress,
           fromTokenAddress: sellTokenAddress,
-          userWalletAddress: swapCoinData.userSellAddress,
+          userWalletAddress: userSellAddress,
         );
 
         // TODO(ice-erebus): replace to transaction
@@ -102,4 +107,31 @@ class DexService {
 
     throw IonSwapException('Failed to process OKX response: $responseCode');
   }
+
+  Future<SwapQuoteData?> getQuotes(SwapCoinParameters swapCoinData) async {
+    final okxChain = await _getOkxChain(swapCoinData.sellCoinNetworkName);
+    final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoinContractAddress);
+    final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoinContractAddress);
+
+    if (okxChain != null) {
+      final quotesResponse = await _swapOkxRepository.getQuotes(
+        chainIndex: okxChain.chainIndex,
+        amount: swapCoinData.amount,
+        fromTokenAddress: sellTokenAddress,
+        toTokenAddress: buyTokenAddress,
+      );
+
+      final quotes = _processOkxResponse(quotesResponse);
+
+      if (quotes.isNotEmpty) {
+        final quote = _pickBestOkxQuote(quotes);
+
+        return quote;
+      }
+    }
+
+    return null;
+  }
+
+
 }

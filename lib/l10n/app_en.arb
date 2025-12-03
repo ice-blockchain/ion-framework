@@ -1047,5 +1047,6 @@
   "who_can_reply_settings_title_video": "Who can reply to this video",
   "who_can_reply_settings_verified_accounts": "Verified accounts",
   "write_a_message": "Write a message...",
-  "your_position_card_title": "Your Position"
+  "your_position_card_title": "Your Position",
+  "errorGettingSwapQuote": "Error getting swap quote"
 }

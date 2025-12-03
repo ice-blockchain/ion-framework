@@ -26,8 +26,9 @@ class SwapCoinsModalPage extends ConsumerWidget {
     final sellNetwork = ref.watch(swapCoinsControllerProvider).sellNetwork;
     final buyCoins = ref.watch(swapCoinsControllerProvider).buyCoin;
     final buyNetwork = ref.watch(swapCoinsControllerProvider).buyNetwork;
+    final swapQuoteInfo = ref.watch(swapCoinsControllerProvider).swapQuoteInfo;
     final isContinueButtonEnabled =
-        sellCoins != null && buyCoins != null && sellNetwork != null && buyNetwork != null;
+        sellCoins != null && buyCoins != null && sellNetwork != null && buyNetwork != null && swapQuoteInfo != null;
 
     return SheetContent(
       body: Column(
@@ -84,9 +85,8 @@ class SwapCoinsModalPage extends ConsumerWidget {
               ),
             ],
           ),
-          if (sellCoins != null && buyCoins != null)
+          if (sellCoins != null && buyCoins != null && sellNetwork != null && buyNetwork != null)
             ConversionInfoRow(
-              providerName: 'CEX + DEX',
               sellCoin: sellCoins,
               buyCoin: buyCoins,
             )

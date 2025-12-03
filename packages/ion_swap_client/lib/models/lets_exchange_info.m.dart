@@ -9,6 +9,7 @@ part 'lets_exchange_info.m.g.dart';
 class LetsExchangeInfo with _$LetsExchangeInfo {
   factory LetsExchangeInfo({
     @JsonKey(name: 'rate_id') required String rateId,
+    required String rate,
   }) = _LetsExchangeInfo;
 
   factory LetsExchangeInfo.fromJson(Map<String, dynamic> json) => _$LetsExchangeInfoFromJson(json);
