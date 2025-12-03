@@ -8,7 +8,6 @@ import 'package:ion/app/components/message_notification/providers/message_notifi
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/hooks/use_on_receive_funds_flow.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class BalanceActions extends HookConsumerWidget {
@@ -16,12 +15,14 @@ class BalanceActions extends HookConsumerWidget {
     required this.onReceive,
     required this.onNeedToEnable2FA,
     required this.onMore,
+    required this.onSwap,
     this.isLoading = false,
     super.key,
   });
 
   final VoidCallback onReceive;
   final VoidCallback onMore;
+  final VoidCallback onSwap;
   final bool isLoading;
   final void Function() onNeedToEnable2FA;
 
@@ -64,9 +65,7 @@ class BalanceActions extends HookConsumerWidget {
           child: TextIconButton(
             icon: Assets.svg.iconamoonSwap.icon(color: context.theme.appColors.primaryAccent),
             label: context.i18n.wallet_swap,
-            onPressed: () {
-              SwapCoinsRoute().push<void>(context);
-            },
+            onPressed: onSwap,
             disabled: isLoading,
             type: ButtonType.outlined,
           ),
