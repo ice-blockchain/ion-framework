@@ -517,6 +517,7 @@
   "group_create_type_title": "选择群组类型",
   "group_created_message": "群组已创建",
   "hodl_for": "持有 {time}",
+  "holders": "持有者",
   "hour": "{count, plural, =1{小时} other{小时}}",
   "identity_key_name_description": "将您的身份密钥名称视为您账户的唯一标识符。您需要它来登录和恢复账户，因此请妥善保管，不要忘记",
   "identity_key_name_usage": "使用它登录任何由以下机构保护的应用程序",
@@ -812,14 +813,8 @@
   "tokenized_community_trades_tab": "交易",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "添加链接",
-  "top_holders_title": "顶级持有者 ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_empty": "成为第一位持有者",
+  "top_holders_title": "顶级持有者",
   "topics_add": "添加",
   "topics_title": "话题",
   "trade_buy": "买入",

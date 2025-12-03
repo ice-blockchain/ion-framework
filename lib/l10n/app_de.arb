@@ -517,6 +517,7 @@
   "group_create_type_title": "Gruppentyp auswählen",
   "group_created_message": "Die Gruppe wurde erstellt",
   "hodl_for": "HODL für {time}",
+  "holders": "Inhaber",
   "hour": "{count, plural, =1{Stunde} other{Stunden}}",
   "identity_key_name_description": "Betrachte den Namen deines Identitätsschlüssels als eindeutige Kennung deines Kontos. Du benötigst ihn, um dich anzumelden und dein Konto wiederherzustellen; bewahre ihn daher sicher auf und vergiss ihn nicht.",
   "identity_key_name_usage": "Verwende ihn, um dich in jeder App anzumelden, die gesichert ist durch",
@@ -812,14 +813,8 @@
   "tokenized_community_trades_tab": "Trades",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Link hinzufügen",
-  "top_holders_title": "Top-Inhaber ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_empty": "Werden Sie der erste Inhaber",
+  "top_holders_title": "Top-Inhaber",
   "topics_add": "Hinzufügen",
   "topics_title": "Themen",
   "trade_buy": "KAUF",

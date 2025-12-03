@@ -517,6 +517,7 @@
   "group_create_type_title": "Scegli tipo di gruppo",
   "group_created_message": "Il gruppo è stato creato",
   "hodl_for": "HODL per {time}",
+  "holders": "Detentori",
   "hour": "{count, plural, =1{ora} other{ore}}",
   "identity_key_name_description": "Pensa al nome della tua chiave di identità come a un identificatore univoco del tuo account. Ne avrai bisogno per accedere e recuperare il tuo account, quindi tienilo al sicuro e non dimenticarlo",
   "identity_key_name_usage": "Usalo per accedere a qualsiasi app protetta da",
@@ -812,14 +813,8 @@
   "tokenized_community_trades_tab": "Operazioni",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Aggiungi un link",
-  "top_holders_title": "Principali detentori ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_empty": "Diventa il primo detentore",
+  "top_holders_title": "Principali detentori",
   "topics_add": "Aggiungi",
   "topics_title": "Argomenti",
   "trade_buy": "ACQUISTA",

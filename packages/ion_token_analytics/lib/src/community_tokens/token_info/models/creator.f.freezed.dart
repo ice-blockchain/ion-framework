@@ -41,11 +41,18 @@ abstract class $CreatorCopyWith<$Res> {
   factory $CreatorCopyWith(Creator value, $Res Function(Creator) then) =
       _$CreatorCopyWithImpl<$Res, Creator>;
   @useResult
-  $Res call({String name, String display, bool verified, String avatar, String ionConnect});
+  $Res call({
+    String name,
+    String display,
+    bool verified,
+    String avatar,
+    String ionConnect,
+  });
 }
 
 /// @nodoc
-class _$CreatorCopyWithImpl<$Res, $Val extends Creator> implements $CreatorCopyWith<$Res> {
+class _$CreatorCopyWithImpl<$Res, $Val extends Creator>
+    implements $CreatorCopyWith<$Res> {
   _$CreatorCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -94,18 +101,29 @@ class _$CreatorCopyWithImpl<$Res, $Val extends Creator> implements $CreatorCopyW
 
 /// @nodoc
 abstract class _$$CreatorImplCopyWith<$Res> implements $CreatorCopyWith<$Res> {
-  factory _$$CreatorImplCopyWith(_$CreatorImpl value, $Res Function(_$CreatorImpl) then) =
-      __$$CreatorImplCopyWithImpl<$Res>;
+  factory _$$CreatorImplCopyWith(
+    _$CreatorImpl value,
+    $Res Function(_$CreatorImpl) then,
+  ) = __$$CreatorImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String name, String display, bool verified, String avatar, String ionConnect});
+  $Res call({
+    String name,
+    String display,
+    bool verified,
+    String avatar,
+    String ionConnect,
+  });
 }
 
 /// @nodoc
-class __$$CreatorImplCopyWithImpl<$Res> extends _$CreatorCopyWithImpl<$Res, _$CreatorImpl>
+class __$$CreatorImplCopyWithImpl<$Res>
+    extends _$CreatorCopyWithImpl<$Res, _$CreatorImpl>
     implements _$$CreatorImplCopyWith<$Res> {
-  __$$CreatorImplCopyWithImpl(_$CreatorImpl _value, $Res Function(_$CreatorImpl) _then)
-    : super(_value, _then);
+  __$$CreatorImplCopyWithImpl(
+    _$CreatorImpl _value,
+    $Res Function(_$CreatorImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Creator
   /// with the given fields replaced by the non-null parameter values.
@@ -156,7 +174,8 @@ class _$CreatorImpl implements _Creator {
     required this.ionConnect,
   });
 
-  factory _$CreatorImpl.fromJson(Map<String, dynamic> json) => _$$CreatorImplFromJson(json);
+  factory _$CreatorImpl.fromJson(Map<String, dynamic> json) =>
+      _$$CreatorImplFromJson(json);
 
   @override
   final String name;
@@ -181,14 +200,17 @@ class _$CreatorImpl implements _Creator {
             other is _$CreatorImpl &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.display, display) || other.display == display) &&
-            (identical(other.verified, verified) || other.verified == verified) &&
+            (identical(other.verified, verified) ||
+                other.verified == verified) &&
             (identical(other.avatar, avatar) || other.avatar == avatar) &&
-            (identical(other.ionConnect, ionConnect) || other.ionConnect == ionConnect));
+            (identical(other.ionConnect, ionConnect) ||
+                other.ionConnect == ionConnect));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, name, display, verified, avatar, ionConnect);
+  int get hashCode =>
+      Object.hash(runtimeType, name, display, verified, avatar, ionConnect);
 
   /// Create a copy of Creator
   /// with the given fields replaced by the non-null parameter values.
@@ -230,7 +252,8 @@ abstract class _Creator implements Creator {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CreatorImplCopyWith<_$CreatorImpl> get copyWith => throw _privateConstructorUsedError;
+  _$$CreatorImplCopyWith<_$CreatorImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 CreatorPatch _$CreatorPatchFromJson(Map<String, dynamic> json) {
@@ -252,7 +275,13 @@ mixin _$CreatorPatch {
 /// @nodoc
 @JsonSerializable()
 class _$CreatorPatchImpl implements _CreatorPatch {
-  const _$CreatorPatchImpl({this.name, this.display, this.verified, this.avatar, this.ionConnect});
+  const _$CreatorPatchImpl({
+    this.name,
+    this.display,
+    this.verified,
+    this.avatar,
+    this.ionConnect,
+  });
 
   factory _$CreatorPatchImpl.fromJson(Map<String, dynamic> json) =>
       _$$CreatorPatchImplFromJson(json);
@@ -280,14 +309,17 @@ class _$CreatorPatchImpl implements _CreatorPatch {
             other is _$CreatorPatchImpl &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.display, display) || other.display == display) &&
-            (identical(other.verified, verified) || other.verified == verified) &&
+            (identical(other.verified, verified) ||
+                other.verified == verified) &&
             (identical(other.avatar, avatar) || other.avatar == avatar) &&
-            (identical(other.ionConnect, ionConnect) || other.ionConnect == ionConnect));
+            (identical(other.ionConnect, ionConnect) ||
+                other.ionConnect == ionConnect));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, name, display, verified, avatar, ionConnect);
+  int get hashCode =>
+      Object.hash(runtimeType, name, display, verified, avatar, ionConnect);
 
   @override
   Map<String, dynamic> toJson() {
@@ -304,7 +336,8 @@ abstract class _CreatorPatch implements CreatorPatch {
     final String? ionConnect,
   }) = _$CreatorPatchImpl;
 
-  factory _CreatorPatch.fromJson(Map<String, dynamic> json) = _$CreatorPatchImpl.fromJson;
+  factory _CreatorPatch.fromJson(Map<String, dynamic> json) =
+      _$CreatorPatchImpl.fromJson;
 
   @override
   String? get name;

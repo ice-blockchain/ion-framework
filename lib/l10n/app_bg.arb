@@ -517,6 +517,7 @@
   "group_create_type_title": "Избери тип група",
   "group_created_message": "Групата беше създадена",
   "hodl_for": "HODL за {time}",
+  "holders": "Притежатели",
   "hour": "{count, plural, =1{час} other{часа}}",
   "identity_key_name_description": "Мислете за името на вашия ключ за идентичност като уникален идентификатор на вашия акаунт. Ще го използвате за влизане и възстановяване на акаунта си, така че го пазете в безопасност и не го забравяйте",
   "identity_key_name_usage": "Използвайте го за влизане във всяко приложение, защитено от",
@@ -812,14 +813,8 @@
   "tokenized_community_trades_tab": "Сделки",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Добави връзка",
-  "top_holders_title": "Топ притежатели ({count})",
-  "@top_holders_title": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "top_holders_empty": "Станете първият притежател",
+  "top_holders_title": "Топ притежатели",
   "topics_add": "Добави",
   "topics_title": "Теми",
   "trade_buy": "КУПУВАНЕ",

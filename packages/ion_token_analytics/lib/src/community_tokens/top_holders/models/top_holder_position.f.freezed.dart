@@ -35,7 +35,8 @@ mixin _$TopHolderPosition {
   /// Create a copy of TopHolderPosition
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $TopHolderPositionCopyWith<TopHolderPosition> get copyWith => throw _privateConstructorUsedError;
+  $TopHolderPositionCopyWith<TopHolderPosition> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -139,7 +140,8 @@ class _$TopHolderPositionCopyWithImpl<$Res, $Val extends TopHolderPosition>
 }
 
 /// @nodoc
-abstract class _$$TopHolderPositionImplCopyWith<$Res> implements $TopHolderPositionCopyWith<$Res> {
+abstract class _$$TopHolderPositionImplCopyWith<$Res>
+    implements $TopHolderPositionCopyWith<$Res> {
   factory _$$TopHolderPositionImplCopyWith(
     _$TopHolderPositionImpl value,
     $Res Function(_$TopHolderPositionImpl) then,
@@ -264,15 +266,26 @@ class _$TopHolderPositionImpl implements _TopHolderPosition {
             (identical(other.type, type) || other.type == type) &&
             (identical(other.rank, rank) || other.rank == rank) &&
             (identical(other.amount, amount) || other.amount == amount) &&
-            (identical(other.amountUSD, amountUSD) || other.amountUSD == amountUSD) &&
-            (identical(other.supplyShare, supplyShare) || other.supplyShare == supplyShare) &&
-            (identical(other.addresses, addresses) || other.addresses == addresses));
+            (identical(other.amountUSD, amountUSD) ||
+                other.amountUSD == amountUSD) &&
+            (identical(other.supplyShare, supplyShare) ||
+                other.supplyShare == supplyShare) &&
+            (identical(other.addresses, addresses) ||
+                other.addresses == addresses));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, holder, type, rank, amount, amountUSD, supplyShare, addresses);
+  int get hashCode => Object.hash(
+    runtimeType,
+    holder,
+    type,
+    rank,
+    amount,
+    amountUSD,
+    supplyShare,
+    addresses,
+  );
 
   /// Create a copy of TopHolderPosition
   /// with the given fields replaced by the non-null parameter values.
@@ -280,7 +293,10 @@ class _$TopHolderPositionImpl implements _TopHolderPosition {
   @override
   @pragma('vm:prefer-inline')
   _$$TopHolderPositionImplCopyWith<_$TopHolderPositionImpl> get copyWith =>
-      __$$TopHolderPositionImplCopyWithImpl<_$TopHolderPositionImpl>(this, _$identity);
+      __$$TopHolderPositionImplCopyWithImpl<_$TopHolderPositionImpl>(
+        this,
+        _$identity,
+      );
 
   @override
   Map<String, dynamic> toJson() {
@@ -299,7 +315,8 @@ abstract class _TopHolderPosition implements TopHolderPosition {
     required final Addresses addresses,
   }) = _$TopHolderPositionImpl;
 
-  factory _TopHolderPosition.fromJson(Map<String, dynamic> json) = _$TopHolderPositionImpl.fromJson;
+  factory _TopHolderPosition.fromJson(Map<String, dynamic> json) =
+      _$TopHolderPositionImpl.fromJson;
 
   @override
   Creator get holder;
@@ -324,7 +341,9 @@ abstract class _TopHolderPosition implements TopHolderPosition {
       throw _privateConstructorUsedError;
 }
 
-TopHolderPositionPatch _$TopHolderPositionPatchFromJson(Map<String, dynamic> json) {
+TopHolderPositionPatch _$TopHolderPositionPatchFromJson(
+  Map<String, dynamic> json,
+) {
   return _TopHolderPositionPatch.fromJson(json);
 }
 
@@ -387,15 +406,26 @@ class _$TopHolderPositionPatchImpl implements _TopHolderPositionPatch {
             (identical(other.type, type) || other.type == type) &&
             (identical(other.rank, rank) || other.rank == rank) &&
             (identical(other.amount, amount) || other.amount == amount) &&
-            (identical(other.amountUSD, amountUSD) || other.amountUSD == amountUSD) &&
-            (identical(other.supplyShare, supplyShare) || other.supplyShare == supplyShare) &&
-            (identical(other.addresses, addresses) || other.addresses == addresses));
+            (identical(other.amountUSD, amountUSD) ||
+                other.amountUSD == amountUSD) &&
+            (identical(other.supplyShare, supplyShare) ||
+                other.supplyShare == supplyShare) &&
+            (identical(other.addresses, addresses) ||
+                other.addresses == addresses));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, holder, type, rank, amount, amountUSD, supplyShare, addresses);
+  int get hashCode => Object.hash(
+    runtimeType,
+    holder,
+    type,
+    rank,
+    amount,
+    amountUSD,
+    supplyShare,
+    addresses,
+  );
 
   @override
   Map<String, dynamic> toJson() {
