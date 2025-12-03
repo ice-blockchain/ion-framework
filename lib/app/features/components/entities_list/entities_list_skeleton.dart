@@ -12,7 +12,7 @@ class EntitiesListSkeleton extends StatelessWidget {
     super.key,
   });
 
-  static const int numberOfItems = 3;
+  static const int numberOfItems = 4;
 
   @override
   Widget build(BuildContext context) {
