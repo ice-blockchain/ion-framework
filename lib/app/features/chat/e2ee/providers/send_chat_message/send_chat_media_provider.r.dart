@@ -132,9 +132,10 @@ class SendChatMedia extends _$SendChatMedia {
       final trimmedContent = entity.data.content.trim();
       final quotedEvent = entity.data.quotedEvent;
 
-      // Delete message if it has no content, no quoted event, and no media
+      // Soft delete message if it has no content, no quoted event, and no media
       if (trimmedContent.isEmpty && quotedEvent == null) {
-        await eventMessageDao.deleteByEventReference(eventReference);
+        final conversationMessageDao = ref.read(conversationMessageDaoProvider);
+        await conversationMessageDao.hideConversationMessages([eventReference]);
       }
     }
 
