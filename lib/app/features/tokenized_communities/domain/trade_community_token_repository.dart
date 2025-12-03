@@ -26,6 +26,10 @@ class TradeCommunityTokenRepository {
     _cachedAddress = await api.fetchBondingCurveAddress();
   }
 
+  Future<String?> fetchContractAddress(String externalAddress) async {
+    return api.fetchContractAddress(externalAddress);
+  }
+
   Future<BigInt> fetchQuote({
     required List<int> fromTokenIdentifier,
     required List<int> toTokenIdentifier,
@@ -81,7 +85,7 @@ class TradeCommunityTokenRepository {
     );
   }
 
-  Future<String> buyCommunityToken({
+  Future<String> swapCommunityToken({
     required String walletId,
     required List<int> fromTokenIdentifier,
     required List<int> toTokenIdentifier,

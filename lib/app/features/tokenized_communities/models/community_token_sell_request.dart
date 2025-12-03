@@ -2,8 +2,8 @@
 
 import 'package:ion_identity_client/ion_identity.dart';
 
-class CommunityTokenBuyRequest {
-  CommunityTokenBuyRequest({
+class CommunityTokenSellRequest {
+  CommunityTokenSellRequest({
     required this.externalAddress,
     required this.amountIn,
     required this.slippagePercent,
@@ -11,7 +11,8 @@ class CommunityTokenBuyRequest {
     required this.walletAddress,
     required this.maxFeePerGas,
     required this.maxPriorityFeePerGas,
-    required this.baseTokenAddress,
+    required this.paymentTokenAddress,
+    required this.communityTokenAddress,
     required this.tokenDecimals,
     required this.userActionSigner,
     this.contractAddress,
@@ -26,7 +27,8 @@ class CommunityTokenBuyRequest {
   final String walletAddress;
   final BigInt maxFeePerGas;
   final BigInt maxPriorityFeePerGas;
-  final String baseTokenAddress;
+  final String paymentTokenAddress;
+  final String communityTokenAddress;
   final int tokenDecimals;
   final UserActionSignerNew userActionSigner;
 
