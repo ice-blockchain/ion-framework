@@ -30,8 +30,12 @@ class OwnPostMenuBottomSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
+    final entityAsync = ref.watch(ionConnectEntityProvider(eventReference: eventReference));
+    if (entityAsync.isLoading) {
+      return const SizedBox.shrink();
+    }
 
+    final entity = entityAsync.valueOrNull;
     if (entity == null ||
         (entity is! ModifiablePostEntity && entity is! PostEntity && entity is! ArticleEntity)) {
       Navigator.of(context).pop();
