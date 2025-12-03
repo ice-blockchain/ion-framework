@@ -86,27 +86,44 @@ class _NativeIonPageState extends State<NativeIonPage> {
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 child: isShow && nativeAdAsset != null
                     ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          const Text('Feed'),
                           NativeAdCard(ad: nativeAdAsset!),
                           const SizedBox(height: 16),
+                          const Text('Chat'),
                           SizedBox(
-                            height: 100,
-                            child: NativeStoryAd(ad: nativeAdAsset!),
+                            width: 270,
+                            child: Expanded(
+                              child: Card(
+                                margin: EdgeInsets.zero,
+                                elevation: 6,
+                                child: NativeChatAd(ad: nativeAdAsset!),
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 16),
+                          const Text('Chat List'),
+                          Card(
+                            elevation: 6,
+                            child: NativeChatListAd(ad: nativeAdAsset!),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text('Article'),
                           NativeArticleAd(ad: nativeAdAsset!),
                           const SizedBox(height: 16),
-                          NativeChatAd(ad: nativeAdAsset!),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            height: 100,
-                            child: NativeVideoAd(ad: nativeAdAsset!),
-                          ),
-                          const SizedBox(height: 16),
-                          NativeChatListAd(ad: nativeAdAsset!),
+                          // SizedBox(
+                          //   height: 100,
+                          //   child: NativeStoryAd(ad: nativeAdAsset!),
+                          // ),
+                          // const SizedBox(height: 16),
+                          // SizedBox(
+                          //   height: 100,
+                          //   child: NativeVideoAd(ad: nativeAdAsset!),
+                          // ),
                           const SizedBox(height: 56),
                         ],
                       )
