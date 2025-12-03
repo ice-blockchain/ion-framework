@@ -9,6 +9,10 @@ class SwapQuoteInfo with _$SwapQuoteInfo {
     required SwapQuoteInfoType type,
     required double priceForSellTokenInBuyToken,
     required SwapQuoteInfoSource source,
+    int? swapImpact,
+    String? networkFee,
+    String? protocolFee,
+    String? slippage,
   }) = _SwapQuoteInfo;
 
   factory SwapQuoteInfo.fromJson(Map<String, dynamic> json) => _$SwapQuoteInfoFromJson(json);

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
@@ -8,10 +9,11 @@ import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/sum_percentage_action.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/utils/text_input_formatters.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class TokenCard extends StatelessWidget {
+class TokenCard extends ConsumerWidget {
   const TokenCard({
     required this.type,
     required this.onTap,
@@ -27,8 +29,17 @@ class TokenCard extends StatelessWidget {
   final VoidCallback onTap;
   final TextEditingController? controller;
 
+  void _onPercentageChanged(double percentage, WidgetRef ref) {
+    final amount = coinsGroup?.totalAmount;
+    if (amount == null) return;
+
+    final newAmount = amount * percentage;
+    controller?.text = newAmount.toString();
+    ref.read(swapCoinsControllerProvider.notifier).setAmount(newAmount);
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
     final iconUrl = coinsGroup?.iconUrl;
@@ -57,9 +68,7 @@ class TokenCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                type == CoinSwapType.sell
-                    ? context.i18n.wallet_swap_coins_sell
-                    : context.i18n.wallet_swap_coins_buy,
+                type == CoinSwapType.sell ? context.i18n.wallet_swap_coins_sell : context.i18n.wallet_swap_coins_buy,
                 style: textStyles.subtitle3.copyWith(
                   color: colors.onTertiaryBackground,
                 ),
@@ -69,28 +78,32 @@ class TokenCard extends StatelessWidget {
                   spacing: 5.0.s,
                   children: [
                     SumPercentageAction(
-                      percentage: 25,
-                      onPercentageChanged: (percentage) {
-                        // TODO(ice-erebus): implement percentage changed
-                      },
+                      percentage: 0.25,
+                      onPercentageChanged: (percentage) => _onPercentageChanged(
+                        percentage,
+                        ref,
+                      ),
                     ),
                     SumPercentageAction(
-                      percentage: 50,
-                      onPercentageChanged: (percentage) {
-                        // TODO(ice-erebus): implement percentage changed
-                      },
+                      percentage: 0.5,
+                      onPercentageChanged: (percentage) => _onPercentageChanged(
+                        percentage,
+                        ref,
+                      ),
                     ),
                     SumPercentageAction(
-                      percentage: 75,
-                      onPercentageChanged: (percentage) {
-                        // TODO(ice-erebus): implement percentage changed
-                      },
+                      percentage: 0.75,
+                      onPercentageChanged: (percentage) => _onPercentageChanged(
+                        percentage,
+                        ref,
+                      ),
                     ),
                     SumPercentageAction(
-                      percentage: 100,
-                      onPercentageChanged: (percentage) {
-                        // TODO(ice-erebus): implement percentage changed
-                      },
+                      percentage: 1,
+                      onPercentageChanged: (percentage) => _onPercentageChanged(
+                        percentage,
+                        ref,
+                      ),
                     ),
                   ],
                 ),
@@ -219,9 +232,7 @@ class TokenCard extends StatelessWidget {
                     ),
                     Flexible(
                       child: Text(
-                        coinsGroup != null
-                            ? '${coinsGroup!.totalAmount} ${coinsGroup!.symbolGroup}'
-                            : '0.00 ICE',
+                        coinsGroup != null ? '${coinsGroup!.totalAmount} ${coinsGroup!.symbolGroup}' : '0.00 ICE',
                         style: textStyles.caption2.copyWith(
                           color: colors.tertiaryText,
                         ),

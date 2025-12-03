@@ -10,8 +10,8 @@ class SumPercentageAction extends StatelessWidget {
     super.key,
   });
 
-  final int percentage;
-  final void Function(int) onPercentageChanged;
+  final double percentage;
+  final void Function(double) onPercentageChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class SumPercentageAction extends StatelessWidget {
           borderRadius: BorderRadius.circular(16.0.s),
         ),
         child: Text(
-          '$percentage%',
+          '${(percentage * 100).toStringAsFixed(0)}%',
           style: textStyles.caption3.copyWith(
             color: colors.quaternaryText,
           ),
