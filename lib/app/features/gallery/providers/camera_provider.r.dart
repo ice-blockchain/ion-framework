@@ -82,20 +82,65 @@ class CameraControllerNotifier extends _$CameraControllerNotifier {
   }
 
   Future<CameraController> _createCameraController(CameraDescription camera) async {
-    _cameraController = CameraController(
-      camera,
+    // List of resolution presets to try, from highest to lowest
+    // This provides fallback for devices that don't support max resolution
+    // (e.g., iOS 18+ devices with unsupported pixel formats on iPhone 17+)
+    // See: https://github.com/flutter/flutter/issues/175828
+    // Note: camera_avfoundation doesn't support the new btp2 format used by max on new iPhones
+    // ultraHigh (~2160p) is the recommended fallback for iPhone 17+
+    final presets = [
       ResolutionPreset.max,
-    );
+      ResolutionPreset.ultraHigh, // Fallback for iPhone 17+ (iOS 18+)
+      ResolutionPreset.veryHigh,
+      ResolutionPreset.high,
+      ResolutionPreset.medium,
+    ];
 
-    try {
-      await _cameraController?.initialize();
-      _cameraController?.addListener(_onCameraControllerUpdate);
-      return _cameraController!;
-    } catch (e) {
-      Logger.log('Camera initialization error: $e');
-      await _disposeCamera();
-      throw Exception('Camera initialization error: $e');
+    Exception? lastError;
+
+    for (final preset in presets) {
+      try {
+        // Dispose previous controller if it exists
+        if (_cameraController != null) {
+          await _disposeCamera();
+        }
+
+        _cameraController = CameraController(camera, preset);
+
+        await _cameraController?.initialize();
+        _cameraController?.addListener(_onCameraControllerUpdate);
+
+        Logger.log('Camera initialized successfully with preset: $preset');
+        return _cameraController!;
+      } catch (e) {
+        Logger.log('Camera initialization failed with preset $preset: $e');
+        lastError = e is Exception ? e : Exception('Camera initialization error: $e');
+
+        // Check if this is a non-recoverable error (e.g., permissions)
+        // Pixel format errors should be retried with lower presets
+        final errorMessage = e.toString().toLowerCase();
+        final isNonRecoverableError = errorMessage.contains('permission') ||
+            errorMessage.contains('authorization') ||
+            errorMessage.contains('not authorized');
+
+        // Stop trying other presets if it's a non-recoverable error
+        if (isNonRecoverableError) {
+          Logger.log(
+            'Non-recoverable error detected (likely permissions), stopping preset fallback',
+          );
+          break;
+        }
+
+        // Continue to next preset for recoverable errors (pixel format, etc.)
+        // This handles the known issue where max fails on iPhone 17+ (iOS 18+)
+        // and ultraHigh is the recommended fallback
+        continue;
+      }
     }
+
+    // If we get here, all presets failed
+    await _disposeCamera();
+    throw lastError ?? Exception('Camera initialization failed with all presets');
   }
 
   Future<void> pauseCamera() async {
