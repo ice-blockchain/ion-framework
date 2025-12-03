@@ -1,67 +1,70 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:ion_ads/src/components/media_asset_image.dart';
+import 'package:ion_ads/src/components/star_rating.dart';
+import 'package:ion_ads/src/config/theme_data.dart';
 import 'package:ion_ads/src/models/native_ad_asset.dart';
 
 class NativeChatAd extends StatelessWidget {
   const NativeChatAd({required this.ad, super.key});
+
   final IonNativeAdAsset ad;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-      child: Row(
+      padding: const EdgeInsets.all(12),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (ad.iconImage != null) CircleAvatar(backgroundImage: ad.iconImage, radius: 16),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          Row(
+            children: [
+              MediaAssetImage(path: ad.mediaAssets?.icon, width: 30, height: 30),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Row(
                   children: [
-                    Expanded(
-                      child: Text(
-                        ad.title,
-                        style: Theme.of(context).textTheme.titleSmall,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    _AdTag(text: ad.attributionText),
+                    Text(ad.title, style: theme.textPrimary.subtitle3),
+                    const SizedBox(width: 6),
+                    if (ad.rating != null && ad.rating! > 0 || true)
+                      StarRating(
+                        rating: 4,
+                        color: theme.adsColors.onTertiaryBackground,
+                        size: 12,
+                      )
+                    else
+                      const SizedBox.shrink(),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(ad.body, style: Theme.of(context).textTheme.bodySmall),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: () {},
-                    child: Text(ad.callToAction),
+              ),
+            ],
+          ),
+          if (ad.mediaAssets?.mainImage != null) ...[
+            const SizedBox(height: 10),
+            MainImageWithAdChoices(ad: ad),
+          ],
+          const SizedBox(height: 8),
+          if (ad.callToAction.isNotEmpty)
+            SizedBox(
+              height: 30,
+              child: FilledButton(
+                onPressed: () {},
+                style: FilledButton.styleFrom(
+                  backgroundColor: theme.adsColors.primaryAccent,
+                  textStyle: theme.textOnPrimary.body,
+                  minimumSize: const Size(double.maxFinite, 0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-              ],
+                child: Text(ad.callToAction),
+              ),
             ),
-          ),
         ],
       ),
-    );
-  }
-}
-
-class _AdTag extends StatelessWidget {
-  const _AdTag({required this.text});
-  final String text;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade300,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      child: Text(text, style: Theme.of(context).textTheme.labelSmall),
     );
   }
 }
