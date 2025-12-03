@@ -27,7 +27,8 @@ class BridgeService {
         throw const IonSwapException('Relay: Quote is required');
       }
 
-      final depositStep = relayQuote.steps.firstWhereOrNull((step) => step.id == 'deposit')?.items.first;
+      final depositStep =
+          relayQuote.steps.firstWhereOrNull((step) => step.id == 'deposit')?.items.first;
       if (depositStep == null) {
         throw const IonSwapException('Relay: Deposit step is required');
       }
@@ -47,9 +48,10 @@ class BridgeService {
     }
 
     final chains = await _relayApiRepository.getChains();
-    final sellChain =
-        chains.firstWhere((chain) => chain.name.toLowerCase() == swapCoinData.sellNetworkId.toLowerCase());
-    final buyChain = chains.firstWhere((chain) => chain.name.toLowerCase() == swapCoinData.buyNetworkId.toLowerCase());
+    final sellChain = chains.firstWhere(
+        (chain) => chain.name.toLowerCase() == swapCoinData.sellNetworkId.toLowerCase());
+    final buyChain = chains
+        .firstWhere((chain) => chain.name.toLowerCase() == swapCoinData.buyNetworkId.toLowerCase());
 
     final swapAmount = _getSwapAmount(
       swapCoinData.amount,

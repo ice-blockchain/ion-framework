@@ -9,5 +9,6 @@ class RelayStepItemData with _$RelayStepItemData {
     required String to,
   }) = _RelayStepItemData;
 
-  factory RelayStepItemData.fromJson(Map<String, dynamic> json) => _$RelayStepItemDataFromJson(json);
+  factory RelayStepItemData.fromJson(Map<String, dynamic> json) =>
+      _$RelayStepItemDataFromJson(json);
 }

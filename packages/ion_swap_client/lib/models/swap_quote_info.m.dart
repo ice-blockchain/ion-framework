@@ -20,7 +20,6 @@ class SwapQuoteInfo with _$SwapQuoteInfo {
     ExolixRate? exolixQuote,
     LetsExchangeInfo? letsExchangeQuote,
     SwapQuoteData? okxQuote,
-
     RelayQuote? relayQuote,
     String? relayDepositAmount,
   }) = _SwapQuoteInfo;
@@ -36,6 +35,6 @@ enum SwapQuoteInfoType {
 enum SwapQuoteInfoSource {
   exolix,
   letsExchange,
-  okx, 
+  okx,
   relay,
 }

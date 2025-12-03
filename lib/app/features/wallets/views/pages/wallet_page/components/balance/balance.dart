@@ -30,7 +30,8 @@ class Balance extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isPageLoading = ref.watch(walletPageLoaderNotifierProvider);
 
-    final currentWallet = ref.watch(currentWalletViewDataProvider.select((state) => state.valueOrNull));
+    final currentWallet =
+        ref.watch(currentWalletViewDataProvider.select((state) => state.valueOrNull));
     final walletBalance = currentWallet?.usdBalance;
 
     final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
@@ -57,7 +58,8 @@ class Balance extends ConsumerWidget {
           else
             Text(
               isBalanceVisible ? formatToCurrency(walletBalance) : StringConstants.obfuscated,
-              style: context.theme.appTextThemes.headline1.copyWith(color: context.theme.appColors.primaryText),
+              style: context.theme.appTextThemes.headline1
+                  .copyWith(color: context.theme.appColors.primaryText),
             ),
           Padding(
             padding: EdgeInsetsDirectional.only(top: 10.0.s),

@@ -86,8 +86,8 @@ class DexService {
   }
 
   SwapQuoteData _pickBestOkxQuote(List<SwapQuoteData> quotes) {
-    final sortedQuotes =
-        quotes.sortedByCompare<double>((quote) => quote.priceForSellTokenInBuyToken, (a, b) => b.compareTo(a));
+    final sortedQuotes = quotes.sortedByCompare<double>(
+        (quote) => quote.priceForSellTokenInBuyToken, (a, b) => b.compareTo(a));
     return sortedQuotes.first;
   }
 
