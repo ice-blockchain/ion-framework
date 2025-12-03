@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-// TODO(ice-erebus): rewrite this repository
 import 'package:dio/dio.dart';
 import 'package:ion_swap_client/models/relay_chain.m.dart';
 import 'package:ion_swap_client/models/relay_quote.m.dart';

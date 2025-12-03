@@ -25,14 +25,21 @@ class ConversionInfoRow extends HookConsumerWidget {
     final textStyles = context.theme.appTextThemes;
     final swapCoinsController = ref.watch(swapCoinsControllerProvider);
     final isLoading = swapCoinsController.isQuoteLoading;
+    final isError = swapCoinsController.isQuoteError;
     final swapQuoteInfo = swapCoinsController.swapQuoteInfo;
 
     if (isLoading) {
       return const _LoadingState();
     }
 
-    if (swapQuoteInfo == null) {
+    if (isError) {
       return const _ErrorState();
+    }
+
+    if (swapQuoteInfo == null) {
+      return SizedBox(
+        height: 32.0.s,
+      );
     }
 
     return Padding(

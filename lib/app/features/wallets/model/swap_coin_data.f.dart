@@ -16,6 +16,7 @@ class SwapCoinData with _$SwapCoinData {
     NetworkData? buyNetwork,
     SwapQuoteInfo? swapQuoteInfo,
     @Default(false) bool isQuoteLoading,
+    @Default(false) bool isQuoteError,
     @Default(0) double amount,
     BigInt? quoteAmount,
   }) = _SwapCoinData;

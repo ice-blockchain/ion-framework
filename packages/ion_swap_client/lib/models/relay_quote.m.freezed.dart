@@ -21,6 +21,7 @@ RelayQuote _$RelayQuoteFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$RelayQuote {
   RelayQuoteDetails get details => throw _privateConstructorUsedError;
+  List<RelayStep> get steps => throw _privateConstructorUsedError;
 
   /// Serializes this RelayQuote to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -38,7 +39,7 @@ abstract class $RelayQuoteCopyWith<$Res> {
           RelayQuote value, $Res Function(RelayQuote) then) =
       _$RelayQuoteCopyWithImpl<$Res, RelayQuote>;
   @useResult
-  $Res call({RelayQuoteDetails details});
+  $Res call({RelayQuoteDetails details, List<RelayStep> steps});
 
   $RelayQuoteDetailsCopyWith<$Res> get details;
 }
@@ -59,12 +60,17 @@ class _$RelayQuoteCopyWithImpl<$Res, $Val extends RelayQuote>
   @override
   $Res call({
     Object? details = null,
+    Object? steps = null,
   }) {
     return _then(_value.copyWith(
       details: null == details
           ? _value.details
           : details // ignore: cast_nullable_to_non_nullable
               as RelayQuoteDetails,
+      steps: null == steps
+          ? _value.steps
+          : steps // ignore: cast_nullable_to_non_nullable
+              as List<RelayStep>,
     ) as $Val);
   }
 
@@ -87,7 +93,7 @@ abstract class _$$RelayQuoteImplCopyWith<$Res>
       __$$RelayQuoteImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({RelayQuoteDetails details});
+  $Res call({RelayQuoteDetails details, List<RelayStep> steps});
 
   @override
   $RelayQuoteDetailsCopyWith<$Res> get details;
@@ -107,12 +113,17 @@ class __$$RelayQuoteImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? details = null,
+    Object? steps = null,
   }) {
     return _then(_$RelayQuoteImpl(
       details: null == details
           ? _value.details
           : details // ignore: cast_nullable_to_non_nullable
               as RelayQuoteDetails,
+      steps: null == steps
+          ? _value._steps
+          : steps // ignore: cast_nullable_to_non_nullable
+              as List<RelayStep>,
     ));
   }
 }
@@ -120,17 +131,26 @@ class __$$RelayQuoteImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$RelayQuoteImpl implements _RelayQuote {
-  _$RelayQuoteImpl({required this.details});
+  _$RelayQuoteImpl(
+      {required this.details, required final List<RelayStep> steps})
+      : _steps = steps;
 
   factory _$RelayQuoteImpl.fromJson(Map<String, dynamic> json) =>
       _$$RelayQuoteImplFromJson(json);
 
   @override
   final RelayQuoteDetails details;
+  final List<RelayStep> _steps;
+  @override
+  List<RelayStep> get steps {
+    if (_steps is EqualUnmodifiableListView) return _steps;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_steps);
+  }
 
   @override
   String toString() {
-    return 'RelayQuote(details: $details)';
+    return 'RelayQuote(details: $details, steps: $steps)';
   }
 
   @override
@@ -138,12 +158,14 @@ class _$RelayQuoteImpl implements _RelayQuote {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RelayQuoteImpl &&
-            (identical(other.details, details) || other.details == details));
+            (identical(other.details, details) || other.details == details) &&
+            const DeepCollectionEquality().equals(other._steps, _steps));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, details);
+  int get hashCode => Object.hash(
+      runtimeType, details, const DeepCollectionEquality().hash(_steps));
 
   /// Create a copy of RelayQuote
   /// with the given fields replaced by the non-null parameter values.
@@ -162,14 +184,17 @@ class _$RelayQuoteImpl implements _RelayQuote {
 }
 
 abstract class _RelayQuote implements RelayQuote {
-  factory _RelayQuote({required final RelayQuoteDetails details}) =
-      _$RelayQuoteImpl;
+  factory _RelayQuote(
+      {required final RelayQuoteDetails details,
+      required final List<RelayStep> steps}) = _$RelayQuoteImpl;
 
   factory _RelayQuote.fromJson(Map<String, dynamic> json) =
       _$RelayQuoteImpl.fromJson;
 
   @override
   RelayQuoteDetails get details;
+  @override
+  List<RelayStep> get steps;
 
   /// Create a copy of RelayQuote
   /// with the given fields replaced by the non-null parameter values.
