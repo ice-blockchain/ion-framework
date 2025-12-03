@@ -26,5 +26,6 @@ class SwapCoinParameters with _$SwapCoinParameters {
     required String buyExtraId,
   }) = _SwapCoinParameters;
 
-  factory SwapCoinParameters.fromJson(Map<String, dynamic> json) => _$SwapCoinParametersFromJson(json);
+  factory SwapCoinParameters.fromJson(Map<String, dynamic> json) =>
+      _$SwapCoinParametersFromJson(json);
 }

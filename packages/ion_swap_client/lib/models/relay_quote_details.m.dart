@@ -9,5 +9,6 @@ class RelayQuoteDetails with _$RelayQuoteDetails {
     required String rate,
   }) = _RelayQuoteDetails;
 
-  factory RelayQuoteDetails.fromJson(Map<String, dynamic> json) => _$RelayQuoteDetailsFromJson(json);
+  factory RelayQuoteDetails.fromJson(Map<String, dynamic> json) =>
+      _$RelayQuoteDetailsFromJson(json);
 }

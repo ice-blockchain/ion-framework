@@ -231,7 +231,8 @@ class _SwapDetailsSection extends ConsumerWidget {
     final slippage = swapQuoteInfo?.slippage;
     final networkFee = swapQuoteInfo?.networkFee;
     final protocolFee = swapQuoteInfo?.protocolFee;
-    final isVisibleMoreButton = priceImpact != null || slippage != null || networkFee != null || protocolFee != null;
+    final isVisibleMoreButton =
+        priceImpact != null || slippage != null || networkFee != null || protocolFee != null;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -443,48 +444,48 @@ class _SwapButton extends ConsumerWidget {
           );
 
           await ref.read(swapCoinsControllerProvider.notifier).swapCoins(
-                onVerifyIdentitySwapCallback: (sendAssetFormData) async {
-                  await guardPasskeyDialog(
-                    ref.context,
-                    (child) {
-                      return RiverpodVerifyIdentityRequestBuilder(
-                        provider: sendCoinsNotifierProvider,
-                        requestWithVerifyIdentity: (
-                          OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity,
-                        ) async {
-                          await ref.read(sendCoinsNotifierProvider.notifier).send(
-                                onVerifyIdentity,
-                                form: sendAssetFormData,
-                              );
-                        },
-                        child: child,
-                      );
+            onVerifyIdentitySwapCallback: (sendAssetFormData) async {
+              await guardPasskeyDialog(
+                ref.context,
+                (child) {
+                  return RiverpodVerifyIdentityRequestBuilder(
+                    provider: sendCoinsNotifierProvider,
+                    requestWithVerifyIdentity: (
+                      OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity,
+                    ) async {
+                      await ref.read(sendCoinsNotifierProvider.notifier).send(
+                            onVerifyIdentity,
+                            form: sendAssetFormData,
+                          );
                     },
-                  );
-                },
-                onSwapError: () {
-                  _showMessage(
-                    messageNotificationNotifier,
-                    message: context.i18n.wallet_swap_failed,
-                    icon: Assets.svg.iconBlockKeywarning.icon(
-                      color: colors.attentionRed,
-                      size: 24.0.s,
-                    ),
-                    state: MessageNotificationState.error,
-                  );
-                },
-                onSwapSuccess: () {
-                  _showMessage(
-                    messageNotificationNotifier,
-                    message: context.i18n.wallet_swapped_coins,
-                    icon: Assets.svg.iconCheckSuccess.icon(
-                      color: colors.success,
-                      size: 24.0.s,
-                    ),
-                    state: MessageNotificationState.success,
+                    child: child,
                   );
                 },
               );
+            },
+            onSwapError: () {
+              _showMessage(
+                messageNotificationNotifier,
+                message: context.i18n.wallet_swap_failed,
+                icon: Assets.svg.iconBlockKeywarning.icon(
+                  color: colors.attentionRed,
+                  size: 24.0.s,
+                ),
+                state: MessageNotificationState.error,
+              );
+            },
+            onSwapSuccess: () {
+              _showMessage(
+                messageNotificationNotifier,
+                message: context.i18n.wallet_swapped_coins,
+                icon: Assets.svg.iconCheckSuccess.icon(
+                  color: colors.success,
+                  size: 24.0.s,
+                ),
+                state: MessageNotificationState.success,
+              );
+            },
+          );
         },
         label: Text(
           context.i18n.wallet_swap_confirmation_swap_button,

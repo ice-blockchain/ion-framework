@@ -112,7 +112,9 @@ class CoinDetailsPage extends HookConsumerWidget {
                 items: networkSelectorData.items,
                 selected: networkSelectorData.selected,
                 onNetworkTypeSelect: (selected) {
-                  ref.read(networkSelectorNotifierProvider(symbolGroup: symbolGroup).notifier).selected = selected;
+                  ref
+                      .read(networkSelectorNotifierProvider(symbolGroup: symbolGroup).notifier)
+                      .selected = selected;
                 },
               ),
             ),
