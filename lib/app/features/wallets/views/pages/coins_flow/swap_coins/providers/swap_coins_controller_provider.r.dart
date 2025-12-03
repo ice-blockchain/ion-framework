@@ -10,7 +10,7 @@ import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/network_fee_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
-import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/swap_coins_modal_page.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';

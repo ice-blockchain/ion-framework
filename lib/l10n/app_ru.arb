@@ -1003,6 +1003,7 @@
   "wallet_swap_coins_select_coin": "Выбрать токен",
   "wallet_swap_coins_sell": "Продать",
   "wallet_swap_coming_soon": "Обменивайте токены без усилий. Уже скоро.",
+  "wallet_swap_confirmation_automatically_share_post_about_trade": "Автоматически публиковать пост о вашей сделке",
   "wallet_swap_confirmation_high_price_impact_description_first": "Эта транзакция имеет высокое влияние на цену",
   "wallet_swap_confirmation_high_price_impact_description_second": "поэтому сумма, которую вы получите, будет заметно ниже текущей рыночной цены.",
   "wallet_swap_confirmation_less": "Меньше",
