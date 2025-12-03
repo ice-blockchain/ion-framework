@@ -28,8 +28,17 @@ class LatestTradesComponent extends StatelessWidget {
     final colors = context.theme.appColors;
     final texts = context.theme.appTextThemes;
     final i18n = context.i18n;
-
     final visible = trades.take(maxVisible).toList();
+
+    final badgeTextStyle = texts.caption6.copyWith(
+      color: colors.secondaryBackground,
+    );
+    final buyTextWidth = _calculateTextWidth(i18n.trade_buy, badgeTextStyle);
+    final sellTextWidth = _calculateTextWidth(i18n.trade_sell, badgeTextStyle);
+
+    final baseTextWidth = buyTextWidth > sellTextWidth ? buyTextWidth : sellTextWidth;
+    final widthBuffer = 2.0.s;
+    final minTextWidth = baseTextWidth + widthBuffer;
 
     return ColoredBox(
       color: colors.secondaryBackground,
@@ -70,6 +79,7 @@ class LatestTradesComponent extends StatelessWidget {
                 for (final trade in visible)
                   _TradeRow(
                     trade: trade,
+                    minTextWidth: minTextWidth,
                     onTap: onTapTrade,
                   ),
               ],
@@ -91,11 +101,23 @@ class LatestTradesComponent extends StatelessWidget {
       ),
     );
   }
+
+  double _calculateTextWidth(String text, TextStyle style) {
+    final textPainter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+    final textWidth = textPainter.width;
+    textPainter.dispose();
+    return textWidth;
+  }
 }
 
 class _TradeRow extends StatelessWidget {
-  const _TradeRow({required this.trade, this.onTap});
+  const _TradeRow({required this.trade, required this.minTextWidth, this.onTap});
   final LatestTrade trade;
+  final double minTextWidth;
   final ValueChanged<LatestTrade>? onTap;
 
   @override
@@ -112,13 +134,20 @@ class _TradeRow extends StatelessWidget {
     final badgeColor = trade.position.type == 'buy' ? colors.success : colors.lossRed;
     final badgeText = trade.position.type == 'buy' ? i18n.trade_buy : i18n.trade_sell;
 
+    final textStyle = texts.caption6.copyWith(color: colors.secondaryBackground);
+
     final badge = Container(
       padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 1.0.s),
       decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(12.0.s)),
-      child: Text(
-        badgeText,
-        style: texts.caption2
-            .copyWith(color: colors.secondaryBackground, height: 18 / texts.caption2.fontSize!),
+      child: SizedBox(
+        width: minTextWidth,
+        child: Text(
+          badgeText,
+          style: textStyle,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          softWrap: false,
+        ),
       ),
     );
 
