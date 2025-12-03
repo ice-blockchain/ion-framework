@@ -13,10 +13,12 @@ import 'package:ion/app/features/chat/providers/share_options_provider.r.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_copy_link_option.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_options_menu_item.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_post_to_story_content.dart';
+import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_profile_to_story_content.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
@@ -63,6 +65,7 @@ class ShareOptions extends HookConsumerWidget {
     final canShareToStory = switch (entity) {
       ModifiablePostEntity() when !entity.isStory => true,
       ArticleEntity() => true,
+      UserMetadataEntity() => true,
       _ => false,
     };
 
@@ -163,7 +166,9 @@ class ShareOptions extends HookConsumerWidget {
     try {
       final contentWidget = UncontrolledProviderScope(
         container: childContainer,
-        child: SharePostToStoryContent(eventReference: eventReference),
+        child: eventReference.isProfileReference
+            ? ShareProfileToStoryContent(eventReference: eventReference)
+            : SharePostToStoryContent(eventReference: eventReference),
       );
 
       final tempFile = await captureWidgetScreenshot(context: context, widget: contentWidget);
