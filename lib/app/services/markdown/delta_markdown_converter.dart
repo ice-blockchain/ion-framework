@@ -206,8 +206,10 @@ abstract class DeltaMarkdownConverter {
     required int currentIndex,
     required List<PmoTag> pmoTags,
   }) {
-    if (content.trim().isEmpty) {
-      return; // Skip empty or whitespace-only content
+    // Allow processing links even if content is whitespace-only (needed for media attachments)
+    final hasLink = attributes.containsKey('link');
+    if (content.trim().isEmpty && !hasLink) {
+      return; // Skip empty or whitespace-only content without links
     }
 
     var replacement = content;
@@ -234,7 +236,7 @@ abstract class DeltaMarkdownConverter {
     if (attributes.containsKey('underline')) {
       replacement = '<u>$replacement</u>';
     }
-    if (attributes.containsKey('link')) {
+    if (hasLink) {
       final link = attributes['link'] ?? '';
       replacement = '[$replacement]($link)';
     }
