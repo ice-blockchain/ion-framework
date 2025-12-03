@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
+import 'package:ion/app/components/avatar/default_avatar.dart';
+import 'package:ion/app/components/image/ion_network_image.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -9,6 +11,7 @@ import 'package:ion/generated/assets.gen.dart';
 part './variants/list_item_dapp.dart';
 part './variants/list_item_popup.dart';
 part './variants/list_item_text_with_icon.dart';
+part './variants/list_item_token_creator.dart';
 part './variants/list_item_user.dart';
 
 class ListItem extends StatelessWidget {
@@ -41,7 +44,7 @@ class ListItem extends StatelessWidget {
   factory ListItem.user({
     required Widget title,
     required Widget subtitle,
-    String? pubkey,
+    required String pubkey,
     Key? key,
     Widget? leading,
     Widget? trailing,
@@ -57,8 +60,26 @@ class ListItem extends StatelessWidget {
     bool iceBadge,
     bool isSelected,
     double? avatarSize,
-    Widget? avatarWidget,
   }) = _ListItemUser;
+
+  factory ListItem.tokenCreator({
+    required Widget title,
+    required Widget subtitle,
+    Key? key,
+    Widget? leading,
+    Widget? trailing,
+    BoxBorder? border,
+    BorderRadius? borderRadius,
+    EdgeInsetsGeometry? contentPadding,
+    EdgeInsetsGeometry? leadingPadding,
+    EdgeInsetsGeometry? trailingPadding,
+    BoxConstraints? constraints,
+    Color? backgroundColor,
+    VoidCallback? onTap,
+    bool verifiedBadge,
+    double? avatarSize,
+    String? avatarUrl,
+  }) = _ListItemTokenCreator;
 
   factory ListItem.dapp({
     required Widget title,

@@ -2,11 +2,10 @@
 
 part of '../list_item.dart';
 
-class _ListItemUser extends ListItem {
-  _ListItemUser({
+class _ListItemTokenCreator extends ListItem {
+  _ListItemTokenCreator({
     required Widget title,
     required Widget subtitle,
-    required String pubkey,
     super.key,
     super.border,
     super.trailingPadding,
@@ -19,18 +18,21 @@ class _ListItemUser extends ListItem {
     EdgeInsetsGeometry? leadingPadding,
     BoxConstraints? constraints,
     bool verifiedBadge = false,
-    bool iceBadge = false,
-    super.isSelected,
-
-    /// Pass a resized value (e.g., 30.0.s) instead of a raw value (e.g., 30.0)
-    /// to ensure proper scaling across different screen sizes.
+    String? avatarUrl,
     double? avatarSize,
   }) : super(
           leading: leading ??
-              IonConnectAvatar(
-                key: ValueKey('avatar_$pubkey'),
+              Avatar(
+                imageWidget: avatarUrl != null
+                    ? IonNetworkImage(
+                        imageUrl: avatarUrl,
+                        height: avatarSize ?? ListItem.defaultAvatarSize,
+                        width: avatarSize ?? ListItem.defaultAvatarSize,
+                      )
+                    : DefaultAvatar(size: avatarSize ?? ListItem.defaultAvatarSize),
                 size: avatarSize ?? ListItem.defaultAvatarSize,
-                masterPubkey: pubkey,
+                borderRadius: borderRadius,
+                fit: BoxFit.cover,
               ),
           borderRadius: borderRadius ?? BorderRadius.zero,
           contentPadding: contentPadding ?? EdgeInsets.zero,
@@ -39,11 +41,6 @@ class _ListItemUser extends ListItem {
           title: Row(
             children: [
               Flexible(child: title),
-              if (iceBadge)
-                Padding(
-                  padding: EdgeInsetsDirectional.only(start: 4.0.s),
-                  child: Assets.svg.iconBadgeIcelogo.icon(size: defaultBadgeSize),
-                ),
               if (verifiedBadge)
                 Padding(
                   padding: EdgeInsetsDirectional.only(start: 4.0.s),
@@ -52,7 +49,7 @@ class _ListItemUser extends ListItem {
             ],
           ),
           subtitle: Row(
-            crossAxisAlignment: CrossAxisAlignment.start, // Aligns the Column to the top of the Row
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Flexible(child: subtitle),
             ],
@@ -63,43 +60,20 @@ class _ListItemUser extends ListItem {
 
   @override
   Color _getBackgroundColor(BuildContext context) {
-    return (isSelected ?? false)
-        ? context.theme.appColors.primaryAccent
-        : backgroundColor ?? Colors.transparent;
+    return backgroundColor ?? Colors.transparent;
   }
 
   @override
   TextStyle _getDefaultTitleStyle(BuildContext context) {
     return context.theme.appTextThemes.subtitle3.copyWith(
-      color: (isSelected ?? false)
-          ? context.theme.appColors.onPrimaryAccent
-          : context.theme.appColors.primaryText,
+      color: context.theme.appColors.primaryText,
     );
   }
 
   @override
   TextStyle _getDefaultSubtitleStyle(BuildContext context) {
     return context.theme.appTextThemes.caption.copyWith(
-      color: (isSelected ?? false)
-          ? context.theme.appColors.onPrimaryAccent
-          : context.theme.appColors.tertiaryText,
-    );
-  }
-}
-
-class ListItemUserShape extends StatelessWidget {
-  const ListItemUserShape({this.color, super.key});
-
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 36.0.s,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.0.s),
-        color: color ?? Colors.white,
-      ),
+      color: context.theme.appColors.tertiaryText,
     );
   }
 }

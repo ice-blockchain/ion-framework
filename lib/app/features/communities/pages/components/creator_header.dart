@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/image/ion_network_image.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
@@ -29,7 +28,7 @@ class CreatorHeader extends ConsumerWidget {
       children: [
         if (!showBackButton) SizedBox(width: 16.0.s),
         Expanded(
-          child: _UseListItem(
+          child: _UserListItem(
             externalAddress: externalAddress,
             minHeight: HeaderAction.buttonSize,
             textColor: textColor,
@@ -40,8 +39,8 @@ class CreatorHeader extends ConsumerWidget {
   }
 }
 
-class _UseListItem extends ConsumerWidget {
-  const _UseListItem({
+class _UserListItem extends ConsumerWidget {
+  const _UserListItem({
     required this.externalAddress,
     required this.minHeight,
     this.textColor,
@@ -64,19 +63,13 @@ class _UseListItem extends ConsumerWidget {
     final displayName = creator.display;
     final username = creator.name;
 
-    return ListItem.user(
+    return ListItem.tokenCreator(
       title: Text(
         displayName,
         strutStyle: const StrutStyle(forceStrutHeight: true),
         style: textStyle,
       ),
-      avatarWidget: creator.avatar != null
-          ? IonNetworkImage(
-              imageUrl: creator.avatar!,
-              height: ListItem.defaultAvatarSize,
-              width: ListItem.defaultAvatarSize,
-            )
-          : null,
+      avatarUrl: creator.avatar,
       subtitle: !creator.verified
           ? Text(
               prefixUsername(username: username, context: context),
