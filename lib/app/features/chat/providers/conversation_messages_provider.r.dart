@@ -6,6 +6,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'conversation_messages_provider.r.g.dart';
@@ -16,6 +17,7 @@ class ConversationMessages extends _$ConversationMessages {
   static const int _pageSize = 50;
 
   StreamSubscription<List<EventMessage>>? _tailSubscription;
+  StreamSubscription<List<EventReference>>? _deletedMessagesSubscription;
 
   @override
   Future<List<EventMessage>> build(
@@ -25,6 +27,8 @@ class ConversationMessages extends _$ConversationMessages {
 
     await _tailSubscription?.cancel();
     _tailSubscription = null;
+    await _deletedMessagesSubscription?.cancel();
+    _deletedMessagesSubscription = null;
 
     if (currentUserMasterPubkey == null) {
       return [];
@@ -35,10 +39,14 @@ class ConversationMessages extends _$ConversationMessages {
     final initialTail = await dao.watchTail(conversationId, limit: _tailLimit).first;
 
     _tailSubscription = dao.watchTail(conversationId, limit: _tailLimit).listen(_applyTail);
+    _deletedMessagesSubscription =
+        dao.watchDeletedMessages(conversationId).listen(_handleDeletedMessages);
 
     ref.onDispose(() {
       _tailSubscription?.cancel();
       _tailSubscription = null;
+      _deletedMessagesSubscription?.cancel();
+      _deletedMessagesSubscription = null;
     });
 
     return initialTail;
@@ -115,6 +123,28 @@ class ConversationMessages extends _$ConversationMessages {
       if (!didLoadMore) {
         return null;
       }
+    }
+  }
+
+  void _handleDeletedMessages(List<EventReference> deletedEventReferences) {
+    if (deletedEventReferences.isEmpty) {
+      return;
+    }
+    final currentMessages = state.valueOrNull ?? [];
+    if (currentMessages.isEmpty) {
+      return;
+    }
+
+    final deletedSharedIds = deletedEventReferences
+        .whereType<ReplaceableEventReference>()
+        .map((ref) => ref.dTag)
+        .toSet();
+
+    final updatedMessages =
+        currentMessages.where((message) => !deletedSharedIds.contains(message.sharedId)).toList();
+
+    if (updatedMessages.length != currentMessages.length) {
+      state = AsyncData(updatedMessages);
     }
   }
 }
