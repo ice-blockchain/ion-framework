@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
@@ -24,6 +26,8 @@ typedef OnVerifyIdentitySwapCallback = Future<void> Function(SendAssetFormData);
 
 @Riverpod(keepAlive: true)
 class SwapCoinsController extends _$SwapCoinsController {
+  Timer? _debounceTimer;
+
   @override
   SwapCoinData build() => const SwapCoinData();
 
@@ -37,7 +41,19 @@ class SwapCoinsController extends _$SwapCoinsController {
         buyCoin: null,
         buyNetwork: null,
         swapQuoteInfo: null,
+        amount: 0,
+        quoteAmount: null,
       );
+
+  void setAmount(double amount) {
+    state = state.copyWith(
+      amount: amount,
+    );
+
+    if (state.swapQuoteInfo == null) {
+      _debouncedGetQuotes();
+    }
+  }
 
   void setSellCoin(CoinsGroup? coin) {
     state = state.copyWith(
@@ -50,7 +66,9 @@ class SwapCoinsController extends _$SwapCoinsController {
       sellNetwork: network,
     );
 
-    _getQuotes();
+    if (state.swapQuoteInfo == null) {
+      _debouncedGetQuotes();
+    }
   }
 
   void setBuyCoin(CoinsGroup? coin) {
@@ -128,6 +146,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     required NetworkData sellNetwork,
     required CoinsGroup buyCoinGroup,
     required NetworkData buyNetwork,
+    required double amount,
   }) async {
     final sellAddress = await _getAddress(sellCoinGroup, sellNetwork);
     final buyAddress = await _getAddress(buyCoinGroup, buyNetwork);
@@ -141,7 +160,7 @@ class SwapCoinsController extends _$SwapCoinsController {
 
     return SwapCoinParameters(
       isBridge: buyCoinGroup == sellCoinGroup,
-      amount: '1000',
+      amount: amount.toString(),
       buyCoinContractAddress: buyCoin.coin.contractAddress,
       sellCoinContractAddress: sellCoin.coin.contractAddress,
       buyCoinNetworkName: buyNetwork.displayName,
@@ -176,6 +195,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     final buyNetwork = state.buyNetwork;
     final sellCoinGroup = state.sellCoin;
     final buyCoinGroup = state.buyCoin;
+    final amount = state.amount;
 
     if (sellCoinGroup == null || buyCoinGroup == null || sellNetwork == null || buyNetwork == null) {
       return;
@@ -187,11 +207,16 @@ class SwapCoinsController extends _$SwapCoinsController {
       return;
     }
 
+    if (amount <= 0) {
+      return;
+    }
+
     final swapCoinParameters = await _buildSwapCoinParameters(
       sellCoinGroup: sellCoinGroup,
       sellNetwork: sellNetwork,
       buyCoinGroup: buyCoinGroup,
       buyNetwork: buyNetwork,
+      amount: amount,
     );
 
     if (swapCoinParameters == null) {

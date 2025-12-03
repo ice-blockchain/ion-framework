@@ -11,6 +11,7 @@ import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/balance/balance_actions.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/balance/balance_visibility_action.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/providers/wallet_page_loader_provider.r.dart';
@@ -29,8 +30,7 @@ class Balance extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isPageLoading = ref.watch(walletPageLoaderNotifierProvider);
 
-    final currentWallet =
-        ref.watch(currentWalletViewDataProvider.select((state) => state.valueOrNull));
+    final currentWallet = ref.watch(currentWalletViewDataProvider.select((state) => state.valueOrNull));
     final walletBalance = currentWallet?.usdBalance;
 
     final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
@@ -57,13 +57,20 @@ class Balance extends ConsumerWidget {
           else
             Text(
               isBalanceVisible ? formatToCurrency(walletBalance) : StringConstants.obfuscated,
-              style: context.theme.appTextThemes.headline1
-                  .copyWith(color: context.theme.appColors.primaryText),
+              style: context.theme.appTextThemes.headline1.copyWith(color: context.theme.appColors.primaryText),
             ),
           Padding(
             padding: EdgeInsetsDirectional.only(top: 10.0.s),
             child: BalanceActions(
               isLoading: shouldShowLoader,
+              onSwap: () {
+                ref.read(swapCoinsControllerProvider.notifier).initSellCoin(
+                      coin: null,
+                      network: null,
+                    );
+
+                SwapCoinsRoute().push<void>(context);
+              },
               onReceive: () {
                 switch (tab) {
                   case WalletTabType.nfts:

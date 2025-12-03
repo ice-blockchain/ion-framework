@@ -95,7 +95,13 @@ class CoinDetailsPage extends HookConsumerWidget {
             child: Column(
               children: [
                 const SectionSeparator(),
-                Balance(coinsGroup: coinsGroup),
+                Balance(
+                  coinsGroup: coinsGroup,
+                  currentNetwork: networkSelectorData?.selected.map(
+                    network: (item) => item.network,
+                    all: (item) => item.networks.first,
+                  ),
+                ),
                 const SectionSeparator(),
               ],
             ),
@@ -106,9 +112,7 @@ class CoinDetailsPage extends HookConsumerWidget {
                 items: networkSelectorData.items,
                 selected: networkSelectorData.selected,
                 onNetworkTypeSelect: (selected) {
-                  ref
-                      .read(networkSelectorNotifierProvider(symbolGroup: symbolGroup).notifier)
-                      .selected = selected;
+                  ref.read(networkSelectorNotifierProvider(symbolGroup: symbolGroup).notifier).selected = selected;
                 },
               ),
             ),
