@@ -11,7 +11,7 @@ class IonConnectUriIdentifierService {
 
     func encode(
         prefix: IonConnectProtocolIdentifierType,
-        special: String
+        special: String,
     ) throws -> String {
         if !shareableIdentifiersPrefixes.contains(prefix) {
             throw IonConnectUriIdentifierError.notShareablePrefix(prefix, shareableIdentifiersPrefixes)
