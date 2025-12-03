@@ -228,4 +228,8 @@ extension EventReferenceX on EventReference {
   bool get isPostReference =>
       this is ReplaceableEventReference &&
       (this as ReplaceableEventReference).kind == ModifiablePostEntity.kind;
+
+  bool get isProfileReference =>
+      this is ReplaceableEventReference &&
+      (this as ReplaceableEventReference).kind == UserMetadataEntity.kind;
 }
