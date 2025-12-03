@@ -15,22 +15,29 @@ Future<File?> captureWidgetScreenshot({
   required Widget widget,
   double pixelRatio = 3.0,
   Duration delay = const Duration(milliseconds: 300),
+  double? width,
+  double? height,
 }) async {
   try {
     final screenshotController = ScreenshotController();
+
+    var widgetToCapture = widget;
+    var mediaQueryData = MediaQuery.of(context);
+
+    if (width != null && height != null) {
+      mediaQueryData = mediaQueryData.copyWith(size: Size(width, height));
+      widgetToCapture = SizedBox(width: width, height: height, child: widget);
+    }
 
     final imageBytes = await screenshotController.captureFromWidget(
       Localizations.override(
         context: context,
         locale: Localizations.localeOf(context),
         child: MediaQuery(
-          data: MediaQuery.of(context),
+          data: mediaQueryData,
           child: Directionality(
             textDirection: Directionality.of(context),
-            child: InheritedTheme.captureAll(
-              context,
-              widget,
-            ),
+            child: InheritedTheme.captureAll(context, widgetToCapture),
           ),
         ),
       ),

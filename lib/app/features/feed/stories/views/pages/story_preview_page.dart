@@ -111,7 +111,7 @@ class StoryPreviewPage extends HookConsumerWidget {
                       child: switch (mediaType) {
                         MediaType.video => StoryVideoPreview(path: path),
                         MediaType.image => isPostScreenshot
-                            ? PostScreenshotPreview(path: path)
+                            ? PostScreenshotPreview(path: path, eventReference: eventReference)
                             : StoryImagePreview(path: path),
                         MediaType.audio => const CenteredLoadingIndicator(),
                         MediaType.unknown => const CenteredLoadingIndicator(),
