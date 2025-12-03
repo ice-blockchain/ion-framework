@@ -78,9 +78,7 @@ class SwapOkxRepository {
     return OkxApiResponse.fromJson(
       response.data as Map<String, dynamic>,
       (json) =>
-          (json as List<dynamic>?)
-              ?.map((e) => ApproveTransactionData.fromJson(e as Map<String, dynamic>))
-              .toList() ??
+          (json as List<dynamic>?)?.map((e) => ApproveTransactionData.fromJson(e as Map<String, dynamic>)).toList() ??
           [],
     );
   }
@@ -105,16 +103,15 @@ class SwapOkxRepository {
     );
   }
 
-  Future<void> simulateSwap() async {
-    await _dio.get<dynamic>(
-      '/pre-transaction/simulate',
+  Future<void> broadcastSwap({
+    required String chainIndex,
+    required String address,
+  }) async {
+    await _dio.post<dynamic>(
+      '/pre-transaction/broadcast-transaction',
       queryParameters: {
-        'fromAddress': '',
-        'toAddress': '',
-        'chainIndex': '',
-        'extJson': {
-          'inputData': '',
-        },
+        'chainIndex': chainIndex,
+        'address': address,
       },
     );
   }
