@@ -362,15 +362,6 @@ class TokenizedCommunityRoute extends BaseRouteData with _$TokenizedCommunityRou
   final String externalAddress;
 }
 
-class CreatorTokensRoute extends BaseRouteData with _$CreatorTokensRoute {
-  CreatorTokensRoute({required this.externalAddress})
-      : super(
-          child: CreatorTokensPage(externalAddress: externalAddress),
-        );
-
-  final String externalAddress;
-}
-
 class HoldersRoute extends BaseRouteData with _$HoldersRoute {
   HoldersRoute({required this.externalAddress})
       : super(

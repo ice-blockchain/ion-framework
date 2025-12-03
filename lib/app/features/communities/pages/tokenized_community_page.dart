@@ -91,9 +91,9 @@ class TokenizedCommunityPage extends HookWidget {
           ],
         ),
         tabBarViews: [
-          _ChartsTabView(masterPubkey: externalAddress),
+          _ChartsTabView(externalAddress: externalAddress),
           TopHolders(masterPubkey: externalAddress),
-          _LatestTrades(masterPubkey: externalAddress),
+          _LatestTrades(externalAddress: externalAddress),
           const CommentsSectionCompact(commentCount: 10),
         ],
         collapsedHeaderBuilder: (opacity) => CreatorHeader(

@@ -10,10 +10,10 @@ part 'coins_group.f.freezed.dart';
 class CoinsGroup with _$CoinsGroup {
   const factory CoinsGroup({
     required String name,
-    required String iconUrl,
     required String symbolGroup,
     required String abbreviation,
     required List<CoinInWalletData> coins,
+    String? iconUrl,
     @Default(0) double totalAmount,
     @Default(0) double totalBalanceUSD,
   }) = _CoinsGroup;

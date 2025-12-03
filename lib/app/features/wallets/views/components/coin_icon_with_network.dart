@@ -9,15 +9,15 @@ import 'package:ion/app/features/wallets/model/network_data.f.dart';
 
 class CoinIconWithNetwork extends StatelessWidget {
   const CoinIconWithNetwork._({
-    required this.iconUrl,
     required this.network,
     required this.coinIconType,
     required this.networkIconType,
     required this.containerSize,
+    this.iconUrl,
   });
 
   factory CoinIconWithNetwork.small(
-    String iconUrl, {
+    String? iconUrl, {
     required NetworkData network,
   }) =>
       CoinIconWithNetwork._(
@@ -29,7 +29,7 @@ class CoinIconWithNetwork extends StatelessWidget {
       );
 
   factory CoinIconWithNetwork.medium(
-    String iconUrl, {
+    String? iconUrl, {
     required NetworkData network,
   }) =>
       CoinIconWithNetwork._(
@@ -40,7 +40,7 @@ class CoinIconWithNetwork extends StatelessWidget {
         coinIconType: WalletItemIconType.huge(),
       );
 
-  final String iconUrl;
+  final String? iconUrl;
   final NetworkData network;
   final double containerSize;
   final WalletItemIconType coinIconType;
