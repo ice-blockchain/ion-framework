@@ -153,10 +153,8 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellAddress = await _getAddress(sellCoinGroup, sellNetwork);
     final buyAddress = await _getAddress(buyCoinGroup, buyNetwork);
 
-    final sellCoin =
-        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-    final buyCoin =
-        buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
+    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final buyCoin = buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
 
     if (sellCoin == null || buyCoin == null) {
       return null;
@@ -210,8 +208,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       return;
     }
 
-    final sellCoin =
-        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
 
     if (sellCoin == null) {
       return;
@@ -274,6 +271,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         stackTrace: stackTrace,
         tag: 'swap_coins_failure',
       );
+
       throw Exception(
         'Failed to swap coins: $e',
       );
@@ -330,22 +328,60 @@ class SwapCoinsController extends _$SwapCoinsController {
     );
   }
 
-  // TODO(ice-erebus): implement actual logic
-  SwapQuoteData _pickBestOkxQuote(List<SwapQuoteData> quotes) {
-    return quotes.first;
+  void _debouncedGetQuotes() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), _getQuotes);
   }
 
-  String _getTokenAddress(String contractAddress) {
-    return contractAddress.isEmpty ? '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' : contractAddress;
-  }
-
-  T _processOkxResponse<T>(OkxApiResponse<T> response) {
-    final responseCode = int.tryParse(response.code);
-    if (responseCode == 0) {
-      return response.data;
+  Future<void> _getQuotes() async {
+    final sellCoin = state.sellCoin;
+    final buyCoin = state.buyCoin;
+    final sellNetwork = state.sellNetwork;
+    final buyNetwork = state.buyNetwork;
+    final amount = state.amount;
+    if (amount <= 0 || sellCoin == null || sellNetwork == null || buyCoin == null || buyNetwork == null) {
+      return;
     }
 
-    // TODO(ice-erebus): implement actual error handling
-    throw Exception('Failed to process OKX response: $responseCode');
+    final swapCoinParameters = await _buildSwapCoinParameters(
+      sellCoinGroup: sellCoin,
+      sellNetwork: sellNetwork,
+      buyCoinGroup: buyCoin,
+      buyNetwork: buyNetwork,
+      amount: amount,
+    );
+
+    if (swapCoinParameters == null) {
+      return;
+    }
+
+    state = state.copyWith(
+      isQuoteLoading: true,
+      swapQuoteInfo: null,
+    );
+
+    final swapController = await ref.read(ionSwapClientProvider.future);
+    try {
+      final swapQuoteInfo = await swapController.getSwapQuote(
+        swapCoinData: swapCoinParameters,
+      );
+
+      state = state.copyWith(
+        isQuoteLoading: false,
+        swapQuoteInfo: swapQuoteInfo,
+      );
+    } catch (e, stackTrace) {
+      await SentryService.logException(
+        e,
+        stackTrace: stackTrace,
+        tag: 'get_swap_quote_failure',
+      );
+
+      state = state.copyWith(
+        isQuoteLoading: false,
+        swapQuoteInfo: null,
+        isQuoteError: true,
+      );
+    }
   }
 }

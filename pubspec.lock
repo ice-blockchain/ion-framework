@@ -1747,17 +1747,6 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/ion_token_analytics"
-  ion_swap_client:
-    dependency: "direct main"
-    description:
-      path: "packages/ion_swap_client"
-      relative: true
-    source: path
-    version: "0.0.1"
-  ion_token_analytics:
-    dependency: "direct main"
-    description:
-      path: "packages/ion_token_analytics"
       relative: true
     source: path
     version: "0.0.1"
