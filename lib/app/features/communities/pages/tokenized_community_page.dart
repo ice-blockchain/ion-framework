@@ -10,6 +10,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/hooks/section_visibility_controller.dart';
 import 'package:ion/app/features/communities/models/trading_stats_formatted.dart';
 import 'package:ion/app/features/communities/pages/components/your_position_card.dart';
+import 'package:ion/app/features/communities/pages/holders/components/top_holders/top_holders.dart';
 import 'package:ion/app/features/communities/providers/token_latest_trades_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_trading_stats_provider.r.dart';
@@ -20,7 +21,6 @@ import 'package:ion/app/features/communities/views/components/chart_stats_compon
 import 'package:ion/app/features/communities/views/components/comments_section_compact.dart';
 import 'package:ion/app/features/communities/views/components/floating_trade_island.dart';
 import 'package:ion/app/features/communities/views/components/latest_trades_component.dart';
-import 'package:ion/app/features/communities/pages/holders/components/top_holders/top_holders.dart';
 import 'package:ion/app/features/communities/views/components/token_header_component.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
 import 'package:ion/app/features/user/pages/components/profile_avatar/profile_avatar.dart';
