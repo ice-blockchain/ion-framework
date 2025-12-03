@@ -2,8 +2,9 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:ion/app/components/dividers/gradient_vertical_divider.dart';
+
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/gradient_vertical_devider.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -24,7 +25,7 @@ class ProfileBalance extends StatelessWidget {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: const Color(0xFF0D265E),
+        color: context.theme.appColors.backgroundBlue,
         borderRadius: BorderRadius.circular(16.0.s),
       ),
       child: Padding(
@@ -51,7 +52,7 @@ class ProfileBalance extends StatelessWidget {
               ],
             ),
             const Spacer(),
-            const GradientVerticalDevider(),
+            const GradientVerticalDivider(),
             const Spacer(),
             Expanded(
               child: Row(

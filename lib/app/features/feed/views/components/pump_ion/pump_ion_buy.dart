@@ -30,7 +30,7 @@ class PumpIonBuy extends HookConsumerWidget {
     final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
     final avatarUrl = userMetadata.valueOrNull?.data.avatarUrl;
 
-    final avatarColors = useAvatarColors(avatarUrl);
+    final avatarColors = useImageColors(avatarUrl);
 
     const followCountersHeight = 57.0;
     const buyButtonHeight = 23.0;

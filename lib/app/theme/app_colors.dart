@@ -37,6 +37,10 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     required this.anakiwa,
     required this.shadow,
     required this.profitGreen,
+    required this.backgroundBlue,
+    required this.magenta,
+    required this.allports,
+    required this.forest,
   });
 
   factory AppColorsExtension.fromTemplate(TemplateColors templateColors) {
@@ -73,6 +77,10 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       anakiwa: templateColors.anakiwa,
       shadow: templateColors.shadow,
       profitGreen: templateColors.profitGreen,
+      backgroundBlue: templateColors.backgroundBlue,
+      magenta: templateColors.magenta,
+      allports: templateColors.allports,
+      forest: templateColors.forest,
     );
   }
 
@@ -110,6 +118,10 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       anakiwa: const Color(0xFF91D4FF),
       shadow: const Color(0xFF2D62D9),
       profitGreen: const Color(0xFF00FF00),
+      backgroundBlue: const Color(0xFF0D265E),
+      magenta: const Color(0xFF8F039B),
+      allports: const Color(0xFF017C9F),
+      forest: const Color(0xFF010008),
     );
   }
 
@@ -145,6 +157,10 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   final Color anakiwa;
   final Color shadow;
   final Color profitGreen;
+  final Color backgroundBlue;
+  final Color magenta;
+  final Color allports;
+  final Color forest;
 
   @override
   ThemeExtension<AppColorsExtension> copyWith({
@@ -180,6 +196,10 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     Color? anakiwa,
     Color? shadow,
     Color? profitGreen,
+    Color? backgroundBlue,
+    Color? magenta,
+    Color? allports,
+    Color? forest,
   }) {
     return AppColorsExtension(
       primaryAccent: primaryAccent ?? this.primaryAccent,
@@ -214,6 +234,10 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       anakiwa: anakiwa ?? this.anakiwa,
       shadow: shadow ?? this.shadow,
       profitGreen: profitGreen ?? this.profitGreen,
+      backgroundBlue: backgroundBlue ?? this.backgroundBlue,
+      magenta: magenta ?? this.magenta,
+      allports: allports ?? this.allports,
+      forest: forest ?? this.forest,
     );
   }
 
@@ -259,6 +283,10 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       anakiwa: Color.lerp(anakiwa, other.anakiwa, t)!,
       shadow: Color.lerp(shadow, other.shadow, t)!,
       profitGreen: Color.lerp(profitGreen, other.profitGreen, t)!,
+      backgroundBlue: Color.lerp(backgroundBlue, other.backgroundBlue, t)!,
+      magenta: Color.lerp(magenta, other.magenta, t)!,
+      allports: Color.lerp(allports, other.allports, t)!,
+      forest: Color.lerp(forest, other.forest, t)!,
     );
   }
 }

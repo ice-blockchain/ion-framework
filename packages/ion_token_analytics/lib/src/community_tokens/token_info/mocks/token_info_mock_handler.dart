@@ -44,7 +44,7 @@ class TokenInfoMockHandler {
       type: 'community',
       title: 'Test Token 2',
       description: 'Another test token with different market data',
-      imageUrl: 'https://i.pravatar.cc/150?img=20',
+      imageUrl: 'https://picsum.photos/300/200',
       addresses: const Addresses(
         blockchain: '0xfedcba0987654321',
         ionConnect: 'mock_ion_address_2',
@@ -73,8 +73,9 @@ class TokenInfoMockHandler {
     CommunityToken(
       type: 'community',
       title: 'Dev Token',
-      description: 'Development token for local testing',
-      imageUrl: 'https://i.pravatar.cc/150?img=30',
+      description:
+          'Artificial intelligence is no longer just a tool, but a co-author who changes the rules of the game in creativity and business.',
+      imageUrl: 'https://picsum.photos/200/300',
       addresses: const Addresses(
         blockchain: '0xabcd1234efgh5678',
         ionConnect: 'mock_ion_address_3',

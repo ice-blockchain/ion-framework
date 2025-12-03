@@ -121,7 +121,7 @@ class ProfilePage extends HookConsumerWidget {
         backgroundColor: context.theme.appColors.secondaryBackground,
         showBackButton: showBackButton,
         newUiMode: profileMode == ProfileMode.dark,
-        avatarUrl: avatarUrl,
+        imageUrl: avatarUrl,
         tabs: UserContentType.values,
         collapsedHeaderBuilder: (opacity) => Header(
           opacity: opacity,

@@ -20,8 +20,8 @@ class ProfileChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (type) {
-      ProfileChartType.raising => const Color(0xFF00FF00),
-      ProfileChartType.falling => const Color(0xFFFF396E),
+      ProfileChartType.raising => context.theme.appColors.profitGreen,
+      ProfileChartType.falling => context.theme.appColors.lossRed,
     };
 
     final symbol = switch (type) {

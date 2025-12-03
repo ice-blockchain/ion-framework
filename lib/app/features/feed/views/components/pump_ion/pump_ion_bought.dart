@@ -39,7 +39,7 @@ class PumpIonBought extends HookConsumerWidget {
     final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
     final avatarUrl = userMetadata.valueOrNull?.data.avatarUrl;
 
-    final avatarColors = useAvatarColors(avatarUrl);
+    final avatarColors = useImageColors(avatarUrl);
 
     final gradient = useMemoized(
       () {
@@ -54,8 +54,8 @@ class PumpIonBought extends HookConsumerWidget {
 
     const type = ProfileChartType.raising;
     final badgeColor = switch (type) {
-      ProfileChartType.raising => const Color(0xFF35D487),
-      ProfileChartType.falling => const Color(0xFFFD4E4E),
+      ProfileChartType.raising => context.theme.appColors.success,
+      ProfileChartType.falling => context.theme.appColors.attentionRed,
     };
 
     return Padding(

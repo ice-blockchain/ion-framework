@@ -2,11 +2,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:ion/app/theme/app_colors.dart';
 import 'package:palette_generator/palette_generator.dart';
 
 typedef AvatarColors = ({Color first, Color second});
 
-const AvatarColors useAvatarFallbackColors = (first: Color(0xFFB43C4B), second: Color(0xFF3EB0FF));
+// Fallback avatar colors used while loading, no user avatar or on error
+AvatarColors useAvatarFallbackColors = (
+  first: AppColorsExtension.defaultColors().allports,
+  second: AppColorsExtension.defaultColors().magenta,
+);
 
 /// Global cache for avatar colors to prevent expensive palette generation during scroll
 /// Key: avatar URL, Value: (color1, color2)
@@ -14,7 +19,7 @@ final Map<String, AvatarColors> _avatarColorsCache = {};
 
 /// Hook to extract two colors from the user's avatar using PaletteGenerator
 /// Returns null colors while loading, then returns extracted colors
-AvatarColors? useAvatarColors(String? avatarUrl) {
+AvatarColors? useImageColors(String? avatarUrl) {
   final paletteState = useState<PaletteGenerator?>(null);
   final isLoadingState = useState<bool>(false);
 
