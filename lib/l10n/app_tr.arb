@@ -1048,5 +1048,6 @@
   "who_can_reply_settings_verified_accounts": "Doğrulanmış hesaplar",
   "write_a_message": "Mesaj yazın...",
   "your_position_card_title": "Pozisyonun",
-  "errorGettingSwapQuote": "Değiştirme fiyatı alınamadı"
+  "errorGettingSwapQuote": "Değiştirme fiyatı alınamadı",
+  "wallet_swap_confirmation_missing_coin_or_network_data": "Coin veya ağ verisi eksik"
 }

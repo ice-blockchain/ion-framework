@@ -1048,5 +1048,6 @@
   "who_can_reply_settings_verified_accounts": "Account verificati",
   "write_a_message": "Scrivi un messaggio...",
   "your_position_card_title": "La tua posizione",
-  "errorGettingSwapQuote": "Errore nel recuperare il prezzo di scambio"
+  "errorGettingSwapQuote": "Errore nel recuperare il prezzo di scambio",
+  "wallet_swap_confirmation_missing_coin_or_network_data": "La moneta o la rete è mancante"
 }

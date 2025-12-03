@@ -1048,5 +1048,6 @@
   "who_can_reply_settings_verified_accounts": "Cuentas verificadas",
   "write_a_message": "Escribe un mensaje...",
   "your_position_card_title": "Tu posición",
-  "errorGettingSwapQuote": "Error al obtener el precio de intercambio"
+  "errorGettingSwapQuote": "Error al obtener el precio de intercambio",
+  "wallet_swap_confirmation_missing_coin_or_network_data": "Falta la moneda o la red"
 }

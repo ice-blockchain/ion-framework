@@ -1061,5 +1061,6 @@
   "who_can_reply_settings_verified_accounts": "الحسابات المُوثقة",
   "write_a_message": "اكتب رسالة...",
   "your_position_card_title": "أيتمكش",
-  "errorGettingSwapQuote": "خطأ في الحصول على سعر التبديل"
+  "errorGettingSwapQuote": "خطأ في الحصول على سعر التبديل",
+  "wallet_swap_confirmation_missing_coin_or_network_data": "العملة أو الشبكة غير موجودة"
 }
