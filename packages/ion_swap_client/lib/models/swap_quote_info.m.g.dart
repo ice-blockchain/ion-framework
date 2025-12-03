@@ -12,6 +12,10 @@ _$SwapQuoteInfoImpl _$$SwapQuoteInfoImplFromJson(Map<String, dynamic> json) =>
       priceForSellTokenInBuyToken:
           (json['priceForSellTokenInBuyToken'] as num).toDouble(),
       source: $enumDecode(_$SwapQuoteInfoSourceEnumMap, json['source']),
+      swapImpact: (json['swapImpact'] as num?)?.toInt(),
+      networkFee: json['networkFee'] as String?,
+      protocolFee: json['protocolFee'] as String?,
+      slippage: json['slippage'] as String?,
     );
 
 Map<String, dynamic> _$$SwapQuoteInfoImplToJson(_$SwapQuoteInfoImpl instance) =>
@@ -19,6 +23,10 @@ Map<String, dynamic> _$$SwapQuoteInfoImplToJson(_$SwapQuoteInfoImpl instance) =>
       'type': _$SwapQuoteInfoTypeEnumMap[instance.type]!,
       'priceForSellTokenInBuyToken': instance.priceForSellTokenInBuyToken,
       'source': _$SwapQuoteInfoSourceEnumMap[instance.source]!,
+      'swapImpact': instance.swapImpact,
+      'networkFee': instance.networkFee,
+      'protocolFee': instance.protocolFee,
+      'slippage': instance.slippage,
     };
 
 const _$SwapQuoteInfoTypeEnumMap = {

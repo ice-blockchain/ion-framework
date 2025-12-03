@@ -23,6 +23,10 @@ mixin _$SwapQuoteInfo {
   SwapQuoteInfoType get type => throw _privateConstructorUsedError;
   double get priceForSellTokenInBuyToken => throw _privateConstructorUsedError;
   SwapQuoteInfoSource get source => throw _privateConstructorUsedError;
+  int? get swapImpact => throw _privateConstructorUsedError;
+  String? get networkFee => throw _privateConstructorUsedError;
+  String? get protocolFee => throw _privateConstructorUsedError;
+  String? get slippage => throw _privateConstructorUsedError;
 
   /// Serializes this SwapQuoteInfo to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -43,7 +47,11 @@ abstract class $SwapQuoteInfoCopyWith<$Res> {
   $Res call(
       {SwapQuoteInfoType type,
       double priceForSellTokenInBuyToken,
-      SwapQuoteInfoSource source});
+      SwapQuoteInfoSource source,
+      int? swapImpact,
+      String? networkFee,
+      String? protocolFee,
+      String? slippage});
 }
 
 /// @nodoc
@@ -64,6 +72,10 @@ class _$SwapQuoteInfoCopyWithImpl<$Res, $Val extends SwapQuoteInfo>
     Object? type = null,
     Object? priceForSellTokenInBuyToken = null,
     Object? source = null,
+    Object? swapImpact = freezed,
+    Object? networkFee = freezed,
+    Object? protocolFee = freezed,
+    Object? slippage = freezed,
   }) {
     return _then(_value.copyWith(
       type: null == type
@@ -78,6 +90,22 @@ class _$SwapQuoteInfoCopyWithImpl<$Res, $Val extends SwapQuoteInfo>
           ? _value.source
           : source // ignore: cast_nullable_to_non_nullable
               as SwapQuoteInfoSource,
+      swapImpact: freezed == swapImpact
+          ? _value.swapImpact
+          : swapImpact // ignore: cast_nullable_to_non_nullable
+              as int?,
+      networkFee: freezed == networkFee
+          ? _value.networkFee
+          : networkFee // ignore: cast_nullable_to_non_nullable
+              as String?,
+      protocolFee: freezed == protocolFee
+          ? _value.protocolFee
+          : protocolFee // ignore: cast_nullable_to_non_nullable
+              as String?,
+      slippage: freezed == slippage
+          ? _value.slippage
+          : slippage // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -93,7 +121,11 @@ abstract class _$$SwapQuoteInfoImplCopyWith<$Res>
   $Res call(
       {SwapQuoteInfoType type,
       double priceForSellTokenInBuyToken,
-      SwapQuoteInfoSource source});
+      SwapQuoteInfoSource source,
+      int? swapImpact,
+      String? networkFee,
+      String? protocolFee,
+      String? slippage});
 }
 
 /// @nodoc
@@ -112,6 +144,10 @@ class __$$SwapQuoteInfoImplCopyWithImpl<$Res>
     Object? type = null,
     Object? priceForSellTokenInBuyToken = null,
     Object? source = null,
+    Object? swapImpact = freezed,
+    Object? networkFee = freezed,
+    Object? protocolFee = freezed,
+    Object? slippage = freezed,
   }) {
     return _then(_$SwapQuoteInfoImpl(
       type: null == type
@@ -126,6 +162,22 @@ class __$$SwapQuoteInfoImplCopyWithImpl<$Res>
           ? _value.source
           : source // ignore: cast_nullable_to_non_nullable
               as SwapQuoteInfoSource,
+      swapImpact: freezed == swapImpact
+          ? _value.swapImpact
+          : swapImpact // ignore: cast_nullable_to_non_nullable
+              as int?,
+      networkFee: freezed == networkFee
+          ? _value.networkFee
+          : networkFee // ignore: cast_nullable_to_non_nullable
+              as String?,
+      protocolFee: freezed == protocolFee
+          ? _value.protocolFee
+          : protocolFee // ignore: cast_nullable_to_non_nullable
+              as String?,
+      slippage: freezed == slippage
+          ? _value.slippage
+          : slippage // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -136,7 +188,11 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
   _$SwapQuoteInfoImpl(
       {required this.type,
       required this.priceForSellTokenInBuyToken,
-      required this.source});
+      required this.source,
+      this.swapImpact,
+      this.networkFee,
+      this.protocolFee,
+      this.slippage});
 
   factory _$SwapQuoteInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$SwapQuoteInfoImplFromJson(json);
@@ -147,10 +203,18 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
   final double priceForSellTokenInBuyToken;
   @override
   final SwapQuoteInfoSource source;
+  @override
+  final int? swapImpact;
+  @override
+  final String? networkFee;
+  @override
+  final String? protocolFee;
+  @override
+  final String? slippage;
 
   @override
   String toString() {
-    return 'SwapQuoteInfo(type: $type, priceForSellTokenInBuyToken: $priceForSellTokenInBuyToken, source: $source)';
+    return 'SwapQuoteInfo(type: $type, priceForSellTokenInBuyToken: $priceForSellTokenInBuyToken, source: $source, swapImpact: $swapImpact, networkFee: $networkFee, protocolFee: $protocolFee, slippage: $slippage)';
   }
 
   @override
@@ -163,13 +227,28 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
                     priceForSellTokenInBuyToken) ||
                 other.priceForSellTokenInBuyToken ==
                     priceForSellTokenInBuyToken) &&
-            (identical(other.source, source) || other.source == source));
+            (identical(other.source, source) || other.source == source) &&
+            (identical(other.swapImpact, swapImpact) ||
+                other.swapImpact == swapImpact) &&
+            (identical(other.networkFee, networkFee) ||
+                other.networkFee == networkFee) &&
+            (identical(other.protocolFee, protocolFee) ||
+                other.protocolFee == protocolFee) &&
+            (identical(other.slippage, slippage) ||
+                other.slippage == slippage));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, type, priceForSellTokenInBuyToken, source);
+  int get hashCode => Object.hash(
+      runtimeType,
+      type,
+      priceForSellTokenInBuyToken,
+      source,
+      swapImpact,
+      networkFee,
+      protocolFee,
+      slippage);
 
   /// Create a copy of SwapQuoteInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -191,7 +270,11 @@ abstract class _SwapQuoteInfo implements SwapQuoteInfo {
   factory _SwapQuoteInfo(
       {required final SwapQuoteInfoType type,
       required final double priceForSellTokenInBuyToken,
-      required final SwapQuoteInfoSource source}) = _$SwapQuoteInfoImpl;
+      required final SwapQuoteInfoSource source,
+      final int? swapImpact,
+      final String? networkFee,
+      final String? protocolFee,
+      final String? slippage}) = _$SwapQuoteInfoImpl;
 
   factory _SwapQuoteInfo.fromJson(Map<String, dynamic> json) =
       _$SwapQuoteInfoImpl.fromJson;
@@ -202,6 +285,14 @@ abstract class _SwapQuoteInfo implements SwapQuoteInfo {
   double get priceForSellTokenInBuyToken;
   @override
   SwapQuoteInfoSource get source;
+  @override
+  int? get swapImpact;
+  @override
+  String? get networkFee;
+  @override
+  String? get protocolFee;
+  @override
+  String? get slippage;
 
   /// Create a copy of SwapQuoteInfo
   /// with the given fields replaced by the non-null parameter values.

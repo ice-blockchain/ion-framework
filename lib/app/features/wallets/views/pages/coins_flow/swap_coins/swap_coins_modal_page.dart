@@ -171,7 +171,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
         }
         return null;
       },
-      [quoteAmount, quoteController],
+      [quoteAmount, quoteController, amount],
     );
   }
 }

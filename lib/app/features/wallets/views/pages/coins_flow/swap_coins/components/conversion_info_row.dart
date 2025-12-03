@@ -9,7 +9,6 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/provi
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 
-// TODO(ice-erebus): add high impact and not enough states
 class ConversionInfoRow extends HookConsumerWidget {
   const ConversionInfoRow({
     required this.sellCoin,
@@ -19,12 +18,6 @@ class ConversionInfoRow extends HookConsumerWidget {
 
   final CoinsGroup sellCoin;
   final CoinsGroup buyCoin;
-
-  String _formatMax6(double value) {
-    final s = value.toStringAsFixed(6);
-
-    return s.replaceFirst(RegExp(r'\.?0+$'), '');
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,7 +44,7 @@ class ConversionInfoRow extends HookConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            '1 ${sellCoin.name} = ${_formatMax6(swapQuoteInfo.priceForSellTokenInBuyToken)} ${buyCoin.name}',
+            '1 ${sellCoin.name} = ${swapQuoteInfo.priceForSellTokenInBuyToken.formatMax6} ${buyCoin.name}',
             style: textStyles.body2.copyWith(),
           ),
           Row(

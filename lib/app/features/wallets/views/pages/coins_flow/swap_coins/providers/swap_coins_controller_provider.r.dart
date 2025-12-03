@@ -226,7 +226,6 @@ class SwapCoinsController extends _$SwapCoinsController {
     try {
       final swapController = await ref.read(ionSwapClientProvider.future);
       await swapController.swapCoins(
-        // TODO(ice-erebus): actual data
         swapCoinData: swapCoinParameters,
         sendCoinCallback: ({
           required String depositAddress,
