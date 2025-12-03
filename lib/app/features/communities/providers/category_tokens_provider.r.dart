@@ -33,7 +33,8 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     if (state.sessionId != null) return;
 
     final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-    final session = await client.communityTokens.createViewingSession(_type);
+    final session =
+        await client.communityTokens.categoryTokensRepository.createViewingSession(_type);
 
     state = state.copyWith(sessionId: session.id);
 
@@ -48,7 +49,7 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-      final page = await client.communityTokens.getCategoryTokens(
+      final page = await client.communityTokens.categoryTokensRepository.getCategoryTokens(
         sessionId: state.sessionId!,
         type: _type,
         limit: _limit,
@@ -85,7 +86,7 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-      final page = await client.communityTokens.getCategoryTokens(
+      final page = await client.communityTokens.categoryTokensRepository.getCategoryTokens(
         sessionId: state.sessionId!,
         type: _type,
         limit: _limit,
@@ -111,7 +112,7 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-      final page = await client.communityTokens.getCategoryTokens(
+      final page = await client.communityTokens.categoryTokensRepository.getCategoryTokens(
         sessionId: state.sessionId!,
         type: _type,
         keyword: state.searchQuery,
@@ -150,7 +151,7 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-      final page = await client.communityTokens.getCategoryTokens(
+      final page = await client.communityTokens.categoryTokensRepository.getCategoryTokens(
         sessionId: state.sessionId!,
         type: _type,
         keyword: query,
@@ -176,7 +177,8 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
   Future<void> _subscribeToRealtimeUpdates(String sessionId, TokenCategoryType type) async {
     final client = await ref.read(ionTokenAnalyticsClientProvider.future);
     await _realtimeSubscription?.close();
-    _realtimeSubscription = await client.communityTokens.subscribeToCategoryTokens(
+    _realtimeSubscription =
+        await client.communityTokens.categoryTokensRepository.subscribeToRealtimeUpdates(
       sessionId: sessionId,
       type: type,
     );

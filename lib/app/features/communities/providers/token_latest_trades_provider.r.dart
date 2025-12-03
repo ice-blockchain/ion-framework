@@ -9,7 +9,6 @@ part 'token_latest_trades_provider.r.g.dart';
 
 @riverpod
 class TokenLatestTrades extends _$TokenLatestTrades {
-  late String _externalAddress;
   late int _limit;
   List<LatestTrade> _currentTrades = [];
 
@@ -19,14 +18,13 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     int limit = 10,
     int offset = 0,
   }) async* {
-    _externalAddress = externalAddress;
     _limit = limit;
 
     final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
 
     // 1. Fetch initial history via REST
-    final initialTrades = await client.communityTokens.fetchLatestTrades(
-      externalAddress: externalAddress,
+    final initialTrades = await client.communityTokens.latestTradesRepository.fetchLatestTrades(
+      externalAddress,
       limit: limit,
       offset: offset,
     );
@@ -34,8 +32,9 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     yield _currentTrades;
 
     // 2. Subscribe to real-time updates
-    final subscription = await client.communityTokens.subscribeToLatestTrades(
-      externalAddress: externalAddress,
+    final subscription =
+        await client.communityTokens.latestTradesRepository.subscribeToLatestTrades(
+      externalAddress,
     );
 
     ref.onDispose(subscription.close);
@@ -76,8 +75,8 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     final currentCount = _currentTrades.length;
 
     try {
-      final moreTrades = await client.communityTokens.fetchLatestTrades(
-        externalAddress: _externalAddress,
+      final moreTrades = await client.communityTokens.latestTradesRepository.fetchLatestTrades(
+        externalAddress,
         limit: _limit,
         offset: currentCount,
       );

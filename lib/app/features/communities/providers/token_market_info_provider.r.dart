@@ -12,12 +12,14 @@ Stream<CommunityToken?> tokenMarketInfo(Ref ref, String externalAddress) async* 
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
 
   // 1. Fetch initial data via REST
-  final currentToken = await client.communityTokens.getTokenInfo(externalAddress);
+  final currentToken =
+      await client.communityTokens.tokenInfoRepository.getTokenInfo(externalAddress);
 
   yield currentToken;
 
   // 2. Subscribe to real-time updates
-  final subscription = await client.communityTokens.subscribeToTokenInfo(externalAddress);
+  final subscription =
+      await client.communityTokens.tokenInfoRepository.subscribeToTokenInfo(externalAddress);
 
   try {
     if (subscription == null) {

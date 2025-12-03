@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion_token_analytics/src/core/exceptions.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_client.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
 
@@ -61,8 +62,13 @@ class NetworkClient {
     );
 
     if (response.statusCode != 200) {
-      //TODO: add custom exceptions with codes
-      throw Exception('Request failed with status ${response.statusCode}: $path');
+      if (response.statusCode != null && response.statusCode! >= 500) {
+        throw IonServerException('Server error: ${response.statusCode}', code: response.statusCode);
+      }
+      throw IonNetworkException(
+        'Request failed with status ${response.statusCode}: $path',
+        code: response.statusCode,
+      );
     }
 
     return response.data as T;

@@ -36,7 +36,8 @@ class LatestTokensNotifier extends _$LatestTokensNotifier {
 
   Future<void> _subscribeToRealtimeUpdates() async {
     final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-    _realtimeSubscription = await client.communityTokens.subscribeToLatestTokens();
+    _realtimeSubscription =
+        await client.communityTokens.latestTokensRepository.subscribeToLatestTokens();
     _realtimeSubscription!.stream.listen(_handleRealtimeEvent);
   }
 
@@ -50,7 +51,8 @@ class LatestTokensNotifier extends _$LatestTokensNotifier {
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-      final page = await client.communityTokens.getLatestTokens(limit: _limit);
+      final page =
+          await client.communityTokens.latestTokensRepository.getLatestTokens(limit: _limit);
 
       state = state.copyWith(
         browsingItems: _appendUnique(
@@ -86,7 +88,7 @@ class LatestTokensNotifier extends _$LatestTokensNotifier {
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-      final page = await client.communityTokens.getLatestTokens(
+      final page = await client.communityTokens.latestTokensRepository.getLatestTokens(
         limit: _limit,
         offset: state.browsingOffset,
       );
@@ -113,7 +115,7 @@ class LatestTokensNotifier extends _$LatestTokensNotifier {
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-      final page = await client.communityTokens.getLatestTokens(
+      final page = await client.communityTokens.latestTokensRepository.getLatestTokens(
         keyword: state.searchQuery,
         limit: _limit,
         offset: state.searchOffset,
@@ -153,7 +155,7 @@ class LatestTokensNotifier extends _$LatestTokensNotifier {
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-      final page = await client.communityTokens.getLatestTokens(
+      final page = await client.communityTokens.latestTokensRepository.getLatestTokens(
         keyword: query,
         limit: _limit,
       );

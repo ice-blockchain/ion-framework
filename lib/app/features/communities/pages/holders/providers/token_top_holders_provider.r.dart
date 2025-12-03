@@ -16,8 +16,8 @@ class TokenTopHolders extends _$TokenTopHolders {
     required int limit,
   }) async* {
     final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
-    final subscription = await client.communityTokens.subscribeToTopHolders(
-      externalAddress: externalAddress,
+    final subscription = await client.communityTokens.topHoldersRepository.subscribeToTopHolders(
+      externalAddress,
       limit: limit,
     );
 

@@ -13,8 +13,8 @@ Stream<Map<String, TradingStats>> tokenTradingStats(
   String externalAddress,
 ) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
-  final subscription = await client.communityTokens.subscribeToTradingStats(
-    externalAddress: externalAddress,
+  final subscription = await client.communityTokens.tradingStatsRepository.subscribeToTradingStats(
+    externalAddress,
   );
 
   try {

@@ -10,7 +10,8 @@ part 'featured_tokens_provider.r.g.dart';
 @riverpod
 Stream<List<CommunityToken>> featuredTokens(Ref ref) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
-  final subscription = await client.communityTokens.subscribeToFeaturedTokens();
+  final subscription =
+      await client.communityTokens.featuredTokensRepository.subscribeToFeaturedTokens();
 
   try {
     yield* subscription.stream;

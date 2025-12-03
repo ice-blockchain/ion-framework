@@ -14,7 +14,7 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
   String interval,
 ) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
-  final subscription = await client.communityTokens.subscribeToOhlcvCandles(
+  final subscription = await client.communityTokens.ohlcvCandlesRepository.subscribeToOhlcvCandles(
     externalAddress: externalAddress,
     interval: interval,
   );

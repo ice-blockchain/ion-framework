@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository.dart';
@@ -20,34 +19,7 @@ import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_s
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class IonCommunityTokensService {
-  IonCommunityTokensService._({
-    required TokenInfoRepository tokenInfoRepository,
-    required OhlcvCandlesRepository ohlcvCandlesRepository,
-    required TradingStatsRepository tradingStatsRepository,
-    required TopHoldersRepository topHoldersRepository,
-    required LatestTradesRepository latestTradesRepository,
-    required FeaturedTokensRepository featuredTokensRepository,
-    required LatestTokensRepository latestTokensRepository,
-    required CategoryTokensRepository categoryTokensRepository,
-  }) : _tokenInfoRepository = tokenInfoRepository,
-       _ohlcvCandlesRepository = ohlcvCandlesRepository,
-       _tradingStatsRepository = tradingStatsRepository,
-       _topHoldersRepository = topHoldersRepository,
-       _latestTradesRepository = latestTradesRepository,
-       _featuredTokensRepository = featuredTokensRepository,
-       _latestTokensRepository = latestTokensRepository,
-       _categoryTokensRepository = categoryTokensRepository;
-
-  final TokenInfoRepository _tokenInfoRepository;
-  final OhlcvCandlesRepository _ohlcvCandlesRepository;
-  final TradingStatsRepository _tradingStatsRepository;
-  final TopHoldersRepository _topHoldersRepository;
-  final LatestTradesRepository _latestTradesRepository;
-  final FeaturedTokensRepository _featuredTokensRepository;
-  final LatestTokensRepository _latestTokensRepository;
-  final CategoryTokensRepository _categoryTokensRepository;
-
-  static Future<IonCommunityTokensService> create({required NetworkClient networkClient}) async {
+  factory IonCommunityTokensService.create({required NetworkClient networkClient}) {
     final service = IonCommunityTokensService._(
       tokenInfoRepository: TokenInfoRepositoryImpl(networkClient),
       ohlcvCandlesRepository: OhlcvCandlesRepositoryImpl(networkClient),
@@ -60,101 +32,23 @@ class IonCommunityTokensService {
     );
     return service;
   }
+  IonCommunityTokensService._({
+    required this.tokenInfoRepository,
+    required this.ohlcvCandlesRepository,
+    required this.tradingStatsRepository,
+    required this.topHoldersRepository,
+    required this.latestTradesRepository,
+    required this.featuredTokensRepository,
+    required this.latestTokensRepository,
+    required this.categoryTokensRepository,
+  });
 
-  Future<CommunityToken?> getTokenInfo(String externalAddress) {
-    return _tokenInfoRepository.getTokenInfo(externalAddress);
-  }
-
-  Future<NetworkSubscription<CommunityTokenPatch>?> subscribeToTokenInfo(String externalAddress) {
-    return _tokenInfoRepository.subscribeToTokenInfo(externalAddress);
-  }
-
-  Future<NetworkSubscription<OhlcvCandle>> subscribeToOhlcvCandles({
-    required String externalAddress,
-    required String interval,
-  }) {
-    return _ohlcvCandlesRepository.subscribeToOhlcvCandles(
-      externalAddress: externalAddress,
-      interval: interval,
-    );
-  }
-
-  Future<NetworkSubscription<Map<String, TradingStats>>> subscribeToTradingStats({
-    required String externalAddress,
-  }) {
-    return _tradingStatsRepository.subscribeToTradingStats(externalAddress);
-  }
-
-  Future<NetworkSubscription<List<TopHolderBase>>> subscribeToTopHolders({
-    required String externalAddress,
-    required int limit,
-  }) {
-    return _topHoldersRepository.subscribeToTopHolders(externalAddress, limit: limit);
-  }
-
-  Future<List<LatestTrade>> fetchLatestTrades({
-    required String externalAddress,
-    int limit = 10,
-    int offset = 0,
-  }) {
-    return _latestTradesRepository.fetchLatestTrades(externalAddress, limit: limit, offset: offset);
-  }
-
-  Future<NetworkSubscription<LatestTradeBase>> subscribeToLatestTrades({
-    required String externalAddress,
-  }) {
-    return _latestTradesRepository.subscribeToLatestTrades(externalAddress);
-  }
-
-  Future<NetworkSubscription<List<CommunityToken>>> subscribeToFeaturedTokens() {
-    return _featuredTokensRepository.subscribeToFeaturedTokens();
-  }
-
-  Future<PaginatedCategoryTokensData> getLatestTokens({
-    String? keyword,
-    String? type,
-    int limit = 20,
-    int offset = 0,
-  }) {
-    return _latestTokensRepository.getLatestTokens(
-      keyword: keyword,
-      type: type,
-      limit: limit,
-      offset: offset,
-    );
-  }
-
-  Future<NetworkSubscription<List<CommunityTokenBase>>> subscribeToLatestTokens({
-    String? keyword,
-    String? type,
-  }) {
-    return _latestTokensRepository.subscribeToLatestTokens(keyword: keyword, type: type);
-  }
-
-  Future<ViewingSession> createViewingSession(TokenCategoryType type) {
-    return _categoryTokensRepository.createViewingSession(type);
-  }
-
-  Future<PaginatedCategoryTokensData> getCategoryTokens({
-    required String sessionId,
-    required TokenCategoryType type,
-    String? keyword,
-    int limit = 20,
-    int offset = 0,
-  }) {
-    return _categoryTokensRepository.getCategoryTokens(
-      sessionId: sessionId,
-      type: type,
-      keyword: keyword,
-      limit: limit,
-      offset: offset,
-    );
-  }
-
-  Future<NetworkSubscription<List<CommunityTokenBase>>> subscribeToCategoryTokens({
-    required String sessionId,
-    required TokenCategoryType type,
-  }) {
-    return _categoryTokensRepository.subscribeToRealtimeUpdates(sessionId: sessionId, type: type);
-  }
+  final TokenInfoRepository tokenInfoRepository;
+  final OhlcvCandlesRepository ohlcvCandlesRepository;
+  final TradingStatsRepository tradingStatsRepository;
+  final TopHoldersRepository topHoldersRepository;
+  final LatestTradesRepository latestTradesRepository;
+  final FeaturedTokensRepository featuredTokensRepository;
+  final LatestTokensRepository latestTokensRepository;
+  final CategoryTokensRepository categoryTokensRepository;
 }
