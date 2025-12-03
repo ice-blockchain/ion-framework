@@ -153,8 +153,10 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellAddress = await _getAddress(sellCoinGroup, sellNetwork);
     final buyAddress = await _getAddress(buyCoinGroup, buyNetwork);
 
-    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-    final buyCoin = buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
+    final sellCoin =
+        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final buyCoin =
+        buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
 
     if (sellCoin == null || buyCoin == null) {
       return null;
@@ -208,7 +210,8 @@ class SwapCoinsController extends _$SwapCoinsController {
       return;
     }
 
-    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final sellCoin =
+        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
 
     if (sellCoin == null) {
       return;
@@ -339,7 +342,11 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellNetwork = state.sellNetwork;
     final buyNetwork = state.buyNetwork;
     final amount = state.amount;
-    if (amount <= 0 || sellCoin == null || sellNetwork == null || buyCoin == null || buyNetwork == null) {
+    if (amount <= 0 ||
+        sellCoin == null ||
+        sellNetwork == null ||
+        buyCoin == null ||
+        buyNetwork == null) {
       return;
     }
 
