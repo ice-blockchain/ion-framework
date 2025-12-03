@@ -430,14 +430,17 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }
 
   /// Gets the data source relays to be used for fetching events.
-  /// If there are not enough relays available immediately (at least [desiredAmount]),
-  /// wait for the relays to be ranked, with a timeout.
+  /// If the relays are not available immediately,
+  /// it waits until [desiredAmount] relays are ranked or until the timeout is reached.
   ///
   /// [desiredAmount]: The function will try to get at least this amount of relays,
   ///   but if the timer expires first, it will return whatever is available.
   Future<List<String>> _getDataSourceRelays({required int desiredAmount}) async {
-    final rankedRelays = ref.read(rankedRelevantCurrentUserRelaysUrlsProvider).valueOrNull;
-    if (rankedRelays != null && rankedRelays.length >= desiredAmount) {
+    final (rankedRelays, unrankedRelays) = await (
+      ref.read(rankedRelevantCurrentUserRelaysUrlsProvider.future),
+      ref.read(relevantCurrentUserRelaysProvider.future)
+    ).wait;
+    if (rankedRelays.length >= desiredAmount || rankedRelays.length == unrankedRelays.length) {
       return rankedRelays;
     }
 
@@ -446,7 +449,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   Future<List<String>> _waitForRelaysWithTimeout({
     required int desiredAmount,
-    Duration timeout = const Duration(seconds: 1),
+    Duration timeout = const Duration(seconds: 3),
   }) async {
     final completer = Completer<List<String>>();
 
