@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +24,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
+import 'package:ion/app/services/media_service/image_proccessing_config.dart';
 import 'package:ion/app/services/share/social_share_service.r.dart';
 import 'package:ion/app/utils/screenshot_utils.dart';
 import 'package:ion/app/utils/username.dart';
@@ -159,9 +162,7 @@ class ShareOptions extends HookConsumerWidget {
     final context = ref.context;
     isCapturing.value = true;
     final parentContainer = ProviderScope.containerOf(context);
-    final childContainer = ProviderContainer(
-      parent: parentContainer,
-    );
+    final childContainer = ProviderContainer(parent: parentContainer);
 
     try {
       final contentWidget = UncontrolledProviderScope(
@@ -171,7 +172,25 @@ class ShareOptions extends HookConsumerWidget {
             : SharePostToStoryContent(eventReference: eventReference),
       );
 
-      final tempFile = await captureWidgetScreenshot(context: context, widget: contentWidget);
+      File? tempFile;
+      if (eventReference.isProfileReference) {
+        // For profile references, use story dimensions
+        const storyConfig = ImageProcessingConstants.story;
+        final targetWidth = storyConfig.targetWidth.toDouble();
+        final targetHeight = storyConfig.targetHeight.toDouble();
+
+        tempFile = await captureWidgetScreenshot(
+          context: context,
+          widget: contentWidget,
+          width: targetWidth,
+          height: targetHeight,
+        );
+      } else {
+        tempFile = await captureWidgetScreenshot(
+          context: context,
+          widget: contentWidget,
+        );
+      }
       if (tempFile != null && context.mounted) {
         context.pop();
         await StoryPreviewRoute(
