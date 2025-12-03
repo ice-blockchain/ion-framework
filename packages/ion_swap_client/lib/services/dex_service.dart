@@ -54,8 +54,10 @@ class DexService {
         userWalletAddress: userSellAddress,
       );
 
-      // TODO(ice-erebus): replace to transaction
-      await _swapOkxRepository.simulateSwap();
+      await _swapOkxRepository.broadcastSwap(
+        chainIndex: okxQuote.chainIndex,
+        address: userSellAddress,
+      );
 
       return true;
     }
