@@ -5,6 +5,8 @@ dependency_overrides:
     git:
       url: https://github.com/ice-blockchain/flutter-quill.git
       ref: 7ccd3a8782d397995ab65b3ba8523896591310b8
+  ion_ads:
+    path: packages/ion_ads
   ion_connect_cache:
     path: packages/ion_connect_cache
   ion_content_labeler:
