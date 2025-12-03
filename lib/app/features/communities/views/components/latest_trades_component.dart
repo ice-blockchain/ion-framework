@@ -112,13 +112,25 @@ class _TradeRow extends StatelessWidget {
     final badgeColor = trade.position.type == 'buy' ? colors.success : colors.lossRed;
     final badgeText = trade.position.type == 'buy' ? i18n.trade_buy : i18n.trade_sell;
 
+    final textStyle = texts.caption6.copyWith(
+      color: colors.secondaryBackground,
+    );
+
+    final buyBadgeWidth = _calculateBadgeWidth(i18n.trade_buy, textStyle);
+    final sellBadgeWidth = _calculateBadgeWidth(i18n.trade_sell, textStyle);
+
+    // Step 2: Choose which one is longer
+    final badgeWidth = buyBadgeWidth > sellBadgeWidth ? buyBadgeWidth : sellBadgeWidth;
+
     final badge = Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 1.0.s),
+      width: badgeWidth,
+      padding: EdgeInsets.symmetric(vertical: 1.0.s),
       decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(12.0.s)),
-      child: Text(
-        badgeText,
-        style: texts.caption2
-            .copyWith(color: colors.secondaryBackground, height: 18 / texts.caption2.fontSize!),
+      child: Center(
+        child: Text(
+          badgeText,
+          style: textStyle,
+        ),
       ),
     );
 
@@ -147,6 +159,19 @@ class _TradeRow extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  double _calculateBadgeWidth(String text, TextStyle style) {
+    final textPainter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+    final textWidth = textPainter.width;
+    textPainter.dispose();
+
+    final horizontalPadding = 10.0.s * 2;
+    return textWidth + horizontalPadding;
   }
 }
 
