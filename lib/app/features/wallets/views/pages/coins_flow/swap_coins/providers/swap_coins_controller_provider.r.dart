@@ -19,6 +19,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/excep
 import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
+import 'package:ion_swap_client/exceptions/relay_exception.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -428,8 +429,8 @@ class SwapCoinsController extends _$SwapCoinsController {
 
       Exception? quoteError;
 
-      if (e is OkxException) {
-        quoteError = e;
+      if (e is OkxException || e is RelayException) {
+        quoteError = e as Exception;
       }
 
       state = state.copyWith(

@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
+import 'package:ion_swap_client/exceptions/relay_exception.dart';
 import 'package:ion_swap_client/models/relay_quote.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
@@ -27,8 +29,7 @@ class BridgeService {
         throw const IonSwapException('Relay: Quote is required');
       }
 
-      final depositStep =
-          relayQuote.steps.firstWhereOrNull((step) => step.id == 'deposit')?.items.first;
+      final depositStep = relayQuote.steps.firstWhereOrNull((step) => step.id == 'deposit')?.items.first;
       if (depositStep == null) {
         throw const IonSwapException('Relay: Deposit step is required');
       }
@@ -48,28 +49,49 @@ class BridgeService {
     }
 
     final chains = await _relayApiRepository.getChains();
-    final sellChain = chains.firstWhere(
+    final sellChain = chains.firstWhereOrNull(
       (chain) => chain.name.toLowerCase() == swapCoinData.sellNetworkId.toLowerCase(),
     );
-    final buyChain = chains
-        .firstWhere((chain) => chain.name.toLowerCase() == swapCoinData.buyNetworkId.toLowerCase());
+    final buyChain = chains.firstWhereOrNull(
+      (chain) => chain.name.toLowerCase() == swapCoinData.buyNetworkId.toLowerCase(),
+    );
+
+    if (sellChain == null || buyChain == null) {
+      throw const CoinPairNotFoundException();
+    }
 
     final swapAmount = _getSwapAmount(
       swapCoinData.amount,
       buyChain.currency.decimals,
     );
+    try {
+      final quote = await _relayApiRepository.getQuote(
+        amount: swapAmount,
+        user: sellAddress,
+        recipient: buyAddress,
+        originCurrency: _getTokenAddress(swapCoinData.sellCoinContractAddress),
+        destinationCurrency: _getTokenAddress(swapCoinData.buyCoinContractAddress),
+        originChainId: sellChain.id,
+        destinationChainId: buyChain.id,
+      );
 
-    final quote = await _relayApiRepository.getQuote(
-      amount: swapAmount,
-      user: sellAddress,
-      recipient: buyAddress,
-      originCurrency: _getTokenAddress(swapCoinData.sellCoinContractAddress),
-      destinationCurrency: _getTokenAddress(swapCoinData.buyCoinContractAddress),
-      originChainId: sellChain.id,
-      destinationChainId: buyChain.id,
-    );
+      return quote;
+    } on Exception catch (e) {
+      if (e is DioException) {
+        final response = e.response;
+        final data = response?.data;
 
-    return quote;
+        if (data is Map<String, dynamic>) {
+          final errorCode = data['errorCode'];
+
+          if (errorCode is String) {
+            throw RelayException.fromErrorCode(errorCode);
+          }
+        }
+      }
+
+      rethrow;
+    }
   }
 
   String _getTokenAddress(String contractAddress) {

@@ -9,6 +9,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/excep
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
+import 'package:ion_swap_client/exceptions/relay_exception.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 
 class ConversionInfoRow extends HookConsumerWidget {
@@ -121,11 +122,48 @@ class _ErrorState extends StatelessWidget {
     BuildContext context,
   ) {
     return switch (quoteError) {
+      RelayException() => _getRelayErrorMessage(
+          context,
+          quoteError! as RelayException,
+        ),
       OkxException() => _getOkxErrorMessage(
           context,
           quoteError! as OkxException,
         ),
       InsufficientBalanceException() => context.i18n.error_swap_82000,
+      _ => context.i18n.errorGettingSwapQuote,
+    };
+  }
+
+  String _getRelayErrorMessage(BuildContext context, RelayException quoteError) {
+    return switch (quoteError) {
+      const CoinPairNotFoundException() => context.i18n.error_swap_coin_pair_not_found,
+      const AmountTooLowException() => context.i18n.error_swap_amount_too_low,
+      const ChainDisabledException() => context.i18n.error_swap_chain_disabled,
+      const ExtraTxsNotSupportedException() => context.i18n.error_swap_extra_txs_not_supported,
+      const ForbiddenException() => context.i18n.error_swap_forbidden,
+      const InsufficientFundsException() => context.i18n.error_swap_insufficient_funds,
+      const InsufficientLiquidityException() => context.i18n.error_swap_insufficient_liquidity,
+      const InvalidAddressException() => context.i18n.error_swap_invalid_address,
+      const InvalidExtraTxsException() => context.i18n.error_swap_invalid_extra_txs,
+      const InvalidGasLimitForDepositSpecifiedTxsException() =>
+        context.i18n.error_swap_invalid_gas_limit_for_deposit_specified_txs,
+      const InvalidInputCurrencyException() => context.i18n.error_swap_invalid_input_currency,
+      const InvalidOutputCurrencyException() => context.i18n.error_swap_invalid_output_currency,
+      const InvalidSlippageToleranceException() => context.i18n.error_swap_invalid_slippage_tolerance,
+      const NoInternalSwapRoutesFoundException() => context.i18n.error_swap_no_internal_swap_routes_found,
+      const NoQuotesException() => context.i18n.error_swap_no_quotes,
+      const NoSwapRoutesFoundException() => context.i18n.error_swap_no_swap_routes_found,
+      const RouteTemporarilyRestrictedException() => context.i18n.error_swap_route_temporarily_restricted,
+      const SanctionedCurrencyException() => context.i18n.error_swap_sanctioned_currency,
+      const SanctionedWalletAddressException() => context.i18n.error_swap_sanctioned_wallet_address,
+      const SwapImpactTooHighException() => context.i18n.error_swap_swap_impact_too_high,
+      const UnauthorizedException() => context.i18n.error_swap_unauthorized,
+      const UnsupportedChainException() => context.i18n.error_swap_unsupported_chain,
+      const UnsupportedCurrencyException() => context.i18n.error_swap_unsupported_currency,
+      const UnsupportedExecutionTypeException() => context.i18n.error_swap_unsupported_execution_type,
+      const UnsupportedRouteException() => context.i18n.error_swap_unsupported_route,
+      const UserRecipientMismatchException() => context.i18n.error_swap_user_recipient_mismatch,
       _ => context.i18n.errorGettingSwapQuote,
     };
   }
