@@ -9,16 +9,19 @@ import 'package:ion/app/features/communities/pages/holders/components/top_holder
 import 'package:ion/app/features/communities/pages/holders/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 const int holdersCountLimit = 5;
 
 class TopHolders extends StatelessWidget {
   const TopHolders({
     required this.masterPubkey,
+    this.onTitleVisibilityChanged,
     super.key,
   });
 
   final String masterPubkey;
+  final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +34,10 @@ class TopHolders extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Header(masterPubkey: masterPubkey),
+            _Header(
+              masterPubkey: masterPubkey,
+              onTitleVisibilityChanged: onTitleVisibilityChanged,
+            ),
             SizedBox(height: 14.0.s),
             _TopHolderList(masterPubkey: masterPubkey),
           ],
@@ -44,16 +50,21 @@ class TopHolders extends StatelessWidget {
 class _Header extends StatelessWidget {
   const _Header({
     required this.masterPubkey,
+    this.onTitleVisibilityChanged,
   });
 
   final String masterPubkey;
+  final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        _HeaderTitle(masterPubkey: masterPubkey),
+        _HeaderTitle(
+          masterPubkey: masterPubkey,
+          onTitleVisibilityChanged: onTitleVisibilityChanged,
+        ),
         const Spacer(),
         _HeaderViewAllButton(masterPubkey: masterPubkey),
       ],
@@ -64,9 +75,11 @@ class _Header extends StatelessWidget {
 class _HeaderTitle extends ConsumerWidget {
   const _HeaderTitle({
     required this.masterPubkey,
+    this.onTitleVisibilityChanged,
   });
 
   final String masterPubkey;
+  final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -82,7 +95,7 @@ class _HeaderTitle extends ConsumerWidget {
 
     final holdersCountText = holdersCount > 1 ? ' ($holdersCount)' : '';
 
-    return Row(
+    final titleContent = Row(
       children: [
         Assets.svg.iconSearchGroups.icon(size: 18.0.s),
         SizedBox(width: 6.0.s),
@@ -94,6 +107,18 @@ class _HeaderTitle extends ConsumerWidget {
         ),
       ],
     );
+
+    if (onTitleVisibilityChanged != null) {
+      return VisibilityDetector(
+        key: UniqueKey(),
+        onVisibilityChanged: (info) {
+          onTitleVisibilityChanged?.call(info.visibleFraction);
+        },
+        child: titleContent,
+      );
+    }
+
+    return titleContent;
   }
 }
 

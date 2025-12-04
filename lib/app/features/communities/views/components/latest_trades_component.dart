@@ -1,19 +1,22 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
-class LatestTradesComponent extends StatelessWidget {
+class LatestTradesComponent extends HookWidget {
   const LatestTradesComponent({
     required this.trades,
     this.maxVisible = 5,
     this.onViewAllPressed,
     this.onTapTrade,
     this.onLoadMore,
+    this.onTitleVisibilityChanged,
     super.key,
   });
 
@@ -22,23 +25,63 @@ class LatestTradesComponent extends StatelessWidget {
   final VoidCallback? onViewAllPressed;
   final ValueChanged<LatestTrade>? onTapTrade;
   final VoidCallback? onLoadMore;
+  final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
     final texts = context.theme.appTextThemes;
     final i18n = context.i18n;
-    final visible = trades.take(maxVisible).toList();
+
+    final visible = useMemoized(
+      () => trades.take(maxVisible).toList(),
+      [trades, maxVisible],
+    );
 
     final badgeTextStyle = texts.caption6.copyWith(
       color: colors.secondaryBackground,
     );
-    final buyTextWidth = _calculateTextWidth(i18n.trade_buy, badgeTextStyle);
-    final sellTextWidth = _calculateTextWidth(i18n.trade_sell, badgeTextStyle);
+
+    final buyTextWidth = useMemoized(
+      () => _calculateTextWidth(i18n.trade_buy, badgeTextStyle),
+      [i18n.trade_buy, badgeTextStyle],
+    );
+
+    final sellTextWidth = useMemoized(
+      () => _calculateTextWidth(i18n.trade_sell, badgeTextStyle),
+      [i18n.trade_sell, badgeTextStyle],
+    );
 
     final baseTextWidth = buyTextWidth > sellTextWidth ? buyTextWidth : sellTextWidth;
     final widthBuffer = 2.0.s;
     final minTextWidth = baseTextWidth + widthBuffer;
+
+    final titleRow = Row(
+      children: [
+        Assets.svg.fluentArrowSort16Regular.icon(size: 18.0.s),
+        SizedBox(width: 6.0.s),
+        Expanded(
+          child: Text(
+            i18n.latest_trades_title,
+            style: texts.subtitle3.copyWith(color: colors.onTertiaryBackground),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (onViewAllPressed != null)
+          GestureDetector(
+            onTap: onViewAllPressed,
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 4.0.s),
+              child: Text(
+                i18n.core_view_all,
+                style: texts.caption2.copyWith(color: colors.primaryAccent),
+              ),
+            ),
+          ),
+      ],
+    );
 
     return ColoredBox(
       color: colors.secondaryBackground,
@@ -47,32 +90,16 @@ class LatestTradesComponent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Assets.svg.fluentArrowSort16Regular.icon(size: 18.0.s),
-                SizedBox(width: 6.0.s),
-                Expanded(
-                  child: Text(
-                    i18n.latest_trades_title,
-                    style: texts.subtitle3.copyWith(color: colors.onTertiaryBackground),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (onViewAllPressed != null)
-                  GestureDetector(
-                    onTap: onViewAllPressed,
-                    behavior: HitTestBehavior.opaque,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 4.0.s),
-                      child: Text(
-                        i18n.core_view_all,
-                        style: texts.caption2.copyWith(color: colors.primaryAccent),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+            if (onTitleVisibilityChanged != null)
+              VisibilityDetector(
+                key: UniqueKey(),
+                onVisibilityChanged: (info) {
+                  onTitleVisibilityChanged?.call(info.visibleFraction);
+                },
+                child: titleRow,
+              )
+            else
+              titleRow,
             SizedBox(height: 14.0.s),
             Column(
               children: [
