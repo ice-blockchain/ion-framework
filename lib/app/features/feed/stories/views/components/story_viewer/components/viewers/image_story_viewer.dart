@@ -70,7 +70,9 @@ class ImageStoryViewer extends HookConsumerWidget {
       if (eventReference != null) {
         final text = eventReference.isArticleReference
             ? context.i18n.story_see_article
-            : context.i18n.story_see_post;
+            : eventReference.isProfileReference
+                ? context.i18n.story_see_profile
+                : context.i18n.story_see_post;
 
         // For profile screenshots, don't add padding to allow full width
         final padding =
@@ -85,6 +87,10 @@ class ImageStoryViewer extends HookConsumerWidget {
                 if (eventReference.isArticleReference) {
                   ArticleDetailsRoute(
                     eventReference: eventReference.encode(),
+                  ).push<void>(context);
+                } else if (eventReference.isProfileReference) {
+                  ProfileRoute(
+                    pubkey: eventReference.masterPubkey,
                   ).push<void>(context);
                 } else {
                   PostDetailsRoute(
