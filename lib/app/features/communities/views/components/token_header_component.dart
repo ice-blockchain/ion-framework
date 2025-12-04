@@ -62,9 +62,9 @@ class CreatorTokenHeader extends HookWidget {
                 innerPadding: 3.0.s,
               ),
               if (token.source.isTwitter)
-                Positioned(
+                PositionedDirectional(
                   bottom: -3.s,
-                  right: -3.s,
+                  end: -3.s,
                   child: Container(
                     padding: EdgeInsets.all(3.58.s),
                     decoration: BoxDecoration(
@@ -77,9 +77,9 @@ class CreatorTokenHeader extends HookWidget {
                   ),
                 ),
               if (token.source.isIonConnect && token.eventReference != null)
-                Positioned(
+                PositionedDirectional(
                   bottom: -3.s,
-                  right: -3.s,
+                  end: -3.s,
                   child: ProfileMainAction(
                     profileMode: ProfileMode.dark,
                     pubkey: token.eventReference!.masterPubkey,
