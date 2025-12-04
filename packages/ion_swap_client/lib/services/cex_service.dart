@@ -67,35 +67,8 @@ class CexService {
   Future<SwapQuoteInfo> getCexSwapQuote(
     SwapCoinParameters swapCoinData,
   ) async {
-    final (
-      sellCoinExolix,
-      buyCoinExolix,
-      sellNetworkExolix,
-      buyNetworkExolix,
-    ) = await _getSwapDataExolix(swapCoinData: swapCoinData);
-
-    final exolixRate = await _getQuoteOnExolix(
-      swapCoinData: swapCoinData,
-      sellCoin: sellCoinExolix,
-      sellNetwork: sellNetworkExolix,
-      buyCoin: buyCoinExolix,
-      buyNetwork: buyNetworkExolix,
-    );
-
-    final (
-      sellCoinLetsExchange,
-      buyCoinLetsExchange,
-      sellNetworkLetsExchange,
-      buyNetworkLetsExchange,
-    ) = await _getSwapDataLetsExchange(swapCoinData: swapCoinData);
-
-    final letsExchangeRate = await _getQuoteOnLetsExchange(
-      swapCoinData: swapCoinData,
-      sellCoin: sellCoinLetsExchange,
-      buyCoin: buyCoinLetsExchange,
-      sellNetwork: sellNetworkLetsExchange,
-      buyNetwork: buyNetworkLetsExchange,
-    );
+    final exolixRate = await _tryGetExolixQuote(swapCoinData);
+    final letsExchangeRate = await _tryGetLetsExchangeQuote(swapCoinData);
 
     if (exolixRate == null && letsExchangeRate == null) {
       throw const IonSwapException('Failed to get quote on Cex: No quote found');
@@ -141,6 +114,52 @@ class CexService {
     throw const IonSwapException('Failed to get quote on Cex: No quote found');
   }
 
+  Future<ExolixRate?> _tryGetExolixQuote(SwapCoinParameters swapCoinData) async {
+    try {
+      final (
+        sellCoinExolix,
+        buyCoinExolix,
+        sellNetworkExolix,
+        buyNetworkExolix,
+      ) = await _getSwapDataExolix(swapCoinData: swapCoinData);
+
+      final exolixRate = await _getQuoteOnExolix(
+        swapCoinData: swapCoinData,
+        sellCoin: sellCoinExolix,
+        sellNetwork: sellNetworkExolix,
+        buyCoin: buyCoinExolix,
+        buyNetwork: buyNetworkExolix,
+      );
+
+      return exolixRate;
+    } on Exception catch (_) {
+      return null;
+    }
+  }
+
+  Future<LetsExchangeInfo?> _tryGetLetsExchangeQuote(SwapCoinParameters swapCoinData) async {
+    try {
+      final (
+        sellCoinLetsExchange,
+        buyCoinLetsExchange,
+        sellNetworkLetsExchange,
+        buyNetworkLetsExchange,
+      ) = await _getSwapDataLetsExchange(swapCoinData: swapCoinData);
+
+      final letsExchangeRate = await _getQuoteOnLetsExchange(
+        swapCoinData: swapCoinData,
+        sellCoin: sellCoinLetsExchange,
+        buyCoin: buyCoinLetsExchange,
+        sellNetwork: sellNetworkLetsExchange,
+        buyNetwork: buyNetworkLetsExchange,
+      );
+
+      return letsExchangeRate;
+    } on Exception catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _swapOnLetsExchange(
     SwapCoinParameters swapCoinData,
     SendCoinCallback sendCoinCallback,
@@ -151,8 +170,7 @@ class CexService {
       throw const IonSwapException('Lets Exchange: Withdrawal address is required');
     }
 
-    final (sellCoin, buyCoin, sellNetwork, buyNetwork) =
-        await _getSwapDataLetsExchange(swapCoinData: swapCoinData);
+    final (sellCoin, buyCoin, sellNetwork, buyNetwork) = await _getSwapDataLetsExchange(swapCoinData: swapCoinData);
 
     final transaction = await _letsExchangeRepository.createTransaction(
       coinFrom: sellCoin.code,
@@ -200,8 +218,7 @@ class CexService {
     SendCoinCallback sendCoinCallback,
     ExolixRate exolixRate,
   ) async {
-    final (sellCoin, buyCoin, sellNetwork, buyNetwork) =
-        await _getSwapDataExolix(swapCoinData: swapCoinData);
+    final (sellCoin, buyCoin, sellNetwork, buyNetwork) = await _getSwapDataExolix(swapCoinData: swapCoinData);
 
     final withdrawalAddress = swapCoinData.userBuyAddress;
 
@@ -258,10 +275,8 @@ class CexService {
       coinCode: swapCoinData.buyCoinCode,
     );
 
-    final sellCoin = sellCoins
-        .firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.sellCoinCode.toLowerCase());
-    final buyCoin = buyCoins
-        .firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.buyCoinCode.toLowerCase());
+    final sellCoin = sellCoins.firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.sellCoinCode.toLowerCase());
+    final buyCoin = buyCoins.firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.buyCoinCode.toLowerCase());
 
     if (sellCoin == null || buyCoin == null) {
       throw const IonSwapException('Exolix: Coins pair not found');
@@ -281,8 +296,7 @@ class CexService {
     return (sellCoin, buyCoin, sellNetwork, buyNetwork);
   }
 
-  Future<(LetsExchangeCoin, LetsExchangeCoin, LetsExchangeNetwork, LetsExchangeNetwork)>
-      _getSwapDataLetsExchange({
+  Future<(LetsExchangeCoin, LetsExchangeCoin, LetsExchangeNetwork, LetsExchangeNetwork)> _getSwapDataLetsExchange({
     required SwapCoinParameters swapCoinData,
   }) async {
     final coins = await _letsExchangeRepository.getCoins();
@@ -304,8 +318,7 @@ class CexService {
     );
 
     final buyNetwork = buyCoin.networks.firstWhereOrNull(
-      (e) =>
-          e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.buyCoinContractAddress),
+      (e) => e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.buyCoinContractAddress),
     );
 
     if (sellNetwork == null || buyNetwork == null) {
