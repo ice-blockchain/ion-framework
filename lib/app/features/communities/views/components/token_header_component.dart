@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/extensions/replaceable_entity.dart';
 import 'package:ion/app/features/communities/views/components/community_token_image.dart';
+import 'package:ion/app/features/communities/views/content_token_header.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_price.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
@@ -22,17 +23,15 @@ class TokenHeaderComponent extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusBarHeight = MediaQuery.paddingOf(context).top;
+    final statusBarHeight = MediaQuery.viewPaddingOf(context).top;
 
     return Column(
       children: [
-        SizedBox(height: statusBarHeight + 16.0.s),
+        SizedBox(height: statusBarHeight + 57.s),
         if (token.type == CommunityTokenType.profile)
           CreatorTokenHeader(token: token)
         else
-          // TODO ice-kreios content toker header
-          Container(),
-        SizedBox(height: 25.0.s),
+          ContentTokenHeader(token: token),
       ],
     );
   }
@@ -56,7 +55,8 @@ class CreatorTokenHeader extends HookWidget {
             children: [
               CommunityTokenImage(
                 imageUrl: token.imageUrl,
-                size: 89.0.s,
+                width: 89.0.s,
+                height: 89.0.s,
                 innerBorderRadius: 18.0.s,
                 outerBorderRadius: 24.0.s,
                 innerPadding: 3.0.s,

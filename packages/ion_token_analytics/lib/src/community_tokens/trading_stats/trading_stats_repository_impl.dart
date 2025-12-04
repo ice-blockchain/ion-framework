@@ -15,7 +15,7 @@ class TradingStatsRepositoryImpl implements TradingStatsRepository {
   ) async {
     try {
       final subscription = await _client.subscribeSse<Map<String, dynamic>>(
-        '/v1sse/community-tokens/$ionConnectAddress/trading-stats',
+        '/v1sse/community-tokens/$ionConnectAddress/trading-stats/',
       );
 
       final stream = subscription.stream.map((statsMap) {

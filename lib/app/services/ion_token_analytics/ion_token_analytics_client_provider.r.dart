@@ -32,26 +32,20 @@ Future<IonTokenAnalyticsClient> ionTokenAnalyticsClient(Ref ref) async {
 Raw<Future<String?>> tokenAnalyticsAuthToken(Ref ref) async {
   keepAliveWhenAuthenticated(ref);
 
-  final delegationComplete = ref.watch(cacheDelegationCompleteProvider);
-  final delegation = ref.watch(currentUserCachedDelegationProvider);
-  final userAgent = ref.watch(currentUserAgentProvider);
-
-  if (delegationComplete.valueOrNull == false ||
-      delegation.valueOrNull == null ||
-      userAgent.valueOrNull == null) {
-    return null;
-  }
+  final delegationComplete = await ref.watch(cacheDelegationCompleteProvider.future);
+  final delegation = await ref.watch(currentUserCachedDelegationProvider.future);
+  final userAgent = await ref.watch(currentUserAgentProvider.future);
 
   final authEvent = AuthEvent(
     challenge: '',
     relay: '',
-    userAgent: userAgent.valueOrNull!,
-    userDelegation: delegation.valueOrNull,
+    userAgent: userAgent,
+    userDelegation: delegation,
   );
 
   final authEventMessage = await ref
       .read(ionConnectNotifierProvider.notifier)
-      .sign(authEvent, includeMasterPubkey: delegationComplete.valueOrNull!);
+      .sign(authEvent, includeMasterPubkey: delegationComplete);
 
   final jsonPayload = jsonEncode(authEventMessage.jsonPayload);
   final jsonPayloadBytes = utf8.encode(jsonPayload);

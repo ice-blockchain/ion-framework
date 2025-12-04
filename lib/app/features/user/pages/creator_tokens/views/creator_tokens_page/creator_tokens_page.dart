@@ -40,10 +40,12 @@ class CreatorTokensPage extends HookConsumerWidget {
     useEffect(
       () {
         return () {
-          ref
-            ..invalidate(latestTokensNotifierProvider)
-            ..invalidate(CategoryTokensNotifierProvider(TokenCategoryType.trending))
-            ..invalidate(CategoryTokensNotifierProvider(TokenCategoryType.top));
+          if (context.mounted) {
+            ref
+              ..invalidate(latestTokensNotifierProvider)
+              ..invalidate(CategoryTokensNotifierProvider(TokenCategoryType.trending))
+              ..invalidate(CategoryTokensNotifierProvider(TokenCategoryType.top));
+          }
         };
       },
       [],

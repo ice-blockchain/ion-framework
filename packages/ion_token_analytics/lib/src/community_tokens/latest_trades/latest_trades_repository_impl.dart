@@ -34,23 +34,28 @@ class LatestTradesRepositoryImpl implements LatestTradesRepository {
   }
 
   @override
-  Future<NetworkSubscription<LatestTradeBase>> subscribeToLatestTrades(
+  Future<NetworkSubscription<List<LatestTradeBase>>> subscribeToLatestTrades(
     String ionConnectAddress,
   ) async {
     try {
-      final subscription = await _client.subscribeSse<Map<String, dynamic>>(
+      final subscription = await _client.subscribeSse<List<dynamic>>(
         '/v1sse/community-tokens/$ionConnectAddress/latest-trades',
       );
 
-      final stream = subscription.stream.map((json) {
-        try {
-          final data = LatestTrade.fromJson(json);
-          return data;
-        } catch (_) {
-          final patch = LatestTradePatch.fromJson(json);
-          return patch;
+      final stream = subscription.stream.map((jsons) {
+        final list = <LatestTradeBase>[];
+        for (final json in jsons) {
+          try {
+            final data = LatestTrade.fromJson(json as Map<String, dynamic>);
+            list.add(data);
+          } catch (_) {
+            final patch = LatestTradePatch.fromJson(json as Map<String, dynamic>);
+            list.add(patch);
+          }
         }
+        return list;
       });
+
       return NetworkSubscription(stream: stream, close: subscription.close);
     } catch (e) {
       rethrow;

@@ -26,7 +26,8 @@ class PostToken extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
 
-    final externalAddress = (entity as ReplaceableEntity?)?.externalAddress;
+    final externalAddress = entity is ReplaceableEntity ? entity.externalAddress : null;
+
     final tokenInfo = externalAddress != null
         ? ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull
         : null;

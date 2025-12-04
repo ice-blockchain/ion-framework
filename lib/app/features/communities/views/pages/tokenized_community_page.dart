@@ -22,13 +22,8 @@ import 'package:ion/app/features/communities/views/components/token_header_compo
 import 'package:ion/app/features/communities/views/components/your_position_card.dart';
 import 'package:ion/app/features/communities/views/pages/holders/components/top_holders/top_holders.dart';
 import 'package:ion/app/features/communities/views/pages/latest_trades/components/latest_trades_card.dart';
-import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
-import 'package:ion/app/features/user/model/tab_type_interface.dart';
-import 'package:ion/app/features/user/pages/components/profile_avatar/profile_avatar.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_actions/profile_action.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
-import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 enum TokenizedCommunityTabType implements TabType {
@@ -71,11 +66,13 @@ class TokenizedCommunityPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Get token from provider (like HEAD does)
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(masterPubkey));
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress));
     final token = tokenInfo.valueOrNull;
 
-    // Create keys for each section to enable scroll-to-section navigation
+    if (token == null) {
+      return const SizedBox.shrink();
+    }
+
     final sectionKeys = useMemoized(
       () => List.generate(TokenizedCommunityTabType.values.length, (_) => GlobalKey()),
     );
@@ -101,12 +98,14 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       expandedHeaderHeight: _expandedHeaderHeight,
       expandedHeader: TokenHeaderComponent(
         token: token,
-        masterPubkey: masterPubkey,
       ),
-      imageUrl: token?.imageUrl,
+      imageUrl: token.imageUrl,
       actions: [
         IconButton(
-          onPressed: () {},
+          onPressed: () {
+            //TODO (ice-kreios): navigate to bookmarks page
+            CreatorTokensRoute().push<void>(context);
+          },
           icon: Assets.svg.iconBookmarks.icon(
             size: 24.0.s,
             color: context.theme.appColors.onPrimaryAccent,
@@ -126,23 +125,18 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           key: keys[0],
           child: Column(
             children: [
-              YourPositionCard(masterPubkey: masterPubkey),
-              // TODO: remove, just for entering & debugging global categories page
-              Padding(
-                padding: EdgeInsets.all(16.0.s),
-                child: TextButton(
-                  onPressed: () =>
-                      CreatorTokensRoute(masterPubkey: masterPubkey).push<void>(context),
-                  child: Text(context.i18n.core_view_all),
-                ),
+              SimpleSeparator(height: 4.0.s),
+              YourPositionCard(
+                externalAddress: externalAddress,
+                trailing: SimpleSeparator(height: 4.0.s),
               ),
               _TokenChart(
-                masterPubkey: masterPubkey,
+                externalAddress: externalAddress,
                 onTitleVisibilityChanged: visibilityCallbacks[0],
               ),
-              HorizontalSeparator(height: 4.0.s),
-              _TokenStats(masterPubkey: masterPubkey),
-              HorizontalSeparator(height: 4.0.s),
+              SimpleSeparator(height: 4.0.s),
+              _TokenStats(externalAddress: externalAddress),
+              SimpleSeparator(height: 4.0.s),
             ],
           ),
         ),
@@ -152,10 +146,10 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           child: Column(
             children: [
               TopHolders(
-                masterPubkey: masterPubkey,
+                externalAddress: externalAddress,
                 onTitleVisibilityChanged: visibilityCallbacks[1],
               ),
-              HorizontalSeparator(height: 4.0.s),
+              SimpleSeparator(height: 4.0.s),
             ],
           ),
         ),
@@ -164,11 +158,11 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           key: keys[2],
           child: Column(
             children: [
-              _LatestTrades(
-                masterPubkey: masterPubkey,
+              LatestTradesCard(
+                externalAddress: externalAddress,
                 onTitleVisibilityChanged: visibilityCallbacks[2],
               ),
-              HorizontalSeparator(height: 4.0.s),
+              SimpleSeparator(height: 4.0.s),
             ],
           ),
         ),
@@ -186,76 +180,54 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           ),
         ),
       ],
-      collapsedTitle: _CollapsedTitle(masterPubkey: masterPubkey),
-      floatingActionButton: FloatingTradeIsland(pubkey: masterPubkey),
-    );
-  }
-}
-
-// Collapsed title shown when app bar is collapsed - shows avatar, name, and handle
-class _CollapsedTitle extends ConsumerWidget {
-  const _CollapsedTitle({required this.masterPubkey});
-
-  final String externalAddress;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(masterPubkey));
-    final token = tokenInfo.valueOrNull;
-
-    if (token == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Avatar
-        ProfileAvatar(
-          pubkey: masterPubkey,
-          size: 32.0.s,
-        ),
-        SizedBox(width: 8.0.s),
-        // Name and handle
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+      collapsedTitle: SizedBox(
+        height: 36.s,
+        child: Row(
           children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
+            CommunityTokenImage(
+              imageUrl: token.imageUrl,
+              width: 36.s,
+              height: 36.s,
+              innerBorderRadius: 10.s,
+              outerBorderRadius: 10.s,
+              innerPadding: 0.s,
+            ),
+            SizedBox(
+              width: 8.s,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Row(
+                  children: [
+                    Text(
+                      token.title,
+                      style: context.theme.appTextThemes.subtitle3.copyWith(
+                        color: context.theme.appColors.onPrimaryAccent,
+                      ),
+                    ),
+                  ],
+                ),
                 Text(
-                  token.creator.display,
-                  style: context.theme.appTextThemes.subtitle2.copyWith(
-                    color: Colors.white,
+                  token.marketData.ticker,
+                  style: context.theme.appTextThemes.caption.copyWith(
+                    color: context.theme.appColors.attentionBlock,
                   ),
                 ),
-                if (token.creator.verified) ...[
-                  SizedBox(width: 4.0.s),
-                  Assets.svg.iconBadgeVerify.icon(size: 18.0.s),
-                ],
               ],
-            ),
-            Text(
-              prefixUsername(username: token.creator.name, context: context),
-              style: context.theme.appTextThemes.caption3.copyWith(
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
             ),
           ],
         ),
-      ],
+      ),
+      floatingActionButton: FloatingTradeIsland(externalAddress: externalAddress),
     );
   }
 }
 
 class _TokenChart extends HookConsumerWidget {
-  const _TokenChart({
-    required this.masterPubkey,
-    this.onTitleVisibilityChanged,
-  });
+  const _TokenChart({required this.externalAddress, required this.onTitleVisibilityChanged});
 
-  final String masterPubkey;
+  final String externalAddress;
   final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
@@ -318,41 +290,6 @@ class _TokenStats extends HookConsumerWidget {
           // isNetBuyPositive: selectedStatsFormatted.isNetBuyPositive,
           isNetBuyPositive: true,
           onTimeframeTap: (index) => selectedTimeframe.value = index,
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (error, stackTrace) {
-        return const SizedBox.shrink();
-      },
-    );
-  }
-}
-
-class _LatestTrades extends HookConsumerWidget {
-  const _LatestTrades({
-    required this.masterPubkey,
-    this.onTitleVisibilityChanged,
-  });
-
-  static const int limit = 5;
-
-  final String masterPubkey;
-  final ValueChanged<double>? onTitleVisibilityChanged;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tradesAsync = ref.watch(tokenLatestTradesProvider(masterPubkey, limit: limit));
-
-    return tradesAsync.when(
-      data: (trades) {
-        if (trades.isEmpty) {
-          return const SizedBox.shrink();
-        }
-        return LatestTradesComponent(
-          trades: trades,
-          onViewAllPressed: () {},
-          onLoadMore: () => ref.read(tokenLatestTradesProvider(masterPubkey).notifier).loadMore(),
-          onTitleVisibilityChanged: onTitleVisibilityChanged,
         );
       },
       loading: () => const SizedBox.shrink(),

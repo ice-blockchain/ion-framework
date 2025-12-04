@@ -33,21 +33,21 @@ class LatestTokensRepositoryMock implements LatestTokensRepository {
   }
 
   @override
-  Future<NetworkSubscription<CommunityTokenBase>> subscribeToLatestTokens({
+  Future<NetworkSubscription<List<CommunityTokenBase>>> subscribeToLatestTokens({
     String? keyword,
     String? type,
   }) async {
     final jsonStream = _dataSource.subscribeToLatestRealtimeUpdates(keyword: keyword, type: type);
 
-    final patchStream = jsonStream.map<CommunityTokenBase>((json) {
+    final patchStream = jsonStream.map<List<CommunityTokenBase>>((token) {
       try {
-        return CommunityToken.fromJson(json);
+        return [CommunityToken.fromJson(token)];
       } catch (_) {
-        return CommunityTokenPatch.fromJson(json);
+        return [CommunityTokenPatch.fromJson(token)];
       }
     });
 
-    return NetworkSubscription<CommunityTokenBase>(
+    return NetworkSubscription<List<CommunityTokenBase>>(
       stream: patchStream,
       close: () async {
         _dataSource.close();

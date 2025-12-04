@@ -53,7 +53,8 @@ class YourPositionCard extends HookConsumerWidget {
                       children: [
                         CommunityTokenImage(
                           imageUrl: token.imageUrl,
-                          size: 49.6.s,
+                          width: 49.6.s,
+                          height: 49.6.s,
                           outerBorderRadius: 12.8.s,
                           innerBorderRadius: 9.6.s,
                           innerPadding: 1.29.s,

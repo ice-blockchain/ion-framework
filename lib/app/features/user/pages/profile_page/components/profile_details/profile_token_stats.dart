@@ -134,7 +134,7 @@ class _StatItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(width: 3.13.s),
+        SizedBox(width: 4.s),
         Container(
           width: 14.15.s,
           height: 14.15.s,
@@ -147,16 +147,13 @@ class _StatItem extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(width: 3.13.s),
+        SizedBox(width: 4.s),
         Flexible(
           child: Text(
             text,
             textAlign: TextAlign.center,
             style: context.theme.appTextThemes.caption.copyWith(
               color: context.theme.appColors.secondaryBackground,
-              fontFamily: 'Noto Sans',
-              fontWeight: FontWeight.w600,
-              height: 1.17,
             ),
           ),
         ),

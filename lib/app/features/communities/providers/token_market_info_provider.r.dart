@@ -2,7 +2,6 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -10,7 +9,6 @@ part 'token_market_info_provider.r.g.dart';
 
 @riverpod
 Stream<CommunityToken?> tokenMarketInfo(Ref ref, String externalAddress) async* {
-  Logger.info('tokenMarketInfo externalAddress: $externalAddress');
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
 
   // 1. Fetch initial data via REST
