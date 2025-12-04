@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/components/profile_avatar/profile_avatar.dart';
@@ -50,6 +51,7 @@ class ShareProfileToStoryContent extends HookConsumerWidget {
                       ProfileAvatar(
                         profileMode: ProfileMode.dark,
                         pubkey: pubkey,
+                        size: 110.0.s,
                       ),
                       PositionedDirectional(
                         bottom: -6,
@@ -61,7 +63,7 @@ class ShareProfileToStoryContent extends HookConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 9),
+                  SizedBox(height: 20.0.s),
                   ProfileDetails(
                     pubkey: pubkey,
                     profileMode: ProfileMode.dark,
