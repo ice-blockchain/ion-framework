@@ -5,8 +5,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/exceptions/insufficient_balance_exception.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 
 class ConversionInfoRow extends HookConsumerWidget {
@@ -26,6 +28,7 @@ class ConversionInfoRow extends HookConsumerWidget {
     final swapCoinsController = ref.watch(swapCoinsControllerProvider);
     final isLoading = swapCoinsController.isQuoteLoading;
     final isError = swapCoinsController.isQuoteError;
+    final quoteError = swapCoinsController.quoteError;
     final swapQuoteInfo = swapCoinsController.swapQuoteInfo;
 
     if (isLoading) {
@@ -33,7 +36,9 @@ class ConversionInfoRow extends HookConsumerWidget {
     }
 
     if (isError) {
-      return const _ErrorState();
+      return _ErrorState(
+        quoteError: quoteError,
+      );
     }
 
     if (swapQuoteInfo == null) {
@@ -106,7 +111,46 @@ class _LoadingState extends StatelessWidget {
 }
 
 class _ErrorState extends StatelessWidget {
-  const _ErrorState();
+  const _ErrorState({
+    required this.quoteError,
+  });
+
+  final Exception? quoteError;
+
+  String _getErrorMessage(
+    BuildContext context,
+  ) {
+    return switch (quoteError) {
+      OkxException() => _getOkxErrorMessage(
+          context,
+          quoteError! as OkxException,
+        ),
+      InsufficientBalanceException() => context.i18n.error_swap_82000,
+      _ => context.i18n.errorGettingSwapQuote,
+    };
+  }
+
+  String _getOkxErrorMessage(BuildContext context, OkxException quoteError) {
+    return switch (quoteError) {
+      OkxRepeatedRequestException() => context.i18n.error_swap_80000,
+      OkxCallDataExceedsLimitException() => context.i18n.error_swap_80001,
+      OkxTokenObjectCountLimitException() => context.i18n.error_swap_80002,
+      OkxNativeTokenObjectCountLimitException() => context.i18n.error_swap_80003,
+      OkxSuiObjectQueryTimeoutException() => context.i18n.error_swap_80004,
+      OkxInsufficientSuiObjectsException() => context.i18n.error_swap_80005,
+      OkxInsufficientLiquidityException() => context.i18n.error_swap_82000,
+      OkxInvalidReferrerWalletAddressException() => context.i18n.error_swap_82003,
+      OkxBelowMinimumQuantityException() => context.i18n.error_swap_82102,
+      OkxExceedsMaximumQuantityException() => context.i18n.error_swap_82103,
+      OkxTokenNotSupportedException() => context.i18n.error_swap_82104,
+      OkxQuoteRouteDifferenceException() => context.i18n.error_swap_82112,
+      OkxCallDataExceedsMaximumException() => context.i18n.error_swap_82116,
+      OkxChainNoAuthorizationRequiredException() => context.i18n.error_swap_82130,
+      OkxFourMemeCommissionSplitNotSupportedException() => context.i18n.error_swap_82004,
+      OkxAspectaCommissionSplitNotSupportedException() => context.i18n.error_swap_82005,
+      _ => context.i18n.errorGettingSwapQuote,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +169,9 @@ class _ErrorState extends StatelessWidget {
           ),
           SizedBox(width: 5.0.s),
           Text(
-            context.i18n.errorGettingSwapQuote,
+            _getErrorMessage(
+              context,
+            ),
             style: textStyles.body2.copyWith(),
           ),
         ],

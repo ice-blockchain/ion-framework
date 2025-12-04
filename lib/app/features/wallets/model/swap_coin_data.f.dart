@@ -19,6 +19,7 @@ class SwapCoinData with _$SwapCoinData {
     @Default(false) bool isQuoteError,
     @Default(0) double amount,
     BigInt? quoteAmount,
+    Exception? quoteError,
   }) = _SwapCoinData;
 
   const SwapCoinData._();

@@ -2,6 +2,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
+import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
 import 'package:ion_swap_client/models/chain_data.m.dart';
 import 'package:ion_swap_client/models/okx_api_response.m.dart';
 import 'package:ion_swap_client/models/swap_chain_data.m.dart';
@@ -35,11 +36,13 @@ class DexService {
       final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoinContractAddress);
       final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoinContractAddress);
 
-      await _swapOkxRepository.approveTransaction(
+      final approveTransactionResponse = await _swapOkxRepository.approveTransaction(
         chainIndex: okxQuote.chainIndex,
         tokenContractAddress: sellTokenAddress,
         amount: swapCoinData.amount,
       );
+
+      _processOkxResponse(approveTransactionResponse);
 
       final userSellAddress = swapCoinData.userSellAddress;
       if (userSellAddress == null) {
@@ -105,7 +108,11 @@ class DexService {
       return response.data;
     }
 
-    throw IonSwapException('Failed to process OKX response: $responseCode');
+    if (responseCode == null) {
+      throw const IonSwapException('Failed to process OKX response');
+    }
+
+    throw OkxException.fromCode(responseCode);
   }
 
   Future<SwapQuoteData?> getQuotes(SwapCoinParameters swapCoinData) async {

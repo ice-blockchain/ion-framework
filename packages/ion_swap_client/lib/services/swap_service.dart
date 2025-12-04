@@ -100,6 +100,10 @@ class SwapService {
 
       return quote;
     } on Exception catch (e) {
+      if (e is IonSwapException) {
+        rethrow;
+      }
+
       throw IonSwapException(
         'Failed to get swap quote: $e',
       );

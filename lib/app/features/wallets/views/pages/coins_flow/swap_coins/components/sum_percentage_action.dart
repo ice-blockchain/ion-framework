@@ -29,7 +29,7 @@ class SumPercentageAction extends StatelessWidget {
           borderRadius: BorderRadius.circular(16.0.s),
         ),
         child: Text(
-          '${(percentage * 100).toStringAsFixed(0)}%',
+          '${percentage.toStringAsFixed(0)}%',
           style: textStyles.caption3.copyWith(
             color: colors.quaternaryText,
           ),

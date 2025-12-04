@@ -33,11 +33,8 @@ class SwapCoinsModalPage extends HookConsumerWidget {
     final swapQuoteInfo = ref.watch(swapCoinsControllerProvider).swapQuoteInfo;
     final quoteAmount = ref.watch(swapCoinsControllerProvider).swapQuoteInfo;
     final amount = ref.watch(swapCoinsControllerProvider).amount;
-    final isContinueButtonEnabled = sellCoins != null &&
-        buyCoins != null &&
-        sellNetwork != null &&
-        buyNetwork != null &&
-        swapQuoteInfo != null;
+    final isContinueButtonEnabled =
+        sellCoins != null && buyCoins != null && sellNetwork != null && buyNetwork != null && swapQuoteInfo != null;
 
     final amountController = useTextEditingController();
     final quoteController = useTextEditingController();
@@ -48,6 +45,8 @@ class SwapCoinsModalPage extends HookConsumerWidget {
       quoteAmount,
       amount,
     );
+
+    useAmountDisplay(amountController, amount);
 
     return SheetContent(
       body: Column(
@@ -106,7 +105,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
               ),
             ],
           ),
-          if (sellCoins != null && buyCoins != null && sellNetwork != null && buyNetwork != null)
+          if (sellCoins != null && buyCoins != null)
             ConversionInfoRow(
               sellCoin: sellCoins,
               buyCoin: buyCoins,
@@ -154,6 +153,28 @@ class SwapCoinsModalPage extends HookConsumerWidget {
         return () => amountController.removeListener(listener);
       },
       [amountController, controller],
+    );
+  }
+
+  void useAmountDisplay(
+    TextEditingController amountController,
+    double amount,
+  ) {
+    useEffect(
+      () {
+        final nextText = amount == 0 ? '' : amount.toString();
+
+        if (amountController.text != nextText) {
+          amountController.value = amountController.value.copyWith(
+            text: nextText,
+            selection: TextSelection.collapsed(offset: nextText.length),
+            composing: TextRange.empty,
+          );
+        }
+
+        return null;
+      },
+      [amountController, amount],
     );
   }
 

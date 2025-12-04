@@ -15,8 +15,10 @@ import 'package:ion/app/features/wallets/providers/network_fee_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/wallet_address_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/exceptions/insufficient_balance_exception.dart';
 import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
+import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -45,6 +47,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         isQuoteError: false,
         isQuoteLoading: false,
         quoteAmount: null,
+        quoteError: null,
       );
 
   void setAmount(double amount) {
@@ -55,6 +58,35 @@ class SwapCoinsController extends _$SwapCoinsController {
     if (state.swapQuoteInfo == null) {
       _debouncedGetQuotes();
     }
+  }
+
+  bool? _checkBalanceInsufficient() {
+    final sellCoin = state.sellCoin;
+    final sellNetwork = state.sellNetwork;
+    final amount = state.amount;
+
+    if (sellCoin == null || sellNetwork == null || amount <= 0) {
+      return null;
+    }
+
+    final sellCoinInWallet = sellCoin.coins.firstWhereOrNull(
+      (coin) => coin.coin.network.id == sellNetwork.id,
+    );
+    if (sellCoinInWallet == null) {
+      return null;
+    }
+
+    if (sellCoinInWallet.amount < amount) {
+      state = state.copyWith(
+        isQuoteError: true,
+        quoteError: InsufficientBalanceException(),
+        swapQuoteInfo: null,
+      );
+
+      return true;
+    }
+
+    return false;
   }
 
   void setSellCoin(CoinsGroup? coin) {
@@ -92,6 +124,8 @@ class SwapCoinsController extends _$SwapCoinsController {
     final buyCoin = state.buyCoin;
     final sellNetwork = state.sellNetwork;
     final buyNetwork = state.buyNetwork;
+    final amount = state.amount;
+    final swapQuoteInfo = state.swapQuoteInfo;
 
     state = state.copyWith(
       sellCoin: buyCoin,
@@ -99,6 +133,13 @@ class SwapCoinsController extends _$SwapCoinsController {
       sellNetwork: buyNetwork,
       buyNetwork: sellNetwork,
     );
+
+    if (swapQuoteInfo != null) {
+      final quoteAmount = swapQuoteInfo.priceForSellTokenInBuyToken * amount;
+      state = state.copyWith(
+        amount: quoteAmount,
+      );
+    }
 
     _getQuotes();
   }
@@ -153,10 +194,8 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellAddress = await _getAddress(sellCoinGroup, sellNetwork);
     final buyAddress = await _getAddress(buyCoinGroup, buyNetwork);
 
-    final sellCoin =
-        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-    final buyCoin =
-        buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
+    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final buyCoin = buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
 
     if (sellCoin == null || buyCoin == null) {
       return null;
@@ -210,8 +249,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       return;
     }
 
-    final sellCoin =
-        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
 
     if (sellCoin == null) {
       return;
@@ -337,16 +375,18 @@ class SwapCoinsController extends _$SwapCoinsController {
   }
 
   Future<void> _getQuotes() async {
+    final isBalanceInsufficient = _checkBalanceInsufficient();
+
+    if (isBalanceInsufficient ?? false) {
+      return;
+    }
+
     final sellCoin = state.sellCoin;
     final buyCoin = state.buyCoin;
     final sellNetwork = state.sellNetwork;
     final buyNetwork = state.buyNetwork;
     final amount = state.amount;
-    if (amount <= 0 ||
-        sellCoin == null ||
-        sellNetwork == null ||
-        buyCoin == null ||
-        buyNetwork == null) {
+    if (amount <= 0 || sellCoin == null || sellNetwork == null || buyCoin == null || buyNetwork == null) {
       return;
     }
 
@@ -376,6 +416,8 @@ class SwapCoinsController extends _$SwapCoinsController {
       state = state.copyWith(
         isQuoteLoading: false,
         swapQuoteInfo: swapQuoteInfo,
+        isQuoteError: false,
+        quoteError: null,
       );
     } catch (e, stackTrace) {
       await SentryService.logException(
@@ -384,10 +426,17 @@ class SwapCoinsController extends _$SwapCoinsController {
         tag: 'get_swap_quote_failure',
       );
 
+      Exception? quoteError;
+
+      if (e is OkxException) {
+        quoteError = e;
+      }
+
       state = state.copyWith(
         isQuoteLoading: false,
         swapQuoteInfo: null,
         isQuoteError: true,
+        quoteError: quoteError,
       );
     }
   }
