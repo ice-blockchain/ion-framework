@@ -2,11 +2,13 @@
 
 import 'package:collection/collection.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
+import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
 import 'package:ion_swap_client/models/chain_data.m.dart';
 import 'package:ion_swap_client/models/okx_api_response.m.dart';
 import 'package:ion_swap_client/models/swap_chain_data.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_data.m.dart';
+import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/repositories/chains_ids_repository.dart';
 import 'package:ion_swap_client/repositories/swap_okx_repository.dart';
 
@@ -21,46 +23,49 @@ class DexService {
   final ChainsIdsRepository _chainsIdsRepository;
 
   // Returns true if swap was successful, false otherwise
-  Future<bool> tryToSwapDex(SwapCoinParameters swapCoinData) async {
-    final okxChain = await _getOkxChain(swapCoinData.sellCoinNetworkName);
-    final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoinContractAddress);
-    final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoinContractAddress);
+  Future<bool> tryToSwapDex({
+    required SwapCoinParameters swapCoinData,
+    required SwapQuoteInfo swapQuoteInfo,
+  }) async {
+    if (swapQuoteInfo.source == SwapQuoteInfoSource.okx) {
+      final okxQuote = swapQuoteInfo.okxQuote;
+      if (okxQuote == null) {
+        throw const IonSwapException('OKX: Quote is required');
+      }
 
-    if (okxChain != null) {
-      final quotesResponse = await _swapOkxRepository.getQuotes(
-        chainIndex: okxChain.chainIndex,
+      final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoinContractAddress);
+      final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoinContractAddress);
+
+      final approveTransactionResponse = await _swapOkxRepository.approveTransaction(
+        chainIndex: okxQuote.chainIndex,
+        tokenContractAddress: sellTokenAddress,
         amount: swapCoinData.amount,
-        fromTokenAddress: sellTokenAddress,
-        toTokenAddress: buyTokenAddress,
       );
 
-      final quotes = _processOkxResponse(quotesResponse);
+      _processOkxResponse(approveTransactionResponse);
 
-      if (quotes.isNotEmpty) {
-        final quote = _pickBestOkxQuote(quotes);
-
-        await _swapOkxRepository.approveTransaction(
-          chainIndex: quote.chainIndex,
-          tokenContractAddress: sellTokenAddress,
-          amount: swapCoinData.amount,
-        );
-
-        await _swapOkxRepository.swap(
-          chainIndex: quote.chainIndex,
-          amount: swapCoinData.amount,
-          toTokenAddress: buyTokenAddress,
-          fromTokenAddress: sellTokenAddress,
-          userWalletAddress: swapCoinData.userSellAddress,
-        );
-
-        // TODO(ice-erebus): replace to transaction
-        await _swapOkxRepository.simulateSwap();
-
-        return true;
+      final userSellAddress = swapCoinData.userSellAddress;
+      if (userSellAddress == null) {
+        throw const IonSwapException('OKX: User sell address is required');
       }
+
+      await _swapOkxRepository.swap(
+        chainIndex: okxQuote.chainIndex,
+        amount: swapCoinData.amount,
+        toTokenAddress: buyTokenAddress,
+        fromTokenAddress: sellTokenAddress,
+        userWalletAddress: userSellAddress,
+      );
+
+      await _swapOkxRepository.broadcastSwap(
+        chainIndex: okxQuote.chainIndex,
+        address: userSellAddress,
+      );
+
+      return true;
     }
 
-    return false;
+    throw const IonSwapException('Failed to swap on Dex: Invalid quote source');
   }
 
   Future<SwapChainData?> _getOkxChain(String networkName) async {
@@ -83,9 +88,12 @@ class DexService {
     return supportedChain;
   }
 
-  // TODO(ice-erebus): implement actual logic (this one in PR with UI)
   SwapQuoteData _pickBestOkxQuote(List<SwapQuoteData> quotes) {
-    return quotes.first;
+    final sortedQuotes = quotes.sortedByCompare<double>(
+      (quote) => quote.priceForSellTokenInBuyToken,
+      (a, b) => b.compareTo(a),
+    );
+    return sortedQuotes.first;
   }
 
   String _getTokenAddressForOkx(String contractAddress) {
@@ -100,6 +108,35 @@ class DexService {
       return response.data;
     }
 
-    throw IonSwapException('Failed to process OKX response: $responseCode');
+    if (responseCode == null) {
+      throw const IonSwapException('Failed to process OKX response');
+    }
+
+    throw OkxException.fromCode(responseCode);
+  }
+
+  Future<SwapQuoteData?> getQuotes(SwapCoinParameters swapCoinData) async {
+    final okxChain = await _getOkxChain(swapCoinData.sellCoinNetworkName);
+    final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoinContractAddress);
+    final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoinContractAddress);
+
+    if (okxChain != null) {
+      final quotesResponse = await _swapOkxRepository.getQuotes(
+        chainIndex: okxChain.chainIndex,
+        amount: swapCoinData.amount,
+        fromTokenAddress: sellTokenAddress,
+        toTokenAddress: buyTokenAddress,
+      );
+
+      final quotes = _processOkxResponse(quotesResponse);
+
+      if (quotes.isNotEmpty) {
+        final quote = _pickBestOkxQuote(quotes);
+
+        return quote;
+      }
+    }
+
+    return null;
   }
 }

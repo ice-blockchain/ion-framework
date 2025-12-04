@@ -5,18 +5,22 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/balance/coin_usd_amount.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/receive_coins_form_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/balance/balance_actions.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
 class Balance extends ConsumerWidget {
   const Balance({
     required this.coinsGroup,
+    this.currentNetwork,
     super.key,
   });
 
   final CoinsGroup coinsGroup;
+  final NetworkData? currentNetwork;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,6 +34,14 @@ class Balance extends ConsumerWidget {
           Padding(
             padding: EdgeInsetsDirectional.only(bottom: 20.0.s, top: 11.0.s),
             child: BalanceActions(
+              onSwap: () {
+                ref.read(swapCoinsControllerProvider.notifier).initSellCoin(
+                      coin: coinsGroup,
+                      network: currentNetwork,
+                    );
+
+                SwapCoinsRoute().push<void>(context);
+              },
               onReceive: () {
                 ref.read(receiveCoinsFormControllerProvider.notifier).setCoin(coinsGroup);
                 NetworkSelectReceiveRoute().push<void>(context);

@@ -9,6 +9,8 @@ part 'lets_exchange_transaction.m.g.dart';
 class LetsExchangeTransaction with _$LetsExchangeTransaction {
   factory LetsExchangeTransaction({
     @JsonKey(name: 'transaction_id') required String transactionId,
+    @JsonKey(name: 'deposit_amount') required String depositAmount,
+    required String deposit,
   }) = _LetsExchangeTransaction;
 
   factory LetsExchangeTransaction.fromJson(Map<String, dynamic> json) =>

@@ -13,7 +13,7 @@ void useCheckWalletAddressAvailable(
   WidgetRef ref, {
   required NetworkData? network,
   required CoinsGroup? coinsGroup,
-  required VoidCallback onAddressMissing,
+  VoidCallback? onAddressMissing,
   ValueChanged<String>? onAddressFound,
   List<Object?> keys = const [],
 }) {
@@ -35,7 +35,7 @@ Future<void> checkWalletAddressAvailable(
   WidgetRef ref, {
   required NetworkData? network,
   required CoinsGroup? coinsGroup,
-  required VoidCallback onAddressMissing,
+  VoidCallback? onAddressMissing,
   ValueChanged<String>? onAddressFound,
 }) async {
   final address = await ref
@@ -49,7 +49,7 @@ Future<void> checkWalletAddressAvailable(
   } else if (address == null && network?.displayName == 'ION') {
     _createIonWallet(ref, network!, onAddressFound);
   } else if (address == null && network != null) {
-    onAddressMissing();
+    onAddressMissing?.call();
   }
 }
 

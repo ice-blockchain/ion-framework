@@ -29,6 +29,11 @@ extension DoubleNullableExtension on double? {
             noNullVal.truncateToDouble() == noNullVal ? 0 : roundToDecimalsCount,
           );
   }
+
+  String? get formatMax6 {
+    final s = this?.toStringAsFixed(6);
+    return s?.replaceFirst(RegExp(r'\.?0+$'), '');
+  }
 }
 
 extension SizeExtension on num {

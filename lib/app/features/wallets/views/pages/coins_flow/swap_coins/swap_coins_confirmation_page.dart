@@ -1,25 +1,27 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
+import 'package:ion/app/components/message_notification/models/message_notification_state.dart';
+import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
-import 'package:ion/app/features/wallets/hooks/use_check_wallet_address_available.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
+import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 
-// TODO(ice-erebus): add actual data
 class SwapCoinsConfirmationPage extends HookConsumerWidget {
   const SwapCoinsConfirmationPage({super.key});
 
@@ -30,35 +32,45 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
     final sellNetwork = ref.watch(swapCoinsControllerProvider).sellNetwork;
     final buyCoins = ref.watch(swapCoinsControllerProvider).buyCoin;
     final buyNetwork = ref.watch(swapCoinsControllerProvider).buyNetwork;
+    final amount = ref.watch(swapCoinsControllerProvider).amount;
+    final sellAmount = amount.formatMax6;
+    final swapQuoteInfo = ref.watch(swapCoinsControllerProvider).swapQuoteInfo;
 
-    final sellAddress = useState<String?>(null);
-    final buyAddress = useState<String?>(null);
-
-    if (sellCoins == null || buyCoins == null || sellNetwork == null || buyNetwork == null) {
-      return const Scaffold(
-        body: Center(
-          child: Text('Missing coin or network data'),
+    if (sellCoins == null ||
+        buyCoins == null ||
+        sellNetwork == null ||
+        buyNetwork == null ||
+        sellAmount == null ||
+        swapQuoteInfo == null) {
+      return SheetContent(
+        body: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0.s),
+                child: NavigationAppBar.screen(
+                  title: Text(context.i18n.wallet_swap_confirmation_title),
+                  leading: IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: Assets.svg.iconBackArrow.icon(
+                      color: context.theme.appColors.primaryText,
+                      size: 24.0.s,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16.0.s),
+              Text(
+                context.i18n.wallet_swap_confirmation_missing_coin_or_network_data,
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    useCheckWalletAddressAvailable(
-      ref,
-      network: sellNetwork,
-      coinsGroup: sellCoins,
-      onAddressFound: (address) => sellAddress.value = address,
-      onAddressMissing: () => AddressNotFoundRoute().push<void>(ref.context),
-      keys: [sellNetwork, sellCoins],
-    );
-
-    useCheckWalletAddressAvailable(
-      ref,
-      network: buyNetwork,
-      coinsGroup: buyCoins,
-      onAddressFound: (address) => buyAddress.value = address,
-      onAddressMissing: () => AddressNotFoundRoute().push<void>(ref.context),
-      keys: [buyNetwork, buyCoins],
-    );
+    final quoteValue = (swapQuoteInfo.priceForSellTokenInBuyToken * amount).toString();
 
     return SheetContent(
       body: SingleChildScrollView(
@@ -83,6 +95,8 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
               sellNetwork: sellNetwork,
               buyCoins: buyCoins,
               buyNetwork: buyNetwork,
+              sellAmount: sellAmount,
+              buyAmount: quoteValue,
             ),
             SizedBox(height: 16.0.s),
             _SwapDetailsSection(
@@ -92,10 +106,7 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
               },
             ),
             SizedBox(height: 32.0.s),
-            _SwapButton(
-              userSellAddress: sellAddress.value,
-              userBuyAddress: buyAddress.value,
-            ),
+            const _SwapButton(),
             SizedBox(height: 16.0.s),
           ],
         ),
@@ -110,12 +121,16 @@ class _SwapTokensSection extends StatelessWidget {
     required this.sellNetwork,
     required this.buyCoins,
     required this.buyNetwork,
+    required this.sellAmount,
+    required this.buyAmount,
   });
 
   final CoinsGroup sellCoins;
   final NetworkData sellNetwork;
   final CoinsGroup buyCoins;
   final NetworkData buyNetwork;
+  final String sellAmount;
+  final String buyAmount;
 
   @override
   Widget build(BuildContext context) {
@@ -133,21 +148,18 @@ class _SwapTokensSection extends StatelessWidget {
               width: 34.0.s,
             ),
           ),
-          // TODO(ice-erebus): add actual data
           Column(
             children: [
               _TokenRow(
                 coinsGroup: sellCoins,
                 network: sellNetwork,
-                amount: '150,3',
-                usdAmount: r'$150,53',
+                amount: sellAmount,
               ),
               SizedBox(height: 40.0.s),
               _TokenRow(
                 coinsGroup: buyCoins,
                 network: buyNetwork,
-                amount: '23000',
-                usdAmount: r'$23,000.00',
+                amount: buyAmount,
               ),
             ],
           ),
@@ -162,13 +174,11 @@ class _TokenRow extends StatelessWidget {
     required this.coinsGroup,
     required this.network,
     required this.amount,
-    required this.usdAmount,
   });
 
   final CoinsGroup coinsGroup;
   final NetworkData network;
   final String amount;
-  final String usdAmount;
 
   @override
   Widget build(BuildContext context) {
@@ -192,13 +202,6 @@ class _TokenRow extends StatelessWidget {
                   color: colors.primaryText,
                 ),
               ),
-              SizedBox(height: 2.0.s),
-              Text(
-                usdAmount,
-                style: textStyles.caption2.copyWith(
-                  color: colors.tertiaryText,
-                ),
-              ),
             ],
           ),
         ),
@@ -207,8 +210,7 @@ class _TokenRow extends StatelessWidget {
   }
 }
 
-// TODO(ice-erebus): add actual data
-class _SwapDetailsSection extends StatelessWidget {
+class _SwapDetailsSection extends ConsumerWidget {
   const _SwapDetailsSection({
     required this.showMoreDetails,
     required this.onToggleDetails,
@@ -218,9 +220,19 @@ class _SwapDetailsSection extends StatelessWidget {
   final VoidCallback onToggleDetails;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
+    final swapCoinsController = ref.watch(swapCoinsControllerProvider);
+    final swapQuoteInfo = swapCoinsController.swapQuoteInfo;
+    final sellCoin = swapCoinsController.sellCoin;
+    final buyCoin = swapCoinsController.buyCoin;
+    final priceImpact = swapQuoteInfo?.swapImpact;
+    final slippage = swapQuoteInfo?.slippage;
+    final networkFee = swapQuoteInfo?.networkFee;
+    final protocolFee = swapQuoteInfo?.protocolFee;
+    final isVisibleMoreButton =
+        priceImpact != null || slippage != null || networkFee != null || protocolFee != null;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -243,12 +255,13 @@ class _SwapDetailsSection extends StatelessWidget {
             children: [
               _DetailRow(
                 label: context.i18n.wallet_swap_confirmation_provider,
-                value: 'CEX + DEX',
+                value: swapQuoteInfo?.type == SwapQuoteInfoType.cexOrDex ? 'CEX + DEX' : 'Bridge',
               ),
               _Divider(),
               _DetailRow(
                 label: context.i18n.wallet_swap_confirmation_price,
-                value: '1 USDT = 158,8 ICE',
+                value:
+                    '1 ${sellCoin?.name} = ${swapQuoteInfo?.priceForSellTokenInBuyToken.formatMax6} ${buyCoin?.name}',
               ),
               AnimatedSize(
                 duration: const Duration(milliseconds: 300),
@@ -256,32 +269,38 @@ class _SwapDetailsSection extends StatelessWidget {
                 child: showMoreDetails
                     ? Column(
                         children: [
-                          _Divider(),
-                          _DetailRow(
-                            isVisible: showMoreDetails,
-                            label: context.i18n.wallet_swap_confirmation_price_impact,
-                            value: '-8,83%',
-                          ),
-                          _Divider(),
-                          _DetailRow(
-                            isVisible: showMoreDetails,
-                            label: context.i18n.wallet_swap_confirmation_slippage,
-                            value: '1,2%',
-                            showInfoIcon: true,
-                          ),
-                          _Divider(),
-                          _DetailRow(
-                            isVisible: showMoreDetails,
-                            label: context.i18n.wallet_swap_confirmation_network_fee,
-                            value: '100.43 ICE',
-                          ),
-                          _Divider(),
-                          _DetailRow(
-                            isVisible: showMoreDetails,
-                            label: context.i18n.wallet_swap_confirmation_protocol_fee,
-                            value: '0.73 USDT',
-                            showInfoIcon: true,
-                          ),
+                          if (priceImpact != null) ...[
+                            _Divider(),
+                            _DetailRow(
+                              isVisible: showMoreDetails,
+                              label: context.i18n.wallet_swap_confirmation_price_impact,
+                              value: '$priceImpact%',
+                            ),
+                          ],
+                          if (slippage != null) ...[
+                            _Divider(),
+                            _DetailRow(
+                              isVisible: showMoreDetails,
+                              label: context.i18n.wallet_swap_confirmation_slippage,
+                              value: slippage,
+                            ),
+                          ],
+                          if (networkFee != null) ...[
+                            _Divider(),
+                            _DetailRow(
+                              isVisible: showMoreDetails,
+                              label: context.i18n.wallet_swap_confirmation_network_fee,
+                              value: networkFee,
+                            ),
+                          ],
+                          if (protocolFee != null) ...[
+                            _Divider(),
+                            _DetailRow(
+                              isVisible: showMoreDetails,
+                              label: context.i18n.wallet_swap_confirmation_protocol_fee,
+                              value: protocolFee,
+                            ),
+                          ],
                         ],
                       )
                     : const SizedBox.shrink(),
@@ -289,51 +308,52 @@ class _SwapDetailsSection extends StatelessWidget {
             ],
           ),
         ),
-        Positioned.fill(
-          bottom: -10.0.s,
-          child: Container(
-            width: double.infinity,
-            alignment: Alignment.bottomCenter,
-            height: 21.0.s,
-            child: GestureDetector(
-              onTap: onToggleDetails,
-              child: Container(
-                width: 75.0.s,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12.0.s,
-                  vertical: 4.0.s,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.tertiaryBackground,
-                  borderRadius: BorderRadius.circular(9.0.s),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      showMoreDetails
-                          ? context.i18n.wallet_swap_confirmation_less
-                          : context.i18n.wallet_swap_confirmation_more,
-                      style: textStyles.caption2.copyWith(
-                        color: colors.primaryText,
+        if (isVisibleMoreButton)
+          Positioned.fill(
+            bottom: -10.0.s,
+            child: Container(
+              width: double.infinity,
+              alignment: Alignment.bottomCenter,
+              height: 21.0.s,
+              child: GestureDetector(
+                onTap: onToggleDetails,
+                child: Container(
+                  width: 75.0.s,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12.0.s,
+                    vertical: 4.0.s,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.tertiaryBackground,
+                    borderRadius: BorderRadius.circular(9.0.s),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        showMoreDetails
+                            ? context.i18n.wallet_swap_confirmation_less
+                            : context.i18n.wallet_swap_confirmation_more,
+                        style: textStyles.caption2.copyWith(
+                          color: colors.primaryText,
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 4.0.s),
-                    AnimatedRotation(
-                      turns: showMoreDetails ? 0.5 : 0.0,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      child: Assets.svg.iconArrowDown.icon(
-                        color: colors.primaryText,
-                        size: 16.0.s,
+                      SizedBox(width: 4.0.s),
+                      AnimatedRotation(
+                        turns: showMoreDetails ? 0.5 : 0.0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        child: Assets.svg.iconArrowDown.icon(
+                          color: colors.primaryText,
+                          size: 16.0.s,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -344,12 +364,10 @@ class _DetailRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.isVisible = true,
-    this.showInfoIcon = false,
   });
 
   final String label;
   final String value;
-  final bool showInfoIcon;
   final bool isVisible;
 
   @override
@@ -373,13 +391,6 @@ class _DetailRow extends StatelessWidget {
                     color: colors.quaternaryText,
                   ),
                 ),
-                if (showInfoIcon) ...[
-                  SizedBox(width: 4.0.s),
-                  Assets.svg.iconBlockInformation.icon(
-                    color: colors.tertiaryText,
-                    size: 16.0.s,
-                  ),
-                ],
               ],
             ),
             Text(
@@ -409,58 +420,72 @@ class _Divider extends StatelessWidget {
 }
 
 class _SwapButton extends ConsumerWidget {
-  const _SwapButton({
-    this.userSellAddress,
-    this.userBuyAddress,
-  });
-
-  final String? userSellAddress;
-  final String? userBuyAddress;
+  const _SwapButton();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
+    final messageNotificationNotifier = ref.read(messageNotificationNotifierProvider.notifier);
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
-        onPressed: () {
-          final sellAddress = userSellAddress;
-          final buyAddress = userBuyAddress;
+        onPressed: () async {
+          unawaited(
+            _showMessage(
+              messageNotificationNotifier,
+              message: context.i18n.wallet_swapping_coins,
+              icon: Assets.svg.iconSwap.icon(
+                color: colors.secondaryBackground,
+                size: 24.0.s,
+              ),
+            ),
+          );
 
-          // TODO(ice-erebus): add actual error handling
-          if (sellAddress == null || buyAddress == null) {
-            return;
-          }
-
-          ref.read(swapCoinsControllerProvider.notifier).swapCoins(
-                userBuyAddress: buyAddress,
-                userSellAddress: sellAddress,
-                onVerifyIdentitySwapCallback: (sendAssetFormData) async {
-                  await guardPasskeyDialog(
-                    ref.context,
-                    (child) {
-                      return RiverpodVerifyIdentityRequestBuilder(
-                        provider: sendCoinsNotifierProvider,
-                        requestWithVerifyIdentity: (
-                          OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity,
-                        ) async {
-                          await ref.read(sendCoinsNotifierProvider.notifier).send(
-                                onVerifyIdentity,
-                                form: sendAssetFormData,
-                              );
-                        },
-                        child: child,
-                      );
+          await ref.read(swapCoinsControllerProvider.notifier).swapCoins(
+            onVerifyIdentitySwapCallback: (sendAssetFormData) async {
+              await guardPasskeyDialog(
+                ref.context,
+                (child) {
+                  return RiverpodVerifyIdentityRequestBuilder(
+                    provider: sendCoinsNotifierProvider,
+                    requestWithVerifyIdentity: (
+                      OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity,
+                    ) async {
+                      await ref.read(sendCoinsNotifierProvider.notifier).send(
+                            onVerifyIdentity,
+                            form: sendAssetFormData,
+                          );
                     },
+                    child: child,
                   );
                 },
               );
-
-          if (context.mounted) {
-            context.pop(true);
-          }
+            },
+            onSwapError: () {
+              _showMessage(
+                messageNotificationNotifier,
+                message: context.i18n.wallet_swap_failed,
+                icon: Assets.svg.iconBlockKeywarning.icon(
+                  color: colors.attentionRed,
+                  size: 24.0.s,
+                ),
+                state: MessageNotificationState.error,
+              );
+            },
+            onSwapSuccess: () {
+              _showMessage(
+                messageNotificationNotifier,
+                message: context.i18n.wallet_swapped_coins,
+                icon: Assets.svg.iconCheckSuccess.icon(
+                  color: colors.success,
+                  size: 24.0.s,
+                ),
+                state: MessageNotificationState.success,
+              );
+            },
+          );
         },
         label: Text(
           context.i18n.wallet_swap_confirmation_swap_button,
@@ -481,6 +506,21 @@ class _SwapButton extends ConsumerWidget {
             vertical: 16.0.s,
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _showMessage(
+    MessageNotificationNotifier notifier, {
+    required String message,
+    required Widget icon,
+    MessageNotificationState state = MessageNotificationState.info,
+  }) async {
+    notifier.show(
+      MessageNotification(
+        message: message,
+        icon: icon,
+        state: state,
       ),
     );
   }

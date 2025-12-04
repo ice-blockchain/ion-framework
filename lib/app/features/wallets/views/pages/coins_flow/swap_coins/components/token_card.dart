@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
@@ -8,10 +9,11 @@ import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/sum_percentage_action.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/utils/text_input_formatters.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class TokenCard extends StatelessWidget {
+class TokenCard extends ConsumerWidget {
   const TokenCard({
     required this.type,
     required this.onTap,
@@ -19,6 +21,7 @@ class TokenCard extends StatelessWidget {
     this.network,
     this.controller,
     this.onPercentageChanged,
+    this.isReadOnly,
     super.key,
   });
 
@@ -28,9 +31,19 @@ class TokenCard extends StatelessWidget {
   final VoidCallback onTap;
   final TextEditingController? controller;
   final ValueChanged<int>? onPercentageChanged;
+  final bool? isReadOnly;
+
+  void _onPercentageChanged(int percentage, WidgetRef ref) {
+    final amount = coinsGroup?.totalAmount;
+    if (amount == null) return;
+
+    final newAmount = amount * (percentage / 100);
+    controller?.text = newAmount.toString();
+    ref.read(swapCoinsControllerProvider.notifier).setAmount(newAmount);
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
     final iconUrl = coinsGroup?.iconUrl;
@@ -72,19 +85,55 @@ class TokenCard extends StatelessWidget {
                   children: [
                     SumPercentageAction(
                       percentage: 25,
-                      onPercentageChanged: onPercentageChanged ?? (_) {},
+                      onPercentageChanged: (percentage) {
+                        if (onPercentageChanged != null) {
+                          onPercentageChanged!.call(percentage);
+                        }
+
+                        _onPercentageChanged(
+                          percentage,
+                          ref,
+                        );
+                      },
                     ),
                     SumPercentageAction(
                       percentage: 50,
-                      onPercentageChanged: onPercentageChanged ?? (_) {},
+                      onPercentageChanged: (percentage) {
+                        if (onPercentageChanged != null) {
+                          onPercentageChanged!.call(percentage);
+                        }
+
+                        _onPercentageChanged(
+                          percentage,
+                          ref,
+                        );
+                      },
                     ),
                     SumPercentageAction(
                       percentage: 75,
-                      onPercentageChanged: onPercentageChanged ?? (_) {},
+                      onPercentageChanged: (percentage) {
+                        if (onPercentageChanged != null) {
+                          onPercentageChanged!.call(percentage);
+                        }
+
+                        _onPercentageChanged(
+                          percentage,
+                          ref,
+                        );
+                      },
                     ),
                     SumPercentageAction(
                       percentage: 100,
-                      onPercentageChanged: onPercentageChanged ?? (_) {},
+                      onPercentageChanged: (percentage) {
+                        if (onPercentageChanged != null) {
+                          onPercentageChanged!.call(percentage);
+                        }
+
+                        _onPercentageChanged(
+                          percentage,
+                          ref,
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -174,7 +223,7 @@ class TokenCard extends StatelessWidget {
                   width: 150.0.s,
                   child: TextField(
                     controller: controller,
-                    readOnly: coinsGroup == null,
+                    readOnly: isReadOnly ?? coinsGroup == null,
                     keyboardType: TextInputType.number,
                     style: textStyles.headline2.copyWith(
                       color: colors.primaryText,
