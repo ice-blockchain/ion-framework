@@ -28,6 +28,7 @@ import 'package:ion/app/features/user/providers/user_awards_sync_provider.r.dart
 import 'package:ion/app/features/wallets/providers/coins_sync_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/user_public_wallets_sync_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallets_initializer_provider.r.dart';
+import 'package:ion/app/services/conversion_tracking/facebook_conversion_tracking_service.r.dart';
 import 'package:ion/app/services/deep_link/deep_link_service.r.dart';
 import 'package:ion/app/services/http_client/http_client.dart';
 import 'package:ion/app/services/ion_connect/ion_connect.dart';
@@ -61,6 +62,7 @@ Future<void> initApp(Ref ref) async {
     ref.read(onboardingCompleteProvider.future),
     ref.read(forceUpdateProvider.future),
     ref.read(deeplinkInitializerProvider.future),
+    ref.read(facebookConversionTrackingServiceProvider.future),
   ]);
 
   // `ref.read` lets `coinsSyncProvider` be disposed even though it's a keepAlive provider

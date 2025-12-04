@@ -100,6 +100,17 @@
             android:name="google_analytics_adid_collection_enabled"
             android:value="false" />
 
+        <!-- Facebook SDK Configuration -->
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="${facebook_app_id}" />
+        <meta-data
+            android:name="com.facebook.sdk.ClientToken"
+            android:value="${facebook_client_token}" />
+        <meta-data
+            android:name="com.facebook.sdk.AutoLogAppEventsEnabled"
+            android:value="true" />
+
         <!-- Prevent default firebase app from init, so that we could configure it afterwards in runtime -->
         <!-- Uncomment it when firebase analytics is no longer needed -->
         <!-- <provider
