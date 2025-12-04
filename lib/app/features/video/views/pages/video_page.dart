@@ -90,7 +90,7 @@ class VideoPage extends HookConsumerWidget {
                     blurhash: blurhash,
                   ),
                 ),
-                const CenteredLoadingIndicator(),
+                CenteredLoadingIndicator(size: Size.square(30.s)),
                 if (playerController != null) _VideoPlayerWidget(controller: playerController),
                 if (playerController != null && !hideBottomOverlay)
                   Column(
