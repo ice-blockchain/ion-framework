@@ -6,12 +6,13 @@ part of 'swap_coin_parameters.m.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SwapCoinParametersImpl _$$SwapCoinParametersImplFromJson(Map<String, dynamic> json) =>
+_$SwapCoinParametersImpl _$$SwapCoinParametersImplFromJson(
+        Map<String, dynamic> json) =>
     _$SwapCoinParametersImpl(
       sellNetworkId: json['sellNetworkId'] as String,
       buyNetworkId: json['buyNetworkId'] as String,
-      userSellAddress: json['userSellAddress'] as String,
-      userBuyAddress: json['userBuyAddress'] as String,
+      userSellAddress: json['userSellAddress'] as String?,
+      userBuyAddress: json['userBuyAddress'] as String?,
       sellCoinContractAddress: json['sellCoinContractAddress'] as String,
       buyCoinContractAddress: json['buyCoinContractAddress'] as String,
       sellCoinNetworkName: json['sellCoinNetworkName'] as String,
@@ -23,7 +24,8 @@ _$SwapCoinParametersImpl _$$SwapCoinParametersImplFromJson(Map<String, dynamic> 
       buyExtraId: json['buyExtraId'] as String,
     );
 
-Map<String, dynamic> _$$SwapCoinParametersImplToJson(_$SwapCoinParametersImpl instance) =>
+Map<String, dynamic> _$$SwapCoinParametersImplToJson(
+        _$SwapCoinParametersImpl instance) =>
     <String, dynamic>{
       'sellNetworkId': instance.sellNetworkId,
       'buyNetworkId': instance.buyNetworkId,
