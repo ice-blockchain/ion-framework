@@ -100,6 +100,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
         token: token,
         masterPubkey: masterPubkey,
       ),
+      imageUrl: token?.imageUrl,
       actions: [
         IconButton(
           onPressed: () {},

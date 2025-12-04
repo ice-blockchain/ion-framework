@@ -8,6 +8,8 @@ import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/tabs_header/scroll_links_tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
+import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -29,6 +31,7 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
     this.backgroundColor,
     this.onTabTapped,
     this.floatingActionButton,
+    this.imageUrl,
     super.key,
   });
 
@@ -43,6 +46,7 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
   final Color? backgroundColor;
   final Widget? floatingActionButton;
   final int activeIndex;
+  final String? imageUrl;
 
   final ValueChanged<int>? onTabTapped;
 
@@ -53,6 +57,7 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
   Widget build(BuildContext context) {
     final scrollController = useScrollController();
     final collapseProgress = useState<double>(0);
+    final avatarColors = useImageColors(imageUrl);
 
     useEffect(
       () {
@@ -116,7 +121,9 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
                   return Stack(
                     fit: StackFit.expand,
                     children: [
-                      const _TokenizedCommunityGradient(),
+                      ProfileBackground(
+                        colors: avatarColors,
+                      ),
                       Opacity(
                         opacity: 1 - progress, // Fade out as header collapses
                         child: Transform.translate(
@@ -149,76 +156,6 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// Temproary gradient background matching Figma design for tokenized community.
-// TODO: change this by gettign the gradient from avatar + black overlay
-class _TokenizedCommunityGradient extends StatelessWidget {
-  const _TokenizedCommunityGradient();
-
-  // Figma colors
-  static const Color _baseColor = Color(0xFF010008);
-  static const Color _cyanColor = Color(0xFF017C9F);
-  static const Color _magentaColor = Color(0xFF8F039B);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: _baseColor,
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Cyan radial gradient (top-left area)
-          Container(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(-0.8, -0.6),
-                radius: 1.2,
-                colors: [
-                  _cyanColor.withValues(alpha: 0.7),
-                  _cyanColor.withValues(alpha: 0.3),
-                  Colors.transparent,
-                ],
-                stops: const [0.0, 0.4, 1.0],
-              ),
-            ),
-          ),
-          // Magenta radial gradient (right area)
-          Container(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(0.8, 0),
-                radius: 1.2,
-                colors: [
-                  _magentaColor.withValues(alpha: 0.8),
-                  _magentaColor.withValues(alpha: 0.4),
-                  Colors.transparent,
-                ],
-                stops: const [0.0, 0.4, 1.0],
-              ),
-            ),
-          ),
-          // Dark gradient at bottom for smooth transition to tab bar
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  _baseColor.withValues(alpha: 0.5),
-                  _baseColor,
-                ],
-                stops: const [0.0, 0.7, 1.0],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
