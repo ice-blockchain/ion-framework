@@ -21,6 +21,7 @@ class TokenCard extends ConsumerWidget {
     this.network,
     this.controller,
     this.onPercentageChanged,
+    this.isReadOnly,
     super.key,
   });
 
@@ -30,6 +31,7 @@ class TokenCard extends ConsumerWidget {
   final VoidCallback onTap;
   final TextEditingController? controller;
   final ValueChanged<int>? onPercentageChanged;
+  final bool? isReadOnly;
 
   void _onPercentageChanged(int percentage, WidgetRef ref) {
     final amount = coinsGroup?.totalAmount;
@@ -221,7 +223,7 @@ class TokenCard extends ConsumerWidget {
                   width: 150.0.s,
                   child: TextField(
                     controller: controller,
-                    readOnly: coinsGroup == null,
+                    readOnly: isReadOnly ?? coinsGroup == null,
                     keyboardType: TextInputType.number,
                     style: textStyles.headline2.copyWith(
                       color: colors.primaryText,

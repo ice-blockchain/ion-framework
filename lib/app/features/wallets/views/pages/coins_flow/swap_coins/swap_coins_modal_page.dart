@@ -39,14 +39,17 @@ class SwapCoinsModalPage extends HookConsumerWidget {
     final amountController = useTextEditingController();
     final quoteController = useTextEditingController();
 
-    useAmountListener(amountController, controller);
+    useAmountListener(
+      amountController,
+      controller,
+      amount,
+    );
+
     useQuoteDisplay(
       quoteController,
       quoteAmount,
       amount,
     );
-
-    useAmountDisplay(amountController, amount);
 
     return SheetContent(
       body: Column(
@@ -80,6 +83,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                     height: 10.0.s,
                   ),
                   TokenCard(
+                    isReadOnly: true,
                     controller: quoteController,
                     type: CoinSwapType.buy,
                     coinsGroup: buyNetwork != null ? buyCoins : null,
@@ -141,10 +145,15 @@ class SwapCoinsModalPage extends HookConsumerWidget {
   void useAmountListener(
     TextEditingController amountController,
     SwapCoinsController controller,
+    double currentAmount,
   ) {
+    final isUpdatingFromState = useRef(false);
+
     useEffect(
       () {
         void listener() {
+          if (isUpdatingFromState.value) return;
+
           final val = parseAmount(amountController.text) ?? 0;
           controller.setAmount(val);
         }
@@ -154,27 +163,18 @@ class SwapCoinsModalPage extends HookConsumerWidget {
       },
       [amountController, controller],
     );
-  }
 
-  void useAmountDisplay(
-    TextEditingController amountController,
-    double amount,
-  ) {
     useEffect(
       () {
-        final nextText = amount == 0 ? '' : amount.toString();
-
-        if (amountController.text != nextText) {
-          amountController.value = amountController.value.copyWith(
-            text: nextText,
-            selection: TextSelection.collapsed(offset: nextText.length),
-            composing: TextRange.empty,
-          );
+        final currentText = parseAmount(amountController.text) ?? 0;
+        if ((currentText - currentAmount).abs() > 0.0001) {
+          isUpdatingFromState.value = true;
+          amountController.text = currentAmount.toString();
+          isUpdatingFromState.value = false;
         }
-
         return null;
       },
-      [amountController, amount],
+      [currentAmount, amountController],
     );
   }
 
