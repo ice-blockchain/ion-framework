@@ -190,4 +190,58 @@ void main() {
       expect(adjustedTags[1].end, 12);
     });
   });
+
+  group('trimEmptyLines with allowExtraLinebreaks: false', () {
+    group('leading and trailing newlines', () {
+      test('removes leading newlines', () {
+        final result = trimEmptyLines('\n\n\nHello world', allowExtraLineBreak: false);
+        expect(result.trimmedText, 'Hello world');
+      });
+
+      test('removes trailing newlines', () {
+        final result = trimEmptyLines('Hello world\n\n\n', allowExtraLineBreak: false);
+        expect(result.trimmedText, 'Hello world');
+      });
+
+      test('removes both leading and trailing newlines', () {
+        final result = trimEmptyLines('\n\nHello world\n\n', allowExtraLineBreak: false);
+        expect(result.trimmedText, 'Hello world');
+      });
+    });
+
+    group('collapsing multiple newlines', () {
+      test('preserves single newline between paragraphs', () {
+        final result = trimEmptyLines('First\nSecond', allowExtraLineBreak: false);
+        expect(result.trimmedText, 'First\nSecond');
+      });
+
+      test('collapses many consecutive newlines to one', () {
+        final result = trimEmptyLines('First\n\n\n\n\nSecond', allowExtraLineBreak: false);
+        expect(result.trimmedText, 'First\nSecond');
+      });
+
+      test('handles multiple sequences of multiple newlines', () {
+        final result = trimEmptyLines('First\n\nSecond\n\n\nThird', allowExtraLineBreak: false);
+        expect(result.trimmedText, 'First\nSecond\nThird');
+      });
+    });
+
+    group('complex scenarios', () {
+      test('handles text with leading, trailing, and multiple newlines', () {
+        final result =
+            trimEmptyLines('\n\nFirst\n\nSecond\n\n\nThird\n\n', allowExtraLineBreak: false);
+        expect(result.trimmedText, 'First\nSecond\nThird');
+      });
+
+      test('handles single line text', () {
+        final result = trimEmptyLines('Hello world', allowExtraLineBreak: false);
+        expect(result.trimmedText, 'Hello world');
+      });
+
+      test('handles mixed single and multiple newlines', () {
+        final result = trimEmptyLines('Line1\nLine2\n\n\nLine3\nLine4', allowExtraLineBreak: false);
+        expect(result.trimmedText, 'Line1\nLine2\nLine3\nLine4');
+      });
+    });
+  });
 }

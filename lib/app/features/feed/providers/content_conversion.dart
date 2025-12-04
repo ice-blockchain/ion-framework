@@ -9,11 +9,14 @@ import 'package:ion/app/services/markdown/quill.dart';
 /// Trims extra empty lines from text according to the rules:
 /// - Removes empty lines at the start
 /// - Removes empty lines at the end
-/// - Allows up to 2 consecutive newlines between paragraphs (preserves paragraph breaks)
-/// - Collapses 3+ consecutive newlines to 2 newlines (prevents excessive spacing)
+/// - If [allowExtraLineBreak] is true: allows up to 2 consecutive newlines between paragraphs
+/// - If [allowExtraLineBreak] is false: collapses 2+ consecutive newlines to a single newline
 ///
 /// Returns the trimmed text and a function to adjust character positions.
-({String trimmedText, int Function(int) adjustPosition}) trimEmptyLines(String text) {
+({String trimmedText, int Function(int) adjustPosition}) trimEmptyLines(
+  String text, {
+  bool allowExtraLineBreak = true,
+}) {
   if (text.isEmpty) {
     return (trimmedText: text, adjustPosition: (pos) => pos);
   }
@@ -40,20 +43,19 @@ import 'package:ion/app/services/markdown/quill.dart';
   for (var i = startIndex; i < endIndex; i++) {
     if (text[i] == '\n') {
       newlineCount++;
-      if (newlineCount <= 2) {
-        // Keep first 2 newlines in sequence
+      final maxNewlines = allowExtraLineBreak ? 2 : 1;
+      if (newlineCount <= maxNewlines) {
         buffer.write('\n');
         positionMap[i] = newPos;
         newPos++;
       } else {
-        // Skip additional newlines beyond 2, map to the second newline position
         positionMap[i] = newPos - 1;
       }
     } else {
       buffer.write(text[i]);
       positionMap[i] = newPos;
       newPos++;
-      newlineCount = 0; // Reset counter when we hit non-newline character
+      newlineCount = 0;
     }
   }
 

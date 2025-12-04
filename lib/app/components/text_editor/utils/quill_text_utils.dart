@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter_quill/flutter_quill.dart' show Attribute, Document;
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
+import 'package:ion/app/features/feed/providers/content_conversion.dart';
 
 class QuillTextUtils {
   /// Trims extra newlines at the end of the text,
@@ -33,6 +34,55 @@ class QuillTextUtils {
       return jsonEncode(ops);
     } catch (_) {
       return jsonDelta; // Fallback for invalid JSON
+    }
+  }
+
+  /// Trims bio Delta JSON by collapsing all multiple newlines to single newlines.
+  /// Bios only allow single line breaks, not multiple empty lines.
+  static String? trimBioDeltaJson(String? jsonDelta) {
+    if (jsonDelta == null || jsonDelta.trim().isEmpty) return null;
+
+    try {
+      final raw = jsonDecode(jsonDelta);
+      if (raw is! List) return jsonDelta;
+
+      final doc = Document.fromJson(raw.cast<Map<String, dynamic>>());
+      final plain = doc.toPlainText();
+
+      if (plain.trim().isEmpty) return null;
+
+      final trimmedPlain = trimEmptyLines(plain, allowExtraLineBreak: false).trimmedText;
+
+      if (trimmedPlain.isEmpty) return null;
+
+      final textForDelta = trimmedPlain.endsWith('\n') ? trimmedPlain : '$trimmedPlain\n';
+      final trimmedDelta = Delta()..insert(textForDelta);
+      final trimmedDoc = Document.fromDelta(trimmedDelta);
+      return jsonEncode(trimmedDoc.toDelta().toJson());
+    } catch (_) {
+      return jsonDelta;
+    }
+  }
+
+  /// Converts bio Delta JSON to trimmed plain text for API submission.
+  /// Bios only allow single line breaks, so all multiple newlines are collapsed to single.
+  static String? bioDeltaJsonToTrimmedPlainText(String? jsonDelta) {
+    final trimmedDeltaJson = trimBioDeltaJson(jsonDelta);
+    if (trimmedDeltaJson == null) return null;
+
+    try {
+      final raw = jsonDecode(trimmedDeltaJson);
+      if (raw is! List) return null;
+
+      final doc = Document.fromJson(raw.cast<Map<String, dynamic>>());
+      final plain = doc.toPlainText();
+
+      // Remove trailing newline that Quill Document requires (added in trimBioDeltaJson)
+      final trimmedPlain = plain.endsWith('\n') ? plain.substring(0, plain.length - 1) : plain;
+
+      return trimmedPlain.isEmpty ? null : trimmedPlain;
+    } catch (_) {
+      return null;
     }
   }
 
