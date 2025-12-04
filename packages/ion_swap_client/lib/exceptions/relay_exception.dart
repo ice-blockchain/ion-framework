@@ -14,7 +14,8 @@ class RelayException extends IonSwapException {
       'INSUFFICIENT_LIQUIDITY' => const InsufficientLiquidityException(),
       'INVALID_ADDRESS' => const InvalidAddressException(),
       'INVALID_EXTRA_TXS' => const InvalidExtraTxsException(),
-      'INVALID_GAS_LIMIT_FOR_DEPOSIT_SPECIFIED_TXS' => const InvalidGasLimitForDepositSpecifiedTxsException(),
+      'INVALID_GAS_LIMIT_FOR_DEPOSIT_SPECIFIED_TXS' =>
+        const InvalidGasLimitForDepositSpecifiedTxsException(),
       'INVALID_INPUT_CURRENCY' => const InvalidInputCurrencyException(),
       'INVALID_OUTPUT_CURRENCY' => const InvalidOutputCurrencyException(),
       'INVALID_SLIPPAGE_TOLERANCE' => const InvalidSlippageToleranceException(),

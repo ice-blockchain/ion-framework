@@ -170,7 +170,8 @@ class CexService {
       throw const IonSwapException('Lets Exchange: Withdrawal address is required');
     }
 
-    final (sellCoin, buyCoin, sellNetwork, buyNetwork) = await _getSwapDataLetsExchange(swapCoinData: swapCoinData);
+    final (sellCoin, buyCoin, sellNetwork, buyNetwork) =
+        await _getSwapDataLetsExchange(swapCoinData: swapCoinData);
 
     final transaction = await _letsExchangeRepository.createTransaction(
       coinFrom: sellCoin.code,
@@ -218,7 +219,8 @@ class CexService {
     SendCoinCallback sendCoinCallback,
     ExolixRate exolixRate,
   ) async {
-    final (sellCoin, buyCoin, sellNetwork, buyNetwork) = await _getSwapDataExolix(swapCoinData: swapCoinData);
+    final (sellCoin, buyCoin, sellNetwork, buyNetwork) =
+        await _getSwapDataExolix(swapCoinData: swapCoinData);
 
     final withdrawalAddress = swapCoinData.userBuyAddress;
 
@@ -275,8 +277,10 @@ class CexService {
       coinCode: swapCoinData.buyCoinCode,
     );
 
-    final sellCoin = sellCoins.firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.sellCoinCode.toLowerCase());
-    final buyCoin = buyCoins.firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.buyCoinCode.toLowerCase());
+    final sellCoin = sellCoins
+        .firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.sellCoinCode.toLowerCase());
+    final buyCoin = buyCoins
+        .firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.buyCoinCode.toLowerCase());
 
     if (sellCoin == null || buyCoin == null) {
       throw const IonSwapException('Exolix: Coins pair not found');
@@ -296,7 +300,8 @@ class CexService {
     return (sellCoin, buyCoin, sellNetwork, buyNetwork);
   }
 
-  Future<(LetsExchangeCoin, LetsExchangeCoin, LetsExchangeNetwork, LetsExchangeNetwork)> _getSwapDataLetsExchange({
+  Future<(LetsExchangeCoin, LetsExchangeCoin, LetsExchangeNetwork, LetsExchangeNetwork)>
+      _getSwapDataLetsExchange({
     required SwapCoinParameters swapCoinData,
   }) async {
     final coins = await _letsExchangeRepository.getCoins();
@@ -318,7 +323,8 @@ class CexService {
     );
 
     final buyNetwork = buyCoin.networks.firstWhereOrNull(
-      (e) => e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.buyCoinContractAddress),
+      (e) =>
+          e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.buyCoinContractAddress),
     );
 
     if (sellNetwork == null || buyNetwork == null) {

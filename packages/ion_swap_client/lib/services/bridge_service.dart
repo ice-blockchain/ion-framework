@@ -29,7 +29,8 @@ class BridgeService {
         throw const IonSwapException('Relay: Quote is required');
       }
 
-      final depositStep = relayQuote.steps.firstWhereOrNull((step) => step.id == 'deposit')?.items.first;
+      final depositStep =
+          relayQuote.steps.firstWhereOrNull((step) => step.id == 'deposit')?.items.first;
       if (depositStep == null) {
         throw const IonSwapException('Relay: Deposit step is required');
       }
