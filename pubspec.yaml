@@ -60,6 +60,7 @@ dependencies:
   extended_text: ^15.0.2
   extension_google_sign_in_as_googleapis_auth: ^2.0.12
   external_app_launcher: ^4.0.3
+  facebook_app_events: ^0.21.0
   ffmpeg_kit_flutter:
     git:
       url: https://github.com/ice-blockchain/ffmpeg-kit

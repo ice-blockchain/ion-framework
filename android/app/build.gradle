@@ -8,6 +8,23 @@ plugins {
     id "kotlin-parcelize"
 }
 
+def loadDartDefines() {
+    def dartDefines = project.properties["dart-defines"]
+    if (!dartDefines) return [:]
+    
+    def map = [:]
+    dartDefines.split(",").each { encoded ->
+        def decoded = new String(encoded.decodeBase64(), "UTF-8")
+        def parts = decoded.split("=", 2)
+        if (parts.size() == 2) {
+            map[parts[0]] = parts[1]
+        }
+    }
+    return map
+}
+
+def dartEnv = loadDartDefines()
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -99,7 +116,9 @@ android {
             applicationIdSuffix ""
             manifestPlaceholders = [
                 appName: "Online+",
-                deeplink_host: "app.online.io"
+                deeplink_host: "app.online.io",
+                facebook_app_id: dartEnv['FACEBOOK_APP_ID'],
+                facebook_client_token: dartEnv['FACEBOOK_CLIENT_TOKEN']
             ]
         }
         staging {
@@ -107,7 +126,9 @@ android {
             applicationIdSuffix ".staging"
             manifestPlaceholders = [
                 appName: "Online+",
-                deeplink_host: "testnet.app.online.io"
+                deeplink_host: "testnet.app.online.io",
+                facebook_app_id: dartEnv['FACEBOOK_APP_ID'],
+                facebook_client_token: dartEnv['FACEBOOK_CLIENT_TOKEN']
             ]
         }
     }
