@@ -11,8 +11,6 @@ extension ExternalAddressExtension on ReplaceableEntity {
   String get externalAddress {
     final String prefix;
 
-    return 'a0:f170c61bdc056171c0e62697f6fff7ad6986354e2471f4713522eb15e91aba4f:';
-
     if (data is UserMetadata) {
       prefix = 'a';
     } else if (data is ModifiablePostData) {
