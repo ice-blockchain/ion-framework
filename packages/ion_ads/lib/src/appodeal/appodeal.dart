@@ -5,9 +5,9 @@ import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:ion_ads/src/services/appodeal/appodeal_ad_type.dart';
-import 'package:ion_ads/src/services/appodeal/appodeal_native_ad_content_type.dart';
-import 'package:ion_ads/src/services/appodeal/appodeal_services.dart';
+import 'package:ion_ads/src/appodeal/appodeal_ad_type.dart';
+import 'package:ion_ads/src/appodeal/appodeal_native_ad_content_type.dart';
+import 'package:ion_ads/src/appodeal/appodeal_services.dart';
 
 //ignore_for_file: constant_identifier_names
 /// Appodeal SDK Flutter Plugin main class.

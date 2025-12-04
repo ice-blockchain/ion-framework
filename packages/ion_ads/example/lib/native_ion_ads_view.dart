@@ -17,10 +17,12 @@ class _NativeIonPageState extends State<NativeIonPage> {
   IonNativeAdAsset? nativeAdAsset;
   int nativeAdCount = 0;
 
+  bool showNews = false;
+  bool showCustom = false;
+
   @override
   void initState() {
     super.initState();
-
     loadNativeAd();
   }
 
@@ -30,6 +32,7 @@ class _NativeIonPageState extends State<NativeIonPage> {
     final isInitialized = await Appodeal.isInitialized(AppodealAdType.NativeAd);
     log('NativeAd isInitialized - $isInitialized');
 
+    showNews = await Appodeal.canShow(AppodealAdType.NativeAd) ?? false;
     final nativeAds = await Appodeal.getNativeAd(1);
     log('getNativeAd result:$nativeAds');
     if (nativeAds != null) {
@@ -115,6 +118,66 @@ class _NativeIonPageState extends State<NativeIonPage> {
                           const Text('Article'),
                           NativeArticleAd(ad: nativeAdAsset!),
                           const SizedBox(height: 16),
+
+                          const Text('NewsFeed Native Ad'),
+                          OutlinedButton(
+                            onPressed: () => setState(() {
+                              showNews = !showNews;
+                              showCustom = false;
+                            }),
+                            child: const Text('Show NewsFeed Native Ad'),
+                          ),
+                          if (showNews)
+                            SizedBox(
+                              height: 100,
+                              child: AppodealNativeAd(
+                                key: const ValueKey('NewsFeed Native Ad'),
+                                options: NativeAdOptions.newsFeedOptions(
+                                  adChoicePosition: AdChoicePosition.endTop,
+                                  adAttributionBackgroundColor: Colors.white,
+                                  adAttributionTextColor: Colors.black,
+                                  adActionButtonTextSize: 14,
+                                  adDescriptionFontSize: 12,
+                                  adTitleFontSize: 14,
+                                ),
+                              ),
+                            ),
+
+                          const Text('Custom Native Ad'),
+                          OutlinedButton(
+                            onPressed: () => setState(() {
+                              showNews = false;
+                              showCustom = !showCustom;
+                            }),
+                            child: const Text('Show Custom Native Ad'),
+                          ),
+                          if (showCustom)
+                            SizedBox(
+                              height: 320,
+                              child: AppodealNativeAd(
+                                key: const ValueKey('Custom Native Ad'),
+                                options: NativeAdOptions.customOptions(
+                                  adIconConfig: AdIconConfig(size: 22),
+                                ),
+                              ),
+                            ),
+
+                          // const Text('AppWall Native Ad'),
+                          // SizedBox(
+                          //   height: 200,
+                          //   child: AppodealNativeAd(
+                          //     options: NativeAdOptions.appWallOptions(),
+                          //   ),
+                          // ),
+
+                          // const Text('ContentStream Native Ad'),
+                          // SizedBox(
+                          //   height: 320,
+                          //   child: AppodealNativeAd(
+                          //     options: NativeAdOptions.contentStreamOptions(),
+                          //   ),
+                          // ),
+
                           // SizedBox(
                           //   height: 100,
                           //   child: NativeStoryAd(ad: nativeAdAsset!),
