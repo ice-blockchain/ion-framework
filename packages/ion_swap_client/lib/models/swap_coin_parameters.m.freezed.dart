@@ -22,8 +22,8 @@ SwapCoinParameters _$SwapCoinParametersFromJson(Map<String, dynamic> json) {
 mixin _$SwapCoinParameters {
   String get sellNetworkId => throw _privateConstructorUsedError;
   String get buyNetworkId => throw _privateConstructorUsedError;
-  String get userSellAddress => throw _privateConstructorUsedError;
-  String get userBuyAddress => throw _privateConstructorUsedError;
+  String? get userSellAddress => throw _privateConstructorUsedError;
+  String? get userBuyAddress => throw _privateConstructorUsedError;
   String get sellCoinContractAddress => throw _privateConstructorUsedError;
   String get buyCoinContractAddress => throw _privateConstructorUsedError;
   String get sellCoinNetworkName => throw _privateConstructorUsedError;
@@ -56,8 +56,8 @@ abstract class $SwapCoinParametersCopyWith<$Res> {
   $Res call(
       {String sellNetworkId,
       String buyNetworkId,
-      String userSellAddress,
-      String userBuyAddress,
+      String? userSellAddress,
+      String? userBuyAddress,
       String sellCoinContractAddress,
       String buyCoinContractAddress,
       String sellCoinNetworkName,
@@ -86,8 +86,8 @@ class _$SwapCoinParametersCopyWithImpl<$Res, $Val extends SwapCoinParameters>
   $Res call({
     Object? sellNetworkId = null,
     Object? buyNetworkId = null,
-    Object? userSellAddress = null,
-    Object? userBuyAddress = null,
+    Object? userSellAddress = freezed,
+    Object? userBuyAddress = freezed,
     Object? sellCoinContractAddress = null,
     Object? buyCoinContractAddress = null,
     Object? sellCoinNetworkName = null,
@@ -107,14 +107,14 @@ class _$SwapCoinParametersCopyWithImpl<$Res, $Val extends SwapCoinParameters>
           ? _value.buyNetworkId
           : buyNetworkId // ignore: cast_nullable_to_non_nullable
               as String,
-      userSellAddress: null == userSellAddress
+      userSellAddress: freezed == userSellAddress
           ? _value.userSellAddress
           : userSellAddress // ignore: cast_nullable_to_non_nullable
-              as String,
-      userBuyAddress: null == userBuyAddress
+              as String?,
+      userBuyAddress: freezed == userBuyAddress
           ? _value.userBuyAddress
           : userBuyAddress // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       sellCoinContractAddress: null == sellCoinContractAddress
           ? _value.sellCoinContractAddress
           : sellCoinContractAddress // ignore: cast_nullable_to_non_nullable
@@ -158,16 +158,16 @@ class _$SwapCoinParametersCopyWithImpl<$Res, $Val extends SwapCoinParameters>
 /// @nodoc
 abstract class _$$SwapCoinParametersImplCopyWith<$Res>
     implements $SwapCoinParametersCopyWith<$Res> {
-  factory _$$SwapCoinParametersImplCopyWith(
-          _$SwapCoinParametersImpl value, $Res Function(_$SwapCoinParametersImpl) then) =
+  factory _$$SwapCoinParametersImplCopyWith(_$SwapCoinParametersImpl value,
+          $Res Function(_$SwapCoinParametersImpl) then) =
       __$$SwapCoinParametersImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
       {String sellNetworkId,
       String buyNetworkId,
-      String userSellAddress,
-      String userBuyAddress,
+      String? userSellAddress,
+      String? userBuyAddress,
       String sellCoinContractAddress,
       String buyCoinContractAddress,
       String sellCoinNetworkName,
@@ -183,8 +183,8 @@ abstract class _$$SwapCoinParametersImplCopyWith<$Res>
 class __$$SwapCoinParametersImplCopyWithImpl<$Res>
     extends _$SwapCoinParametersCopyWithImpl<$Res, _$SwapCoinParametersImpl>
     implements _$$SwapCoinParametersImplCopyWith<$Res> {
-  __$$SwapCoinParametersImplCopyWithImpl(
-      _$SwapCoinParametersImpl _value, $Res Function(_$SwapCoinParametersImpl) _then)
+  __$$SwapCoinParametersImplCopyWithImpl(_$SwapCoinParametersImpl _value,
+      $Res Function(_$SwapCoinParametersImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of SwapCoinParameters
@@ -194,8 +194,8 @@ class __$$SwapCoinParametersImplCopyWithImpl<$Res>
   $Res call({
     Object? sellNetworkId = null,
     Object? buyNetworkId = null,
-    Object? userSellAddress = null,
-    Object? userBuyAddress = null,
+    Object? userSellAddress = freezed,
+    Object? userBuyAddress = freezed,
     Object? sellCoinContractAddress = null,
     Object? buyCoinContractAddress = null,
     Object? sellCoinNetworkName = null,
@@ -215,14 +215,14 @@ class __$$SwapCoinParametersImplCopyWithImpl<$Res>
           ? _value.buyNetworkId
           : buyNetworkId // ignore: cast_nullable_to_non_nullable
               as String,
-      userSellAddress: null == userSellAddress
+      userSellAddress: freezed == userSellAddress
           ? _value.userSellAddress
           : userSellAddress // ignore: cast_nullable_to_non_nullable
-              as String,
-      userBuyAddress: null == userBuyAddress
+              as String?,
+      userBuyAddress: freezed == userBuyAddress
           ? _value.userBuyAddress
           : userBuyAddress // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       sellCoinContractAddress: null == sellCoinContractAddress
           ? _value.sellCoinContractAddress
           : sellCoinContractAddress // ignore: cast_nullable_to_non_nullable
@@ -289,9 +289,9 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
   @override
   final String buyNetworkId;
   @override
-  final String userSellAddress;
+  final String? userSellAddress;
   @override
-  final String userBuyAddress;
+  final String? userBuyAddress;
   @override
   final String sellCoinContractAddress;
   @override
@@ -326,12 +326,14 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
             other is _$SwapCoinParametersImpl &&
             (identical(other.sellNetworkId, sellNetworkId) ||
                 other.sellNetworkId == sellNetworkId) &&
-            (identical(other.buyNetworkId, buyNetworkId) || other.buyNetworkId == buyNetworkId) &&
+            (identical(other.buyNetworkId, buyNetworkId) ||
+                other.buyNetworkId == buyNetworkId) &&
             (identical(other.userSellAddress, userSellAddress) ||
                 other.userSellAddress == userSellAddress) &&
             (identical(other.userBuyAddress, userBuyAddress) ||
                 other.userBuyAddress == userBuyAddress) &&
-            (identical(other.sellCoinContractAddress, sellCoinContractAddress) ||
+            (identical(
+                    other.sellCoinContractAddress, sellCoinContractAddress) ||
                 other.sellCoinContractAddress == sellCoinContractAddress) &&
             (identical(other.buyCoinContractAddress, buyCoinContractAddress) ||
                 other.buyCoinContractAddress == buyCoinContractAddress) &&
@@ -340,10 +342,14 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
             (identical(other.buyCoinNetworkName, buyCoinNetworkName) ||
                 other.buyCoinNetworkName == buyCoinNetworkName) &&
             (identical(other.amount, amount) || other.amount == amount) &&
-            (identical(other.isBridge, isBridge) || other.isBridge == isBridge) &&
-            (identical(other.sellCoinCode, sellCoinCode) || other.sellCoinCode == sellCoinCode) &&
-            (identical(other.buyCoinCode, buyCoinCode) || other.buyCoinCode == buyCoinCode) &&
-            (identical(other.buyExtraId, buyExtraId) || other.buyExtraId == buyExtraId));
+            (identical(other.isBridge, isBridge) ||
+                other.isBridge == isBridge) &&
+            (identical(other.sellCoinCode, sellCoinCode) ||
+                other.sellCoinCode == sellCoinCode) &&
+            (identical(other.buyCoinCode, buyCoinCode) ||
+                other.buyCoinCode == buyCoinCode) &&
+            (identical(other.buyExtraId, buyExtraId) ||
+                other.buyExtraId == buyExtraId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -370,7 +376,8 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
   @override
   @pragma('vm:prefer-inline')
   _$$SwapCoinParametersImplCopyWith<_$SwapCoinParametersImpl> get copyWith =>
-      __$$SwapCoinParametersImplCopyWithImpl<_$SwapCoinParametersImpl>(this, _$identity);
+      __$$SwapCoinParametersImplCopyWithImpl<_$SwapCoinParametersImpl>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -384,8 +391,8 @@ abstract class _SwapCoinParameters implements SwapCoinParameters {
   factory _SwapCoinParameters(
       {required final String sellNetworkId,
       required final String buyNetworkId,
-      required final String userSellAddress,
-      required final String userBuyAddress,
+      required final String? userSellAddress,
+      required final String? userBuyAddress,
       required final String sellCoinContractAddress,
       required final String buyCoinContractAddress,
       required final String sellCoinNetworkName,
@@ -404,9 +411,9 @@ abstract class _SwapCoinParameters implements SwapCoinParameters {
   @override
   String get buyNetworkId;
   @override
-  String get userSellAddress;
+  String? get userSellAddress;
   @override
-  String get userBuyAddress;
+  String? get userBuyAddress;
   @override
   String get sellCoinContractAddress;
   @override

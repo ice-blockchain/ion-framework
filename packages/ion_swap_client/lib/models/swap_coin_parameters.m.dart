@@ -10,8 +10,8 @@ class SwapCoinParameters with _$SwapCoinParameters {
   factory SwapCoinParameters({
     required String sellNetworkId,
     required String buyNetworkId,
-    required String userSellAddress,
-    required String userBuyAddress,
+    required String? userSellAddress,
+    required String? userBuyAddress,
     required String sellCoinContractAddress,
     required String buyCoinContractAddress,
     required String sellCoinNetworkName,

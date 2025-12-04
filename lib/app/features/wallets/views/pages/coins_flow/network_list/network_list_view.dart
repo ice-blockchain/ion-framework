@@ -93,6 +93,7 @@ class NetworkListView extends HookConsumerWidget {
         : _UnrestrictedNetworksList(
             coinsGroup: coinsGroup,
             onNetworkTap: onNetworkTap,
+            type: type,
           );
 
     return SheetContent(
@@ -182,10 +183,12 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
   const _UnrestrictedNetworksList({
     required this.coinsGroup,
     required this.onNetworkTap,
+    required this.type,
   });
 
   final CoinsGroup? coinsGroup;
   final Future<void> Function(NetworkData network) onNetworkTap;
+  final NetworkListViewType type;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -197,10 +200,46 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
       return _LoadingState(itemCount: coinsGroup?.coins.length ?? 1);
     }
 
+    final shouldFilterByWallet =
+        type == NetworkListViewType.swapSell || type == NetworkListViewType.swapBuy;
+
+    final swapCoinsController = ref.watch(swapCoinsControllerProvider);
+
+    final otherCoin = switch (type) {
+      NetworkListViewType.swapSell => swapCoinsController.buyCoin,
+      NetworkListViewType.swapBuy => swapCoinsController.sellCoin,
+      _ => null,
+    };
+
+    final otherNetwork = switch (type) {
+      NetworkListViewType.swapSell => swapCoinsController.buyNetwork,
+      NetworkListViewType.swapBuy => swapCoinsController.sellNetwork,
+      _ => null,
+    };
+
+    final coinsFilteredByWallet = coinsState.hasValue
+        ? (shouldFilterByWallet
+            ? coinsState.value!.where((coin) => coin.walletId != null).toList()
+            : coinsState.value!)
+        : <CoinInWalletData>[];
+
+    final coinsFilteredByOtherCoin = coinsFilteredByWallet.where(
+      (coin) {
+        if (otherCoin == null || otherNetwork == null) return true;
+
+        final isSameCoin = coin.coin.symbolGroup == otherCoin.symbolGroup;
+
+        if (!isSameCoin) return true;
+
+        final isSameNetwork = coin.coin.network.id == otherNetwork.id;
+        return !isSameNetwork;
+      },
+    ).toList();
+
     return _NetworksList(
-      itemCount: coinsState.value!.length,
+      itemCount: coinsFilteredByOtherCoin.length,
       itemBuilder: (BuildContext context, int index) {
-        final coin = coinsState.value![index];
+        final coin = coinsFilteredByOtherCoin[index];
         final network = coin.coin.network;
         return NetworkItem(
           coinInWallet: coin,

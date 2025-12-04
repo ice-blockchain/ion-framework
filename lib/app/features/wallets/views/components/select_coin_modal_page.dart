@@ -14,6 +14,7 @@ class SelectCoinModalPage extends ConsumerWidget {
     this.showBackButton = false,
     this.showCloseButton = true,
     this.contactPubkey,
+    this.coinsProvider,
     super.key,
   });
 
@@ -22,12 +23,15 @@ class SelectCoinModalPage extends ConsumerWidget {
   final bool showBackButton;
   final bool showCloseButton;
   final String? contactPubkey;
+  final ProviderListenable<AsyncValue<List<CoinsGroup>>>? coinsProvider;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectableCoinsResult =
         ref.watch(selectableFilteredCoinsProvider(contactPubkey: contactPubkey));
-    final coinsResult = selectableCoinsResult.whenData((state) => state.groups);
+    final coinsResult = coinsProvider != null
+        ? ref.watch(coinsProvider!)
+        : selectableCoinsResult.whenData((state) => state.groups);
     final enabledSymbolGroups = selectableCoinsResult.valueOrNull?.enabledSymbolGroups;
 
     return SheetContent(

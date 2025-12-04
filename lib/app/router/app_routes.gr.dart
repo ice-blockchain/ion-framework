@@ -146,6 +146,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/compo
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/confirmation/transaction_result_sheet.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/send_coins_form.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/send_coin_modal_page.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/swap_coins_confirmation_page.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/swap_coins_modal_page.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/swap_select_coin_page.dart';

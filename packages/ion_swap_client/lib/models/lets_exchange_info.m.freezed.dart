@@ -22,6 +22,7 @@ LetsExchangeInfo _$LetsExchangeInfoFromJson(Map<String, dynamic> json) {
 mixin _$LetsExchangeInfo {
   @JsonKey(name: 'rate_id')
   String get rateId => throw _privateConstructorUsedError;
+  String get rate => throw _privateConstructorUsedError;
 
   /// Serializes this LetsExchangeInfo to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -29,15 +30,17 @@ mixin _$LetsExchangeInfo {
   /// Create a copy of LetsExchangeInfo
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $LetsExchangeInfoCopyWith<LetsExchangeInfo> get copyWith => throw _privateConstructorUsedError;
+  $LetsExchangeInfoCopyWith<LetsExchangeInfo> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $LetsExchangeInfoCopyWith<$Res> {
-  factory $LetsExchangeInfoCopyWith(LetsExchangeInfo value, $Res Function(LetsExchangeInfo) then) =
+  factory $LetsExchangeInfoCopyWith(
+          LetsExchangeInfo value, $Res Function(LetsExchangeInfo) then) =
       _$LetsExchangeInfoCopyWithImpl<$Res, LetsExchangeInfo>;
   @useResult
-  $Res call({@JsonKey(name: 'rate_id') String rateId});
+  $Res call({@JsonKey(name: 'rate_id') String rateId, String rate});
 }
 
 /// @nodoc
@@ -56,32 +59,38 @@ class _$LetsExchangeInfoCopyWithImpl<$Res, $Val extends LetsExchangeInfo>
   @override
   $Res call({
     Object? rateId = null,
+    Object? rate = null,
   }) {
     return _then(_value.copyWith(
       rateId: null == rateId
           ? _value.rateId
           : rateId // ignore: cast_nullable_to_non_nullable
               as String,
+      rate: null == rate
+          ? _value.rate
+          : rate // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
 
 /// @nodoc
-abstract class _$$LetsExchangeInfoImplCopyWith<$Res> implements $LetsExchangeInfoCopyWith<$Res> {
-  factory _$$LetsExchangeInfoImplCopyWith(
-          _$LetsExchangeInfoImpl value, $Res Function(_$LetsExchangeInfoImpl) then) =
+abstract class _$$LetsExchangeInfoImplCopyWith<$Res>
+    implements $LetsExchangeInfoCopyWith<$Res> {
+  factory _$$LetsExchangeInfoImplCopyWith(_$LetsExchangeInfoImpl value,
+          $Res Function(_$LetsExchangeInfoImpl) then) =
       __$$LetsExchangeInfoImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({@JsonKey(name: 'rate_id') String rateId});
+  $Res call({@JsonKey(name: 'rate_id') String rateId, String rate});
 }
 
 /// @nodoc
 class __$$LetsExchangeInfoImplCopyWithImpl<$Res>
     extends _$LetsExchangeInfoCopyWithImpl<$Res, _$LetsExchangeInfoImpl>
     implements _$$LetsExchangeInfoImplCopyWith<$Res> {
-  __$$LetsExchangeInfoImplCopyWithImpl(
-      _$LetsExchangeInfoImpl _value, $Res Function(_$LetsExchangeInfoImpl) _then)
+  __$$LetsExchangeInfoImplCopyWithImpl(_$LetsExchangeInfoImpl _value,
+      $Res Function(_$LetsExchangeInfoImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of LetsExchangeInfo
@@ -90,11 +99,16 @@ class __$$LetsExchangeInfoImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? rateId = null,
+    Object? rate = null,
   }) {
     return _then(_$LetsExchangeInfoImpl(
       rateId: null == rateId
           ? _value.rateId
           : rateId // ignore: cast_nullable_to_non_nullable
+              as String,
+      rate: null == rate
+          ? _value.rate
+          : rate // ignore: cast_nullable_to_non_nullable
               as String,
     ));
   }
@@ -103,7 +117,8 @@ class __$$LetsExchangeInfoImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$LetsExchangeInfoImpl implements _LetsExchangeInfo {
-  _$LetsExchangeInfoImpl({@JsonKey(name: 'rate_id') required this.rateId});
+  _$LetsExchangeInfoImpl(
+      {@JsonKey(name: 'rate_id') required this.rateId, required this.rate});
 
   factory _$LetsExchangeInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$LetsExchangeInfoImplFromJson(json);
@@ -111,10 +126,12 @@ class _$LetsExchangeInfoImpl implements _LetsExchangeInfo {
   @override
   @JsonKey(name: 'rate_id')
   final String rateId;
+  @override
+  final String rate;
 
   @override
   String toString() {
-    return 'LetsExchangeInfo(rateId: $rateId)';
+    return 'LetsExchangeInfo(rateId: $rateId, rate: $rate)';
   }
 
   @override
@@ -122,12 +139,13 @@ class _$LetsExchangeInfoImpl implements _LetsExchangeInfo {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$LetsExchangeInfoImpl &&
-            (identical(other.rateId, rateId) || other.rateId == rateId));
+            (identical(other.rateId, rateId) || other.rateId == rateId) &&
+            (identical(other.rate, rate) || other.rate == rate));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, rateId);
+  int get hashCode => Object.hash(runtimeType, rateId, rate);
 
   /// Create a copy of LetsExchangeInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -135,7 +153,8 @@ class _$LetsExchangeInfoImpl implements _LetsExchangeInfo {
   @override
   @pragma('vm:prefer-inline')
   _$$LetsExchangeInfoImplCopyWith<_$LetsExchangeInfoImpl> get copyWith =>
-      __$$LetsExchangeInfoImplCopyWithImpl<_$LetsExchangeInfoImpl>(this, _$identity);
+      __$$LetsExchangeInfoImplCopyWithImpl<_$LetsExchangeInfoImpl>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -146,14 +165,18 @@ class _$LetsExchangeInfoImpl implements _LetsExchangeInfo {
 }
 
 abstract class _LetsExchangeInfo implements LetsExchangeInfo {
-  factory _LetsExchangeInfo({@JsonKey(name: 'rate_id') required final String rateId}) =
-      _$LetsExchangeInfoImpl;
+  factory _LetsExchangeInfo(
+      {@JsonKey(name: 'rate_id') required final String rateId,
+      required final String rate}) = _$LetsExchangeInfoImpl;
 
-  factory _LetsExchangeInfo.fromJson(Map<String, dynamic> json) = _$LetsExchangeInfoImpl.fromJson;
+  factory _LetsExchangeInfo.fromJson(Map<String, dynamic> json) =
+      _$LetsExchangeInfoImpl.fromJson;
 
   @override
   @JsonKey(name: 'rate_id')
   String get rateId;
+  @override
+  String get rate;
 
   /// Create a copy of LetsExchangeInfo
   /// with the given fields replaced by the non-null parameter values.

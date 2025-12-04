@@ -95,7 +95,13 @@ class CoinDetailsPage extends HookConsumerWidget {
             child: Column(
               children: [
                 const SectionSeparator(),
-                Balance(coinsGroup: coinsGroup),
+                Balance(
+                  coinsGroup: coinsGroup,
+                  currentNetwork: networkSelectorData?.selected.map(
+                    network: (item) => item.network,
+                    all: (item) => item.networks.first,
+                  ),
+                ),
                 const SectionSeparator(),
               ],
             ),

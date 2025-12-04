@@ -66,7 +66,11 @@ class ApiRepositoryServiceLocator {
       return _relayApiRepository!;
     }
 
-    _relayApiRepository = RelayApiRepository();
+    _relayApiRepository = RelayApiRepository(
+      dio: _networkServiceLocator.relayDio(
+        config: config,
+      ),
+    );
 
     return _relayApiRepository!;
   }
