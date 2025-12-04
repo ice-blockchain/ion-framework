@@ -66,10 +66,11 @@ class CollapsingHeaderTabsLayout extends HookWidget {
 
     final statusBarHeight = MediaQuery.paddingOf(context).top;
 
-    if (!showBackButton) {
-      // FIXME: DON'T USE HOOKS INSIDE CONDITIONAL BRANCHES!!!
-      useScrollTopOnTabPress(context, scrollController: scrollController);
-    }
+    useScrollTopOnTabPress(
+      context,
+      scrollController: scrollController,
+      enabled: !showBackButton,
+    );
 
     return ScrollToTopWrapper(
       scrollController: scrollController,

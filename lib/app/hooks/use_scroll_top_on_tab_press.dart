@@ -6,11 +6,17 @@ import 'package:go_router/go_router.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/router/main_tabs/components/main_tab_navigation_container.dart';
 
-void useScrollTopOnTabPress(BuildContext context, {required ScrollController scrollController}) {
+void useScrollTopOnTabPress(
+  BuildContext context, {
+  required ScrollController scrollController,
+  bool enabled = true,
+}) {
   final tabPressStream = MainTabNavigationContainer.of(context).tabPressStream;
 
   useEffect(
     () {
+      if (!enabled) return null;
+
       final listener = tabPressStream.listen((tabPressData) {
         // taking the GoRouterState here instead of out of listener,
         // because otherwise it is considered the same even if the screen is changed
@@ -32,6 +38,6 @@ void useScrollTopOnTabPress(BuildContext context, {required ScrollController scr
       });
       return listener.cancel;
     },
-    [tabPressStream],
+    [tabPressStream, enabled],
   );
 }

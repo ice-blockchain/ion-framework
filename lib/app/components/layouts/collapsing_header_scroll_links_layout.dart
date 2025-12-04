@@ -8,13 +8,9 @@ import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/tabs_header/scroll_links_tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
-import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
-
-const _kExpandedHeaderContentOffset = -30.0;
-const _kTabBarHeight = 48.0;
 
 // A layout with collapsing header and scroll-link tabs using SliverAppBar.
 // Tabs scroll to sections instead of switching content (like HTML anchor links).
@@ -50,6 +46,9 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
 
   final ValueChanged<int>? onTabTapped;
 
+  double get _expandedHeaderContentOffset => -30.0.s;
+  double get _tabBarHeight => 48.0.s;
+
   @override
   Widget build(BuildContext context) {
     final scrollController = useScrollController();
@@ -60,7 +59,7 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
         void onScroll() {
           final offset = scrollController.offset;
           final maxScroll =
-              expandedHeaderHeight - NavigationAppBar.screenHeaderHeight - _kTabBarHeight.s;
+              expandedHeaderHeight - NavigationAppBar.screenHeaderHeight - _tabBarHeight;
           final progress = (offset / maxScroll).clamp(0.0, 1.0);
 
           collapseProgress.value = progress;
@@ -71,11 +70,6 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
       },
       [scrollController],
     );
-
-    // FIXME: DON'T USE HOOKS INSIDE CONDITIONAL BRANCHES
-    if (!showBackButton) {
-      useScrollTopOnTabPress(context, scrollController: scrollController);
-    }
 
     final sections = sectionsBuilder(sectionKeys);
 
@@ -126,7 +120,7 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
                       Opacity(
                         opacity: 1 - progress, // Fade out as header collapses
                         child: Transform.translate(
-                          offset: Offset(0, _kExpandedHeaderContentOffset.s),
+                          offset: Offset(0, _expandedHeaderContentOffset),
                           child: SafeArea(
                             bottom: false,
                             child: expandedHeader,
@@ -138,7 +132,7 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
                 },
               ),
               bottom: PreferredSize(
-                preferredSize: Size.fromHeight(_kTabBarHeight.s),
+                preferredSize: Size.fromHeight(_tabBarHeight),
                 child: ColoredBox(
                   color: context.theme.appColors.primaryText,
                   child: ScrollLinksTabsHeader(
