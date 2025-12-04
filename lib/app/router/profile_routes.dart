@@ -343,23 +343,21 @@ class FullscreenMediaRoute extends BaseRouteData with _$FullscreenMediaRoute {
 }
 
 class TokenizedCommunityRoute extends BaseRouteData with _$TokenizedCommunityRoute {
-  TokenizedCommunityRoute({required this.masterPubkey})
+  TokenizedCommunityRoute({required this.externalAddress})
       : super(
           child: TokenizedCommunityPage(
-            masterPubkey: masterPubkey,
+            externalAddress: externalAddress,
           ),
         );
 
-  final String masterPubkey;
+  final String externalAddress;
 }
 
 class CreatorTokensRoute extends BaseRouteData with _$CreatorTokensRoute {
-  CreatorTokensRoute({required this.masterPubkey})
+  CreatorTokensRoute()
       : super(
-          child: CreatorTokensPage(masterPubkey: masterPubkey),
+          child: const CreatorTokensPage(),
         );
-
-  final String masterPubkey;
 }
 
 class HoldersRoute extends BaseRouteData with _$HoldersRoute {

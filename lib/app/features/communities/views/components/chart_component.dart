@@ -16,14 +16,14 @@ import 'package:visibility_detector/visibility_detector.dart';
 
 class ChartComponent extends HookConsumerWidget {
   const ChartComponent({
-    required this.masterPubkey,
+    required this.externalAddress,
     required this.price,
     required this.label,
     this.onTitleVisibilityChanged,
     super.key,
   });
 
-  final String masterPubkey;
+  final String externalAddress;
   final Decimal price;
   final String label;
   final ValueChanged<double>? onTitleVisibilityChanged;
@@ -34,7 +34,7 @@ class ChartComponent extends HookConsumerWidget {
 
     final candlesAsync = ref.watch(
       tokenOhlcvCandlesProvider(
-        masterPubkey,
+        externalAddress,
         selectedRange.value.intervalString,
       ),
     );

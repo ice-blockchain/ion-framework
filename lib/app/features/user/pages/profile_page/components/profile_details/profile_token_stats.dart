@@ -1,22 +1,30 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats_data.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/communities/utils/market_data_formatter.dart';
+import 'package:ion/app/features/tokenized_communities/views/buy_sell_creator_token_dialog.dart';
+import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class ProfileTokenStatsInfo extends StatelessWidget {
+class ProfileTokenStatsInfo extends ConsumerWidget {
   const ProfileTokenStatsInfo({
-    this.data,
+    required this.externalAddress,
     super.key,
   });
 
-  final ProfileTokenStatsData? data;
+  final String externalAddress;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final marketData = ref
+        .watch(tokenMarketInfoProvider(externalAddress).select((t) => t.valueOrNull?.marketData));
+    if (marketData == null) {
+      return const SizedBox.shrink();
+    }
     return Container(
       decoration: ShapeDecoration(
         color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
@@ -34,15 +42,15 @@ class ProfileTokenStatsInfo extends StatelessWidget {
           children: [
             _StatItem(
               icon: Assets.svg.iconMemeMarketcap,
-              text: data!.marketCap,
+              text: MarketDataFormatter.formatCompactNumber(marketData.marketCap),
             ),
             _StatItem(
               icon: Assets.svg.iconMemeMarkers,
-              text: data!.price,
+              text: MarketDataFormatter.formatPrice(marketData.priceUSD),
             ),
             _StatItem(
               icon: Assets.svg.iconSearchGroups,
-              text: data!.volume,
+              text: MarketDataFormatter.formatCompactNumber(marketData.volume),
             ),
           ],
         ),
@@ -51,56 +59,62 @@ class ProfileTokenStatsInfo extends StatelessWidget {
   }
 }
 
-class ProfileTokenStats extends StatelessWidget {
+class ProfileTokenStats extends ConsumerWidget {
   const ProfileTokenStats({
-    required this.masterPubkey,
-    this.data,
-    this.shouldShowBuyButton = true,
+    required this.externalAddress,
     this.mainAxisAlignment = MainAxisAlignment.spaceBetween,
+    this.leading,
     super.key,
   });
 
-  final ProfileTokenStatsData? data;
-  final String masterPubkey;
-  final bool shouldShowBuyButton;
+  final String externalAddress;
   final MainAxisAlignment mainAxisAlignment;
+  final Widget? leading;
 
   @override
-  Widget build(BuildContext context) {
-    if (data == null) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress));
+
+    if (!tokenInfo.hasValue) {
+      return const SizedBox.shrink();
+    }
+
+    final marketData = tokenInfo.valueOrNull?.marketData;
+
+    if (marketData == null) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const _BuyHint(),
           SizedBox(width: 8.0.s),
-          const BuyButton(masterPubkey: ''),
+          GestureDetector(
+            onTap: () {
+              showSimpleBottomSheet<void>(
+                context: context,
+                child: BuySellCreatorTokenDialog(externalAddress: externalAddress),
+              );
+            },
+            child: BuyButton(externalAddress: externalAddress),
+          ),
         ],
       );
     }
-
-    void onStatItemTap() {
-      TokenizedCommunityRoute(masterPubkey: masterPubkey).push<void>(context);
-    }
-
     return Row(
       mainAxisAlignment: mainAxisAlignment,
       children: [
         _StatItem(
           icon: Assets.svg.iconMemeMarketcap,
-          text: data!.marketCap,
-          onTap: onStatItemTap,
+          text: MarketDataFormatter.formatCompactNumber(marketData.marketCap),
         ),
         _StatItem(
           icon: Assets.svg.iconMemeMarkers,
-          text: data!.price,
-          onTap: onStatItemTap,
+          text: MarketDataFormatter.formatPrice(marketData.priceUSD),
         ),
         _StatItem(
           icon: Assets.svg.iconSearchGroups,
-          text: data!.volume,
-          onTap: onStatItemTap,
+          text: MarketDataFormatter.formatCompactNumber(marketData.volume),
         ),
-        if (shouldShowBuyButton) BuyButton(masterPubkey: masterPubkey),
+        if (leading != null) leading!,
       ],
     );
   }
@@ -110,48 +124,40 @@ class _StatItem extends StatelessWidget {
   const _StatItem({
     required this.icon,
     required this.text,
-    this.onTap,
   });
 
   final String icon;
   final String text;
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(width: 3.13.s),
-          Container(
-            width: 14.15.s,
-            height: 14.15.s,
-            clipBehavior: Clip.antiAlias,
-            decoration: const BoxDecoration(),
-            child: Center(
-              child: icon.icon(
-                size: 14.15.s,
-                color: context.theme.appColors.secondaryBackground,
-              ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(width: 4.s),
+        Container(
+          width: 14.15.s,
+          height: 14.15.s,
+          clipBehavior: Clip.antiAlias,
+          decoration: const BoxDecoration(),
+          child: Center(
+            child: icon.icon(
+              size: 14.15.s,
+              color: context.theme.appColors.secondaryBackground,
             ),
           ),
-          SizedBox(width: 3.13.s),
-          Flexible(
-            child: Text(
-              text,
-              textAlign: TextAlign.center,
-              style: context.theme.appTextThemes.caption.copyWith(
-                color: context.theme.appColors.secondaryBackground,
-                fontFamily: 'Noto Sans',
-                fontWeight: FontWeight.w600,
-                height: 1.17,
-              ),
+        ),
+        SizedBox(width: 4.s),
+        Flexible(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: context.theme.appTextThemes.caption.copyWith(
+              color: context.theme.appColors.secondaryBackground,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -193,53 +199,50 @@ class _BuyHint extends StatelessWidget {
 
 class BuyButton extends StatelessWidget {
   const BuyButton({
-    required this.masterPubkey,
+    required this.externalAddress,
     this.height = 23.0,
     super.key,
   });
 
-  final String masterPubkey;
+  final String externalAddress;
   final double height;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => TokenizedCommunityRoute(masterPubkey: masterPubkey).push<void>(context),
-      child: Container(
-        height: height.s,
-        padding: EdgeInsets.symmetric(horizontal: 22.0.s),
-        decoration: ShapeDecoration(
-          color: context.theme.appColors.primaryAccent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.32.s),
-          ),
+    return Container(
+      height: height.s,
+      padding: EdgeInsets.symmetric(horizontal: 10.0.s),
+      decoration: ShapeDecoration(
+        color: context.theme.appColors.primaryAccent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.32.s),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              clipBehavior: Clip.antiAlias,
-              decoration: const BoxDecoration(),
-              child: Center(
-                child: Assets.svg.iconWorkBuycoin.icon(
-                  size: 14.s,
-                  color: context.theme.appColors.secondaryBackground,
-                ),
-              ),
-            ),
-            SizedBox(width: 3.13.s),
-            Text(
-              context.i18n.profile_token_buy,
-              style: context.theme.appTextThemes.caption3.copyWith(
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: const BoxDecoration(),
+            child: Center(
+              child: Assets.svg.iconWorkBuycoin.icon(
+                size: 14.s,
                 color: context.theme.appColors.secondaryBackground,
-                fontFamily: 'Noto Sans',
-                fontWeight: FontWeight.w600,
-                height: 1.28,
               ),
             ),
-          ],
-        ),
+          ),
+          SizedBox(width: 3.13.s),
+          Text(
+            context.i18n.profile_token_buy,
+            style: context.theme.appTextThemes.caption3.copyWith(
+              color: context.theme.appColors.secondaryBackground,
+              fontFamily: 'Noto Sans',
+              fontWeight: FontWeight.w600,
+              height: 1.28,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -24,7 +24,7 @@ mixin _$TradePosition {
   Creator get holder => throw _privateConstructorUsedError;
   Addresses get addresses => throw _privateConstructorUsedError;
   String get createdAt => throw _privateConstructorUsedError;
-  String get type => throw _privateConstructorUsedError; // "buy/sell"
+  TradeType get type => throw _privateConstructorUsedError;
   double get amount => throw _privateConstructorUsedError;
   double get amountUSD => throw _privateConstructorUsedError;
   double get balance => throw _privateConstructorUsedError;
@@ -51,7 +51,7 @@ abstract class $TradePositionCopyWith<$Res> {
     Creator holder,
     Addresses addresses,
     String createdAt,
-    String type,
+    TradeType type,
     double amount,
     double amountUSD,
     double balance,
@@ -103,7 +103,7 @@ class _$TradePositionCopyWithImpl<$Res, $Val extends TradePosition>
             type: null == type
                 ? _value.type
                 : type // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as TradeType,
             amount: null == amount
                 ? _value.amount
                 : amount // ignore: cast_nullable_to_non_nullable
@@ -159,7 +159,7 @@ abstract class _$$TradePositionImplCopyWith<$Res>
     Creator holder,
     Addresses addresses,
     String createdAt,
-    String type,
+    TradeType type,
     double amount,
     double amountUSD,
     double balance,
@@ -212,7 +212,7 @@ class __$$TradePositionImplCopyWithImpl<$Res>
         type: null == type
             ? _value.type
             : type // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as TradeType,
         amount: null == amount
             ? _value.amount
             : amount // ignore: cast_nullable_to_non_nullable
@@ -258,8 +258,7 @@ class _$TradePositionImpl implements _TradePosition {
   @override
   final String createdAt;
   @override
-  final String type;
-  // "buy/sell"
+  final TradeType type;
   @override
   final double amount;
   @override
@@ -326,7 +325,7 @@ abstract class _TradePosition implements TradePosition {
     required final Creator holder,
     required final Addresses addresses,
     required final String createdAt,
-    required final String type,
+    required final TradeType type,
     required final double amount,
     required final double amountUSD,
     required final double balance,
@@ -343,7 +342,7 @@ abstract class _TradePosition implements TradePosition {
   @override
   String get createdAt;
   @override
-  String get type; // "buy/sell"
+  TradeType get type;
   @override
   double get amount;
   @override
@@ -370,7 +369,7 @@ mixin _$TradePositionPatch {
   CreatorPatch? get holder => throw _privateConstructorUsedError;
   AddressesPatch? get addresses => throw _privateConstructorUsedError;
   String? get createdAt => throw _privateConstructorUsedError;
-  String? get type => throw _privateConstructorUsedError;
+  TradeType? get type => throw _privateConstructorUsedError;
   double? get amount => throw _privateConstructorUsedError;
   double? get amountUSD => throw _privateConstructorUsedError;
   double? get balance => throw _privateConstructorUsedError;
@@ -404,7 +403,7 @@ class _$TradePositionPatchImpl implements _TradePositionPatch {
   @override
   final String? createdAt;
   @override
-  final String? type;
+  final TradeType? type;
   @override
   final double? amount;
   @override
@@ -463,7 +462,7 @@ abstract class _TradePositionPatch implements TradePositionPatch {
     final CreatorPatch? holder,
     final AddressesPatch? addresses,
     final String? createdAt,
-    final String? type,
+    final TradeType? type,
     final double? amount,
     final double? amountUSD,
     final double? balance,
@@ -480,7 +479,7 @@ abstract class _TradePositionPatch implements TradePositionPatch {
   @override
   String? get createdAt;
   @override
-  String? get type;
+  TradeType? get type;
   @override
   double? get amount;
   @override

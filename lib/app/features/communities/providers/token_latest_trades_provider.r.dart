@@ -41,28 +41,30 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     ref.onDispose(subscription.close);
 
     // 3. Listen to updates and prepend them
-    await for (final newTrade in subscription.stream) {
-      final existIndex = _currentTrades.indexWhere(
-        (element) =>
-            element.position.createdAt == newTrade.position?.createdAt &&
-            element.position.addresses.ionConnect == newTrade.position?.addresses?.ionConnect,
-      );
+    await for (final newTrades in subscription.stream) {
+      for (final newTrade in newTrades) {
+        final existIndex = _currentTrades.indexWhere(
+          (element) =>
+              element.position.createdAt == newTrade.position?.createdAt &&
+              element.position.addresses.ionConnect == newTrade.position?.addresses?.ionConnect,
+        );
 
-      if (existIndex >= 0) {
-        final existTrade = _currentTrades[existIndex];
+        if (existIndex >= 0) {
+          final existTrade = _currentTrades[existIndex];
 
-        if (newTrade is LatestTradePatch) {
-          final patchedTrade = existTrade.merge(newTrade);
+          if (newTrade is LatestTradePatch) {
+            final patchedTrade = existTrade.merge(newTrade);
 
-          _currentTrades = List.of(_currentTrades);
-          _currentTrades[existIndex] = patchedTrade;
-        } else if (newTrade is LatestTrade) {
-          _currentTrades = List.of(_currentTrades);
-          _currentTrades[existIndex] = newTrade;
-        }
-      } else {
-        if (newTrade is LatestTrade) {
-          _currentTrades = [newTrade, ..._currentTrades];
+            _currentTrades = List.of(_currentTrades);
+            _currentTrades[existIndex] = patchedTrade;
+          } else if (newTrade is LatestTrade) {
+            _currentTrades = List.of(_currentTrades);
+            _currentTrades[existIndex] = newTrade;
+          }
+        } else {
+          if (newTrade is LatestTrade) {
+            _currentTrades = [newTrade, ..._currentTrades];
+          }
         }
       }
       yield _currentTrades;

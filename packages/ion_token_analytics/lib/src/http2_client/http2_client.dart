@@ -263,6 +263,161 @@ class Http2Client {
     }
   }
 
+  /// Creates a Server-Sent Events (SSE) subscription over HTTP/2.
+  ///
+  /// The [path] specifies the SSE endpoint.
+  /// The [queryParameters] will be appended to the path as a query string.
+  /// The [headers] can contain custom headers.
+  ///
+  /// Returns an [Http2Subscription] containing a stream of messages and a close method.
+  /// The subscription will automatically increment the active operations counter,
+  /// keeping the connection alive until the subscription is closed.
+  Future<Http2Subscription<T>> subscribeSse<T>(
+    String path, {
+    Map<String, String>? queryParameters,
+    Map<String, String>? headers,
+  }) async {
+    if (_disposed) {
+      throw StateError('Cannot create subscription on disposed Http2Client');
+    }
+    await _ensureConnection();
+    _activeStreams++;
+
+    try {
+      // Build the full path with query parameters
+      final uri = Uri(
+        path: path.startsWith('/') ? path : '/$path',
+        queryParameters: queryParameters,
+      );
+      final fullPath = uri.toString();
+
+      // Build request headers
+      final requestHeaders = [
+        Header.ascii(':method', 'GET'),
+        Header.ascii(':scheme', scheme),
+        Header.ascii(':path', fullPath),
+        Header.ascii(':authority', host),
+        Header.ascii('accept', 'text/event-stream'),
+        Header.ascii('cache-control', 'no-cache'),
+      ];
+
+      // Add custom headers
+      if (headers != null) {
+        for (final entry in headers.entries) {
+          requestHeaders.add(Header.ascii(entry.key.toLowerCase(), entry.value));
+        }
+      }
+
+      // Make the request
+      final stream = _connection.transport!.makeRequest(requestHeaders)
+        ..sendData(Uint8List(0), endStream: true);
+
+      final controller = StreamController<T>.broadcast();
+      var isClosed = false;
+
+      // SSE parsing state
+      var buffer = '';
+
+      final streamSubscription = stream.incomingMessages.listen(
+        (message) {
+          if (controller.isClosed) return;
+
+          if (message is DataStreamMessage) {
+            final chunk = utf8.decode(message.bytes);
+            buffer += chunk;
+
+            while (buffer.contains('\n\n')) {
+              final index = buffer.indexOf('\n\n');
+              final eventString = buffer.substring(0, index);
+              buffer = buffer.substring(index + 2);
+
+              _processSseEvent<T>(eventString, controller);
+            }
+          } else if (message is HeadersStreamMessage) {
+            // Check status code?
+            final headers = _parseHeaders(message.headers);
+            final status = headers[':status'];
+            if (status != null && status != '200') {
+              controller.addError(Exception('SSE connection failed with status $status'));
+            }
+          }
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          if (!controller.isClosed) {
+            controller.addError(error, stackTrace);
+          }
+        },
+        onDone: () async {
+          if (!isClosed) {
+            isClosed = true;
+            if (!controller.isClosed) {
+              await controller.close();
+            }
+            _activeStreams--;
+            await _maybeCloseConnection();
+          }
+        },
+      );
+
+      // Manual close method
+      Future<void> close() async {
+        if (isClosed) return;
+        isClosed = true;
+
+        // Cancel the stream subscription (this might not close the server side immediately)
+        await streamSubscription.cancel();
+
+        // We can't easily "close" an HTTP/2 stream from client side other than RST_STREAM
+        // but the transport doesn't expose that easily.
+        // For now, we rely on cancelling the listener.
+
+        if (!controller.isClosed) {
+          await controller.close();
+        }
+
+        _activeStreams--;
+        await _maybeCloseConnection();
+      }
+
+      return Http2Subscription<T>(stream: controller.stream, close: close);
+    } catch (e) {
+      _activeStreams--;
+      await _maybeCloseConnection();
+      rethrow;
+    }
+  }
+
+  void _processSseEvent<T>(String eventString, StreamController<T> controller) {
+    final lines = eventString.split('\n');
+    String? data;
+    // String? event; // We could use this if we wanted to support named events
+
+    for (final line in lines) {
+      if (line.startsWith('data:')) {
+        final lineData = line.substring(5).trim();
+        if (data == null) {
+          data = lineData;
+        } else {
+          data = '$data\n$lineData';
+        }
+      }
+      // Handle 'event:', 'id:', 'retry:' if needed
+    }
+
+    if (data != null) {
+      if (T == String) {
+        controller.add(data as T);
+      } else {
+        try {
+          final parsed = jsonDecode(data);
+          controller.add(parsed as T);
+        } catch (e) {
+          controller.addError(e);
+        }
+      }
+    }
+  }
+
   /// Ensures an HTTP/2 connection is established.
   ///
   /// If a connection already exists, this method returns immediately.

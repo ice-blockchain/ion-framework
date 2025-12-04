@@ -13,8 +13,22 @@ class TradingStatsRepositoryImpl implements TradingStatsRepository {
   Future<NetworkSubscription<Map<String, TradingStats>>> subscribeToTradingStats(
     String ionConnectAddress,
   ) async {
-    return _client.subscribe<Map<String, TradingStats>>(
-      '/community-tokens/$ionConnectAddress/trading-stats',
-    );
+    try {
+      final subscription = await _client.subscribeSse<Map<String, dynamic>>(
+        '/v1sse/community-tokens/$ionConnectAddress/trading-stats/',
+      );
+
+      final stream = subscription.stream.map((statsMap) {
+        final map = <String, TradingStats>{};
+        for (final entry in statsMap.entries) {
+          map[entry.key] = TradingStats.fromJson(entry.value as Map<String, dynamic>);
+        }
+        return map;
+      });
+
+      return NetworkSubscription(stream: stream, close: subscription.close);
+    } catch (e) {
+      rethrow;
+    }
   }
 }

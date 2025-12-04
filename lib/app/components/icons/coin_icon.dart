@@ -6,12 +6,12 @@ import 'package:ion/app/components/icons/wallet_item_icon_widget.dart';
 
 class CoinIconWidget extends StatelessWidget {
   const CoinIconWidget({
-    required this.imageUrl,
     required this.type,
+    this.imageUrl,
     super.key,
   });
 
-  final String imageUrl;
+  final String? imageUrl;
   final WalletItemIconType type;
 
   @override

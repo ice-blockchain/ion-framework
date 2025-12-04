@@ -2,41 +2,33 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/communities/providers/token_latest_trades_provider.r.dart';
+import 'package:ion/app/features/communities/views/pages/holders/components/holder_avatar.dart';
+import 'package:ion/app/features/communities/views/pages/latest_trades/components/latest_trades_empty.dart';
+import 'package:ion/app/features/communities/views/pages/latest_trades/components/latest_trades_skeleton.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-class LatestTradesComponent extends HookWidget {
-  const LatestTradesComponent({
-    required this.trades,
-    this.maxVisible = 5,
-    this.onViewAllPressed,
-    this.onTapTrade,
-    this.onLoadMore,
-    this.onTitleVisibilityChanged,
-    super.key,
-  });
+class LatestTradesCard extends HookConsumerWidget {
+  const LatestTradesCard({required this.externalAddress, this.onTitleVisibilityChanged, super.key});
 
-  final List<LatestTrade> trades;
-  final int maxVisible;
-  final VoidCallback? onViewAllPressed;
-  final ValueChanged<LatestTrade>? onTapTrade;
-  final VoidCallback? onLoadMore;
+  static const int limit = 5;
+
+  final String externalAddress;
   final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tradesAsync = ref.watch(tokenLatestTradesProvider(externalAddress, limit: limit));
+
     final colors = context.theme.appColors;
     final texts = context.theme.appTextThemes;
     final i18n = context.i18n;
-
-    final visible = useMemoized(
-      () => trades.take(maxVisible).toList(),
-      [trades, maxVisible],
-    );
 
     final badgeTextStyle = texts.caption6.copyWith(
       color: colors.secondaryBackground,
@@ -51,37 +43,11 @@ class LatestTradesComponent extends HookWidget {
       () => _calculateTextWidth(i18n.trade_sell, badgeTextStyle),
       [i18n.trade_sell, badgeTextStyle],
     );
-
     final baseTextWidth = buyTextWidth > sellTextWidth ? buyTextWidth : sellTextWidth;
     final widthBuffer = 2.0.s;
     final minTextWidth = baseTextWidth + widthBuffer;
 
-    final titleRow = Row(
-      children: [
-        Assets.svg.fluentArrowSort16Regular.icon(size: 18.0.s),
-        SizedBox(width: 6.0.s),
-        Expanded(
-          child: Text(
-            i18n.latest_trades_title,
-            style: texts.subtitle3.copyWith(color: colors.onTertiaryBackground),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        if (onViewAllPressed != null)
-          GestureDetector(
-            onTap: onViewAllPressed,
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 4.0.s),
-              child: Text(
-                i18n.core_view_all,
-                style: texts.caption2.copyWith(color: colors.primaryAccent),
-              ),
-            ),
-          ),
-      ],
-    );
+    final tradesCount = tradesAsync.valueOrNull?.length ?? 0;
 
     return ColoredBox(
       color: colors.secondaryBackground,
@@ -96,33 +62,44 @@ class LatestTradesComponent extends HookWidget {
                 onVisibilityChanged: (info) {
                   onTitleVisibilityChanged?.call(info.visibleFraction);
                 },
-                child: titleRow,
+                child: _CardTitle(
+                  tradesCount: tradesCount,
+                  title: i18n.latest_trades_title,
+                ),
               )
             else
-              titleRow,
-            SizedBox(height: 14.0.s),
-            Column(
-              children: [
-                for (final trade in visible)
-                  _TradeRow(
-                    trade: trade,
-                    minTextWidth: minTextWidth,
-                    onTap: onTapTrade,
-                  ),
-              ],
-            ),
-            if (onLoadMore != null) ...[
-              SizedBox(height: 12.0.s),
-              Center(
-                child: TextButton(
-                  onPressed: onLoadMore,
-                  child: Text(
-                    'Load More',
-                    style: texts.caption.copyWith(color: colors.primaryAccent),
-                  ),
-                ),
+              _CardTitle(
+                tradesCount: tradesCount,
+                title: i18n.latest_trades_title,
               ),
-            ],
+            SizedBox(height: 8.0.s),
+            tradesAsync.when(
+              data: (data) {
+                final trades = data.take(limit).toList();
+                if (trades.isEmpty) {
+                  return const LatestTradesEmpty();
+                }
+                return ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: trades.length,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemBuilder: (context, index) {
+                    final trade = trades[index];
+                    return _TradeRow(
+                      trade: trade,
+                      minTextWidth: minTextWidth,
+                      onTap: (_) {},
+                    );
+                  },
+                  separatorBuilder: (context, index) => SizedBox(height: 14.0.s),
+                );
+              },
+              loading: () => LatestTradesSkeleton(count: limit, seperatorHeight: 14.0.s),
+              error: (error, stackTrace) {
+                return const LatestTradesEmpty();
+              },
+            ),
           ],
         ),
       ),
@@ -141,6 +118,42 @@ class LatestTradesComponent extends HookWidget {
   }
 }
 
+class _CardTitle extends StatelessWidget {
+  const _CardTitle({required this.title, required this.tradesCount});
+  final String title;
+  final int tradesCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.appColors;
+    final texts = context.theme.appTextThemes;
+    final i18n = context.i18n;
+
+    return Row(
+      children: [
+        Assets.svg.fluentArrowSort16Regular.icon(size: 18.0.s),
+        SizedBox(width: 6.0.s),
+        Expanded(
+          child: Text(
+            i18n.latest_trades_title,
+            style: texts.subtitle3.copyWith(color: colors.onTertiaryBackground),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (tradesCount > 0)
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 4.0.s),
+            child: Text(
+              i18n.core_view_all,
+              style: texts.caption2.copyWith(color: colors.primaryAccent),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class _TradeRow extends StatelessWidget {
   const _TradeRow({required this.trade, required this.minTextWidth, this.onTap});
   final LatestTrade trade;
@@ -153,18 +166,16 @@ class _TradeRow extends StatelessWidget {
     final texts = context.theme.appTextThemes;
     final i18n = context.i18n;
 
-    //TODO: change type to int
     final timeText = formatShortTimestamp(DateTime.parse(trade.position.createdAt));
     final amountText = formatDoubleCompact(trade.position.amount);
     final usdText = formatUSD(trade.position.amountUSD);
-    //TODO: use enum
-    final badgeColor = trade.position.type == 'buy' ? colors.success : colors.lossRed;
-    final badgeText = trade.position.type == 'buy' ? i18n.trade_buy : i18n.trade_sell;
+    final badgeColor = trade.position.type == TradeType.buy ? colors.success : colors.lossRed;
+    final badgeText = trade.position.type == TradeType.buy ? i18n.trade_buy : i18n.trade_sell;
 
     final textStyle = texts.caption6.copyWith(color: colors.secondaryBackground);
 
     final badge = Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 1.0.s),
+      padding: EdgeInsets.symmetric(horizontal: 10.0.s),
       decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(12.0.s)),
       child: SizedBox(
         width: minTextWidth,
@@ -180,44 +191,23 @@ class _TradeRow extends StatelessWidget {
 
     return InkWell(
       onTap: onTap == null ? null : () => onTap!(trade),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 6.0.s),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                _Avatar(url: trade.position.holder.avatar),
-                SizedBox(width: 8.0.s),
-                _TitleAndMeta(
-                  name: trade.position.holder.display,
-                  handle: trade.position.holder.name,
-                  //TODO: add verified
-                  verified: true,
-                  meta: '$amountText • \$$usdText • $timeText',
-                ),
-              ],
-            ),
-            badge,
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Avatar extends StatelessWidget {
-  const _Avatar({this.url});
-  final String? url;
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.theme.appColors;
-    return Container(
-      width: 30.0.s,
-      height: 30.0.s,
-      decoration: BoxDecoration(
-        color: colors.onTertiaryFill,
-        borderRadius: BorderRadius.circular(10.0.s),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              HolderAvatar(imageUrl: trade.position.holder.avatar),
+              SizedBox(width: 8.0.s),
+              _TitleAndMeta(
+                name: trade.position.holder.display,
+                handle: trade.position.holder.name,
+                verified: trade.position.holder.verified,
+                meta: '$amountText • \$$usdText • $timeText',
+              ),
+            ],
+          ),
+          badge,
+        ],
       ),
     );
   }
@@ -256,7 +246,6 @@ class _TitleAndMeta extends StatelessWidget {
             ],
           ],
         ),
-        SizedBox(height: 2.0.s),
         Text(meta, style: texts.caption.copyWith(color: colors.quaternaryText)),
       ],
     );

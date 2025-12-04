@@ -11,13 +11,13 @@ import 'package:ion/generated/assets.gen.dart';
 
 class WalletItemIconWidget extends StatelessWidget {
   const WalletItemIconWidget({
-    required this.imageUrl,
     required this.type,
+    this.imageUrl,
     this.color,
     super.key,
   });
 
-  final String imageUrl;
+  final String? imageUrl;
   final WalletItemIconType type;
   final Color? color;
 
@@ -36,11 +36,11 @@ class WalletItemIconWidget extends StatelessWidget {
             BlendMode.srcIn,
           );
 
-    return imageUrl.isSvg
+    return imageUrl!.isSvg
         ? ClipRRect(
             borderRadius: borderRadius,
             child: SvgPicture.network(
-              imageUrl,
+              imageUrl!,
               width: iconSize,
               height: iconSize,
               colorFilter: colorFilter,
@@ -51,7 +51,7 @@ class WalletItemIconWidget extends StatelessWidget {
             ),
           )
         : IonNetworkImage(
-            imageUrl: imageUrl,
+            imageUrl: imageUrl!,
             width: iconSize,
             height: iconSize,
             errorWidget: (_, __, ___) => Assets.svg.walletEmptyicon.icon(size: iconSize),

@@ -10,11 +10,11 @@ import 'package:ion/generated/assets.gen.dart';
 
 class FloatingTradeIsland extends StatelessWidget {
   const FloatingTradeIsland({
-    required this.pubkey,
+    required this.externalAddress,
     super.key,
   });
 
-  final String pubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,7 @@ class FloatingTradeIsland extends StatelessWidget {
               onTap: () {
                 showSimpleBottomSheet<void>(
                   context: context,
-                  child: BuySellCreatorTokenDialog(creatorPubkey: pubkey),
+                  child: BuySellCreatorTokenDialog(externalAddress: externalAddress),
                 );
               },
               flipIconUp: true,

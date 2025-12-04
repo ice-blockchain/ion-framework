@@ -533,6 +533,7 @@
   "invite_friends_summary_defi_text": "DeFi",
   "invite_friends_summary_referrals_text": "Total referrals",
   "invite_friends_summary_upgrades_text": "Upgrades",
+  "latest_trades_empty": "Make the first transaction",
   "latest_trades_title": "Latest Trades",
   "maintenance_page_description": "We’re making some quick improvements behind the scenes. Everything will be back to normal soon. Please try again later.",
   "maintenance_page_title": "We’ll be back shortly",

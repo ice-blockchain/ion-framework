@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/checkbox/labeled_checkbox.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/tokenized_communities/providers/buy_creator_token_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/providers.r.dart';
@@ -22,18 +23,18 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 
 class BuySellCreatorTokenDialog extends HookConsumerWidget {
   const BuySellCreatorTokenDialog({
-    required this.creatorPubkey,
+    required this.externalAddress,
     super.key,
   });
 
-  final String creatorPubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(buySellCreatorTokenControllerProvider(creatorPubkey));
-    final controller = ref.read(buySellCreatorTokenControllerProvider(creatorPubkey).notifier);
+    final state = ref.watch(buySellCreatorTokenControllerProvider(externalAddress));
+    final controller = ref.read(buySellCreatorTokenControllerProvider(externalAddress).notifier);
 
-    final communityTokenAsync = ref.watch(communityTokenInfoProvider(creatorPubkey));
+    final communityTokenAsync = ref.watch(tokenMarketInfoProvider(externalAddress));
     final supportedTokensAsync = ref.watch(supportedSwapTokensProvider);
 
     final amountController = useTextEditingController();
@@ -45,10 +46,10 @@ class BuySellCreatorTokenDialog extends HookConsumerWidget {
 
     ref
       ..displayErrors(
-        buyCreatorTokenNotifierProvider(creatorPubkey),
+        buyCreatorTokenNotifierProvider(externalAddress),
         excludedExceptions: excludedPasskeyExceptions,
       )
-      ..listenSuccess<String?>(buyCreatorTokenNotifierProvider(creatorPubkey), (String? txHash) {
+      ..listenSuccess<String?>(buyCreatorTokenNotifierProvider(externalAddress), (String? txHash) {
         if (context.mounted) {
           Navigator.of(context).pop();
           final rootNavigator = Navigator.of(context, rootNavigator: true);
@@ -60,7 +61,7 @@ class BuySellCreatorTokenDialog extends HookConsumerWidget {
         }
       });
 
-    final tokenInfo = communityTokenAsync.value;
+    final tokenInfo = communityTokenAsync.valueOrNull;
 
     if (tokenInfo == null) {
       return const SizedBox.shrink();
@@ -139,7 +140,7 @@ class BuySellCreatorTokenDialog extends HookConsumerWidget {
               state.targetWallet != null &&
               !state.isQuoting &&
               state.selectedPaymentToken != null,
-          onPressed: () => _handleBuyButtonPress(context, ref, creatorPubkey),
+          onPressed: () => _handleBuyButtonPress(context, ref, externalAddress),
         ),
         SizedBox(
           height: 16.0.s,

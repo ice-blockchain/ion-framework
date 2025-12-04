@@ -21,8 +21,9 @@ Addresses _$AddressesFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Addresses {
-  String get blockchain => throw _privateConstructorUsedError;
-  String get ionConnect => throw _privateConstructorUsedError;
+  String? get blockchain => throw _privateConstructorUsedError;
+  String? get ionConnect => throw _privateConstructorUsedError;
+  String? get twitter => throw _privateConstructorUsedError;
 
   /// Serializes this Addresses to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -39,7 +40,7 @@ abstract class $AddressesCopyWith<$Res> {
   factory $AddressesCopyWith(Addresses value, $Res Function(Addresses) then) =
       _$AddressesCopyWithImpl<$Res, Addresses>;
   @useResult
-  $Res call({String blockchain, String ionConnect});
+  $Res call({String? blockchain, String? ionConnect, String? twitter});
 }
 
 /// @nodoc
@@ -56,17 +57,25 @@ class _$AddressesCopyWithImpl<$Res, $Val extends Addresses>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? blockchain = null, Object? ionConnect = null}) {
+  $Res call({
+    Object? blockchain = freezed,
+    Object? ionConnect = freezed,
+    Object? twitter = freezed,
+  }) {
     return _then(
       _value.copyWith(
-            blockchain: null == blockchain
+            blockchain: freezed == blockchain
                 ? _value.blockchain
                 : blockchain // ignore: cast_nullable_to_non_nullable
-                      as String,
-            ionConnect: null == ionConnect
+                      as String?,
+            ionConnect: freezed == ionConnect
                 ? _value.ionConnect
                 : ionConnect // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
+            twitter: freezed == twitter
+                ? _value.twitter
+                : twitter // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -82,7 +91,7 @@ abstract class _$$AddressesImplCopyWith<$Res>
   ) = __$$AddressesImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String blockchain, String ionConnect});
+  $Res call({String? blockchain, String? ionConnect, String? twitter});
 }
 
 /// @nodoc
@@ -98,17 +107,25 @@ class __$$AddressesImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? blockchain = null, Object? ionConnect = null}) {
+  $Res call({
+    Object? blockchain = freezed,
+    Object? ionConnect = freezed,
+    Object? twitter = freezed,
+  }) {
     return _then(
       _$AddressesImpl(
-        blockchain: null == blockchain
+        blockchain: freezed == blockchain
             ? _value.blockchain
             : blockchain // ignore: cast_nullable_to_non_nullable
-                  as String,
-        ionConnect: null == ionConnect
+                  as String?,
+        ionConnect: freezed == ionConnect
             ? _value.ionConnect
             : ionConnect // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
+        twitter: freezed == twitter
+            ? _value.twitter
+            : twitter // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -117,19 +134,25 @@ class __$$AddressesImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$AddressesImpl implements _Addresses {
-  const _$AddressesImpl({required this.blockchain, required this.ionConnect});
+  const _$AddressesImpl({
+    required this.blockchain,
+    required this.ionConnect,
+    this.twitter,
+  });
 
   factory _$AddressesImpl.fromJson(Map<String, dynamic> json) =>
       _$$AddressesImplFromJson(json);
 
   @override
-  final String blockchain;
+  final String? blockchain;
   @override
-  final String ionConnect;
+  final String? ionConnect;
+  @override
+  final String? twitter;
 
   @override
   String toString() {
-    return 'Addresses(blockchain: $blockchain, ionConnect: $ionConnect)';
+    return 'Addresses(blockchain: $blockchain, ionConnect: $ionConnect, twitter: $twitter)';
   }
 
   @override
@@ -140,12 +163,13 @@ class _$AddressesImpl implements _Addresses {
             (identical(other.blockchain, blockchain) ||
                 other.blockchain == blockchain) &&
             (identical(other.ionConnect, ionConnect) ||
-                other.ionConnect == ionConnect));
+                other.ionConnect == ionConnect) &&
+            (identical(other.twitter, twitter) || other.twitter == twitter));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, blockchain, ionConnect);
+  int get hashCode => Object.hash(runtimeType, blockchain, ionConnect, twitter);
 
   /// Create a copy of Addresses
   /// with the given fields replaced by the non-null parameter values.
@@ -163,17 +187,20 @@ class _$AddressesImpl implements _Addresses {
 
 abstract class _Addresses implements Addresses {
   const factory _Addresses({
-    required final String blockchain,
-    required final String ionConnect,
+    required final String? blockchain,
+    required final String? ionConnect,
+    final String? twitter,
   }) = _$AddressesImpl;
 
   factory _Addresses.fromJson(Map<String, dynamic> json) =
       _$AddressesImpl.fromJson;
 
   @override
-  String get blockchain;
+  String? get blockchain;
   @override
-  String get ionConnect;
+  String? get ionConnect;
+  @override
+  String? get twitter;
 
   /// Create a copy of Addresses
   /// with the given fields replaced by the non-null parameter values.
@@ -191,6 +218,7 @@ AddressesPatch _$AddressesPatchFromJson(Map<String, dynamic> json) {
 mixin _$AddressesPatch {
   String? get blockchain => throw _privateConstructorUsedError;
   String? get ionConnect => throw _privateConstructorUsedError;
+  String? get twitter => throw _privateConstructorUsedError;
 
   /// Serializes this AddressesPatch to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -199,7 +227,7 @@ mixin _$AddressesPatch {
 /// @nodoc
 @JsonSerializable()
 class _$AddressesPatchImpl implements _AddressesPatch {
-  const _$AddressesPatchImpl({this.blockchain, this.ionConnect});
+  const _$AddressesPatchImpl({this.blockchain, this.ionConnect, this.twitter});
 
   factory _$AddressesPatchImpl.fromJson(Map<String, dynamic> json) =>
       _$$AddressesPatchImplFromJson(json);
@@ -208,10 +236,12 @@ class _$AddressesPatchImpl implements _AddressesPatch {
   final String? blockchain;
   @override
   final String? ionConnect;
+  @override
+  final String? twitter;
 
   @override
   String toString() {
-    return 'AddressesPatch(blockchain: $blockchain, ionConnect: $ionConnect)';
+    return 'AddressesPatch(blockchain: $blockchain, ionConnect: $ionConnect, twitter: $twitter)';
   }
 
   @override
@@ -222,12 +252,13 @@ class _$AddressesPatchImpl implements _AddressesPatch {
             (identical(other.blockchain, blockchain) ||
                 other.blockchain == blockchain) &&
             (identical(other.ionConnect, ionConnect) ||
-                other.ionConnect == ionConnect));
+                other.ionConnect == ionConnect) &&
+            (identical(other.twitter, twitter) || other.twitter == twitter));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, blockchain, ionConnect);
+  int get hashCode => Object.hash(runtimeType, blockchain, ionConnect, twitter);
 
   @override
   Map<String, dynamic> toJson() {
@@ -239,6 +270,7 @@ abstract class _AddressesPatch implements AddressesPatch {
   const factory _AddressesPatch({
     final String? blockchain,
     final String? ionConnect,
+    final String? twitter,
   }) = _$AddressesPatchImpl;
 
   factory _AddressesPatch.fromJson(Map<String, dynamic> json) =
@@ -248,4 +280,6 @@ abstract class _AddressesPatch implements AddressesPatch {
   String? get blockchain;
   @override
   String? get ionConnect;
+  @override
+  String? get twitter;
 }

@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('Http2WebSocket', () {
-    const testHost = '181.41.142.217';
+    const testHost = '51.75.87.132';
     const testPort = 4443;
 
     test('sends text message and receives NOTICE response', () async {

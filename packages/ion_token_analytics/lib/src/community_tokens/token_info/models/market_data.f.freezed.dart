@@ -21,6 +21,7 @@ MarketData _$MarketDataFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$MarketData {
+  String get ticker => throw _privateConstructorUsedError;
   double get marketCap => throw _privateConstructorUsedError;
   double get volume => throw _privateConstructorUsedError;
   int get holders => throw _privateConstructorUsedError;
@@ -45,6 +46,7 @@ abstract class $MarketDataCopyWith<$Res> {
   ) = _$MarketDataCopyWithImpl<$Res, MarketData>;
   @useResult
   $Res call({
+    String ticker,
     double marketCap,
     double volume,
     int holders,
@@ -70,6 +72,7 @@ class _$MarketDataCopyWithImpl<$Res, $Val extends MarketData>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? ticker = null,
     Object? marketCap = null,
     Object? volume = null,
     Object? holders = null,
@@ -78,6 +81,10 @@ class _$MarketDataCopyWithImpl<$Res, $Val extends MarketData>
   }) {
     return _then(
       _value.copyWith(
+            ticker: null == ticker
+                ? _value.ticker
+                : ticker // ignore: cast_nullable_to_non_nullable
+                      as String,
             marketCap: null == marketCap
                 ? _value.marketCap
                 : marketCap // ignore: cast_nullable_to_non_nullable
@@ -128,6 +135,7 @@ abstract class _$$MarketDataImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
+    String ticker,
     double marketCap,
     double volume,
     int holders,
@@ -153,6 +161,7 @@ class __$$MarketDataImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? ticker = null,
     Object? marketCap = null,
     Object? volume = null,
     Object? holders = null,
@@ -161,6 +170,10 @@ class __$$MarketDataImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$MarketDataImpl(
+        ticker: null == ticker
+            ? _value.ticker
+            : ticker // ignore: cast_nullable_to_non_nullable
+                  as String,
         marketCap: null == marketCap
             ? _value.marketCap
             : marketCap // ignore: cast_nullable_to_non_nullable
@@ -190,6 +203,7 @@ class __$$MarketDataImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$MarketDataImpl implements _MarketData {
   const _$MarketDataImpl({
+    required this.ticker,
     required this.marketCap,
     required this.volume,
     required this.holders,
@@ -200,6 +214,8 @@ class _$MarketDataImpl implements _MarketData {
   factory _$MarketDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$MarketDataImplFromJson(json);
 
+  @override
+  final String ticker;
   @override
   final double marketCap;
   @override
@@ -213,7 +229,7 @@ class _$MarketDataImpl implements _MarketData {
 
   @override
   String toString() {
-    return 'MarketData(marketCap: $marketCap, volume: $volume, holders: $holders, priceUSD: $priceUSD, position: $position)';
+    return 'MarketData(ticker: $ticker, marketCap: $marketCap, volume: $volume, holders: $holders, priceUSD: $priceUSD, position: $position)';
   }
 
   @override
@@ -221,6 +237,7 @@ class _$MarketDataImpl implements _MarketData {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$MarketDataImpl &&
+            (identical(other.ticker, ticker) || other.ticker == ticker) &&
             (identical(other.marketCap, marketCap) ||
                 other.marketCap == marketCap) &&
             (identical(other.volume, volume) || other.volume == volume) &&
@@ -233,8 +250,15 @@ class _$MarketDataImpl implements _MarketData {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, marketCap, volume, holders, priceUSD, position);
+  int get hashCode => Object.hash(
+    runtimeType,
+    ticker,
+    marketCap,
+    volume,
+    holders,
+    priceUSD,
+    position,
+  );
 
   /// Create a copy of MarketData
   /// with the given fields replaced by the non-null parameter values.
@@ -252,6 +276,7 @@ class _$MarketDataImpl implements _MarketData {
 
 abstract class _MarketData implements MarketData {
   const factory _MarketData({
+    required final String ticker,
     required final double marketCap,
     required final double volume,
     required final int holders,
@@ -262,6 +287,8 @@ abstract class _MarketData implements MarketData {
   factory _MarketData.fromJson(Map<String, dynamic> json) =
       _$MarketDataImpl.fromJson;
 
+  @override
+  String get ticker;
   @override
   double get marketCap;
   @override
@@ -287,6 +314,7 @@ MarketDataPatch _$MarketDataPatchFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$MarketDataPatch {
+  String? get ticker => throw _privateConstructorUsedError;
   double? get marketCap => throw _privateConstructorUsedError;
   double? get volume => throw _privateConstructorUsedError;
   int? get holders => throw _privateConstructorUsedError;
@@ -301,6 +329,7 @@ mixin _$MarketDataPatch {
 @JsonSerializable()
 class _$MarketDataPatchImpl implements _MarketDataPatch {
   const _$MarketDataPatchImpl({
+    this.ticker,
     this.marketCap,
     this.volume,
     this.holders,
@@ -311,6 +340,8 @@ class _$MarketDataPatchImpl implements _MarketDataPatch {
   factory _$MarketDataPatchImpl.fromJson(Map<String, dynamic> json) =>
       _$$MarketDataPatchImplFromJson(json);
 
+  @override
+  final String? ticker;
   @override
   final double? marketCap;
   @override
@@ -324,7 +355,7 @@ class _$MarketDataPatchImpl implements _MarketDataPatch {
 
   @override
   String toString() {
-    return 'MarketDataPatch(marketCap: $marketCap, volume: $volume, holders: $holders, priceUSD: $priceUSD, position: $position)';
+    return 'MarketDataPatch(ticker: $ticker, marketCap: $marketCap, volume: $volume, holders: $holders, priceUSD: $priceUSD, position: $position)';
   }
 
   @override
@@ -332,6 +363,7 @@ class _$MarketDataPatchImpl implements _MarketDataPatch {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$MarketDataPatchImpl &&
+            (identical(other.ticker, ticker) || other.ticker == ticker) &&
             (identical(other.marketCap, marketCap) ||
                 other.marketCap == marketCap) &&
             (identical(other.volume, volume) || other.volume == volume) &&
@@ -344,8 +376,15 @@ class _$MarketDataPatchImpl implements _MarketDataPatch {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, marketCap, volume, holders, priceUSD, position);
+  int get hashCode => Object.hash(
+    runtimeType,
+    ticker,
+    marketCap,
+    volume,
+    holders,
+    priceUSD,
+    position,
+  );
 
   @override
   Map<String, dynamic> toJson() {
@@ -355,6 +394,7 @@ class _$MarketDataPatchImpl implements _MarketDataPatch {
 
 abstract class _MarketDataPatch implements MarketDataPatch {
   const factory _MarketDataPatch({
+    final String? ticker,
     final double? marketCap,
     final double? volume,
     final int? holders,
@@ -365,6 +405,8 @@ abstract class _MarketDataPatch implements MarketDataPatch {
   factory _MarketDataPatch.fromJson(Map<String, dynamic> json) =
       _$MarketDataPatchImpl.fromJson;
 
+  @override
+  String? get ticker;
   @override
   double? get marketCap;
   @override

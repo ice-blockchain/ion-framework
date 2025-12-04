@@ -11,16 +11,10 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/providers/category_tokens_provider.r.dart';
 import 'package:ion/app/features/communities/providers/featured_tokens_provider.r.dart';
 import 'package:ion/app/features/communities/providers/latest_tokens_provider.r.dart';
-import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_tab_content.dart';
-import 'package:ion/app/features/user/pages/profile_page/cant_find_profile_page.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/header/header.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
-import 'package:ion/app/features/user/pages/profile_page/profile_skeleton.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -30,34 +24,14 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class CreatorTokensPage extends HookConsumerWidget {
   const CreatorTokensPage({
-    required this.masterPubkey,
     super.key,
   });
-
-  final String masterPubkey;
 
   double get paddingTop => 60.0.s;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
-
     final statusBarHeight = MediaQuery.paddingOf(context).top;
-
-    if (userMetadata.isLoading && !userMetadata.hasValue) {
-      return const ProfileSkeleton(showBackButton: true);
-    }
-
-    final metadata = userMetadata.valueOrNull;
-
-    final isBlockedOrBlockedBy = ref.watch(
-      isBlockedOrBlockedByNotifierProvider(masterPubkey)
-          .select((value) => value.valueOrNull.falseOrValue),
-    );
-
-    if (metadata.isDeleted || isBlockedOrBlockedBy) {
-      return const CantFindProfilePage();
-    }
 
     final scrollController = useScrollController();
 
@@ -66,10 +40,12 @@ class CreatorTokensPage extends HookConsumerWidget {
     useEffect(
       () {
         return () {
-          ref
-            ..invalidate(latestTokensNotifierProvider)
-            ..invalidate(CategoryTokensNotifierProvider(TokenCategoryType.trending))
-            ..invalidate(CategoryTokensNotifierProvider(TokenCategoryType.top));
+          if (context.mounted) {
+            ref
+              ..invalidate(latestTokensNotifierProvider)
+              ..invalidate(CategoryTokensNotifierProvider(TokenCategoryType.trending))
+              ..invalidate(CategoryTokensNotifierProvider(TokenCategoryType.top));
+          }
         };
       },
       [],
@@ -180,7 +156,6 @@ class CreatorTokensPage extends HookConsumerWidget {
                     children: CreatorTokensTabType.values.map(
                       (tabType) {
                         return CreatorTokensTabContent(
-                          pubkey: masterPubkey,
                           tabType: tabType,
                         );
                       },
@@ -202,12 +177,6 @@ class CreatorTokensPage extends HookConsumerWidget {
                   backgroundBuilder: () => ProfileBackground(
                     colors: avatarColors,
                     disableDarkGradient: true,
-                  ),
-                  title: Header(
-                    opacity: opacity,
-                    pubkey: selectedToken.value?.creator.ionConnect ?? masterPubkey,
-                    showBackButton: true,
-                    textColor: context.theme.appColors.secondaryBackground,
                   ),
                 ),
               ),

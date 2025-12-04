@@ -14,9 +14,8 @@ class OhlcvCandlesRepositoryImpl implements OhlcvCandlesRepository {
     required String ionConnectAddress,
     required String interval,
   }) async {
-    // Subscribe to raw stream (dynamic)
-    final subscription = await _client.subscribe<Map<String, dynamic>>(
-      '/community-tokens/$ionConnectAddress/ohlcv',
+    final subscription = await _client.subscribeSse<Map<String, dynamic>>(
+      '/v1sse/community-tokens/$ionConnectAddress/ohlcv',
       queryParameters: {'interval': interval},
     );
     final stream = subscription.stream.map((json) {

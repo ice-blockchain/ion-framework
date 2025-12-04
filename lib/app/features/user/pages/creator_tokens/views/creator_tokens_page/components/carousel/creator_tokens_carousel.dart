@@ -62,7 +62,7 @@ class _CarouselCard extends HookConsumerWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: ProfileBackground(
-        key: ValueKey(token.addresses.ionConnect),
+        key: ValueKey(token.externalAddress),
         colors: colors,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -73,19 +73,11 @@ class _CarouselCard extends HookConsumerWidget {
                 color: context.theme.appColors.primaryBackground,
               ),
               padding: EdgeInsets.all(2.0.s),
-              // FIXME: Replace with IonConnectAvatar when we have real ionConnect addresses.
-              // Currently using Image.network because mock tokens have fake addresses that don't
-              // correspond to real users. With real data, use:
-              // IonConnectAvatar(
-              //   size: 98.0.s,
-              //   masterPubkey: token.creator.ionConnect,
-              //   borderRadius: BorderRadius.circular(20.0.s),
-              // )
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20.0.s),
                 child: avatarUrl.isNotEmpty
                     ? Image.network(
-                        avatarUrl,
+                        avatarUrl!,
                         width: 98.0.s,
                         height: 98.0.s,
                         fit: BoxFit.cover,
@@ -103,15 +95,6 @@ class _CarouselCard extends HookConsumerWidget {
               ),
             ),
             SizedBox(height: 20.0.s),
-            // TODO: Remove this entire Column after real data is available.
-            // Replace with: UserNameTile(
-            //   pubkey: token.creator.ionConnect,
-            //   profileMode: ProfileMode.dark,
-            //   showProfileTokenPrice: true,
-            //   priceUsd: token.marketData.priceUSD,
-            // )
-            // Currently using custom inline implementation because mock tokens have fake addresses
-            // that don't correspond to real users, so UserNameTile can't fetch user metadata.
             Column(
               children: [
                 Row(

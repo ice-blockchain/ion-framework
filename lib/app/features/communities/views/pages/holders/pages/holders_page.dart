@@ -3,12 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/communities/pages/holders/components/holder_tile.dart';
-import 'package:ion/app/features/communities/pages/holders/components/top_holders/components/top_holders_skeleton.dart';
-import 'package:ion/app/features/communities/pages/holders/providers/token_top_holders_provider.r.dart';
+import 'package:ion/app/features/communities/views/pages/holders/components/holder_tile.dart';
+import 'package:ion/app/features/communities/views/pages/holders/components/top_holders/components/top_holders_skeleton.dart';
+import 'package:ion/app/features/communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
@@ -36,6 +37,7 @@ class HoldersPage extends HookConsumerWidget {
           const SimpleSeparator(),
           Expanded(
             child: LoadMoreBuilder(
+              showIndicator: false,
               slivers: [
                 if (topHoldersAsync.isLoading && previousTopHolders.value.isEmpty)
                   SliverToBoxAdapter(
@@ -57,13 +59,22 @@ class HoldersPage extends HookConsumerWidget {
                       );
                     },
                   ),
+                if (topHoldersAsync.isLoading)
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.all(10.0.s),
+                        child: const IONLoadingIndicatorThemed(),
+                      ),
+                    ),
+                  ),
               ],
               onLoadMore: () async {
                 if (topHoldersAsync.isLoading) return;
                 previousTopHolders.value = topHolders;
                 limit.value += 20;
               },
-              hasMore: true,
+              hasMore: topHolders.length <= limit.value,
             ),
           ),
         ],

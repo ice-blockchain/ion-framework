@@ -5,7 +5,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
+import 'package:ion/app/components/section_separator/section_separator.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/communities/extensions/replaceable_entity.dart';
+import 'package:ion/app/features/communities/views/components/your_position_card.dart';
 import 'package:ion/app/features/components/entities_list/entities_list.dart';
 import 'package:ion/app/features/components/entities_list/entities_list_skeleton.dart';
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
@@ -68,6 +72,8 @@ class TabEntitiesList extends HookConsumerWidget {
     final tabData = ref.watch(tabEntitiesDataProvider(type: type, pubkey: pubkey));
     final entities = tabData.items ?? [];
 
+    final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+
     return LoadMoreBuilder(
       onLoadMore: () async {
         if (type == TabEntityType.posts) {
@@ -81,6 +87,18 @@ class TabEntitiesList extends HookConsumerWidget {
       },
       hasMore: tabData.hasMore,
       slivers: [
+        if (userMetadata != null && type == TabEntityType.posts)
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                SectionSeparator(height: 4.s),
+                YourPositionCard(
+                  externalAddress: userMetadata.externalAddress,
+                ),
+                SectionSeparator(height: 8.s),
+              ],
+            ),
+          ),
         if (entities.isEmpty && tabData.hasMore)
           const EntitiesListSkeleton()
         else if (entities.isEmpty || isBlockedOrBlockedBy)

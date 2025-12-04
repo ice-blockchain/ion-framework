@@ -2,11 +2,11 @@
 
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository.dart';
@@ -48,29 +48,25 @@ class IonCommunityTokensService {
   final CategoryTokensRepository _categoryTokensRepository;
 
   static Future<IonCommunityTokensService> create({required NetworkClient networkClient}) async {
-    // Base URL doesn't matter for mock
-
     final service = IonCommunityTokensService._(
       tokenInfoRepository: TokenInfoRepositoryImpl(networkClient),
       ohlcvCandlesRepository: OhlcvCandlesRepositoryImpl(networkClient),
       tradingStatsRepository: TradingStatsRepositoryImpl(networkClient),
       topHoldersRepository: TopHoldersRepositoryImpl(networkClient),
       latestTradesRepository: LatestTradesRepositoryImpl(networkClient),
-      featuredTokensRepository: FeaturedTokensRepositoryMock(),
-      latestTokensRepository: LatestTokensRepositoryMock(),
-      categoryTokensRepository: CategoryTokensRepositoryMock(),
+      featuredTokensRepository: FeaturedTokensRepositoryImpl(networkClient),
+      latestTokensRepository: LatestTokensRepositoryImpl(networkClient),
+      categoryTokensRepository: CategoryTokensRepositoryImpl(networkClient),
     );
     return service;
   }
 
-  Future<List<CommunityToken>> getTokenInfo(List<String> ionConnectAddresses) {
-    return _tokenInfoRepository.getTokenInfo(ionConnectAddresses);
+  Future<CommunityToken?> getTokenInfo(String externalAddress) {
+    return _tokenInfoRepository.getTokenInfo(externalAddress);
   }
 
-  Future<NetworkSubscription<List<CommunityTokenPatch>>> subscribeToTokenInfo(
-    List<String> ionConnectAddresses,
-  ) {
-    return _tokenInfoRepository.subscribeToTokenInfo(ionConnectAddresses);
+  Future<NetworkSubscription<CommunityTokenPatch>?> subscribeToTokenInfo(String externalAddress) {
+    return _tokenInfoRepository.subscribeToTokenInfo(externalAddress);
   }
 
   Future<NetworkSubscription<OhlcvCandle>> subscribeToOhlcvCandles({
@@ -89,7 +85,7 @@ class IonCommunityTokensService {
     return _tradingStatsRepository.subscribeToTradingStats(ionConnectAddress);
   }
 
-  Future<NetworkSubscription<TopHolderBase>> subscribeToTopHolders({
+  Future<NetworkSubscription<List<TopHolderBase>>> subscribeToTopHolders({
     required String ionConnectAddress,
     required int limit,
   }) {
@@ -108,7 +104,7 @@ class IonCommunityTokensService {
     );
   }
 
-  Future<NetworkSubscription<LatestTradeBase>> subscribeToLatestTrades({
+  Future<NetworkSubscription<List<LatestTradeBase>>> subscribeToLatestTrades({
     required String ionConnectAddress,
   }) {
     return _latestTradesRepository.subscribeToLatestTrades(ionConnectAddress);
@@ -132,7 +128,7 @@ class IonCommunityTokensService {
     );
   }
 
-  Future<NetworkSubscription<CommunityTokenBase>> subscribeToLatestTokens({
+  Future<NetworkSubscription<List<CommunityTokenBase>>> subscribeToLatestTokens({
     String? keyword,
     String? type,
   }) {

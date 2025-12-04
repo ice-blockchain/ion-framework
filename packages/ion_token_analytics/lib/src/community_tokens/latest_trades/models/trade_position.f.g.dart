@@ -11,7 +11,7 @@ _$TradePositionImpl _$$TradePositionImplFromJson(Map<String, dynamic> json) =>
       holder: Creator.fromJson(json['holder'] as Map<String, dynamic>),
       addresses: Addresses.fromJson(json['addresses'] as Map<String, dynamic>),
       createdAt: json['createdAt'] as String,
-      type: json['type'] as String,
+      type: $enumDecode(_$TradeTypeEnumMap, json['type']),
       amount: (json['amount'] as num).toDouble(),
       amountUSD: (json['amountUSD'] as num).toDouble(),
       balance: (json['balance'] as num).toDouble(),
@@ -23,12 +23,14 @@ Map<String, dynamic> _$$TradePositionImplToJson(_$TradePositionImpl instance) =>
       'holder': instance.holder.toJson(),
       'addresses': instance.addresses.toJson(),
       'createdAt': instance.createdAt,
-      'type': instance.type,
+      'type': _$TradeTypeEnumMap[instance.type]!,
       'amount': instance.amount,
       'amountUSD': instance.amountUSD,
       'balance': instance.balance,
       'balanceUSD': instance.balanceUSD,
     };
+
+const _$TradeTypeEnumMap = {TradeType.buy: 'buy', TradeType.sell: 'sell'};
 
 _$TradePositionPatchImpl _$$TradePositionPatchImplFromJson(
   Map<String, dynamic> json,
@@ -40,7 +42,7 @@ _$TradePositionPatchImpl _$$TradePositionPatchImplFromJson(
       ? null
       : AddressesPatch.fromJson(json['addresses'] as Map<String, dynamic>),
   createdAt: json['createdAt'] as String?,
-  type: json['type'] as String?,
+  type: $enumDecodeNullable(_$TradeTypeEnumMap, json['type']),
   amount: (json['amount'] as num?)?.toDouble(),
   amountUSD: (json['amountUSD'] as num?)?.toDouble(),
   balance: (json['balance'] as num?)?.toDouble(),
@@ -53,7 +55,7 @@ Map<String, dynamic> _$$TradePositionPatchImplToJson(
   if (instance.holder?.toJson() case final value?) 'holder': value,
   if (instance.addresses?.toJson() case final value?) 'addresses': value,
   if (instance.createdAt case final value?) 'createdAt': value,
-  if (instance.type case final value?) 'type': value,
+  if (_$TradeTypeEnumMap[instance.type] case final value?) 'type': value,
   if (instance.amount case final value?) 'amount': value,
   if (instance.amountUSD case final value?) 'amountUSD': value,
   if (instance.balance case final value?) 'balance': value,
