@@ -2,6 +2,7 @@ package com.appodeal.appodeal_flutter.native_ad
 
 import android.app.Activity
 import android.widget.Button
+import android.widget.RelativeLayout
 import android.widget.TextView
 import com.appodeal.ads.nativead.NativeAdView
 import com.appodeal.ads.nativead.NativeAdViewAppWall
@@ -38,17 +39,24 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
 
         // set ad description config
         val adDescriptionFontSize = nativeAdOptions.adDescriptionConfig.fontSize.toFloat()
-        (nativeAdView.descriptionView as? TextView)?.textSize = adDescriptionFontSize
+        (nativeAdView.descriptionView as? TextView)?.apply {
+            textSize = adDescriptionFontSize
+            setTextColor(nativeAdOptions.adDescriptionConfig.textColor)
+        }
 
         // set ad action button config
         val adActionButtonFontSize = nativeAdOptions.adActionButtonConfig.fontSize.toFloat()
-        (nativeAdView.callToActionView as? Button)?.textSize = adActionButtonFontSize
+        (nativeAdView.callToActionView as? Button)?.apply {
+            textSize = adActionButtonFontSize
+            setBackgroundColor(nativeAdOptions.adActionButtonConfig.backgroundColor)
+            setTextColor(nativeAdOptions.adActionButtonConfig.textColor)
+        }
 
-        // TODO: 17/11/2023 [glavatskikh] think about icon size in template
-//        val adIconConfigWidth = nativeAdOptions.adIconConfig.width
-//        val adIconConfigHeight = nativeAdOptions.adIconConfig.height
-//        (nativeAdView.iconView)?.layoutParams =
-//            RelativeLayout.LayoutParams(adIconConfigWidth, adIconConfigHeight)
+        val density = context.resources.displayMetrics.density
+        val iconSize = (nativeAdOptions.adIconConfig.size * density).toInt()
+
+        (nativeAdView.iconView)?.layoutParams =
+            RelativeLayout.LayoutParams(iconSize, iconSize)
 
         return nativeAdView
     }
