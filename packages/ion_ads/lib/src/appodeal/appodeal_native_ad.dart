@@ -7,6 +7,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:ion_ads/src/appodeal/native_ad/native_ad_options.dart';
 
 class AppodealNativeAd extends StatefulWidget {
   const AppodealNativeAd({
@@ -15,7 +16,7 @@ class AppodealNativeAd extends StatefulWidget {
     this.placement = 'default',
   });
 
-  final Map<String, dynamic> options;
+  final NativeAdOptions options;
   final String placement;
 
   @override
@@ -63,7 +64,7 @@ class _AppodealNativeAdState extends State<AppodealNativeAd> {
   }
 
   Map<String, dynamic> get _nativeCreationParams => {
-        'options': widget.options,
+        'options': widget.options.toMap,
         'placement': widget.placement,
       };
 }
