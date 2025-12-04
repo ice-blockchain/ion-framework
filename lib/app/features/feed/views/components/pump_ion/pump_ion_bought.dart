@@ -8,16 +8,15 @@ import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_balance.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_chart.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats_data.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/user_name_tile/user_name_tile.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_hodl.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/utils/num.dart';
 
@@ -28,16 +27,16 @@ enum ProfileChartType {
 
 class PumpIonBought extends HookConsumerWidget {
   const PumpIonBought({
-    required this.masterPubkey,
+    required this.externalAddress,
     super.key,
   });
 
-  final String masterPubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
-    final avatarUrl = userMetadata.valueOrNull?.data.avatarUrl;
+    final tokenMarketInfo = ref.watch(tokenMarketInfoProvider(externalAddress));
+    final avatarUrl = tokenMarketInfo.valueOrNull?.imageUrl;
 
     final avatarColors = useImageColors(avatarUrl);
 
@@ -111,7 +110,8 @@ class PumpIonBought extends HookConsumerWidget {
                             SizedBox(width: 12.0.s),
                             Expanded(
                               child: UserNameTile(
-                                pubkey: masterPubkey,
+                                // TODO: instead of pubkey use externalAddress
+                                pubkey: externalAddress,
                                 profileMode: ProfileMode.dark,
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 isDecoratedNichname: true,
@@ -125,7 +125,7 @@ class PumpIonBought extends HookConsumerWidget {
                         ),
                         SizedBox(height: 16.0.s),
                         ProfileTokenStatsInfo(
-                          data: ProfileTokenStatsData.mock(),
+                          externalAddress: externalAddress,
                         ),
                         SizedBox(height: 10.0.s),
                         ProfileHODL(

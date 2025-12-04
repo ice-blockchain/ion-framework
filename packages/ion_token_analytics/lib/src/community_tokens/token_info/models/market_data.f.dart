@@ -7,6 +7,7 @@ part 'market_data.f.freezed.dart';
 part 'market_data.f.g.dart';
 
 abstract class MarketDataBase {
+  String? get ticker;
   double? get marketCap;
   double? get volume;
   int? get holders;
@@ -17,6 +18,7 @@ abstract class MarketDataBase {
 @freezed
 class MarketData with _$MarketData implements MarketDataBase {
   const factory MarketData({
+    required String ticker,
     required double marketCap,
     required double volume,
     required int holders,
@@ -30,6 +32,7 @@ class MarketData with _$MarketData implements MarketDataBase {
 @Freezed(copyWith: false)
 class MarketDataPatch with _$MarketDataPatch implements MarketDataBase {
   const factory MarketDataPatch({
+    String? ticker,
     double? marketCap,
     double? volume,
     int? holders,

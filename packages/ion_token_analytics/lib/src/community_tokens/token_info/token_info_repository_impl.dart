@@ -10,32 +10,42 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
   final NetworkClient client;
 
   @override
-  Future<List<CommunityToken>> getTokenInfo(List<String> ionConnectAddresses) async {
-    final data = await client.get<List<dynamic>>(
-      '/v1/community-tokens',
-      queryParameters: {'ionConnectAddresses': ionConnectAddresses},
-    );
+  Future<CommunityToken?> getTokenInfo(String externalAddress) async {
+    try {
+      final tokensRawData = await client.get<List<dynamic>>(
+        '/v1/community-tokens/',
+        queryParameters: {'externalAddresses': externalAddress},
+      );
 
-    return data.map((json) => CommunityToken.fromJson(json as Map<String, dynamic>)).toList();
+      final tokenRawData = tokensRawData.firstOrNull;
+      if (tokenRawData == null) {
+        return null;
+      }
+
+      return CommunityToken.fromJson(tokenRawData as Map<String, dynamic>);
+    } catch (e) {
+      return null;
+    }
   }
 
   @override
-  Future<NetworkSubscription<List<CommunityTokenPatch>>> subscribeToTokenInfo(
-    List<String> ionConnectAddresses,
+  Future<NetworkSubscription<CommunityTokenPatch>?> subscribeToTokenInfo(
+    String externalAddress,
   ) async {
-    final subscription = await client.subscribe<List<dynamic>>(
-      '/v1/community-tokens',
-      queryParameters: {'ionConnectAddresses': ionConnectAddresses},
-    );
+    try {
+      final subscription = await client.subscribeSse<Map<String, dynamic>>(
+        '/v1sse/community-tokens/',
+        queryParameters: {'externalAddresses': externalAddress},
+      );
 
-    final tokenStream = subscription.stream.map(
-      (data) =>
-          data.map((json) => CommunityTokenPatch.fromJson(json as Map<String, dynamic>)).toList(),
-    );
+      final tokenStream = subscription.stream.map(CommunityTokenPatch.fromJson);
 
-    return NetworkSubscription<List<CommunityTokenPatch>>(
-      stream: tokenStream,
-      close: subscription.close,
-    );
+      return NetworkSubscription<CommunityTokenPatch>(
+        stream: tokenStream,
+        close: subscription.close,
+      );
+    } catch (e) {
+      return null;
+    }
   }
 }

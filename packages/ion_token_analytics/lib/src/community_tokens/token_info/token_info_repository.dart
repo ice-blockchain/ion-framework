@@ -4,9 +4,7 @@ import 'package:ion_token_analytics/src/community_tokens/token_info/models/commu
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
 abstract class TokenInfoRepository {
-  Future<List<CommunityToken>> getTokenInfo(List<String> ionConnectAddresses);
+  Future<CommunityToken?> getTokenInfo(String externalAddress);
 
-  Future<NetworkSubscription<List<CommunityTokenPatch>>> subscribeToTokenInfo(
-    List<String> ionConnectAddresses,
-  );
+  Future<NetworkSubscription<CommunityTokenPatch>?> subscribeToTokenInfo(String externalAddress);
 }

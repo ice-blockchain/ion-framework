@@ -33,7 +33,8 @@ class CreatorTokensListItem extends ConsumerWidget {
           volume: token.marketData.volume,
           holders: token.marketData.holders,
         ),
-        masterPubkey: token.creator.ionConnect,
+        //TODO (ice-kreios): fix this
+        masterPubkey: token.externalAddress,
       ),
     );
   }

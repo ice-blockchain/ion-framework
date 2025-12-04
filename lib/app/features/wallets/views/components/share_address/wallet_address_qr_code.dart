@@ -21,7 +21,7 @@ class _WalletAddressQrCode extends StatelessWidget {
       children: [
         if (coinsGroup != null) ...[
           CoinIconWithNetwork.medium(
-            coinsGroup!.iconUrl,
+            coinsGroup!.iconUrl ?? '',
             network: network,
           ),
           SizedBox(height: 10.0.s),

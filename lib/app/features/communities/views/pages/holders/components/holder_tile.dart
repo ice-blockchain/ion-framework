@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/communities/views/pages/holders/components/holder_avatar.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -31,11 +32,12 @@ class HolderTile extends StatelessWidget {
             children: [
               _RankBadge(rank: rank),
               SizedBox(width: 12.0.s),
-              _Avatar(url: holder.position.holder.avatar),
+              HolderAvatar(imageUrl: holder.position.holder.avatar),
               SizedBox(width: 8.0.s),
               _NameAndAmount(
                 name: holder.position.holder.display,
                 handle: holder.position.holder.name,
+                verified: holder.position.holder.verified,
                 amountText: amountText,
               ),
             ],
@@ -97,28 +99,17 @@ class _MedalIcon extends StatelessWidget {
   }
 }
 
-class _Avatar extends StatelessWidget {
-  const _Avatar({this.url});
-  final String? url;
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.theme.appColors;
-    return Container(
-      width: 30.0.s,
-      height: 30.0.s,
-      decoration: BoxDecoration(
-        color: colors.onTertiaryFill,
-        borderRadius: BorderRadius.circular(10.0.s),
-      ),
-    );
-  }
-}
-
 class _NameAndAmount extends StatelessWidget {
-  const _NameAndAmount({required this.name, required this.handle, required this.amountText});
+  const _NameAndAmount({
+    required this.name,
+    required this.handle,
+    required this.amountText,
+    required this.verified,
+  });
   final String name;
   final String handle;
   final String amountText;
+  final bool verified;
 
   @override
   Widget build(BuildContext context) {
@@ -126,10 +117,26 @@ class _NameAndAmount extends StatelessWidget {
     final texts = context.theme.appTextThemes;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(name, style: texts.subtitle3.copyWith(color: colors.primaryText)),
-        SizedBox(height: 2.0.s),
-        Text('$handle • $amountText', style: texts.caption.copyWith(color: colors.quaternaryText)),
+        Row(
+          children: [
+            Text(
+              name,
+              style: texts.subtitle3.copyWith(
+                color: colors.primaryText,
+              ),
+            ),
+            if (verified) ...[
+              SizedBox(width: 4.0.s),
+              Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
+            ],
+          ],
+        ),
+        Text(
+          '$handle • $amountText',
+          style: texts.caption.copyWith(color: colors.quaternaryText),
+        ),
       ],
     );
   }

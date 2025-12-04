@@ -38,12 +38,14 @@ class HorizontalSeparator extends StatelessWidget {
 }
 
 class SimpleSeparator extends StatelessWidget {
-  const SimpleSeparator({super.key});
+  const SimpleSeparator({super.key, this.height});
+
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
     return Divider(
-      height: 4.s,
+      height: height ?? 4.s,
       thickness: 4.s,
       color: context.theme.appColors.onSecondaryBackground,
     );

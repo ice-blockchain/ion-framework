@@ -18,7 +18,7 @@ class LatestTokensRepositoryImpl implements LatestTokensRepository {
     int offset = 0,
   }) async {
     final response = await _client.get<List<dynamic>>(
-      '/community-tokens/latest',
+      '/v1/community-tokens/latest',
       queryParameters: {
         'limit': limit,
         'offset': offset,
@@ -39,8 +39,8 @@ class LatestTokensRepositoryImpl implements LatestTokensRepository {
     String? keyword,
     String? type,
   }) async {
-    final subscription = await _client.subscribe<Map<String, dynamic>>(
-      '/community-tokens/latest',
+    final subscription = await _client.subscribeSse<Map<String, dynamic>>(
+      '/v1sse/community-tokens/latest',
       queryParameters: {
         if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
         if (type != null) 'type': type,

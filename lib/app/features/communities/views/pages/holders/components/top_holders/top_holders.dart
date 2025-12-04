@@ -3,10 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/communities/pages/holders/components/holder_tile.dart';
-import 'package:ion/app/features/communities/pages/holders/components/top_holders/components/top_holders_empty.dart';
-import 'package:ion/app/features/communities/pages/holders/components/top_holders/components/top_holders_skeleton.dart';
-import 'package:ion/app/features/communities/pages/holders/providers/token_top_holders_provider.r.dart';
+import 'package:ion/app/features/communities/views/pages/holders/components/holder_tile.dart';
+import 'package:ion/app/features/communities/views/pages/holders/components/top_holders/components/top_holders_empty.dart';
+import 'package:ion/app/features/communities/views/pages/holders/components/top_holders/components/top_holders_skeleton.dart';
+import 'package:ion/app/features/communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -39,7 +39,7 @@ class TopHolders extends StatelessWidget {
               onTitleVisibilityChanged: onTitleVisibilityChanged,
             ),
             SizedBox(height: 14.0.s),
-            _TopHolderList(masterPubkey: masterPubkey),
+            _TopHolderList(externalAddress: externalAddress),
           ],
         ),
       ),
@@ -66,7 +66,7 @@ class _Header extends StatelessWidget {
           onTitleVisibilityChanged: onTitleVisibilityChanged,
         ),
         const Spacer(),
-        _HeaderViewAllButton(masterPubkey: masterPubkey),
+        _HeaderViewAllButton(externalAddress: externalAddress),
       ],
     );
   }
@@ -100,7 +100,7 @@ class _HeaderTitle extends ConsumerWidget {
         Assets.svg.iconSearchGroups.icon(size: 18.0.s),
         SizedBox(width: 6.0.s),
         Text(
-          '${i18n.top_holders_title}$holdersCountText',
+          i18n.top_holders_title,
           style: texts.subtitle3.copyWith(color: colors.onTertiaryBackground),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -124,10 +124,10 @@ class _HeaderTitle extends ConsumerWidget {
 
 class _HeaderViewAllButton extends ConsumerWidget {
   const _HeaderViewAllButton({
-    required this.masterPubkey,
+    required this.externalAddress,
   });
 
-  final String masterPubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -136,7 +136,7 @@ class _HeaderViewAllButton extends ConsumerWidget {
     final i18n = context.i18n;
 
     final holdersCount = ref
-            .watch(tokenTopHoldersProvider(masterPubkey, limit: holdersCountLimit))
+            .watch(tokenTopHoldersProvider(externalAddress, limit: holdersCountLimit))
             .valueOrNull
             ?.length ??
         0;
@@ -147,7 +147,7 @@ class _HeaderViewAllButton extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () {
-        HoldersRoute(externalAddress: masterPubkey).push<void>(context);
+        HoldersRoute(externalAddress: externalAddress).push<void>(context);
       },
       behavior: HitTestBehavior.opaque,
       child: Padding(
@@ -163,14 +163,15 @@ class _HeaderViewAllButton extends ConsumerWidget {
 
 class _TopHolderList extends ConsumerWidget {
   const _TopHolderList({
-    required this.masterPubkey,
+    required this.externalAddress,
   });
 
-  final String masterPubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final holdersAsync = ref.watch(tokenTopHoldersProvider(masterPubkey, limit: holdersCountLimit));
+    final holdersAsync =
+        ref.watch(tokenTopHoldersProvider(externalAddress, limit: holdersCountLimit));
 
     return holdersAsync.when(
       data: (holders) {
@@ -191,7 +192,7 @@ class _TopHolderList extends ConsumerWidget {
           separatorBuilder: (context, index) => SizedBox(height: 4.0.s),
         );
       },
-      error: (error, stackTrace) => const SizedBox(),
+      error: (error, stackTrace) => const TopHoldersEmpty(),
       loading: () => TopHoldersSkeleton(count: holdersCountLimit, seperatorHeight: 4.0.s),
     );
   }

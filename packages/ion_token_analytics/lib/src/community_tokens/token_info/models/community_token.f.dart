@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:ion_token_analytics/src/community_tokens/token_info/models/community_token_type.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/models.dart';
 import 'package:ion_token_analytics/src/core/map_utils.dart';
 
@@ -8,7 +9,7 @@ part 'community_token.f.freezed.dart';
 part 'community_token.f.g.dart';
 
 abstract class CommunityTokenBase {
-  String? get type;
+  CommunityTokenType? get type;
   String? get title;
   String? get description;
   String? get imageUrl;
@@ -21,13 +22,13 @@ abstract class CommunityTokenBase {
 @freezed
 class CommunityToken with _$CommunityToken implements CommunityTokenBase {
   const factory CommunityToken({
-    required String type,
+    required CommunityTokenType type,
     required String title,
     required String description,
-    required String imageUrl,
     required Addresses addresses,
     required Creator creator,
     required MarketData marketData,
+    String? imageUrl,
     String? createdAt,
   }) = _CommunityToken;
 
@@ -37,7 +38,7 @@ class CommunityToken with _$CommunityToken implements CommunityTokenBase {
 @Freezed(copyWith: false)
 class CommunityTokenPatch with _$CommunityTokenPatch implements CommunityTokenBase {
   const factory CommunityTokenPatch({
-    String? type,
+    CommunityTokenType? type,
     String? title,
     String? description,
     String? imageUrl,
@@ -71,5 +72,20 @@ extension CommunityTokenExtension on CommunityToken {
     final mergedJson = deepMerge(orgJson, patchJson);
 
     return CommunityToken.fromJson(mergedJson);
+  }
+
+  String get externalAddress {
+    final address = addresses.ionConnect ?? addresses.twitter;
+    if (address == null) {
+      throw Exception('External address is null');
+    }
+    return address;
+  }
+
+  CommunityTokenSource get source {
+    if (addresses.ionConnect != null) {
+      return CommunityTokenSource.ionConnect;
+    }
+    return CommunityTokenSource.twitter;
   }
 }

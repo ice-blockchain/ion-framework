@@ -7,7 +7,6 @@ import 'package:ion/app/components/layouts/collapsing_header_tabs_layout.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
@@ -47,9 +46,7 @@ class ProfilePage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
 
-    final currentUserToken = ref.watch(tokenMarketInfoProvider(masterPubkey));
-
-    if (userMetadata.isLoading && !userMetadata.hasValue || (currentUserToken.isLoading)) {
+    if (userMetadata.isLoading && !userMetadata.hasValue) {
       return ProfileSkeleton(showBackButton: showBackButton);
     }
 

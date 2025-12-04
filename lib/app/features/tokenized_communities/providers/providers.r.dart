@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:http/http.dart';
-import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_contract_providers.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_tx_builder.dart';
@@ -12,7 +11,6 @@ import 'package:ion/app/features/tokenized_communities/domain/tokenized_communit
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:web3dart/web3dart.dart';
@@ -103,19 +101,4 @@ Future<List<CoinData>> supportedSwapTokens(Ref ref) async {
   }).toList();
 
   return supportedCoins;
-}
-
-@riverpod
-Future<CommunityToken> communityTokenInfo(
-  Ref ref,
-  String creatorPubkey,
-) async {
-  final ionConnectAddress = '0:$creatorPubkey:';
-
-  final token = await ref.watch(tokenMarketInfoProvider(ionConnectAddress).future);
-
-  if (token == null) {
-    throw Exception('Token info not found for $creatorPubkey');
-  }
-  return token;
 }

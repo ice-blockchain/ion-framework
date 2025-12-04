@@ -24,8 +24,8 @@ mixin _$Creator {
   String get name => throw _privateConstructorUsedError;
   String get display => throw _privateConstructorUsedError;
   bool get verified => throw _privateConstructorUsedError;
-  String get avatar => throw _privateConstructorUsedError;
-  String get ionConnect => throw _privateConstructorUsedError;
+  String? get avatar => throw _privateConstructorUsedError;
+  Addresses? get addresses => throw _privateConstructorUsedError;
 
   /// Serializes this Creator to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -45,9 +45,11 @@ abstract class $CreatorCopyWith<$Res> {
     String name,
     String display,
     bool verified,
-    String avatar,
-    String ionConnect,
+    String? avatar,
+    Addresses? addresses,
   });
+
+  $AddressesCopyWith<$Res>? get addresses;
 }
 
 /// @nodoc
@@ -68,8 +70,8 @@ class _$CreatorCopyWithImpl<$Res, $Val extends Creator>
     Object? name = null,
     Object? display = null,
     Object? verified = null,
-    Object? avatar = null,
-    Object? ionConnect = null,
+    Object? avatar = freezed,
+    Object? addresses = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -85,17 +87,31 @@ class _$CreatorCopyWithImpl<$Res, $Val extends Creator>
                 ? _value.verified
                 : verified // ignore: cast_nullable_to_non_nullable
                       as bool,
-            avatar: null == avatar
+            avatar: freezed == avatar
                 ? _value.avatar
                 : avatar // ignore: cast_nullable_to_non_nullable
-                      as String,
-            ionConnect: null == ionConnect
-                ? _value.ionConnect
-                : ionConnect // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
+            addresses: freezed == addresses
+                ? _value.addresses
+                : addresses // ignore: cast_nullable_to_non_nullable
+                      as Addresses?,
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of Creator
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $AddressesCopyWith<$Res>? get addresses {
+    if (_value.addresses == null) {
+      return null;
+    }
+
+    return $AddressesCopyWith<$Res>(_value.addresses!, (value) {
+      return _then(_value.copyWith(addresses: value) as $Val);
+    });
   }
 }
 
@@ -111,9 +127,12 @@ abstract class _$$CreatorImplCopyWith<$Res> implements $CreatorCopyWith<$Res> {
     String name,
     String display,
     bool verified,
-    String avatar,
-    String ionConnect,
+    String? avatar,
+    Addresses? addresses,
   });
+
+  @override
+  $AddressesCopyWith<$Res>? get addresses;
 }
 
 /// @nodoc
@@ -133,8 +152,8 @@ class __$$CreatorImplCopyWithImpl<$Res>
     Object? name = null,
     Object? display = null,
     Object? verified = null,
-    Object? avatar = null,
-    Object? ionConnect = null,
+    Object? avatar = freezed,
+    Object? addresses = freezed,
   }) {
     return _then(
       _$CreatorImpl(
@@ -150,14 +169,14 @@ class __$$CreatorImplCopyWithImpl<$Res>
             ? _value.verified
             : verified // ignore: cast_nullable_to_non_nullable
                   as bool,
-        avatar: null == avatar
+        avatar: freezed == avatar
             ? _value.avatar
             : avatar // ignore: cast_nullable_to_non_nullable
-                  as String,
-        ionConnect: null == ionConnect
-            ? _value.ionConnect
-            : ionConnect // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
+        addresses: freezed == addresses
+            ? _value.addresses
+            : addresses // ignore: cast_nullable_to_non_nullable
+                  as Addresses?,
       ),
     );
   }
@@ -170,8 +189,8 @@ class _$CreatorImpl implements _Creator {
     required this.name,
     required this.display,
     required this.verified,
-    required this.avatar,
-    required this.ionConnect,
+    this.avatar,
+    this.addresses,
   });
 
   factory _$CreatorImpl.fromJson(Map<String, dynamic> json) =>
@@ -184,13 +203,13 @@ class _$CreatorImpl implements _Creator {
   @override
   final bool verified;
   @override
-  final String avatar;
+  final String? avatar;
   @override
-  final String ionConnect;
+  final Addresses? addresses;
 
   @override
   String toString() {
-    return 'Creator(name: $name, display: $display, verified: $verified, avatar: $avatar, ionConnect: $ionConnect)';
+    return 'Creator(name: $name, display: $display, verified: $verified, avatar: $avatar, addresses: $addresses)';
   }
 
   @override
@@ -203,14 +222,14 @@ class _$CreatorImpl implements _Creator {
             (identical(other.verified, verified) ||
                 other.verified == verified) &&
             (identical(other.avatar, avatar) || other.avatar == avatar) &&
-            (identical(other.ionConnect, ionConnect) ||
-                other.ionConnect == ionConnect));
+            (identical(other.addresses, addresses) ||
+                other.addresses == addresses));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, name, display, verified, avatar, ionConnect);
+      Object.hash(runtimeType, name, display, verified, avatar, addresses);
 
   /// Create a copy of Creator
   /// with the given fields replaced by the non-null parameter values.
@@ -231,8 +250,8 @@ abstract class _Creator implements Creator {
     required final String name,
     required final String display,
     required final bool verified,
-    required final String avatar,
-    required final String ionConnect,
+    final String? avatar,
+    final Addresses? addresses,
   }) = _$CreatorImpl;
 
   factory _Creator.fromJson(Map<String, dynamic> json) = _$CreatorImpl.fromJson;
@@ -244,9 +263,9 @@ abstract class _Creator implements Creator {
   @override
   bool get verified;
   @override
-  String get avatar;
+  String? get avatar;
   @override
-  String get ionConnect;
+  Addresses? get addresses;
 
   /// Create a copy of Creator
   /// with the given fields replaced by the non-null parameter values.
@@ -266,7 +285,7 @@ mixin _$CreatorPatch {
   String? get display => throw _privateConstructorUsedError;
   bool? get verified => throw _privateConstructorUsedError;
   String? get avatar => throw _privateConstructorUsedError;
-  String? get ionConnect => throw _privateConstructorUsedError;
+  AddressesPatch? get addresses => throw _privateConstructorUsedError;
 
   /// Serializes this CreatorPatch to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -280,7 +299,7 @@ class _$CreatorPatchImpl implements _CreatorPatch {
     this.display,
     this.verified,
     this.avatar,
-    this.ionConnect,
+    this.addresses,
   });
 
   factory _$CreatorPatchImpl.fromJson(Map<String, dynamic> json) =>
@@ -295,11 +314,11 @@ class _$CreatorPatchImpl implements _CreatorPatch {
   @override
   final String? avatar;
   @override
-  final String? ionConnect;
+  final AddressesPatch? addresses;
 
   @override
   String toString() {
-    return 'CreatorPatch(name: $name, display: $display, verified: $verified, avatar: $avatar, ionConnect: $ionConnect)';
+    return 'CreatorPatch(name: $name, display: $display, verified: $verified, avatar: $avatar, addresses: $addresses)';
   }
 
   @override
@@ -312,14 +331,14 @@ class _$CreatorPatchImpl implements _CreatorPatch {
             (identical(other.verified, verified) ||
                 other.verified == verified) &&
             (identical(other.avatar, avatar) || other.avatar == avatar) &&
-            (identical(other.ionConnect, ionConnect) ||
-                other.ionConnect == ionConnect));
+            (identical(other.addresses, addresses) ||
+                other.addresses == addresses));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, name, display, verified, avatar, ionConnect);
+      Object.hash(runtimeType, name, display, verified, avatar, addresses);
 
   @override
   Map<String, dynamic> toJson() {
@@ -333,7 +352,7 @@ abstract class _CreatorPatch implements CreatorPatch {
     final String? display,
     final bool? verified,
     final String? avatar,
-    final String? ionConnect,
+    final AddressesPatch? addresses,
   }) = _$CreatorPatchImpl;
 
   factory _CreatorPatch.fromJson(Map<String, dynamic> json) =
@@ -348,5 +367,5 @@ abstract class _CreatorPatch implements CreatorPatch {
   @override
   String? get avatar;
   @override
-  String? get ionConnect;
+  AddressesPatch? get addresses;
 }

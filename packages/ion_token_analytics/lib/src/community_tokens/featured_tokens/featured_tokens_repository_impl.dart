@@ -14,7 +14,7 @@ class FeaturedTokensRepositoryImpl implements FeaturedTokensRepository {
     String? type,
   }) async {
     final subscription = await _client.subscribe<List<dynamic>>(
-      '/community-tokens/featured',
+      '/v1sse/community-tokens/featured',
       queryParameters: type != null ? {'type': type} : null,
     );
 

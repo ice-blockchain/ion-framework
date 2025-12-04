@@ -14,12 +14,10 @@ import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_
 
 class CreatorTokensTabContent extends HookConsumerWidget {
   const CreatorTokensTabContent({
-    required this.pubkey,
     required this.tabType,
     super.key,
   });
 
-  final String pubkey;
   final CreatorTokensTabType tabType;
 
   void _search(WidgetRef ref, String query) {

@@ -4,9 +4,13 @@ import 'package:ion_token_analytics/src/http2_client/http2_client.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
 
 class NetworkClient {
-  NetworkClient.fromBaseUrl(String baseUrl) : _client = Http2Client.fromBaseUrl(baseUrl);
+  NetworkClient.fromBaseUrl(String baseUrl, {required String? authToken})
+    : _client = Http2Client.fromBaseUrl(baseUrl),
+      _authToken = authToken;
 
   final Http2Client _client;
+
+  final String? _authToken;
 
   static const Duration _defaultTimeout = Duration(seconds: 30);
 
@@ -19,7 +23,7 @@ class NetworkClient {
       path,
       queryParameters: _buildQueryParameters(queryParameters),
       method: 'GET',
-      headers: headers,
+      headers: _addAuthorizationHeader(headers),
     );
   }
 
@@ -34,7 +38,7 @@ class NetworkClient {
       data: data,
       queryParameters: _buildQueryParameters(queryParameters),
       method: 'POST',
-      headers: headers,
+      headers: _addAuthorizationHeader(headers),
     );
   }
 
@@ -49,7 +53,11 @@ class NetworkClient {
       path,
       data: data,
       queryParameters: queryParameters,
-      options: Http2RequestOptions(method: method, timeout: _defaultTimeout, headers: headers),
+      options: Http2RequestOptions(
+        method: method,
+        timeout: _defaultTimeout,
+        headers: _addAuthorizationHeader(headers),
+      ),
     );
 
     if (response.statusCode != 200) {
@@ -68,7 +76,21 @@ class NetworkClient {
     final subscription = await _client.subscribe<T>(
       path,
       queryParameters: _buildQueryParameters(queryParameters),
-      headers: headers,
+      headers: _addAuthorizationHeader(headers),
+    );
+
+    return NetworkSubscription<T>(stream: subscription.stream, close: subscription.close);
+  }
+
+  Future<NetworkSubscription<T>> subscribeSse<T>(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Map<String, String>? headers,
+  }) async {
+    final subscription = await _client.subscribeSse<T>(
+      path,
+      queryParameters: _buildQueryParameters(queryParameters),
+      headers: _addAuthorizationHeader(headers),
     );
 
     return NetworkSubscription<T>(stream: subscription.stream, close: subscription.close);
@@ -112,6 +134,15 @@ class NetworkClient {
     }
 
     return result;
+  }
+
+  Map<String, String> _addAuthorizationHeader(Map<String, String>? headers) {
+    final reqHeaders = headers ?? {};
+    if (_authToken != null) {
+      reqHeaders['Authorization'] = 'Nostr $_authToken';
+    }
+
+    return reqHeaders;
   }
 }
 

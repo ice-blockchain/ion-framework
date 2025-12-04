@@ -13,7 +13,7 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
   @override
   Future<ViewingSession> createViewingSession(TokenCategoryType type) async {
     final response = await _client.post<Map<String, dynamic>>(
-      '/community-tokens/${type.value}/viewing-sessions',
+      '/v1/community-tokens/${type.value}/viewing-sessions',
     );
     return ViewingSession.fromJson(response);
   }
@@ -27,7 +27,7 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
     int offset = 0,
   }) async {
     final response = await _client.get<List<dynamic>>(
-      '/community-tokens/${type.value}/viewing-sessions/$sessionId',
+      '/v1/community-tokens/${type.value}/viewing-sessions/$sessionId',
       queryParameters: {
         'limit': limit,
         'offset': offset,
@@ -48,7 +48,7 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
     required TokenCategoryType type,
   }) async {
     final subscription = await _client.subscribe<Map<String, dynamic>>(
-      '/community-tokens/${type.value}',
+      '/v1sse/community-tokens/${type.value}',
       queryParameters: {'viewingSessionId': sessionId},
     );
 

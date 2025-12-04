@@ -9,9 +9,6 @@ import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/communities/hooks/section_visibility_controller.dart';
 import 'package:ion/app/features/communities/models/trading_stats_formatted.dart';
-import 'package:ion/app/features/communities/pages/components/your_position_card.dart';
-import 'package:ion/app/features/communities/pages/holders/components/top_holders/top_holders.dart';
-import 'package:ion/app/features/communities/providers/token_latest_trades_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/communities/utils/timeframe_extension.dart';
@@ -19,11 +16,17 @@ import 'package:ion/app/features/communities/utils/trading_stats_extension.dart'
 import 'package:ion/app/features/communities/views/components/chart_component.dart';
 import 'package:ion/app/features/communities/views/components/chart_stats_component.dart';
 import 'package:ion/app/features/communities/views/components/comments_section_compact.dart';
+import 'package:ion/app/features/communities/views/components/community_token_image.dart';
 import 'package:ion/app/features/communities/views/components/floating_trade_island.dart';
-import 'package:ion/app/features/communities/views/components/latest_trades_component.dart';
 import 'package:ion/app/features/communities/views/components/token_header_component.dart';
+import 'package:ion/app/features/communities/views/components/your_position_card.dart';
+import 'package:ion/app/features/communities/views/pages/holders/components/top_holders/top_holders.dart';
+import 'package:ion/app/features/communities/views/pages/latest_trades/components/latest_trades_card.dart';
+import 'package:ion/app/features/user/model/profile_mode.dart';
+import 'package:ion/app/features/user/model/tab_type_interface.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
 import 'package:ion/app/features/user/pages/components/profile_avatar/profile_avatar.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_actions/profile_action.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -60,9 +63,9 @@ enum TokenizedCommunityTabType implements TabType {
 }
 
 class TokenizedCommunityPage extends HookConsumerWidget {
-  const TokenizedCommunityPage({required this.masterPubkey, super.key});
+  const TokenizedCommunityPage({required this.externalAddress, super.key});
 
-  final String masterPubkey;
+  final String externalAddress;
 
   static double get _expandedHeaderHeight => 316.0.s;
 
@@ -193,7 +196,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
 class _CollapsedTitle extends ConsumerWidget {
   const _CollapsedTitle({required this.masterPubkey});
 
-  final String masterPubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -257,7 +260,7 @@ class _TokenChart extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(masterPubkey));
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress));
     final token = tokenInfo.valueOrNull;
 
     // If token info is not yet available, render nothing (unchanged behaviour).
@@ -268,7 +271,7 @@ class _TokenChart extends HookConsumerWidget {
     final price = Decimal.parse(token.marketData.priceUSD.toStringAsFixed(4));
 
     return ChartComponent(
-      masterPubkey: masterPubkey,
+      externalAddress: externalAddress,
       price: price,
       label: token.title,
       onTitleVisibilityChanged: onTitleVisibilityChanged,
@@ -277,14 +280,14 @@ class _TokenChart extends HookConsumerWidget {
 }
 
 class _TokenStats extends HookConsumerWidget {
-  const _TokenStats({required this.masterPubkey});
+  const _TokenStats({required this.externalAddress});
 
-  final String masterPubkey;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTimeframe = useState(0);
-    final tradingStatsAsync = ref.watch(tokenTradingStatsProvider(masterPubkey));
+    final tradingStatsAsync = ref.watch(tokenTradingStatsProvider(externalAddress));
 
     return tradingStatsAsync.when(
       data: (tradingStats) {

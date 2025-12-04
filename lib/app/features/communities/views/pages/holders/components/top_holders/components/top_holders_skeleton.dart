@@ -18,6 +18,7 @@ class TopHoldersSkeleton extends StatelessWidget {
       child: ListView.separated(
         shrinkWrap: true,
         padding: EdgeInsets.zero,
+        physics: const NeverScrollableScrollPhysics(),
         itemCount: count,
         itemBuilder: (context, index) {
           return Row(

@@ -22,11 +22,14 @@ class GradientHorizontalDivider extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         gradient: LinearGradient(
+          stops: const [0, 0.25, 0.5, 0.75, 1.0], // Adjusted stops to make the middle section wider
           colors: colors ??
               [
-                context.theme.appColors.onPrimaryAccent,
+                Colors.transparent,
                 context.theme.appColors.onTertiaryFill,
-                context.theme.appColors.onPrimaryAccent,
+                context.theme.appColors.onTertiaryFill,
+                context.theme.appColors.onTertiaryFill,
+                Colors.transparent,
               ],
         ),
       ),

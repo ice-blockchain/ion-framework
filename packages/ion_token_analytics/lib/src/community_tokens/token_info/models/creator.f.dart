@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 part 'creator.f.freezed.dart';
 part 'creator.f.g.dart';
@@ -11,8 +12,8 @@ class Creator with _$Creator implements CreatorBase {
     required String name,
     required String display,
     required bool verified,
-    required String avatar,
-    required String ionConnect,
+    String? avatar,
+    Addresses? addresses,
   }) = _Creator;
 
   factory Creator.fromJson(Map<String, dynamic> json) => _$CreatorFromJson(json);
@@ -23,7 +24,7 @@ abstract class CreatorBase {
   String? get display;
   bool? get verified;
   String? get avatar;
-  String? get ionConnect;
+  AddressesBase? get addresses;
 }
 
 @Freezed(copyWith: false)
@@ -33,7 +34,7 @@ class CreatorPatch with _$CreatorPatch implements CreatorBase {
     String? display,
     bool? verified,
     String? avatar,
-    String? ionConnect,
+    AddressesPatch? addresses,
   }) = _CreatorPatch;
 
   factory CreatorPatch.fromJson(Map<String, dynamic> json) => _$CreatorPatchFromJson(json);

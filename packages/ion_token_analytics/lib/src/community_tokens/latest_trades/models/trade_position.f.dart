@@ -7,11 +7,13 @@ import 'package:ion_token_analytics/src/community_tokens/token_info/models/creat
 part 'trade_position.f.freezed.dart';
 part 'trade_position.f.g.dart';
 
+enum TradeType { buy, sell }
+
 abstract class TradePositionBase {
   CreatorBase? get holder;
   AddressesBase? get addresses;
   String? get createdAt;
-  String? get type;
+  TradeType? get type;
   double? get amount;
   double? get amountUSD;
   double? get balance;
@@ -24,7 +26,7 @@ class TradePosition with _$TradePosition implements TradePositionBase {
     required Creator holder,
     required Addresses addresses,
     required String createdAt,
-    required String type, // "buy/sell"
+    required TradeType type,
     required double amount,
     required double amountUSD,
     required double balance,
@@ -40,7 +42,7 @@ class TradePositionPatch with _$TradePositionPatch implements TradePositionBase 
     CreatorPatch? holder,
     AddressesPatch? addresses,
     String? createdAt,
-    String? type,
+    TradeType? type,
     double? amount,
     double? amountUSD,
     double? balance,

@@ -1,4 +1,4 @@
-# melos_managed_dependency_overrides: ion_identity_client,js,ion_lint_rules,ion_connect_cache,ion_content_labeler,ion_token_analytics
+# melos_managed_dependency_overrides: ion_identity_client,js,ion_lint_rules,ion_connect_cache,ion_content_labeler,ion_token_analytics,ion_swap_client
 dependency_overrides:
   analyzer_plugin: ^0.13.1
   flutter_quill:
@@ -13,6 +13,8 @@ dependency_overrides:
     path: packages/ion_identity_client
   ion_lint_rules:
     path: packages/ion_lint_rules
+  ion_swap_client:
+    path: packages/ion_swap_client
   ion_token_analytics:
     path: packages/ion_token_analytics
   js: ^0.7.1

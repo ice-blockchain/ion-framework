@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/communities/views/pages/holders/components/holder_avatar.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -12,20 +13,20 @@ import 'package:visibility_detector/visibility_detector.dart';
 class LatestTradesComponent extends HookWidget {
   const LatestTradesComponent({
     required this.trades,
-    this.maxVisible = 5,
     this.onViewAllPressed,
     this.onTapTrade,
     this.onLoadMore,
     this.onTitleVisibilityChanged,
+    this.maxVisible = 5,
     super.key,
   });
 
   final List<LatestTrade> trades;
-  final int maxVisible;
   final VoidCallback? onViewAllPressed;
   final ValueChanged<LatestTrade>? onTapTrade;
   final VoidCallback? onLoadMore;
   final ValueChanged<double>? onTitleVisibilityChanged;
+  final int maxVisible;
 
   @override
   Widget build(BuildContext context) {
@@ -103,26 +104,23 @@ class LatestTradesComponent extends HookWidget {
             SizedBox(height: 14.0.s),
             Column(
               children: [
-                for (final trade in visible)
-                  _TradeRow(
-                    trade: trade,
-                    minTextWidth: minTextWidth,
-                    onTap: onTapTrade,
-                  ),
+                ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: visible.length,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemBuilder: (context, index) {
+                    final trade = visible[index];
+                    return _TradeRow(
+                      trade: trade,
+                      minTextWidth: minTextWidth,
+                      onTap: onTapTrade,
+                    );
+                  },
+                  separatorBuilder: (context, index) => SizedBox(height: 14.0.s),
+                ),
               ],
             ),
-            if (onLoadMore != null) ...[
-              SizedBox(height: 12.0.s),
-              Center(
-                child: TextButton(
-                  onPressed: onLoadMore,
-                  child: Text(
-                    'Load More',
-                    style: texts.caption.copyWith(color: colors.primaryAccent),
-                  ),
-                ),
-              ),
-            ],
           ],
         ),
       ),
@@ -153,18 +151,16 @@ class _TradeRow extends StatelessWidget {
     final texts = context.theme.appTextThemes;
     final i18n = context.i18n;
 
-    //TODO: change type to int
     final timeText = formatShortTimestamp(DateTime.parse(trade.position.createdAt));
     final amountText = formatDoubleCompact(trade.position.amount);
     final usdText = formatUSD(trade.position.amountUSD);
-    //TODO: use enum
-    final badgeColor = trade.position.type == 'buy' ? colors.success : colors.lossRed;
-    final badgeText = trade.position.type == 'buy' ? i18n.trade_buy : i18n.trade_sell;
+    final badgeColor = trade.position.type == TradeType.buy ? colors.success : colors.lossRed;
+    final badgeText = trade.position.type == TradeType.buy ? i18n.trade_buy : i18n.trade_sell;
 
     final textStyle = texts.caption6.copyWith(color: colors.secondaryBackground);
 
     final badge = Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 1.0.s),
+      padding: EdgeInsets.symmetric(horizontal: 10.0.s),
       decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(12.0.s)),
       child: SizedBox(
         width: minTextWidth,
@@ -180,44 +176,23 @@ class _TradeRow extends StatelessWidget {
 
     return InkWell(
       onTap: onTap == null ? null : () => onTap!(trade),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 6.0.s),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                _Avatar(url: trade.position.holder.avatar),
-                SizedBox(width: 8.0.s),
-                _TitleAndMeta(
-                  name: trade.position.holder.display,
-                  handle: trade.position.holder.name,
-                  //TODO: add verified
-                  verified: true,
-                  meta: '$amountText • \$$usdText • $timeText',
-                ),
-              ],
-            ),
-            badge,
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Avatar extends StatelessWidget {
-  const _Avatar({this.url});
-  final String? url;
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.theme.appColors;
-    return Container(
-      width: 30.0.s,
-      height: 30.0.s,
-      decoration: BoxDecoration(
-        color: colors.onTertiaryFill,
-        borderRadius: BorderRadius.circular(10.0.s),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              HolderAvatar(imageUrl: trade.position.holder.avatar),
+              SizedBox(width: 8.0.s),
+              _TitleAndMeta(
+                name: trade.position.holder.display,
+                handle: trade.position.holder.name,
+                verified: trade.position.holder.verified,
+                meta: '$amountText • \$$usdText • $timeText',
+              ),
+            ],
+          ),
+          badge,
+        ],
       ),
     );
   }
@@ -256,7 +231,6 @@ class _TitleAndMeta extends StatelessWidget {
             ],
           ],
         ),
-        SizedBox(height: 2.0.s),
         Text(meta, style: texts.caption.copyWith(color: colors.quaternaryText)),
       ],
     );
