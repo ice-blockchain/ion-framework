@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
@@ -8,7 +9,7 @@ import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-class LatestTradesComponent extends StatefulWidget {
+class LatestTradesComponent extends HookWidget {
   const LatestTradesComponent({
     required this.trades,
     this.maxVisible = 5,
@@ -27,22 +28,29 @@ class LatestTradesComponent extends StatefulWidget {
   final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
-  State<LatestTradesComponent> createState() => _LatestTradesComponentState();
-}
-
-class _LatestTradesComponentState extends State<LatestTradesComponent> {
-  @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
     final texts = context.theme.appTextThemes;
     final i18n = context.i18n;
-    final visible = widget.trades.take(widget.maxVisible).toList();
+
+    final visible = useMemoized(
+      () => trades.take(maxVisible).toList(),
+      [trades, maxVisible],
+    );
 
     final badgeTextStyle = texts.caption6.copyWith(
       color: colors.secondaryBackground,
     );
-    final buyTextWidth = _calculateTextWidth(i18n.trade_buy, badgeTextStyle);
-    final sellTextWidth = _calculateTextWidth(i18n.trade_sell, badgeTextStyle);
+
+    final buyTextWidth = useMemoized(
+      () => _calculateTextWidth(i18n.trade_buy, badgeTextStyle),
+      [i18n.trade_buy, badgeTextStyle],
+    );
+
+    final sellTextWidth = useMemoized(
+      () => _calculateTextWidth(i18n.trade_sell, badgeTextStyle),
+      [i18n.trade_sell, badgeTextStyle],
+    );
 
     final baseTextWidth = buyTextWidth > sellTextWidth ? buyTextWidth : sellTextWidth;
     final widthBuffer = 2.0.s;
@@ -60,9 +68,9 @@ class _LatestTradesComponentState extends State<LatestTradesComponent> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        if (widget.onViewAllPressed != null)
+        if (onViewAllPressed != null)
           GestureDetector(
-            onTap: widget.onViewAllPressed,
+            onTap: onViewAllPressed,
             behavior: HitTestBehavior.opaque,
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 4.0.s),
@@ -82,11 +90,11 @@ class _LatestTradesComponentState extends State<LatestTradesComponent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.onTitleVisibilityChanged != null)
+            if (onTitleVisibilityChanged != null)
               VisibilityDetector(
                 key: UniqueKey(),
                 onVisibilityChanged: (info) {
-                  widget.onTitleVisibilityChanged?.call(info.visibleFraction);
+                  onTitleVisibilityChanged?.call(info.visibleFraction);
                 },
                 child: titleRow,
               )
@@ -99,15 +107,15 @@ class _LatestTradesComponentState extends State<LatestTradesComponent> {
                   _TradeRow(
                     trade: trade,
                     minTextWidth: minTextWidth,
-                    onTap: widget.onTapTrade,
+                    onTap: onTapTrade,
                   ),
               ],
             ),
-            if (widget.onLoadMore != null) ...[
+            if (onLoadMore != null) ...[
               SizedBox(height: 12.0.s),
               Center(
                 child: TextButton(
-                  onPressed: widget.onLoadMore,
+                  onPressed: onLoadMore,
                   child: Text(
                     'Load More',
                     style: texts.caption.copyWith(color: colors.primaryAccent),
