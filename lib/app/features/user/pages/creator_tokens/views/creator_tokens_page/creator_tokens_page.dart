@@ -8,9 +8,9 @@ import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.d
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/tabs_header/tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/communities/providers/category_tokens_provider.r.dart';
-import 'package:ion/app/features/communities/providers/featured_tokens_provider.r.dart';
-import 'package:ion/app/features/communities/providers/latest_tokens_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/category_tokens_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/featured_tokens_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_tab_content.dart';

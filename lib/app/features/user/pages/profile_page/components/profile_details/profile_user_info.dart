@@ -5,10 +5,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/communities/extensions/replaceable_entity.dart';
 import 'package:ion/app/features/components/user/user_about/user_about.dart';
 import 'package:ion/app/features/components/user/user_info_summary/user_info_summary.dart';
-import 'package:ion/app/features/tokenized_communities/views/buy_sell_creator_token_dialog.dart';
+import 'package:ion/app/features/tokenized_communities/extensions/replaceable_entity.dart';
+import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/relevant_followers/relevant_followers.dart';
@@ -79,7 +79,7 @@ class ProfileUserInfo extends ConsumerWidget {
                         onTap: () {
                           showSimpleBottomSheet<void>(
                             context: context,
-                            child: BuySellCreatorTokenDialog(externalAddress: externalAddress),
+                            child: TradeCommunityTokenDialog(externalAddress: externalAddress),
                           );
                         },
                         onDoubleTap: () {
