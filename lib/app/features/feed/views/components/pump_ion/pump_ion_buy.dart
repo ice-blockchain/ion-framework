@@ -9,7 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
-import 'package:ion/app/features/tokenized_communities/extensions/replaceable_entity.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters.dart';
@@ -106,7 +106,7 @@ class PumpIonBuy extends HookConsumerWidget {
                         PositionedDirectional(
                           bottom: 0,
                           child: BuyButton(
-                            externalAddress: userMetadata.valueOrNull!.externalAddress,
+                            externalAddress: userMetadata.valueOrNull!.externalAddress!,
                           ),
                         ),
                     ],
