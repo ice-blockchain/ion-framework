@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -132,9 +133,16 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
     final isOwnedByCurrentUser =
         ref.watch(isCurrentUserSelectorProvider(currentEventReference.value.masterPubkey));
 
+    final menuCloseSignal = useMemoized(OverlayMenuCloseSignal.new);
+    useEffect(() => menuCloseSignal.dispose, [menuCloseSignal]);
+
     useEffect(
       () {
         void listener() {
+          if (userPageController.offset != 0) {
+            menuCloseSignal.trigger();
+          }
+
           if (userPageController.offset < -150 ||
               (userPageController.offset > userPageController.position.maxScrollExtent + 150)) {
             if (context.canPop() && !hasMore && context.mounted) {
@@ -209,6 +217,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
                   ? OwnEntityMenu(
                       eventReference: currentEventReference.value,
                       iconColor: secondaryBackgroundColor,
+                      closeSignal: menuCloseSignal,
                       onDelete: () {
                         if (context.canPop() && context.mounted) {
                           context.pop();
@@ -218,6 +227,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
                   : UserInfoMenu(
                       eventReference: currentEventReference.value,
                       iconColor: secondaryBackgroundColor,
+                      closeSignal: menuCloseSignal,
                     ),
             ),
           ],

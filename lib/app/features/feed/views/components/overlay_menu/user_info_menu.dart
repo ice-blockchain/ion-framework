@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/overlay_menu/components/overlay_menu_item.dart';
+import 'package:ion/app/components/overlay_menu/hooks/use_hide_on_signal.dart';
+import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/components/shadow/svg_shadow.dart';
@@ -24,7 +26,7 @@ import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class UserInfoMenu extends ConsumerWidget {
+class UserInfoMenu extends HookConsumerWidget {
   const UserInfoMenu({
     required this.eventReference,
     this.iconColor,
@@ -33,6 +35,7 @@ class UserInfoMenu extends ConsumerWidget {
     this.padding = EdgeInsets.zero,
     this.showNotInterested = true,
     this.iconSize,
+    this.closeSignal,
     super.key,
   });
 
@@ -45,6 +48,7 @@ class UserInfoMenu extends ConsumerWidget {
   final EdgeInsetsGeometry padding;
   final double? iconSize;
   final bool showNotInterested;
+  final OverlayMenuCloseSignal? closeSignal;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,55 +66,61 @@ class UserInfoMenu extends ConsumerWidget {
       size: iconSize,
     );
 
+    final closeMenuRef = useHideOnSignal(closeSignal);
+
     return OverlayMenu(
-      menuBuilder: (closeMenu) => ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 300.0.s),
-        child: Column(
-          children: [
-            if (showNotInterested == true) ...[
+      menuBuilder: (closeMenu) {
+        closeMenuRef?.value = closeMenu;
+
+        return ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 300.0.s),
+          child: Column(
+            children: [
+              if (showNotInterested == true) ...[
+                OverlayMenuContainer(
+                  child: _NotInterestedMenuItem(
+                    pubkey: eventReference.masterPubkey,
+                    closeMenu: closeMenu,
+                  ),
+                ),
+                SizedBox(height: 14.0.s),
+              ],
               OverlayMenuContainer(
-                child: _NotInterestedMenuItem(
-                  pubkey: eventReference.masterPubkey,
-                  closeMenu: closeMenu,
+                child: Column(
+                  children: [
+                    _FollowUserMenuItem(
+                      pubkey: eventReference.masterPubkey,
+                      username: username,
+                      closeMenu: closeMenu,
+                    ),
+                    _BlockUserMenuItem(
+                      pubkey: eventReference.masterPubkey,
+                      username: username,
+                      closeMenu: closeMenu,
+                      onBlocked: context.canPop() ? context.pop : null,
+                    ),
+                    OverlayMenuItem(
+                      label: isArticle
+                          ? context.i18n.article_menu_report_article
+                          : context.i18n.post_menu_report_post,
+                      icon: Assets.svg.iconReport.icon(size: menuIconSize),
+                      onPressed: () {
+                        closeMenu();
+                        ref.read(reportNotifierProvider.notifier).report(
+                              ReportReason.content(
+                                text: context.i18n.report_content_description,
+                                eventReference: eventReference,
+                              ),
+                            );
+                      },
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 14.0.s),
             ],
-            OverlayMenuContainer(
-              child: Column(
-                children: [
-                  _FollowUserMenuItem(
-                    pubkey: eventReference.masterPubkey,
-                    username: username,
-                    closeMenu: closeMenu,
-                  ),
-                  _BlockUserMenuItem(
-                    pubkey: eventReference.masterPubkey,
-                    username: username,
-                    closeMenu: closeMenu,
-                    onBlocked: context.canPop() ? context.pop : null,
-                  ),
-                  OverlayMenuItem(
-                    label: isArticle
-                        ? context.i18n.article_menu_report_article
-                        : context.i18n.post_menu_report_post,
-                    icon: Assets.svg.iconReport.icon(size: menuIconSize),
-                    onPressed: () {
-                      closeMenu();
-                      ref.read(reportNotifierProvider.notifier).report(
-                            ReportReason.content(
-                              text: context.i18n.report_content_description,
-                              eventReference: eventReference,
-                            ),
-                          );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
       child: Padding(
         padding: padding,
         child: showShadow ? SvgShadow(child: icon) : icon,
