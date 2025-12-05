@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:ion_token_analytics/src/community_tokens/token_info/models/community_token_type.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/models.dart';
 import 'package:ion_token_analytics/src/core/map_utils.dart';
 
