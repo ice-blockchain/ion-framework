@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/image/blurhash_image_wrapper.dart';
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_network_image/ion_connect_network_image.dart';
 import 'package:ion/app/utils/url.dart';
 
@@ -51,6 +52,6 @@ class VideoThumbnailPreview extends ConsumerWidget {
       );
     }
 
-    return const CenteredLoadingIndicator();
+    return CenteredLoadingIndicator(size: Size.square(30.s));
   }
 }

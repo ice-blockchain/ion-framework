@@ -4,10 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 
 class CenteredLoadingIndicator extends StatelessWidget {
-  const CenteredLoadingIndicator({super.key});
+  const CenteredLoadingIndicator({
+    this.size,
+    super.key,
+  });
+
+  final Size? size;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: IONLoadingIndicator());
+    return Center(child: IONLoadingIndicator(size: size));
   }
 }
