@@ -24,14 +24,17 @@ class CoinsComparator {
     bool isPrioritizedA = false,
     bool isPrioritizedB = false,
   }) {
+    final lowerSymbolGroupA = symbolGroupA.toLowerCase();
+    final lowerSymbolGroupB = symbolGroupB.toLowerCase();
+
     // 0.1. ION always comes first, regardless of other conditions
     final firstCoinComparison =
-        _checkHardcodedPriority(symbolGroupA, symbolGroupB, _CoinPriority._firstCoin);
+        _checkHardcodedPriority(lowerSymbolGroupA, lowerSymbolGroupB, _CoinPriority._firstCoin);
     if (firstCoinComparison != null) return firstCoinComparison;
 
     // 0.2. ICE always comes second (after ION), regardless of other conditions
     final secondCoinComparison =
-        _checkHardcodedPriority(symbolGroupA, symbolGroupB, _CoinPriority._secondCoin);
+        _checkHardcodedPriority(lowerSymbolGroupA, lowerSymbolGroupB, _CoinPriority._secondCoin);
     if (secondCoinComparison != null) return secondCoinComparison;
 
     // 1. Compare by balanceUSD in descending order
@@ -43,8 +46,8 @@ class CoinsComparator {
     if (isPrioritizedB && !isPrioritizedA) return 1;
 
     // 3. Compare by priority list
-    final aPriority = _prioritizer.getPriorityIndex(symbolGroupA);
-    final bPriority = _prioritizer.getPriorityIndex(symbolGroupB);
+    final aPriority = _prioritizer.getPriorityIndex(lowerSymbolGroupA);
+    final bPriority = _prioritizer.getPriorityIndex(lowerSymbolGroupB);
 
     // If both are in priority list, compare their positions
     if (aPriority != -1 && bPriority != -1 && aPriority != bPriority) {
@@ -56,7 +59,7 @@ class CoinsComparator {
     if (bPriority != -1 && aPriority == -1) return 1;
 
     // 4. Compare by symbolGroup
-    final symbolGroupComparison = symbolGroupA.compareTo(symbolGroupB);
+    final symbolGroupComparison = lowerSymbolGroupA.compareTo(lowerSymbolGroupB);
     if (symbolGroupComparison != 0) return symbolGroupComparison;
 
     // 5. If coin is native for network, it should be displayed before other coins,
