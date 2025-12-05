@@ -20,7 +20,7 @@ extension ExternalAddressExtension on ReplaceableEntity {
       } else {
         prefix = 'c';
       }
-    } else if (data is ArticleEntity) {
+    } else if (data is ArticleData) {
       prefix = 'd';
     } else {
       throw Exception('Unsupported data type');
