@@ -5,12 +5,10 @@ import 'dart:convert';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
-import 'package:ion/app/features/core/model/user_agent.f.dart';
 import 'package:ion/app/features/core/providers/current_user_agent.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/auth_event.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
-import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -34,14 +32,11 @@ Future<IonTokenAnalyticsClient> ionTokenAnalyticsClient(Ref ref) async {
 Raw<Future<String?>> tokenAnalyticsAuthToken(Ref ref) async {
   keepAliveWhenAuthenticated(ref);
 
-  final [delegationComplete as bool, delegation as UserDelegationEntity?, userAgent as UserAgent] =
-      await Future.wait(
-    [
-      ref.watch(cacheDelegationCompleteProvider.future),
-      ref.watch(currentUserCachedDelegationProvider.future),
-      ref.watch(currentUserAgentProvider.future),
-    ],
-  );
+  final (delegationComplete, delegation, userAgent) = await (
+    ref.watch(cacheDelegationCompleteProvider.future),
+    ref.watch(currentUserCachedDelegationProvider.future),
+    ref.watch(currentUserAgentProvider.future),
+  ).wait;
 
   final authEvent = AuthEvent(
     challenge: '',
