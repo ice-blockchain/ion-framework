@@ -67,7 +67,7 @@ class ArticleEntity
   static const kind = 30023;
 
   @override
-  FutureOr<EventMessage> toEntityEventMessage() => toEventMessage(data);
+  FutureOr<EventMessage> toEntityEventMessage() => eventMessage ?? toEventMessage(data);
 }
 
 @freezed
