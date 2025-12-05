@@ -25,7 +25,7 @@ class ShareProfileToStoryContent extends HookConsumerWidget {
     final pubkey = eventReference.masterPubkey;
     final userMetadata = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
     final avatarUrl = userMetadata?.data.avatarUrl;
-    final avatarColors = useAvatarColors(avatarUrl);
+    final avatarColors = useImageColors(avatarUrl);
 
     if (userMetadata == null) {
       return const SizedBox.shrink();
