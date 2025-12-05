@@ -48,7 +48,7 @@ class RelevantFollowers extends ConsumerWidget {
     }
 
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.0.s),
+      padding: EdgeInsetsDirectional.only(bottom: 12.0.s),
       child: Row(
         children: [
           FollowedByAvatars(pubkeys: pubkeys),
