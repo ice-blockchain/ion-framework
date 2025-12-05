@@ -56,7 +56,7 @@ class CreatorTokensTabContent extends HookConsumerWidget {
     }
 
     return tokens.where((token) {
-      final tokenType = CommunityTokenType.fromString(token.type);
+      final tokenType = token.type;
       if (filterType == CreatorTokensFilterType.creatorTokens) {
         return tokenType.isCreatorToken;
       } else {
