@@ -7,6 +7,8 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
+import 'package:ion/app/features/wallets/model/info_type.dart';
+import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -43,14 +45,26 @@ class ProfileTokenStatsInfo extends ConsumerWidget {
             _StatItem(
               icon: Assets.svg.iconMemeMarketcap,
               text: MarketDataFormatter.formatCompactNumber(marketData.marketCap),
+              onTap: () => showSimpleBottomSheet<void>(
+                context: context,
+                child: const InfoModal(infoType: InfoType.marketCap),
+              ),
             ),
             _StatItem(
               icon: Assets.svg.iconMemeMarkers,
               text: MarketDataFormatter.formatPrice(marketData.priceUSD),
+              onTap: () => showSimpleBottomSheet<void>(
+                context: context,
+                child: const InfoModal(infoType: InfoType.volume),
+              ),
             ),
             _StatItem(
               icon: Assets.svg.iconSearchGroups,
               text: MarketDataFormatter.formatCompactNumber(marketData.volume),
+              onTap: () => showSimpleBottomSheet<void>(
+                context: context,
+                child: const InfoModal(infoType: InfoType.holders),
+              ),
             ),
           ],
         ),
@@ -105,14 +119,26 @@ class ProfileTokenStats extends ConsumerWidget {
         _StatItem(
           icon: Assets.svg.iconMemeMarketcap,
           text: MarketDataFormatter.formatCompactNumber(marketData.marketCap),
+          onTap: () => showSimpleBottomSheet<void>(
+            context: context,
+            child: const InfoModal(infoType: InfoType.marketCap),
+          ),
         ),
         _StatItem(
           icon: Assets.svg.iconMemeMarkers,
           text: MarketDataFormatter.formatPrice(marketData.priceUSD),
+          onTap: () => showSimpleBottomSheet<void>(
+            context: context,
+            child: const InfoModal(infoType: InfoType.volume),
+          ),
         ),
         _StatItem(
           icon: Assets.svg.iconSearchGroups,
           text: MarketDataFormatter.formatCompactNumber(marketData.volume),
+          onTap: () => showSimpleBottomSheet<void>(
+            context: context,
+            child: const InfoModal(infoType: InfoType.holders),
+          ),
         ),
         if (leading != null) leading!,
       ],
@@ -124,40 +150,46 @@ class _StatItem extends StatelessWidget {
   const _StatItem({
     required this.icon,
     required this.text,
+    required this.onTap,
   });
 
   final String icon;
   final String text;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(width: 4.s),
-        Container(
-          width: 14.15.s,
-          height: 14.15.s,
-          clipBehavior: Clip.antiAlias,
-          decoration: const BoxDecoration(),
-          child: Center(
-            child: icon.icon(
-              size: 14.15.s,
-              color: context.theme.appColors.secondaryBackground,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(width: 4.s),
+          Container(
+            width: 14.15.s,
+            height: 14.15.s,
+            clipBehavior: Clip.antiAlias,
+            decoration: const BoxDecoration(),
+            child: Center(
+              child: icon.icon(
+                size: 14.15.s,
+                color: context.theme.appColors.secondaryBackground,
+              ),
             ),
           ),
-        ),
-        SizedBox(width: 4.s),
-        Flexible(
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: context.theme.appTextThemes.caption.copyWith(
-              color: context.theme.appColors.secondaryBackground,
+          SizedBox(width: 4.s),
+          Flexible(
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: context.theme.appTextThemes.caption.copyWith(
+                color: context.theme.appColors.secondaryBackground,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
