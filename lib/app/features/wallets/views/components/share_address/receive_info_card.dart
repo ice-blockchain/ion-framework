@@ -89,7 +89,7 @@ class ReceiveInfoCard extends HookWidget {
                 Skeleton(
                   child: _AddressInfoContainer(
                     title: context.i18n.wallet_address,
-                    value: walletAddress!,
+                    value: '',
                     onTapInfo: () {},
                   ),
                 ),
