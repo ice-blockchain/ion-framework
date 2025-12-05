@@ -13,5 +13,6 @@ Future<ConcurrentTasksQueue> feedRequestQueue(Ref ref) async {
   final feedConfig = await ref.read(feedConfigProvider.future);
   final queue = ConcurrentTasksQueue(maxConcurrent: feedConfig.concurrentRequests);
   onLogout(ref, queue.cancelAll);
+  onUserSwitch(ref, queue.cancelAll);
   return queue;
 }

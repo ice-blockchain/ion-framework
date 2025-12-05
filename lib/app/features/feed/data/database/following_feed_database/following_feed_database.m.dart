@@ -31,6 +31,7 @@ FollowingFeedDatabase followingFeedDatabase(Ref ref) {
   final database = FollowingFeedDatabase(pubkey);
 
   onLogout(ref, database.close);
+  onUserSwitch(ref, database.close);
 
   return database;
 }

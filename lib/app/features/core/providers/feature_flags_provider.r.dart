@@ -20,6 +20,7 @@ class FeatureFlags extends _$FeatureFlags {
       ChatFeatureFlag.hideChatBookmark: true,
       TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled: true,
       DelegateAccessFeatureFlag.delegateAccessEnabled: false,
+      MultiAccountsFeatureFlag.multiAccountsEnabled: false,
 
       /// Log flags
       if (ref.watch(envProvider.notifier).get(EnvVariable.SHOW_DEBUG_INFO)) ...{

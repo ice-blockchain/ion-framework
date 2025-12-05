@@ -13,6 +13,7 @@ class ActiveRelays extends _$ActiveRelays {
   Set<String> build() {
     _invalidateOnLogout();
     _invalidateOnSignerChange();
+    _invalidateOnUserSwitch();
     return {};
   }
 
@@ -32,6 +33,10 @@ class ActiveRelays extends _$ActiveRelays {
 
   void _invalidateOnLogout() {
     onLogout(ref, invalidateAll);
+  }
+
+  void _invalidateOnUserSwitch() {
+    onUserSwitch(ref, invalidateAll);
   }
 
   void _invalidateOnSignerChange() {

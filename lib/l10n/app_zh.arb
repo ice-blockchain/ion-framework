@@ -635,7 +635,7 @@
   "profile_articles_empty_list": "{username} 没有任何文章",
   "profile_articles_empty_list_current_user": "您没有任何文章",
   "profile_bio": "简介",
-  "profile_create_new_account": "创建新账户",
+  "profile_create_new_account": "添加账户",
   "profile_creation_date": "2024年12月",
   "profile_edit": "编辑个人资料",
   "profile_empty_state": "这里还没有内容",

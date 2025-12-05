@@ -21,6 +21,9 @@ Future<IonConnectRelay> longLivingSubscriptionRelay(
   onLogout(ref, () {
     ref.invalidateSelf();
   });
+  onUserSwitch(ref, () {
+    ref.invalidateSelf();
+  });
 
   final relay = await ref.read(relayPickerProvider.notifier).getActionSourceRelays(
         actionSource,

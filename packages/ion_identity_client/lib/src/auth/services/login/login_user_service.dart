@@ -36,7 +36,7 @@ class LoginUserService {
   /// - [UserNotFoundException] if the user account does not exist.
   /// - [PasskeyValidationException] if the passkey validation fails.
   /// - [UnknownIONIdentityException] for any other unexpected errors during the login process.
-  Future<void> login({
+  Future<String> login({
     required AuthConfig config,
     required List<TwoFAType> twoFATypes,
     required bool localCredsOnly,
@@ -75,5 +75,7 @@ class LoginUserService {
       username: tokenKeyUsername,
       newTokens: tokens,
     );
+
+    return tokenKeyUsername;
   }
 }

@@ -5,8 +5,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/model/feature_flags.dart';
+import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
-import 'package:ion/app/hooks/use_auto_play.dart';
+import 'package:ion/app/hooks/use_auto_play_route_observer.dart';
+import 'package:ion/app/router/app_route_observer.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:video_player/video_player.dart';
@@ -26,9 +30,20 @@ class IntroPage extends HookConsumerWidget {
         ),
       ),
     );
-    useAutoPlay(videoControllerProviderState.valueOrNull);
+    useAutoPlayRouteObserver(
+      videoControllerProviderState.valueOrNull,
+      routeObserver: routeObserver,
+    );
 
     final videoController = videoControllerProviderState.valueOrNull;
+
+    final isMultiAccountsEnabled =
+        ref.watch(featureFlagsProvider.notifier).get(MultiAccountsFeatureFlag.multiAccountsEnabled);
+
+    final isSwitchAccountEnabled = ref.watch(
+      authProvider
+          .select((state) => state.valueOrNull?.authenticatedIdentityKeyNames.isNotEmpty ?? false),
+    );
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -50,6 +65,21 @@ class IntroPage extends HookConsumerWidget {
               child: AspectRatio(
                 aspectRatio: videoController.value.aspectRatio,
                 child: VideoPlayer(videoController),
+              ),
+            ),
+          if (isMultiAccountsEnabled && isSwitchAccountEnabled)
+            PositionedDirectional(
+              top: MediaQuery.paddingOf(context).top + 16.0.s,
+              end: 16.0.s,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => SwitchAccountAuthRoute().go(context),
+                child: Container(
+                  padding: EdgeInsets.all(8.0.s),
+                  child: Assets.svg.iconSwitchProfile.icon(
+                    size: 24.0.s,
+                  ),
+                ),
               ),
             ),
           PositionedDirectional(

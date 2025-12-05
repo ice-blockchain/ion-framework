@@ -12,6 +12,7 @@ import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/data/models/twofa_type.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/login_action_notifier.r.dart';
 import 'package:ion/app/features/auth/providers/registration_restrictions_provider.r.dart';
 import 'package:ion/app/features/auth/views/components/auth_footer/auth_footer.dart';
@@ -23,6 +24,7 @@ import 'package:ion/app/features/components/passkey/hooks/use_on_suggest_to_crea
 import 'package:ion/app/features/components/passkey/no_local_passkey_creds_popup.dart';
 import 'package:ion/app/features/user/providers/user_verify_identity_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -74,6 +76,7 @@ class SignInStep extends HookConsumerWidget {
       body: KeyboardDismissOnTap(
         child: AuthScrollContainer(
           showBackButton: false,
+          actions: const [NavigationCloseButton()],
           title: context.i18n.get_started_title,
           description: context.i18n.get_started_description,
           icon: Assets.svg.iconLoginIcelogo.icon(size: 44.0.s),
@@ -198,6 +201,16 @@ class SignInStep extends HookConsumerWidget {
     required Future<void> Function(String username) onSuggestToCreatePasskeyCreds,
     required SuggestBiometricsCallback onSuggestToAddBiometrics,
   }) async {
+    final authState = await ref.read(authProvider.future);
+    final currentAuthenticatedUsers = authState.authenticatedIdentityKeyNames;
+
+    final isSwitchingToExistingAccount =
+        await ref.read(authProvider.notifier).handleSwitchingToExistingAccount(
+              username,
+              currentAuthenticatedUsers: currentAuthenticatedUsers,
+            );
+    if (isSwitchingToExistingAccount) return;
+
     await ref.read(loginActionNotifierProvider.notifier).verifyUserLoginFlow(keyName: username);
     final loginState = ref.read(loginActionNotifierProvider);
     if (loginState.hasError) {

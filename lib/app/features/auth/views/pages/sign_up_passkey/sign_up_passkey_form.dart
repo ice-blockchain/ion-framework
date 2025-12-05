@@ -29,6 +29,9 @@ class SignUpPasskeyForm extends HookConsumerWidget {
     final onSuggestToAddBiometrics = useOnSuggestToAddBiometrics(ref);
 
     final authState = ref.watch(authProvider);
+    final isUserSwitching = ref.watch(userSwitchInProgressProvider).isSwitchingProgress;
+    final isAuthenticated =
+        !isUserSwitching && (authState.valueOrNull?.isAuthenticated).falseOrValue;
     final authFlowState = ref.watch(authFlowActionNotifierProvider);
 
     useOnInit(
@@ -61,13 +64,12 @@ class SignUpPasskeyForm extends HookConsumerWidget {
           SizedBox(height: 16.0.s),
           Button(
             disabled: authFlowState.isLoading,
-            trailingIcon:
-                authFlowState.isLoading || (authState.valueOrNull?.isAuthenticated).falseOrValue
-                    ? const IONLoadingIndicator()
-                    : Assets.svg.iconButtonNext.icon(
-                        size: 24.0.s,
-                        color: context.theme.appColors.onPrimaryAccent,
-                      ),
+            trailingIcon: authFlowState.isLoading || isAuthenticated
+                ? const IONLoadingIndicator()
+                : Assets.svg.iconButtonNext.icon(
+                    size: 24.0.s,
+                    color: context.theme.appColors.onPrimaryAccent,
+                  ),
             onPressed: () async {
               if (formKey.value.currentState!.validate()) {
                 FocusScope.of(context).unfocus();

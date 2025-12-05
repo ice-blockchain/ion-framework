@@ -97,14 +97,46 @@ class Auth extends _$Auth {
     final currentUser = ref.read(currentIdentityKeyNameSelectorProvider);
     if (currentUser == null) return;
 
+    final authenticatedIdentityKeyNames = state.valueOrNull?.authenticatedIdentityKeyNames ?? [];
+    if (authenticatedIdentityKeyNames.length > 1) {
+      ref.read(userSwitchInProgressProvider.notifier).startSwitchingViaLogout();
+    }
+
     final ionIdentity = await ref.read(ionIdentityProvider.future);
     await ionIdentity(username: currentUser).auth.logOut();
   }
 
-  void setCurrentUser(String identityKeyName) {
-    ref
+  Future<void> setCurrentUser(String identityKeyName) async {
+    await ref
         .read(currentIdentityKeyNameStoreProvider.notifier)
         .setCurrentIdentityKeyName(identityKeyName);
+  }
+
+  /// Handles switching to an existing account
+  /// Returns true if switching was handled, false if the user is new
+  Future<bool> handleSwitchingToExistingAccount(
+    String targetUsername, {
+    List<String>? currentAuthenticatedUsers,
+  }) async {
+    final authenticatedUsers =
+        currentAuthenticatedUsers ?? state.valueOrNull?.authenticatedIdentityKeyNames ?? [];
+    final isSwitchingToExistingAccount = authenticatedUsers.contains(targetUsername);
+
+    final currentUser = ref.read(currentIdentityKeyNameSelectorProvider);
+    final needsUserChange = currentUser != targetUsername;
+
+    if (!isSwitchingToExistingAccount) {
+      if (needsUserChange) {
+        await setCurrentUser(targetUsername);
+      }
+      return false;
+    }
+
+    if (needsUserChange) {
+      await setCurrentUser(targetUsername);
+    }
+    ref.read(userSwitchInProgressProvider.notifier).completeSwitching();
+    return true;
   }
 }
 
@@ -194,6 +226,18 @@ void onLogout(Ref ref, void Function() callback) {
   });
 }
 
+void onUserSwitch(Ref ref, void Function() callback) {
+  ref.listen(
+    currentIdentityKeyNameSelectorProvider,
+    (prev, next) {
+      if (prev != null && next != null && prev != next) {
+        callback();
+      }
+    },
+    fireImmediately: false,
+  );
+}
+
 void keepAliveWhenAuthenticated(Ref ref) {
   final keepAlive = ref.keepAlive();
   onLogout(ref, keepAlive.close);
@@ -211,4 +255,47 @@ void onLogin(Ref ref, void Function() callback) {
 void keepAliveWhileUnauthenticated(Ref ref) {
   final keepAlive = ref.keepAlive();
   onLogin(ref, keepAlive.close);
+}
+
+@freezed
+class UserSwitchState with _$UserSwitchState {
+  const factory UserSwitchState({
+    @Default(false) bool isSwitchingProgress,
+    @Default(false) bool isLogoutTriggered,
+  }) = _UserSwitchState;
+}
+
+@Riverpod(keepAlive: true)
+class UserSwitchInProgress extends _$UserSwitchInProgress {
+  @override
+  UserSwitchState build() {
+    ref.listen(
+      currentIdentityKeyNameSelectorProvider,
+      (prev, next) {
+        if (prev != null && next != null && prev != next) {
+          completeSwitching();
+        }
+      },
+    );
+    return const UserSwitchState();
+  }
+
+  void startSwitching() {
+    state = state.copyWith(isSwitchingProgress: true);
+  }
+
+  void startSwitchingViaLogout() {
+    state = state.copyWith(
+      isSwitchingProgress: true,
+      isLogoutTriggered: true,
+    );
+  }
+
+  void completeSwitching() {
+    if (state.isLogoutTriggered) {
+      state = state.copyWith(isLogoutTriggered: false);
+    } else {
+      state = const UserSwitchState();
+    }
+  }
 }

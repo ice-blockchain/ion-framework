@@ -635,7 +635,7 @@
   "profile_articles_empty_list": "{username} doesn't have any articles",
   "profile_articles_empty_list_current_user": "You don't have any articles",
   "profile_bio": "Bio",
-  "profile_create_new_account": "Create a new account",
+  "profile_create_new_account": "Add an account",
   "profile_creation_date": "December 2024",
   "profile_edit": "Edit profile",
   "profile_empty_state": "There's nothing here yet",

@@ -21,6 +21,7 @@ import 'package:ion/app/features/force_update/view/pages/app_update_modal.dart';
 import 'package:ion/app/features/push_notifications/providers/initial_notification_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/notification_response_service.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/router/app_route_observer.dart';
 import 'package:ion/app/router/app_router_listenable.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/providers/route_location_provider.r.dart';
@@ -91,6 +92,7 @@ GoRouter goRouter(Ref ref) {
     initialLocation: SplashRoute().location,
     debugLogDiagnostics: ref.read(featureFlagsProvider.notifier).get(LoggerFeatureFlag.logRouters),
     navigatorKey: rootNavigatorKey,
+    observers: [routeObserver],
   );
 
   // Listen to route changes
@@ -108,6 +110,8 @@ Future<String?> _mainRedirect({
   required String location,
   required Ref ref,
 }) async {
+  final isUserSwitching = ref.read(userSwitchInProgressProvider).isSwitchingProgress;
+
   final isAuthenticated = (ref.read(authProvider).valueOrNull?.isAuthenticated).falseOrValue;
   final onboardingComplete = ref.read(onboardingCompleteProvider).valueOrNull;
   final hasNotificationsPermission = ref.read(hasPermissionProvider(Permission.notifications));
@@ -117,6 +121,10 @@ Future<String?> _mainRedirect({
   final isOnOnboarding = location.contains('/${AuthRoutes.onboardingPrefix}/');
   final isOnMediaPicker = location.contains(MediaPickerRoutes.routesPrefix);
   final isOnFeed = location == FeedRoute().location;
+
+  if (isUserSwitching && isOnAuth) {
+    return null;
+  }
 
   if (!isAuthenticated && !isOnAuth) {
     return IntroRoute().location;
@@ -144,6 +152,10 @@ Future<String?> _mainRedirect({
         !isOnMediaPicker &&
         !(hasUserMetadata && relaysAssigned)) {
       return FillProfileRoute().location;
+    }
+
+    if (isUserSwitching && !isOnAuth) {
+      return IntroRoute().location;
     }
 
     if (!onboardingComplete &&
