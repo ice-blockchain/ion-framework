@@ -161,16 +161,20 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     required IonConnectPushDataPayload data,
   }) async {
     if (data.event.kind == IonConnectGiftWrapEntity.kind) {
-      final giftUnwrapService = await ref.watch(giftUnwrapServiceProvider.future);
       final currentPubkey = ref.watch(currentPubkeySelectorProvider);
 
+      // If no user is logged in, skip the notification
       if (currentPubkey == null) {
         return true;
       }
 
-      final rumor = await giftUnwrapService.unwrap(data.event);
+      if (data.decryptedEvent != null) {
+        // Skip if message is from current user (self-message)
+        return data.decryptedEvent!.masterPubkey == currentPubkey;
+      }
 
-      return rumor.masterPubkey == currentPubkey;
+      // If decryptedEvent is null, message is encrypted for another user - show notification
+      return false;
     }
 
     return false;
