@@ -45,20 +45,19 @@ class RepostNotifier extends _$RepostNotifier {
         throw EntityNotFoundException(eventReference);
       }
 
-      // Use original event message if available to preserve all tags and data
       final repostData = switch (entity) {
         PostEntity() => RepostData(
             eventReference: entity.toEventReference(),
-            repostedEvent: entity.eventMessage ?? await entity.toEventMessage(entity.data),
+            repostedEvent: await entity.toEntityEventMessage(),
           ),
         ModifiablePostEntity() => GenericRepostData(
             eventReference: entity.toEventReference(),
-            repostedEvent: entity.eventMessage ?? await entity.toEventMessage(entity.data),
+            repostedEvent: await entity.toEntityEventMessage(),
             kind: ModifiablePostEntity.kind,
           ),
         ArticleEntity() => GenericRepostData(
             eventReference: entity.toEventReference(),
-            repostedEvent: entity.eventMessage ?? await entity.toEventMessage(entity.data),
+            repostedEvent: await entity.toEntityEventMessage(),
             kind: ArticleEntity.kind,
           ),
         _ => throw UnsupportedRepostException(entity.toEventReference()),
