@@ -35,6 +35,7 @@ class PostEntity
     required String signature,
     required int createdAt,
     required PostData data,
+    EventMessage? eventMessage,
   }) = _PostEntity;
 
   const PostEntity._();
@@ -52,6 +53,7 @@ class PostEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: PostData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

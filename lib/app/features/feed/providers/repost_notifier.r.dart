@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -12,16 +10,11 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_interests_interaction.dart';
-import 'package:ion/app/features/feed/providers/content_conversion.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
-import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -52,19 +45,20 @@ class RepostNotifier extends _$RepostNotifier {
         throw EntityNotFoundException(eventReference);
       }
 
+      // Use original event message if available to preserve all tags and data
       final repostData = switch (entity) {
         PostEntity() => RepostData(
             eventReference: entity.toEventReference(),
-            repostedEvent: await _convertAndSignEntityData(entity, ref),
+            repostedEvent: entity.eventMessage ?? await entity.toEventMessage(entity.data),
           ),
         ModifiablePostEntity() => GenericRepostData(
             eventReference: entity.toEventReference(),
-            repostedEvent: await _convertAndSignEntityData(entity, ref),
+            repostedEvent: entity.eventMessage ?? await entity.toEventMessage(entity.data),
             kind: ModifiablePostEntity.kind,
           ),
         ArticleEntity() => GenericRepostData(
             eventReference: entity.toEventReference(),
-            repostedEvent: await _convertAndSignEntityData(entity, ref),
+            repostedEvent: entity.eventMessage ?? await entity.toEventMessage(entity.data),
             kind: ArticleEntity.kind,
           ),
         _ => throw UnsupportedRepostException(entity.toEventReference()),
@@ -98,59 +92,6 @@ class RepostNotifier extends _$RepostNotifier {
       state = const AsyncValue.data(null);
       return value.requireValue;
     });
-  }
-
-  Future<EventMessage> _convertAndSignEntityData(
-    IonConnectEntity entity,
-    Ref ref,
-  ) async {
-    final eventSigner = await ref.read(currentUserIonConnectEventSignerProvider.future);
-    if (eventSigner == null) {
-      throw Exception('Event signer not available');
-    }
-
-    return switch (entity) {
-      PostEntity() => _handlePostData(
-          entity.data.richText,
-          entity.data.content,
-          (content) => entity.data.copyWith(content: content),
-          eventSigner,
-        ),
-      ModifiablePostEntity() => _handlePostData(
-          entity.data.richText,
-          entity.data.textContent,
-          (textContent) => entity.data.copyWith(textContent: textContent),
-          eventSigner,
-        ),
-      ArticleEntity() => () async {
-          final data = entity.data;
-          final deltaJson =
-              data.richText != null ? (jsonDecode(data.richText!.content) as List) : null;
-          final textContent = deltaJson != null
-              ? convertDeltaToMarkdown(Delta.fromJson(deltaJson))
-              : data.textContent;
-
-          return data.copyWith(textContent: textContent).toEventMessage(eventSigner);
-        }(),
-      _ => throw UnsupportedEntityType(entity),
-    };
-  }
-
-  Future<EventMessage> _handlePostData<T extends EventSerializable>(
-    RichText? richText,
-    String textContent,
-    T Function(String) copyWith,
-    EventSigner eventSigner,
-  ) async {
-    final deltaJson = richText != null ? (jsonDecode(richText.content) as List) : null;
-    final conversion = deltaJson != null
-        ? await convertDeltaToPmoTags(deltaJson)
-        : await convertMarkdownToPmoTags(textContent);
-
-    return copyWith(conversion.contentToSign).toEventMessage(
-      eventSigner,
-      tags: conversion.pmoTags,
-    );
   }
 
   Future<void> _updateInterests(IonConnectEntity repostedEntity) async {
