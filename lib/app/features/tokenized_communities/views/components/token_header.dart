@@ -163,7 +163,7 @@ class _StatsRow extends StatelessWidget {
           _StatItem(
             iconPath: Assets.svg.iconMemeMarketcap,
             value: abbreviateCount(marketCapUsd),
-            onInfoTap: () => showSimpleBottomSheet<void>(
+            onTap: () => showSimpleBottomSheet<void>(
               context: context,
               child: const InfoModal(infoType: InfoType.marketCap),
             ),
@@ -171,7 +171,7 @@ class _StatsRow extends StatelessWidget {
           _StatItem(
             iconPath: Assets.svg.iconMemeMarkers,
             value: formatUsd(volumeUsd).replaceAll(r'$', r'$'),
-            onInfoTap: () => showSimpleBottomSheet<void>(
+            onTap: () => showSimpleBottomSheet<void>(
               context: context,
               child: const InfoModal(infoType: InfoType.volume),
             ),
@@ -179,7 +179,7 @@ class _StatsRow extends StatelessWidget {
           _StatItem(
             iconPath: Assets.svg.iconSearchGroups,
             value: abbreviateCount(holdersCount),
-            onInfoTap: () => showSimpleBottomSheet<void>(
+            onTap: () => showSimpleBottomSheet<void>(
               context: context,
               child: const InfoModal(infoType: InfoType.holders),
             ),
@@ -194,12 +194,12 @@ class _StatItem extends StatelessWidget {
   const _StatItem({
     required this.iconPath,
     required this.value,
-    required this.onInfoTap,
+    required this.onTap,
   });
 
   final String iconPath;
   final String value;
-  final VoidCallback onInfoTap;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +207,7 @@ class _StatItem extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onInfoTap,
+      onTap: onTap,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

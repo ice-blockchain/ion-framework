@@ -1048,7 +1048,6 @@
   "who_can_reply_settings_verified_accounts": "Comptes vérifiés",
   "write_a_message": "Écrire un message...",
   "your_position_card_title": "Votre position",
-<<<<<<< HEAD
   "errorGettingSwapQuote": "Erreur lors de la récupération du prix de l'échange",
   "wallet_swap_confirmation_missing_coin_or_network_data": "La pièce ou le réseau est manquant",
   "error_swap_80000": "Repeated request",

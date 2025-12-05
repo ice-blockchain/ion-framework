@@ -1048,7 +1048,6 @@
   "who_can_reply_settings_verified_accounts": "Verifizierte Konten",
   "write_a_message": "Nachricht schreiben …",
   "your_position_card_title": "Deine Position",
-<<<<<<< HEAD
   "errorGettingSwapQuote": "Fehler beim Abrufen des Wechselkurses",
   "wallet_swap_confirmation_missing_coin_or_network_data": "Münze oder Netzwerk fehlen",
   "error_swap_80000": "Repeated request",

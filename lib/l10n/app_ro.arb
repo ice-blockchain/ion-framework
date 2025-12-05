@@ -1048,7 +1048,6 @@
   "who_can_reply_settings_verified_accounts": "Conturi verificate",
   "write_a_message": "Scrie un mesaj...",
   "your_position_card_title": "Poziția ta",
-<<<<<<< HEAD
   "errorGettingSwapQuote": "Eroare la obținerea prețului de schimb",
   "wallet_swap_confirmation_missing_coin_or_network_data": "Monedă sau rețea lipsă",
   "error_swap_80000": "Repeated request",
