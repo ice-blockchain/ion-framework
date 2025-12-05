@@ -21,9 +21,9 @@ GetWalletHistoryRequestParams _$GetWalletHistoryRequestParamsFromJson(
 
 /// @nodoc
 mixin _$GetWalletHistoryRequestParams {
-  @JsonKey(includeFromJson: false)
+  @JsonKey(includeFromJson: false, includeToJson: true)
   int? get limit => throw _privateConstructorUsedError;
-  @JsonKey(includeFromJson: false)
+  @JsonKey(includeFromJson: false, includeToJson: true)
   String? get paginationToken => throw _privateConstructorUsedError;
 
   /// Serializes this GetWalletHistoryRequestParams to a JSON map.
@@ -45,8 +45,9 @@ abstract class $GetWalletHistoryRequestParamsCopyWith<$Res> {
           GetWalletHistoryRequestParams>;
   @useResult
   $Res call(
-      {@JsonKey(includeFromJson: false) int? limit,
-      @JsonKey(includeFromJson: false) String? paginationToken});
+      {@JsonKey(includeFromJson: false, includeToJson: true) int? limit,
+      @JsonKey(includeFromJson: false, includeToJson: true)
+      String? paginationToken});
 }
 
 /// @nodoc
@@ -91,8 +92,9 @@ abstract class _$$GetWalletHistoryRequestParamsImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@JsonKey(includeFromJson: false) int? limit,
-      @JsonKey(includeFromJson: false) String? paginationToken});
+      {@JsonKey(includeFromJson: false, includeToJson: true) int? limit,
+      @JsonKey(includeFromJson: false, includeToJson: true)
+      String? paginationToken});
 }
 
 /// @nodoc
@@ -131,18 +133,19 @@ class __$$GetWalletHistoryRequestParamsImplCopyWithImpl<$Res>
 class _$GetWalletHistoryRequestParamsImpl
     implements _GetWalletHistoryRequestParams {
   const _$GetWalletHistoryRequestParamsImpl(
-      {@JsonKey(includeFromJson: false) this.limit,
-      @JsonKey(includeFromJson: false) this.paginationToken});
+      {@JsonKey(includeFromJson: false, includeToJson: true) this.limit,
+      @JsonKey(includeFromJson: false, includeToJson: true)
+      this.paginationToken});
 
   factory _$GetWalletHistoryRequestParamsImpl.fromJson(
           Map<String, dynamic> json) =>
       _$$GetWalletHistoryRequestParamsImplFromJson(json);
 
   @override
-  @JsonKey(includeFromJson: false)
+  @JsonKey(includeFromJson: false, includeToJson: true)
   final int? limit;
   @override
-  @JsonKey(includeFromJson: false)
+  @JsonKey(includeFromJson: false, includeToJson: true)
   final String? paginationToken;
 
   @override
@@ -185,18 +188,18 @@ class _$GetWalletHistoryRequestParamsImpl
 abstract class _GetWalletHistoryRequestParams
     implements GetWalletHistoryRequestParams {
   const factory _GetWalletHistoryRequestParams(
-          {@JsonKey(includeFromJson: false) final int? limit,
-          @JsonKey(includeFromJson: false) final String? paginationToken}) =
-      _$GetWalletHistoryRequestParamsImpl;
+      {@JsonKey(includeFromJson: false, includeToJson: true) final int? limit,
+      @JsonKey(includeFromJson: false, includeToJson: true)
+      final String? paginationToken}) = _$GetWalletHistoryRequestParamsImpl;
 
   factory _GetWalletHistoryRequestParams.fromJson(Map<String, dynamic> json) =
       _$GetWalletHistoryRequestParamsImpl.fromJson;
 
   @override
-  @JsonKey(includeFromJson: false)
+  @JsonKey(includeFromJson: false, includeToJson: true)
   int? get limit;
   @override
-  @JsonKey(includeFromJson: false)
+  @JsonKey(includeFromJson: false, includeToJson: true)
   String? get paginationToken;
 
   /// Create a copy of GetWalletHistoryRequestParams
