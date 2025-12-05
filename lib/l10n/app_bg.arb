@@ -914,6 +914,7 @@
   "token_stats_market_cap_title": "Market Cap",
   "token_stats_volume_description": "Това показва общото количество токени, закупени и продадени за избран период. По-висока активност обикновено означава по-силен интерес, по-добра ликвидност и по-лесно търгуване.",
   "token_stats_volume_title": "Volume",
+  "switched_to_username": "Превключено към {username}",
   "tokenized_communities_top_tokens": "Топ токени",
   "tokenized_communities_trending_tokens": "Популярни токени",
   "tokenized_community_bonding_curve": "Крива на обвързване",

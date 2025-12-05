@@ -914,6 +914,7 @@
   "token_stats_market_cap_title": "Market Cap",
   "token_stats_volume_description": "显示在所选时间段内买入和卖出的代币总量。较高的活跃度通常意味着兴趣更强、流动性更好、交易更便捷。",
   "token_stats_volume_title": "Volume",
+  "switched_to_username": "已切换到 {username}",
   "tokenized_communities_top_tokens": "顶级代币",
   "tokenized_communities_trending_tokens": "热门代币",
   "tokenized_community_bonding_curve": "绑定曲线",

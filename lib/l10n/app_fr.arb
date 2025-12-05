@@ -914,6 +914,7 @@
   "token_stats_market_cap_title": "Market Cap",
   "token_stats_volume_description": "Cela affiche le volume total de tokens achetés et vendus sur une période choisie. Une activité plus élevée signifie généralement un intérêt plus fort, une meilleure liquidité et des échanges plus faciles.",
   "token_stats_volume_title": "Volume",
+  "switched_to_username": "Passé à {username}",
   "tokenized_communities_top_tokens": "Meilleurs jetons",
   "tokenized_communities_trending_tokens": "Jetons tendance",
   "tokenized_community_bonding_curve": "Courbe de liaison",
