@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/overlay_menu/components/overlay_menu_item.dart';
 import 'package:ion/app/components/overlay_menu/components/overlay_menu_item_separator.dart';
+import 'package:ion/app/components/overlay_menu/hooks/use_hide_on_signal.dart';
+import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/components/shadow/svg_shadow.dart';
@@ -23,7 +25,7 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class OwnEntityMenu extends ConsumerWidget {
+class OwnEntityMenu extends HookConsumerWidget {
   const OwnEntityMenu({
     required this.eventReference,
     this.iconColor,
@@ -31,6 +33,7 @@ class OwnEntityMenu extends ConsumerWidget {
     this.padding = EdgeInsets.zero,
     this.showShadow = false,
     this.iconSize,
+    this.closeSignal,
     super.key,
   });
 
@@ -42,6 +45,7 @@ class OwnEntityMenu extends ConsumerWidget {
   final VoidCallback? onDelete;
   final bool showShadow;
   final double? iconSize;
+  final OverlayMenuCloseSignal? closeSignal;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -57,91 +61,97 @@ class OwnEntityMenu extends ConsumerWidget {
       size: iconSize,
     );
 
+    final closeMenuRef = useHideOnSignal(closeSignal);
+
     return OverlayMenu(
-      menuBuilder: (closeMenu) => Column(
-        children: [
-          OverlayMenuContainer(
-            child: Column(
-              children: [
-                if (entity is ModifiablePostEntity && _isEntityEditable(entity)) ...[
+      menuBuilder: (closeMenu) {
+        closeMenuRef?.value = closeMenu;
+
+        return Column(
+          children: [
+            OverlayMenuContainer(
+              child: Column(
+                children: [
+                  if (entity is ModifiablePostEntity && _isEntityEditable(entity)) ...[
+                    OverlayMenuItem(
+                      minWidth: 75.0.s,
+                      label: context.i18n.button_edit,
+                      icon: Assets.svg.iconEditLink.icon(
+                        size: menuIconSize,
+                        color: context.theme.appColors.quaternaryText,
+                      ),
+                      onPressed: () {
+                        closeMenu();
+
+                        final parentEvent = entity.data.parentEvent?.eventReference.encode();
+                        final quotedEvent = entity.data.quotedEvent?.eventReference.encode();
+                        final modifiedEvent = entity.toEventReference().encode();
+
+                        if (parentEvent != null) {
+                          EditReplyRoute(
+                            parentEvent: parentEvent,
+                            modifiedEvent: modifiedEvent,
+                          ).push<void>(context);
+                        } else if (quotedEvent != null) {
+                          EditQuoteRoute(
+                            quotedEvent: quotedEvent,
+                            modifiedEvent: modifiedEvent,
+                          ).push<void>(context);
+                        } else if (parentEvent == null && quotedEvent == null) {
+                          EditPostRoute(
+                            modifiedEvent: modifiedEvent,
+                          ).push<void>(context);
+                        }
+                      },
+                    ),
+                    const OverlayMenuItemSeparator(),
+                  ],
+                  if (entity is ArticleEntity && _isEntityEditable(entity)) ...[
+                    OverlayMenuItem(
+                      minWidth: 75.0.s,
+                      label: context.i18n.button_edit,
+                      icon: Assets.svg.iconEditLink.icon(
+                        size: menuIconSize,
+                        color: context.theme.appColors.quaternaryText,
+                      ),
+                      onPressed: () {
+                        closeMenu();
+
+                        final modifiedEvent = entity.toEventReference().encode();
+                        EditArticleRoute(modifiedEvent: modifiedEvent).push<void>(context);
+                      },
+                    ),
+                    const OverlayMenuItemSeparator(),
+                  ],
                   OverlayMenuItem(
                     minWidth: 75.0.s,
-                    label: context.i18n.button_edit,
-                    icon: Assets.svg.iconEditLink.icon(
+                    label: context.i18n.post_menu_delete,
+                    labelColor: context.theme.appColors.attentionRed,
+                    icon: Assets.svg.iconBlockDelete.icon(
                       size: menuIconSize,
-                      color: context.theme.appColors.quaternaryText,
+                      color: context.theme.appColors.attentionRed,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       closeMenu();
+                      final confirmed = await showSimpleBottomSheet<bool>(
+                        context: context,
+                        child: EntityDeleteConfirmationModal(
+                          eventReference: eventReference,
+                          deleteConfirmationType: _getDeleteConfirmationType(entity),
+                        ),
+                      );
 
-                      final parentEvent = entity.data.parentEvent?.eventReference.encode();
-                      final quotedEvent = entity.data.quotedEvent?.eventReference.encode();
-                      final modifiedEvent = entity.toEventReference().encode();
-
-                      if (parentEvent != null) {
-                        EditReplyRoute(
-                          parentEvent: parentEvent,
-                          modifiedEvent: modifiedEvent,
-                        ).push<void>(context);
-                      } else if (quotedEvent != null) {
-                        EditQuoteRoute(
-                          quotedEvent: quotedEvent,
-                          modifiedEvent: modifiedEvent,
-                        ).push<void>(context);
-                      } else if (parentEvent == null && quotedEvent == null) {
-                        EditPostRoute(
-                          modifiedEvent: modifiedEvent,
-                        ).push<void>(context);
+                      if ((confirmed ?? false) && context.mounted) {
+                        onDelete?.call();
                       }
                     },
                   ),
-                  const OverlayMenuItemSeparator(),
                 ],
-                if (entity is ArticleEntity && _isEntityEditable(entity)) ...[
-                  OverlayMenuItem(
-                    minWidth: 75.0.s,
-                    label: context.i18n.button_edit,
-                    icon: Assets.svg.iconEditLink.icon(
-                      size: menuIconSize,
-                      color: context.theme.appColors.quaternaryText,
-                    ),
-                    onPressed: () {
-                      closeMenu();
-
-                      final modifiedEvent = entity.toEventReference().encode();
-                      EditArticleRoute(modifiedEvent: modifiedEvent).push<void>(context);
-                    },
-                  ),
-                  const OverlayMenuItemSeparator(),
-                ],
-                OverlayMenuItem(
-                  minWidth: 75.0.s,
-                  label: context.i18n.post_menu_delete,
-                  labelColor: context.theme.appColors.attentionRed,
-                  icon: Assets.svg.iconBlockDelete.icon(
-                    size: menuIconSize,
-                    color: context.theme.appColors.attentionRed,
-                  ),
-                  onPressed: () async {
-                    closeMenu();
-                    final confirmed = await showSimpleBottomSheet<bool>(
-                      context: context,
-                      child: EntityDeleteConfirmationModal(
-                        eventReference: eventReference,
-                        deleteConfirmationType: _getDeleteConfirmationType(entity),
-                      ),
-                    );
-
-                    if ((confirmed ?? false) && context.mounted) {
-                      onDelete?.call();
-                    }
-                  },
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
       child: Padding(
         padding: padding,
         child: showShadow ? SvgShadow(child: icon) : icon,

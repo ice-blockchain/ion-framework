@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/overlay_menu/hooks/use_hide_on_signal.dart';
 import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
@@ -38,22 +38,11 @@ class ProfileContextMenu extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.displayErrors(reportNotifierProvider);
-
-    final closeMenuRef = useRef<CloseOverlayMenuCallback?>(null);
-    useEffect(
-      () {
-        void listener() => closeMenuRef.value?.call(animate: false);
-
-        closeSignal.addListener(listener);
-
-        return () => closeSignal.removeListener(listener);
-      },
-      [closeSignal],
-    );
+    final closeMenuRef = useHideOnSignal(closeSignal);
 
     return OverlayMenu(
       menuBuilder: (closeMenu) {
-        closeMenuRef.value = closeMenu;
+        closeMenuRef?.value = closeMenu;
 
         final menuItems = _buildMenuItems(
           context,
