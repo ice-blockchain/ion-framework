@@ -38,10 +38,11 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-
+        
+        <!-- AdMob App ID required by some mediated networks -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy" />
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
