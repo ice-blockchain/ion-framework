@@ -23,75 +23,69 @@ class TokenTopHolders extends _$TokenTopHolders {
 
     ref.onDispose(subscription.close);
 
-    // Buffer for the initial load
-    final initialItems = <TopHolder>[];
-    var isInitialLoad = true;
     var currentList = <TopHolder>[];
+    var isInitialLoad = true;
 
-    await for (final newTopHolders in subscription.stream) {
-      for (final newTopHolder in newTopHolders) {
+    await for (final batch in subscription.stream) {
+      final workingList = List<TopHolder>.from(currentList);
+      var shouldEmit = false;
+
+      if (batch.isEmpty) {
+        isInitialLoad = false;
+        shouldEmit = true;
+      }
+
+      for (final item in batch) {
+        if (isInitialLoad && item is TopHolderPatch && item.isEmpty()) {
+          isInitialLoad = false;
+          shouldEmit = true;
+          continue;
+        }
+
         if (isInitialLoad) {
-          if (newTopHolder is TopHolderPatch && newTopHolder.isEmpty()) {
-            // End of initial load
-            isInitialLoad = false;
-            // Sort and enforce limit
-            initialItems.sort((a, b) => a.position.rank.compareTo(b.position.rank));
-            currentList = initialItems.take(limit).toList();
+          if (item is TopHolder) {
+            workingList.add(item);
 
-            yield currentList;
-          } else {
-            // Accumulate items
-            if (newTopHolder is TopHolder) {
-              initialItems.add(newTopHolder);
-            }
-
-            if (initialItems.length >= limit) {
+            if (workingList.length >= limit) {
               isInitialLoad = false;
-              initialItems.sort((a, b) => a.position.rank.compareTo(b.position.rank));
-              currentList = initialItems.take(limit).toList();
-              yield currentList;
             }
+            shouldEmit = true;
           }
         } else {
-          // Update phase
-
-          final existIndex = currentList.indexWhere(
-            (element) =>
-                element.position.holder.addresses == newTopHolder.position?.holder?.addresses,
-          );
-          if (existIndex >= 0) {
-            final existHolder = currentList[existIndex];
-            if (newTopHolder is TopHolderPatch) {
-              final patchedHolder = existHolder.merge(newTopHolder);
-
-              // Create a new list reference for state update
-              currentList = List.from(currentList);
-              currentList[existIndex] = patchedHolder;
-            } else if (newTopHolder is TopHolder) {
-              currentList = List.from(currentList);
-              currentList[existIndex] = newTopHolder;
-            }
-
-            currentList.sort((a, b) => a.position.rank.compareTo(b.position.rank));
-            yield currentList;
-          } else {
-            // New item added after initial load
-            if (newTopHolder is TopHolder) {
-              final newList = List<TopHolder>.from(currentList)
-                ..insert(0, newTopHolder)
-                ..sort((a, b) => a.position.rank.compareTo(b.position.rank));
-
-              // Enforce limit
-              if (newList.length > limit) {
-                currentList = newList.sublist(0, limit);
-              } else {
-                currentList = newList;
-              }
-              yield currentList;
-            }
-          }
+          _applyUpdate(workingList, item);
+          shouldEmit = true;
         }
       }
+
+      if (shouldEmit) {
+        _sortAndEnforceLimit(workingList, limit);
+        currentList = workingList;
+        yield currentList;
+      }
+    }
+  }
+
+  void _applyUpdate(List<TopHolder> list, TopHolderBase item) {
+    final index = list.indexWhere(
+      (element) => element.position.holder.addresses == item.position?.holder?.addresses,
+    );
+
+    if (index != -1) {
+      final existing = list[index];
+      if (item is TopHolderPatch) {
+        list[index] = existing.merge(item);
+      } else if (item is TopHolder) {
+        list[index] = item;
+      }
+    } else if (item is TopHolder) {
+      list.add(item);
+    }
+  }
+
+  void _sortAndEnforceLimit(List<TopHolder> list, int limit) {
+    list.sort((a, b) => a.position.rank.compareTo(b.position.rank));
+    if (list.length > limit) {
+      list.length = limit;
     }
   }
 }

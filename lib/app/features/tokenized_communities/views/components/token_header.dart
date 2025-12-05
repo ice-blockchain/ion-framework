@@ -68,7 +68,9 @@ class CreatorTokenHeader extends HookWidget {
                   child: Container(
                     padding: EdgeInsets.all(3.58.s),
                     decoration: BoxDecoration(
-                      color: Colors.black,
+                      // Custom color for X logo brand background
+                      // No need to use app theme color
+                      color: const Color(0xff1D1E20),
                       border: Border.all(color: Colors.white),
                       borderRadius: BorderRadius.circular(8.0.s),
                     ),
