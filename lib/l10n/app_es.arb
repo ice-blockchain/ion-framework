@@ -868,6 +868,7 @@
   "token_stats_market_cap_title": "Market Cap",
   "token_stats_volume_description": "Volume refers to the total amount of the token that has been traded (bought and sold) over a specific period.\n\nA higher trading volume means there is strong activity and liquidity, making it easier to enter or exit positions. Low volume may indicate weak interest or higher price volatility due to limited buyers and sellers.",
   "token_stats_volume_title": "Volume",
+  "switched_to_username": "Cambiado a {username}",
   "tokenized_communities_top_tokens": "Principales tokens",
   "tokenized_communities_trending_tokens": "Tokens en tendencia",
   "tokenized_community_chart_tab": "Gráfico",
