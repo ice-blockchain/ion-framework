@@ -4,13 +4,19 @@ import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 
 class CoinsComparator {
-  final CoinPriority _prioritizer = CoinPriority();
+  final _CoinPriority _prioritizer = _CoinPriority();
+
+  int? _checkHardcodedPriority(String symbolGroupA, String symbolGroupB, String priorityCoin) {
+    if (symbolGroupA == priorityCoin && symbolGroupB != priorityCoin) return -1;
+    if (symbolGroupB == priorityCoin && symbolGroupA != priorityCoin) return 1;
+    return null;
+  }
 
   int _compare(
     double balanceA,
     double balanceB,
-    String symbolA,
-    String symbolB, {
+    String symbolGroupA,
+    String symbolGroupB, {
     String? networkA,
     String? networkB,
     bool isNativeA = false,
@@ -18,13 +24,15 @@ class CoinsComparator {
     bool isPrioritizedA = false,
     bool isPrioritizedB = false,
   }) {
-    final upperA = symbolA.toUpperCase();
-    final upperB = symbolB.toUpperCase();
-    const topCoin = CoinPriority._topCoin;
+    // 0.1. ION always comes first, regardless of other conditions
+    final firstCoinComparison =
+        _checkHardcodedPriority(symbolGroupA, symbolGroupB, _CoinPriority._firstCoin);
+    if (firstCoinComparison != null) return firstCoinComparison;
 
-    // 0. ION always comes first, regardless of other conditions
-    if (upperA == topCoin && upperB != topCoin) return -1;
-    if (upperB == topCoin && upperA != topCoin) return 1;
+    // 0.2. ICE always comes second (after ION), regardless of other conditions
+    final secondCoinComparison =
+        _checkHardcodedPriority(symbolGroupA, symbolGroupB, _CoinPriority._secondCoin);
+    if (secondCoinComparison != null) return secondCoinComparison;
 
     // 1. Compare by balanceUSD in descending order
     final balanceComparison = balanceB.compareTo(balanceA);
@@ -35,8 +43,8 @@ class CoinsComparator {
     if (isPrioritizedB && !isPrioritizedA) return 1;
 
     // 3. Compare by priority list
-    final aPriority = _prioritizer.getPriorityIndex(upperA);
-    final bPriority = _prioritizer.getPriorityIndex(upperB);
+    final aPriority = _prioritizer.getPriorityIndex(symbolGroupA);
+    final bPriority = _prioritizer.getPriorityIndex(symbolGroupB);
 
     // If both are in priority list, compare their positions
     if (aPriority != -1 && bPriority != -1 && aPriority != bPriority) {
@@ -47,16 +55,16 @@ class CoinsComparator {
     if (aPriority != -1 && bPriority == -1) return -1;
     if (bPriority != -1 && aPriority == -1) return 1;
 
-    // 4. Compare by symbol
-    final symbolComparison = symbolA.compareTo(symbolB);
-    if (symbolComparison != 0) return symbolComparison;
+    // 4. Compare by symbolGroup
+    final symbolGroupComparison = symbolGroupA.compareTo(symbolGroupB);
+    if (symbolGroupComparison != 0) return symbolGroupComparison;
 
     // 5. If coin is native for network, it should be displayed before other coins,
     // sorted by network
     if (isNativeA && !isNativeB) return -1;
     if (isNativeB && !isNativeA) return 1;
 
-    // 6. If symbols are equal, compare by networks
+    // 6. If symbolGroups are equal, compare by networks
     if (networkA != null && networkB != null) {
       return networkA.compareTo(networkB);
     }
@@ -71,8 +79,8 @@ class CoinsComparator {
     return _compare(
       a.totalBalanceUSD,
       b.totalBalanceUSD,
-      a.abbreviation,
-      b.abbreviation,
+      a.symbolGroup,
+      b.symbolGroup,
     );
   }
 
@@ -80,8 +88,8 @@ class CoinsComparator {
     return _compare(
       a.balanceUSD,
       b.balanceUSD,
-      a.coin.abbreviation,
-      b.coin.abbreviation,
+      a.coin.symbolGroup,
+      b.coin.symbolGroup,
       networkA: a.coin.network.displayName,
       networkB: b.coin.network.displayName,
       isNativeA: a.coin.native,
@@ -92,35 +100,37 @@ class CoinsComparator {
   }
 }
 
-class CoinPriority {
-  static const _topCoin = 'ION'; // Ice Open Network
-  final _priorityList = const [
-    _topCoin,
-    'BNB', // Binance Coin
-    'BTC', // Bitcoin
-    'ETH', // Ethereum
-    'SOL', // Solana
-    'TON', // Toncoin
-    'DOGE', // Dogecoin
-    'LTC', // Litecoin
-    'XLM', // Stellar
-    'TRX', // Tron
-    'XRP', // Ripple
-    'XTZ', // Tezos
-    'MATIC', // Polygon
-    'DOT', // Polkadot
-    'OP', // Optimism
-    'ADA', // Cardano
-    'ALGO', // Algorand
-    'KSM', // Kusama
-    'AVAX', // Avalanche
-    'KAS', // Kaspa
-    'ARB', // Arbitrum
-    'S', // Sonic
-    'APT', // Aptos
+class _CoinPriority {
+  static const _firstCoin = 'ion';
+  static const _secondCoin = 'ice';
+  final _symbolGroupsPriorityList = const [
+    _firstCoin,
+    _secondCoin,
+    'binancecoin', // Binance Coin
+    'bitcoin', // Bitcoin
+    'ethereum', // Ethereum
+    'solana', // Solana
+    'the-open-network', // Toncoin
+    'dogecoin', // Dogecoin
+    'litecoin', // Litecoin
+    'stellar', // Stellar
+    'tron', // Tron
+    'ripple', // XRP
+    'tezos', // Tezos
+    'matic-network', // Polygon
+    'polkadot', // Polkadot
+    'optimism', // Optimism
+    'cardano', // Cardano
+    'algorand', // Algorand
+    'kusama', // Kusama
+    'avalanche-2', // Avalanche
+    'kaspa', // Kaspa
+    'arbitrum', // Arbitrum
+    'token-s', // Token S
+    'aptos', // Aptos
   ];
 
-  int getPriorityIndex(String symbol) {
-    return _priorityList.indexOf(symbol);
+  int getPriorityIndex(String symbolGroup) {
+    return _symbolGroupsPriorityList.indexOf(symbolGroup);
   }
 }
