@@ -55,6 +55,7 @@ class AccountNotificationSetEntity
     required String signature,
     required int createdAt,
     required AccountNotificationSetData data,
+    EventMessage? eventMessage,
   }) = _AccountNotificationSetEntity;
 
   const AccountNotificationSetEntity._();
@@ -72,6 +73,7 @@ class AccountNotificationSetEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: AccountNotificationSetData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 
