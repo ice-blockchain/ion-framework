@@ -819,6 +819,7 @@
   "story_share_sender": "لقد شاركت هذه القصة",
   "suggestions_empty_description": "اكتب لمزيد من الاختيارات من القائمة",
   "suggestions_loading_description": "ابحث عن المستخدم الذي تريد ذكره",
+  "switched_to_username": "تم التبديل إلى {username}",
   "tokenized_communities_top_tokens": "أفضل التوكنات",
   "tokenized_communities_trending_tokens": "التوكنات الرائجة",
   "tokenized_community_chart_tab": "المخطط",

@@ -806,6 +806,7 @@
   "story_share_sender": "Udostępniłeś tę historię",
   "suggestions_empty_description": "Nie znaleźliśmy niczego pasującego do Twojego wyszukiwania",
   "suggestions_loading_description": "Szukaj użytkownika, którego chcesz wspomnieć",
+  "switched_to_username": "Przełączono na {username}",
   "tokenized_communities_top_tokens": "Najlepsze tokeny",
   "tokenized_communities_trending_tokens": "Popularne tokeny",
   "tokenized_community_chart_tab": "Wykres",

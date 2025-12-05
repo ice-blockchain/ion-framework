@@ -806,6 +806,7 @@
   "story_share_sender": "You shared this story",
   "suggestions_empty_description": "We couldn’t find anything matching your search",
   "suggestions_loading_description": "Search for the user you want to mention",
+  "switched_to_username": "Switched to {username}",
   "tokenized_communities_top_tokens": "Top Tokens",
   "tokenized_communities_trending_tokens": "Trending Tokens",
   "tokenized_community_chart_tab": "Chart",

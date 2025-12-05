@@ -806,6 +806,7 @@
   "story_share_sender": "Вие споделихте тази история",
   "suggestions_empty_description": "Не успяхме да намерим нищо, което да съответства на вашето търсене",
   "suggestions_loading_description": "Търсете потребителя, който искате да споменете",
+  "switched_to_username": "Превключено към {username}",
   "tokenized_communities_top_tokens": "Топ токени",
   "tokenized_communities_trending_tokens": "Популярни токени",
   "tokenized_community_chart_tab": "Графика",
