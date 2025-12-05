@@ -1073,7 +1073,7 @@
   "error_swap_chain_disabled": "The origin or destination chain is currently disabled or unsupported.",
   "error_swap_extra_txs_not_supported": "Extra transactions are not supported for this trade type.",
   "error_swap_forbidden": "User does not have the required role or permission.",
-  "error_swap_insufficient_funds": "The user’s wallet does not have enough balance to perform the swap.",
+  "error_swap_insufficient_funds": "The user's wallet does not have enough balance to perform the swap.",
   "error_swap_insufficient_liquidity": "There is not enough liquidity available to complete the swap.",
   "error_swap_invalid_address": "The provided user address is not valid.",
   "error_swap_invalid_extra_txs": "The total value of extra transactions exceeds the intended output.",
@@ -1087,11 +1087,17 @@
   "error_swap_route_temporarily_restricted": "This route is temporarily restricted due to high traffic or throttling.",
   "error_swap_sanctioned_currency": "The token involved in the transaction is on a sanctions list.",
   "error_swap_sanctioned_wallet_address": "The sender or recipient wallet address is sanctioned or blacklisted.",
-  "error_swap_swap_impact_too_high": "The swap’s price impact exceeds acceptable thresholds.",
+  "error_swap_swap_impact_too_high": "The swap's price impact exceeds acceptable thresholds.",
   "error_swap_unauthorized": "The user is not authenticated or lacks valid authorization.",
   "error_swap_unsupported_chain": "The specified chain is not supported by the platform.",
   "error_swap_unsupported_currency": "The specified currency is not supported for input or output.",
   "error_swap_unsupported_execution_type": "The execution type used is not supported for fee estimation or execution.",
   "error_swap_unsupported_route": "The swap route combination is not supported.",
-  "error_swap_user_recipient_mismatch": "User and recipient addresses must match for this type of swap."
+  "error_swap_user_recipient_mismatch": "User and recipient addresses must match for this type of swap.",
+  "token_stats_market_cap_title": "Market Cap",
+  "token_stats_market_cap_description": "The market capitalization in the script is the total market value of the cryptocurrency. It is calculated by multiplying the total supply of coins or tokens by the current market price of each individual coin or token. Market capitalization is a key metric used to measure the size and value of a cryptocurrency and used by investors to assess the attractiveness of a particular coin or token. It is also a useful tool for comparing different cryptocurrencies and determining which ones are the most valuable.",
+  "token_stats_volume_title": "Volume",
+  "token_stats_volume_description": "Volume refers to the total amount of the token that has been traded (bought and sold) over a specific period.\n\nA higher trading volume means there is strong activity and liquidity, making it easier to enter or exit positions. Low volume may indicate weak interest or higher price volatility due to limited buyers and sellers.",
+  "token_stats_holders_title": "Holders",
+  "token_stats_holders_description": "Holders represent the number of unique wallets that currently own the token.\n\nA rising number of holders is often a strong indicator of growing adoption, community interest, and broader distribution. While a healthy spread of ownership can contribute to long-term stability, tracking holder evolution over time can reveal increasing confidence and momentum around the project."
 }
