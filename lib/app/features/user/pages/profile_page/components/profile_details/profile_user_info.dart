@@ -7,7 +7,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/user/user_about/user_about.dart';
 import 'package:ion/app/features/components/user/user_info_summary/user_info_summary.dart';
-import 'package:ion/app/features/tokenized_communities/extensions/replaceable_entity.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/extensions/replaceable_entity.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/community_token_image.dart';
 import 'package:ion/app/features/tokenized_communities/views/content_token_header.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
@@ -76,13 +76,15 @@ class CreatorTokenHeader extends HookWidget {
                         .icon(size: 15.0.s, color: context.theme.appColors.secondaryBackground),
                   ),
                 ),
-              if (token.source.isIonConnect && token.eventReference != null)
+              if (token.source.isIonConnect && token.creator.addresses?.ionConnect != null)
                 PositionedDirectional(
                   bottom: -3.s,
                   end: -3.s,
                   child: ProfileMainAction(
                     profileMode: ProfileMode.dark,
-                    pubkey: token.eventReference!.masterPubkey,
+                    pubkey: ReplaceableEventReference.fromString(
+                      token.creator.addresses!.ionConnect!,
+                    ).masterPubkey,
                   ),
                 ),
             ],
