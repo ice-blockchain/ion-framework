@@ -606,6 +606,94 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           expect(roundTripText, equals(originalText));
         });
 
+        group('markdownToDelta attribute normalization', () {
+          test('preserves bold formatting from markdown', () {
+            const markdown = 'Hello **bold** world\n';
+            final delta = markdownToDelta(markdown);
+
+            // Verify bold attribute is present
+            var hasBold = false;
+            for (final op in delta.operations) {
+              if (op.key == 'insert' && op.data is String) {
+                final text = op.data! as String;
+                final attrs = op.attributes;
+                if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
+                  hasBold = true;
+                }
+              }
+            }
+            expect(hasBold, isTrue, reason: 'Bold formatting should be preserved from markdown');
+          });
+
+          test('preserves italic formatting from markdown', () {
+            const markdown = 'Hello *italic* world\n';
+            final delta = markdownToDelta(markdown);
+
+            // Verify italic attribute is present
+            var hasItalic = false;
+            for (final op in delta.operations) {
+              if (op.key == 'insert' && op.data is String) {
+                final text = op.data! as String;
+                final attrs = op.attributes;
+                if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
+                  hasItalic = true;
+                }
+              }
+            }
+            expect(hasItalic, isTrue,
+                reason: 'Italic formatting should be preserved from markdown');
+          });
+
+          test('preserves both bold and italic formatting from markdown', () {
+            const markdown = 'Hello ***bolditalic*** world\n';
+            final delta = markdownToDelta(markdown);
+
+            // Verify both attributes are present
+            var hasBold = false;
+            var hasItalic = false;
+            for (final op in delta.operations) {
+              if (op.key == 'insert' && op.data is String) {
+                final text = op.data! as String;
+                final attrs = op.attributes;
+                if (text.contains('bolditalic')) {
+                  if (attrs?.containsKey('bold') ?? false) {
+                    hasBold = true;
+                  }
+                  if (attrs?.containsKey('italic') ?? false) {
+                    hasItalic = true;
+                  }
+                }
+              }
+            }
+            expect(hasBold, isTrue, reason: 'Bold formatting should be preserved in bold+italic');
+            expect(hasItalic, isTrue,
+                reason: 'Italic formatting should be preserved in bold+italic');
+          });
+
+          test('handles markdown with mixed formatting correctly', () {
+            const markdown = 'Normal **bold** and *italic* text\n';
+            final delta = markdownToDelta(markdown);
+
+            // Verify both formatting types are present
+            var hasBold = false;
+            var hasItalic = false;
+            for (final op in delta.operations) {
+              if (op.key == 'insert' && op.data is String) {
+                final text = op.data! as String;
+                final attrs = op.attributes;
+                if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
+                  hasBold = true;
+                }
+                if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
+                  hasItalic = true;
+                }
+              }
+            }
+            expect(hasBold, isTrue, reason: 'Bold formatting should be preserved');
+            expect(hasItalic, isTrue, reason: 'Italic formatting should be preserved');
+          });
+        });
+
         test('round-trip with underline formatting (markdown uses HTML <u> tags)', () async {
           // Expected Delta from user's JSON structure
           final expectedDeltaJson = [
@@ -823,6 +911,349 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         }
         expect(hasBold, isTrue, reason: 'Bold formatting should be preserved');
         expect(hasItalic, isTrue, reason: 'Italic formatting should be preserved');
+      });
+
+      group('PMO tag normalization with spaces', () {
+        test('normalizes italic with trailing space in PMO tags', () {
+          const plainText = 'normal\n\n\nitalic \n\n\nbold\n';
+          final pmoTags = [
+            ['pmo', '9:16', '*italic *'], // Trailing space
+            ['pmo', '19:23', '**bold**'],
+          ];
+
+          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+
+          // Verify italic formatting is preserved
+          var hasItalic = false;
+          var hasBold = false;
+          for (final op in resultDelta.operations) {
+            if (op.key == 'insert' && op.data is String) {
+              final text = op.data! as String;
+              final attrs = op.attributes;
+              if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
+                hasItalic = true;
+              }
+              if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
+                hasBold = true;
+              }
+            }
+          }
+          expect(hasItalic, isTrue,
+              reason: 'Italic formatting should be preserved even with trailing space');
+          expect(hasBold, isTrue, reason: 'Bold formatting should be preserved');
+        });
+
+        test('normalizes italic with leading space in PMO tags', () {
+          const plainText = 'normal\n\n\n italic\n';
+          final pmoTags = [
+            ['pmo', '9:16', '* italic*'], // Leading space
+          ];
+
+          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+
+          // Verify italic formatting is preserved
+          var hasItalic = false;
+          for (final op in resultDelta.operations) {
+            if (op.key == 'insert' && op.data is String) {
+              final text = op.data! as String;
+              final attrs = op.attributes;
+              if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
+                hasItalic = true;
+              }
+            }
+          }
+          expect(hasItalic, isTrue,
+              reason: 'Italic formatting should be preserved even with leading space');
+        });
+
+        test('normalizes bold with trailing space in PMO tags', () {
+          const plainText = 'normal\n\n\nbold \n';
+          final pmoTags = [
+            ['pmo', '9:14', '**bold **'], // Trailing space
+          ];
+
+          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+
+          // Verify bold formatting is preserved
+          var hasBold = false;
+          for (final op in resultDelta.operations) {
+            if (op.key == 'insert' && op.data is String) {
+              final text = op.data! as String;
+              final attrs = op.attributes;
+              if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
+                hasBold = true;
+              }
+            }
+          }
+          expect(hasBold, isTrue,
+              reason: 'Bold formatting should be preserved even with trailing space');
+        });
+
+        test('normalizes bold with leading space in PMO tags', () {
+          const plainText = 'normal\n\n\n bold\n';
+          final pmoTags = [
+            ['pmo', '9:14', '** bold**'], // Leading space
+          ];
+
+          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+
+          // Verify bold formatting is preserved
+          var hasBold = false;
+          for (final op in resultDelta.operations) {
+            if (op.key == 'insert' && op.data is String) {
+              final text = op.data! as String;
+              final attrs = op.attributes;
+              if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
+                hasBold = true;
+              }
+            }
+          }
+          expect(hasBold, isTrue,
+              reason: 'Bold formatting should be preserved even with leading space');
+        });
+
+        test('normalizes bold+italic with trailing space in PMO tags', () {
+          const plainText = 'normal\n\n\nbolditalic \n';
+          final pmoTags = [
+            ['pmo', '9:20', '***bolditalic ***'], // Trailing space
+          ];
+
+          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+
+          // Verify both bold and italic formatting are preserved
+          var hasBold = false;
+          var hasItalic = false;
+          for (final op in resultDelta.operations) {
+            if (op.key == 'insert' && op.data is String) {
+              final text = op.data! as String;
+              final attrs = op.attributes;
+              if (text.contains('bolditalic')) {
+                if (attrs?.containsKey('bold') ?? false) {
+                  hasBold = true;
+                }
+                if (attrs?.containsKey('italic') ?? false) {
+                  hasItalic = true;
+                }
+              }
+            }
+          }
+          expect(hasBold, isTrue,
+              reason: 'Bold formatting should be preserved in bold+italic with trailing space');
+          expect(hasItalic, isTrue,
+              reason: 'Italic formatting should be preserved in bold+italic with trailing space');
+        });
+
+        test('normalizes multiple spaces in markdown markers', () {
+          const plainText = 'normal\n\n\nitalic  \n'; // Multiple trailing spaces
+          final pmoTags = [
+            ['pmo', '9:17', '*italic  *'], // Multiple trailing spaces
+          ];
+
+          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+
+          // Verify italic formatting is preserved
+          var hasItalic = false;
+          for (final op in resultDelta.operations) {
+            if (op.key == 'insert' && op.data is String) {
+              final text = op.data! as String;
+              final attrs = op.attributes;
+              if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
+                hasItalic = true;
+              }
+            }
+          }
+          expect(hasItalic, isTrue,
+              reason: 'Italic formatting should be preserved even with multiple trailing spaces');
+        });
+
+        test('handles mixed spacing issues in multiple PMO tags', () {
+          const plainText = 'normal\n\n\nitalic \n\n\nbold \n';
+          final pmoTags = [
+            ['pmo', '9:16', '*italic *'], // Trailing space in italic
+            ['pmo', '19:25', '**bold **'], // Trailing space in bold
+          ];
+
+          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+
+          // Verify both formatting types are preserved
+          var hasItalic = false;
+          var hasBold = false;
+          for (final op in resultDelta.operations) {
+            if (op.key == 'insert' && op.data is String) {
+              final text = op.data! as String;
+              final attrs = op.attributes;
+              if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
+                hasItalic = true;
+              }
+              if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
+                hasBold = true;
+              }
+            }
+          }
+          expect(hasItalic, isTrue, reason: 'Italic formatting should be preserved');
+          expect(hasBold, isTrue, reason: 'Bold formatting should be preserved');
+        });
+
+        test('does not break correctly formatted markdown', () {
+          const plainText = 'normal\n\n\nitalic\n\n\nbold\n';
+          final pmoTags = [
+            ['pmo', '9:15', '*italic*'], // No spaces - should work as before
+            ['pmo', '18:22', '**bold**'], // No spaces - should work as before
+          ];
+
+          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+
+          // Verify formatting is preserved
+          var hasItalic = false;
+          var hasBold = false;
+          for (final op in resultDelta.operations) {
+            if (op.key == 'insert' && op.data is String) {
+              final text = op.data! as String;
+              final attrs = op.attributes;
+              if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
+                hasItalic = true;
+              }
+              if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
+                hasBold = true;
+              }
+            }
+          }
+          expect(hasItalic, isTrue, reason: 'Correctly formatted italic should still work');
+          expect(hasBold, isTrue, reason: 'Correctly formatted bold should still work');
+        });
+
+        test('handles same string repeated 3 times with normal, italic, bold pattern', () {
+          // Pattern: normal, italic, bold, normal, italic, bold, normal, italic, bold
+          // Using "text" as the repeated string
+          // Plain text structure: "text\n\n\ntext\n\n\ntext\n\n\ntext\n\n\ntext\n\n\ntext\n\n\ntext\n\n\ntext\n\n\ntext\n"
+          // Positions: 0-3: text, 4-6: \n\n\n, 7-10: text, 11-13: \n\n\n, 14-17: text, etc.
+          const plainText =
+              'text\n\n\ntext\n\n\ntext\n\n\ntext\n\n\ntext\n\n\ntext\n\n\ntext\n\n\ntext\n\n\ntext\n';
+          final pmoTags = [
+            // First italic (second "text" at positions 7-10)
+            ['pmo', '7:11', '*text *'], // Trailing space
+            // First bold (third "text" at positions 14-17)
+            ['pmo', '14:18', '**text**'],
+            // Second italic (fifth "text" at positions 28-31)
+            ['pmo', '28:32', '*text *'], // Trailing space
+            // Second bold (sixth "text" at positions 35-38)
+            ['pmo', '35:39', '**text**'],
+            // Third italic (eighth "text" at positions 49-52)
+            ['pmo', '49:53', '*text *'], // Trailing space
+            // Third bold (ninth "text" at positions 56-59)
+            ['pmo', '56:60', '**text**'],
+          ];
+
+          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+
+          // Verify all formatting is preserved
+          var italicCount = 0;
+          var boldCount = 0;
+          var normalCount = 0;
+
+          for (final op in resultDelta.operations) {
+            if (op.key == 'insert' && op.data is String) {
+              final text = op.data! as String;
+              final attrs = op.attributes;
+
+              if (text == 'text' || text.contains('text')) {
+                final hasItalic = attrs?.containsKey('italic') ?? false;
+                final hasBold = attrs?.containsKey('bold') ?? false;
+
+                if (hasItalic && !hasBold) {
+                  italicCount++;
+                } else if (hasBold && !hasItalic) {
+                  boldCount++;
+                } else if (!hasItalic && !hasBold) {
+                  normalCount++;
+                }
+              }
+            }
+          }
+
+          expect(italicCount, greaterThanOrEqualTo(3),
+              reason: 'Should have at least 3 italic instances');
+          expect(boldCount, greaterThanOrEqualTo(3),
+              reason: 'Should have at least 3 bold instances');
+          expect(normalCount, greaterThanOrEqualTo(3),
+              reason: 'Should have at least 3 normal instances');
+
+          // Verify the pattern is correct by checking operations in order
+          final textOperations = resultDelta.operations
+              .where((op) =>
+                  op.key == 'insert' && op.data is String && (op.data as String).contains('text'))
+              .toList();
+
+          // We should have 9 text instances total
+          expect(textOperations.length, greaterThanOrEqualTo(9),
+              reason: 'Should have 9 text instances (3 normal + 3 italic + 3 bold)');
+        });
+
+        test('preserves spaces correctly with multiple PMO tags with trailing spaces', () {
+          // Based on real-world example: "normal italic bold normal bold talll"
+          // Plain text: "normal italic bold normal bold talll\n"
+          // Positions: 0-6: "normal ", 7-13: "italic ", 14-18: "bold ", 19-25: "normal ", 26-30: "bold ", 31-35: "talll"
+          // PMO tags: ["pmo","7:14","*italic *"], ["pmo","14:19","**bold **"],
+          //          ["pmo","26:31","**bold **"], ["pmo","31:36","*talll*"]
+          const plainText = 'normal italic bold normal bold talll\n';
+          final pmoTags = [
+            ['pmo', '7:14', '*italic *'], // Trailing space - covers "italic " (positions 7-13)
+            ['pmo', '14:19', '**bold **'], // Trailing space - covers "bold " (positions 14-18)
+            ['pmo', '26:31', '**bold **'], // Trailing space - covers "bold " (positions 26-30)
+            ['pmo', '31:36', '*talll*'], // No space - covers "talll" (positions 31-35)
+          ];
+
+          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+
+          // Convert to plain text to verify spacing is preserved
+          final resultText = Document.fromDelta(resultDelta).toPlainText();
+
+          // Verify the text has proper spacing (spaces should be preserved)
+          expect(resultText, contains('normal '), reason: 'Should have space after "normal"');
+          expect(resultText, contains('italic '), reason: 'Should have space after "italic"');
+          expect(resultText, contains('bold '), reason: 'Should have space after "bold"');
+          expect(resultText, contains('talll'), reason: 'Should contain "talll"');
+
+          // Verify formatting is preserved
+          var hasItalic = false;
+          var hasBold = false;
+          var italicCount = 0;
+          var boldCount = 0;
+
+          for (final op in resultDelta.operations) {
+            if (op.key == 'insert' && op.data is String) {
+              final text = op.data! as String;
+              final attrs = op.attributes;
+              if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
+                hasItalic = true;
+                italicCount++;
+              }
+              if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
+                hasBold = true;
+                boldCount++;
+              }
+              if (text.contains('talll') && (attrs?.containsKey('italic') ?? false)) {
+                hasItalic = true;
+                italicCount++;
+              }
+            }
+          }
+
+          expect(hasItalic, isTrue, reason: 'Italic formatting should be preserved');
+          expect(hasBold, isTrue, reason: 'Bold formatting should be preserved');
+          expect(italicCount, greaterThanOrEqualTo(2),
+              reason: 'Should have at least 2 italic instances (italic and talll)');
+          expect(boldCount, greaterThanOrEqualTo(2),
+              reason: 'Should have at least 2 bold instances');
+
+          // Verify text doesn't have concatenated words (e.g., "italicbold" or "boldtalll")
+          expect(resultText, isNot(contains('italicbold')),
+              reason: 'Should not have "italicbold" concatenated');
+          expect(resultText, isNot(contains('boldnormal')),
+              reason: 'Should not have "boldnormal" concatenated');
+          expect(resultText, isNot(contains('boldtalll')),
+              reason: 'Should not have "boldtalll" concatenated');
+        });
       });
 
       test('round-trip with headers (for Posts/ModifiablePosts)', () async {

@@ -156,12 +156,12 @@ Delta markdownToDelta(String markdown) {
           'text-editor-separator': '---',
         });
       } else {
-        processedDelta.insert(op.data, op.attributes);
+        processedDelta.insert(op.data, _normalizeAttributes(op.attributes));
       }
     } else if (op.key == 'insert' && op.data is String) {
       // Check for HTML <u> tags and convert them to underline attributes
       final text = op.data! as String;
-      final attrs = op.attributes;
+      final attrs = _normalizeAttributes(op.attributes);
 
       // Pattern to match <u>...</u> tags, including nested markdown formatting
       final underlinePattern = RegExp('<u>(.*?)</u>', dotAll: true);
@@ -212,15 +212,49 @@ Delta markdownToDelta(String markdown) {
           }
         }
       } else {
-        // No underline tags, insert normally
-        processedDelta.insert(op.data, op.attributes);
+        // No underline tags, insert normally with normalized attributes
+        processedDelta.insert(op.data, attrs);
       }
     } else {
-      processedDelta.insert(op.data, op.attributes);
+      processedDelta.insert(op.data, _normalizeAttributes(op.attributes));
     }
   }
 
   return withFullLinks(processedDelta);
+}
+
+/// Normalizes attributes to ensure they use string keys that QuillEditor expects.
+/// The markdown_quill package may return attributes in different formats, so we
+/// normalize them to ensure consistent handling.
+Map<String, dynamic>? _normalizeAttributes(Map<String, dynamic>? attrs) {
+  if (attrs == null || attrs.isEmpty) return attrs;
+
+  // Map of alternative keys to normalized keys
+  // Handles both string keys ('bold', 'strong', 'italic', 'em') and Attribute object keys
+  final keyNormalizations = <String, String>{
+    'bold': 'bold',
+    'strong': 'bold',
+    Attribute.bold.key: 'bold',
+    'italic': 'italic',
+    'em': 'italic',
+    Attribute.italic.key: 'italic',
+  };
+
+  final normalized = <String, dynamic>{};
+
+  for (final entry in attrs.entries) {
+    final normalizedKey = keyNormalizations[entry.key];
+
+    if (normalizedKey != null) {
+      // Normalize bold/italic keys and ensure they're set to true
+      normalized[normalizedKey] = true;
+    } else {
+      // Preserve other attributes as-is
+      normalized[entry.key] = entry.value;
+    }
+  }
+
+  return normalized.isEmpty ? null : normalized;
 }
 
 void _processMatches(Operation op, Delta processedDelta) {
