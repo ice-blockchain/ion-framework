@@ -34,6 +34,7 @@ class ImageStoryViewer extends HookConsumerWidget {
     final cacheManager = ref.watch(storyImageCacheManagerProvider);
 
     final hasQuotedPost = quotedEvent != null || sourcePostReference != null;
+    final isProfileScreenshot = sourcePostReference?.eventReference.isProfileReference ?? false;
 
     // Keep the provider alive as long as the image is being displayed
     ref.watch(storyImageLoadStatusProvider(storyId));
@@ -51,10 +52,14 @@ class ImageStoryViewer extends HookConsumerWidget {
           }
         });
 
+        // For profile screenshots, use cover to fill width; for quoted posts, use contain
+        final fit =
+            isProfileScreenshot ? BoxFit.cover : (hasQuotedPost ? BoxFit.contain : BoxFit.cover);
+
         return SizedBox.expand(
           child: Image(
             image: imageProvider,
-            fit: hasQuotedPost ? BoxFit.contain : BoxFit.cover,
+            fit: fit,
           ),
         );
       },
@@ -65,17 +70,27 @@ class ImageStoryViewer extends HookConsumerWidget {
       if (eventReference != null) {
         final text = eventReference.isArticleReference
             ? context.i18n.story_see_article
-            : context.i18n.story_see_post;
+            : eventReference.isProfileReference
+                ? context.i18n.story_see_profile
+                : context.i18n.story_see_post;
+
+        // For profile screenshots, don't add padding to allow full width
+        final padding =
+            isProfileScreenshot ? EdgeInsets.zero : EdgeInsets.symmetric(horizontal: 20.0.s);
 
         return ColoredBox(
           color: context.theme.appColors.primaryText,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.0.s),
+            padding: padding,
             child: TapToSeeHint(
               onTap: () {
                 if (eventReference.isArticleReference) {
                   ArticleDetailsRoute(
                     eventReference: eventReference.encode(),
+                  ).push<void>(context);
+                } else if (eventReference.isProfileReference) {
+                  ProfileRoute(
+                    pubkey: eventReference.masterPubkey,
                   ).push<void>(context);
                 } else {
                   PostDetailsRoute(
