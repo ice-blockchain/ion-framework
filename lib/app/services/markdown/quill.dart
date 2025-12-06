@@ -405,19 +405,6 @@ Delta restoreMentions(Delta delta, Map<String, String> usernameToPubkey) {
   return newDelta;
 }
 
-Delta withFlattenLinks(Delta delta) {
-  final out = Delta();
-  for (final op in delta.toList()) {
-    final href = op.attributes?[Attribute.link.key];
-    if (href != null && op.value is String && op.value == href) {
-      out.push(Operation.insert(' ', {Attribute.link.key: href}));
-    } else {
-      out.push(op);
-    }
-  }
-  return out;
-}
-
 Delta withFullLinks(Delta delta) {
   final out = Delta();
   for (final op in delta.toList()) {

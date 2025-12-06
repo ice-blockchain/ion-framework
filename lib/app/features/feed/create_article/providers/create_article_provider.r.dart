@@ -420,7 +420,8 @@ class CreateArticle extends _$CreateArticle {
       updatedContent = _replaceImagePathsWithUrls(updatedContent, uploadedUrls);
     }
 
-    return withFlattenLinks(updatedContent);
+    // Don't flatten links - keep URLs as plain text for backward compatibility
+    return updatedContent;
   }
 
   List<RelatedPubkey> _buildMentions(Delta content) {
