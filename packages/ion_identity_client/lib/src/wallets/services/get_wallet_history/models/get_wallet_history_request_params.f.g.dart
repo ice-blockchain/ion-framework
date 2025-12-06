@@ -12,4 +12,7 @@ _$GetWalletHistoryRequestParamsImpl
 
 Map<String, dynamic> _$$GetWalletHistoryRequestParamsImplToJson(
         _$GetWalletHistoryRequestParamsImpl instance) =>
-    <String, dynamic>{};
+    <String, dynamic>{
+      if (instance.limit case final value?) 'limit': value,
+      if (instance.paginationToken case final value?) 'paginationToken': value,
+    };
