@@ -77,12 +77,14 @@ class PollUtils {
     final pollAnswers = pollData.options.map((option) => PollAnswer(text: option)).toList();
     final closingTime = pollData.closingTime ?? DateTime.now();
     final remaining = closingTime.difference(DateTime.now());
-    final remainingHours = remaining.inHours - (remaining.inDays * 24);
+    // Add 59 minutes to the duration to correctly round up the hours.
+    // This ensures that any remaining minutes push the hour count to the next full hour.
+    final roundedUpRemaining = remaining + const Duration(minutes: 59);
 
     return PollDraft(
       answers: pollAnswers,
-      lengthDays: remaining.inDays,
-      lengthHours: remainingHours,
+      lengthDays: roundedUpRemaining.inDays,
+      lengthHours: roundedUpRemaining.inHours % 24,
       added: true,
       isVoted: isVoted,
     );
