@@ -14,7 +14,9 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/pages/components/header_action/header_action.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/header/context_menu_item.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/header/context_menu_item_divider.dart';
+import 'package:ion/app/features/user/pages/profile_page/pages/account_notifications_modal/account_notifications_modal.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/block_user_modal/block_user_modal.dart';
+import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
 import 'package:ion/app/features/user/providers/report_notifier.m.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/block_user_provider.r.dart';
@@ -126,6 +128,7 @@ class ProfileContextMenu extends HookConsumerWidget {
       ].separated(const ContextMenuItemDivider());
     } else {
       final isMuted = ref.watch(isUserMutedProvider(pubkey));
+      final following = ref.watch(isCurrentUserFollowingSelectorProvider(pubkey));
       return [
         ContextMenuItem(
           label: context.i18n.button_share,
@@ -139,6 +142,20 @@ class ProfileContextMenu extends HookConsumerWidget {
             ).push<void>(context);
           },
         ),
+        if (following)
+          ContextMenuItem(
+            label: context.i18n.profile_notifications_popup_title,
+            iconAsset: Assets.svg.iconProfileNotifications,
+            onPressed: () {
+              closeMenu();
+              showSimpleBottomSheet<void>(
+                context: context,
+                child: AccountNotificationsModal(
+                  userPubkey: pubkey,
+                ),
+              );
+            },
+          ),
         if (isMuted) _UnmutePostsMenuItem(masterPubkey: pubkey, closeMenu: closeMenu),
         _BlockUserMenuItem(masterPubkey: pubkey, closeMenu: closeMenu),
         ContextMenuItem(
