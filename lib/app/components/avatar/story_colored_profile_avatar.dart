@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
+import 'package:ion/app/components/avatar/outlined_avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/extensions/widget.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
@@ -60,22 +60,30 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
     final storyStatus = ref.watch(_storyStatusProvider(pubkey));
     final hasStories = storyStatus.hasStories;
     final allStoriesViewed = storyStatus.allStoriesViewed;
+    final isDarkMode = profileMode == ProfileMode.dark;
+
+    final shouldShowGradientBorder = isDarkMode || hasStories;
 
     final gradient = useMemoized(
       () {
-        if (!hasStories) {
+        if (!shouldShowGradientBorder) {
           return null;
+        }
+
+        // For Dark mode outline use 4th gradient (teal/blue)
+        if (isDarkMode) {
+          return storyBorderGradients[3];
         }
 
         return useRandomGradient
             ? storyBorderGradients[Random().nextInt(storyBorderGradients.length)]
             : storyBorderGradients.first;
       },
-      [hasStories, useRandomGradient],
+      [shouldShowGradientBorder, isDarkMode, useRandomGradient],
     );
 
     Widget avatarWidget;
-    if (!hasStories) {
+    if (!shouldShowGradientBorder) {
       if (imageUrl != null || imageWidget != null || defaultAvatar != null) {
         avatarWidget = Avatar(
           size: size,
@@ -84,22 +92,6 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
           defaultAvatar: defaultAvatar,
           borderRadius: borderRadius,
           fit: fit,
-        ).withDecoration(
-          profileMode == ProfileMode.dark
-              ? BoxDecoration(
-                  borderRadius: borderRadius == null
-                      ? null
-                      : BorderRadius.all(
-                          Radius.circular((borderRadius! as BorderRadius).topRight.x + 2),
-                        ),
-                  border: borderRadius == null
-                      ? null
-                      : Border.all(
-                          color: context.theme.appColors.secondaryBackground,
-                          width: 2,
-                        ),
-                )
-              : null,
         );
       } else {
         avatarWidget = IonConnectAvatar(
@@ -109,6 +101,17 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
           borderRadius: borderRadius,
         );
       }
+    } else if (isDarkMode) {
+      avatarWidget = OutlinedAvatar(
+        pubkey: pubkey,
+        size: size,
+        borderRadius: borderRadius,
+        gradient: gradient!,
+        imageUrl: imageUrl,
+        imageWidget: imageWidget,
+        defaultAvatar: defaultAvatar,
+        fit: fit,
+      );
     } else {
       avatarWidget = StoryColoredBorder(
         size: size,

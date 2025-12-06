@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/avatar/avatar_constants.dart';
 import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/avatar_picker/avatar_picker.dart';
@@ -17,8 +18,6 @@ class ProfileAvatar extends ConsumerWidget {
     this.size,
     super.key,
   });
-
-  static BorderRadiusGeometry get borderRadius => BorderRadius.circular(16.0.s);
 
   final String pubkey;
   final bool showAvatarPicker;
@@ -36,7 +35,7 @@ class ProfileAvatar extends ConsumerWidget {
         ? AvatarPicker(
             avatarUrl: avatarUrl,
             avatarSize: pictureSize,
-            borderRadius: borderRadius,
+            borderRadius: BorderRadius.circular(pictureSize * AvatarConstants.borderRadiusRatio),
             iconSize: 20.0.s,
             iconBackgroundSize: 30.0.s,
           )
@@ -47,7 +46,6 @@ class ProfileAvatar extends ConsumerWidget {
             child: StoryColoredProfileAvatar(
               pubkey: pubkey,
               size: pictureSize,
-              borderRadius: borderRadius,
               fit: BoxFit.cover,
               imageUrl: avatarUrl,
               profileMode: profileMode,

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
+import 'package:ion/app/components/avatar/avatar_constants.dart';
 import 'package:ion/app/components/avatar/default_avatar.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/ion_connect_network_image/ion_connect_network_image.dart';
@@ -54,7 +55,8 @@ class IonConnectAvatar extends HookConsumerWidget {
     if (shadow != null) {
       return DecoratedBox(
         decoration: BoxDecoration(
-          borderRadius: borderRadius ?? BorderRadius.circular(size * 0.3),
+          borderRadius:
+              borderRadius ?? BorderRadius.circular(size * AvatarConstants.borderRadiusRatio),
           boxShadow: [shadow!],
         ),
         child: avatar,

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/components/avatar/avatar_constants.dart';
 import 'package:ion/app/components/shapes/hexagon_path.dart';
 import 'package:ion/app/components/shapes/shape.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -52,7 +53,7 @@ class StoryColoredBorder extends StatelessWidget {
               height: size,
               decoration: BoxDecoration(
                 gradient: effectiveGradient,
-                borderRadius: BorderRadius.circular(size * 0.3),
+                borderRadius: BorderRadius.circular(size * AvatarConstants.borderRadiusRatio),
                 color: effectiveColor,
               ),
               child: Center(child: child),
