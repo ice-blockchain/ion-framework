@@ -42,14 +42,23 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     final data = await IonConnectPushDataPayload.fromEncoded(
       response.data,
       unwrapGift: (eventMassage) async {
-        final giftUnwrapService = await ref.read(giftUnwrapServiceProvider.future);
+        // Attempt to decrypt GiftWrap message.
+        // If decryption fails (e.g., message encrypted for another user),
+        // this is expected - we return (null, null) to allow notification display.
+        // User can switch accounts to view the content.
+        try {
+          final giftUnwrapService = await ref.read(giftUnwrapServiceProvider.future);
 
-        final event = await giftUnwrapService.unwrap(eventMassage);
-        final userMetadata = await ref.read(
-          userMetadataProvider(event.masterPubkey).future,
-        );
+          final event = await giftUnwrapService.unwrap(eventMassage);
+          final userMetadata = await ref.read(
+            userMetadataProvider(event.masterPubkey).future,
+          );
 
-        return (event, userMetadata);
+          return (event, userMetadata);
+        } catch (error) {
+          // Expected: message encrypted for another user
+          return (null, null);
+        }
       },
     );
 
@@ -140,16 +149,20 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     required IonConnectPushDataPayload data,
   }) async {
     if (data.event.kind == IonConnectGiftWrapEntity.kind) {
-      final giftUnwrapService = await ref.watch(giftUnwrapServiceProvider.future);
       final currentPubkey = ref.watch(currentPubkeySelectorProvider);
 
+      // If no user is logged in, skip the notification
       if (currentPubkey == null) {
         return true;
       }
 
-      final rumor = await giftUnwrapService.unwrap(data.event);
+      if (data.decryptedEvent != null) {
+        // Skip if message is from current user (self-message)
+        return data.decryptedEvent!.masterPubkey == currentPubkey;
+      }
 
-      return rumor.masterPubkey == currentPubkey;
+      // If decryptedEvent is null, message is encrypted for another user - show notification
+      return false;
     }
 
     return false;

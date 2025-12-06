@@ -806,6 +806,7 @@
   "story_share_sender": "Vous avez partagé cette histoire",
   "suggestions_empty_description": "Nous n'avons rien trouvé correspondant à votre recherche",
   "suggestions_loading_description": "Recherchez l'utilisateur que vous souhaitez mentionner",
+  "switched_to_username": "Passé à {username}",
   "tokenized_communities_top_tokens": "Meilleurs jetons",
   "tokenized_communities_trending_tokens": "Jetons tendance",
   "tokenized_community_chart_tab": "Graphique",

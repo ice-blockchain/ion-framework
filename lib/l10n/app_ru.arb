@@ -806,6 +806,7 @@
   "story_share_sender": "Вы поделились этой историей",
   "suggestions_empty_description": "Мы не смогли найти ничего, соответствующего вашему поиску",
   "suggestions_loading_description": "Ищите пользователя, которого хотите упомянуть",
+  "switched_to_username": "Переключено на {username}",
   "tokenized_communities_top_tokens": "Топ токенов",
   "tokenized_communities_trending_tokens": "Популярные токены",
   "tokenized_community_chart_tab": "График",

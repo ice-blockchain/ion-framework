@@ -806,6 +806,7 @@
   "story_share_sender": "您分享了这个故事",
   "suggestions_empty_description": "我们找不到任何与您的搜索匹配的内容",
   "suggestions_loading_description": "搜索您想要提及的用户",
+  "switched_to_username": "已切换到 {username}",
   "tokenized_communities_top_tokens": "顶级代币",
   "tokenized_communities_trending_tokens": "热门代币",
   "tokenized_community_chart_tab": "图表",

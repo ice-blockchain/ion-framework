@@ -806,6 +806,7 @@
   "story_share_sender": "Ai distribuit această poveste",
   "suggestions_empty_description": "Nu am găsit nimic care să se potrivească căutării tale",
   "suggestions_loading_description": "Caută utilizatorul pe care vrei să-l menționezi",
+  "switched_to_username": "Comutat la {username}",
   "tokenized_communities_top_tokens": "Tokenuri de top",
   "tokenized_communities_trending_tokens": "Tokenuri în tendință",
   "tokenized_community_chart_tab": "Grafic",
