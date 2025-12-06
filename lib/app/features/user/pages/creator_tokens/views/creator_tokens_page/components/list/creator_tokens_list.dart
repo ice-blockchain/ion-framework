@@ -11,11 +11,13 @@ class CreatorTokensList extends StatelessWidget {
   const CreatorTokensList({
     required this.items,
     required this.isInitialLoading,
+    this.searchQuery,
     super.key,
   });
 
   final List<CommunityToken> items;
   final bool isInitialLoading;
+  final String? searchQuery;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +28,11 @@ class CreatorTokensList extends StatelessWidget {
     }
 
     if (items.isEmpty) {
+      if (searchQuery?.isEmpty ?? false) {
+        return const SliverToBoxAdapter(
+          child: SizedBox.shrink(),
+        );
+      }
       return const NothingIsFound();
     }
 
