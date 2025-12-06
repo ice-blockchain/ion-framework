@@ -8,8 +8,8 @@ part 'get_wallet_history_request_params.f.g.dart';
 @freezed
 class GetWalletHistoryRequestParams with _$GetWalletHistoryRequestParams {
   const factory GetWalletHistoryRequestParams({
-    @JsonKey(includeFromJson: false) int? limit,
-    @JsonKey(includeFromJson: false) String? paginationToken,
+    @JsonKey(includeFromJson: false, includeToJson: true) int? limit,
+    @JsonKey(includeFromJson: false, includeToJson: true) String? paginationToken,
   }) = _GetWalletHistoryRequestParams;
 
   factory GetWalletHistoryRequestParams.fromJson(Map<String, dynamic> json) =>
