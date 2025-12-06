@@ -55,6 +55,8 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
   final bool useRandomGradient;
   final ProfileMode profileMode;
 
+  static double get _storyBorderSize => 2.0.s;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final storyStatus = ref.watch(_storyStatusProvider(pubkey));
@@ -119,11 +121,11 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
         gradient: gradient,
         isViewed: allStoriesViewed,
         child: StoryColoredBorder(
-          size: size - 4.0.s,
+          size: size - _storyBorderSize * 2,
           color: context.theme.appColors.secondaryBackground,
           child: imageUrl != null || imageWidget != null || defaultAvatar != null
               ? Avatar(
-                  size: size - 8.0.s,
+                  size: size - _storyBorderSize * 4,
                   imageUrl: imageUrl,
                   imageWidget: imageWidget,
                   defaultAvatar: defaultAvatar,
@@ -131,7 +133,7 @@ class StoryColoredProfileAvatar extends HookConsumerWidget {
                   fit: fit,
                 )
               : IonConnectAvatar(
-                  size: size - 8.0.s,
+                  size: size - _storyBorderSize * 4,
                   fit: fit,
                   masterPubkey: pubkey,
                   borderRadius: borderRadius,
