@@ -12,3 +12,9 @@ Color fromHexColor(String hexString) {
   final hex = hexString.replaceAll('#', '');
   return Color(int.parse('0xff$hex'));
 }
+
+// Determines if a color is dark based on luminance
+// Luminance ranges from 0 (dark) to 1 (light)
+bool isColorDark(Color color) {
+  return color.computeLuminance() < 0.5;
+}
