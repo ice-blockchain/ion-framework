@@ -113,7 +113,7 @@ class ProfileEditPage extends HookConsumerWidget {
                                 textEditorKey: textEditorKey,
                                 initialValue: userMetadata.data.about,
                                 onChanged: (text) {
-                                  final trimmedText = QuillTextUtils.trimDeltaJson(text);
+                                  final trimmedText = QuillTextUtils.trimBioDeltaJson(text);
 
                                   return update(
                                     draftRef.value
