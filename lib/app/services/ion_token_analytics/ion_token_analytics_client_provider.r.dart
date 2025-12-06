@@ -32,9 +32,11 @@ Future<IonTokenAnalyticsClient> ionTokenAnalyticsClient(Ref ref) async {
 Raw<Future<String?>> tokenAnalyticsAuthToken(Ref ref) async {
   keepAliveWhenAuthenticated(ref);
 
-  final delegationComplete = await ref.watch(cacheDelegationCompleteProvider.future);
-  final delegation = await ref.watch(currentUserCachedDelegationProvider.future);
-  final userAgent = await ref.watch(currentUserAgentProvider.future);
+  final (delegationComplete, delegation, userAgent) = await (
+    ref.watch(cacheDelegationCompleteProvider.future),
+    ref.watch(currentUserCachedDelegationProvider.future),
+    ref.watch(currentUserAgentProvider.future),
+  ).wait;
 
   final authEvent = AuthEvent(
     challenge: '',
