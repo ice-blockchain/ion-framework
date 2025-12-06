@@ -640,8 +640,11 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
                 }
               }
             }
-            expect(hasItalic, isTrue,
-                reason: 'Italic formatting should be preserved from markdown');
+            expect(
+              hasItalic,
+              isTrue,
+              reason: 'Italic formatting should be preserved from markdown',
+            );
           });
 
           test('preserves both bold and italic formatting from markdown', () {
@@ -666,8 +669,11 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
               }
             }
             expect(hasBold, isTrue, reason: 'Bold formatting should be preserved in bold+italic');
-            expect(hasItalic, isTrue,
-                reason: 'Italic formatting should be preserved in bold+italic');
+            expect(
+              hasItalic,
+              isTrue,
+              reason: 'Italic formatting should be preserved in bold+italic',
+            );
           });
 
           test('handles markdown with mixed formatting correctly', () {
@@ -938,8 +944,11 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
               }
             }
           }
-          expect(hasItalic, isTrue,
-              reason: 'Italic formatting should be preserved even with trailing space');
+          expect(
+            hasItalic,
+            isTrue,
+            reason: 'Italic formatting should be preserved even with trailing space',
+          );
           expect(hasBold, isTrue, reason: 'Bold formatting should be preserved');
         });
 
@@ -962,8 +971,11 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
               }
             }
           }
-          expect(hasItalic, isTrue,
-              reason: 'Italic formatting should be preserved even with leading space');
+          expect(
+            hasItalic,
+            isTrue,
+            reason: 'Italic formatting should be preserved even with leading space',
+          );
         });
 
         test('normalizes bold with trailing space in PMO tags', () {
@@ -985,8 +997,11 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
               }
             }
           }
-          expect(hasBold, isTrue,
-              reason: 'Bold formatting should be preserved even with trailing space');
+          expect(
+            hasBold,
+            isTrue,
+            reason: 'Bold formatting should be preserved even with trailing space',
+          );
         });
 
         test('normalizes bold with leading space in PMO tags', () {
@@ -1008,8 +1023,11 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
               }
             }
           }
-          expect(hasBold, isTrue,
-              reason: 'Bold formatting should be preserved even with leading space');
+          expect(
+            hasBold,
+            isTrue,
+            reason: 'Bold formatting should be preserved even with leading space',
+          );
         });
 
         test('normalizes bold+italic with trailing space in PMO tags', () {
@@ -1037,10 +1055,16 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
               }
             }
           }
-          expect(hasBold, isTrue,
-              reason: 'Bold formatting should be preserved in bold+italic with trailing space');
-          expect(hasItalic, isTrue,
-              reason: 'Italic formatting should be preserved in bold+italic with trailing space');
+          expect(
+            hasBold,
+            isTrue,
+            reason: 'Bold formatting should be preserved in bold+italic with trailing space',
+          );
+          expect(
+            hasItalic,
+            isTrue,
+            reason: 'Italic formatting should be preserved in bold+italic with trailing space',
+          );
         });
 
         test('normalizes multiple spaces in markdown markers', () {
@@ -1062,8 +1086,11 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
               }
             }
           }
-          expect(hasItalic, isTrue,
-              reason: 'Italic formatting should be preserved even with multiple trailing spaces');
+          expect(
+            hasItalic,
+            isTrue,
+            reason: 'Italic formatting should be preserved even with multiple trailing spaces',
+          );
         });
 
         test('handles mixed spacing issues in multiple PMO tags', () {
@@ -1171,22 +1198,38 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             }
           }
 
-          expect(italicCount, greaterThanOrEqualTo(3),
-              reason: 'Should have at least 3 italic instances');
-          expect(boldCount, greaterThanOrEqualTo(3),
-              reason: 'Should have at least 3 bold instances');
-          expect(normalCount, greaterThanOrEqualTo(3),
-              reason: 'Should have at least 3 normal instances');
+          expect(
+            italicCount,
+            greaterThanOrEqualTo(3),
+            reason: 'Should have at least 3 italic instances',
+          );
+          expect(
+            boldCount,
+            greaterThanOrEqualTo(3),
+            reason: 'Should have at least 3 bold instances',
+          );
+          expect(
+            normalCount,
+            greaterThanOrEqualTo(3),
+            reason: 'Should have at least 3 normal instances',
+          );
 
           // Verify the pattern is correct by checking operations in order
           final textOperations = resultDelta.operations
-              .where((op) =>
-                  op.key == 'insert' && op.data is String && (op.data as String).contains('text'))
+              .where(
+                (op) =>
+                    op.key == 'insert' &&
+                    op.data is String &&
+                    (op.data! as String).contains('text'),
+              )
               .toList();
 
           // We should have 9 text instances total
-          expect(textOperations.length, greaterThanOrEqualTo(9),
-              reason: 'Should have 9 text instances (3 normal + 3 italic + 3 bold)');
+          expect(
+            textOperations.length,
+            greaterThanOrEqualTo(9),
+            reason: 'Should have 9 text instances (3 normal + 3 italic + 3 bold)',
+          );
         });
 
         test('preserves spaces correctly with multiple PMO tags with trailing spaces', () {
@@ -1241,18 +1284,33 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 
           expect(hasItalic, isTrue, reason: 'Italic formatting should be preserved');
           expect(hasBold, isTrue, reason: 'Bold formatting should be preserved');
-          expect(italicCount, greaterThanOrEqualTo(2),
-              reason: 'Should have at least 2 italic instances (italic and talll)');
-          expect(boldCount, greaterThanOrEqualTo(2),
-              reason: 'Should have at least 2 bold instances');
+          expect(
+            italicCount,
+            greaterThanOrEqualTo(2),
+            reason: 'Should have at least 2 italic instances (italic and talll)',
+          );
+          expect(
+            boldCount,
+            greaterThanOrEqualTo(2),
+            reason: 'Should have at least 2 bold instances',
+          );
 
           // Verify text doesn't have concatenated words (e.g., "italicbold" or "boldtalll")
-          expect(resultText, isNot(contains('italicbold')),
-              reason: 'Should not have "italicbold" concatenated');
-          expect(resultText, isNot(contains('boldnormal')),
-              reason: 'Should not have "boldnormal" concatenated');
-          expect(resultText, isNot(contains('boldtalll')),
-              reason: 'Should not have "boldtalll" concatenated');
+          expect(
+            resultText,
+            isNot(contains('italicbold')),
+            reason: 'Should not have "italicbold" concatenated',
+          );
+          expect(
+            resultText,
+            isNot(contains('boldnormal')),
+            reason: 'Should not have "boldnormal" concatenated',
+          );
+          expect(
+            resultText,
+            isNot(contains('boldtalll')),
+            reason: 'Should not have "boldtalll" concatenated',
+          );
         });
       });
 

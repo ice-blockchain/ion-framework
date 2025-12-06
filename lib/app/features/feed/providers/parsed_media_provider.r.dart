@@ -11,20 +11,54 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
+import 'package:ion/app/features/ion_connect/model/entity_data_with_related_pubkeys.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'parsed_media_provider.r.g.dart';
 
 @riverpod
-({Delta content, List<MediaAttachment> media}) cachedParsedMedia(
+Future<({Delta content, List<MediaAttachment> media})> cachedParsedMedia(
   Ref ref,
   EntityDataWithMediaContent data,
-) {
+) async {
   keepAliveWhenAuthenticated(ref);
 
-  return parseMediaContent(data: data);
+  final result = parseMediaContent(data: data);
+
+  // Restore mentions if data has relatedPubkeys
+  if (data is EntityDataWithRelatedPubkeys) {
+    final dataWithPubkeys = data as EntityDataWithRelatedPubkeys;
+    final relatedPubkeys = dataWithPubkeys.relatedPubkeys;
+
+    if (relatedPubkeys != null && relatedPubkeys.isNotEmpty) {
+      final usernameToPubkey = <String, String>{};
+
+      // Look up user metadata for each pubkey to get usernames
+      for (final relatedPubkey in relatedPubkeys) {
+        final pubkey = relatedPubkey.value;
+        try {
+          final userMetadata =
+              await ref.read(userMetadataProvider(pubkey, network: false).future);
+          if (userMetadata != null && userMetadata.data.name.isNotEmpty) {
+            usernameToPubkey[userMetadata.data.name] = pubkey;
+          }
+        } catch (_) {
+          // If lookup fails, skip this pubkey
+          continue;
+        }
+      }
+
+      if (usernameToPubkey.isNotEmpty) {
+        final restoredContent = restoreMentions(result.content, usernameToPubkey);
+        return (content: restoredContent, media: result.media);
+      }
+    }
+  }
+
+  return result;
 }
 
 ({Delta content, List<MediaAttachment> media}) parseMediaContent({

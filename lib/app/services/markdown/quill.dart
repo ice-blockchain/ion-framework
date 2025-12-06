@@ -6,6 +6,8 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_single_image_block/text_editor_single_image_block.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 import 'package:ion/app/services/text_parser/text_parser.dart';
 import 'package:markdown/markdown.dart' as md;
@@ -323,6 +325,83 @@ Delta processDeltaMatches(Delta delta) {
   for (final op in delta.operations) {
     _processMatches(op, newDelta);
   }
+  return newDelta;
+}
+
+/// Restores MentionAttribute for @mentions in the Delta by matching usernames to pubkeys.
+///
+/// Parameters:
+/// - [delta]: The Delta to process
+/// - [usernameToPubkey]: Map of username (without @) to pubkey
+///
+/// Returns: Delta with MentionAttribute restored for matching mentions
+Delta restoreMentions(Delta delta, Map<String, String> usernameToPubkey) {
+  if (usernameToPubkey.isEmpty) {
+    return delta;
+  }
+
+  final textParser = TextParser.tagsMatchers();
+  final newDelta = Delta();
+
+  for (final op in delta.operations) {
+    if (op.data is Map) {
+      newDelta.insert(op.data, op.attributes);
+      continue;
+    }
+
+    if (op.data is! String) {
+      newDelta.insert(op.data, op.attributes);
+      continue;
+    }
+
+    final text = op.data! as String;
+    final segments = textParser.parse(text);
+
+    if (segments.isEmpty) {
+      newDelta.insert(op.data, op.attributes);
+      continue;
+    }
+
+    for (final segment in segments) {
+      if (segment.matcher is MentionMatcher) {
+        // This is a mention
+        final mentionText = segment.text;
+        // Remove @ prefix to get username
+        final username = mentionText.startsWith('@') ? mentionText.substring(1) : mentionText;
+        final pubkey = usernameToPubkey[username];
+
+        if (pubkey != null) {
+          // Create MentionAttribute with encoded reference
+          final userMetadataRef = ReplaceableEventReference(
+            masterPubkey: pubkey,
+            kind: UserMetadataEntity.kind,
+          );
+          final encodedRef = userMetadataRef.encode();
+          final mentionAttrs = {
+            ...?op.attributes,
+            MentionAttribute.attributeKey: encodedRef,
+          };
+          newDelta.insert(mentionText, mentionAttrs);
+        } else {
+          // No matching pubkey found, insert as plain text
+          newDelta.insert(mentionText, op.attributes);
+        }
+      } else {
+        // Plain text or other matcher (hashtag, cashtag)
+        // Preserve existing attributes and add any matcher-specific attributes
+        final attrs = {
+          ...?op.attributes,
+          ...switch (segment.matcher) {
+            HashtagMatcher() => {HashtagAttribute.attributeKey: segment.text},
+            CashtagMatcher() => {CashtagAttribute.attributeKey: segment.text},
+            _ => <String, dynamic>{},
+          },
+        };
+        newDelta.insert(segment.text, attrs);
+      }
+    }
+  }
+
   return newDelta;
 }
 
