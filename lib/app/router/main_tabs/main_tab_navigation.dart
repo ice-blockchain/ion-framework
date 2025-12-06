@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/chat/recent_chats/providers/archive_tile_visibility_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/conversation_edit_bottom_bar/conversation_edit_bottom_bar.dart';
 import 'package:ion/app/features/chat/views/components/unread_messages_counter.dart';
@@ -156,7 +157,10 @@ class _BottomNavBarContent extends ConsumerWidget {
               return Expanded(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () => onTabPressed(tabItem),
+                  onTap: () {
+                    ref.read(archiveTileVisibilityProvider.notifier).value = false;
+                    onTabPressed(tabItem);
+                  },
                   child: Container(
                     padding: EdgeInsets.symmetric(vertical: _navBarVerticalPadding.s),
                     color: context.theme.appColors.secondaryBackground,
