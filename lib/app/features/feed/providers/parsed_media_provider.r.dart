@@ -40,8 +40,7 @@ Future<({Delta content, List<MediaAttachment> media})> cachedParsedMedia(
       for (final relatedPubkey in relatedPubkeys) {
         final pubkey = relatedPubkey.value;
         try {
-          final userMetadata =
-              await ref.read(userMetadataProvider(pubkey, network: false).future);
+          final userMetadata = await ref.read(userMetadataProvider(pubkey, network: false).future);
           if (userMetadata != null && userMetadata.data.name.isNotEmpty) {
             usernameToPubkey[userMetadata.data.name] = pubkey;
           }
