@@ -27,15 +27,18 @@ class CreatorTokensPage extends HookConsumerWidget {
     super.key,
   });
 
-  double get paddingTop => 60.0.s;
+  static const _expandedHeaderHeight = 375.0;
+  static const _tabBarHeight = 48.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statusBarHeight = MediaQuery.paddingOf(context).top;
-
     final scrollController = useScrollController();
-
-    final (:opacity) = useAnimatedOpacityOnScroll(scrollController, topOffset: paddingTop);
+    final maxScroll =
+        _expandedHeaderHeight.s - NavigationAppBar.screenHeaderHeight - _tabBarHeight.s;
+    final (:opacity) = useAnimatedOpacityOnScroll(
+      scrollController,
+      topOffset: maxScroll,
+    );
 
     useEffect(
       () {
@@ -117,33 +120,47 @@ class CreatorTokensPage extends HookConsumerWidget {
                   controller: scrollController,
                   headerSliverBuilder: (context, innerBoxIsScrolled) {
                     return [
-                      SliverToBoxAdapter(
-                        child: Stack(
-                          children: [
-                            Positioned.fill(
-                              child: ProfileBackground(
-                                colors: avatarColors,
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsetsDirectional.only(top: 70.0.s, bottom: 44.0.s),
-                              child: featuredTokens.isEmpty
-                                  ? const SizedBox.shrink()
-                                  : CreatorTokensCarousel(
-                                      tokens: featuredTokens,
-                                      onItemChanged: (token) {
-                                        selectedToken.value = token;
-                                      },
-                                    ),
-                            ),
-                          ],
+                      SliverAppBar(
+                        pinned: true,
+                        expandedHeight: _expandedHeaderHeight.s,
+                        toolbarHeight: NavigationAppBar.screenHeaderHeight,
+                        backgroundColor: Colors.transparent,
+                        surfaceTintColor: Colors.transparent,
+                        elevation: 0,
+                        leading: NavigationBackButton(
+                          context.pop,
+                          icon: backButtonIcon,
                         ),
-                      ),
-                      PinnedHeaderSliver(
-                        child: ColoredBox(
-                          color: context.theme.appColors.primaryText,
-                          child: const TabsHeader(
-                            tabs: CreatorTokensTabType.values,
+                        flexibleSpace: Builder(
+                          builder: (context) {
+                            return Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                ProfileBackground(
+                                  colors: avatarColors,
+                                ),
+                                Opacity(
+                                  opacity: 1 - opacity,
+                                  child: featuredTokens.isEmpty
+                                      ? const SizedBox.shrink()
+                                      : CreatorTokensCarousel(
+                                          tokens: featuredTokens,
+                                          onItemChanged: (token) {
+                                            selectedToken.value = token;
+                                          },
+                                        ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        bottom: PreferredSize(
+                          preferredSize: Size.fromHeight(_tabBarHeight.s),
+                          child: ColoredBox(
+                            color: context.theme.appColors.primaryText,
+                            child: const TabsHeader(
+                              tabs: CreatorTokensTabType.values,
+                            ),
                           ),
                         ),
                       ),
@@ -162,31 +179,6 @@ class CreatorTokensPage extends HookConsumerWidget {
                     ).toList(),
                   ),
                 ),
-              ),
-            ),
-            IgnorePointer(
-              ignoring: opacity <= 0.5,
-              child: Opacity(
-                opacity: opacity,
-                child: NavigationAppBar(
-                  useScreenTopOffset: true,
-                  extendBehindStatusBar: true,
-                  backButtonIcon: backButtonIcon,
-                  scrollController: scrollController,
-                  horizontalPadding: 0,
-                  backgroundBuilder: () => ProfileBackground(
-                    colors: avatarColors,
-                    disableDarkGradient: true,
-                  ),
-                ),
-              ),
-            ),
-            PositionedDirectional(
-              top: statusBarHeight,
-              start: 0,
-              child: NavigationBackButton(
-                context.pop,
-                icon: backButtonIcon,
               ),
             ),
           ],
