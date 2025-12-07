@@ -11,15 +11,17 @@ class FeaturedTokensDataSourceMock {
 
   /// Streams raw JSON data (List<Map<String, dynamic>>) every 1 second.
   Stream<List<Map<String, dynamic>>> subscribeToFeaturedTokens() {
-    final controller = StreamController<List<Map<String, dynamic>>>();
+    final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
 
     // Initial mock JSON data (5-10 tokens)
     var tokensJson = _generateInitialMockJson();
 
-    // Emit the initial list immediately.
-    if (!controller.isClosed) {
-      controller.add(tokensJson);
-    }
+    // Emit the initial list asynchronously to ensure listeners are ready
+    Future.microtask(() {
+      if (!controller.isClosed) {
+        controller.add(tokensJson);
+      }
+    });
 
     // Emit random updates every 1 second (full list each time)
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -41,9 +43,14 @@ class FeaturedTokensDataSourceMock {
     final count = 5 + _random.nextInt(6); // 5-10 tokens
     final now = DateTime.now();
 
+    // Use valid CommunityTokenType values: profile, post, video, article
+    final tokenTypes = ['profile', 'post', 'video', 'article'];
+
     return List.generate(count, (index) {
+      final tokenType = tokenTypes[index % tokenTypes.length];
+
       return {
-        'type': 'featured',
+        'type': tokenType,
         'title': _generateTitle(index),
         'description': _generateDescription(index),
         'imageUrl': 'https://i.pravatar.cc/150?img=${index + 1}',
@@ -57,9 +64,9 @@ class FeaturedTokensDataSourceMock {
           'display': _mockCreatorDisplay(index),
           'verified': index % 3 == 0,
           'avatar': 'https://i.pravatar.cc/150?img=${index + 20}',
-          'ionConnect': 'creator-${index + 1}',
         },
         'marketData': {
+          'ticker': 'FEAT${index + 1}',
           'marketCap': (_random.nextInt(50000000) + 1000000).toDouble(),
           'volume': (_random.nextInt(5000000) + 10000).toDouble(),
           'holders': _random.nextInt(5000) + 100,
@@ -79,6 +86,7 @@ class FeaturedTokensDataSourceMock {
         // 30% chance to update each token
         final token = newList[i];
         final marketData = token['marketData'] as Map<String, dynamic>;
+        final currentTicker = marketData['ticker'] as String;
         final currentMarketCap = marketData['marketCap'] as double;
         final currentVolume = marketData['volume'] as double;
         final currentHolders = marketData['holders'] as int;
@@ -86,6 +94,7 @@ class FeaturedTokensDataSourceMock {
 
         newList[i] = Map<String, dynamic>.from(token);
         newList[i]['marketData'] = {
+          'ticker': currentTicker, // Preserve ticker field
           'marketCap': currentMarketCap * (0.95 + _random.nextDouble() * 0.1),
           'volume': currentVolume * (0.9 + _random.nextDouble() * 0.2),
           'holders': (currentHolders * (0.98 + _random.nextDouble() * 0.04)).round(),
