@@ -162,8 +162,12 @@ class CategoryTokensDataSourceMock {
         return null;
       }
 
+      // Use valid CommunityTokenType values: profile, post, video, article
+      final tokenTypes = ['profile', 'post', 'video', 'article'];
+      final tokenType = tokenTypes[index % tokenTypes.length];
+
       return {
-        'type': 'community',
+        'type': tokenType,
         'title': '$prefix Token ${index + 1}',
         'description': _generateDescription(index),
         'imageUrl': 'https://i.pravatar.cc/150?img=${index + 1}',
@@ -177,9 +181,9 @@ class CategoryTokensDataSourceMock {
           'display': display,
           'verified': index % 3 == 0,
           'avatar': 'https://i.pravatar.cc/150?img=${index + 20}',
-          'ionConnect': 'creator-${index + 1}',
         },
         'marketData': {
+          'ticker': '${prefix.toUpperCase()}${index + 1}',
           'marketCap': (_random.nextInt(50000000) + 1000000).toDouble(),
           'volume': (_random.nextInt(5000000) + 10000).toDouble(),
           'holders': _random.nextInt(5000) + 100,
@@ -226,8 +230,12 @@ class CategoryTokensDataSourceMock {
     final now = DateTime.now();
     final i = 1000 + _random.nextInt(1000);
 
+    // Use valid CommunityTokenType values: profile, post, video, article
+    final tokenTypes = ['profile', 'post', 'video', 'article'];
+    final tokenType = tokenTypes[i % tokenTypes.length];
+
     return {
-      'type': 'community',
+      'type': tokenType,
       'title': '$prefix Token $i (NEW)',
       'description': 'Newly added token',
       'imageUrl': 'https://i.pravatar.cc/150?img=$i',
@@ -241,9 +249,9 @@ class CategoryTokensDataSourceMock {
         'display': _mockCreatorDisplay(i),
         'verified': i % 3 == 0,
         'avatar': 'https://i.pravatar.cc/150?img=${i + 20}',
-        'ionConnect': 'creator-new-$i',
       },
       'marketData': {
+        'ticker': '${prefix.toUpperCase()}NEW$i',
         'marketCap': (_random.nextInt(50000000) + 1000000).toDouble(),
         'volume': (_random.nextInt(5000000) + 10000).toDouble(),
         'holders': _random.nextInt(5000) + 100,

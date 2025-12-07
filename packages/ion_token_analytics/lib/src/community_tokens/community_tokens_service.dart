@@ -2,11 +2,11 @@
 
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository_impl.dart';
+import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository_impl.dart';
+import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository_impl.dart';
+import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository.dart';
@@ -54,9 +54,9 @@ class IonCommunityTokensService {
       tradingStatsRepository: TradingStatsRepositoryImpl(networkClient),
       topHoldersRepository: TopHoldersRepositoryImpl(networkClient),
       latestTradesRepository: LatestTradesRepositoryImpl(networkClient),
-      featuredTokensRepository: FeaturedTokensRepositoryImpl(networkClient),
-      latestTokensRepository: LatestTokensRepositoryImpl(networkClient),
-      categoryTokensRepository: CategoryTokensRepositoryImpl(networkClient),
+      featuredTokensRepository: FeaturedTokensRepositoryMock(),
+      latestTokensRepository: LatestTokensRepositoryMock(),
+      categoryTokensRepository: CategoryTokensRepositoryMock(),
     );
     return service;
   }
