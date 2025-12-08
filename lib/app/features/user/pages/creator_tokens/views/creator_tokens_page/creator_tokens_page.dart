@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/inputs/search_input/search_input.dart';
+import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/tabs_header/tabs_header.dart';
@@ -39,6 +41,8 @@ class CreatorTokensPage extends HookConsumerWidget {
       scrollController,
       topOffset: maxScroll,
     );
+
+    final isGlobalSearchVisible = useState<bool>(true);
 
     useEffect(
       () {
@@ -158,14 +162,53 @@ class CreatorTokensPage extends HookConsumerWidget {
                           preferredSize: Size.fromHeight(_tabBarHeight.s),
                           child: ColoredBox(
                             color: context.theme.appColors.primaryText,
-                            child: const TabsHeader(
+                            child: TabsHeader(
                               tabs: CreatorTokensTabType.values,
+                              trailing: TextButton(
+                                onPressed: () {
+                                  isGlobalSearchVisible.value = !isGlobalSearchVisible.value;
+                                },
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: 4.0.s,
+                                    horizontal: 16.0.s,
+                                  ),
+                                  child: Assets.svg.iconFieldSearch.icon(
+                                    color: context.theme.appColors.tertiaryText,
+                                    size: 18.0.s,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
                       const SliverToBoxAdapter(
                         child: SectionSeparator(),
+                      ),
+                      PinnedHeaderSliver(
+                        child: AnimatedSize(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeInOut,
+                          child: isGlobalSearchVisible.value
+                              ? ColoredBox(
+                                  color: context.theme.appColors.onPrimaryAccent,
+                                  child: Padding(
+                                    padding: EdgeInsetsDirectional.only(
+                                      top: 12.0.s,
+                                      bottom: 8.0.s,
+                                    ),
+                                    child: ScreenSideOffset.small(
+                                      child: SearchInput(
+                                        onTextChanged: (String value) {
+                                          // Placeholder - no functionality yet
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
                       ),
                     ];
                   },
