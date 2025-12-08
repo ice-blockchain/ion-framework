@@ -7,14 +7,17 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/inputs/search_input/search_input.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
+import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/tabs_header/tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/category_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/featured_tokens_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/global_search_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_tab_content.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
@@ -35,6 +38,13 @@ class CreatorTokensPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
+    final globalSearch = ref.watch(globalSearchTokensNotifierProvider);
+    final globalSearchNotifier = ref.read(globalSearchTokensNotifierProvider.notifier);
+
+    final searchController = useTextEditingController();
+    final searchQuery = useState('');
+    final debouncedQuery = useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '';
+
     final maxScroll =
         _expandedHeaderHeight.s - NavigationAppBar.screenHeaderHeight - _tabBarHeight.s;
     final (:opacity) = useAnimatedOpacityOnScroll(
@@ -66,6 +76,21 @@ class CreatorTokensPage extends HookConsumerWidget {
       data: (List<CommunityToken> tokens) => tokens,
       loading: () => <CommunityToken>[],
       error: (_, __) => <CommunityToken>[],
+    );
+
+    useEffect(
+      () {
+        if (debouncedQuery == globalSearch.searchQuery) return null;
+        Future.microtask(() {
+          globalSearchNotifier.search(
+            query: debouncedQuery,
+            // TODO: handle external addresses
+            externalAddresses: [],
+          );
+        });
+        return null;
+      },
+      [debouncedQuery],
     );
 
     // Create stable identifier for the list (to avoid unnecessary useEffect triggers)
@@ -200,8 +225,9 @@ class CreatorTokensPage extends HookConsumerWidget {
                                     ),
                                     child: ScreenSideOffset.small(
                                       child: SearchInput(
+                                        controller: searchController,
                                         onTextChanged: (String value) {
-                                          // Placeholder - no functionality yet
+                                          searchQuery.value = value;
                                         },
                                       ),
                                     ),
@@ -212,15 +238,39 @@ class CreatorTokensPage extends HookConsumerWidget {
                       ),
                     ];
                   },
-                  body: TabBarView(
-                    children: CreatorTokensTabType.values.map(
-                      (tabType) {
-                        return CreatorTokensTabContent(
-                          tabType: tabType,
-                        );
-                      },
-                    ).toList(),
-                  ),
+                  body: searchQuery.value.isNotEmpty
+                      ? LoadMoreBuilder(
+                          hasMore: globalSearch.activeHasMore,
+                          onLoadMore: () => globalSearchNotifier.loadMore(
+                            // TODO: handle external addresses
+                            externalAddresses: const [],
+                          ),
+                          builder: (context, slivers) => RefreshIndicator(
+                            onRefresh: () => globalSearchNotifier.refresh(
+                              // TODO: handle external addresses
+                              externalAddresses: const [],
+                            ),
+                            child: CustomScrollView(
+                              slivers: slivers,
+                            ),
+                          ),
+                          slivers: [
+                            CreatorTokensList(
+                              items: globalSearch.activeItems,
+                              isInitialLoading: globalSearch.activeIsInitialLoading,
+                            ),
+                          ],
+                        )
+                      // TODO: fix re-loading data again when coming back to tabs after search
+                      : TabBarView(
+                          children: CreatorTokensTabType.values.map(
+                            (tabType) {
+                              return CreatorTokensTabContent(
+                                tabType: tabType,
+                              );
+                            },
+                          ).toList(),
+                        ),
                 ),
               ),
             ),
