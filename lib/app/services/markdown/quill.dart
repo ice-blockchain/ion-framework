@@ -6,6 +6,8 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_single_image_block/text_editor_single_image_block.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 import 'package:ion/app/services/text_parser/text_parser.dart';
 import 'package:markdown/markdown.dart' as md;
@@ -156,12 +158,12 @@ Delta markdownToDelta(String markdown) {
           'text-editor-separator': '---',
         });
       } else {
-        processedDelta.insert(op.data, op.attributes);
+        processedDelta.insert(op.data, _normalizeAttributes(op.attributes));
       }
     } else if (op.key == 'insert' && op.data is String) {
       // Check for HTML <u> tags and convert them to underline attributes
       final text = op.data! as String;
-      final attrs = op.attributes;
+      final attrs = _normalizeAttributes(op.attributes);
 
       // Pattern to match <u>...</u> tags, including nested markdown formatting
       final underlinePattern = RegExp('<u>(.*?)</u>', dotAll: true);
@@ -212,15 +214,49 @@ Delta markdownToDelta(String markdown) {
           }
         }
       } else {
-        // No underline tags, insert normally
-        processedDelta.insert(op.data, op.attributes);
+        // No underline tags, insert normally with normalized attributes
+        processedDelta.insert(op.data, attrs);
       }
     } else {
-      processedDelta.insert(op.data, op.attributes);
+      processedDelta.insert(op.data, _normalizeAttributes(op.attributes));
     }
   }
 
   return withFullLinks(processedDelta);
+}
+
+/// Normalizes attributes to ensure they use string keys that QuillEditor expects.
+/// The markdown_quill package may return attributes in different formats, so we
+/// normalize them to ensure consistent handling.
+Map<String, dynamic>? _normalizeAttributes(Map<String, dynamic>? attrs) {
+  if (attrs == null || attrs.isEmpty) return attrs;
+
+  // Map of alternative keys to normalized keys
+  // Handles both string keys ('bold', 'strong', 'italic', 'em') and Attribute object keys
+  final keyNormalizations = <String, String>{
+    'bold': 'bold',
+    'strong': 'bold',
+    Attribute.bold.key: 'bold',
+    'italic': 'italic',
+    'em': 'italic',
+    Attribute.italic.key: 'italic',
+  };
+
+  final normalized = <String, dynamic>{};
+
+  for (final entry in attrs.entries) {
+    final normalizedKey = keyNormalizations[entry.key];
+
+    if (normalizedKey != null) {
+      // Normalize bold/italic keys and ensure they're set to true
+      normalized[normalizedKey] = true;
+    } else {
+      // Preserve other attributes as-is
+      normalized[entry.key] = entry.value;
+    }
+  }
+
+  return normalized.isEmpty ? null : normalized;
 }
 
 void _processMatches(Operation op, Delta processedDelta) {
@@ -292,17 +328,81 @@ Delta processDeltaMatches(Delta delta) {
   return newDelta;
 }
 
-Delta withFlattenLinks(Delta delta) {
-  final out = Delta();
-  for (final op in delta.toList()) {
-    final href = op.attributes?[Attribute.link.key];
-    if (href != null && op.value is String && op.value == href) {
-      out.push(Operation.insert(' ', {Attribute.link.key: href}));
-    } else {
-      out.push(op);
+/// Restores MentionAttribute for @mentions in the Delta by matching usernames to pubkeys.
+///
+/// Parameters:
+/// - [delta]: The Delta to process
+/// - [usernameToPubkey]: Map of username (without @) to pubkey
+///
+/// Returns: Delta with MentionAttribute restored for matching mentions
+Delta restoreMentions(Delta delta, Map<String, String> usernameToPubkey) {
+  if (usernameToPubkey.isEmpty) {
+    return delta;
+  }
+
+  final textParser = TextParser.tagsMatchers();
+  final newDelta = Delta();
+
+  for (final op in delta.operations) {
+    if (op.data is Map) {
+      newDelta.insert(op.data, op.attributes);
+      continue;
+    }
+
+    if (op.data is! String) {
+      newDelta.insert(op.data, op.attributes);
+      continue;
+    }
+
+    final text = op.data! as String;
+    final segments = textParser.parse(text);
+
+    if (segments.isEmpty) {
+      newDelta.insert(op.data, op.attributes);
+      continue;
+    }
+
+    for (final segment in segments) {
+      if (segment.matcher is MentionMatcher) {
+        // This is a mention
+        final mentionText = segment.text;
+        // Remove @ prefix to get username
+        final username = mentionText.startsWith('@') ? mentionText.substring(1) : mentionText;
+        final pubkey = usernameToPubkey[username];
+
+        if (pubkey != null) {
+          // Create MentionAttribute with encoded reference
+          final userMetadataRef = ReplaceableEventReference(
+            masterPubkey: pubkey,
+            kind: UserMetadataEntity.kind,
+          );
+          final encodedRef = userMetadataRef.encode();
+          final mentionAttrs = {
+            ...?op.attributes,
+            MentionAttribute.attributeKey: encodedRef,
+          };
+          newDelta.insert(mentionText, mentionAttrs);
+        } else {
+          // No matching pubkey found, insert as plain text
+          newDelta.insert(mentionText, op.attributes);
+        }
+      } else {
+        // Plain text or other matcher (hashtag, cashtag)
+        // Preserve existing attributes and add any matcher-specific attributes
+        final attrs = {
+          ...?op.attributes,
+          ...switch (segment.matcher) {
+            HashtagMatcher() => {HashtagAttribute.attributeKey: segment.text},
+            CashtagMatcher() => {CashtagAttribute.attributeKey: segment.text},
+            _ => <String, dynamic>{},
+          },
+        };
+        newDelta.insert(segment.text, attrs);
+      }
     }
   }
-  return out;
+
+  return newDelta;
 }
 
 Delta withFullLinks(Delta delta) {

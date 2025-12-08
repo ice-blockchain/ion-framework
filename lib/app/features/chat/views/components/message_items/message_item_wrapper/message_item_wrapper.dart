@@ -272,7 +272,16 @@ ChatMessageInfoItem? getRepliedMessageListItem({
       );
     }
 
-    final (:content, :media) = ref.watch(cachedParsedMediaProvider(postData));
+    final result = ref.watch(cachedParsedMediaProvider(postData));
+    final content = result.valueOrNull?.content;
+    final media = result.valueOrNull?.media ?? [];
+    if (content == null) {
+      return PostItem(
+        eventMessage: repliedEventMessage,
+        contentDescription: ref.context.i18n.story_reply_not_available_receiver,
+        medias: [],
+      );
+    }
 
     final contentAsPlainText = useMemoized(
       () => Document.fromDelta(content).toPlainText().trim(),

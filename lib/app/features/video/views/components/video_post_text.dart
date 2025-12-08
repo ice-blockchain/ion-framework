@@ -41,7 +41,9 @@ class VideoTextPost extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final (:content, :media) = ref.watch(cachedParsedMediaProvider(postData));
+    final result = ref.watch(cachedParsedMediaProvider(postData));
+    final content = result.valueOrNull?.content;
+    if (content == null) return const SizedBox.shrink();
     final isTextExpanded = useState(false);
     final style = context.theme.appTextThemes.body2.copyWith(
       color: context.theme.appColors.secondaryBackground,
