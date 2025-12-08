@@ -210,8 +210,8 @@ class SwapCoinsController extends _$SwapCoinsController {
       amount: amount.toString(),
       buyCoinContractAddress: buyCoin.coin.contractAddress,
       sellCoinContractAddress: sellCoin.coin.contractAddress,
-      buyCoinNetworkName: buyNetwork.displayName,
-      sellCoinNetworkName: sellNetwork.displayName,
+      buyCoinNetworkName: _getSwapNetworkName(buyNetwork),
+      sellCoinNetworkName: _getSwapNetworkName(sellNetwork),
       buyNetworkId: buyNetwork.id,
       sellNetworkId: sellNetwork.id,
       userBuyAddress: buyAddress,
@@ -231,6 +231,13 @@ class SwapCoinsController extends _$SwapCoinsController {
         .loadWalletAddress(network: network, coinsGroup: coinsGroup);
 
     return address;
+  }
+
+  String _getSwapNetworkName(NetworkData network) {
+    if (network.isBsc) {
+      return 'BNB';
+    }
+    return network.displayName;
   }
 
   Future<void> swapCoins({
