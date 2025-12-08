@@ -12,6 +12,7 @@ import 'package:ion/app/components/overlay_menu/components/overlay_menu_item_sep
 import 'package:ion/app/components/overlay_menu/overlay_menu.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/providers/delete_media_chat_message_provider.r.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
@@ -34,6 +35,9 @@ class ChatMediaContextMenu extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isCurrentUserMessageSender =
+        ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
+
     final onSave = useCallback(
       () async {
         final isRemoteUrl = isNetworkUrl(activeMedia.url);
@@ -96,14 +100,16 @@ class ChatMediaContextMenu extends HookConsumerWidget {
                       onSave();
                     },
                   ),
-                  const OverlayMenuItemSeparator(),
-                  OverlayMenuItem(
-                    label: context.i18n.button_delete,
-                    labelColor: context.theme.appColors.attentionRed,
-                    icon: Assets.svg.iconBlockDelete
-                        .icon(size: iconSize, color: context.theme.appColors.attentionRed),
-                    onPressed: onDelete,
-                  ),
+                  if (isCurrentUserMessageSender) ...[
+                    const OverlayMenuItemSeparator(),
+                    OverlayMenuItem(
+                      label: context.i18n.button_delete,
+                      labelColor: context.theme.appColors.attentionRed,
+                      icon: Assets.svg.iconBlockDelete
+                          .icon(size: iconSize, color: context.theme.appColors.attentionRed),
+                      onPressed: onDelete,
+                    ),
+                  ],
                 ],
               ),
             ),

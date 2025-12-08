@@ -8,6 +8,7 @@ import 'package:ion/app/features/chat/e2ee/providers/chat_message_load_media_pro
 import 'package:ion/app/features/chat/e2ee/providers/e2ee_delete_event_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -69,7 +70,12 @@ Future<void> deleteMediaChatMessage(
       final cacheKey = mediaUrlToCacheKey[media.url];
       File? cachedFile;
 
-      if (cacheKey != null) {
+      // Check if this is a video - videos are stored in file cache, not Documents directory
+      // (Documents only has thumbnails for videos)
+      final isVideo = MediaType.fromMimeType(media.originalMimeType ?? '') == MediaType.video;
+
+      // For videos, skip Documents directory (which only has thumbnails) and go straight to file cache
+      if (!isVideo && cacheKey != null) {
         cachedFile = await ref.read(mediaServiceProvider).getFileFromAppDirectory(cacheKey);
       }
 
