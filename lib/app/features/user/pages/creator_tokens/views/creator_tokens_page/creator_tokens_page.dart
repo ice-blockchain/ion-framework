@@ -45,6 +45,24 @@ class CreatorTokensPage extends HookConsumerWidget {
     final searchQuery = useState('');
     final debouncedQuery = useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '';
 
+    useEffect(
+      () {
+        void listener() => searchQuery.value = searchController.text;
+        searchController.addListener(listener);
+
+        return () => searchController.removeListener(listener);
+      },
+      [searchController],
+    );
+
+    void resetGlobalSearch() {
+      searchController.clear();
+      globalSearchNotifier.search(
+        query: '',
+        externalAddresses: const [], // TODO: handle external addresses
+      );
+    }
+
     final maxScroll =
         _expandedHeaderHeight.s - NavigationAppBar.screenHeaderHeight - _tabBarHeight.s;
     final (:opacity) = useAnimatedOpacityOnScroll(
@@ -189,20 +207,14 @@ class CreatorTokensPage extends HookConsumerWidget {
                             color: context.theme.appColors.primaryText,
                             child: TabsHeader(
                               tabs: CreatorTokensTabType.values,
-                              trailing: TextButton(
+                              trailing: _SearchIconButton(
                                 onPressed: () {
-                                  isGlobalSearchVisible.value = !isGlobalSearchVisible.value;
+                                  final nextVisible = !isGlobalSearchVisible.value;
+                                  isGlobalSearchVisible.value = nextVisible;
+                                  if (!nextVisible) {
+                                    resetGlobalSearch();
+                                  }
                                 },
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: 4.0.s,
-                                    horizontal: 16.0.s,
-                                  ),
-                                  child: Assets.svg.iconFieldSearch.icon(
-                                    color: context.theme.appColors.tertiaryText,
-                                    size: 18.0.s,
-                                  ),
-                                ),
                               ),
                             ),
                           ),
@@ -226,8 +238,9 @@ class CreatorTokensPage extends HookConsumerWidget {
                                     child: ScreenSideOffset.small(
                                       child: SearchInput(
                                         controller: searchController,
-                                        onTextChanged: (String value) {
-                                          searchQuery.value = value;
+                                        onCancelSearch: () {
+                                          resetGlobalSearch();
+                                          isGlobalSearchVisible.value = false;
                                         },
                                       ),
                                     ),
@@ -275,6 +288,31 @@ class CreatorTokensPage extends HookConsumerWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchIconButton extends StatelessWidget {
+  const _SearchIconButton({
+    required this.onPressed,
+  });
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: 4.0.s,
+        horizontal: 16.0.s,
+      ),
+      child: TextButton(
+        onPressed: onPressed,
+        child: Assets.svg.iconFieldSearch.icon(
+          color: context.theme.appColors.tertiaryText,
+          size: 18.0.s,
         ),
       ),
     );
