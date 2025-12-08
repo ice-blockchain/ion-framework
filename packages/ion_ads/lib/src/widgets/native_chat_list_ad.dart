@@ -30,7 +30,7 @@ class NativeChatListAd extends StatelessWidget {
             rating: 4,
             color: theme.adsColors.onTertiaryBackground,
             size: 12,
-          )
+          ),
         ],
       ),
       contentPadding: EdgeInsets.zero,
