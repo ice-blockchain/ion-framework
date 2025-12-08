@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-/// Native options builder
-
 import 'package:flutter/material.dart';
 import 'package:ion_ads/src/appodeal/appodeal_platform_arguments.dart';
 import 'package:ion_ads/src/appodeal/native_ad/models/ad_action_button.dart';
@@ -118,7 +116,7 @@ class NativeAdOptions with AppodealPlatformArguments {
   }) {
     return NativeAdOptions._templateOptions(
       nativeAdType: NativeAdType.appWall,
-      adIconSize: 70,
+      adIconSize: 32,
       adTitleFontSize: adTitleFontSize,
       adActionButtonTextSize: adActionButtonTextSize,
       adDescriptionFontSize: adDescriptionFontSize,
