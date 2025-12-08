@@ -251,39 +251,42 @@ class CreatorTokensPage extends HookConsumerWidget {
                       ),
                     ];
                   },
-                  body: searchQuery.value.isNotEmpty
-                      ? LoadMoreBuilder(
-                          hasMore: globalSearch.activeHasMore,
-                          onLoadMore: () => globalSearchNotifier.loadMore(
+                  body: IndexedStack(
+                    index: searchQuery.value.isNotEmpty ? 1 : 0,
+                    children: [
+                      TabBarView(
+                        children: CreatorTokensTabType.values.map(
+                          (tabType) {
+                            return CreatorTokensTabContent(
+                              tabType: tabType,
+                            );
+                          },
+                        ).toList(),
+                      ),
+                      LoadMoreBuilder(
+                        hasMore: globalSearch.activeHasMore,
+                        onLoadMore: () => globalSearchNotifier.loadMore(
+                          // TODO: handle external addresses
+                          externalAddresses: const [],
+                        ),
+                        builder: (context, slivers) => RefreshIndicator(
+                          onRefresh: () => globalSearchNotifier.refresh(
                             // TODO: handle external addresses
                             externalAddresses: const [],
                           ),
-                          builder: (context, slivers) => RefreshIndicator(
-                            onRefresh: () => globalSearchNotifier.refresh(
-                              // TODO: handle external addresses
-                              externalAddresses: const [],
-                            ),
-                            child: CustomScrollView(
-                              slivers: slivers,
-                            ),
+                          child: CustomScrollView(
+                            slivers: slivers,
                           ),
-                          slivers: [
-                            CreatorTokensList(
-                              items: globalSearch.activeItems,
-                              isInitialLoading: globalSearch.activeIsInitialLoading,
-                            ),
-                          ],
-                        )
-                      // TODO: fix re-loading data again when coming back to tabs after search
-                      : TabBarView(
-                          children: CreatorTokensTabType.values.map(
-                            (tabType) {
-                              return CreatorTokensTabContent(
-                                tabType: tabType,
-                              );
-                            },
-                          ).toList(),
                         ),
+                        slivers: [
+                          CreatorTokensList(
+                            items: globalSearch.activeItems,
+                            isInitialLoading: globalSearch.activeIsInitialLoading,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
