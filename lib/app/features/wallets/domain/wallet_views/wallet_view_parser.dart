@@ -179,7 +179,7 @@ class WalletViewParser {
 
     // Return aggregation item if aggregation map contains coin symbol as a key
     // with the same wallet and coin ids as in CoinInWallet
-    final symbol = coinInWalletDTO.coin.symbol;
+    final symbol = coinInWalletDTO.coin.symbol.toLowerCase();
 
     if (aggregation[symbol] case final WalletViewAggregationItem aggregationItem) {
       final result = search([aggregationItem]);
