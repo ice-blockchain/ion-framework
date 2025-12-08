@@ -17,6 +17,8 @@ public class SwiftIonAppodealFlutterPlugin: NSObject, FlutterPlugin {
         registrar.register(AppodealAdViewFactory(mrecChannel: instance.mrec.adChannel,
                                                  bannerChannel: instance.banner.adChannel),
                            withId: "appodeal_flutter/banner_view")
+        registrar.register(AppodealNativeAdViewFactory(),
+            withId: "appodeal_flutter/native_view")
     }
     
     let channel: FlutterMethodChannel
