@@ -35,6 +35,8 @@ class SecureAccountOptionsPage extends HookConsumerWidget {
       ref.invalidate(userDetailsProvider);
     });
 
+    final isPhoneOptionEnabled = securityMethods?.isPhoneEnabled ?? false;
+
     return SheetContent(
       body: SingleChildScrollView(
         child: Column(
@@ -91,16 +93,19 @@ class SecureAccountOptionsPage extends HookConsumerWidget {
                     isLoading: isLoading,
                     onTap: () => _onAuthenticatorPressed(context, securityMethods),
                   ),
-                  SizedBox(height: 12.0.s),
-                  SecureAccountOption(
-                    title: locale.two_fa_option_phone,
-                    icon: Assets.svg.iconFieldPhone.icon(
-                      color: context.theme.appColors.primaryAccent,
+                  // Just hide for now the phone option
+                  if (isPhoneOptionEnabled) ...[
+                    SizedBox(height: 12.0.s),
+                    SecureAccountOption(
+                      title: locale.two_fa_option_phone,
+                      icon: Assets.svg.iconFieldPhone.icon(
+                        color: context.theme.appColors.primaryAccent,
+                      ),
+                      onTap: () => _onPhonePressed(context, securityMethods),
+                      isEnabled: isPhoneOptionEnabled,
+                      isLoading: isLoading,
                     ),
-                    onTap: () => _onPhonePressed(context, securityMethods),
-                    isEnabled: securityMethods?.isPhoneEnabled ?? false,
-                    isLoading: isLoading,
-                  ),
+                  ],
                   ScreenBottomOffset(margin: 36.0.s),
                 ],
               ),
