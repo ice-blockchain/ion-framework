@@ -90,10 +90,16 @@ class SharedPostMessage extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final (:content, :media) = ref.watch(cachedParsedMediaProvider(postData));
+    final result = ref.watch(cachedParsedMediaProvider(postData));
+    final content = result.valueOrNull?.content;
+    final media = result.valueOrNull?.media ?? [];
+
+    final hasContent = content != null;
+
+    if (!hasContent && media.isEmpty) return const SizedBox.shrink();
 
     final contentAsPlainText = useMemoized(
-      () => Document.fromDelta(content).toPlainText().trim(),
+      () => hasContent ? Document.fromDelta(content).toPlainText().trim() : '',
       [content],
     );
 

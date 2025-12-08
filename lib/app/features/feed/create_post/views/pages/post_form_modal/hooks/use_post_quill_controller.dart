@@ -38,13 +38,16 @@ QuillController? usePostQuillController(
       }
       if (modifiedEntity != null) {
         if (modifiedEntity is ModifiablePostEntity) {
-          final (:content, :media) = ref.watch(cachedParsedMediaProvider(modifiedEntity.data));
-          final document = Document.fromDelta(content);
-          return QuillController(
-            document: document,
-            selection: TextSelection.collapsed(offset: document.length - 1),
-            config: defaultConfig,
-          );
+          final result = ref.watch(cachedParsedMediaProvider(modifiedEntity.data));
+          final content = result.valueOrNull?.content;
+          if (content != null) {
+            final document = Document.fromDelta(content);
+            return QuillController(
+              document: document,
+              selection: TextSelection.collapsed(offset: document.length - 1),
+              config: defaultConfig,
+            );
+          }
         }
         return null;
       }

@@ -434,7 +434,9 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     required Delta content,
     required List<MediaAttachment> media,
   }) async {
-    final newContentDelta = withFlattenLinks(content);
+    // Don't flatten links - keep URLs as plain text for backward compatibility
+    // Media attachments still use spaces as they're handled separately
+    final newContentDelta = content;
 
     return Delta.fromOperations(
       media
