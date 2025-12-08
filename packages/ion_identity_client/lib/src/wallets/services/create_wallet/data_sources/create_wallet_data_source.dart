@@ -20,7 +20,7 @@ class CreateWalletDataSource {
       path: createWalletPath,
       body: CreateWalletRequest(
         network: network,
-        walletViewId: walletViewId,
+        name: walletViewId,
       ).toJson(),
     );
   }

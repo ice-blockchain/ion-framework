@@ -30,7 +30,7 @@ class ProfileBackground extends HookWidget {
 
     if (isDark) {
       return StatusBarColorWrapper.light(
-        child: _ProfileGradientBackground(
+        child: ProfileGradientBackground(
           colors: targetColors,
           disableDarkGradient: disableDarkGradient,
           child: child,
@@ -38,7 +38,7 @@ class ProfileBackground extends HookWidget {
       );
     } else {
       return StatusBarColorWrapper.dark(
-        child: _ProfileGradientBackground(
+        child: ProfileGradientBackground(
           colors: targetColors,
           disableDarkGradient: disableDarkGradient,
           child: child,
@@ -48,10 +48,11 @@ class ProfileBackground extends HookWidget {
   }
 }
 
-class _ProfileGradientBackground extends StatelessWidget {
-  const _ProfileGradientBackground({
+class ProfileGradientBackground extends StatelessWidget {
+  const ProfileGradientBackground({
     required this.colors,
     required this.disableDarkGradient,
+    super.key,
     this.child,
   });
 
