@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/utils/color.dart';
 
-class ProfileBackground extends StatelessWidget {
+class ProfileBackground extends HookWidget {
   const ProfileBackground({
     this.colors,
     this.disableDarkGradient = false,
@@ -20,11 +23,49 @@ class ProfileBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     final targetColors = colors ?? useAvatarFallbackColors;
 
+    final isDark = useMemoized(
+      () => isColorDark(targetColors.first),
+      [targetColors.first],
+    );
+
+    if (isDark) {
+      return StatusBarColorWrapper.light(
+        child: _ProfileGradientBackground(
+          colors: targetColors,
+          disableDarkGradient: disableDarkGradient,
+          child: child,
+        ),
+      );
+    } else {
+      return StatusBarColorWrapper.dark(
+        child: _ProfileGradientBackground(
+          colors: targetColors,
+          disableDarkGradient: disableDarkGradient,
+          child: child,
+        ),
+      );
+    }
+  }
+}
+
+class _ProfileGradientBackground extends StatelessWidget {
+  const _ProfileGradientBackground({
+    required this.colors,
+    required this.disableDarkGradient,
+    this.child,
+  });
+
+  final AvatarColors colors;
+  final bool disableDarkGradient;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
     return TweenAnimationBuilder<AvatarColors>(
       duration: const Duration(milliseconds: 500),
       tween: _AvatarColorsTween(
-        begin: targetColors,
-        end: targetColors,
+        begin: colors,
+        end: colors,
       ),
       builder: (context, animatedColors, child) {
         return Stack(
