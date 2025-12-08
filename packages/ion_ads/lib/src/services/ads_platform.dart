@@ -13,7 +13,7 @@ abstract class IonAdsPlatform {
     bool verbose = false,
   });
 
-  Future<bool> isAvailable(IonNativeAdPlacement placement);
+  Future<bool?> isAvailable(IonNativeAdPlacement placement);
 
   Future<IonNativeAdAsset?> loadNativeAd({
     required IonNativeAdPlacement placement,
