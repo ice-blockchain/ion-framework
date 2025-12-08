@@ -396,7 +396,10 @@ abstract class DeltaMarkdownConverter {
       }
 
       // Write the markdown replacement
-      buffer.write(tag.replacement);
+      // Normalize markdown formatting to ensure proper parsing
+      // Remove trailing/leading spaces from italic/bold markers
+      final normalizedReplacement = _normalizeMarkdownReplacement(tag.replacement);
+      buffer.write(normalizedReplacement);
       currentPos = tag.end;
     }
 
@@ -425,5 +428,57 @@ abstract class DeltaMarkdownConverter {
     // Ensure the markdown ends with a newline for proper parsing
     final markdownWithNewline = markdown.endsWith('\n') ? markdown : '$markdown\n';
     return markdownToDelta(markdownWithNewline);
+  }
+
+  /// Normalizes markdown replacement strings to ensure proper parsing.
+  /// Removes trailing/leading spaces from italic/bold markers that would
+  /// prevent the markdown parser from recognizing them.
+  /// Preserves spaces by moving them outside the markers (after closing marker for trailing,
+  /// before opening marker for leading).
+  /// Process in order: bold+italic first, then bold, then italic to avoid partial matches.
+  static String _normalizeMarkdownReplacement(String replacement) {
+    // Define patterns in order of specificity (most specific first)
+    // Each entry: (pattern, replacement function)
+    // Strategy: Move spaces outside markers to preserve them while fixing markdown syntax
+    final patterns = <(RegExp, String Function(Match))>[
+      // Bold+italic with trailing space: "***text ***" -> "***text*** " (space moved after)
+      (
+        RegExp(r'\*\*\*([^*]+?)\s+\*\*\*'),
+        (Match m) => '***${m.group(1)}*** ',
+      ),
+      // Bold+italic with leading space: "*** text***" -> " ***text***" (space moved before)
+      (
+        RegExp(r'\*\*\*\s+([^*]+?)\*\*\*'),
+        (Match m) => ' ***${m.group(1)}***',
+      ),
+      // Bold with trailing space: "**text **" -> "**text** " (space moved after)
+      (
+        RegExp(r'\*\*([^*]+?)\s+\*\*'),
+        (Match m) => '**${m.group(1)}** ',
+      ),
+      // Bold with leading space: "** text**" -> " **text**" (space moved before)
+      (
+        RegExp(r'\*\*\s+([^*]+?)\*\*'),
+        (Match m) => ' **${m.group(1)}**',
+      ),
+      // Italic with trailing space: "*text *" -> "*text* " (space moved after)
+      (
+        RegExp(r'(?<!\*)\*([^*]+?)\s+\*(?!\*)'),
+        (Match m) => '*${m.group(1)}* ',
+      ),
+      // Italic with leading space: "* text*" -> " *text*" (space moved before)
+      (
+        RegExp(r'(?<!\*)\*\s+([^*]+?)\*(?!\*)'),
+        (Match m) => ' *${m.group(1)}*',
+      ),
+    ];
+
+    // Apply all patterns in sequence using a local variable
+    var normalized = replacement;
+    for (final (pattern, replacer) in patterns) {
+      normalized = normalized.replaceAllMapped(pattern, replacer);
+    }
+
+    return normalized;
   }
 }

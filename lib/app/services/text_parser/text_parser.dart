@@ -61,6 +61,7 @@ class TextParser {
   factory TextParser.tagsMatchers() => TextParser(
         matchers: const {
           HashtagMatcher(),
+          MentionMatcher(),
           CashtagMatcher(),
         },
       );
