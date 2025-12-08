@@ -10,7 +10,6 @@ import 'package:ion/app/features/tokenized_communities/providers/category_tokens
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_search_bar.dart';
 
 class CreatorTokensTabContent extends HookConsumerWidget {
   const CreatorTokensTabContent({
@@ -19,14 +18,6 @@ class CreatorTokensTabContent extends HookConsumerWidget {
   });
 
   final CreatorTokensTabType tabType;
-
-  void _search(WidgetRef ref, String query) {
-    if (tabType.isLatest) {
-      ref.read(latestTokensNotifierProvider.notifier).search(query);
-    } else {
-      ref.read(categoryTokensNotifierProvider(tabType.categoryType!).notifier).search(query);
-    }
-  }
 
   Future<void> _loadMore(WidgetRef ref) async {
     if (tabType.isLatest) {
@@ -48,27 +39,10 @@ class CreatorTokensTabContent extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     useAutomaticKeepAlive();
 
-    final searchController = useTextEditingController();
-    final searchQuery = useState('');
-    final debouncedQuery = useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '';
-    final lastSearchedQuery = useRef<String?>(null);
-
     // Watch the appropriate provider based on tab type
     final state = tabType.isLatest
         ? ref.watch(latestTokensNotifierProvider)
         : ref.watch(categoryTokensNotifierProvider(tabType.categoryType!));
-
-    final searchInputIsLoading = state.isSearchMode && state.activeIsLoading;
-
-    useEffect(
-      () {
-        if (debouncedQuery == lastSearchedQuery.value) return null;
-        lastSearchedQuery.value = debouncedQuery;
-        Future.microtask(() => _search(ref, debouncedQuery));
-        return null;
-      },
-      [debouncedQuery, tabType],
-    );
 
     return LoadMoreBuilder(
       hasMore: state.activeHasMore,
@@ -78,16 +52,6 @@ class CreatorTokensTabContent extends HookConsumerWidget {
         child: CustomScrollView(slivers: slivers),
       ),
       slivers: [
-        CreatorTokensSearchBar(
-          controller: searchController,
-          loading: searchInputIsLoading,
-          onTextChanged: (value) => searchQuery.value = value,
-          onCancelSearch: () {
-            searchController.clear();
-            searchQuery.value = '';
-            _search(ref, '');
-          },
-        ),
         CreatorTokensList(
           items: state.activeItems,
           isInitialLoading: state.activeIsInitialLoading,

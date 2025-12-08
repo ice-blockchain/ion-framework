@@ -6,7 +6,7 @@ import 'package:ion_token_analytics/src/community_tokens/category_tokens/categor
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/global_search_tokens/global_search_tokens_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/global_search_tokens/global_search_tokens_repository_remote.dart';
+import 'package:ion_token_analytics/src/community_tokens/global_search_tokens/global_search_tokens_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository.dart';
@@ -62,7 +62,7 @@ class IonCommunityTokensService {
       featuredTokensRepository: FeaturedTokensRepositoryMock(),
       latestTokensRepository: LatestTokensRepositoryMock(),
       categoryTokensRepository: CategoryTokensRepositoryMock(),
-      globalSearchTokensRepository: GlobalSearchTokensRepositoryRemote(networkClient),
+      globalSearchTokensRepository: GlobalSearchTokensRepositoryMock(),
     );
     return service;
   }
