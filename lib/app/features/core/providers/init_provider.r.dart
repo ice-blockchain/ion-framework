@@ -34,6 +34,7 @@ import 'package:ion/app/features/wallets/providers/wallets_initializer_provider.
 import 'package:ion/app/services/conversion_tracking/facebook_conversion_tracking_service.r.dart';
 import 'package:ion/app/services/deep_link/app_links_service.r.dart';
 import 'package:ion/app/services/http_client/http_client.dart';
+import 'package:ion/app/services/ion_ad/ion_ad_provider.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_logger.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
@@ -88,7 +89,8 @@ Future<void> initApp(Ref ref) async {
     ..listen(migrateTokenDefinitionsServiceProvider, noop)
     ..listen(accountNotificationsSyncProvider, noop)
     ..listen(deepLinkHandlerProvider, noop)
-    ..listen(tokenizedCommunityOnboardingServiceProvider, noop);
+    ..listen(tokenizedCommunityOnboardingServiceProvider, noop)
+    ..listen(ionAdClientProvider, noop);
 
   initFirebaseMessagingBackgroundHandler();
 
