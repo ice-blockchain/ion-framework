@@ -28,9 +28,12 @@ class CreatorTokensTabsHeader extends ConsumerWidget {
               onTap: () {
                 ref.read(creatorTokensIsSearchActiveProvider.notifier).isSearching = true;
               },
-              child: Assets.svg.iconFieldSearch.icon(
-                size: 24.0.s,
-                color: context.theme.appColors.tertiaryText,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 8.s),
+                child: Assets.svg.iconFieldSearch.icon(
+                  size: 18.s,
+                  color: context.theme.appColors.tertiaryText,
+                ),
               ),
             ),
           ),
