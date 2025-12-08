@@ -12,12 +12,10 @@ import 'package:ion/app/components/overlay_menu/components/overlay_menu_item_sep
 import 'package:ion/app/components/overlay_menu/overlay_menu.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/providers/e2ee_delete_event_provider.r.dart';
+import 'package:ion/app/features/chat/e2ee/providers/delete_media_chat_message_provider.r.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/utils/url.dart';
@@ -67,24 +65,18 @@ class ChatMediaContextMenu extends HookConsumerWidget {
 
     final onDelete = useCallback(
       () async {
-        final isMe = ref.read(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
+        await ref.read(
+          deleteMediaChatMessageProvider(
+            eventMessage: eventMessage,
+            mediaToDelete: activeMedia,
+          ).future,
+        );
 
-        final forEveryone = await DeleteMessageRoute(
-          isMe: isMe,
-        ).push<bool>(context);
-
-        if (forEveryone != null && context.mounted) {
-          final deletedEvents = [eventMessage];
-          ref.read(
-            e2eeDeleteMessageProvider(
-              forEveryone: forEveryone,
-              messageEvents: deletedEvents,
-            ),
-          );
+        if (context.mounted) {
           context.pop();
         }
       },
-      [eventMessage],
+      [eventMessage, activeMedia],
     );
 
     return OverlayMenu(
