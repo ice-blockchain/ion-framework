@@ -1,44 +1,43 @@
+import Appodeal
 import Flutter
 import Foundation
-import Appodeal
 
-internal final class AppodealNative {
-    
-    internal let adChannel: FlutterMethodChannel
-    internal let adListener: Listener
+final class AppodealNative {
+    let adChannel: FlutterMethodChannel
+    let adListener: Listener
     
     private lazy var settings: APDNativeAdSettings = {
         let adSettings = APDNativeAdSettings.default()
-        //        adSettings.adViewClass = NativeAdView.self
-        //        adSettings.autocacheMask = [.icon, .media]
-        //        adSettings.type = .video
+        adSettings.adViewClass = NativeView.self
+        adSettings.autocacheMask = [.icon, .media]
+        //adSettings.type = .novideo // video
+
         return adSettings
     }()
     
-    private lazy var nativeAdQueue: APDNativeAdQueue = {
-        APDNativeAdQueue(
-            sdk: nil,
-            settings: settings,
-            delegate: adListener,
-            autocache: true
-        )
-    }()
+    private lazy var nativeAdQueue: APDNativeAdQueue = .init(
+        sdk: nil,
+        settings: settings,
+        delegate: adListener,
+        autocache: true
+    )
     
     private lazy var nativeArray: [APDNativeAd] = []
+    @IBOutlet weak var nativeAdView: UIView!
     
     init(registrar: FlutterPluginRegistrar) {
         adChannel = FlutterMethodChannel(name: "appodeal_flutter/native", binaryMessenger: registrar.messenger())
         adListener = Listener(adChannel: adChannel)
     }
     
-    lazy var currentAdCount: NSInteger = { nativeAdQueue.currentAdCount }()
+    lazy var currentAdCount: NSInteger = nativeAdQueue.currentAdCount
     
     func load() {
         nativeAdQueue.loadAd()
     }
     
     func getNativeAd() -> APDNativeAd? {
-        if let nativeAd = nativeArray.first   {
+        if let nativeAd = nativeArray.first {
             return nativeAd
         }
         let nativeAds = nativeAdQueue.getNativeAds(ofCount: 1)
@@ -51,9 +50,8 @@ internal final class AppodealNative {
             return nil
         }
     }
-    
-    internal final class Listener: NSObject, APDNativeAdQueueDelegate, APDNativeAdPresentationDelegate {
         
+    final class Listener: NSObject, APDNativeAdQueueDelegate, APDNativeAdPresentationDelegate {
         private let adChannel: FlutterMethodChannel
         
         fileprivate init(adChannel: FlutterMethodChannel) {
