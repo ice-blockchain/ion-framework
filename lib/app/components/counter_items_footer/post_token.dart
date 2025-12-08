@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/position_formatters.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -23,20 +21,15 @@ class PostToken extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
-
-    final externalAddress = entity?.externalAddress;
-
-    final tokenInfo = externalAddress != null
-        ? ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull
-        : null;
+    final eventReferenceString = eventReference.toString();
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(eventReferenceString)).valueOrNull;
 
     final hasToken = tokenInfo != null;
 
     return GestureDetector(
       onTap: () {
         hasToken
-            ? TokenizedCommunityRoute(externalAddress: externalAddress!).push<void>(context)
+            ? TokenizedCommunityRoute(externalAddress: eventReferenceString).push<void>(context)
             : SwapCoinsRoute().push<void>(context);
       },
       child: hasToken

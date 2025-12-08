@@ -7,7 +7,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/user/user_about/user_about.dart';
 import 'package:ion/app/features/components/user/user_info_summary/user_info_summary.dart';
-import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
@@ -30,7 +29,8 @@ class ProfileUserInfo extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isCurrentUserProfile = ref.watch(isCurrentUserSelectorProvider(pubkey));
 
-    final externalAddress = ref.watch(userMetadataProvider(pubkey)).valueOrNull?.externalAddress;
+    final eventReferenceString =
+        ref.watch(userMetadataProvider(pubkey)).valueOrNull?.toEventReference().toString();
 
     final info = Column(
       children: [
@@ -69,24 +69,24 @@ class ProfileUserInfo extends ConsumerWidget {
             GradientHorizontalDivider(
               margin: EdgeInsetsDirectional.symmetric(vertical: 12.5.s),
             ),
-            if (externalAddress != null)
+            if (eventReferenceString != null)
               Row(
                 children: [
                   Expanded(
                     child: ProfileTokenStats(
-                      externalAddress: externalAddress,
+                      externalAddress: eventReferenceString,
                       leading: GestureDetector(
                         onTap: () {
                           showSimpleBottomSheet<void>(
                             context: context,
-                            child: TradeCommunityTokenDialog(externalAddress: externalAddress),
+                            child: TradeCommunityTokenDialog(externalAddress: eventReferenceString),
                           );
                         },
                         onDoubleTap: () {
-                          TokenizedCommunityRoute(externalAddress: externalAddress)
+                          TokenizedCommunityRoute(externalAddress: eventReferenceString)
                               .push<void>(context);
                         },
-                        child: BuyButton(externalAddress: externalAddress),
+                        child: BuyButton(externalAddress: eventReferenceString),
                       ),
                     ),
                   ),
