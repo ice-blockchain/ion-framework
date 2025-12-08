@@ -31,11 +31,6 @@ Future<void> userPublicWalletsSync(Ref ref) async {
     return;
   }
 
-  final currentPublished = userMetadata.data.wallets;
-  final currentPrivacy = WalletAddressPrivacyOption.fromWalletsMap(currentPublished);
-  final isWalletsPublic = currentPrivacy == WalletAddressPrivacyOption.public;
-
-  if (isWalletsPublic) {
-    await walletsUpdater.publishWallets(currentPrivacy);
-  }
+  // Always publish wallets (wallet privacy feature removed)
+  await walletsUpdater.publishWallets(WalletAddressPrivacyOption.public);
 }
