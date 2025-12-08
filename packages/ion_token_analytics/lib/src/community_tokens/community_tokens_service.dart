@@ -5,6 +5,8 @@ import 'package:ion_token_analytics/src/community_tokens/category_tokens/categor
 import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/global_search_tokens/global_search_tokens_repository.dart';
+import 'package:ion_token_analytics/src/community_tokens/global_search_tokens/global_search_tokens_repository_remote.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository_mock.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository.dart';
@@ -29,6 +31,7 @@ class IonCommunityTokensService {
     required FeaturedTokensRepository featuredTokensRepository,
     required LatestTokensRepository latestTokensRepository,
     required CategoryTokensRepository categoryTokensRepository,
+    required GlobalSearchTokensRepository globalSearchTokensRepository,
   }) : _tokenInfoRepository = tokenInfoRepository,
        _ohlcvCandlesRepository = ohlcvCandlesRepository,
        _tradingStatsRepository = tradingStatsRepository,
@@ -36,7 +39,8 @@ class IonCommunityTokensService {
        _latestTradesRepository = latestTradesRepository,
        _featuredTokensRepository = featuredTokensRepository,
        _latestTokensRepository = latestTokensRepository,
-       _categoryTokensRepository = categoryTokensRepository;
+       _categoryTokensRepository = categoryTokensRepository,
+       _globalSearchTokensRepository = globalSearchTokensRepository;
 
   final TokenInfoRepository _tokenInfoRepository;
   final OhlcvCandlesRepository _ohlcvCandlesRepository;
@@ -46,6 +50,7 @@ class IonCommunityTokensService {
   final FeaturedTokensRepository _featuredTokensRepository;
   final LatestTokensRepository _latestTokensRepository;
   final CategoryTokensRepository _categoryTokensRepository;
+  final GlobalSearchTokensRepository _globalSearchTokensRepository;
 
   static Future<IonCommunityTokensService> create({required NetworkClient networkClient}) async {
     final service = IonCommunityTokensService._(
@@ -57,6 +62,7 @@ class IonCommunityTokensService {
       featuredTokensRepository: FeaturedTokensRepositoryMock(),
       latestTokensRepository: LatestTokensRepositoryMock(),
       categoryTokensRepository: CategoryTokensRepositoryMock(),
+      globalSearchTokensRepository: GlobalSearchTokensRepositoryRemote(networkClient),
     );
     return service;
   }
@@ -160,6 +166,22 @@ class IonCommunityTokensService {
     required TokenCategoryType type,
   }) {
     return _categoryTokensRepository.subscribeToRealtimeUpdates(sessionId: sessionId, type: type);
+  }
+
+  Future<PaginatedCategoryTokensData> getGlobalSearchTokens({
+    required List<String> externalAddresses,
+    String? keyword,
+    int? includeTopPlatformHolders,
+    int limit = 20,
+    int offset = 0,
+  }) {
+    return _globalSearchTokensRepository.searchCommunityTokens(
+      externalAddresses: externalAddresses,
+      keyword: keyword,
+      includeTopPlatformHolders: includeTopPlatformHolders,
+      limit: limit,
+      offset: offset,
+    );
   }
 
   Future<Position?> getHolderPosition(String tokenExternalAddress, String holderExternalAddress) {
