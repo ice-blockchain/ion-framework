@@ -131,8 +131,8 @@ class _NativeIonPageState extends State<NativeIonPage> {
                             SizedBox(
                               height: 100,
                               child: AppodealNativeAd(
-                                key: const ValueKey('NewsFeed Native Ad'),
-                                options: NativeAdOptions.newsFeedOptions(
+                                key: const ValueKey('AppWall Native Ad'),
+                                options: NativeAdOptions.appWallOptions(
                                   adChoicePosition: AdChoicePosition.endTop,
                                   adAttributionBackgroundColor: Colors.white,
                                   adAttributionTextColor: Colors.black,
