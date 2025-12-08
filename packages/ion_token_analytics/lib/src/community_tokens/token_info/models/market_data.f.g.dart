@@ -8,11 +8,11 @@ part of 'market_data.f.dart';
 
 _$MarketDataImpl _$$MarketDataImplFromJson(Map<String, dynamic> json) =>
     _$MarketDataImpl(
-      ticker: json['ticker'] as String,
       marketCap: (json['marketCap'] as num).toDouble(),
       volume: (json['volume'] as num).toDouble(),
       holders: (json['holders'] as num).toInt(),
       priceUSD: (json['priceUSD'] as num).toDouble(),
+      ticker: json['ticker'] as String?,
       position: json['position'] == null
           ? null
           : Position.fromJson(json['position'] as Map<String, dynamic>),
@@ -20,11 +20,11 @@ _$MarketDataImpl _$$MarketDataImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$MarketDataImplToJson(_$MarketDataImpl instance) =>
     <String, dynamic>{
-      'ticker': instance.ticker,
       'marketCap': instance.marketCap,
       'volume': instance.volume,
       'holders': instance.holders,
       'priceUSD': instance.priceUSD,
+      if (instance.ticker case final value?) 'ticker': value,
       if (instance.position?.toJson() case final value?) 'position': value,
     };
 

@@ -13,7 +13,7 @@ class FeaturedTokensRepositoryImpl implements FeaturedTokensRepository {
   Future<NetworkSubscription<List<CommunityToken>>> subscribeToFeaturedTokens({
     String? type,
   }) async {
-    final subscription = await _client.subscribe<List<dynamic>>(
+    final subscription = await _client.subscribeSse<List<dynamic>>(
       '/v1sse/community-tokens/featured',
       queryParameters: type != null ? {'type': type} : null,
     );

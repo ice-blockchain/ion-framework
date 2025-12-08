@@ -49,11 +49,15 @@ class TemplateColors with _$TemplateColors {
     Color magenta,
     Color allports,
     Color forest,
+    Color electricViolet,
+    Color heliotrope,
   ) = _TemplateColors;
 
   factory TemplateColors.fromJson(Map<String, dynamic> json) => _$TemplateColorsFromJson(json);
 
   factory TemplateColors.empty() => const TemplateColors(
+        Colors.transparent,
+        Colors.transparent,
         Colors.transparent,
         Colors.transparent,
         Colors.transparent,

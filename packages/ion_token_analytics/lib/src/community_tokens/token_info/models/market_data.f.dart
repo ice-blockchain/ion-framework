@@ -18,11 +18,11 @@ abstract class MarketDataBase {
 @freezed
 class MarketData with _$MarketData implements MarketDataBase {
   const factory MarketData({
-    required String ticker,
     required double marketCap,
     required double volume,
     required int holders,
     required double priceUSD,
+    String? ticker,
     Position? position,
   }) = _MarketData;
 

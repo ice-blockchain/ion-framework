@@ -23,7 +23,7 @@ import 'package:ion/app/features/tokenized_communities/views/components/your_pos
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/top_holders/top_holders.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_card.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
+
 import 'package:ion/generated/assets.gen.dart';
 
 enum TokenizedCommunityTabType implements TabType {
@@ -104,7 +104,6 @@ class TokenizedCommunityPage extends HookConsumerWidget {
         IconButton(
           onPressed: () {
             //TODO (ice-kreios): navigate to bookmarks page
-            CreatorTokensRoute().push<void>(context);
           },
           icon: Assets.svg.iconBookmarks.icon(
             size: 24.0.s,
@@ -209,7 +208,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                   ],
                 ),
                 Text(
-                  token.marketData.ticker,
+                  token.marketData.ticker ?? '',
                   style: context.theme.appTextThemes.caption.copyWith(
                     color: context.theme.appColors.attentionBlock,
                   ),

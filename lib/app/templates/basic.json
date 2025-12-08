@@ -37,8 +37,9 @@
         "backgroundBlue": "#0D265E",
         "magenta": "#8F039B",
         "allports": "#017C9F",
-        "forest": "#010008"
-
+        "forest": "#010008",
+        "electricViolet": "#6F2EFE",
+        "heliotrope": "#9973FD"
       },
       "dark": {
         "primaryAccent": "#0166FF",
@@ -76,7 +77,9 @@
         "backgroundBlue": "#0D265E",
         "magenta": "#8F039B",
         "allports": "#017C9F",
-        "forest": "#010008"
+        "forest": "#010008",
+        "electricViolet": "#6F2EFE",
+        "heliotrope": "#9973FD"
       }
     },
     "textThemes": {

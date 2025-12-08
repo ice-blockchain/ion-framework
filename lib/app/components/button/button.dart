@@ -242,15 +242,16 @@ class ButtonIconFrame extends StatelessWidget {
     required this.icon,
     super.key,
     this.color,
+    this.gradient,
     this.border,
     this.containerSize,
     this.borderRadius,
   });
 
   final Color? color;
+  final Gradient? gradient;
   final Widget icon;
   final Border? border;
-
   final double? containerSize;
   final BorderRadiusGeometry? borderRadius;
 
@@ -264,6 +265,7 @@ class ButtonIconFrame extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: color,
+        gradient: gradient,
         borderRadius: borderRadius ?? BorderRadius.circular(9.0.s),
         border: border,
       ),
