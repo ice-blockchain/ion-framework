@@ -100,7 +100,7 @@ class CreatorTokenHeader extends HookWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              token.marketData.ticker,
+              token.marketData.ticker ?? '',
               style: context.theme.appTextThemes.caption.copyWith(
                 color: context.theme.appColors.attentionBlock,
               ),

@@ -10,6 +10,8 @@ import 'package:ion/app/features/feed/data/models/feed_category.dart';
 import 'package:ion/app/features/feed/data/models/feed_filter.dart';
 import 'package:ion/app/features/feed/providers/feed_current_filter_provider.m.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_controls/components/feed_filters/feed_filters_menu_item.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/generated/assets.gen.dart';
 
 class FeedFiltersMenuOverlay extends StatelessWidget {
   const FeedFiltersMenuOverlay({
@@ -37,6 +39,8 @@ class FeedFiltersMenuOverlay extends StatelessWidget {
                   closeMenu: closeMenu,
                 ),
             ].separated(SizedBox(height: 10.0.s)),
+            SizedBox(height: 10.0.s),
+            _FeedCreatorTokensItem(closeMenu: closeMenu),
             SizedBox(height: 10.0.s),
             const HorizontalSeparator(),
             SizedBox(height: 10.0.s),
@@ -80,6 +84,45 @@ class _FeedCategoryItem extends ConsumerWidget {
         icon: category.getIcon(context),
       ),
       label: category.getLabel(context),
+    );
+  }
+}
+
+class _FeedCreatorTokensItem extends ConsumerWidget {
+  const _FeedCreatorTokensItem({
+    required this.closeMenu,
+  });
+
+  final VoidCallback closeMenu;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return FeedFiltersMenuItem(
+      onPressed: () {
+        CreatorTokensRoute().push<void>(context);
+        closeMenu();
+      },
+      isSelected: false,
+      icon: ButtonIconFrame(
+        gradient: LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+          colors: [
+            context.theme.appColors.electricViolet,
+            context.theme.appColors.electricViolet,
+            context.theme.appColors.heliotrope,
+          ],
+          stops: const [
+            0.1074,
+            0.5148,
+            1.0,
+          ],
+        ),
+        icon: Assets.svg.iconMessageMeme2.icon(
+          size: 18.s,
+        ),
+      ),
+      label: context.i18n.general_creator_tokens,
     );
   }
 }

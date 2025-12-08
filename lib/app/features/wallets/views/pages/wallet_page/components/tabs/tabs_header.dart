@@ -70,6 +70,11 @@ class WalletTabsHeader extends ConsumerWidget {
               onTap: () => DAppsRoute().push<void>(context),
             ),
           ],
+          WalletTabsHeaderTab(
+            isActive: false,
+            title: context.i18n.general_creator_tokens,
+            onTap: () => CreatorTokensRoute().push<void>(context),
+          ),
           const Spacer(),
           TextButton(
             onPressed: () {

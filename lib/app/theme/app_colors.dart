@@ -41,6 +41,8 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     required this.magenta,
     required this.allports,
     required this.forest,
+    required this.electricViolet,
+    required this.heliotrope,
   });
 
   factory AppColorsExtension.fromTemplate(TemplateColors templateColors) {
@@ -81,6 +83,8 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       magenta: templateColors.magenta,
       allports: templateColors.allports,
       forest: templateColors.forest,
+      electricViolet: templateColors.electricViolet,
+      heliotrope: templateColors.heliotrope,
     );
   }
 
@@ -122,6 +126,8 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       magenta: const Color(0xFF8F039B),
       allports: const Color(0xFF017C9F),
       forest: const Color(0xFF010008),
+      electricViolet: const Color(0xFF6F2EFE),
+      heliotrope: const Color(0xFF9973FD),
     );
   }
 
@@ -161,6 +167,8 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   final Color magenta;
   final Color allports;
   final Color forest;
+  final Color electricViolet;
+  final Color heliotrope;
 
   @override
   ThemeExtension<AppColorsExtension> copyWith({
@@ -200,6 +208,8 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     Color? magenta,
     Color? allports,
     Color? forest,
+    Color? electricViolet,
+    Color? heliotrope,
   }) {
     return AppColorsExtension(
       primaryAccent: primaryAccent ?? this.primaryAccent,
@@ -238,6 +248,8 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       magenta: magenta ?? this.magenta,
       allports: allports ?? this.allports,
       forest: forest ?? this.forest,
+      electricViolet: electricViolet ?? this.electricViolet,
+      heliotrope: heliotrope ?? this.heliotrope,
     );
   }
 
@@ -287,6 +299,8 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       magenta: Color.lerp(magenta, other.magenta, t)!,
       allports: Color.lerp(allports, other.allports, t)!,
       forest: Color.lerp(forest, other.forest, t)!,
+      electricViolet: Color.lerp(electricViolet, other.electricViolet, t)!,
+      heliotrope: Color.lerp(heliotrope, other.heliotrope, t)!,
     );
   }
 }

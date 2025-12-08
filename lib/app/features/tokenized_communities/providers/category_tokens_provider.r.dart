@@ -12,7 +12,7 @@ part 'category_tokens_provider.r.g.dart';
 @riverpod
 class CategoryTokensNotifier extends _$CategoryTokensNotifier {
   static const int _limit = 10;
-  NetworkSubscription<CommunityTokenBase>? _realtimeSubscription;
+  NetworkSubscription<List<CommunityTokenBase>>? _realtimeSubscription;
   late final TokenCategoryType _type;
 
   @override
@@ -183,14 +183,16 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     _realtimeSubscription!.stream.listen(_handleRealtimeEvent);
   }
 
-  void _handleRealtimeEvent(CommunityTokenBase event) {
-    if (event is CommunityToken) {
-      _prependToken(event);
-      return;
-    }
+  void _handleRealtimeEvent(List<CommunityTokenBase> events) {
+    for (final event in events) {
+      if (event is CommunityToken) {
+        _prependToken(event);
+        return;
+      }
 
-    if (event is CommunityTokenPatch) {
-      _applyPatch(event);
+      if (event is CommunityTokenPatch) {
+        _applyPatch(event);
+      }
     }
   }
 
