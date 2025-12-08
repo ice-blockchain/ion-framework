@@ -60,6 +60,7 @@ class FeedAdvancedSearchPosts extends HookConsumerWidget {
               query: query,
               category: category,
             ).push<void>(context),
+            plainInlineStyles: true,
           ),
       ],
       onRefresh: () async => ref.invalidate(entitiesPagedDataProvider(dataSource)),
