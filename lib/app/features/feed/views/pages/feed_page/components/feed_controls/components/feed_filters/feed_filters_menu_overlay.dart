@@ -105,8 +105,8 @@ class _FeedCreatorTokensItem extends ConsumerWidget {
       isSelected: false,
       icon: ButtonIconFrame(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
           colors: [
             context.theme.appColors.electricViolet,
             context.theme.appColors.electricViolet,
