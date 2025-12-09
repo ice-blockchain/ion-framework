@@ -20,52 +20,45 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'parsed_media_provider.r.g.dart';
 
 @riverpod
-({Delta content, List<MediaAttachment> media}) baseParsedMedia(
-  Ref ref,
-  EntityDataWithMediaContent data,
-) {
-  return parseMediaContent(data: data);
-}
-
-@riverpod
 Future<Delta> mentionsOverlay(
   Ref ref,
   EntityDataWithMediaContent data,
 ) async {
   keepAliveWhenAuthenticated(ref);
 
-  final base = ref.watch(baseParsedMediaProvider(data));
+  final baseParsedMedia = parseMediaContent(data: data);
   if (data is! EntityDataWithRelatedPubkeys) {
-    return base.content;
+    return baseParsedMedia.content;
   }
 
   final dataWithPubkeys = data as EntityDataWithRelatedPubkeys;
   final relatedPubkeys = dataWithPubkeys.relatedPubkeys;
 
   if (relatedPubkeys == null || relatedPubkeys.isEmpty) {
-    return base.content;
+    return baseParsedMedia.content;
   }
 
   final usernameToPubkey = <String, String>{};
 
-  for (final relatedPubkey in relatedPubkeys) {
-    final pubkey = relatedPubkey.value;
-    try {
-      final userMetadata = await ref.read(userMetadataProvider(pubkey, network: false).future);
-      if (userMetadata != null && userMetadata.data.name.isNotEmpty) {
-        usernameToPubkey[userMetadata.data.name] = pubkey;
+  await Future.wait(
+    relatedPubkeys.map((relatedPubkey) async {
+      final pubkey = relatedPubkey.value;
+      try {
+        final userMetadata = await ref.read(userMetadataProvider(pubkey, network: false).future);
+        if (userMetadata != null && userMetadata.data.name.isNotEmpty) {
+          usernameToPubkey[userMetadata.data.name] = pubkey;
+        }
+      } catch (_) {
+        // Skip failed lookups
       }
-    } catch (_) {
-      // Skip failed lookups
-      continue;
-    }
-  }
+    }),
+  );
 
   if (usernameToPubkey.isEmpty) {
-    return base.content;
+    return baseParsedMedia.content;
   }
 
-  return restoreMentions(base.content, usernameToPubkey);
+  return restoreMentions(baseParsedMedia.content, usernameToPubkey);
 }
 
 ({Delta content, List<MediaAttachment> media}) parseMediaContent({

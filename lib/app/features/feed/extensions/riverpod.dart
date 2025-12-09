@@ -10,14 +10,14 @@ extension ParsedMediaWidgetRefX on WidgetRef {
   ({Delta content, List<MediaAttachment> media}) watchParsedMediaWithMentions(
     EntityDataWithMediaContent data,
   ) {
-    final base = watch(baseParsedMediaProvider(data));
+    final baseParsedMedia = parseMediaContent(data: data);
     final mentions = watch(mentionsOverlayProvider(data));
 
     final content = mentions.maybeWhen(
       data: (value) => value,
-      orElse: () => base.content,
+      orElse: () => baseParsedMedia.content,
     );
 
-    return (content: content, media: base.media);
+    return (content: content, media: baseParsedMedia.media);
   }
 }
