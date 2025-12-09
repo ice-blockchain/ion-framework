@@ -113,8 +113,8 @@ class ForceAccountSecurityService {
     if (_route != FeedRoute().location) return;
 
     // 9. enforce time
-    final enforceTime = metadata.createdAt.toDateTime.add(_enforceDelay);
     final now = DateTime.now();
+    final enforceTime = (metadata.data.registeredAt?.toDateTime ?? now).add(_enforceDelay);
     final canShowPopUp = enforceTime.isBefore(now);
 
     if (!canShowPopUp) {
