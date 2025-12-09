@@ -10,7 +10,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/settings/components/selectable_options_group.dart';
 import 'package:ion/app/features/settings/model/privacy_options.dart';
 import 'package:ion/app/features/settings/optimistic_ui/who_can_message_provider.r.dart';
-import 'package:ion/app/features/user/providers/update_user_metadata_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
@@ -23,13 +22,10 @@ class PrivacySettingsModal extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final metadata = ref.watch(currentUserMetadataProvider).valueOrNull;
 
-    ref.displayErrors(updateUserMetadataNotifierProvider);
-
     if (metadata == null) {
       return const SizedBox.shrink();
     }
 
-    final walletPrivacy = WalletAddressPrivacyOption.fromWalletsMap(metadata.data.wallets);
     final messagingPrivacy = ref.watch(whoCanMessageWatchProvider).valueOrNull?.visibility ??
         UserVisibilityPrivacyOption.followedPeople;
 
@@ -52,14 +48,6 @@ class PrivacySettingsModal extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   separator: SelectableOptionsGroup.separator,
                   children: [
-                    SelectableOptionsGroup(
-                      title: context.i18n.privacy_group_wallet_address_title,
-                      selected: [walletPrivacy],
-                      options: WalletAddressPrivacyOption.values,
-                      onSelected: (option) => ref
-                          .read(updateUserMetadataNotifierProvider.notifier)
-                          .publishWallets(option),
-                    ),
                     SelectableOptionsGroup(
                       selected: [messagingPrivacy],
                       options: UserVisibilityPrivacyOption.values,
