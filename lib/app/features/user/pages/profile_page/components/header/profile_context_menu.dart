@@ -90,7 +90,7 @@ class ProfileContextMenu extends HookConsumerWidget {
     if (isCurrentUser) {
       return <Widget>[
         ContextMenuItem(
-          label: context.i18n.button_share,
+          label: context.i18n.button_share_profile,
           iconAsset: Assets.svg.iconButtonShare,
           onPressed: () {
             closeMenu();

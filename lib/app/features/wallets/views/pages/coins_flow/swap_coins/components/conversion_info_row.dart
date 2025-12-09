@@ -131,7 +131,7 @@ class _ErrorState extends StatelessWidget {
           quoteError! as OkxException,
         ),
       InsufficientBalanceException() => context.i18n.error_swap_82000,
-      _ => context.i18n.errorGettingSwapQuote,
+      _ => context.i18n.error_getting_swap_quote,
     };
   }
 
@@ -168,7 +168,7 @@ class _ErrorState extends StatelessWidget {
         context.i18n.error_swap_unsupported_execution_type,
       const UnsupportedRouteException() => context.i18n.error_swap_unsupported_route,
       const UserRecipientMismatchException() => context.i18n.error_swap_user_recipient_mismatch,
-      _ => context.i18n.errorGettingSwapQuote,
+      _ => context.i18n.error_getting_swap_quote,
     };
   }
 
@@ -190,7 +190,7 @@ class _ErrorState extends StatelessWidget {
       OkxChainNoAuthorizationRequiredException() => context.i18n.error_swap_82130,
       OkxFourMemeCommissionSplitNotSupportedException() => context.i18n.error_swap_82004,
       OkxAspectaCommissionSplitNotSupportedException() => context.i18n.error_swap_82005,
-      _ => context.i18n.errorGettingSwapQuote,
+      _ => context.i18n.error_getting_swap_quote,
     };
   }
 
