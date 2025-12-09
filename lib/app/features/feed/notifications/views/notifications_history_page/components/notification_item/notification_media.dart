@@ -79,10 +79,8 @@ class NotificationMedia extends HookConsumerWidget {
       return null;
     }
 
-    final result = ref.watch(cachedParsedMediaProvider(postData));
-    final content = result.valueOrNull?.content;
-    final media = result.valueOrNull?.media ?? [];
-    if (content == null) return null;
+    final (:content, :media) = ref.watch(parsedMediaWithMentionsProvider(postData));
+    if (content.isEmpty) return null;
     final firstMedia = media.firstWhereOrNull(
       (item) => [MediaType.image, MediaType.video].contains(item.mediaType),
     );

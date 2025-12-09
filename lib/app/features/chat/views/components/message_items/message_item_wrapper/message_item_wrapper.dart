@@ -272,10 +272,8 @@ ChatMessageInfoItem? getRepliedMessageListItem({
       );
     }
 
-    final result = ref.watch(cachedParsedMediaProvider(postData));
-    final content = result.valueOrNull?.content;
-    final media = result.valueOrNull?.media ?? [];
-    if (content == null) {
+    final (:content, :media) = ref.watch(parsedMediaWithMentionsProvider(postData));
+    if (content.isEmpty) {
       return PostItem(
         eventMessage: repliedEventMessage,
         contentDescription: ref.context.i18n.story_reply_not_available_receiver,
