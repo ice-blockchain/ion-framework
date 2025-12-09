@@ -29,8 +29,15 @@ internal class AppodealAdViewFactory: NSObject, FlutterPlatformViewFactory {
 
 internal class AppodealNativeAdViewFactory: NSObject, FlutterPlatformViewFactory {
     
+    private let nativeAdChannel: FlutterMethodChannel
+    
+    internal init(nativeAdChannel: FlutterMethodChannel) {
+        self.nativeAdChannel = nativeAdChannel
+    }
+    
     func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
         AppodealNativeAdView(
+            nativeAdChannel: nativeAdChannel,
             frame: frame,
             viewId: viewId,
             args: args as? [String: Any] ?? [:]
