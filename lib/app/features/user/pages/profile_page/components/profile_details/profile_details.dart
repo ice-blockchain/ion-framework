@@ -5,7 +5,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/tokenized_communities/extensions/replaceable_entity.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters.dart';
@@ -30,12 +29,12 @@ class ProfileDetails extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userMetadata = ref.watch(userMetadataProvider(pubkey));
 
-    final externalAddress = userMetadata.valueOrNull?.externalAddress;
+    final eventReferenceString = userMetadata.valueOrNull?.toEventReference().toString();
 
     final isCurrentUserProfile = ref.watch(isCurrentUserSelectorProvider(pubkey));
     final tokenInfo = profileMode == ProfileMode.dark
-        ? externalAddress != null
-            ? ref.watch(tokenMarketInfoProvider(externalAddress))
+        ? eventReferenceString != null
+            ? ref.watch(tokenMarketInfoProvider(eventReferenceString))
             : null
         : null;
     final token = tokenInfo?.valueOrNull;
@@ -46,8 +45,8 @@ class ProfileDetails extends ConsumerWidget {
           GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () {
-              if (externalAddress != null && token != null) {
-                TokenizedCommunityRoute(externalAddress: externalAddress).push<void>(context);
+              if (eventReferenceString != null && token != null) {
+                TokenizedCommunityRoute(externalAddress: eventReferenceString).push<void>(context);
               }
             },
             child: UserNameTile(

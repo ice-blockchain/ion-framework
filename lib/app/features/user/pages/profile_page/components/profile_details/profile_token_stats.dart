@@ -247,7 +247,7 @@ class BuyButton extends StatelessWidget {
       decoration: ShapeDecoration(
         color: context.theme.appColors.primaryAccent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.32.s),
+          borderRadius: BorderRadius.circular(10.s),
         ),
       ),
       child: Row(
@@ -264,14 +264,11 @@ class BuyButton extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: 3.13.s),
+          SizedBox(width: 4.s),
           Text(
             context.i18n.profile_token_buy,
-            style: context.theme.appTextThemes.caption3.copyWith(
+            style: context.theme.appTextThemes.caption4.copyWith(
               color: context.theme.appColors.secondaryBackground,
-              fontFamily: 'Noto Sans',
-              fontWeight: FontWeight.w600,
-              height: 1.28,
             ),
           ),
         ],

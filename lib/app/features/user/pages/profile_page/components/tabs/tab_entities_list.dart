@@ -14,7 +14,6 @@ import 'package:ion/app/features/components/entities_list/entity_list_item.f.dar
 import 'package:ion/app/features/feed/providers/user_posts_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
-import 'package:ion/app/features/tokenized_communities/extensions/replaceable_entity.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/your_position_card.dart';
 import 'package:ion/app/features/user/model/tab_entity_type.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/empty_state.dart';
@@ -93,7 +92,7 @@ class TabEntitiesList extends HookConsumerWidget {
               children: [
                 SectionSeparator(height: 4.s),
                 YourPositionCard(
-                  externalAddress: userMetadata.externalAddress,
+                  externalAddress: userMetadata.toEventReference().toString(),
                 ),
                 SectionSeparator(height: 8.s),
               ],
