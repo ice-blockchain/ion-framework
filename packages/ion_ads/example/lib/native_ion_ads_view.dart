@@ -32,7 +32,7 @@ class _NativeIonPageState extends State<NativeIonPage> {
     final isInitialized = await Appodeal.isInitialized(AppodealAdType.NativeAd);
     log('NativeAd isInitialized - $isInitialized');
 
-    showNews = await Appodeal.canShow(AppodealAdType.NativeAd) ?? false;
+    showCustom = await Appodeal.isInitialized(AppodealAdType.NativeAd) ?? false;
     final nativeAds = await Appodeal.getNativeAd(1);
     log('getNativeAd result:$nativeAds');
     if (nativeAds != null) {
@@ -125,7 +125,7 @@ class _NativeIonPageState extends State<NativeIonPage> {
                               showNews = !showNews;
                               showCustom = false;
                             }),
-                            child: const Text('Show NewsFeed Native Ad'),
+                            child: Text('${!showNews ? 'Show' : 'Hide'} NewsFeed Native Ad'),
                           ),
                           if (showNews)
                             SizedBox(
@@ -149,11 +149,11 @@ class _NativeIonPageState extends State<NativeIonPage> {
                               showNews = false;
                               showCustom = !showCustom;
                             }),
-                            child: const Text('Show Custom Native Ad'),
+                            child: Text('${!showCustom ? 'Show' : 'Hide'} Custom Native Ad'),
                           ),
                           if (showCustom)
                             SizedBox(
-                              height: 320,
+                              height: 270,
                               child: AppodealNativeAd(
                                 key: const ValueKey('Custom Native Ad'),
                                 options: NativeAdOptions.customOptions(

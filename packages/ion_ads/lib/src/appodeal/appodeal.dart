@@ -586,6 +586,7 @@ class Appodeal {
     void Function()? onNativeShowFailed,
     void Function()? onNativeClicked,
     void Function()? onNativeExpired,
+    void Function(String message)? onLog,
   }) {
     _nativeChannel.setMethodCallHandler((call) async {
       switch (call.method) {
@@ -603,6 +604,9 @@ class Appodeal {
           break;
         case 'onNativeClicked':
           onNativeClicked?.call();
+          break;
+        case 'onLog':
+          onLog?.call(call.arguments.toString());
           break;
         case 'onNativeExpired':
           onNativeExpired?.call();

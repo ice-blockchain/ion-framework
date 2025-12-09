@@ -68,10 +68,10 @@ Future<void> _initializeAppodeal() async {
     // Replace with your actual Appodeal app key from https://app.appodeal.com/
     appKey: _exampleAppodealKey,
     adTypes: [
-      AppodealAdType.RewardedVideo,
+      //AppodealAdType.RewardedVideo,
       AppodealAdType.Interstitial,
       AppodealAdType.Banner,
-      AppodealAdType.MREC,
+      //AppodealAdType.MREC,
       AppodealAdType.NativeAd,
     ],
     onInitializationFinished: (errors) {
@@ -173,12 +173,16 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     Appodeal.setNativeCallbacks(
-      onNativeLoaded: () => log('onNativeLoaded'),
-      onNativeFailedToLoad: () => log('onNativeFailedToLoad'),
-      onNativeShown: () => log('onNativeShown'),
-      onNativeShowFailed: () => log('onNativeShowFailed'),
-      onNativeClicked: () => log('onNativeClicked'),
-      onNativeExpired: () => log('onNativeExpired'),
+      onNativeLoaded: () {
+        log('NativeCallback: onNativeLoaded');
+        setState(() => _isNativeLoaded = true);
+      },
+      onNativeFailedToLoad: () => log('NativeCallback: onNativeFailedToLoad'),
+      onNativeShown: () => log('NativeCallback: onNativeShown'),
+      onNativeShowFailed: () => log('NativeCallback: onNativeShowFailed'),
+      onNativeClicked: () => log('NativeCallback: onNativeClicked'),
+      onNativeExpired: () => log('NativeCallback: onNativeExpired'),
+      onLog: (message) => log('NativeCallback: $message'),
     );
   }
 
@@ -189,13 +193,12 @@ class _MyHomePageState extends State<MyHomePage> {
     final interstitialReady = await Appodeal.canShow(AppodealAdType.Interstitial);
     final rewardedReady = await Appodeal.canShow(AppodealAdType.RewardedVideo);
     final isNativeInitialized = await Appodeal.isInitialized(AppodealAdType.NativeAd);
-    final nativeAdCount = await Appodeal.getAvailableNativeAdsCount() ?? 0;
 
     setState(() {
       _isBannerLoaded = bannerReady ?? false;
       _isInterstitialLoaded = interstitialReady ?? false;
       _isRewardedLoaded = rewardedReady ?? false;
-      _isNativeLoaded = nativeAdCount > 0 || (isNativeInitialized ?? false);
+      _isNativeLoaded = isNativeInitialized ?? false;
     });
   }
 

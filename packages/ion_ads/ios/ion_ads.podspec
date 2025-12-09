@@ -22,6 +22,9 @@ Pod::Spec.new do |s|
   s.dependency 'Flutter'
   s.dependency "Appodeal", "3.10.0"
   s.dependency "APDIABAdapter", "3.10.0.0"
+  s.dependency 'SwiftSVG'
+
+  s.resources = ['Assets/*']
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
