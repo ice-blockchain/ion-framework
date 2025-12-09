@@ -38,9 +38,9 @@ QuillController? usePostQuillController(
       }
       if (modifiedEntity != null) {
         if (modifiedEntity is ModifiablePostEntity) {
-          final result = ref.watch(cachedParsedMediaProvider(modifiedEntity.data));
-          final content = result.valueOrNull?.content;
-          if (content != null) {
+          final (:content, :media) =
+              ref.watch(parsedMediaWithMentionsProvider(modifiedEntity.data));
+          if (content.isNotEmpty) {
             final document = Document.fromDelta(content);
             return QuillController(
               document: document,
