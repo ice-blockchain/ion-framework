@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:collection/collection.dart';
@@ -12,6 +13,7 @@ import 'package:ion/app/features/core/permissions/providers/permissions_provider
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/gallery/data/models/camera_state.f.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/platform_info_service/platform_info_service.r.dart';
 import 'package:mime/mime.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -82,65 +84,64 @@ class CameraControllerNotifier extends _$CameraControllerNotifier {
   }
 
   Future<CameraController> _createCameraController(CameraDescription camera) async {
-    // List of resolution presets to try, from highest to lowest
-    // This provides fallback for devices that don't support max resolution
-    // (e.g., iOS 18+ devices with unsupported pixel formats on iPhone 17+)
+    // Use ultraHigh for iPhone 17+ to avoid unsupported btp2 pixel format
     // See: https://github.com/flutter/flutter/issues/175828
-    // Note: camera_avfoundation doesn't support the new btp2 format used by max on new iPhones
-    // ultraHigh (~2160p) is the recommended fallback for iPhone 17+
-    final presets = [
-      ResolutionPreset.max,
-      ResolutionPreset.ultraHigh, // Fallback for iPhone 17+ (iOS 18+)
-      ResolutionPreset.veryHigh,
-      ResolutionPreset.high,
-      ResolutionPreset.medium,
-    ];
+    final resolutionPreset = await _getOptimalResolutionPreset();
 
-    Exception? lastError;
+    _cameraController = CameraController(camera, resolutionPreset);
 
-    for (final preset in presets) {
-      try {
-        // Dispose previous controller if it exists
-        if (_cameraController != null) {
-          await _disposeCamera();
-        }
+    try {
+      await _cameraController?.initialize();
+      _cameraController?.addListener(_onCameraControllerUpdate);
+      return _cameraController!;
+    } catch (e) {
+      Logger.log('Camera initialization error: $e');
+      await _disposeCamera();
+      throw Exception('Camera initialization error: $e');
+    }
+  }
 
-        _cameraController = CameraController(camera, preset);
-
-        await _cameraController?.initialize();
-        _cameraController?.addListener(_onCameraControllerUpdate);
-
-        Logger.log('Camera initialized successfully with preset: $preset');
-        return _cameraController!;
-      } catch (e) {
-        Logger.log('Camera initialization failed with preset $preset: $e');
-        lastError = e is Exception ? e : Exception('Camera initialization error: $e');
-
-        // Check if this is a non-recoverable error (e.g., permissions)
-        // Pixel format errors should be retried with lower presets
-        final errorMessage = e.toString().toLowerCase();
-        final isNonRecoverableError = errorMessage.contains('permission') ||
-            errorMessage.contains('authorization') ||
-            errorMessage.contains('not authorized');
-
-        // Stop trying other presets if it's a non-recoverable error
-        if (isNonRecoverableError) {
-          Logger.log(
-            'Non-recoverable error detected (likely permissions), stopping preset fallback',
-          );
-          break;
-        }
-
-        // Continue to next preset for recoverable errors (pixel format, etc.)
-        // This handles the known issue where max fails on iPhone 17+ (iOS 18+)
-        // and ultraHigh is the recommended fallback
-        continue;
-      }
+  /// Returns the optimal resolution preset based on the device.
+  /// iPhone 17+ models require ultraHigh due to unsupported btp2 format at max resolution.
+  Future<ResolutionPreset> _getOptimalResolutionPreset() async {
+    if (!Platform.isIOS) {
+      return ResolutionPreset.max;
     }
 
-    // If we get here, all presets failed
-    await _disposeCamera();
-    throw lastError ?? Exception('Camera initialization failed with all presets');
+    try {
+      final platformInfo = ref.read(platformInfoServiceProvider);
+      final deviceModel = await platformInfo.deviceModel;
+
+      if (deviceModel == null) {
+        return ResolutionPreset.max;
+      }
+
+      // Check if device is iPhone 17 or newer
+      // iPhone 17 models start with: iPhone17,1 iPhone17,2 iPhone17,3 iPhone17,4
+      if (_isIPhone17OrNewer(deviceModel)) {
+        Logger.log('Detected iPhone 17+: $deviceModel - using ResolutionPreset.ultraHigh');
+        return ResolutionPreset.ultraHigh;
+      }
+
+      return ResolutionPreset.max;
+    } catch (e) {
+      Logger.log('Error detecting device model, defaulting to max: $e');
+      return ResolutionPreset.max;
+    }
+  }
+
+  /// Checks if the device is iPhone 17 or newer based on the model identifier.
+  bool _isIPhone17OrNewer(String model) {
+    // iPhone model identifiers follow the pattern: iPhoneX,Y
+    // where X is the generation number
+    final match = RegExp(r'iPhone(\d+),\d+').firstMatch(model);
+    if (match == null) return false;
+
+    final generation = int.tryParse(match.group(1) ?? '');
+    if (generation == null) return false;
+
+    // iPhone 17 and newer models have generation >= 17
+    return generation >= 17;
   }
 
   Future<void> pauseCamera() async {
