@@ -23,7 +23,7 @@ import 'package:ion/app/features/chat/views/components/message_items/message_rea
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
-import 'package:ion/app/features/feed/extensions/riverpod.dart';
+import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -272,7 +272,7 @@ ChatMessageInfoItem? getRepliedMessageListItem({
       );
     }
 
-    final (:content, :media) = ref.watchParsedMediaWithMentions(postData);
+    final (:content, :media) = ref.watch(parsedMediaWithMentionsProvider(postData));
     if (content.isEmpty) {
       return PostItem(
         eventMessage: repliedEventMessage,

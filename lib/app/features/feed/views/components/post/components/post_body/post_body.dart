@@ -11,9 +11,9 @@ import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
-import 'package:ion/app/features/feed/extensions/riverpod.dart';
 import 'package:ion/app/features/feed/polls/models/poll_data.f.dart';
 import 'package:ion/app/features/feed/polls/view/components/post_poll.dart';
+import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/post/components/post_body/components/post_media/post_media.dart';
 import 'package:ion/app/features/feed/views/components/post/components/post_body/post_content.dart';
 import 'package:ion/app/features/feed/views/components/url_preview_content/url_preview_content.dart';
@@ -57,7 +57,7 @@ class PostBody extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final (:content, :media) = ref.watchParsedMediaWithMentions(postData);
+    final (:content, :media) = ref.watch(parsedMediaWithMentionsProvider(postData));
     final hasContent = content.isNotEmpty;
     if (!hasContent && media.isEmpty) return const SizedBox.shrink();
 

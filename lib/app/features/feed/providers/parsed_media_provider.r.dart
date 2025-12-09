@@ -20,6 +20,23 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'parsed_media_provider.r.g.dart';
 
 @riverpod
+({Delta content, List<MediaAttachment> media}) parsedMediaWithMentions(
+  Ref ref,
+  EntityDataWithMediaContent data,
+) {
+  final baseParsedMedia = parseMediaContent(data: data);
+
+  final mentions = ref.watch(mentionsOverlayProvider(data));
+
+  final content = mentions.maybeWhen(
+    data: (value) => value,
+    orElse: () => baseParsedMedia.content,
+  );
+
+  return (content: content, media: baseParsedMedia.media);
+}
+
+@riverpod
 Future<Delta> mentionsOverlay(
   Ref ref,
   EntityDataWithMediaContent data,

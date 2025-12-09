@@ -13,7 +13,7 @@ import 'package:ion/app/features/components/entities_list/list_cached_objects.da
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
-import 'package:ion/app/features/feed/extensions/riverpod.dart';
+import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/article/article.dart';
 import 'package:ion/app/features/feed/views/components/post/post.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
@@ -90,7 +90,7 @@ class SharedPostMessage extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final (:content, :media) = ref.watchParsedMediaWithMentions(postData);
+    final (:content, :media) = ref.watch(parsedMediaWithMentionsProvider(postData));
     final hasContent = content.isNotEmpty;
     if (!hasContent && media.isEmpty) return const SizedBox.shrink();
 
