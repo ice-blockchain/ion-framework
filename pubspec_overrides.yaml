@@ -4,7 +4,7 @@ dependency_overrides:
   flutter_quill:
     git:
       url: https://github.com/ice-blockchain/flutter-quill.git
-      ref: 2023e43fea21173934ca2d0e8bf0fa0dfd21539d
+      ref: 1cff8b90beef510e455db3d821aebceb7882a797
   ion_connect_cache:
     path: packages/ion_connect_cache
   ion_content_labeler:
