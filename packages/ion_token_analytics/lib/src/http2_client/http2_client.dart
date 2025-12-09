@@ -34,7 +34,9 @@ import 'package:ion_token_analytics/src/http2_client/models/http2_web_socket_mes
 /// ```
 class Http2Client {
   /// Creates an HTTP/2 client for the specified host and port.
-  Http2Client(this.host, {this.port = 443, this.scheme = 'https'});
+  Http2Client(this.host, {this.port = 443, this.scheme = 'https', Http2Connection? connection}) {
+    _connection = connection ?? Http2Connection(host, port: port, scheme: scheme);
+  }
 
   factory Http2Client.fromBaseUrl(String baseUrl) {
     final uri = Uri.parse(baseUrl);
@@ -54,7 +56,7 @@ class Http2Client {
   /// The connection scheme (http or https).
   final String scheme;
 
-  late final Http2Connection _connection = Http2Connection(host, port: port, scheme: scheme);
+  late final Http2Connection _connection;
   int _activeStreams = 0;
   Future<void>? _connectionFuture;
   bool _disposed = false;

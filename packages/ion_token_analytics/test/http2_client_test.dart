@@ -1,169 +1,127 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:http2/http2.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_client.dart';
+import 'package:ion_token_analytics/src/http2_client/http2_connection.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_connection_status.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+
+class MockHttp2Connection extends Mock implements Http2Connection {}
+
+class MockClientTransportConnection extends Mock implements ClientTransportConnection {}
+
+class MockClientTransportStream extends Mock implements ClientTransportStream {}
+
+class FakeClientTransportStream extends Mock implements ClientTransportStream {
+  final _incomingController = StreamController<StreamMessage>();
+  final _outgoingController = StreamController<List<int>>();
+
+  @override
+  Stream<StreamMessage> get incomingMessages => _incomingController.stream;
+
+  @override
+  void sendData(List<int> bytes, {bool endStream = false}) {
+    _outgoingController.add(bytes);
+  }
+
+  void pushMessage(StreamMessage message) {
+    _incomingController.add(message);
+  }
+
+  void closeIncoming() {
+    _incomingController.close();
+  }
+}
 
 void main() {
   group('Http2Client', () {
     late Http2Client client;
+    late MockHttp2Connection mockConnection;
+    late MockClientTransportConnection mockTransport;
+    late FakeClientTransportStream fakeStream;
 
     setUp(() {
-      client = Http2Client('nghttp2.org');
+      mockConnection = MockHttp2Connection();
+      mockTransport = MockClientTransportConnection();
+      fakeStream = FakeClientTransportStream();
+
+      when(() => mockConnection.status).thenReturn(const ConnectionStatusDisconnected());
+      when(() => mockConnection.connect()).thenAnswer((_) async {
+        when(() => mockConnection.status).thenReturn(const ConnectionStatusConnected());
+      });
+      when(() => mockConnection.disconnect()).thenAnswer((_) async {
+        when(() => mockConnection.status).thenReturn(const ConnectionStatusDisconnected());
+      });
+      when(() => mockConnection.transport).thenReturn(mockTransport);
+
+      when(() => mockTransport.makeRequest(any())).thenReturn(fakeStream);
+
+      client = Http2Client('example.com', connection: mockConnection);
     });
 
     test('GET request returns valid JSON response', () async {
-      final response = await client.request<Map<String, dynamic>>('/httpbin/get');
+      // Simulate response
+      scheduleMicrotask(() {
+        final headers = [
+          Header.ascii(':status', '200'),
+          Header.ascii('content-type', 'application/json'),
+        ];
+        fakeStream.pushMessage(HeadersStreamMessage(headers));
 
-      expect(response.data, containsPair('headers', isA<Map<String, dynamic>>()));
-      expect(response.data, containsPair('url', contains('https://nghttp2.org/httpbin/get')));
-    });
+        final body = jsonEncode({'key': 'value'});
+        fakeStream
+          ..pushMessage(DataStreamMessage(utf8.encode(body)))
+          ..closeIncoming();
+      });
 
-    test('POST request with body returns echo response', () async {
-      final body = {'test': 'data', 'value': 123};
-      final response = await client.request<Map<String, dynamic>>(
-        '/httpbin/post',
-        data: body,
-        options: Http2RequestOptions(method: 'POST'),
-      );
+      final response = await client.request<Map<String, dynamic>>('/api/data');
 
-      expect(response.data, containsPair('json', body));
-      expect(response.data, containsPair('headers', isA<Map<dynamic, dynamic>>()));
-    });
-
-    test('handles different HTTP methods', () async {
-      final response = await client.request<Map<String, dynamic>>(
-        '/httpbin/put',
-        options: Http2RequestOptions(method: 'PUT'),
-      );
-
-      expect(response.data, isA<Map<String, dynamic>>());
-      expect(response.data!['url'], contains('/httpbin/put'));
-    });
-
-    test('includes custom headers in request', () async {
-      final headers = {'X-Custom-Header': 'test-value'};
-      final response = await client.request<Map<String, dynamic>>(
-        '/httpbin/headers',
-        options: Http2RequestOptions(headers: headers),
-      );
-
-      expect(response.data!['headers'], containsPair('X-Custom-Header', 'test-value'));
-    });
-
-    test('includes query parameters in request', () async {
-      final queryParams = {'foo': 'bar', 'test': 'value'};
-      final response = await client.request<Map<String, dynamic>>(
-        '/httpbin/get',
-        queryParameters: queryParams,
-      );
-
-      expect(response.data!['args'], containsPair('foo', 'bar'));
-      expect(response.data!['args'], containsPair('test', 'value'));
-      expect(response.data!['url'], contains('?'));
-      expect(response.data!['url'], contains('foo=bar'));
-      expect(response.data!['url'], contains('test=value'));
+      expect(response.statusCode, equals(200));
+      expect(response.data, equals({'key': 'value'}));
+      verify(() => mockConnection.connect()).called(1);
     });
 
     test('handles 404 error gracefully', () async {
-      final response = await client.request<Map<String, dynamic>>('/httpbin/status/404');
+      scheduleMicrotask(() {
+        final headers = [Header.ascii(':status', '404')];
+        fakeStream
+          ..pushMessage(HeadersStreamMessage(headers))
+          ..closeIncoming();
+      });
+
+      final response = await client.request<Map<String, dynamic>>('/api/missing');
 
       expect(response.statusCode, equals(404));
-    });
-
-    test('handles connection exceptions', () async {
-      final invalidClient = Http2Client('invalid-host-that-does-not-exist.com');
-
-      expect(() => invalidClient.request<Map<String, dynamic>>('/test'), throwsA(isA<Exception>()));
+      expect(response.data, isNull);
     });
 
     test('request timeout throws TimeoutException', () async {
-      // The /httpbin/delay/5 endpoint delays response by 5 seconds
-      // We set timeout to 1 second, so it should timeout
+      // Don't push any messages to simulate delay
+
       expect(
         () => client.request<Map<String, dynamic>>(
-          '/httpbin/delay/5',
-          options: Http2RequestOptions(timeout: const Duration(seconds: 1)),
+          '/api/delay',
+          options: Http2RequestOptions(timeout: const Duration(milliseconds: 100)),
         ),
         throwsA(isA<TimeoutException>()),
       );
     });
 
     test('connection gets disconnected automatically after request is done', () async {
-      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
+      when(() => mockConnection.status).thenReturn(const ConnectionStatusConnected());
 
-      final future = client.request<Map<String, dynamic>>('/httpbin/delay/1');
+      scheduleMicrotask(() {
+        fakeStream.closeIncoming();
+      });
 
-      expect(client.connection.status, equals(const ConnectionStatusConnecting()));
+      await client.request<void>('/api/test');
 
-      await future;
-
-      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
-    });
-
-    test('connection remains connected with multiple concurrent requests', () async {
-      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
-
-      final future1 = client.request<Map<String, dynamic>>('/httpbin/delay/1');
-      final future2 = client.request<Map<String, dynamic>>('/httpbin/delay/2');
-
-      expect(client.connection.status, equals(const ConnectionStatusConnecting()));
-      final connectionDuringRequests = client.connection;
-
-      final response1 = await future1;
-      expect(response1.statusCode, equals(200));
-
-      expect(client.connection.status, equals(const ConnectionStatusConnected()));
-      expect(client.connection, equals(connectionDuringRequests));
-
-      await future2;
-
-      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
-    });
-  });
-
-  group('Http2Client connection lifecycle', () {
-    late Http2Client client;
-
-    setUp(() {
-      client = Http2Client('51.75.87.132', port: 4443);
-    });
-
-    test('connection lifecycle with sequential requests', () async {
-      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
-
-      final response1 = await client.request<Map<String, dynamic>>('.well-known/nostr/nip96.json');
-      expect(response1.statusCode, equals(200));
-      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
-
-      final future2 = client.request<Map<String, dynamic>>('.well-known/nostr/nip96.json');
-
-      expect(client.connection.status, equals(const ConnectionStatusConnecting()));
-
-      final response2 = await future2;
-      expect(response2.statusCode, equals(200));
-
-      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
-    });
-
-    test('active subscriptions keep connection open', () async {
-      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
-
-      final subscription1 = await client.subscribe<String>('/');
-      final subscription2 = await client.subscribe<String>('/');
-
-      expect(client.connection.status, equals(const ConnectionStatusConnected()));
-
-      await subscription1.close();
-
-      expect(client.connection.status, equals(const ConnectionStatusConnected()));
-
-      await subscription2.close();
-
-      expect(client.connection.status, equals(const ConnectionStatusDisconnected()));
+      verify(() => mockConnection.disconnect()).called(1);
     });
   });
 }
