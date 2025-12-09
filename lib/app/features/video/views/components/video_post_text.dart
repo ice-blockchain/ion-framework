@@ -12,7 +12,7 @@ import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
-import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
+import 'package:ion/app/features/feed/extensions/riverpod.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 
@@ -41,9 +41,8 @@ class VideoTextPost extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final result = ref.watch(cachedParsedMediaProvider(postData));
-    final content = result.valueOrNull?.content;
-    if (content == null) return const SizedBox.shrink();
+    final (:content, :media) = ref.watchParsedMediaWithMentions(postData);
+    if (content.isEmpty) return const SizedBox.shrink();
     final isTextExpanded = useState(false);
     final style = context.theme.appTextThemes.body2.copyWith(
       color: context.theme.appColors.secondaryBackground,

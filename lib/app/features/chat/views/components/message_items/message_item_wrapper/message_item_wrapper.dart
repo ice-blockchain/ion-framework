@@ -23,7 +23,7 @@ import 'package:ion/app/features/chat/views/components/message_items/message_rea
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
-import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
+import 'package:ion/app/features/feed/extensions/riverpod.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -272,10 +272,8 @@ ChatMessageInfoItem? getRepliedMessageListItem({
       );
     }
 
-    final result = ref.watch(cachedParsedMediaProvider(postData));
-    final content = result.valueOrNull?.content;
-    final media = result.valueOrNull?.media ?? [];
-    if (content == null) {
+    final (:content, :media) = ref.watchParsedMediaWithMentions(postData);
+    if (content.isEmpty) {
       return PostItem(
         eventMessage: repliedEventMessage,
         contentDescription: ref.context.i18n.story_reply_not_available_receiver,

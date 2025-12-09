@@ -8,7 +8,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
+import 'package:ion/app/features/feed/extensions/riverpod.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 
@@ -38,9 +38,8 @@ QuillController? usePostQuillController(
       }
       if (modifiedEntity != null) {
         if (modifiedEntity is ModifiablePostEntity) {
-          final result = ref.watch(cachedParsedMediaProvider(modifiedEntity.data));
-          final content = result.valueOrNull?.content;
-          if (content != null) {
+          final (:content, :media) = ref.watchParsedMediaWithMentions(modifiedEntity.data);
+          if (content.isNotEmpty) {
             final document = Document.fromDelta(content);
             return QuillController(
               document: document,
