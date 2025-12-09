@@ -300,7 +300,7 @@ class TokenCard extends ConsumerWidget {
                     Flexible(
                       child: Text(
                         coinsGroup != null
-                            ? '${coinsGroup!.totalAmount} ${coinsGroup!.symbolGroup}'
+                            ? '${coinsGroup!.totalAmount} ${coinsGroup!.abbreviation}'
                             : '0.00',
                         style: textStyles.caption2.copyWith(
                           color: colors.tertiaryText,
