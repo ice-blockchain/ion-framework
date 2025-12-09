@@ -20,44 +20,52 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'parsed_media_provider.r.g.dart';
 
 @riverpod
-Future<({Delta content, List<MediaAttachment> media})> cachedParsedMedia(
+({Delta content, List<MediaAttachment> media}) baseParsedMedia(
+  Ref ref,
+  EntityDataWithMediaContent data,
+) {
+  return parseMediaContent(data: data);
+}
+
+@riverpod
+Future<Delta> mentionsOverlay(
   Ref ref,
   EntityDataWithMediaContent data,
 ) async {
   keepAliveWhenAuthenticated(ref);
 
-  final result = parseMediaContent(data: data);
+  final base = ref.watch(baseParsedMediaProvider(data));
+  if (data is! EntityDataWithRelatedPubkeys) {
+    return base.content;
+  }
 
-  // Restore mentions if data has relatedPubkeys
-  if (data is EntityDataWithRelatedPubkeys) {
-    final dataWithPubkeys = data as EntityDataWithRelatedPubkeys;
-    final relatedPubkeys = dataWithPubkeys.relatedPubkeys;
+  final dataWithPubkeys = data as EntityDataWithRelatedPubkeys;
+  final relatedPubkeys = dataWithPubkeys.relatedPubkeys;
 
-    if (relatedPubkeys != null && relatedPubkeys.isNotEmpty) {
-      final usernameToPubkey = <String, String>{};
+  if (relatedPubkeys == null || relatedPubkeys.isEmpty) {
+    return base.content;
+  }
 
-      // Look up user metadata for each pubkey to get usernames
-      for (final relatedPubkey in relatedPubkeys) {
-        final pubkey = relatedPubkey.value;
-        try {
-          final userMetadata = await ref.read(userMetadataProvider(pubkey, network: false).future);
-          if (userMetadata != null && userMetadata.data.name.isNotEmpty) {
-            usernameToPubkey[userMetadata.data.name] = pubkey;
-          }
-        } catch (_) {
-          // If lookup fails, skip this pubkey
-          continue;
-        }
+  final usernameToPubkey = <String, String>{};
+
+  for (final relatedPubkey in relatedPubkeys) {
+    final pubkey = relatedPubkey.value;
+    try {
+      final userMetadata = await ref.read(userMetadataProvider(pubkey, network: false).future);
+      if (userMetadata != null && userMetadata.data.name.isNotEmpty) {
+        usernameToPubkey[userMetadata.data.name] = pubkey;
       }
-
-      if (usernameToPubkey.isNotEmpty) {
-        final restoredContent = restoreMentions(result.content, usernameToPubkey);
-        return (content: restoredContent, media: result.media);
-      }
+    } catch (_) {
+      // Skip failed lookups
+      continue;
     }
   }
 
-  return result;
+  if (usernameToPubkey.isEmpty) {
+    return base.content;
+  }
+
+  return restoreMentions(base.content, usernameToPubkey);
 }
 
 ({Delta content, List<MediaAttachment> media}) parseMediaContent({
