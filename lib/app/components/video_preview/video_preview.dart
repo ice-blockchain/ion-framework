@@ -72,6 +72,12 @@ class VideoPreview extends HookConsumerWidget {
       onBecameInactive: () {
         if (context.mounted) {
           ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).disablePlayback();
+          // Save the current position of the video
+          if (controller != null) {
+            ref
+                .read(videoPlayerPositionDataProvider.notifier)
+                .savePosition(videoUrl, controller.value.position.inMilliseconds);
+          }
           isRouteFocused.value = false;
         }
       },
