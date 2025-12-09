@@ -65,6 +65,13 @@ class OneToOneMessagesPage extends HookConsumerWidget {
           throw UserMasterPubkeyNotFoundException();
         }
 
+        // Ensure conversationId is resolved before sending
+        final resolvedConversationId = await ref.read(
+          existOneToOneChatConversationIdProvider(
+            ParticipantKeys(keys: [receiverMasterPubkey, currentPubkey].sorted()),
+          ).future,
+        );
+
         final repliedMessage = ref.read(selectedReplyMessageProvider);
         final editedMessage = ref.read(selectedEditMessageProvider);
 
@@ -74,13 +81,13 @@ class OneToOneMessagesPage extends HookConsumerWidget {
         await ref.read(sendE2eeChatMessageServiceProvider).sendMessage(
           content: content ?? '',
           mediaFiles: mediaFiles ?? [],
-          conversationId: conversationId!,
+          conversationId: resolvedConversationId,
           editedMessage: editedMessage?.eventMessage,
           repliedMessage: repliedMessage?.eventMessage,
           participantsMasterPubkeys: [receiverMasterPubkey, currentPubkey],
         );
       },
-      [receiverMasterPubkey, conversationId],
+      [receiverMasterPubkey],
     );
 
     return Scaffold(
