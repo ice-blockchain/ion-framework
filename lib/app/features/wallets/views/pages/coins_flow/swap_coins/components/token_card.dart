@@ -1,15 +1,19 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
+import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/sum_percentage_action.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
+import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
 import 'package:ion/app/utils/text_input_formatters.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -221,10 +225,11 @@ class TokenCard extends ConsumerWidget {
                   ),
                 SizedBox(
                   width: 150.0.s,
-                  child: TextField(
+                  child: TextFormField(
                     controller: controller,
                     readOnly: isReadOnly ?? coinsGroup == null,
-                    keyboardType: TextInputType.number,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    autovalidateMode: AutovalidateMode.always,
                     style: textStyles.headline2.copyWith(
                       color: colors.primaryText,
                     ),
@@ -238,7 +243,39 @@ class TokenCard extends ConsumerWidget {
                       hintStyle: textStyles.headline2.copyWith(
                         color: colors.tertiaryText,
                       ),
+                      isDense: true,
+                      errorStyle: textStyles.caption2.copyWith(
+                        color: colors.attentionRed,
+                      ),
                     ),
+                    validator: (value) {
+                      final trimmedValue = value?.trim() ?? '';
+                      if (trimmedValue.isEmpty) return null;
+
+                      final parsed = parseAmount(trimmedValue);
+                      if (parsed == null) return '';
+
+                      final maxValue = coinsGroup?.totalAmount;
+                      if (maxValue != null && (parsed > maxValue || parsed < 0)) {
+                        return context.i18n.wallet_coin_amount_insufficient_funds;
+                      } else if (parsed < 0) {
+                        return context.i18n.wallet_coin_amount_must_be_positive;
+                      }
+
+                      // If we know decimals for the selected network, enforce min amount check
+                      final coinForNetwork = coinsGroup?.coins.firstWhereOrNull(
+                        (CoinInWalletData c) => c.coin.network.id == network?.id,
+                      );
+                      final decimals = coinForNetwork?.coin.decimals;
+                      if (decimals != null) {
+                        final amount = toBlockchainUnits(parsed, decimals);
+                        if (amount == BigInt.zero && parsed > 0) {
+                          return context.i18n.wallet_coin_amount_too_low_for_sending;
+                        }
+                      }
+
+                      return null;
+                    },
                   ),
                 ),
               ],
@@ -264,7 +301,7 @@ class TokenCard extends ConsumerWidget {
                       child: Text(
                         coinsGroup != null
                             ? '${coinsGroup!.totalAmount} ${coinsGroup!.symbolGroup}'
-                            : '0.00 ICE',
+                            : '0.00',
                         style: textStyles.caption2.copyWith(
                           color: colors.tertiaryText,
                         ),
