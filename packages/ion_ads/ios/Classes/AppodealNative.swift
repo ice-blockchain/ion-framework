@@ -8,9 +8,8 @@ final class AppodealNative {
     
     private lazy var settings: APDNativeAdSettings = {
         let adSettings = APDNativeAdSettings.default()
-        adSettings.adViewClass = NativeView.self
         adSettings.autocacheMask = [.icon, .media]
-        //adSettings.type = .novideo // video
+        adSettings.type = .auto
 
         return adSettings
     }()

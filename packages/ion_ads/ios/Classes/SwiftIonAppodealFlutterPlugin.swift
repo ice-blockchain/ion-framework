@@ -1,10 +1,9 @@
-import Flutter
-import UIKit
 import Appodeal
 import AVFoundation
+import Flutter
+import UIKit
 
 public class SwiftIonAppodealFlutterPlugin: NSObject, FlutterPlugin {
-    
     public static func register(with registrar: FlutterPluginRegistrar) {
         let instance = SwiftIonAppodealFlutterPlugin(registrar: registrar)
         registrar.addMethodCallDelegate(instance, channel: instance.channel)
@@ -14,11 +13,10 @@ public class SwiftIonAppodealFlutterPlugin: NSObject, FlutterPlugin {
         registrar.addMethodCallDelegate(instance, channel: instance.banner.adChannel)
         registrar.addMethodCallDelegate(instance, channel: instance.mrec.adChannel)
         registrar.addMethodCallDelegate(instance, channel: instance.native.adChannel)
-        registrar.register(AppodealAdViewFactory(mrecChannel: instance.mrec.adChannel,
-                                                 bannerChannel: instance.banner.adChannel),
+        registrar.register(AppodealAdViewFactory( mrecChannel: instance.mrec.adChannel, bannerChannel: instance.banner.adChannel),
                            withId: "appodeal_flutter/banner_view")
-        registrar.register(AppodealNativeAdViewFactory(),
-            withId: "appodeal_flutter/native_view")
+        registrar.register(AppodealNativeAdViewFactory(nativeAdChannel: instance.native.adChannel),
+                           withId: "appodeal_flutter/native_view")
     }
     
     let channel: FlutterMethodChannel
@@ -59,7 +57,7 @@ public class SwiftIonAppodealFlutterPlugin: NSObject, FlutterPlugin {
         case "getPredictedEcpm": getPredictedEcpm(call, result)
         case "show": show(call, result)
         case "hide": hide(call, result)
-            //Extra logic
+        // Extra logic
         case "setSmartBanners": setSmartBanners(call, result)
         case "isSmartBanners": isSmartBanners(call, result)
         case "setTabletBanners": setTabletBanners(call, result)
@@ -77,10 +75,10 @@ public class SwiftIonAppodealFlutterPlugin: NSObject, FlutterPlugin {
         case "getPlatformSdkVersion": getPlatformSdkVersion(call, result)
         case "getAvailableNativeAdsCount": getAvailableNativeAdsCount(call, result)
         case "getNativeAd": getNativeAd(call, result)
-            //Services logic
+        // Services logic
         case "logEvent": logEvent(call, result)
         case "validateInAppPurchase": validateInAppPurchase(call, result)
-            //Bidon self hosted
+        // Bidon self hosted
         case "setBidonEndpoint": setBidonEndpoint(call, result)
         case "getBidonEndpoint": getBidonEndpoint(call, result)
         default: result(FlutterMethodNotImplemented)
@@ -104,7 +102,7 @@ public class SwiftIonAppodealFlutterPlugin: NSObject, FlutterPlugin {
         switch logLevel {
         case 1: Appodeal.setLogLevel(APDLogLevel.debug)
         case 2: Appodeal.setLogLevel(APDLogLevel.verbose)
-        default:Appodeal.setLogLevel(APDLogLevel.off)
+        default: Appodeal.setLogLevel(APDLogLevel.off)
         }
         result(nil)
     }
@@ -189,7 +187,7 @@ public class SwiftIonAppodealFlutterPlugin: NSObject, FlutterPlugin {
     }
     
     private func hide(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
-        Appodeal.hideBanner();
+        Appodeal.hideBanner()
         result(nil)
     }
     
@@ -291,8 +289,8 @@ public class SwiftIonAppodealFlutterPlugin: NSObject, FlutterPlugin {
     private func getNativeAd(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         // 3. Fetch native ads from the Appodeal SDK
         guard let nativeAd = native.getNativeAd() else {
-        // If no ad is available, return nil to Flutter
-        result(nil)
+            // If no ad is available, return nil to Flutter
+            result(nil)
             return
         }
 
@@ -308,8 +306,8 @@ public class SwiftIonAppodealFlutterPlugin: NSObject, FlutterPlugin {
             "isContainsVideo": nativeAd.isContainsVideo,
             "mediaAssets": parseMediaAssetsToMap(nativeAd: nativeAd)
         ]
-        
-        NSLog("getNativeAd: %@", nativeAdMap)
+
+        native.adChannel.invokeMethod("onLog", arguments: "getNativeAd: \(nativeAdMap)")
 
         // 5. Return the dictionary as the result
         result(nativeAdMap)
@@ -323,7 +321,7 @@ public class SwiftIonAppodealFlutterPlugin: NSObject, FlutterPlugin {
                 "value": icon.url?.absoluteString,
                 "width": icon.image?.size.width,
                 "height": icon.image?.size.height,
-                "type": icon.description, // Assuming type is always image for icon
+                "type": icon.description // Assuming type is always image for icon
             ]
         }
 
@@ -336,14 +334,14 @@ public class SwiftIonAppodealFlutterPlugin: NSObject, FlutterPlugin {
             ]
         }
 
-            // Note: APDNativeAd doesn't have a direct video asset property like the Android SDK.
-            // Video ads are typically handled through the APDMediaView.
-            // If you have a specific way to get video URL, it should be added here.
+        // Note: APDNativeAd doesn't have a direct video asset property like the Android SDK.
+        // Video ads are typically handled through the APDMediaView.
+        // If you have a specific way to get video URL, it should be added here.
 
         return assetsMap
     }
     
-    //Services logic
+    // Services logic
     
     private func logEvent(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         let args = call.arguments as! [String: Any]
@@ -378,7 +376,7 @@ public class SwiftIonAppodealFlutterPlugin: NSObject, FlutterPlugin {
                 currency: currency,
                 transactionId: transactionId,
                 additionalParameters: additionalParameters,
-                success: { [weak self] response in
+                success: { [weak self] _ in
                     self?.channel.invokeMethod("onInAppPurchaseValidateSuccess", arguments: nil)
                 },
                 failure: { [weak self] error in

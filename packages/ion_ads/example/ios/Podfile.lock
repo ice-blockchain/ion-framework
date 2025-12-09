@@ -419,6 +419,7 @@ PODS:
     - APDIABAdapter (= 3.10.0.0)
     - Appodeal (= 3.10.0)
     - Flutter
+    - SwiftSVG
   - IronSourceAdMobAdapter (4.3.69.0):
     - Google-Mobile-Ads-SDK (= 12.8.0)
     - IronSourceSDK/Ads (~> 8.9)
@@ -622,6 +623,7 @@ PODS:
     - StackModules/Core-Static
     - StackModules/ProductPresentation-Static
     - StackModules/Rendering-Static
+  - SwiftSVG (2.3.2)
   - UnityAds (4.16.0)
   - VGSL (7.14.1):
     - VGSLFundamentals (= 7.14.1)
@@ -880,6 +882,7 @@ SPEC REPOS:
     - smaato-ios-sdk
     - StackConsentManager
     - StackModules
+    - SwiftSVG
     - UnityAds
     - VGSL
     - VGSLFundamentals
@@ -1005,7 +1008,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   HyBid: 2018ab41ab8db1066502e45c712164c92494ff6d
   InMobiSDK: a6e7bfbecb698c83183f42c5a3cfa1ac52f16bff
-  ion_ads: 75744031f6250b2cccc88e62cb6537ce87d46698
+  ion_ads: 48c522c5dc22157e18a1b1175b2c38cb77980568
   IronSourceAdMobAdapter: e0922cedb8b990d08c08609e565af164102971cc
   IronSourceAdQualitySDK: 639d5a93e15e823538f87b75f3809c4905afc30b
   IronSourceAppLovinAdapter: fbdd025dc3014657ff0a0464a6ef666ee158a9e8
@@ -1045,6 +1048,7 @@ SPEC CHECKSUMS:
   smaato-ios-sdk: afa210ca22398b9ae75fddc921472b05e0bb3d37
   StackConsentManager: 80684e96361f88476985a2ed91a9299bc9196be8
   StackModules: 0b77df5a1453951c9e6aa0e32cab0b055fbf68e1
+  SwiftSVG: ca7f64e403b8ea7ea8eba8c823b83ba4a059834c
   UnityAds: 8c53660f12855f5f4da100f28709c3d2b4b83dbe
   VGSL: a8e6c55aa2499c806bca6df877a929386c4fe370
   VGSLFundamentals: d29cf55f46b06c10a085caae68aaf8ba74028b49
