@@ -163,8 +163,8 @@ class PostContent extends HookConsumerWidget {
       return null;
     }
 
-    final result = ref.watch(cachedParsedMediaProvider(postData));
-    return result.valueOrNull?.content;
+    final result = ref.watch(parsedMediaWithMentionsProvider(postData));
+    return result.content;
   }
 }
 

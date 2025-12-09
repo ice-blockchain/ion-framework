@@ -57,16 +57,12 @@ class PostBody extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final result = ref.watch(cachedParsedMediaProvider(postData));
-    final content = result.valueOrNull?.content;
-    final media = result.valueOrNull?.media ?? [];
-
-    final hasContent = content != null;
+    final (:content, :media) = ref.watch(parsedMediaWithMentionsProvider(postData));
+    final hasContent = content.isNotEmpty;
     if (!hasContent && media.isEmpty) return const SizedBox.shrink();
 
     final firstUrlInPost = useMemoized(
       () {
-        if (!hasContent) return null;
         final firstOperationLink = content.operations
             .firstWhereOrNull(
               (operation) => isAttributedOperation(operation, attribute: Attribute.link),
@@ -83,7 +79,7 @@ class PostBody extends HookConsumerWidget {
 
     final showTextContent = useMemoized(
       () {
-        if (content == null || content.isBlank) {
+        if (content.isBlank) {
           return false;
         }
 
