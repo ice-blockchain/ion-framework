@@ -18,7 +18,7 @@ class MockIonAdsPlatform implements IonAdsPlatform {
   }) async {}
 
   @override
-  Future<bool?> isAvailable(IonNativeAdPlacement placement) async => true;
+  bool isAvailable(IonNativeAdPlacement placement) => true;
 
   @override
   Future<IonNativeAdAsset?> loadNativeAd({
