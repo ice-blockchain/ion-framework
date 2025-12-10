@@ -51,10 +51,10 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     await Appodeal.initialize(
       appKey: Platform.isAndroid ? androidAppKey : iosAppKey,
       adTypes: [
-        //AppodealAdType.RewardedVideo,
-        // AppodealAdType.Interstitial,
-        // AppodealAdType.Banner,
-        // AppodealAdType.MREC,
+        AppodealAdType.RewardedVideo,
+        AppodealAdType.Interstitial,
+        AppodealAdType.Banner,
+        AppodealAdType.MREC,
         AppodealAdType.NativeAd,
       ],
       onInitializationFinished: (errors) async {
