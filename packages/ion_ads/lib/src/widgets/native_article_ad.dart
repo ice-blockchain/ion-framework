@@ -44,7 +44,7 @@ class NativeArticleAd extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      if (ad.rating != null && ad.rating! > 0 || true)
+                      if (ad.rating != null && ad.rating! > 0)
                         StarRating(
                           rating: 2,
                           color: theme.adsColors.onTertiaryBackground,
