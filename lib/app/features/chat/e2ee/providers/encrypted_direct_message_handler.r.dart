@@ -12,6 +12,7 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_encrypted_event_message_handler.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
+import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
 import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -27,6 +28,7 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
     required this.conversationMessageDataDao,
     required this.conversationEventMessageDao,
     required this.sendE2eeMessageStatusService,
+    required this.fileCacheService,
   });
 
   final String masterPubkey;
@@ -37,6 +39,7 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
   final ConversationMessageDataDao conversationMessageDataDao;
   final ConversationEventMessageDao conversationEventMessageDao;
   final SendE2eeMessageStatusService sendE2eeMessageStatusService;
+  final FileCacheService fileCacheService;
 
   @override
   bool canHandle({
@@ -69,9 +72,32 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
     unawaited(_addMediaToDatabase(rumor));
   }
 
+  Future<void> _clearOldMedia({
+    required EventReference eventReference,
+  }) async {
+    // Remove old media records and cached files for this message
+    final existingMediaRecords = await (messageMediaDao.select(messageMediaDao.messageMediaTable)
+          ..where((t) => t.messageEventReference.equalsValue(eventReference)))
+        .get();
+
+    for (final mediaRecord in existingMediaRecords) {
+      if (mediaRecord.remoteUrl?.isNotEmpty ?? false) {
+        unawaited(fileCacheService.removeFile(mediaRecord.remoteUrl!));
+      }
+    }
+
+    await (messageMediaDao.delete(messageMediaDao.messageMediaTable)
+          ..where((t) => t.messageEventReference.equalsValue(eventReference)))
+        .go();
+  }
+
   Future<void> _addMediaToDatabase(EventMessage rumor) async {
     final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
     if (entity.data.media.isNotEmpty) {
+      final eventReference = entity.toEventReference();
+
+      await _clearOldMedia(eventReference: eventReference);
+
       for (final media in entity.data.media.values) {
         unawaited(
           mediaEncryptionService
@@ -90,7 +116,7 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
             await messageMediaDao.add(
               remoteUrl: media.url,
               status: MessageMediaStatus.completed,
-              eventReference: entity.toEventReference(),
+              eventReference: eventReference,
             );
           }),
         );
@@ -116,5 +142,6 @@ Future<EncryptedDirectMessageHandler?> encryptedDirectMessageHandler(Ref ref) as
     conversationEventMessageDao: ref.watch(conversationEventMessageDaoProvider),
     conversationMessageDataDao: ref.watch(conversationMessageDataDaoProvider),
     sendE2eeMessageStatusService: await ref.watch(sendE2eeMessageStatusServiceProvider.future),
+    fileCacheService: ref.watch(ionConnectFileCacheServiceProvider),
   );
 }
