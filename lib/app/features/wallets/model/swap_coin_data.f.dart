@@ -17,7 +17,6 @@ class SwapCoinData with _$SwapCoinData {
     NetworkData? buyNetwork,
     SwapQuoteInfo? swapQuoteInfo,
     @Default(false) bool isQuoteLoading,
-    @Default(false) bool isQuoteError,
     @Default(0) double amount,
     BigInt? quoteAmount,
     Exception? quoteError,
@@ -26,4 +25,6 @@ class SwapCoinData with _$SwapCoinData {
   const SwapCoinData._();
 
   static const double defaultSlippage = 3;
+
+  bool get isQuoteError => quoteError != null;
 }
