@@ -65,7 +65,7 @@ class LetsExchangeRepository {
         'network_to': networkTo,
         'deposit_amount': depositAmount,
         'affiliate_id': affiliateId,
-        'withdrawal_address': withdrawalAddress,
+        'withdrawal': withdrawalAddress,
         'rate_id': rateId,
         'withdrawal_extra_id': withdrawalExtraId,
       },

@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:dio/dio.dart';
+import 'package:ion_swap_client/exceptions/exolix_exceptions.dart';
 import 'package:ion_swap_client/models/exolix_coin.m.dart';
+import 'package:ion_swap_client/models/exolix_error.m.dart';
 import 'package:ion_swap_client/models/exolix_rate.m.dart';
 import 'package:ion_swap_client/models/exolix_transaction.m.dart';
 
@@ -33,20 +35,32 @@ class ExolixRepository {
     required String networkTo,
     required String amount,
   }) async {
-    final response = await _dio.get<dynamic>(
-      '/rate',
-      queryParameters: {
-        'rateType': 'fixed',
-        'coinFrom': coinFrom,
-        'networkFrom': networkFrom,
-        'coinTo': coinTo,
-        'networkTo': networkTo,
-        'amount': amount,
-      },
-    );
+    try {
+      final response = await _dio.get<dynamic>(
+        '/rate',
+        queryParameters: {
+          'rateType': 'fixed',
+          'coinFrom': coinFrom,
+          'networkFrom': networkFrom,
+          'coinTo': coinTo,
+          'networkTo': networkTo,
+          'amount': amount,
+        },
+      );
 
-    final data = response.data as Map<String, dynamic>;
-    return ExolixRate.fromJson(data);
+      final data = response.data as Map<String, dynamic>;
+      return ExolixRate.fromJson(data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 422 && e.response?.data != null) {
+        final errorData = e.response!.data as Map<String, dynamic>;
+        final exolixError = ExolixError.fromJson(errorData);
+        throw ExolixBelowMinimumException(
+          minAmount: exolixError.minAmount,
+          message: exolixError.message,
+        );
+      }
+      rethrow;
+    }
   }
 
   Future<ExolixTransaction> createTransaction({
