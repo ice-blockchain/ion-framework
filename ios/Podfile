@@ -45,6 +45,7 @@ target 'Runner' do
   pod 'BanubaARCloudSDK', video_editor_sdk_version
   pod 'BanubaAudioBrowserSDK', video_editor_sdk_version
   pod 'BanubaPhotoEditorSDK', photo_editor_sdk_version
+  pod 'FBSDKCoreKit', '18.0.0'
 
   pod 'GoogleUtilities'
   pod 'AppsFlyerFramework'

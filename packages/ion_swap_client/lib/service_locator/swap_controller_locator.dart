@@ -6,7 +6,9 @@ import 'package:ion_swap_client/service_locator/repositories/api_repository_serv
 import 'package:ion_swap_client/services/bridge_service.dart';
 import 'package:ion_swap_client/services/cex_service.dart';
 import 'package:ion_swap_client/services/dex_service.dart';
+import 'package:ion_swap_client/services/ion_swap_service.dart';
 import 'package:ion_swap_client/services/swap_service.dart';
+import 'package:web3dart/web3dart.dart';
 
 class SwapControllerLocator {
   factory SwapControllerLocator() {
@@ -21,6 +23,7 @@ class SwapControllerLocator {
 
   SwapService swapCoinsController({
     required IONSwapConfig config,
+    required Web3Client web3client,
   }) {
     if (_swapCoinsController != null) {
       return _swapCoinsController!;
@@ -34,6 +37,10 @@ class SwapControllerLocator {
         apiRepositoryServiceLocator.getLetsExchangeRepository(config: config);
 
     _swapCoinsController = SwapService(
+      ionSwapService: IonSwapService(
+        config: config,
+        web3client: web3client,
+      ),
       okxService: DexService(
         swapOkxRepository: okxRepository,
         chainsIdsRepository: ChainsIdsRepository(),

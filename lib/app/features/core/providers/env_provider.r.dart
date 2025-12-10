@@ -52,6 +52,7 @@ enum EnvVariable {
   CRYPTOCURRENCIES_CEX_EXOLIX_API_KEY,
   CRYPTOCURRENCIES_CEX_EXOLIX_API_URL,
   ION_TOKEN_ANALYTICS_BASE_URL,
+  CRYPTOCURRENCIES_BSC_RPC_URL,
 }
 
 @Riverpod(keepAlive: true)
@@ -158,6 +159,8 @@ class Env extends _$Env {
         const String.fromEnvironment('CRYPTOCURRENCIES_CEX_EXOLIX_API_URL') as T,
       EnvVariable.ION_TOKEN_ANALYTICS_BASE_URL =>
         const String.fromEnvironment('ION_TOKEN_ANALYTICS_BASE_URL') as T,
+      EnvVariable.CRYPTOCURRENCIES_BSC_RPC_URL =>
+        const String.fromEnvironment('CRYPTOCURRENCIES_BSC_RPC_URL') as T,
     };
   }
 }

@@ -14,6 +14,9 @@ class IONSwapConfig {
     required this.letsExchangeApiKey,
     required this.letsExchangeApiUrl,
     required this.letsExchangeAffiliateId,
+    required this.ionSwapContractAddress,
+    required this.iceBscTokenAddress,
+    required this.ionBscTokenAddress,
     this.interceptors = const [],
   });
 
@@ -30,6 +33,10 @@ class IONSwapConfig {
   final String letsExchangeApiKey;
   final String letsExchangeApiUrl;
   final String letsExchangeAffiliateId;
+
+  final String ionSwapContractAddress;
+  final String iceBscTokenAddress;
+  final String ionBscTokenAddress;
 
   final List<Interceptor> interceptors;
 }

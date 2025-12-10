@@ -270,8 +270,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     if (sellCoinGroup == null ||
         buyCoinGroup == null ||
         sellNetwork == null ||
-        buyNetwork == null ||
-        swapQuoteInfo == null) {
+        buyNetwork == null) {
       return;
     }
 
