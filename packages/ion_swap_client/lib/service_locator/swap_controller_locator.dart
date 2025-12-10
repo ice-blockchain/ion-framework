@@ -7,6 +7,7 @@ import 'package:ion_swap_client/service_locator/repositories/api_repository_serv
 import 'package:ion_swap_client/services/bridge_service.dart';
 import 'package:ion_swap_client/services/cex_service.dart';
 import 'package:ion_swap_client/services/dex_service.dart';
+import 'package:ion_swap_client/services/ion_bsc_to_ion_bridge_service.dart';
 import 'package:ion_swap_client/services/ion_swap_service.dart';
 import 'package:ion_swap_client/services/swap_service.dart';
 import 'package:ion_swap_client/utils/evm_tx_builder.dart';
@@ -41,6 +42,17 @@ class SwapControllerLocator {
         apiRepositoryServiceLocator.getLetsExchangeRepository(config: config);
 
     _swapCoinsController = SwapService(
+      ionBscToIonBridgeService: IonBscToIonBridgeService(
+        config: config,
+        web3client: web3client,
+        evmTxBuilder: EvmTxBuilder(
+          contracts: EvmContractProviders(),
+          web3Client: web3client,
+        ),
+        ionIdentityClient: IonIdentityTransactionApi(
+          clientResolver: () async => ionIdentityClient,
+        ),
+      ),
       ionSwapService: IonSwapService(
         ionIdentityClient: IonIdentityTransactionApi(
           clientResolver: () async => ionIdentityClient,

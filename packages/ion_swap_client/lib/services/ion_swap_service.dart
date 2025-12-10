@@ -12,6 +12,10 @@ import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 import 'package:ion_swap_client/utils/numb.dart';
 import 'package:web3dart/web3dart.dart';
 
+/// Service for swapping ICE BSC to ION BSC and vice versa.
+///
+/// The flow follows the reference implementation documented at:
+/// https://github.com/ice-blockchain/bridge/blob/ion-mainnet/documentation/ice-wrapped-ice-swap-flow.md
 class IonSwapService {
   factory IonSwapService({
     required IONSwapConfig config,
@@ -276,10 +280,15 @@ class IonSwapService {
     required IonSwapRequest request,
     required EvmTransaction transaction,
   }) async {
+    final userActionSigner = request.userActionSigner;
+    if (userActionSigner == null) {
+      throw const IonSwapException('User action signer is required for ion swap');
+    }
+
     return _ionIdentityClient.signAndBroadcast(
       walletId: request.wallet.id,
       transaction: transaction,
-      userActionSigner: request.userActionSigner,
+      userActionSigner: userActionSigner,
     );
   }
 

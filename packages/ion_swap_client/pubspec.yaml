@@ -22,6 +22,7 @@ dependencies:
     path: ../ion_identity_client
   json_annotation: ^4.9.0
   rxdart: ^0.28.0
+  tonutils: ^0.5.7
   web3dart: ^2.7.3
 
 flutter:

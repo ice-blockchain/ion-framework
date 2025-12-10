@@ -505,7 +505,7 @@ class SwapCoinsController extends _$SwapCoinsController {
   Future<IonSwapRequest?> _buildIonSwapRequest(
     SwapCoinParameters swapCoinParameters,
     Wallet wallet,
-    UserActionSignerNew userActionSigner,
+    UserActionSignerNew? userActionSigner,
   ) async {
     final isIonBscSwap = await getIsIonBscSwap();
 
@@ -515,8 +515,6 @@ class SwapCoinsController extends _$SwapCoinsController {
         identityClient: identityClient,
         wallet: wallet,
         userActionSigner: userActionSigner,
-        maxFeePerGas: BigInt.zero,
-        maxPriorityFeePerGas: BigInt.zero,
       );
     }
 
