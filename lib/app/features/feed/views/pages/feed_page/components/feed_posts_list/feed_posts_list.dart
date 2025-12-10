@@ -12,6 +12,8 @@ import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/invite_friends_list_item.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/ion_ad/ion_ad_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class FeedPostsList extends HookConsumerWidget {
@@ -20,6 +22,11 @@ class FeedPostsList extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entities = ref.watch(feedPostsProvider.select((state) => state.items));
+
+    final isAdAvailable =
+        ref.watch(ionAdClientProvider).valueOrNull?.isAvailable(IonNativeAdPlacement.feed) ?? false;
+
+    Logger.info('isAdAvailable:$isAdAvailable');
 
     if (entities == null) {
       return const EntitiesListSkeleton();
@@ -41,6 +48,7 @@ class FeedPostsList extends HookConsumerWidget {
         ).push<void>(context);
       },
       plainInlineStyles: true,
+      showAds: isAdAvailable,
     );
   }
 

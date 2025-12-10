@@ -93,7 +93,7 @@ class NativeAdOptions with AppodealPlatformArguments {
   }) {
     return NativeAdOptions._templateOptions(
       nativeAdType: NativeAdType.contentStream,
-      adIconSize: 90,
+      adIconSize: 32,
       adTitleFontSize: adTitleFontSize,
       adActionButtonTextSize: adActionButtonTextSize,
       adDescriptionFontSize: adDescriptionFontSize,
