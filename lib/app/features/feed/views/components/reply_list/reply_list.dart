@@ -15,15 +15,16 @@ import 'package:ion/app/features/feed/providers/replies_data_source_provider.r.d
 import 'package:ion/app/features/feed/providers/replies_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class ReplyList extends ConsumerWidget {
+class ReplyList extends HookConsumerWidget {
   const ReplyList({
     required this.eventReference,
+    required this.scrollController,
     this.headers,
     this.onPullToRefresh,
-    this.scrollController,
     this.hideEmptyState = false,
     super.key,
   });
@@ -31,7 +32,7 @@ class ReplyList extends ConsumerWidget {
   final List<Widget>? headers;
   final EventReference eventReference;
   final VoidCallback? onPullToRefresh;
-  final ScrollController? scrollController;
+  final ScrollController scrollController;
   final bool hideEmptyState;
 
   @override
@@ -40,6 +41,15 @@ class ReplyList extends ConsumerWidget {
     final entities = replies?.data.items;
     final hasMoreReplies =
         ref.watch(repliesProvider(eventReference).select((state) => (state?.hasMore).falseOrValue));
+
+    useOnInit(
+      () {
+        if (hideEmptyState) {
+          scrollController.jumpTo(scrollController.position.maxScrollExtent - 80);
+        }
+      },
+      [hideEmptyState],
+    );
 
     final isLoading = replies?.data is PagedLoading;
 
