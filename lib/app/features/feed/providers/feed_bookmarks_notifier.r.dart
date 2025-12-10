@@ -423,19 +423,34 @@ class FeedBookmarkCollectionsNotifier extends _$FeedBookmarkCollectionsNotifier 
       title: newTitle,
     );
 
-    await ref.read(ionConnectNotifierProvider.notifier).sendEntityData(
-          updatedCollectionData,
-          actionSource: ActionSourceUser(currentPubkey),
-        );
+    final rootNotifier =
+        ref.read(bookmarksCollectionNotifierProvider(currentPubkey, collectionDTag).notifier);
+
+    final updatedEntity =
+        await ref.read(ionConnectNotifierProvider.notifier).sendEntityData<BookmarksSetEntity>(
+              updatedCollectionData,
+              actionSource: ActionSourceUser(currentPubkey),
+            );
+
+    if (updatedEntity != null) {
+      await rootNotifier.sync(updatedEntity);
+    }
 
     ref
       ..invalidateSelf()
       ..invalidate(
         bookmarksCollectionNotifierProvider(
           currentPubkey,
+          collectionDTag,
+        ),
+      )
+      ..invalidate(
+        bookmarksCollectionNotifierProvider(
+          currentPubkey,
           BookmarksSetType.homeFeedCollections.dTagName,
         ),
       )
+      ..invalidate(feedBookmarksNotifierProvider(collectionDTag: collectionDTag))
       ..invalidate(feedBookmarksNotifierProvider);
   }
 }
