@@ -31,7 +31,7 @@ class NativeAdCard extends StatelessWidget {
                   children: [
                     //Text(ad.title, style: theme.textPrimary.subtitle2),
                     Text(ad.body, style: theme.textPrimary.subtitle3),
-                    if (ad.rating != null && ad.rating! > 0 || true)
+                    if (ad.rating != null && ad.rating! > 0)
                       StarRating(
                         rating: 4,
                         color: theme.adsColors.onTertiaryBackground,

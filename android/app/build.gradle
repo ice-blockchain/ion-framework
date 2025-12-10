@@ -118,7 +118,8 @@ android {
                 appName: "Online+",
                 deeplink_host: "app.online.io",
                 facebook_app_id: dartEnv['FACEBOOK_APP_ID'],
-                facebook_client_token: dartEnv['FACEBOOK_CLIENT_TOKEN']
+                facebook_client_token: dartEnv['FACEBOOK_CLIENT_TOKEN'],
+                admob_id             : dartEnv['ADMOB_ID_ANDROID']
             ]
         }
         staging {
@@ -128,7 +129,8 @@ android {
                 appName: "Online+",
                 deeplink_host: "testnet.app.online.io",
                 facebook_app_id: dartEnv['FACEBOOK_APP_ID'],
-                facebook_client_token: dartEnv['FACEBOOK_CLIENT_TOKEN']
+                facebook_client_token: dartEnv['FACEBOOK_CLIENT_TOKEN'],
+                admob_id             : dartEnv['ADMOB_ID_ANDROID']
             ]
         }
     }
@@ -163,4 +165,6 @@ dependencies {
     implementation "com.banuba.sdk:ve-export-sdk:${banubaSdkVersion}"
     implementation "com.banuba.sdk:ve-playback-sdk:${banubaSdkVersion}"
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+
+    implementation "com.appodeal.ads:sdk:3.10.0.0"
 }

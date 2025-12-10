@@ -14,6 +14,8 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/ion_ad/ion_ad_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class FeedPostsList extends HookConsumerWidget {
@@ -27,6 +29,11 @@ class FeedPostsList extends HookConsumerWidget {
     });
 
     final entities = ref.watch(feedPostsProvider.select((state) => state.items));
+
+    final isAdAvailable =
+        ref.watch(ionAdClientProvider).valueOrNull?.isAvailable(IonNativeAdPlacement.feed) ?? false;
+
+    Logger.info('isAdAvailable:$isAdAvailable');
 
     if (entities == null) {
       return const EntitiesListSkeleton();
@@ -48,6 +55,7 @@ class FeedPostsList extends HookConsumerWidget {
         ).push<void>(context);
       },
       plainInlineStyles: true,
+      showAds: isAdAvailable,
     );
   }
 
