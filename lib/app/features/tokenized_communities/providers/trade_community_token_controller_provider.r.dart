@@ -3,11 +3,14 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/providers/buy_community_token_notifier_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
+import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_state.f.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
@@ -15,33 +18,158 @@ import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'trade_community_token_controller_provider.r.g.dart';
+
+typedef TradeCommunityTokenControllerParams = ({
+  String externalAddress,
+  CommunityTokenTradeMode mode,
+});
 
 @riverpod
 class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   Timer? _debounceTimer;
 
   @override
-  TradeCommunityTokenState build(String communityPubkey) {
+  TradeCommunityTokenState build(TradeCommunityTokenControllerParams params) {
+    final externalAddress = params.externalAddress;
+    final mode = params.mode;
+
+    final pubkey = CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
+
     ref
       ..listen(currentWalletViewDataProvider, (_, __) => _updateDerivedState())
       ..listen(walletsNotifierProvider, (_, __) => _updateDerivedState())
-      ..onDispose(() => _debounceTimer?.cancel());
+      ..listen(tokenMarketInfoProvider(externalAddress), (_, __) {
+        if (mode == CommunityTokenTradeMode.sell) {
+          _updateCommunityTokenBalance();
+        } else {
+          _updateCommunityCoinsGroup();
+        }
+      });
+    if (pubkey != null && mode == CommunityTokenTradeMode.buy) {
+      ref.listen(userPreviewDataProvider(pubkey), (_, __) => _updateCommunityCoinsGroup());
+    }
+    ref.onDispose(() => _debounceTimer?.cancel());
 
     _initialize();
+    if (mode == CommunityTokenTradeMode.sell) {
+      _updateCommunityTokenBalance();
+    } else {
+      _updateCommunityCoinsGroup();
+    }
     return const TradeCommunityTokenState();
   }
 
   Future<void> _initialize() async {
-    final supportedTokens = await ref.watch(supportedSwapTokensProvider.future);
+    final mode = params.mode;
 
-    if (state.selectedPaymentToken == null && supportedTokens.isNotEmpty) {
-      final defaultToken =
-          supportedTokens.firstWhereOrNull((t) => t.abbreviation == 'ICE') ?? supportedTokens.first;
-      selectPaymentToken(defaultToken);
+    if (mode == CommunityTokenTradeMode.buy) {
+      final supportedTokens = await ref.watch(supportedSwapTokensProvider.future);
+
+      if (state.selectedPaymentToken == null && supportedTokens.isNotEmpty) {
+        final defaultToken = supportedTokens.firstWhereOrNull((t) => t.abbreviation == 'ICE') ??
+            supportedTokens.first;
+        selectPaymentToken(defaultToken);
+      }
+    }
+  }
+
+  Future<void> _updateCommunityTokenBalance() async {
+    final externalAddress = params.externalAddress;
+    final tokenAsync = ref.read(
+      tokenMarketInfoProvider(externalAddress),
+    );
+    final token = tokenAsync.valueOrNull;
+
+    final balance = token?.marketData.position?.amount ?? 0.0;
+    final communityTokenCoinsGroup = await _deriveCommunityTokenCoinsGroup(token);
+
+    state = state.copyWith(
+      communityTokenBalance: balance,
+      communityTokenCoinsGroup: communityTokenCoinsGroup,
+    );
+
+    // Update target wallet and network for sell mode
+    if (params.mode == CommunityTokenTradeMode.sell) {
+      await _updateDerivedStateForSell();
+    }
+  }
+
+  void _updateCommunityCoinsGroup() {
+    final externalAddress = params.externalAddress;
+    final tokenAsync = ref.read(tokenMarketInfoProvider(externalAddress));
+    final tokenInfo = tokenAsync.valueOrNull;
+
+    final pubkey = CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
+    final userData = pubkey == null ? null : ref.read(userPreviewDataProvider(pubkey)).valueOrNull;
+
+    final tokenTitle = tokenInfo?.title ??
+        userData?.data.trimmedDisplayName ??
+        userData?.data.name ??
+        pubkey ??
+        externalAddress;
+
+    final communityAvatar = tokenInfo?.imageUrl ?? userData?.data.avatarUrl;
+
+    final communityCoinsGroup = CoinsGroup(
+      name: tokenTitle,
+      iconUrl: communityAvatar,
+      symbolGroup: tokenTitle,
+      abbreviation: tokenTitle,
+      coins: [],
+    );
+
+    state = state.copyWith(communityCoinsGroup: communityCoinsGroup);
+  }
+
+  Future<CoinsGroup?> _deriveCommunityTokenCoinsGroup(CommunityToken? token) async {
+    if (token == null) return null;
+
+    final wallets = ref.read(walletsNotifierProvider).valueOrNull ?? [];
+    final bscWallet = CreatorTokenUtils.findBscWallet(wallets);
+
+    if (bscWallet == null) return null;
+
+    final network = await ref.read(networkByIdProvider(bscWallet.network).future);
+    if (network == null) return null;
+
+    return CreatorTokenUtils.deriveCreatorTokenCoinsGroup(
+      token: token,
+      externalAddress: params.externalAddress,
+      network: network,
+    );
+  }
+
+  Future<void> _updateDerivedStateForSell() async {
+    final wallets = ref.read(walletsNotifierProvider).valueOrNull ?? [];
+    final bscWallet = CreatorTokenUtils.findBscWallet(wallets);
+
+    if (bscWallet == null || bscWallet.address == null) {
+      state = state.copyWith(
+        targetWallet: null,
+        targetNetwork: null,
+      );
+      return;
+    }
+
+    final targetNetwork = await _loadTargetNetwork(bscWallet);
+
+    state = state.copyWith(
+      targetWallet: bscWallet,
+      targetNetwork: targetNetwork,
+    );
+
+    // Also update payment token coins group if selected
+    final paymentToken = state.selectedPaymentToken;
+    if (paymentToken != null) {
+      final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
+      final paymentCoinsGroup = _derivePaymentCoinsGroup(paymentToken, walletView);
+      state = state.copyWith(paymentCoinsGroup: paymentCoinsGroup);
     }
   }
 
@@ -51,12 +179,25 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   void setAmountByPercentage(int percentage) {
-    final coinsGroup = state.paymentCoinsGroup;
-    if (coinsGroup == null) return;
+    final mode = params.mode;
 
-    final totalAmount = coinsGroup.totalAmount;
-    final amount = (totalAmount * percentage / 100).clamp(0.0, totalAmount);
-    setAmount(amount);
+    if (mode == CommunityTokenTradeMode.buy) {
+      final coinsGroup = state.paymentCoinsGroup;
+      if (coinsGroup == null) return;
+
+      final totalAmount = coinsGroup.totalAmount;
+      final amount = (totalAmount * percentage / TokenizedCommunitiesConstants.percentageDivisor)
+          .clamp(0.0, totalAmount);
+      setAmount(amount);
+    } else {
+      // Sell mode: use community token balance
+      final balance = state.communityTokenBalance;
+      if (balance <= 0) return;
+
+      final amount = (balance * percentage / TokenizedCommunitiesConstants.percentageDivisor)
+          .clamp(0.0, balance);
+      setAmount(amount);
+    }
   }
 
   void selectPaymentToken(CoinData token) {
@@ -135,14 +276,16 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
   void _debouncedQuote() {
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 500), _getQuote);
+    _debounceTimer = Timer(
+      const Duration(milliseconds: TokenizedCommunitiesConstants.quoteDebounceMilliseconds),
+      _getQuote,
+    );
   }
 
   Future<void> _getQuote() async {
     final amount = state.amount;
-    final token = state.selectedPaymentToken;
 
-    if (amount <= 0 || token == null) {
+    if (amount <= 0) {
       state = state.copyWith(isQuoting: false, quoteAmount: null);
       return;
     }
@@ -150,17 +293,54 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     state = state.copyWith(isQuoting: true);
 
     try {
-      final amountIn = toBlockchainUnits(amount, token.decimals);
-      final quote =
-          await ref.read(buyCommunityTokenNotifierProvider(communityPubkey).notifier).getBuyQuote(
-                amountIn: amountIn,
-                baseTokenAddress: token.contractAddress,
-              );
-
-      state = state.copyWith(quoteAmount: quote, isQuoting: false);
-    } catch (e) {
-      debugPrint('Quote error: $e');
+      final mode = params.mode;
+      if (mode == CommunityTokenTradeMode.buy) {
+        await _getBuyQuote();
+      } else {
+        await _getSellQuote();
+      }
+    } catch (e, stackTrace) {
+      Logger.error(e, stackTrace: stackTrace, message: 'Failed to get quote');
       state = state.copyWith(quoteAmount: null, isQuoting: false);
     }
+  }
+
+  Future<void> _getBuyQuote() async {
+    final token = state.selectedPaymentToken;
+    if (token == null) {
+      state = state.copyWith(isQuoting: false, quoteAmount: null);
+      return;
+    }
+
+    final amountIn = toBlockchainUnits(state.amount, token.decimals);
+    final service = await ref.read(tradeCommunityTokenServiceProvider.future);
+
+    final quote = await service.getQuote(
+      externalAddress: params.externalAddress,
+      amountIn: amountIn,
+      baseTokenAddress: token.contractAddress,
+    );
+
+    state = state.copyWith(quoteAmount: quote, isQuoting: false);
+  }
+
+  Future<void> _getSellQuote() async {
+    final token = state.selectedPaymentToken;
+    if (token == null) {
+      state = state.copyWith(isQuoting: false, quoteAmount: null);
+      return;
+    }
+
+    final amountIn =
+        toBlockchainUnits(state.amount, TokenizedCommunitiesConstants.creatorTokenDecimals);
+    final service = await ref.read(tradeCommunityTokenServiceProvider.future);
+
+    final quote = await service.getSellQuote(
+      externalAddress: params.externalAddress,
+      amountIn: amountIn,
+      paymentTokenAddress: token.contractAddress,
+    );
+
+    state = state.copyWith(quoteAmount: quote, isQuoting: false);
   }
 }

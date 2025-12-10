@@ -18,5 +18,10 @@ class TradeCommunityTokenState with _$TradeCommunityTokenState {
     CoinsGroup? paymentCoinsGroup,
     Wallet? targetWallet,
     NetworkData? targetNetwork,
+    // Community token display (for buy mode)
+    CoinsGroup? communityCoinsGroup,
+    // Sell-specific fields
+    @Default(0) double communityTokenBalance,
+    CoinsGroup? communityTokenCoinsGroup,
   }) = _TradeCommunityTokenState;
 }
