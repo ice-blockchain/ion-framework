@@ -378,6 +378,7 @@ final class _QuotedPost extends ConsumerWidget {
             isAccentTheme: accentTheme,
             eventReference: eventReference,
             displayQuote: false,
+            plainInlineStyles: true,
             header: UserInfo(
               network: true,
               accentTheme: accentTheme,
