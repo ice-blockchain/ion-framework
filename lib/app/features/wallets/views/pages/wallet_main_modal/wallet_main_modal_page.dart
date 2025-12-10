@@ -5,14 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
-import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
-import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_main_modal/wallet_main_modal_list_item.dart';
 import 'package:ion/app/hooks/use_on_receive_funds_flow.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -76,15 +75,6 @@ class WalletMainModalPage extends HookConsumerWidget {
     WidgetRef ref,
     WalletMainModalListItem type,
   ) {
-    if (type == WalletMainModalListItem.swap) {
-      return ref.read(messageNotificationNotifierProvider.notifier).show(
-            MessageNotification(
-              message: context.i18n.wallet_swap_coming_soon,
-              icon: Assets.svg.iconBlockTime.icon(size: 16.0.s),
-            ),
-          );
-    }
-
     ref.invalidate(sendAssetFormControllerProvider);
 
     final symbolGroup = this.symbolGroup;
@@ -98,6 +88,17 @@ class WalletMainModalPage extends HookConsumerWidget {
     }
 
     final skipSelectCoinRoute = symbolGroup != null;
+
+    if (type == WalletMainModalListItem.swap) {
+      // Initialize swap state and open swap flow
+      ref.read(swapCoinsControllerProvider.notifier).initSellCoin(
+            coin: null,
+            network: null,
+          );
+      context.pushReplacement(SwapCoinsRoute().location);
+      return;
+    }
+
     context.pushReplacement(
       _getSubRouteLocation(type, skipSelectCoinRoute: skipSelectCoinRoute),
     );
@@ -109,7 +110,7 @@ class WalletMainModalPage extends HookConsumerWidget {
           ? SelectNetworkWalletRoute().location
           : SelectCoinWalletRoute().location,
       WalletMainModalListItem.receive => ReceiveCoinRoute().location,
-      WalletMainModalListItem.swap => '', // TODO: add swap route when the feature is implemented
+      WalletMainModalListItem.swap => SwapCoinsRoute().location,
     };
   }
 }
