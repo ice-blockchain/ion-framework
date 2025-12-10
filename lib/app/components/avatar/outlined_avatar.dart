@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
-import 'package:ion/app/components/avatar/avatar_constants.dart';
 import 'package:ion/app/components/gradient_border_painter/gradient_border_painter.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 
