@@ -2,6 +2,7 @@
 
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
+import 'package:ion_swap_client/models/ion_signature.m.dart';
 import 'package:ion_swap_client/utils/evm_tx_builder.dart';
 
 // TODO(ice-erebus): move to separate package
@@ -11,6 +12,18 @@ class IonIdentityTransactionApi {
   }) : _clientResolver = clientResolver;
 
   final IONIdentityClient _clientResolver;
+
+  Future<IonSignature> sign({
+    required String walletId,
+    required String message,
+    required UserActionSignerNew userActionSigner,
+  }) async {
+    final wallet = await _resolveWallet(_clientResolver, walletId);
+    final response = await _clientResolver.wallets.sign(wallet, message, userActionSigner);
+    return IonSignature.fromJson(
+      response['signature'] as Map<String, dynamic>,
+    );
+  }
 
   Future<String> signAndBroadcast({
     required String walletId,

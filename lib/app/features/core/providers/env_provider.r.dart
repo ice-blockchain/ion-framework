@@ -59,6 +59,7 @@ enum EnvVariable {
   CRYPTOCURRENCIES_ION_BRIDGE_ROUTER_CONTRACT_ADDRESS,
   CRYPTOCURRENCIES_ION_BRIDGE_CONTRACT_ADDRESS,
   CRYPTOCURRENCIES_ION_TRADE_URL,
+  CRYPTOCURRENCIES_ION_JRPC_URL,
 }
 
 @Riverpod(keepAlive: true)
@@ -179,6 +180,8 @@ class Env extends _$Env {
         const String.fromEnvironment('CRYPTOCURRENCIES_ION_BRIDGE_CONTRACT_ADDRESS') as T,
       EnvVariable.CRYPTOCURRENCIES_ION_TRADE_URL =>
         const String.fromEnvironment('CRYPTOCURRENCIES_ION_TRADE_URL') as T,
+      EnvVariable.CRYPTOCURRENCIES_ION_JRPC_URL =>
+        const String.fromEnvironment('CRYPTOCURRENCIES_ION_JRPC_URL') as T,
     };
   }
 }
