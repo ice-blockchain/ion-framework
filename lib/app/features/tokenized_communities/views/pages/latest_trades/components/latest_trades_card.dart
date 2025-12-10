@@ -135,7 +135,7 @@ class _CardTitle extends StatelessWidget {
         SizedBox(width: 6.0.s),
         Expanded(
           child: Text(
-            i18n.latest_trades_title,
+            title,
             style: texts.subtitle3.copyWith(color: colors.onTertiaryBackground),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

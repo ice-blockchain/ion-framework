@@ -580,7 +580,7 @@
   "invite_friends_summary_referrals_text": "Общо препоръки",
   "invite_friends_summary_upgrades_text": "Надстройки",
   "latest_trades_empty": "Направете първата транзакция",
-  "latest_trades_title": "Последни сделки",
+  "latest_trades_title": "Сделки",
   "maintenance_page_description": "Правим някои бързи подобрения зад кулисите. Всичко ще се върне към нормално скоро. Моля, опитайте отново по-късно.",
   "maintenance_page_title": "Ще се върнем скоро",
   "members_count": "{count, plural, =1 {{count} член} other {{count} членове}}",

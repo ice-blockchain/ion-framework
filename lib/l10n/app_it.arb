@@ -580,7 +580,7 @@
   "invite_friends_summary_referrals_text": "Referral totali",
   "invite_friends_summary_upgrades_text": "Aggiornamenti",
   "latest_trades_empty": "Effettua la prima transazione",
-  "latest_trades_title": "Ultime operazioni",
+  "latest_trades_title": "Operazioni",
   "maintenance_page_description": "Stiamo apportando alcuni miglioramenti rapidi dietro le quinte. Tutto tornerà alla normalità a breve. Riprova più tardi.",
   "maintenance_page_title": "Torneremo a breve",
   "members_count": "{count, plural, =1 {{count} membro} other {{count} membri}}",

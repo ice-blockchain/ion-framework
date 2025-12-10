@@ -580,7 +580,7 @@
   "invite_friends_summary_referrals_text": "Total referrals",
   "invite_friends_summary_upgrades_text": "Upgrades",
   "latest_trades_empty": "Make the first transaction",
-  "latest_trades_title": "Latest Trades",
+  "latest_trades_title": "Trades",
   "maintenance_page_description": "We’re making some quick improvements behind the scenes. Everything will be back to normal soon. Please try again later.",
   "maintenance_page_title": "We’ll be back shortly",
   "members_count": "{count, plural, =1 {{count} member} other {{count} members}}",
