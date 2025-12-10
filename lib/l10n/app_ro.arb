@@ -580,7 +580,7 @@
   "invite_friends_summary_referrals_text": "Recomandări totale",
   "invite_friends_summary_upgrades_text": "Actualizări",
   "latest_trades_empty": "Efectuează prima tranzacție",
-  "latest_trades_title": "Ultimele tranzacții",
+  "latest_trades_title": "Tranzacții",
   "maintenance_page_description": "Facem îmbunătățiri rapide în culise. Totul va reveni la normal în curând. Vă rugăm să încercați din nou mai târziu.",
   "maintenance_page_title": "Vom reveni în curând",
   "members_count": "{count, plural, =1 {{count} membru} other {{count} membri}}",

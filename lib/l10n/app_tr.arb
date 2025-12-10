@@ -580,7 +580,7 @@
   "invite_friends_summary_referrals_text": "Toplam referans",
   "invite_friends_summary_upgrades_text": "Yükseltmeler",
   "latest_trades_empty": "İlk işlemi yapın",
-  "latest_trades_title": "En son işlemler",
+  "latest_trades_title": "İşlemler",
   "maintenance_page_description": "Perde arkasında hızlı iyileştirmeler yapıyoruz. Her şey yakında normale dönecek. Lütfen daha sonra tekrar deneyin.",
   "maintenance_page_title": "Kısa süre içinde döneceğiz",
   "members_count": "{count, plural, =1 {{count} üye} other {{count} üye}}",

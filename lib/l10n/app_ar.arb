@@ -588,7 +588,7 @@
   "invite_friends_summary_referrals_text": "إجمالي الدعوات",
   "invite_friends_summary_upgrades_text": "الترقيات",
   "latest_trades_empty": "قم بإجراء المعاملة الأولى",
-  "latest_trades_title": "أحدث الصفقات",
+  "latest_trades_title": "الصفقات",
   "maintenance_page_description": "نقوم بإجراء بعض التحسينات السريعة خلف الكواليس. سيعود كل شيء إلى طبيعته قريباً. يرجى المحاولة مرة أخرى لاحقًا.",
   "maintenance_page_title": "سنعود قريبًا",
   "members_count": "{count, plural, =1 {{count} عضو} other {{count} أعضاء}}",
