@@ -131,6 +131,8 @@ class _ErrorState extends StatelessWidget {
           quoteError! as OkxException,
         ),
       InsufficientBalanceException() => context.i18n.error_swap_82000,
+      final AmountBelowMinimumException ex =>
+          context.i18n.error_swap_amount_below_min(ex.minAmount, ex.symbol),
       _ => context.i18n.error_getting_swap_quote,
     };
   }
@@ -210,11 +212,13 @@ class _ErrorState extends StatelessWidget {
             size: 16.0.s,
           ),
           SizedBox(width: 5.0.s),
-          Text(
-            _getErrorMessage(
-              context,
+          Expanded(
+            child: Text(
+              _getErrorMessage(
+                context,
+              ),
+              style: textStyles.body2.copyWith(),
             ),
-            style: textStyles.body2.copyWith(),
           ),
         ],
       ),
