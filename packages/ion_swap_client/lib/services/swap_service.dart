@@ -10,6 +10,7 @@ import 'package:ion_swap_client/services/cex_service.dart';
 import 'package:ion_swap_client/services/dex_service.dart';
 import 'package:ion_swap_client/services/ion_bsc_to_ion_bridge_service.dart';
 import 'package:ion_swap_client/services/ion_swap_service.dart';
+import 'package:ion_swap_client/services/ion_to_bsc_bridge_service.dart';
 
 typedef SendCoinCallback = Future<void> Function({
   required String depositAddress,
@@ -23,17 +24,20 @@ class SwapService {
     required BridgeService bridgeService,
     required IonBscToIonBridgeService ionBscToIonBridgeService,
     required IonSwapService ionSwapService,
+    required IonToBscBridgeService ionToBscBridgeService,
   })  : _okxService = okxService,
         _cexService = cexService,
         _bridgeService = bridgeService,
         _ionBscToIonBridgeService = ionBscToIonBridgeService,
-        _ionSwapService = ionSwapService;
+        _ionSwapService = ionSwapService,
+        _ionToBscBridgeService = ionToBscBridgeService;
 
   final DexService _okxService;
   final CexService _cexService;
   final BridgeService _bridgeService;
   final IonBscToIonBridgeService _ionBscToIonBridgeService;
   final IonSwapService _ionSwapService;
+  final IonToBscBridgeService _ionToBscBridgeService;
 
   Future<void> swapCoins({
     required SwapCoinParameters swapCoinData,
@@ -42,6 +46,18 @@ class SwapService {
     IonSwapRequest? ionSwapRequest,
   }) async {
     try {
+      if (_ionToBscBridgeService.isSupportedPair(swapCoinData)) {
+        if (ionSwapRequest == null) {
+          throw const IonSwapException('Ion swap request is required for ION → BSC bridge');
+        }
+
+        await _ionToBscBridgeService.bridgeToBsc(
+          swapCoinData: swapCoinData,
+          request: ionSwapRequest,
+        );
+        return;
+      }
+
       if (_ionBscToIonBridgeService.isSupportedPair(swapCoinData)) {
         if (ionSwapRequest == null) {
           throw const IonSwapException('Ion swap request is required for on-chain bridge');
@@ -105,6 +121,12 @@ class SwapService {
     required SwapCoinParameters swapCoinData,
   }) async {
     try {
+      if (_ionToBscBridgeService.isSupportedPair(swapCoinData)) {
+        return _ionToBscBridgeService.getQuote(
+          swapCoinData: swapCoinData,
+        );
+      }
+
       if (_ionBscToIonBridgeService.isSupportedPair(swapCoinData)) {
         return _ionBscToIonBridgeService.getQuote(
           swapCoinData: swapCoinData,
@@ -159,6 +181,7 @@ class SwapService {
 
   bool isIonBscSwap(SwapCoinParameters swapCoinData) {
     return _ionSwapService.isSupportedPair(swapCoinData) ||
-        _ionBscToIonBridgeService.isSupportedPair(swapCoinData);
+        _ionBscToIonBridgeService.isSupportedPair(swapCoinData) ||
+        _ionToBscBridgeService.isSupportedPair(swapCoinData);
   }
 }

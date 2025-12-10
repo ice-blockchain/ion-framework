@@ -23,6 +23,7 @@ mixin _$WalletSigningKey {
   String get scheme => throw _privateConstructorUsedError;
   String get curve => throw _privateConstructorUsedError;
   String get publicKey => throw _privateConstructorUsedError;
+  String get id => throw _privateConstructorUsedError;
 
   /// Serializes this WalletSigningKey to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -40,7 +41,7 @@ abstract class $WalletSigningKeyCopyWith<$Res> {
           WalletSigningKey value, $Res Function(WalletSigningKey) then) =
       _$WalletSigningKeyCopyWithImpl<$Res, WalletSigningKey>;
   @useResult
-  $Res call({String scheme, String curve, String publicKey});
+  $Res call({String scheme, String curve, String publicKey, String id});
 }
 
 /// @nodoc
@@ -61,6 +62,7 @@ class _$WalletSigningKeyCopyWithImpl<$Res, $Val extends WalletSigningKey>
     Object? scheme = null,
     Object? curve = null,
     Object? publicKey = null,
+    Object? id = null,
   }) {
     return _then(_value.copyWith(
       scheme: null == scheme
@@ -75,6 +77,10 @@ class _$WalletSigningKeyCopyWithImpl<$Res, $Val extends WalletSigningKey>
           ? _value.publicKey
           : publicKey // ignore: cast_nullable_to_non_nullable
               as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -87,7 +93,7 @@ abstract class _$$WalletSigningKeyImplCopyWith<$Res>
       __$$WalletSigningKeyImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String scheme, String curve, String publicKey});
+  $Res call({String scheme, String curve, String publicKey, String id});
 }
 
 /// @nodoc
@@ -106,6 +112,7 @@ class __$$WalletSigningKeyImplCopyWithImpl<$Res>
     Object? scheme = null,
     Object? curve = null,
     Object? publicKey = null,
+    Object? id = null,
   }) {
     return _then(_$WalletSigningKeyImpl(
       scheme: null == scheme
@@ -120,6 +127,10 @@ class __$$WalletSigningKeyImplCopyWithImpl<$Res>
           ? _value.publicKey
           : publicKey // ignore: cast_nullable_to_non_nullable
               as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -128,7 +139,10 @@ class __$$WalletSigningKeyImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$WalletSigningKeyImpl implements _WalletSigningKey {
   _$WalletSigningKeyImpl(
-      {required this.scheme, required this.curve, required this.publicKey});
+      {required this.scheme,
+      required this.curve,
+      required this.publicKey,
+      required this.id});
 
   factory _$WalletSigningKeyImpl.fromJson(Map<String, dynamic> json) =>
       _$$WalletSigningKeyImplFromJson(json);
@@ -139,10 +153,12 @@ class _$WalletSigningKeyImpl implements _WalletSigningKey {
   final String curve;
   @override
   final String publicKey;
+  @override
+  final String id;
 
   @override
   String toString() {
-    return 'WalletSigningKey(scheme: $scheme, curve: $curve, publicKey: $publicKey)';
+    return 'WalletSigningKey(scheme: $scheme, curve: $curve, publicKey: $publicKey, id: $id)';
   }
 
   @override
@@ -153,12 +169,13 @@ class _$WalletSigningKeyImpl implements _WalletSigningKey {
             (identical(other.scheme, scheme) || other.scheme == scheme) &&
             (identical(other.curve, curve) || other.curve == curve) &&
             (identical(other.publicKey, publicKey) ||
-                other.publicKey == publicKey));
+                other.publicKey == publicKey) &&
+            (identical(other.id, id) || other.id == id));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, scheme, curve, publicKey);
+  int get hashCode => Object.hash(runtimeType, scheme, curve, publicKey, id);
 
   /// Create a copy of WalletSigningKey
   /// with the given fields replaced by the non-null parameter values.
@@ -181,7 +198,8 @@ abstract class _WalletSigningKey implements WalletSigningKey {
   factory _WalletSigningKey(
       {required final String scheme,
       required final String curve,
-      required final String publicKey}) = _$WalletSigningKeyImpl;
+      required final String publicKey,
+      required final String id}) = _$WalletSigningKeyImpl;
 
   factory _WalletSigningKey.fromJson(Map<String, dynamic> json) =
       _$WalletSigningKeyImpl.fromJson;
@@ -192,6 +210,8 @@ abstract class _WalletSigningKey implements WalletSigningKey {
   String get curve;
   @override
   String get publicKey;
+  @override
+  String get id;
 
   /// Create a copy of WalletSigningKey
   /// with the given fields replaced by the non-null parameter values.

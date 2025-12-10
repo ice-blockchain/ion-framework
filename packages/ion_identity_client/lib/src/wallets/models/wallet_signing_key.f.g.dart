@@ -12,6 +12,7 @@ _$WalletSigningKeyImpl _$$WalletSigningKeyImplFromJson(
       scheme: json['scheme'] as String,
       curve: json['curve'] as String,
       publicKey: json['publicKey'] as String,
+      id: json['id'] as String,
     );
 
 Map<String, dynamic> _$$WalletSigningKeyImplToJson(
@@ -20,4 +21,5 @@ Map<String, dynamic> _$$WalletSigningKeyImplToJson(
       'scheme': instance.scheme,
       'curve': instance.curve,
       'publicKey': instance.publicKey,
+      'id': instance.id,
     };
