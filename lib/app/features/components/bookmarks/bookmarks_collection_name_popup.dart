@@ -104,7 +104,7 @@ class BookmarksCollectionNamePopup extends HookConsumerWidget {
                       if (formKey.value.currentState!.validate()) {
                         isProcessing.value = true;
                         try {
-                          await onAction(collectionName.value);
+                          await onAction(controller.text.trim());
                           if (context.mounted) {
                             context.pop();
                           }
