@@ -129,8 +129,8 @@ class _$SwapCoinParametersCopyWithImpl<$Res, $Val extends SwapCoinParameters>
 /// @nodoc
 abstract class _$$SwapCoinParametersImplCopyWith<$Res>
     implements $SwapCoinParametersCopyWith<$Res> {
-  factory _$$SwapCoinParametersImplCopyWith(_$SwapCoinParametersImpl value,
-          $Res Function(_$SwapCoinParametersImpl) then) =
+  factory _$$SwapCoinParametersImplCopyWith(
+          _$SwapCoinParametersImpl value, $Res Function(_$SwapCoinParametersImpl) then) =
       __$$SwapCoinParametersImplCopyWithImpl<$Res>;
   @override
   @useResult
@@ -152,8 +152,8 @@ abstract class _$$SwapCoinParametersImplCopyWith<$Res>
 class __$$SwapCoinParametersImplCopyWithImpl<$Res>
     extends _$SwapCoinParametersCopyWithImpl<$Res, _$SwapCoinParametersImpl>
     implements _$$SwapCoinParametersImplCopyWith<$Res> {
-  __$$SwapCoinParametersImplCopyWithImpl(_$SwapCoinParametersImpl _value,
-      $Res Function(_$SwapCoinParametersImpl) _then)
+  __$$SwapCoinParametersImplCopyWithImpl(
+      _$SwapCoinParametersImpl _value, $Res Function(_$SwapCoinParametersImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of SwapCoinParameters
@@ -257,8 +257,7 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
   @override
   @pragma('vm:prefer-inline')
   _$$SwapCoinParametersImplCopyWith<_$SwapCoinParametersImpl> get copyWith =>
-      __$$SwapCoinParametersImplCopyWithImpl<_$SwapCoinParametersImpl>(
-          this, _$identity);
+      __$$SwapCoinParametersImplCopyWithImpl<_$SwapCoinParametersImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
