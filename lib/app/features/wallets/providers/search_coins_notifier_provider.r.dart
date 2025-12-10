@@ -11,7 +11,13 @@ part 'search_coins_notifier_provider.r.g.dart';
 @riverpod
 class SearchCoinsNotifier extends _$SearchCoinsNotifier {
   @override
-  Future<List<CoinsGroup>> build() async => [];
+  Future<List<CoinsGroup>> build() async {
+    final walletView = ref.read(currentWalletViewDataProvider);
+    return walletView.maybeWhen(
+      data: (data) => data.coinGroups,
+      orElse: () => <CoinsGroup>[],
+    );
+  }
 
   Future<void> search({required String query}) async {
     if (query.isEmpty) {

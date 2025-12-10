@@ -15,6 +15,7 @@ class SelectCoinModalPage extends ConsumerWidget {
     this.showCloseButton = true,
     this.contactPubkey,
     this.coinsProvider,
+    this.onQueryChanged,
     super.key,
   });
 
@@ -24,6 +25,7 @@ class SelectCoinModalPage extends ConsumerWidget {
   final bool showCloseButton;
   final String? contactPubkey;
   final ProviderListenable<AsyncValue<List<CoinsGroup>>>? coinsProvider;
+  final void Function(String query)? onQueryChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -55,6 +57,10 @@ class SelectCoinModalPage extends ConsumerWidget {
         onItemTap: onCoinSelected,
         title: title,
         onQueryChanged: (String query) {
+          if (onQueryChanged != null) {
+            onQueryChanged!(query);
+            return;
+          }
           ref.read(filteredCoinsNotifierProvider.notifier).search(query);
         },
       ),
