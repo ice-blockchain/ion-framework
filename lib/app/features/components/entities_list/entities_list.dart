@@ -133,6 +133,7 @@ class _EntityListItem extends ConsumerWidget {
             eventReference: entity.toEventReference(),
             onVideoTap: onVideoTap,
             showNotInterested: showNotInterested,
+            plainInlineStyles: plainInlineStyles,
           ),
         _ => const SizedBox.shrink()
       },
