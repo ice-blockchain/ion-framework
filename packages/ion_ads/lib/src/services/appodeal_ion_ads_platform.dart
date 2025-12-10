@@ -3,7 +3,6 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:ion_ads/ion_ads.dart';
 
@@ -23,11 +22,11 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     bool testMode = true,
     bool verbose = false,
   }) async {
-    Appodeal.setTesting(!kReleaseMode); //only not release mode
+    Appodeal.setTesting(false); //only not release mode
     Appodeal.setLogLevel(verbose ? Appodeal.LogLevelVerbose : Appodeal.LogLevelNone);
 
-    Appodeal.setAutoCache(AppodealAdType.Interstitial, true);
-    Appodeal.setAutoCache(AppodealAdType.RewardedVideo, true);
+    //Appodeal.setAutoCache(AppodealAdType.Interstitial, true);
+    //Appodeal.setAutoCache(AppodealAdType.RewardedVideo, true);
     Appodeal.setAutoCache(AppodealAdType.NativeAd, true);
     Appodeal.setUseSafeArea(true);
 
@@ -38,10 +37,10 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     await Appodeal.initialize(
       appKey: Platform.isAndroid ? androidAppKey : iosAppKey,
       adTypes: [
-        AppodealAdType.RewardedVideo,
-        AppodealAdType.Interstitial,
-        AppodealAdType.Banner,
-        AppodealAdType.MREC,
+        //AppodealAdType.RewardedVideo,
+        // AppodealAdType.Interstitial,
+        // AppodealAdType.Banner,
+        // AppodealAdType.MREC,
         AppodealAdType.NativeAd,
       ],
       onInitializationFinished: (errors) {
@@ -133,7 +132,7 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
         log('onNativeLoaded');
       },
       onNativeFailedToLoad: () {
-        _isNativeLoaded = false;
+        //_isNativeLoaded = false;
         log('onNativeFailedToLoad');
       },
       onNativeShown: () => log('onNativeShown'),
@@ -144,24 +143,24 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
   }
 
   Future<void> _checkAdAvailability() async {
-    await Appodeal.cache(AppodealAdType.NativeAd);
-
     final bannerReady = await Appodeal.canShow(AppodealAdType.Banner);
     final interstitialReady = await Appodeal.canShow(AppodealAdType.Interstitial);
     final rewardedReady = await Appodeal.canShow(AppodealAdType.RewardedVideo);
     final isNativeInitialized = await Appodeal.isInitialized(AppodealAdType.NativeAd);
-    final nativeAdCount = await Appodeal.getAvailableNativeAdsCount() ?? 0;
+    final canShowNative = await Appodeal.canShow(AppodealAdType.NativeAd);
+    log('isNativeInitialized :$isNativeInitialized, canShowNative:$canShowNative');
+
+    await Appodeal.cache(AppodealAdType.NativeAd);
 
     _isBannerLoaded = bannerReady ?? false;
     _isInterstitialLoaded = interstitialReady ?? false;
     _isRewardedLoaded = rewardedReady ?? false;
-    _isNativeLoaded = nativeAdCount > 0 || (isNativeInitialized ?? false);
+    _isNativeLoaded = isNativeInitialized ?? false;
   }
 
   @override
-  Future<bool?> isAvailable(IonNativeAdPlacement placement) async {
-    if (!_initialized) return false;
-    return _isNativeLoaded;
+  bool isAvailable(IonNativeAdPlacement placement) {
+    return _initialized;
   }
 
   @override
