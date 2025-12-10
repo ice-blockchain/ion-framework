@@ -2,6 +2,7 @@
 
 import 'package:http/http.dart';
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_contract_providers.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_tx_builder.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_transaction_api.dart';
@@ -40,7 +41,8 @@ EvmContractProviders evmContractProviders(Ref ref) {
 @riverpod
 Web3Client web3Client(Ref ref) {
   // Using the BNB Testnet RPC as requested
-  const rpcUrl = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
+  final rpcUrl =
+      ref.watch(envProvider.notifier).get<String>(EnvVariable.CRYPTOCURRENCIES_BSC_RPC_URL);
   final httpClient = Client();
   return Web3Client(rpcUrl, httpClient);
 }

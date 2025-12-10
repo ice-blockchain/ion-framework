@@ -20,22 +20,12 @@ SwapCoinParameters _$SwapCoinParametersFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$SwapCoinParameters {
-  String get sellNetworkId => throw _privateConstructorUsedError;
-  String get buyNetworkId => throw _privateConstructorUsedError;
   String? get userSellAddress => throw _privateConstructorUsedError;
   String? get userBuyAddress => throw _privateConstructorUsedError;
-  String get sellCoinContractAddress => throw _privateConstructorUsedError;
-  String get buyCoinContractAddress => throw _privateConstructorUsedError;
-  String get sellCoinNetworkName => throw _privateConstructorUsedError;
-  String get buyCoinNetworkName => throw _privateConstructorUsedError;
   String get amount => throw _privateConstructorUsedError;
   bool get isBridge => throw _privateConstructorUsedError;
-  String get sellCoinCode => throw _privateConstructorUsedError;
-  String get buyCoinCode => throw _privateConstructorUsedError;
-
-  /// Used for lets exchange. It's extra id used for some coins,
-  /// fox example for XPR it's memo
-  String get buyExtraId => throw _privateConstructorUsedError;
+  SwapCoin get sellCoin => throw _privateConstructorUsedError;
+  SwapCoin get buyCoin => throw _privateConstructorUsedError;
 
   /// Serializes this SwapCoinParameters to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -54,19 +44,15 @@ abstract class $SwapCoinParametersCopyWith<$Res> {
       _$SwapCoinParametersCopyWithImpl<$Res, SwapCoinParameters>;
   @useResult
   $Res call(
-      {String sellNetworkId,
-      String buyNetworkId,
-      String? userSellAddress,
+      {String? userSellAddress,
       String? userBuyAddress,
-      String sellCoinContractAddress,
-      String buyCoinContractAddress,
-      String sellCoinNetworkName,
-      String buyCoinNetworkName,
       String amount,
       bool isBridge,
-      String sellCoinCode,
-      String buyCoinCode,
-      String buyExtraId});
+      SwapCoin sellCoin,
+      SwapCoin buyCoin});
+
+  $SwapCoinCopyWith<$Res> get sellCoin;
+  $SwapCoinCopyWith<$Res> get buyCoin;
 }
 
 /// @nodoc
@@ -84,29 +70,14 @@ class _$SwapCoinParametersCopyWithImpl<$Res, $Val extends SwapCoinParameters>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? sellNetworkId = null,
-    Object? buyNetworkId = null,
     Object? userSellAddress = freezed,
     Object? userBuyAddress = freezed,
-    Object? sellCoinContractAddress = null,
-    Object? buyCoinContractAddress = null,
-    Object? sellCoinNetworkName = null,
-    Object? buyCoinNetworkName = null,
     Object? amount = null,
     Object? isBridge = null,
-    Object? sellCoinCode = null,
-    Object? buyCoinCode = null,
-    Object? buyExtraId = null,
+    Object? sellCoin = null,
+    Object? buyCoin = null,
   }) {
     return _then(_value.copyWith(
-      sellNetworkId: null == sellNetworkId
-          ? _value.sellNetworkId
-          : sellNetworkId // ignore: cast_nullable_to_non_nullable
-              as String,
-      buyNetworkId: null == buyNetworkId
-          ? _value.buyNetworkId
-          : buyNetworkId // ignore: cast_nullable_to_non_nullable
-              as String,
       userSellAddress: freezed == userSellAddress
           ? _value.userSellAddress
           : userSellAddress // ignore: cast_nullable_to_non_nullable
@@ -115,22 +86,6 @@ class _$SwapCoinParametersCopyWithImpl<$Res, $Val extends SwapCoinParameters>
           ? _value.userBuyAddress
           : userBuyAddress // ignore: cast_nullable_to_non_nullable
               as String?,
-      sellCoinContractAddress: null == sellCoinContractAddress
-          ? _value.sellCoinContractAddress
-          : sellCoinContractAddress // ignore: cast_nullable_to_non_nullable
-              as String,
-      buyCoinContractAddress: null == buyCoinContractAddress
-          ? _value.buyCoinContractAddress
-          : buyCoinContractAddress // ignore: cast_nullable_to_non_nullable
-              as String,
-      sellCoinNetworkName: null == sellCoinNetworkName
-          ? _value.sellCoinNetworkName
-          : sellCoinNetworkName // ignore: cast_nullable_to_non_nullable
-              as String,
-      buyCoinNetworkName: null == buyCoinNetworkName
-          ? _value.buyCoinNetworkName
-          : buyCoinNetworkName // ignore: cast_nullable_to_non_nullable
-              as String,
       amount: null == amount
           ? _value.amount
           : amount // ignore: cast_nullable_to_non_nullable
@@ -139,52 +94,66 @@ class _$SwapCoinParametersCopyWithImpl<$Res, $Val extends SwapCoinParameters>
           ? _value.isBridge
           : isBridge // ignore: cast_nullable_to_non_nullable
               as bool,
-      sellCoinCode: null == sellCoinCode
-          ? _value.sellCoinCode
-          : sellCoinCode // ignore: cast_nullable_to_non_nullable
-              as String,
-      buyCoinCode: null == buyCoinCode
-          ? _value.buyCoinCode
-          : buyCoinCode // ignore: cast_nullable_to_non_nullable
-              as String,
-      buyExtraId: null == buyExtraId
-          ? _value.buyExtraId
-          : buyExtraId // ignore: cast_nullable_to_non_nullable
-              as String,
+      sellCoin: null == sellCoin
+          ? _value.sellCoin
+          : sellCoin // ignore: cast_nullable_to_non_nullable
+              as SwapCoin,
+      buyCoin: null == buyCoin
+          ? _value.buyCoin
+          : buyCoin // ignore: cast_nullable_to_non_nullable
+              as SwapCoin,
     ) as $Val);
+  }
+
+  /// Create a copy of SwapCoinParameters
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SwapCoinCopyWith<$Res> get sellCoin {
+    return $SwapCoinCopyWith<$Res>(_value.sellCoin, (value) {
+      return _then(_value.copyWith(sellCoin: value) as $Val);
+    });
+  }
+
+  /// Create a copy of SwapCoinParameters
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SwapCoinCopyWith<$Res> get buyCoin {
+    return $SwapCoinCopyWith<$Res>(_value.buyCoin, (value) {
+      return _then(_value.copyWith(buyCoin: value) as $Val);
+    });
   }
 }
 
 /// @nodoc
 abstract class _$$SwapCoinParametersImplCopyWith<$Res>
     implements $SwapCoinParametersCopyWith<$Res> {
-  factory _$$SwapCoinParametersImplCopyWith(_$SwapCoinParametersImpl value,
-          $Res Function(_$SwapCoinParametersImpl) then) =
+  factory _$$SwapCoinParametersImplCopyWith(
+          _$SwapCoinParametersImpl value, $Res Function(_$SwapCoinParametersImpl) then) =
       __$$SwapCoinParametersImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
-      {String sellNetworkId,
-      String buyNetworkId,
-      String? userSellAddress,
+      {String? userSellAddress,
       String? userBuyAddress,
-      String sellCoinContractAddress,
-      String buyCoinContractAddress,
-      String sellCoinNetworkName,
-      String buyCoinNetworkName,
       String amount,
       bool isBridge,
-      String sellCoinCode,
-      String buyCoinCode,
-      String buyExtraId});
+      SwapCoin sellCoin,
+      SwapCoin buyCoin});
+
+  @override
+  $SwapCoinCopyWith<$Res> get sellCoin;
+  @override
+  $SwapCoinCopyWith<$Res> get buyCoin;
 }
 
 /// @nodoc
 class __$$SwapCoinParametersImplCopyWithImpl<$Res>
     extends _$SwapCoinParametersCopyWithImpl<$Res, _$SwapCoinParametersImpl>
     implements _$$SwapCoinParametersImplCopyWith<$Res> {
-  __$$SwapCoinParametersImplCopyWithImpl(_$SwapCoinParametersImpl _value,
-      $Res Function(_$SwapCoinParametersImpl) _then)
+  __$$SwapCoinParametersImplCopyWithImpl(
+      _$SwapCoinParametersImpl _value, $Res Function(_$SwapCoinParametersImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of SwapCoinParameters
@@ -192,29 +161,14 @@ class __$$SwapCoinParametersImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? sellNetworkId = null,
-    Object? buyNetworkId = null,
     Object? userSellAddress = freezed,
     Object? userBuyAddress = freezed,
-    Object? sellCoinContractAddress = null,
-    Object? buyCoinContractAddress = null,
-    Object? sellCoinNetworkName = null,
-    Object? buyCoinNetworkName = null,
     Object? amount = null,
     Object? isBridge = null,
-    Object? sellCoinCode = null,
-    Object? buyCoinCode = null,
-    Object? buyExtraId = null,
+    Object? sellCoin = null,
+    Object? buyCoin = null,
   }) {
     return _then(_$SwapCoinParametersImpl(
-      sellNetworkId: null == sellNetworkId
-          ? _value.sellNetworkId
-          : sellNetworkId // ignore: cast_nullable_to_non_nullable
-              as String,
-      buyNetworkId: null == buyNetworkId
-          ? _value.buyNetworkId
-          : buyNetworkId // ignore: cast_nullable_to_non_nullable
-              as String,
       userSellAddress: freezed == userSellAddress
           ? _value.userSellAddress
           : userSellAddress // ignore: cast_nullable_to_non_nullable
@@ -223,22 +177,6 @@ class __$$SwapCoinParametersImplCopyWithImpl<$Res>
           ? _value.userBuyAddress
           : userBuyAddress // ignore: cast_nullable_to_non_nullable
               as String?,
-      sellCoinContractAddress: null == sellCoinContractAddress
-          ? _value.sellCoinContractAddress
-          : sellCoinContractAddress // ignore: cast_nullable_to_non_nullable
-              as String,
-      buyCoinContractAddress: null == buyCoinContractAddress
-          ? _value.buyCoinContractAddress
-          : buyCoinContractAddress // ignore: cast_nullable_to_non_nullable
-              as String,
-      sellCoinNetworkName: null == sellCoinNetworkName
-          ? _value.sellCoinNetworkName
-          : sellCoinNetworkName // ignore: cast_nullable_to_non_nullable
-              as String,
-      buyCoinNetworkName: null == buyCoinNetworkName
-          ? _value.buyCoinNetworkName
-          : buyCoinNetworkName // ignore: cast_nullable_to_non_nullable
-              as String,
       amount: null == amount
           ? _value.amount
           : amount // ignore: cast_nullable_to_non_nullable
@@ -247,18 +185,14 @@ class __$$SwapCoinParametersImplCopyWithImpl<$Res>
           ? _value.isBridge
           : isBridge // ignore: cast_nullable_to_non_nullable
               as bool,
-      sellCoinCode: null == sellCoinCode
-          ? _value.sellCoinCode
-          : sellCoinCode // ignore: cast_nullable_to_non_nullable
-              as String,
-      buyCoinCode: null == buyCoinCode
-          ? _value.buyCoinCode
-          : buyCoinCode // ignore: cast_nullable_to_non_nullable
-              as String,
-      buyExtraId: null == buyExtraId
-          ? _value.buyExtraId
-          : buyExtraId // ignore: cast_nullable_to_non_nullable
-              as String,
+      sellCoin: null == sellCoin
+          ? _value.sellCoin
+          : sellCoin // ignore: cast_nullable_to_non_nullable
+              as SwapCoin,
+      buyCoin: null == buyCoin
+          ? _value.buyCoin
+          : buyCoin // ignore: cast_nullable_to_non_nullable
+              as SwapCoin,
     ));
   }
 }
@@ -267,56 +201,32 @@ class __$$SwapCoinParametersImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$SwapCoinParametersImpl implements _SwapCoinParameters {
   _$SwapCoinParametersImpl(
-      {required this.sellNetworkId,
-      required this.buyNetworkId,
-      required this.userSellAddress,
+      {required this.userSellAddress,
       required this.userBuyAddress,
-      required this.sellCoinContractAddress,
-      required this.buyCoinContractAddress,
-      required this.sellCoinNetworkName,
-      required this.buyCoinNetworkName,
       required this.amount,
       required this.isBridge,
-      required this.sellCoinCode,
-      required this.buyCoinCode,
-      required this.buyExtraId});
+      required this.sellCoin,
+      required this.buyCoin});
 
   factory _$SwapCoinParametersImpl.fromJson(Map<String, dynamic> json) =>
       _$$SwapCoinParametersImplFromJson(json);
 
   @override
-  final String sellNetworkId;
-  @override
-  final String buyNetworkId;
-  @override
   final String? userSellAddress;
   @override
   final String? userBuyAddress;
-  @override
-  final String sellCoinContractAddress;
-  @override
-  final String buyCoinContractAddress;
-  @override
-  final String sellCoinNetworkName;
-  @override
-  final String buyCoinNetworkName;
   @override
   final String amount;
   @override
   final bool isBridge;
   @override
-  final String sellCoinCode;
+  final SwapCoin sellCoin;
   @override
-  final String buyCoinCode;
-
-  /// Used for lets exchange. It's extra id used for some coins,
-  /// fox example for XPR it's memo
-  @override
-  final String buyExtraId;
+  final SwapCoin buyCoin;
 
   @override
   String toString() {
-    return 'SwapCoinParameters(sellNetworkId: $sellNetworkId, buyNetworkId: $buyNetworkId, userSellAddress: $userSellAddress, userBuyAddress: $userBuyAddress, sellCoinContractAddress: $sellCoinContractAddress, buyCoinContractAddress: $buyCoinContractAddress, sellCoinNetworkName: $sellCoinNetworkName, buyCoinNetworkName: $buyCoinNetworkName, amount: $amount, isBridge: $isBridge, sellCoinCode: $sellCoinCode, buyCoinCode: $buyCoinCode, buyExtraId: $buyExtraId)';
+    return 'SwapCoinParameters(userSellAddress: $userSellAddress, userBuyAddress: $userBuyAddress, amount: $amount, isBridge: $isBridge, sellCoin: $sellCoin, buyCoin: $buyCoin)';
   }
 
   @override
@@ -324,51 +234,20 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$SwapCoinParametersImpl &&
-            (identical(other.sellNetworkId, sellNetworkId) ||
-                other.sellNetworkId == sellNetworkId) &&
-            (identical(other.buyNetworkId, buyNetworkId) ||
-                other.buyNetworkId == buyNetworkId) &&
             (identical(other.userSellAddress, userSellAddress) ||
                 other.userSellAddress == userSellAddress) &&
             (identical(other.userBuyAddress, userBuyAddress) ||
                 other.userBuyAddress == userBuyAddress) &&
-            (identical(
-                    other.sellCoinContractAddress, sellCoinContractAddress) ||
-                other.sellCoinContractAddress == sellCoinContractAddress) &&
-            (identical(other.buyCoinContractAddress, buyCoinContractAddress) ||
-                other.buyCoinContractAddress == buyCoinContractAddress) &&
-            (identical(other.sellCoinNetworkName, sellCoinNetworkName) ||
-                other.sellCoinNetworkName == sellCoinNetworkName) &&
-            (identical(other.buyCoinNetworkName, buyCoinNetworkName) ||
-                other.buyCoinNetworkName == buyCoinNetworkName) &&
             (identical(other.amount, amount) || other.amount == amount) &&
-            (identical(other.isBridge, isBridge) ||
-                other.isBridge == isBridge) &&
-            (identical(other.sellCoinCode, sellCoinCode) ||
-                other.sellCoinCode == sellCoinCode) &&
-            (identical(other.buyCoinCode, buyCoinCode) ||
-                other.buyCoinCode == buyCoinCode) &&
-            (identical(other.buyExtraId, buyExtraId) ||
-                other.buyExtraId == buyExtraId));
+            (identical(other.isBridge, isBridge) || other.isBridge == isBridge) &&
+            (identical(other.sellCoin, sellCoin) || other.sellCoin == sellCoin) &&
+            (identical(other.buyCoin, buyCoin) || other.buyCoin == buyCoin));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType,
-      sellNetworkId,
-      buyNetworkId,
-      userSellAddress,
-      userBuyAddress,
-      sellCoinContractAddress,
-      buyCoinContractAddress,
-      sellCoinNetworkName,
-      buyCoinNetworkName,
-      amount,
-      isBridge,
-      sellCoinCode,
-      buyCoinCode,
-      buyExtraId);
+      runtimeType, userSellAddress, userBuyAddress, amount, isBridge, sellCoin, buyCoin);
 
   /// Create a copy of SwapCoinParameters
   /// with the given fields replaced by the non-null parameter values.
@@ -376,8 +255,7 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
   @override
   @pragma('vm:prefer-inline')
   _$$SwapCoinParametersImplCopyWith<_$SwapCoinParametersImpl> get copyWith =>
-      __$$SwapCoinParametersImplCopyWithImpl<_$SwapCoinParametersImpl>(
-          this, _$identity);
+      __$$SwapCoinParametersImplCopyWithImpl<_$SwapCoinParametersImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -389,52 +267,28 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
 
 abstract class _SwapCoinParameters implements SwapCoinParameters {
   factory _SwapCoinParameters(
-      {required final String sellNetworkId,
-      required final String buyNetworkId,
-      required final String? userSellAddress,
+      {required final String? userSellAddress,
       required final String? userBuyAddress,
-      required final String sellCoinContractAddress,
-      required final String buyCoinContractAddress,
-      required final String sellCoinNetworkName,
-      required final String buyCoinNetworkName,
       required final String amount,
       required final bool isBridge,
-      required final String sellCoinCode,
-      required final String buyCoinCode,
-      required final String buyExtraId}) = _$SwapCoinParametersImpl;
+      required final SwapCoin sellCoin,
+      required final SwapCoin buyCoin}) = _$SwapCoinParametersImpl;
 
   factory _SwapCoinParameters.fromJson(Map<String, dynamic> json) =
       _$SwapCoinParametersImpl.fromJson;
 
   @override
-  String get sellNetworkId;
-  @override
-  String get buyNetworkId;
-  @override
   String? get userSellAddress;
   @override
   String? get userBuyAddress;
-  @override
-  String get sellCoinContractAddress;
-  @override
-  String get buyCoinContractAddress;
-  @override
-  String get sellCoinNetworkName;
-  @override
-  String get buyCoinNetworkName;
   @override
   String get amount;
   @override
   bool get isBridge;
   @override
-  String get sellCoinCode;
+  SwapCoin get sellCoin;
   @override
-  String get buyCoinCode;
-
-  /// Used for lets exchange. It's extra id used for some coins,
-  /// fox example for XPR it's memo
-  @override
-  String get buyExtraId;
+  SwapCoin get buyCoin;
 
   /// Create a copy of SwapCoinParameters
   /// with the given fields replaced by the non-null parameter values.

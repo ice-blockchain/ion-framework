@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
+import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_data.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/services/bridge_service.dart';
 import 'package:ion_swap_client/services/cex_service.dart';
 import 'package:ion_swap_client/services/dex_service.dart';
+import 'package:ion_swap_client/services/ion_swap_service.dart';
 
 typedef SendCoinCallback = Future<void> Function({
   required String depositAddress,
@@ -18,20 +20,40 @@ class SwapService {
     required DexService okxService,
     required CexService cexService,
     required BridgeService bridgeService,
+    required IonSwapService ionSwapService,
   })  : _okxService = okxService,
         _cexService = cexService,
-        _bridgeService = bridgeService;
+        _bridgeService = bridgeService,
+        _ionSwapService = ionSwapService;
 
   final DexService _okxService;
   final CexService _cexService;
   final BridgeService _bridgeService;
+  final IonSwapService _ionSwapService;
 
   Future<void> swapCoins({
     required SwapCoinParameters swapCoinData,
     required SendCoinCallback sendCoinCallback,
-    required SwapQuoteInfo swapQuoteInfo,
+    SwapQuoteInfo? swapQuoteInfo,
+    IonSwapRequest? ionSwapRequest,
   }) async {
     try {
+      if (isIonBscSwap(swapCoinData)) {
+        if (ionSwapRequest == null) {
+          throw const IonSwapException('Ion swap request is required for on-chain swap');
+        }
+
+        await _ionSwapService.swapCoins(
+          swapCoinData: swapCoinData,
+          request: ionSwapRequest,
+        );
+        return;
+      }
+
+      if (swapQuoteInfo == null) {
+        throw const IonSwapException('Swap quote is required');
+      }
+
       if (swapCoinData.isBridge) {
         await _bridgeService.tryToBridge(
           swapCoinData: swapCoinData,
@@ -41,7 +63,7 @@ class SwapService {
         return;
       }
 
-      if (swapCoinData.sellNetworkId == swapCoinData.buyNetworkId) {
+      if (swapCoinData.sellCoin.network.id == swapCoinData.buyCoin.network.id) {
         final success = await _okxService.tryToSwapDex(
           swapCoinData: swapCoinData,
           swapQuoteInfo: swapQuoteInfo,
@@ -68,6 +90,10 @@ class SwapService {
     required SwapCoinParameters swapCoinData,
   }) async {
     try {
+      if (isIonBscSwap(swapCoinData)) {
+        return _ionSwapService.getQuote(swapCoinData: swapCoinData);
+      }
+
       if (swapCoinData.isBridge) {
         final quote = await _bridgeService.getQuote(swapCoinData);
 
@@ -80,7 +106,7 @@ class SwapService {
         );
       }
 
-      if (swapCoinData.sellNetworkId == swapCoinData.buyNetworkId) {
+      if (swapCoinData.sellCoin.network.id == swapCoinData.buyCoin.network.id) {
         final quote = await _okxService.getQuotes(swapCoinData);
         if (quote == null) {
           throw const IonSwapException('Failed to get swap quote: No quote found');
@@ -108,5 +134,9 @@ class SwapService {
         'Failed to get swap quote: $e',
       );
     }
+  }
+
+  bool isIonBscSwap(SwapCoinParameters swapCoinData) {
+    return _ionSwapService.isSupportedPair(swapCoinData);
   }
 }
