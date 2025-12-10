@@ -34,7 +34,7 @@ class OutlinedAvatar extends StatelessWidget {
     final borderWidth = size * _ProfileOutlineConstants.borderWidthRatio;
     final padding = size * _ProfileOutlineConstants.paddingRatio;
     final innerSize = size - padding * 2;
-    final innerRadius = innerSize * AvatarConstants.borderRadiusRatio;
+    final innerRadius = innerSize * _ProfileOutlineConstants.borderRadiusRatio;
 
     final innerAvatar = imageUrl != null || imageWidget != null || defaultAvatar != null
         ? Avatar(
@@ -72,7 +72,7 @@ class OutlinedAvatar extends StatelessWidget {
     if (borderRadius is BorderRadius) {
       return borderRadius.topRight.x;
     }
-    return size * AvatarConstants.borderRadiusRatio;
+    return size * _ProfileOutlineConstants.borderRadiusRatio;
   }
 }
 
@@ -80,9 +80,11 @@ class OutlinedAvatar extends StatelessWidget {
 class _ProfileOutlineConstants {
   _ProfileOutlineConstants._();
 
-  // Border width ratio: 0.04
-  static const double borderWidthRatio = 0.04;
+  // Border width ratio: 0.025
+  static const double borderWidthRatio = 0.03;
 
   // Padding between border and avatar ratio: 0.05
   static const double paddingRatio = 0.05;
+
+  static const double borderRadiusRatio = 0.23;
 }
