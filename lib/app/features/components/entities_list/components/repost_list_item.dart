@@ -24,12 +24,14 @@ class RepostListItem extends ConsumerWidget {
     required this.eventReference,
     this.onVideoTap,
     this.showNotInterested = true,
+    this.plainInlineStyles = false,
     super.key,
   });
 
   final EventReference eventReference;
   final OnVideoTapCallback? onVideoTap;
   final bool showNotInterested;
+  final bool plainInlineStyles;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -75,6 +77,7 @@ class RepostListItem extends ConsumerWidget {
                 onVideoTap: onVideoTap,
                 showNotInterested: showNotInterested,
                 cache: false,
+                plainInlineStyles: plainInlineStyles,
               ),
             GenericRepostEntity() when repostEntity.data.kind == ModifiablePostEntity.kind => Post(
                 eventReference: repostEntity.data.eventReference,
@@ -82,6 +85,7 @@ class RepostListItem extends ConsumerWidget {
                 onVideoTap: onVideoTap,
                 showNotInterested: showNotInterested,
                 cache: false,
+                plainInlineStyles: plainInlineStyles,
               ),
             GenericRepostEntity() when repostEntity.data.kind == ArticleEntity.kind => Padding(
                 padding: EdgeInsetsDirectional.symmetric(vertical: 12.0.s) +
