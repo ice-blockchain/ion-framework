@@ -29,7 +29,7 @@ class NativeChatAd extends StatelessWidget {
                   children: [
                     Text(ad.title, style: theme.textPrimary.subtitle3),
                     const SizedBox(width: 6),
-                    if (ad.rating != null && ad.rating! > 0 || true)
+                    if (ad.rating != null && ad.rating! > 0)
                       StarRating(
                         rating: 4,
                         color: theme.adsColors.onTertiaryBackground,

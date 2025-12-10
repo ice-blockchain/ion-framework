@@ -96,7 +96,7 @@
 	<key>NSUserTrackingUsageDescription</key>
 	<string>This identifier will be used to deliver more relevant ads and measure performance.</string>
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy</string>
+	<string>$(ADMOB_ID)</string>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>INSendMessageIntent</string>
