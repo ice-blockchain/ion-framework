@@ -6,11 +6,9 @@ part of 'swap_quote_info.m.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SwapQuoteInfoImpl _$$SwapQuoteInfoImplFromJson(Map<String, dynamic> json) =>
-    _$SwapQuoteInfoImpl(
+_$SwapQuoteInfoImpl _$$SwapQuoteInfoImplFromJson(Map<String, dynamic> json) => _$SwapQuoteInfoImpl(
       type: $enumDecode(_$SwapQuoteInfoTypeEnumMap, json['type']),
-      priceForSellTokenInBuyToken:
-          (json['priceForSellTokenInBuyToken'] as num).toDouble(),
+      priceForSellTokenInBuyToken: (json['priceForSellTokenInBuyToken'] as num).toDouble(),
       source: $enumDecode(_$SwapQuoteInfoSourceEnumMap, json['source']),
       swapImpact: (json['swapImpact'] as num?)?.toInt(),
       networkFee: json['networkFee'] as String?,
@@ -20,8 +18,7 @@ _$SwapQuoteInfoImpl _$$SwapQuoteInfoImplFromJson(Map<String, dynamic> json) =>
           : ExolixRate.fromJson(json['exolixQuote'] as Map<String, dynamic>),
       letsExchangeQuote: json['letsExchangeQuote'] == null
           ? null
-          : LetsExchangeInfo.fromJson(
-              json['letsExchangeQuote'] as Map<String, dynamic>),
+          : LetsExchangeInfo.fromJson(json['letsExchangeQuote'] as Map<String, dynamic>),
       okxQuote: json['okxQuote'] == null
           ? null
           : SwapQuoteData.fromJson(json['okxQuote'] as Map<String, dynamic>),
@@ -31,8 +28,7 @@ _$SwapQuoteInfoImpl _$$SwapQuoteInfoImplFromJson(Map<String, dynamic> json) =>
       relayDepositAmount: json['relayDepositAmount'] as String?,
     );
 
-Map<String, dynamic> _$$SwapQuoteInfoImplToJson(_$SwapQuoteInfoImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$$SwapQuoteInfoImplToJson(_$SwapQuoteInfoImpl instance) => <String, dynamic>{
       'type': _$SwapQuoteInfoTypeEnumMap[instance.type]!,
       'priceForSellTokenInBuyToken': instance.priceForSellTokenInBuyToken,
       'source': _$SwapQuoteInfoSourceEnumMap[instance.source]!,
