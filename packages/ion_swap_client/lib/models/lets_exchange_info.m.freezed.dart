@@ -22,7 +22,18 @@ LetsExchangeInfo _$LetsExchangeInfoFromJson(Map<String, dynamic> json) {
 mixin _$LetsExchangeInfo {
   @JsonKey(name: 'rate_id')
   String get rateId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'min_amount')
+  String get minAmount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'max_amount')
+  String get maxAmount => throw _privateConstructorUsedError;
+  String get amount => throw _privateConstructorUsedError;
+  String get fee => throw _privateConstructorUsedError;
   String get rate => throw _privateConstructorUsedError;
+  String get profit => throw _privateConstructorUsedError;
+  @JsonKey(name: 'withdrawal_fee')
+  String get withdrawalFee => throw _privateConstructorUsedError;
+  @JsonKey(name: 'extra_fee_amount')
+  String get extraFeeAmount => throw _privateConstructorUsedError;
 
   /// Serializes this LetsExchangeInfo to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -40,7 +51,16 @@ abstract class $LetsExchangeInfoCopyWith<$Res> {
           LetsExchangeInfo value, $Res Function(LetsExchangeInfo) then) =
       _$LetsExchangeInfoCopyWithImpl<$Res, LetsExchangeInfo>;
   @useResult
-  $Res call({@JsonKey(name: 'rate_id') String rateId, String rate});
+  $Res call(
+      {@JsonKey(name: 'rate_id') String rateId,
+      @JsonKey(name: 'min_amount') String minAmount,
+      @JsonKey(name: 'max_amount') String maxAmount,
+      String amount,
+      String fee,
+      String rate,
+      String profit,
+      @JsonKey(name: 'withdrawal_fee') String withdrawalFee,
+      @JsonKey(name: 'extra_fee_amount') String extraFeeAmount});
 }
 
 /// @nodoc
@@ -59,16 +79,51 @@ class _$LetsExchangeInfoCopyWithImpl<$Res, $Val extends LetsExchangeInfo>
   @override
   $Res call({
     Object? rateId = null,
+    Object? minAmount = null,
+    Object? maxAmount = null,
+    Object? amount = null,
+    Object? fee = null,
     Object? rate = null,
+    Object? profit = null,
+    Object? withdrawalFee = null,
+    Object? extraFeeAmount = null,
   }) {
     return _then(_value.copyWith(
       rateId: null == rateId
           ? _value.rateId
           : rateId // ignore: cast_nullable_to_non_nullable
               as String,
+      minAmount: null == minAmount
+          ? _value.minAmount
+          : minAmount // ignore: cast_nullable_to_non_nullable
+              as String,
+      maxAmount: null == maxAmount
+          ? _value.maxAmount
+          : maxAmount // ignore: cast_nullable_to_non_nullable
+              as String,
+      amount: null == amount
+          ? _value.amount
+          : amount // ignore: cast_nullable_to_non_nullable
+              as String,
+      fee: null == fee
+          ? _value.fee
+          : fee // ignore: cast_nullable_to_non_nullable
+              as String,
       rate: null == rate
           ? _value.rate
           : rate // ignore: cast_nullable_to_non_nullable
+              as String,
+      profit: null == profit
+          ? _value.profit
+          : profit // ignore: cast_nullable_to_non_nullable
+              as String,
+      withdrawalFee: null == withdrawalFee
+          ? _value.withdrawalFee
+          : withdrawalFee // ignore: cast_nullable_to_non_nullable
+              as String,
+      extraFeeAmount: null == extraFeeAmount
+          ? _value.extraFeeAmount
+          : extraFeeAmount // ignore: cast_nullable_to_non_nullable
               as String,
     ) as $Val);
   }
@@ -82,7 +137,16 @@ abstract class _$$LetsExchangeInfoImplCopyWith<$Res>
       __$$LetsExchangeInfoImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({@JsonKey(name: 'rate_id') String rateId, String rate});
+  $Res call(
+      {@JsonKey(name: 'rate_id') String rateId,
+      @JsonKey(name: 'min_amount') String minAmount,
+      @JsonKey(name: 'max_amount') String maxAmount,
+      String amount,
+      String fee,
+      String rate,
+      String profit,
+      @JsonKey(name: 'withdrawal_fee') String withdrawalFee,
+      @JsonKey(name: 'extra_fee_amount') String extraFeeAmount});
 }
 
 /// @nodoc
@@ -99,16 +163,51 @@ class __$$LetsExchangeInfoImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? rateId = null,
+    Object? minAmount = null,
+    Object? maxAmount = null,
+    Object? amount = null,
+    Object? fee = null,
     Object? rate = null,
+    Object? profit = null,
+    Object? withdrawalFee = null,
+    Object? extraFeeAmount = null,
   }) {
     return _then(_$LetsExchangeInfoImpl(
       rateId: null == rateId
           ? _value.rateId
           : rateId // ignore: cast_nullable_to_non_nullable
               as String,
+      minAmount: null == minAmount
+          ? _value.minAmount
+          : minAmount // ignore: cast_nullable_to_non_nullable
+              as String,
+      maxAmount: null == maxAmount
+          ? _value.maxAmount
+          : maxAmount // ignore: cast_nullable_to_non_nullable
+              as String,
+      amount: null == amount
+          ? _value.amount
+          : amount // ignore: cast_nullable_to_non_nullable
+              as String,
+      fee: null == fee
+          ? _value.fee
+          : fee // ignore: cast_nullable_to_non_nullable
+              as String,
       rate: null == rate
           ? _value.rate
           : rate // ignore: cast_nullable_to_non_nullable
+              as String,
+      profit: null == profit
+          ? _value.profit
+          : profit // ignore: cast_nullable_to_non_nullable
+              as String,
+      withdrawalFee: null == withdrawalFee
+          ? _value.withdrawalFee
+          : withdrawalFee // ignore: cast_nullable_to_non_nullable
+              as String,
+      extraFeeAmount: null == extraFeeAmount
+          ? _value.extraFeeAmount
+          : extraFeeAmount // ignore: cast_nullable_to_non_nullable
               as String,
     ));
   }
@@ -118,7 +217,15 @@ class __$$LetsExchangeInfoImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$LetsExchangeInfoImpl implements _LetsExchangeInfo {
   _$LetsExchangeInfoImpl(
-      {@JsonKey(name: 'rate_id') required this.rateId, required this.rate});
+      {@JsonKey(name: 'rate_id') required this.rateId,
+      @JsonKey(name: 'min_amount') required this.minAmount,
+      @JsonKey(name: 'max_amount') required this.maxAmount,
+      required this.amount,
+      required this.fee,
+      required this.rate,
+      required this.profit,
+      @JsonKey(name: 'withdrawal_fee') required this.withdrawalFee,
+      @JsonKey(name: 'extra_fee_amount') required this.extraFeeAmount});
 
   factory _$LetsExchangeInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$LetsExchangeInfoImplFromJson(json);
@@ -127,11 +234,29 @@ class _$LetsExchangeInfoImpl implements _LetsExchangeInfo {
   @JsonKey(name: 'rate_id')
   final String rateId;
   @override
+  @JsonKey(name: 'min_amount')
+  final String minAmount;
+  @override
+  @JsonKey(name: 'max_amount')
+  final String maxAmount;
+  @override
+  final String amount;
+  @override
+  final String fee;
+  @override
   final String rate;
+  @override
+  final String profit;
+  @override
+  @JsonKey(name: 'withdrawal_fee')
+  final String withdrawalFee;
+  @override
+  @JsonKey(name: 'extra_fee_amount')
+  final String extraFeeAmount;
 
   @override
   String toString() {
-    return 'LetsExchangeInfo(rateId: $rateId, rate: $rate)';
+    return 'LetsExchangeInfo(rateId: $rateId, minAmount: $minAmount, maxAmount: $maxAmount, amount: $amount, fee: $fee, rate: $rate, profit: $profit, withdrawalFee: $withdrawalFee, extraFeeAmount: $extraFeeAmount)';
   }
 
   @override
@@ -140,12 +265,24 @@ class _$LetsExchangeInfoImpl implements _LetsExchangeInfo {
         (other.runtimeType == runtimeType &&
             other is _$LetsExchangeInfoImpl &&
             (identical(other.rateId, rateId) || other.rateId == rateId) &&
-            (identical(other.rate, rate) || other.rate == rate));
+            (identical(other.minAmount, minAmount) ||
+                other.minAmount == minAmount) &&
+            (identical(other.maxAmount, maxAmount) ||
+                other.maxAmount == maxAmount) &&
+            (identical(other.amount, amount) || other.amount == amount) &&
+            (identical(other.fee, fee) || other.fee == fee) &&
+            (identical(other.rate, rate) || other.rate == rate) &&
+            (identical(other.profit, profit) || other.profit == profit) &&
+            (identical(other.withdrawalFee, withdrawalFee) ||
+                other.withdrawalFee == withdrawalFee) &&
+            (identical(other.extraFeeAmount, extraFeeAmount) ||
+                other.extraFeeAmount == extraFeeAmount));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, rateId, rate);
+  int get hashCode => Object.hash(runtimeType, rateId, minAmount, maxAmount,
+      amount, fee, rate, profit, withdrawalFee, extraFeeAmount);
 
   /// Create a copy of LetsExchangeInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -167,7 +304,15 @@ class _$LetsExchangeInfoImpl implements _LetsExchangeInfo {
 abstract class _LetsExchangeInfo implements LetsExchangeInfo {
   factory _LetsExchangeInfo(
       {@JsonKey(name: 'rate_id') required final String rateId,
-      required final String rate}) = _$LetsExchangeInfoImpl;
+      @JsonKey(name: 'min_amount') required final String minAmount,
+      @JsonKey(name: 'max_amount') required final String maxAmount,
+      required final String amount,
+      required final String fee,
+      required final String rate,
+      required final String profit,
+      @JsonKey(name: 'withdrawal_fee') required final String withdrawalFee,
+      @JsonKey(name: 'extra_fee_amount')
+      required final String extraFeeAmount}) = _$LetsExchangeInfoImpl;
 
   factory _LetsExchangeInfo.fromJson(Map<String, dynamic> json) =
       _$LetsExchangeInfoImpl.fromJson;
@@ -176,7 +321,25 @@ abstract class _LetsExchangeInfo implements LetsExchangeInfo {
   @JsonKey(name: 'rate_id')
   String get rateId;
   @override
+  @JsonKey(name: 'min_amount')
+  String get minAmount;
+  @override
+  @JsonKey(name: 'max_amount')
+  String get maxAmount;
+  @override
+  String get amount;
+  @override
+  String get fee;
+  @override
   String get rate;
+  @override
+  String get profit;
+  @override
+  @JsonKey(name: 'withdrawal_fee')
+  String get withdrawalFee;
+  @override
+  @JsonKey(name: 'extra_fee_amount')
+  String get extraFeeAmount;
 
   /// Create a copy of LetsExchangeInfo
   /// with the given fields replaced by the non-null parameter values.
