@@ -7,9 +7,9 @@ String formatPercent(double p) {
   return '$sign${p.toStringAsFixed(2)}%';
 }
 
-String formatPrice(double price) {
+String formatPrice(double price, {String symbol = r'$'}) {
   if (price >= 1) {
-    return NumberFormat.currency(symbol: r'$', decimalDigits: 2).format(price);
+    return NumberFormat.currency(symbol: symbol, decimalDigits: 2).format(price);
   }
   // Handle small prices with subscript notation similar to PriceLabelFormatter
   final abs = price.abs();

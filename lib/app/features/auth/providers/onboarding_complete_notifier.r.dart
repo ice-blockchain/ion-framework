@@ -7,6 +7,7 @@ import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.d
 import 'package:ion/app/features/auth/providers/onboarding_data_provider.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -14,6 +15,8 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_builder_provider.r.dart';
 import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/interest_set.f.dart';
@@ -87,9 +90,12 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
 
         final followList = _buildFollowList(updateUserSocialProfileResponse.referralMasterKey);
 
+        final userTokenDefinition = await _buildUserTokenDefinition();
+
         await ref.read(ionConnectNotifierProvider.notifier).sendEntitiesData(
           [
             userMetadata,
+            userTokenDefinition,
             followList,
             interestSetData,
             interestsData,
@@ -242,6 +248,21 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
     );
 
     return (interestSetData: interestSetData, interestsData: interestsData);
+  }
+
+  Future<CommunityTokenDefinition> _buildUserTokenDefinition() async {
+    final currentPubkey = ref.read(currentPubkeySelectorProvider);
+
+    if (currentPubkey == null) {
+      throw UserMasterPubkeyNotFoundException();
+    }
+
+    final communityTokenDefinitionBuilder = ref.read(communityTokenDefinitionBuilderProvider);
+    return communityTokenDefinitionBuilder.build(
+      origEventReference:
+          ReplaceableEventReference(masterPubkey: currentPubkey, kind: UserMetadataEntity.kind),
+      type: CommunityTokenDefinitionType.original,
+    );
   }
 
   Future<EventMessage> _buildUserDelegation({

@@ -26,6 +26,7 @@ class SeenEventsDao extends DatabaseAccessor<FollowingFeedDatabase> with _$SeenE
         nextEventReference: Value(event.nextEventReference),
         pubkey: event.pubkey,
         createdAt: event.createdAt.toMicroseconds,
+        kind: Value(event.kind),
       ),
       mode: InsertMode.insertOrReplace,
     );

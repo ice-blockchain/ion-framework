@@ -3,6 +3,7 @@
 import 'package:ion/app/features/feed/data/models/feed_interests.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:meta/meta.dart';
 
 typedef FeedFilterData = ({List<SearchExtension> search, Map<String, List<String>> tags});
@@ -13,6 +14,7 @@ sealed class FeedModifier {
   factory FeedModifier.top() = FeedModifierTop;
   factory FeedModifier.trending() = FeedModifierTrending;
   factory FeedModifier.explore(ExploreModifierType type) = FeedModifierExplore;
+  factory FeedModifier.tokenizedCommunity() = FeedModifierTokenizedCommunity;
 
   final String name;
 
@@ -100,3 +102,25 @@ class FeedModifierExplore extends FeedModifier {
 }
 
 enum ExploreModifierType { withAnyTopic, interests, any }
+
+@immutable
+class FeedModifierTokenizedCommunity extends FeedModifier {
+  const FeedModifierTokenizedCommunity() : super(name: 'tokenizedCommunity');
+
+  @override
+  FeedFilterData filter({String? interest}) {
+    return (
+      search: [],
+      tags: {
+        '#${RelatedHashtag.tagName}': [communityTokenActionTopic],
+      }
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is FeedModifierTokenizedCommunity;
+
+  @override
+  int get hashCode => name.hashCode;
+}

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/counter_items_footer/likes_counter_button.dart';
-import 'package:ion/app/components/counter_items_footer/post_token.dart';
+import 'package:ion/app/components/counter_items_footer/post_token_button.dart';
 import 'package:ion/app/components/counter_items_footer/replies_counter_button.dart';
 import 'package:ion/app/components/counter_items_footer/reposts_counter_button.dart';
 import 'package:ion/app/components/counter_items_footer/share_button.dart';
@@ -61,7 +61,7 @@ class CounterItemsFooter extends HookConsumerWidget {
           ),
         ),
         Center(
-          child: PostToken(
+          child: PostTokenButton(
             eventReference: eventReference,
             padding: itemPadding,
           ),

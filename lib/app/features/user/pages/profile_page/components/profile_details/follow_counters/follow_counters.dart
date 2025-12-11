@@ -17,6 +17,8 @@ class FollowCounters extends ConsumerWidget {
     this.height = 36.0,
     this.profileMode = ProfileMode.light,
     this.padding,
+    this.network = true,
+    this.enableDecoration = true,
     super.key,
   });
 
@@ -24,9 +26,14 @@ class FollowCounters extends ConsumerWidget {
   final double height;
   final ProfileMode profileMode;
   final EdgeInsetsGeometry? padding;
+  final bool network;
+  final bool enableDecoration;
 
   Decoration _decoration(BuildContext context) {
     if (profileMode == ProfileMode.dark) {
+      if (!enableDecoration) {
+        return const BoxDecoration();
+      }
       return ShapeDecoration(
         color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
@@ -41,6 +48,11 @@ class FollowCounters extends ConsumerWidget {
   }
 
   Widget _divider(BuildContext context) {
+    if (!enableDecoration) {
+      return SizedBox(
+        width: 16.s,
+      );
+    }
     if (profileMode == ProfileMode.dark) {
       return Padding(
         padding: EdgeInsetsDirectional.symmetric(horizontal: 12.0.s),
@@ -73,14 +85,14 @@ class FollowCounters extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final followListAsync = ref.watch(followListProvider(pubkey));
-    final followersCountAsync = ref.watch(followersCountProvider(pubkey));
+    final followListAsync = ref.watch(followListProvider(pubkey, network: network));
+    final followersCountAsync = ref.watch(followersCountProvider(pubkey, network: network));
     final followingNumber = followListAsync.valueOrNull?.data.list.length;
     final followersNumber = followersCountAsync.valueOrNull;
     final bothAvailable = followingNumber != null && followersNumber != null;
 
     final isLoading = followListAsync.isLoading || followersCountAsync.isLoading;
-    if (!isLoading && !bothAvailable) {
+    if (!isLoading && !bothAvailable && network) {
       return const SizedBox.shrink();
     }
 

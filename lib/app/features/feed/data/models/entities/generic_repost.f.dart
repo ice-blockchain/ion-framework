@@ -50,6 +50,10 @@ class GenericRepostEntity
   static const int modifiablePostRepostKind = 1630175;
 
   static const int articleRepostKind = 1630023;
+
+  static const int communityTokenDefinitionRepostKind = 1631175;
+
+  static const int communityTokenActionRepostKind = 161175;
 }
 
 @freezed

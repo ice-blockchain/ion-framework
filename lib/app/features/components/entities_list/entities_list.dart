@@ -5,6 +5,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/entities_list/components/article_list_item.dart';
+import 'package:ion/app/features/components/entities_list/components/community_token_action_list_item.dart';
+import 'package:ion/app/features/components/entities_list/components/community_token_live_list_item.dart';
 import 'package:ion/app/features/components/entities_list/components/post_list_item.dart';
 import 'package:ion/app/features/components/entities_list/components/repost_list_item.dart';
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
@@ -18,6 +20,8 @@ import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 
 class EntitiesList extends HookWidget {
@@ -134,6 +138,14 @@ class _EntityListItem extends ConsumerWidget {
             onVideoTap: onVideoTap,
             showNotInterested: showNotInterested,
             plainInlineStyles: plainInlineStyles,
+          ),
+        CommunityTokenActionEntity() => CommunityTokenActionListItem(
+            eventReference: entity.toEventReference(),
+            network: network,
+          ),
+        CommunityTokenDefinitionEntity() => CommunityTokenLiveListItem(
+            eventReference: entity.toEventReference(),
+            network: network,
           ),
         _ => const SizedBox.shrink()
       },

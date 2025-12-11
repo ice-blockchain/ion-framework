@@ -3,9 +3,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/feed/views/components/pump_ion/pump_ion_bought.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
+
+enum ProfileChartType {
+  raising,
+  falling,
+}
 
 class ProfileChart extends StatelessWidget {
   const ProfileChart({

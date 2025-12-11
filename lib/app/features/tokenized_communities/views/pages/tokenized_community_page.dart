@@ -89,6 +89,8 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       [visibilityState, sectionKeys],
     );
 
+    final statusBarHeight = MediaQuery.viewPaddingOf(context).top;
+
     return CollapsingHeaderScrollLinksLayout(
       backgroundColor: context.theme.appColors.secondaryBackground,
       tabs: TokenizedCommunityTabType.values,
@@ -96,8 +98,14 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       activeIndex: visibilityState.activeIndex.value,
       onTabTapped: scrollToSection,
       expandedHeaderHeight: _expandedHeaderHeight,
-      expandedHeader: TokenHeader(
-        token: token,
+      expandedHeader: Column(
+        children: [
+          SizedBox(height: statusBarHeight),
+          TokenHeader(
+            type: TokenHeaderType.tokenizedCommunity,
+            token: token,
+          ),
+        ],
       ),
       imageUrl: token.imageUrl,
       actions: [

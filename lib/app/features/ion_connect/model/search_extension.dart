@@ -407,3 +407,25 @@ class StoriesCountSearchExtension extends IncludeSearchExtension {
   @override
   String get query => 'kind6400+kind30175+expiration';
 }
+
+/// For every kind [forKind] that the subscription finds also include the count of followers that it has
+class FollowersCountSearchExtension extends IncludeSearchExtension {
+  FollowersCountSearchExtension({this.forKind = ModifiablePostEntity.kind});
+
+  @override
+  final int forKind;
+
+  @override
+  String get query => 'kind6400+kind3+group+p';
+}
+
+/// For every kind [forKind] that the subscription finds also include the kind3 event of the author
+class FollowingListSearchExtension extends IncludeSearchExtension {
+  FollowingListSearchExtension({this.forKind = ModifiablePostEntity.kind});
+
+  @override
+  final int forKind;
+
+  @override
+  String get query => 'kind3';
+}

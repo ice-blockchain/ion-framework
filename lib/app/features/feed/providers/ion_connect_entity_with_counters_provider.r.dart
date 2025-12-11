@@ -5,10 +5,13 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ion_connect_entity_with_counters_provider.r.g.dart';
@@ -25,10 +28,9 @@ IonConnectEntity? ionConnectSyncEntityWithCounters(
     throw const CurrentUserNotFoundException();
   }
 
-  // Do not query counters and deps if the entity if not a post or article (e.g. a repost)
-  if (eventReference is! ReplaceableEventReference ||
-      (eventReference.kind != ModifiablePostEntity.kind &&
-          eventReference.kind != ArticleEntity.kind)) {
+  final kind = eventReference.kind;
+
+  if (kind == null || !_hasCounters(kind)) {
     return ref.watch(ionConnectSyncEntityProvider(eventReference: eventReference));
   }
 
@@ -37,12 +39,7 @@ IonConnectEntity? ionConnectSyncEntityWithCounters(
     throw const CurrentUserNotFoundException();
   }
 
-  final search = SearchExtensions([
-    ...SearchExtensions.withCounters(
-      currentPubkey: currentUserPubkey,
-      forKind: eventReference.kind,
-    ).extensions,
-  ]).toString();
+  final search = _buildSearchForCounters(currentUserPubkey: currentUserPubkey, kind: kind);
 
   return ref.watch(
     ionConnectSyncEntityProvider(
@@ -66,10 +63,9 @@ Future<IonConnectEntity?> ionConnectEntityWithCounters(
     throw const CurrentUserNotFoundException();
   }
 
-  // Do not query counters and deps if the entity if not a post or article (e.g. a repost)
-  if (eventReference is! ReplaceableEventReference ||
-      (eventReference.kind != ModifiablePostEntity.kind &&
-          eventReference.kind != ArticleEntity.kind)) {
+  final kind = eventReference.kind;
+
+  if (kind == null || !_hasCounters(kind)) {
     return ref.watch(ionConnectEntityProvider(eventReference: eventReference).future);
   }
 
@@ -78,12 +74,7 @@ Future<IonConnectEntity?> ionConnectEntityWithCounters(
     throw const CurrentUserNotFoundException();
   }
 
-  final search = SearchExtensions([
-    ...SearchExtensions.withCounters(
-      currentPubkey: currentUserPubkey,
-      forKind: eventReference.kind,
-    ).extensions,
-  ]).toString();
+  final search = _buildSearchForCounters(currentUserPubkey: currentUserPubkey, kind: kind);
 
   return ref.watch(
     ionConnectEntityProvider(
@@ -93,4 +84,36 @@ Future<IonConnectEntity?> ionConnectEntityWithCounters(
       eventReference: eventReference,
     ).future,
   );
+}
+
+// Do not query counters and deps if the entity doesn't need it (e.g. a repost)
+bool _hasCounters(int kind) {
+  return [
+    ModifiablePostEntity.kind,
+    PostEntity.kind,
+    ArticleEntity.kind,
+    CommunityTokenDefinitionEntity.kind,
+    CommunityTokenActionEntity.kind,
+  ].any((kindWithCounters) => kindWithCounters == kind);
+}
+
+String _buildSearchForCounters({
+  required String currentUserPubkey,
+  required int kind,
+}) {
+  return SearchExtensions([
+    ...SearchExtensions.withCounters(
+      currentPubkey: currentUserPubkey,
+      forKind: kind,
+    ).extensions,
+    if (kind == CommunityTokenDefinitionEntity.kind) ...[
+      FollowingListSearchExtension(forKind: kind),
+      FollowersCountSearchExtension(forKind: kind),
+    ],
+    if (kind == CommunityTokenActionEntity.kind)
+      GenericIncludeSearchExtension(
+        forKind: kind,
+        includeKind: CommunityTokenDefinitionEntity.kind,
+      ),
+  ]).toString();
 }

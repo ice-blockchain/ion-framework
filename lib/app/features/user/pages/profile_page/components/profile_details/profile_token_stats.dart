@@ -2,12 +2,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
+import 'package:ion/app/features/user/model/profile_mode.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters.dart';
 import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
@@ -237,17 +241,20 @@ class BuyButton extends StatelessWidget {
   const BuyButton({
     required this.externalAddress,
     this.height = 23.0,
+    this.padding,
     super.key,
   });
 
   final String externalAddress;
   final double height;
+  final EdgeInsetsDirectional? padding;
 
   @override
   Widget build(BuildContext context) {
+    final padding = this.padding ?? EdgeInsetsDirectional.symmetric(horizontal: 10.0.s);
     return Container(
       height: height.s,
-      padding: EdgeInsets.symmetric(horizontal: 10.0.s),
+      padding: padding,
       decoration: ShapeDecoration(
         color: context.theme.appColors.primaryAccent,
         shape: RoundedRectangleBorder(
@@ -273,6 +280,122 @@ class BuyButton extends StatelessWidget {
             context.i18n.profile_token_buy,
             style: context.theme.appTextThemes.caption4.copyWith(
               color: context.theme.appColors.secondaryBackground,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ProfileTokenStatsFeed extends ConsumerWidget {
+  const ProfileTokenStatsFeed({
+    required this.externalAddress,
+    super.key,
+  });
+
+  final String externalAddress;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    if (tokenInfo == null) {
+      return const SizedBox.shrink();
+    }
+    final marketData = tokenInfo.marketData;
+
+    final showFollowCounters = tokenInfo.creator.addresses?.ionConnect != null;
+    return ConstrainedBox(
+      constraints: BoxConstraints(minWidth: 259.s),
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: AlignmentDirectional.bottomCenter,
+        children: [
+          Container(
+            decoration: ShapeDecoration(
+              color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.53.s),
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (showFollowCounters) ...[
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 34.0.s,
+                    ),
+                    child: FollowCounters(
+                      padding: EdgeInsetsDirectional.only(top: 9.s),
+                      enableDecoration: false,
+                      profileMode: ProfileMode.dark,
+                      pubkey: ReplaceableEventReference.fromString(
+                        tokenInfo.creator.addresses!.ionConnect!,
+                      ).masterPubkey,
+                    ),
+                  ),
+                  GradientHorizontalDivider(
+                    margin: EdgeInsetsDirectional.only(top: 6.3.s, bottom: 13.8.s),
+                  ),
+                ],
+                Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    top: showFollowCounters ? 0 : 22.s,
+                    start: 34.0.s,
+                    end: 34.0.s,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _StatItem(
+                        icon: Assets.svg.iconMemeMarketcap,
+                        text: MarketDataFormatter.formatCompactNumber(marketData.marketCap),
+                        onTap: () => showSimpleBottomSheet<void>(
+                          context: context,
+                          child: const InfoModal(infoType: InfoType.marketCap),
+                        ),
+                      ),
+                      _StatItem(
+                        icon: Assets.svg.iconMemeMarkers,
+                        text: MarketDataFormatter.formatPrice(marketData.priceUSD),
+                        onTap: () => showSimpleBottomSheet<void>(
+                          context: context,
+                          child: const InfoModal(infoType: InfoType.volume),
+                        ),
+                      ),
+                      _StatItem(
+                        icon: Assets.svg.iconSearchGroups,
+                        text: MarketDataFormatter.formatCompactNumber(marketData.volume),
+                        onTap: () => showSimpleBottomSheet<void>(
+                          context: context,
+                          child: const InfoModal(infoType: InfoType.holders),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 25.s,
+                ),
+              ],
+            ),
+          ),
+          PositionedDirectional(
+            bottom: -11.5.s,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => showSimpleBottomSheet<void>(
+                context: context,
+                child: TradeCommunityTokenDialog(
+                  externalAddress: externalAddress,
+                  mode: CommunityTokenTradeMode.buy,
+                ),
+              ),
+              child: BuyButton(
+                padding: EdgeInsetsDirectional.symmetric(horizontal: 22.s),
+                externalAddress: externalAddress,
+              ),
             ),
           ),
         ],

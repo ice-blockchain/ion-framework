@@ -14,6 +14,8 @@ import 'package:ion/app/features/feed/data/models/analytics_events.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/can_reply_notifier.r.dart';
+import 'package:ion/app/features/feed/views/components/community_token_action/community_token_action.dart';
+import 'package:ion/app/features/feed/views/components/community_token_live/community_token_live.dart';
 import 'package:ion/app/features/feed/views/components/post/post.dart';
 import 'package:ion/app/features/feed/views/components/reply_list/reply_list.dart';
 import 'package:ion/app/features/feed/views/components/scroll_to_top_button/scroll_to_top_button.dart';
@@ -21,6 +23,8 @@ import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/services/analytics_service/analytics_service_provider.r.dart';
@@ -70,15 +74,24 @@ class PostDetailsPage extends HookConsumerWidget {
                       },
                       headers: [
                         SliverToBoxAdapter(
-                          child: Post(
-                            eventReference: eventReference,
-                            timeFormat: TimestampFormat.detailed,
-                            onDelete: context.pop,
-                            isTextSelectable: true,
-                            bodyMaxLines: null,
-                            displayParent: true,
-                            showNotInterested: false,
-                          ),
+                          child: switch (entity) {
+                            CommunityTokenActionEntity() => CommunityTokenAction(
+                                eventReference: eventReference,
+                              ),
+                            CommunityTokenDefinitionEntity() => CommunityTokenLive(
+                                eventReference: eventReference,
+                              ),
+                            ModifiablePostEntity() || PostEntity() => Post(
+                                eventReference: eventReference,
+                                timeFormat: TimestampFormat.detailed,
+                                onDelete: context.pop,
+                                isTextSelectable: true,
+                                bodyMaxLines: null,
+                                displayParent: true,
+                                showNotInterested: false,
+                              ),
+                            _ => const SizedBox.shrink(),
+                          },
                         ),
                         const SliverToBoxAdapter(child: SectionSeparator()),
                       ],

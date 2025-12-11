@@ -11,6 +11,7 @@ import 'package:ion/app/components/text_editor/utils/extract_tags.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -48,6 +49,9 @@ import 'package:ion/app/features/ion_connect/model/source_post_reference.f.dart'
 import 'package:ion/app/features/ion_connect/providers/ion_connect_delete_file_notifier.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_builder_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/features/user/providers/verified_user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -304,6 +308,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       tags: pmoTags,
     );
     final fileEvents = await Future.wait(files.map(ionNotifier.sign));
+    final ownEventsToPublish = [...fileEvents, postEvent];
 
     final pubkeysToPublish = mentions.map((mention) => mention.value).toSet();
     final metadataBuilders = <EventsMetadataBuilder>[];
@@ -334,9 +339,16 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
     metadataBuilders.add(userEventsMetadataBuilder);
 
+    // We don't create a token definition for replies and stories
+    if (parentEntity == null && postData.expiration == null) {
+      final tokenDefinition = await _buildPostTokenDefinition(postData);
+      final tokenDefinitionEvent = await ionNotifier.sign(tokenDefinition);
+      ownEventsToPublish.add(tokenDefinitionEvent);
+    }
+
     pubkeysToPublish.remove(postEvent.masterPubkey);
     await Future.wait([
-      ionNotifier.sendEvents([...fileEvents, postEvent]),
+      ionNotifier.sendEvents(ownEventsToPublish),
       for (final pubkey in pubkeysToPublish)
         ionNotifier.sendEvent(
           postEvent,
@@ -416,9 +428,14 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       throw EntityNotFoundException(eventReference);
     }
 
-    if (entity is! ModifiablePostEntity && entity is! ArticleEntity && entity is! PostEntity) {
+    if (entity is! ModifiablePostEntity &&
+        entity is! ArticleEntity &&
+        entity is! PostEntity &&
+        entity is! CommunityTokenDefinitionEntity &&
+        entity is! CommunityTokenActionEntity) {
       throw UnsupportedParentEntity(entity);
     }
+
     return entity;
   }
 
@@ -561,6 +578,8 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       ModifiablePostEntity() => entity.data.relatedHashtags,
       PostEntity() => entity.data.relatedHashtags,
       ArticleEntity() => entity.data.relatedHashtags,
+      CommunityTokenDefinitionEntity() => entity.data.relatedHashtags,
+      CommunityTokenActionEntity() => entity.data.relatedHashtags,
       _ => null,
     };
   }
@@ -584,5 +603,23 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     await ref
         .read(feedUserInterestsNotifierProvider.notifier)
         .updateInterests(interaction, interactionCategories);
+  }
+
+  Future<CommunityTokenDefinition> _buildPostTokenDefinition(ModifiablePostData postData) async {
+    final currentPubkey = ref.read(currentPubkeySelectorProvider);
+
+    if (currentPubkey == null) {
+      throw UserMasterPubkeyNotFoundException();
+    }
+
+    final communityTokenDefinitionBuilder = ref.read(communityTokenDefinitionBuilderProvider);
+    return communityTokenDefinitionBuilder.build(
+      origEventReference: ReplaceableEventReference(
+        masterPubkey: currentPubkey,
+        kind: PostEntity.kind,
+        dTag: postData.replaceableEventId.value,
+      ),
+      type: CommunityTokenDefinitionType.original,
+    );
   }
 }

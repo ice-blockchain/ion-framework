@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:async/async.dart';
 import 'package:collection/collection.dart';
@@ -129,7 +130,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
     final followingLimit = _getFeedFollowingDistribution(totalLimit: limit);
     final globalAccountsLimit = _getFeedGlobalAccountsDistribution(totalLimit: limit);
-    final forYouLimit = limit - followingLimit - globalAccountsLimit;
+    final forYouLimit = max(limit - followingLimit - globalAccountsLimit, 0);
     final forYouOverflowedLimit =
         await _getFeedForYouOverflowedDistribution(forYouLimit: forYouLimit);
 
@@ -255,11 +256,13 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
                 FeedModifier.trending(): 1,
               }
             : switch (feedType) {
-                // Regular feeds has equal distribution of all modifiers.
+                // Regular feeds has 20% of tokenized community,
+                // the rest is equally distributed to all modifiers
                 FeedType.post || FeedType.video || FeedType.article => {
-                    exploreModifier: 1,
-                    FeedModifier.top(): 1,
-                    FeedModifier.trending(): 1,
+                    exploreModifier: 27,
+                    FeedModifier.top(): 27,
+                    FeedModifier.trending(): 27,
+                    FeedModifier.tokenizedCommunity(): 20,
                   },
                 // Stories feed has only explore and trending modifiers.
                 FeedType.story => {
@@ -741,6 +744,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       FeedModifierTrending() => feedConfig.trendingMaxAge,
       FeedModifierTop() => feedConfig.topMaxAge,
       FeedModifierExplore() => feedConfig.exploreMaxAge,
+      FeedModifierTokenizedCommunity() => feedConfig.tokenizedCommunitiesMaxAge,
     };
 
     final since = DateTime.now().subtract(maxAge).microsecondsSinceEpoch;
@@ -784,6 +788,16 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     // This is for the "Trending Videos" case, where we have to apply the global
     // "trending" modifier even to the distribution "explore" modifier.
     final modifierSearch = (globalFilter ?? distributionFilter).search;
+
+    if (modifier is FeedModifierTokenizedCommunity) {
+      return buildCommunityTokensDataSource(
+        actionSource: ActionSource.relayUrl(relayUrl),
+        currentPubkey: currentPubkey,
+        searchExtensions: modifierSearch,
+        tags: distributionFilter.tags,
+      );
+    }
+
     final extraTags = {...distributionFilter.tags, ...langTags};
 
     return switch (feedType) {
@@ -867,6 +881,11 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       return [_explorePaginationInterest];
     }
 
+    if (modifier is FeedModifierTokenizedCommunity) {
+      // For the "Tokenized Community" modifier, we return a stub interest as well.
+      return [_communityTokenPaginationInterest];
+    }
+
     final userInterests = await ref.read(feedUserInterestsProvider(feedType).future);
     return userInterests.categories.keys.toList();
   }
@@ -902,6 +921,8 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   String get _logTag => '[FEED FOR_YOU ${feedType.name}]';
 
   static const String _explorePaginationInterest = '_explore';
+
+  static const String _communityTokenPaginationInterest = '_community_token';
 }
 
 @Freezed(equal: false)

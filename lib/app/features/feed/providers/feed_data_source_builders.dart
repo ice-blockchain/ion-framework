@@ -13,6 +13,8 @@ import 'package:ion/app/features/ion_connect/model/related_event.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_event_marker.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/block_list.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 
@@ -253,6 +255,59 @@ FeedEntitiesDataSource buildStoriesDataSource({
       limit: limit,
       search: search,
       tags: tags,
+    ),
+  );
+
+  return FeedEntitiesDataSource(dataSource: dataSource);
+}
+
+FeedEntitiesDataSource buildCommunityTokensDataSource({
+  required ActionSource actionSource,
+  required String currentPubkey,
+  List<String>? authors,
+  int limit = 1,
+  List<SearchExtension>? searchExtensions,
+  Map<String, List<Object>>? tags,
+}) {
+  final search = SearchExtensions([
+    ...SearchExtensions.withCounters(
+      currentPubkey: currentPubkey,
+      forKind: CommunityTokenActionEntity.kind,
+    ).extensions,
+    ...SearchExtensions.withCounters(
+      currentPubkey: currentPubkey,
+      forKind: CommunityTokenDefinitionEntity.kind,
+    ).extensions,
+    ...SearchExtensions.withAuthors(forKind: CommunityTokenActionEntity.kind).extensions,
+    ...SearchExtensions.withAuthors(forKind: CommunityTokenDefinitionEntity.kind).extensions,
+    FollowingListSearchExtension(forKind: CommunityTokenDefinitionEntity.kind),
+    FollowersCountSearchExtension(forKind: CommunityTokenDefinitionEntity.kind),
+    GenericIncludeSearchExtension(
+      forKind: CommunityTokenActionEntity.kind,
+      includeKind: CommunityTokenDefinitionEntity.kind,
+    ),
+    if (searchExtensions != null) ...searchExtensions,
+  ]).toString();
+
+  final dataSource = EntitiesDataSource(
+    actionSource: actionSource,
+    entityFilter: (entity) {
+      return entity is CommunityTokenActionEntity ||
+          entity is CommunityTokenDefinitionEntity ||
+          entity is RepostEntity ||
+          entity is GenericRepostEntity;
+    },
+    requestFilter: RequestFilter(
+      kinds: const [
+        CommunityTokenActionEntity.kind,
+        CommunityTokenDefinitionEntity.kind,
+        GenericRepostEntity.communityTokenActionRepostKind,
+        GenericRepostEntity.communityTokenDefinitionRepostKind,
+      ],
+      authors: authors,
+      limit: limit,
+      tags: tags,
+      search: search,
     ),
   );
 

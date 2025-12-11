@@ -27,6 +27,7 @@ class Count extends _$Count {
     required ActionSource actionSource,
     Duration? cacheExpirationDuration,
     bool cache = true,
+    bool network = true,
   }) async {
     if (cache) {
       final countEntity = ref.watch(
@@ -46,11 +47,15 @@ class Count extends _$Count {
       }
     }
 
-    return _fetchCount(
-      key: key,
-      actionSource: actionSource,
-      requestData: requestData,
-    );
+    if (network) {
+      return _fetchCount(
+        key: key,
+        actionSource: actionSource,
+        requestData: requestData,
+      );
+    }
+
+    return null;
   }
 
   Future<dynamic> _fetchCount({

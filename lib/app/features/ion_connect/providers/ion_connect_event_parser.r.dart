@@ -24,6 +24,8 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart'
 import 'package:ion/app/features/ion_connect/model/mute_set.f.dart';
 import 'package:ion/app/features/ion_connect/model/not_authoritative_event.f.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_subscription.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
@@ -79,6 +81,9 @@ class EventParser {
       BadgeAwardEntity.kind => BadgeAwardEntity.fromEventMessage(eventMessage),
       PollVoteEntity.kind => PollVoteEntity.fromEventMessage(eventMessage),
       EventsMetadataEntity.kind => EventsMetadataEntity.fromEventMessage(eventMessage),
+      CommunityTokenDefinitionEntity.kind =>
+        CommunityTokenDefinitionEntity.fromEventMessage(eventMessage),
+      CommunityTokenActionEntity.kind => CommunityTokenActionEntity.fromEventMessage(eventMessage),
       _ => throw UnknownEventException(eventId: eventMessage.id, kind: eventMessage.kind)
     };
   }
