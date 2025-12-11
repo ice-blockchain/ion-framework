@@ -127,6 +127,39 @@ Future<({String contentToSign, List<List<String>> pmoTags})> convertDeltaToPmoTa
   return convertDeltaToPmoTags(delta.toJson());
 }
 
+/// Converts Delta JSON to plain text and PMO tags for posts.
+///
+/// Simplified version that only supports bold and italic formatting.
+/// Skips all block-level markdown and other inline formatting.
+///
+/// Returns a record containing the content to sign and the PMO tags.
+/// Throws [ContentConversionException] if conversion fails.
+Future<({String contentToSign, List<List<String>> pmoTags})> convertDeltaToPmoTagsForPosts(
+  List<dynamic> deltaJson,
+) async {
+  try {
+    final result = await DeltaMarkdownConverter.mapDeltaToPmoForPosts(deltaJson);
+    final trimResult = trimEmptyLines(result.text);
+    final adjustedTags = adjustPmoTagPositions(result.tags, trimResult.adjustPosition);
+    final pmoTags = adjustedTags.map((t) => t.toTag()).toList();
+    return (contentToSign: trimResult.trimmedText, pmoTags: pmoTags);
+  } catch (e) {
+    throw ContentConversionException(e, conversionType: 'Delta to PMO tags for posts');
+  }
+}
+
+/// Converts Delta to plain text and PMO tags for posts.
+///
+/// Simplified version that only supports bold and italic formatting.
+///
+/// Returns a record containing the content to sign and the PMO tags.
+/// Throws [ContentConversionException] if conversion fails.
+Future<({String contentToSign, List<List<String>> pmoTags})> convertDeltaToPmoTagsForPostsFromDelta(
+  Delta delta,
+) async {
+  return convertDeltaToPmoTagsForPosts(delta.toJson());
+}
+
 /// Converts Delta to markdown content.
 ///
 /// Throws [ContentConversionException] if conversion fails.

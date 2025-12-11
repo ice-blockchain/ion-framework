@@ -109,7 +109,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         media: media.values.toList(),
       );
 
-      final conversion = await convertDeltaToPmoTags(contentWithMedia.toJson());
+      final conversion = await convertDeltaToPmoTagsForPosts(contentWithMedia.toJson());
 
       final postData = ModifiablePostData(
         textContent: conversion.contentToSign,
@@ -205,7 +205,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       );
 
       // Convert Delta to PMO tags before creating data model
-      final conversion = await convertDeltaToPmoTags(contentWithMedia.toJson());
+      final conversion = await convertDeltaToPmoTagsForPosts(contentWithMedia.toJson());
 
       final postData = modifiedEntity.data.copyWith(
         textContent: conversion.contentToSign,
