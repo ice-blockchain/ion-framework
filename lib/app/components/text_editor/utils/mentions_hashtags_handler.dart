@@ -3,10 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/mention/models/mention_embed_data.f.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/mention/services/mention_insertion_service.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/mention/text_editor_mention_embed_builder.dart';
 import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_typing_listener.dart';
 import 'package:ion/app/features/feed/providers/suggestions/suggestions_notifier_provider.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 
 class MentionsHashtagsHandler extends TextEditorTypingListener {
@@ -53,10 +55,6 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
   Future<void> onMentionSuggestionSelected(
     ({String pubkey, String username}) pubkeyUsernamePair,
   ) async {
-    final userMetadata = await ref.read(userMetadataProvider(pubkeyUsernamePair.pubkey).future);
-    if (userMetadata == null) return;
-    final userMetadataEncoded = userMetadata.toEventReference().encode();
-
     final fullText = controller.document.toPlainText();
     final cursorIndex = controller.selection.baseOffset;
     final tags = _extractTags(fullText);
@@ -66,27 +64,22 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
     );
     if (tag.start == -1) return;
 
-    final suggestionWithTagChar = pubkeyUsernamePair.username.startsWith(tag.tagChar)
-        ? pubkeyUsernamePair.username
-        : '${tag.tagChar}${pubkeyUsernamePair.username}';
+    final mentionData = MentionEmbedData(
+      pubkey: pubkeyUsernamePair.pubkey,
+      username: pubkeyUsernamePair.username,
+    );
 
-    controller
-      ..removeListener(editorListener)
-      // remove the current '@...' placeholder
-      ..replaceText(tag.start, tag.length, suggestionWithTagChar, null)
-      // apply MentionAttribute using the encoded reference as its value
-      ..formatText(
+    controller.removeListener(editorListener);
+    try {
+      MentionInsertionService.insertMention(
+        controller,
         tag.start,
-        suggestionWithTagChar.length,
-        MentionAttribute.withValue(userMetadataEncoded),
-      )
-      // add a trailing space and move cursor after it
-      ..replaceText(tag.start + suggestionWithTagChar.length, 0, ' ', null)
-      ..updateSelection(
-        TextSelection.collapsed(offset: tag.start + suggestionWithTagChar.length + 1),
-        ChangeSource.local,
-      )
-      ..addListener(editorListener);
+        tag.length,
+        mentionData,
+      );
+    } finally {
+      controller.addListener(editorListener);
+    }
 
     // reapply attributes for other tags and reset suggestions
     _reapplyAllTags(controller.document.toPlainText());
@@ -187,8 +180,8 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
 
   _TagInfo? _findActiveTagNearCursor(String text, int cursorIndex) {
     //if there is only @ in text return it as a Tag
-    if (text == '@\n') {
-      return _TagInfo(start: 1, length: 1, text: '', tagChar: '@');
+    if (text == '$mentionPrefix\n') {
+      return _TagInfo(start: 1, length: 1, text: '', tagChar: mentionPrefix);
     }
     final tags = _extractTags(text);
     for (final tag in tags) {

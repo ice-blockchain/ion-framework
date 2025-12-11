@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
+import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
@@ -29,7 +30,9 @@ QuillController? usePostQuillController(
         ),
       );
       if (content != null) {
-        final document = Document.fromDelta(Delta.fromJson(jsonDecode(content) as List<dynamic>));
+        final document = Document.fromDelta(
+          DeltaBridge.normalizeToEmbedFormat(Delta.fromJson(jsonDecode(content) as List<dynamic>)),
+        );
         return QuillController(
           document: document,
           selection: TextSelection.collapsed(offset: document.length - 1),
@@ -41,7 +44,9 @@ QuillController? usePostQuillController(
           final (:content, :media) =
               ref.watch(parsedMediaWithMentionsProvider(modifiedEntity.data));
           if (content.isNotEmpty) {
-            final document = Document.fromDelta(content);
+            final document = Document.fromDelta(
+              DeltaBridge.normalizeToEmbedFormat(content),
+            );
             return QuillController(
               document: document,
               selection: TextSelection.collapsed(offset: document.length - 1),
