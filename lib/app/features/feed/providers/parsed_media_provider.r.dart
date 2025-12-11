@@ -75,7 +75,8 @@ Future<Delta> mentionsOverlay(
     return baseParsedMedia.content;
   }
 
-  return restoreMentions(baseParsedMedia.content, usernameToPubkey);
+  final restoredDelta = restoreMentions(baseParsedMedia.content, usernameToPubkey);
+  return processDeltaMatches(restoredDelta);
 }
 
 ({Delta content, List<MediaAttachment> media}) parseMediaContent({
