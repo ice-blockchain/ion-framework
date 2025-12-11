@@ -8,6 +8,7 @@ import com.appodeal.ads.nativead.NativeAdView
 import com.appodeal.ads.nativead.NativeAdViewAppWall
 import com.appodeal.ads.nativead.NativeAdViewContentStream
 import com.appodeal.ads.nativead.NativeAdViewNewsFeed
+import com.appodeal.appodeal_flutter.R
 
 internal val templateNativeAdViewBinder by lazy { TemplateNativeAdViewBinderImpl() }
 
@@ -15,11 +16,13 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
 
     override fun bind(activity: Activity, nativeAdOptions: NativeAdOptions): NativeAdView {
         val context = activity.applicationContext
+        val layoutInflater = activity.layoutInflater
         // Create the NativeAdView
         val nativeAdView = when (val nativeAdViewType = nativeAdOptions.nativeAdViewType) {
             NativeAdViewType.ContentStream -> NativeAdViewContentStream(context)
             NativeAdViewType.AppWall -> NativeAdViewAppWall(context)
-            NativeAdViewType.NewsFeed -> NativeAdViewNewsFeed(context)
+            //NativeAdViewType.NewsFeed -> NativeAdViewNewsFeed(context)
+            NativeAdViewType.NewsFeed -> layoutInflater.inflate(R.layout.apd_native_ad_view_custom, null) as NativeAdView
             else -> throw IllegalArgumentException("Unknown NativeAdViewType: $nativeAdViewType")
         }
 
@@ -49,6 +52,7 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
         (nativeAdView.callToActionView as? Button)?.apply {
             textSize = adActionButtonFontSize
             setBackgroundColor(nativeAdOptions.adActionButtonConfig.backgroundColor)
+            setBackgroundResource(R.drawable.apd_native_custom_round_outline)
             setTextColor(nativeAdOptions.adActionButtonConfig.textColor)
         }
 

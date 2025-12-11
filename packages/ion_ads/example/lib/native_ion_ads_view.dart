@@ -19,6 +19,14 @@ class _NativeIonPageState extends State<NativeIonPage> {
 
   bool showNews = false;
   bool showCustom = false;
+  bool showContentStream = false;
+  bool showAppWall = false;
+
+  final nativeAdOptions = NativeAdOptions.customOptions(
+    adIconConfig: AdIconConfig(size: 22),
+  );
+
+  final newsFeedOptions = NativeAdOptions.newsFeedOptions();
 
   @override
   void initState() {
@@ -63,6 +71,7 @@ class _NativeIonPageState extends State<NativeIonPage> {
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -94,31 +103,6 @@ class _NativeIonPageState extends State<NativeIonPage> {
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Feed'),
-                          NativeAdCard(ad: nativeAdAsset!),
-                          const SizedBox(height: 16),
-                          const Text('Chat'),
-                          SizedBox(
-                            width: 270,
-                            child: Expanded(
-                              child: Card(
-                                margin: EdgeInsets.zero,
-                                elevation: 6,
-                                child: NativeChatAd(ad: nativeAdAsset!),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text('Chat List'),
-                          Card(
-                            elevation: 6,
-                            child: NativeChatListAd(ad: nativeAdAsset!),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text('Article'),
-                          NativeArticleAd(ad: nativeAdAsset!),
-                          const SizedBox(height: 16),
-
                           const Text('NewsFeed Native Ad'),
                           OutlinedButton(
                             onPressed: () => setState(() {
@@ -128,21 +112,15 @@ class _NativeIonPageState extends State<NativeIonPage> {
                             child: Text('${!showNews ? 'Show' : 'Hide'} NewsFeed Native Ad'),
                           ),
                           if (showNews)
-                            SizedBox(
-                              height: 100,
-                              child: AppodealNativeAd(
-                                key: const ValueKey('AppWall Native Ad'),
-                                options: NativeAdOptions.appWallOptions(
-                                  adChoicePosition: AdChoicePosition.endTop,
-                                  adAttributionBackgroundColor: Colors.white,
-                                  adAttributionTextColor: Colors.black,
-                                  adActionButtonTextSize: 14,
-                                  adDescriptionFontSize: 12,
-                                  adTitleFontSize: 14,
+                            ClipRect(
+                              child: SizedBox(
+                                height: newsFeedOptions.getWidgetHeight(context),
+                                child: AppodealNativeAd(
+                                  key: const ValueKey('AppWall Native Ad'),
+                                  options: newsFeedOptions,
                                 ),
                               ),
                             ),
-
                           const Text('Custom Native Ad'),
                           OutlinedButton(
                             onPressed: () => setState(() {
@@ -153,40 +131,46 @@ class _NativeIonPageState extends State<NativeIonPage> {
                           ),
                           if (showCustom)
                             SizedBox(
-                              height: 270,
+                              height: nativeAdOptions.getWidgetHeight(context),
                               child: AppodealNativeAd(
                                 key: const ValueKey('Custom Native Ad'),
-                                options: NativeAdOptions.customOptions(
-                                  adIconConfig: AdIconConfig(size: 22),
-                                ),
+                                options: nativeAdOptions,
                               ),
                             ),
-
-                          // const Text('AppWall Native Ad'),
-                          // SizedBox(
-                          //   height: 200,
-                          //   child: AppodealNativeAd(
-                          //     options: NativeAdOptions.appWallOptions(),
-                          //   ),
-                          // ),
-
-                          // const Text('ContentStream Native Ad'),
-                          // SizedBox(
-                          //   height: 320,
-                          //   child: AppodealNativeAd(
-                          //     options: NativeAdOptions.contentStreamOptions(),
-                          //   ),
-                          // ),
-
-                          // SizedBox(
-                          //   height: 100,
-                          //   child: NativeStoryAd(ad: nativeAdAsset!),
-                          // ),
-                          // const SizedBox(height: 16),
-                          // SizedBox(
-                          //   height: 100,
-                          //   child: NativeVideoAd(ad: nativeAdAsset!),
-                          // ),
+                          const Text('AppWall Native Ad'),
+                          OutlinedButton(
+                            onPressed: () => setState(() {
+                              showNews = false;
+                              showCustom = false;
+                              showContentStream = false;
+                              showAppWall = !showAppWall;
+                            }),
+                            child: Text('${!showAppWall ? 'Show' : 'Hide'} AppWall'),
+                          ),
+                          if (showAppWall)
+                            SizedBox(
+                              height: 100,
+                              child: AppodealNativeAd(
+                                options: NativeAdOptions.appWallOptions(),
+                              ),
+                            ),
+                          const Text('ContentStream Native Ad'),
+                          OutlinedButton(
+                            onPressed: () => setState(() {
+                              showNews = false;
+                              showCustom = false;
+                              showAppWall = false;
+                              showContentStream = !showContentStream;
+                            }),
+                            child: Text('${!showContentStream ? 'Show' : 'Hide'} ContentStream'),
+                          ),
+                          if (showContentStream)
+                            SizedBox(
+                              height: 320,
+                              child: AppodealNativeAd(
+                                options: NativeAdOptions.contentStreamOptions(),
+                              ),
+                            ),
                           const SizedBox(height: 56),
                         ],
                       )
