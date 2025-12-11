@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/inputs/hooks/use_node_focused.dart';
@@ -176,145 +177,147 @@ class CreatorTokensPage extends HookConsumerWidget {
     return Scaffold(
       backgroundColor: backgroundColor,
       extendBodyBehindAppBar: true,
-      body: ScrollToTopWrapper(
-        scrollController: scrollController,
-        child: Stack(
-          alignment: Alignment.topCenter,
-          children: [
-            DefaultTabController(
-              length: CreatorTokensTabType.values.length,
-              child: NestedScrollView(
-                controller: scrollController,
-                headerSliverBuilder: (context, innerBoxIsScrolled) {
-                  return [
-                    SliverAppBar(
-                      pinned: true,
-                      expandedHeight: _expandedHeaderHeight.s,
-                      toolbarHeight: NavigationAppBar.screenHeaderHeight,
-                      backgroundColor: Colors.transparent,
-                      surfaceTintColor: Colors.transparent,
-                      elevation: 0,
-                      leading: NavigationBackButton(
-                        context.pop,
-                        icon: backButtonIcon,
-                      ),
-                      flexibleSpace: Builder(
-                        builder: (context) {
-                          return Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              ProfileBackground(
-                                colors: avatarColors,
-                              ),
-                              Opacity(
-                                opacity: 1 - opacity,
-                                child: featuredTokensAsync.when(
-                                  data: (tokens) {
-                                    if (tokens.isEmpty) return const SizedBox.shrink();
-                                    return CreatorTokensCarousel(
-                                      tokens: tokens,
-                                      onItemChanged: (token) {
-                                        selectedToken.value = token;
-                                      },
-                                    );
-                                  },
-                                  loading: () => const CreatorTokensCarouselSkeleton(),
-                                  error: (_, __) => const SizedBox.shrink(),
+      body: KeyboardDismissOnTap(
+        child: ScrollToTopWrapper(
+          scrollController: scrollController,
+          child: Stack(
+            alignment: Alignment.topCenter,
+            children: [
+              DefaultTabController(
+                length: CreatorTokensTabType.values.length,
+                child: NestedScrollView(
+                  controller: scrollController,
+                  headerSliverBuilder: (context, innerBoxIsScrolled) {
+                    return [
+                      SliverAppBar(
+                        pinned: true,
+                        expandedHeight: _expandedHeaderHeight.s,
+                        toolbarHeight: NavigationAppBar.screenHeaderHeight,
+                        backgroundColor: Colors.transparent,
+                        surfaceTintColor: Colors.transparent,
+                        elevation: 0,
+                        leading: NavigationBackButton(
+                          context.pop,
+                          icon: backButtonIcon,
+                        ),
+                        flexibleSpace: Builder(
+                          builder: (context) {
+                            return Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                ProfileBackground(
+                                  colors: avatarColors,
                                 ),
+                                Opacity(
+                                  opacity: 1 - opacity,
+                                  child: featuredTokensAsync.when(
+                                    data: (tokens) {
+                                      if (tokens.isEmpty) return const SizedBox.shrink();
+                                      return CreatorTokensCarousel(
+                                        tokens: tokens,
+                                        onItemChanged: (token) {
+                                          selectedToken.value = token;
+                                        },
+                                      );
+                                    },
+                                    loading: () => const CreatorTokensCarouselSkeleton(),
+                                    error: (_, __) => const SizedBox.shrink(),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        bottom: PreferredSize(
+                          preferredSize: Size.fromHeight(_tabBarHeight.s),
+                          child: ColoredBox(
+                            color: context.theme.appColors.primaryText,
+                            child: TabsHeader(
+                              tabs: CreatorTokensTabType.values,
+                              trailing: _SearchIconButton(
+                                onPressed: () {
+                                  final nextVisible = !isGlobalSearchVisible.value;
+                                  isGlobalSearchVisible.value = nextVisible;
+                                  if (!nextVisible) {
+                                    resetGlobalSearch();
+                                  }
+                                },
                               ),
-                            ],
-                          );
-                        },
-                      ),
-                      bottom: PreferredSize(
-                        preferredSize: Size.fromHeight(_tabBarHeight.s),
-                        child: ColoredBox(
-                          color: context.theme.appColors.primaryText,
-                          child: TabsHeader(
-                            tabs: CreatorTokensTabType.values,
-                            trailing: _SearchIconButton(
-                              onPressed: () {
-                                final nextVisible = !isGlobalSearchVisible.value;
-                                isGlobalSearchVisible.value = nextVisible;
-                                if (!nextVisible) {
-                                  resetGlobalSearch();
-                                }
-                              },
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    const SliverToBoxAdapter(
-                      child: SectionSeparator(),
-                    ),
-                    PinnedHeaderSliver(
-                      child: AnimatedSize(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
-                        child: isGlobalSearchVisible.value
-                            ? ColoredBox(
-                                color: context.theme.appColors.onPrimaryAccent,
-                                child: Padding(
-                                  padding: EdgeInsetsDirectional.only(
-                                    top: 12.0.s,
-                                    bottom: 8.0.s,
-                                  ),
-                                  child: ScreenSideOffset.small(
-                                    child: SearchInput(
-                                      controller: searchController,
-                                      focusNode: searchFocusNode,
-                                      onCancelSearch: () {
-                                        resetGlobalSearch();
-                                        isGlobalSearchVisible.value = false;
-                                      },
+                      const SliverToBoxAdapter(
+                        child: SectionSeparator(),
+                      ),
+                      PinnedHeaderSliver(
+                        child: AnimatedSize(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeInOut,
+                          child: isGlobalSearchVisible.value
+                              ? ColoredBox(
+                                  color: context.theme.appColors.onPrimaryAccent,
+                                  child: Padding(
+                                    padding: EdgeInsetsDirectional.only(
+                                      top: 12.0.s,
+                                      bottom: 8.0.s,
+                                    ),
+                                    child: ScreenSideOffset.small(
+                                      child: SearchInput(
+                                        controller: searchController,
+                                        focusNode: searchFocusNode,
+                                        onCancelSearch: () {
+                                          resetGlobalSearch();
+                                          isGlobalSearchVisible.value = false;
+                                        },
+                                      ),
                                     ),
                                   ),
-                                ),
-                              )
-                            : const SizedBox.shrink(),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
                       ),
-                    ),
-                  ];
-                },
-                body: IndexedStack(
-                  index: searchQuery.value.isNotEmpty ? 1 : 0,
-                  children: [
-                    TabBarView(
-                      children: CreatorTokensTabType.values.map(
-                        (tabType) {
-                          return CreatorTokensTabContent(
-                            tabType: tabType,
-                          );
-                        },
-                      ).toList(),
-                    ),
-                    LoadMoreBuilder(
-                      hasMore: globalSearch.activeHasMore,
-                      onLoadMore: globalSearchNotifier.loadMore,
-                      builder: (context, slivers) => RefreshIndicator(
-                        onRefresh: globalSearchNotifier.refresh,
-                        child: MediaQuery.removePadding(
-                          context: context,
-                          removeBottom: true,
-                          child: CustomScrollView(
-                            slivers: slivers,
+                    ];
+                  },
+                  body: IndexedStack(
+                    index: searchQuery.value.isNotEmpty ? 1 : 0,
+                    children: [
+                      TabBarView(
+                        children: CreatorTokensTabType.values.map(
+                          (tabType) {
+                            return CreatorTokensTabContent(
+                              tabType: tabType,
+                            );
+                          },
+                        ).toList(),
+                      ),
+                      LoadMoreBuilder(
+                        hasMore: globalSearch.activeHasMore,
+                        onLoadMore: globalSearchNotifier.loadMore,
+                        builder: (context, slivers) => RefreshIndicator(
+                          onRefresh: globalSearchNotifier.refresh,
+                          child: MediaQuery.removePadding(
+                            context: context,
+                            removeBottom: true,
+                            child: CustomScrollView(
+                              slivers: slivers,
+                            ),
                           ),
                         ),
+                        slivers: [
+                          CreatorTokensList(
+                            items: globalSearch.activeItems,
+                            isInitialLoading: globalSearch.activeIsInitialLoading,
+                          ),
+                          SliverPadding(padding: EdgeInsets.only(bottom: 12.0.s)),
+                        ],
                       ),
-                      slivers: [
-                        CreatorTokensList(
-                          items: globalSearch.activeItems,
-                          isInitialLoading: globalSearch.activeIsInitialLoading,
-                        ),
-                        SliverPadding(padding: EdgeInsets.only(bottom: 12.0.s)),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
