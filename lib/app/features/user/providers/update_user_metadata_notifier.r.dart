@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:collection/collection.dart';
+import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
@@ -74,6 +75,12 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
         );
       }
 
+      if (data.about != null) {
+        data = data.copyWith(
+          about: QuillTextUtils.trimBioDeltaJson(data.about),
+        );
+      }
+
       final entitiesData = [...files, data];
 
       final trimmedDisplayName = data.trimmedDisplayName;
@@ -85,12 +92,16 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
       final avatarChanged = currentUserMetadata?.data.picture != data.picture;
       if (currentUserMetadata != null &&
           (usernameChanged || displayNameChanged || avatarChanged || bioChanged)) {
+        final trimmedBio = bioChanged && data.about != null
+            ? QuillTextUtils.bioDeltaJsonToTrimmedPlainText(data.about)
+            : null;
+
         final updateUserSocialProfileResponse = await ref.read(
           updateUserSocialProfileProvider(
             data: UserSocialProfileData(
               username: usernameChanged ? data.name : null,
               displayName: displayNameChanged ? trimmedDisplayName : null,
-              bio: bioChanged ? data.about : null,
+              bio: bioChanged ? trimmedBio : null,
               avatar: avatarChanged ? data.picture : null,
             ),
           ).future,
