@@ -9,6 +9,7 @@ import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
+import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 
 class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
   const NavigationAppBar({
@@ -59,6 +60,7 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
     double? horizontalPadding,
     List<Widget>? actions,
     bool hideKeyboardOnBack = true,
+    bool showCloseButton = false,
     Widget? leading,
     Key? key,
   }) =>
@@ -66,7 +68,9 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
         title: title,
         showBackButton: showBackButton,
         onBackPress: onBackPress,
-        actions: actions,
+        actions: showCloseButton && (actions?.isEmpty ?? true)
+            ? const [NavigationCloseButton()]
+            : actions,
         useScreenTopOffset: false,
         hideKeyboardOnBack: hideKeyboardOnBack,
         leading: leading,
