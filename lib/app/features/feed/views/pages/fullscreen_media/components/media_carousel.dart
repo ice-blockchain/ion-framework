@@ -102,22 +102,24 @@ class MediaCarousel extends HookConsumerWidget {
             );
           },
         ),
-        PositionedDirectional(
-          start: 0,
-          end: 0,
-          bottom: 0,
-          child: SafeArea(
-            top: false,
-            child: ColoredBox(
-              color: Colors.transparent,
-              child: CounterItemsFooter(
-                eventReference: eventReference,
-                color: onPrimaryAccentColor,
-                onReplyTap: () => _onReplyTap(context),
+        if (currentPage.value < media.length &&
+            media[currentPage.value].mediaType != MediaType.video)
+          PositionedDirectional(
+            start: 0,
+            end: 0,
+            bottom: 0,
+            child: SafeArea(
+              top: false,
+              child: ColoredBox(
+                color: Colors.transparent,
+                child: CounterItemsFooter(
+                  eventReference: eventReference,
+                  color: onPrimaryAccentColor,
+                  onReplyTap: () => _onReplyTap(context),
+                ),
               ),
             ),
           ),
-        ),
       ],
     );
   }
