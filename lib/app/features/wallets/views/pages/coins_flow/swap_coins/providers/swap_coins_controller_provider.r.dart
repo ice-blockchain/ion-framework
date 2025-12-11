@@ -13,7 +13,6 @@ import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/network_fee_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/wallet_address_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/exceptions/insufficient_balance_exception.dart';
@@ -431,13 +430,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         swapCoinData: swapCoinParameters,
       );
 
-      final coin =
-          sellCoin.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-
-      final isValidAmount = _validateAmount(
-        fromBlockchainUnits(swapCoinParameters.amount, coin!.coin.decimals).toString(),
-        swapQuoteInfo,
-      );
+      final isValidAmount = _validateAmount(swapCoinParameters.amount, swapQuoteInfo);
       if (!isValidAmount) return;
 
       state = state.copyWith(

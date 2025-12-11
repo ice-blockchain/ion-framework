@@ -5,12 +5,14 @@ import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
 import 'package:ion_swap_client/models/chain_data.m.dart';
 import 'package:ion_swap_client/models/okx_api_response.m.dart';
+import 'package:ion_swap_client/models/okx_swap_transaction.m.dart';
 import 'package:ion_swap_client/models/swap_chain_data.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_data.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/repositories/chains_ids_repository.dart';
 import 'package:ion_swap_client/repositories/swap_okx_repository.dart';
+import 'package:ion_swap_client/utils/crypto_amount_converter.dart';
 
 class DexService {
   DexService({
@@ -22,8 +24,8 @@ class DexService {
   final SwapOkxRepository _swapOkxRepository;
   final ChainsIdsRepository _chainsIdsRepository;
 
-  // Returns true if swap was successful, false otherwise
-  Future<bool> tryToSwapDex({
+  // Returns transaction data if swap was successful, null otherwise
+  Future<OkxSwapTransaction?> tryToSwapDex({
     required SwapCoinParameters swapCoinData,
     required SwapQuoteInfo swapQuoteInfo,
   }) async {
@@ -39,7 +41,7 @@ class DexService {
       final approveTransactionResponse = await _swapOkxRepository.approveTransaction(
         chainIndex: okxQuote.chainIndex,
         tokenContractAddress: sellTokenAddress,
-        amount: swapCoinData.amount,
+        amount: toBlockchainUnits(swapCoinData.amount, int.parse(okxQuote.fromToken.decimal)),
       );
 
       _processOkxResponse(approveTransactionResponse);
@@ -49,7 +51,7 @@ class DexService {
         throw const IonSwapException('OKX: User sell address is required');
       }
 
-      await _swapOkxRepository.swap(
+      final swapResponse = await _swapOkxRepository.swap(
         chainIndex: okxQuote.chainIndex,
         amount: swapCoinData.amount,
         toTokenAddress: buyTokenAddress,
@@ -57,12 +59,18 @@ class DexService {
         userWalletAddress: userSellAddress,
       );
 
+      // Send swap transaction to the blockchain, triggering the swap smart contract
       await _swapOkxRepository.broadcastSwap(
         chainIndex: okxQuote.chainIndex,
         address: userSellAddress,
       );
 
-      return true;
+      final swapDataList = _processOkxResponse(swapResponse);
+      if (swapDataList.isEmpty) {
+        throw const IonSwapException('OKX: No swap data returned');
+      }
+
+      return swapDataList.first.tx;
     }
 
     throw const IonSwapException('Failed to swap on Dex: Invalid quote source');
