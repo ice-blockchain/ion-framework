@@ -231,8 +231,7 @@ class _SwapDetailsSection extends ConsumerWidget {
     final slippage = swapQuoteInfo?.slippage;
     final networkFee = swapQuoteInfo?.networkFee;
     final protocolFee = swapQuoteInfo?.protocolFee;
-    final isVisibleMoreButton =
-        priceImpact != null || slippage != null || networkFee != null || protocolFee != null;
+    final isVisibleMoreButton = priceImpact != null || slippage != null || networkFee != null || protocolFee != null;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -446,8 +445,9 @@ class _SwapButton extends ConsumerWidget {
           final notifier = ref.read(swapCoinsControllerProvider.notifier);
 
           final isIonBscSwap = await notifier.getIsIonBscSwap();
+          final isIonBridge = await notifier.getIsIonBridge();
 
-          if (isIonBscSwap) {
+          if (isIonBscSwap || isIonBridge) {
             if (context.mounted) {
               await guardPasskeyDialog(
                 context,

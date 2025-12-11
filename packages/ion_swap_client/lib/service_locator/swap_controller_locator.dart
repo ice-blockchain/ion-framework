@@ -7,6 +7,7 @@ import 'package:ion_swap_client/service_locator/repositories/api_repository_serv
 import 'package:ion_swap_client/services/bridge_service.dart';
 import 'package:ion_swap_client/services/cex_service.dart';
 import 'package:ion_swap_client/services/dex_service.dart';
+import 'package:ion_swap_client/services/ion_bridge_service.dart';
 import 'package:ion_swap_client/services/ion_swap_service.dart';
 import 'package:ion_swap_client/services/swap_service.dart';
 import 'package:ion_swap_client/utils/evm_tx_builder.dart';
@@ -37,11 +38,21 @@ class SwapControllerLocator {
     final okxRepository = apiRepositoryServiceLocator.getSwapOkxRepository(config: config);
     final relayApiRepository = apiRepositoryServiceLocator.getRelayApiRepository(config: config);
     final exolixRepository = apiRepositoryServiceLocator.getExolixRepository(config: config);
-    final letsExchangeRepository =
-        apiRepositoryServiceLocator.getLetsExchangeRepository(config: config);
+    final letsExchangeRepository = apiRepositoryServiceLocator.getLetsExchangeRepository(config: config);
 
     _swapCoinsController = SwapService(
       ionSwapService: IonSwapService(
+        ionIdentityClient: IonIdentityTransactionApi(
+          clientResolver: () async => ionIdentityClient,
+        ),
+        config: config,
+        web3client: web3client,
+        evmTxBuilder: EvmTxBuilder(
+          contracts: EvmContractProviders(),
+          web3Client: web3client,
+        ),
+      ),
+      ionBridgeService: IonBridgeService(
         ionIdentityClient: IonIdentityTransactionApi(
           clientResolver: () async => ionIdentityClient,
         ),

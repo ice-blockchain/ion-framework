@@ -183,14 +183,8 @@ class SwapCoinsController extends _$SwapCoinsController {
           setBuyNetwork(result);
       }
       return (
-        coin: switch (type) {
-          CoinSwapType.sell => state.sellCoin,
-          CoinSwapType.buy => state.buyCoin
-        },
-        network: switch (type) {
-          CoinSwapType.sell => state.sellNetwork,
-          CoinSwapType.buy => state.buyNetwork
-        },
+        coin: switch (type) { CoinSwapType.sell => state.sellCoin, CoinSwapType.buy => state.buyCoin },
+        network: switch (type) { CoinSwapType.sell => state.sellNetwork, CoinSwapType.buy => state.buyNetwork },
       );
     } else {
       switch (type) {
@@ -215,10 +209,8 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellAddress = await _getAddress(sellCoinGroup, sellNetwork);
     final buyAddress = await _getAddress(buyCoinGroup, buyNetwork);
 
-    final sellCoin =
-        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-    final buyCoin =
-        buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
+    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final buyCoin = buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
 
     if (sellCoin == null || buyCoin == null) {
       return null;
@@ -381,11 +373,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellNetwork = state.sellNetwork;
     final buyNetwork = state.buyNetwork;
     final amount = state.amount;
-    if (amount <= 0 ||
-        sellCoin == null ||
-        sellNetwork == null ||
-        buyCoin == null ||
-        buyNetwork == null) {
+    if (amount <= 0 || sellCoin == null || sellNetwork == null || buyCoin == null || buyNetwork == null) {
       return;
     }
 
@@ -445,9 +433,9 @@ class SwapCoinsController extends _$SwapCoinsController {
     Wallet wallet,
     UserActionSignerNew userActionSigner,
   ) async {
-    final isIonBscSwap = await getIsIonBscSwap();
+    final isIonOnchainSwap = await getIsIonBscSwap() || await getIsIonBridge();
 
-    if (isIonBscSwap) {
+    if (isIonOnchainSwap) {
       final identityClient = await ref.read(ionIdentityClientProvider.future);
       return IonSwapRequest(
         identityClient: identityClient,
@@ -466,6 +454,13 @@ class SwapCoinsController extends _$SwapCoinsController {
 
     final swapController = await ref.read(ionSwapClientProvider.future);
     return swapController.isIonBscSwap(swapCoinParameters);
+  }
+
+  Future<bool> getIsIonBridge() async {
+    final (:swapQuoteInfo, :swapCoinParameters, :sellNetwork, :sellCoin) = await _getData();
+
+    final swapController = await ref.read(ionSwapClientProvider.future);
+    return swapController.isIonBridgeBscToIon(swapCoinParameters);
   }
 
   Future<void> swapCoinsWithIonBscSwap({
@@ -500,6 +495,10 @@ class SwapCoinsController extends _$SwapCoinsController {
       senderWallet,
       userActionSigner,
     );
+
+    if (ionSwapRequest == null) {
+      throw Exception('Ion swap request is required for on-chain swap/bridge');
+    }
 
     try {
       await swapController.swapCoins(
@@ -541,15 +540,11 @@ class SwapCoinsController extends _$SwapCoinsController {
     final amount = state.amount;
     final swapQuoteInfo = state.swapQuoteInfo;
 
-    if (sellCoinGroup == null ||
-        buyCoinGroup == null ||
-        sellNetwork == null ||
-        buyNetwork == null) {
+    if (sellCoinGroup == null || buyCoinGroup == null || sellNetwork == null || buyNetwork == null) {
       throw Exception('Sell coin group, buy coin group, sell network, buy network is required');
     }
 
-    final sellCoin =
-        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
 
     if (sellCoin == null) {
       throw Exception('Sell coin is required');

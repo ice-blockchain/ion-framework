@@ -34,6 +34,7 @@ Future<SwapService> ionSwapClient(Ref ref) async {
     ionSwapContractAddress: env.get(EnvVariable.CRYPTOCURRENCIES_ION_SWAP_CONTRACT_ADDRESS),
     iceBscTokenAddress: env.get(EnvVariable.CRYPTOCURRENCIES_ICE_BSC_TOKEN_ADDRESS),
     ionBscTokenAddress: env.get(EnvVariable.CRYPTOCURRENCIES_ION_BSC_TOKEN_ADDRESS),
+    ionBridgeRouterAddress: env.get(EnvVariable.CRYPTOCURRENCIES_ION_BRIDGE_ROUTER_ADDRESS),
     interceptors: [
       if (logger != null) logger,
     ],
