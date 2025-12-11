@@ -128,7 +128,10 @@ class NetworkListView extends HookConsumerWidget {
     WidgetRef ref,
     NetworkData network,
   ) async {
-    if (onSelectReturnType) {
+    final isSwapSelection =
+        type == NetworkListViewType.swapSell || type == NetworkListViewType.swapBuy;
+
+    if (onSelectReturnType && !isSwapSelection) {
       Navigator.of(context).pop(network);
       return;
     }
@@ -171,11 +174,33 @@ class NetworkListView extends HookConsumerWidget {
           unawaited(context.push(sendFormRouteLocationBuilder!()));
         }
       case NetworkListViewType.swapSell:
-        ref.read(swapCoinsControllerProvider.notifier).setSellNetwork(network);
-        context.pop();
+        final sellCoin = ref.read(swapCoinsControllerProvider).sellCoin;
+        await checkWalletAddressAvailable(
+          ref,
+          network: network,
+          coinsGroup: sellCoin,
+          onAddressFound: (_) {
+            ref.read(swapCoinsControllerProvider.notifier).setSellNetwork(network);
+            if (context.mounted) {
+              context.pop(network);
+            }
+          },
+          onAddressMissing: () => AddressNotFoundReceiveCoinsRoute().push<void>(context),
+        );
       case NetworkListViewType.swapBuy:
-        ref.read(swapCoinsControllerProvider.notifier).setBuyNetwork(network);
-        context.pop();
+        final buyCoin = ref.read(swapCoinsControllerProvider).buyCoin;
+        await checkWalletAddressAvailable(
+          ref,
+          network: network,
+          coinsGroup: buyCoin,
+          onAddressFound: (_) {
+            ref.read(swapCoinsControllerProvider.notifier).setBuyNetwork(network);
+            if (context.mounted) {
+              context.pop(network);
+            }
+          },
+          onAddressMissing: () => AddressNotFoundReceiveCoinsRoute().push<void>(context),
+        );
     }
   }
 }
@@ -201,9 +226,6 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
       return _LoadingState(itemCount: coinsGroup?.coins.length ?? 1);
     }
 
-    final shouldFilterByWallet =
-        type == NetworkListViewType.swapSell || type == NetworkListViewType.swapBuy;
-
     final swapCoinsController = ref.watch(swapCoinsControllerProvider);
 
     final otherCoin = switch (type) {
@@ -218,11 +240,7 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
       _ => null,
     };
 
-    final coinsFilteredByWallet = coinsState.hasValue
-        ? (shouldFilterByWallet
-            ? coinsState.value!.where((coin) => coin.walletId != null).toList()
-            : coinsState.value!)
-        : <CoinInWalletData>[];
+    final coinsFilteredByWallet = coinsState.hasValue ? coinsState.value! : <CoinInWalletData>[];
 
     final filteredCoins = coinsFilteredByWallet.where(
       (coin) {
