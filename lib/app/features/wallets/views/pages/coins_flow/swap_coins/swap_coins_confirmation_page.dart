@@ -231,8 +231,7 @@ class _SwapDetailsSection extends ConsumerWidget {
     final slippage = swapQuoteInfo?.slippage;
     final networkFee = swapQuoteInfo?.networkFee;
     final protocolFee = swapQuoteInfo?.protocolFee;
-    final isVisibleMoreButton =
-        priceImpact != null || slippage != null || networkFee != null || protocolFee != null;
+    final isVisibleMoreButton = priceImpact != null || slippage != null || networkFee != null || protocolFee != null;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -443,7 +442,36 @@ class _SwapButton extends ConsumerWidget {
             ),
           );
 
-          await ref.read(swapCoinsControllerProvider.notifier).swapCoins(
+          final notifier = ref.read(swapCoinsControllerProvider.notifier);
+
+          final isIonBscSwap = await notifier.getIsIonBscSwap();
+
+          if (isIonBscSwap) {
+            if (context.mounted) {
+              await guardPasskeyDialog(
+                context,
+                (child) => RiverpodUserActionSignerRequestBuilder(
+                  provider: swapCoinsWithIonBscSwapProvider,
+                  request: (signer) async {
+                    await ref.read(swapCoinsWithIonBscSwapProvider.notifier).run(
+                          userActionSigner: signer,
+                          onSwapSuccess: () {
+                            _showSuccessMessage(messageNotificationNotifier, context);
+                          },
+                          onSwapError: () {
+                            _showErrorMessage(messageNotificationNotifier, context);
+                          },
+                        );
+                  },
+                  child: child,
+                ),
+              );
+            }
+
+            return;
+          }
+
+          await notifier.swapCoins(
             onVerifyIdentitySwapCallback: (sendAssetFormData) async {
               await guardPasskeyDialog(
                 ref.context,
@@ -464,26 +492,10 @@ class _SwapButton extends ConsumerWidget {
               );
             },
             onSwapError: () {
-              _showMessage(
-                messageNotificationNotifier,
-                message: context.i18n.wallet_swap_failed,
-                icon: Assets.svg.iconBlockKeywarning.icon(
-                  color: colors.attentionRed,
-                  size: 24.0.s,
-                ),
-                state: MessageNotificationState.error,
-              );
+              _showErrorMessage(messageNotificationNotifier, context);
             },
             onSwapSuccess: () {
-              _showMessage(
-                messageNotificationNotifier,
-                message: context.i18n.wallet_swapped_coins,
-                icon: Assets.svg.iconCheckSuccess.icon(
-                  color: colors.success,
-                  size: 24.0.s,
-                ),
-                state: MessageNotificationState.success,
-              );
+              _showSuccessMessage(messageNotificationNotifier, context);
             },
           );
         },
@@ -507,6 +519,38 @@ class _SwapButton extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _showSuccessMessage(
+    MessageNotificationNotifier messageNotificationNotifier,
+    BuildContext context,
+  ) async {
+    final colors = context.theme.appColors;
+    await _showMessage(
+      messageNotificationNotifier,
+      message: context.i18n.wallet_swapped_coins,
+      icon: Assets.svg.iconCheckSuccess.icon(
+        color: colors.success,
+        size: 24.0.s,
+      ),
+      state: MessageNotificationState.success,
+    );
+  }
+
+  Future<void> _showErrorMessage(
+    MessageNotificationNotifier messageNotificationNotifier,
+    BuildContext context,
+  ) async {
+    final colors = context.theme.appColors;
+    await _showMessage(
+      messageNotificationNotifier,
+      message: context.i18n.wallet_swap_failed,
+      icon: Assets.svg.iconBlockKeywarning.icon(
+        color: colors.attentionRed,
+        size: 24.0.s,
+      ),
+      state: MessageNotificationState.error,
     );
   }
 

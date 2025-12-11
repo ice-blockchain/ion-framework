@@ -16,11 +16,15 @@ import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.d
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/wallet_address_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/exceptions/insufficient_balance_exception.dart';
+import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
+import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
 import 'package:ion_swap_client/exceptions/relay_exception.dart';
+import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
+import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'swap_coins_controller_provider.r.g.dart';
@@ -211,10 +215,8 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellAddress = await _getAddress(sellCoinGroup, sellNetwork);
     final buyAddress = await _getAddress(buyCoinGroup, buyNetwork);
 
-    final sellCoin =
-        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-    final buyCoin =
-        buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
+    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final buyCoin = buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
 
     if (sellCoin == null || buyCoin == null) {
       return null;
@@ -260,45 +262,10 @@ class SwapCoinsController extends _$SwapCoinsController {
     required VoidCallback onSwapSuccess,
     required VoidCallback onSwapError,
   }) async {
-    final sellNetwork = state.sellNetwork;
-    final buyNetwork = state.buyNetwork;
-    final sellCoinGroup = state.sellCoin;
-    final buyCoinGroup = state.buyCoin;
-    final amount = state.amount;
-    final swapQuoteInfo = state.swapQuoteInfo;
-
-    if (sellCoinGroup == null ||
-        buyCoinGroup == null ||
-        sellNetwork == null ||
-        buyNetwork == null) {
-      return;
-    }
-
-    final sellCoin =
-        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-
-    if (sellCoin == null) {
-      return;
-    }
-
-    if (amount <= 0) {
-      return;
-    }
-
-    final swapCoinParameters = await _buildSwapCoinParameters(
-      sellCoinGroup: sellCoinGroup,
-      sellNetwork: sellNetwork,
-      buyCoinGroup: buyCoinGroup,
-      buyNetwork: buyNetwork,
-      amount: amount,
-    );
-
-    if (swapCoinParameters == null) {
-      return;
-    }
-
     try {
+      final (:swapQuoteInfo, :swapCoinParameters, :sellNetwork, :sellCoin) = await _getData();
       final swapController = await ref.read(ionSwapClientProvider.future);
+
       await swapController.swapCoins(
         swapQuoteInfo: swapQuoteInfo,
         swapCoinData: swapCoinParameters,
@@ -412,11 +379,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellNetwork = state.sellNetwork;
     final buyNetwork = state.buyNetwork;
     final amount = state.amount;
-    if (amount <= 0 ||
-        sellCoin == null ||
-        sellNetwork == null ||
-        buyCoin == null ||
-        buyNetwork == null) {
+    if (amount <= 0 || sellCoin == null || sellNetwork == null || buyCoin == null || buyNetwork == null) {
       return;
     }
 
@@ -469,5 +432,161 @@ class SwapCoinsController extends _$SwapCoinsController {
         quoteError: quoteError,
       );
     }
+  }
+
+  Future<IonSwapRequest?> _buildIonSwapRequest(
+    SwapCoinParameters swapCoinParameters,
+    Wallet wallet,
+    UserActionSignerNew userActionSigner,
+  ) async {
+    final isIonBscSwap = await getIsIonBscSwap();
+
+    if (isIonBscSwap) {
+      final identityClient = await ref.read(ionIdentityClientProvider.future);
+      return IonSwapRequest(
+        identityClient: identityClient,
+        wallet: wallet,
+        userActionSigner: userActionSigner,
+        maxFeePerGas: BigInt.zero,
+        maxPriorityFeePerGas: BigInt.zero,
+      );
+    }
+
+    return null;
+  }
+
+  Future<bool> getIsIonBscSwap() async {
+    final (:swapQuoteInfo, :swapCoinParameters, :sellNetwork, :sellCoin) = await _getData();
+
+    final swapController = await ref.read(ionSwapClientProvider.future);
+    return swapController.isIonBscSwap(swapCoinParameters);
+  }
+
+  Future<void> swapCoinsWithIonBscSwap({
+    required UserActionSignerNew userActionSigner,
+    required VoidCallback onSwapSuccess,
+    required VoidCallback onSwapError,
+  }) async {
+    final swapController = await ref.read(ionSwapClientProvider.future);
+    final (:swapQuoteInfo, :swapCoinParameters, :sellNetwork, :sellCoin) = await _getData();
+    final sellAddress = swapCoinParameters.userSellAddress;
+
+    if (sellAddress == null) {
+      throw Exception('Sell address is required');
+    }
+
+    final walletView = await ref.read(walletViewByAddressProvider(sellAddress).future);
+
+    final wallets = await ref.read(
+      walletViewCryptoWalletsProvider(walletViewId: walletView?.id).future,
+    );
+
+    final senderWallet = wallets.firstWhereOrNull(
+      (wallet) => wallet.network == sellNetwork.id,
+    );
+
+    if (senderWallet == null) {
+      throw Exception('Sender wallet is required');
+    }
+
+    final ionSwapRequest = await _buildIonSwapRequest(
+      swapCoinParameters,
+      senderWallet,
+      userActionSigner,
+    );
+
+    try {
+      await swapController.swapCoins(
+        swapCoinData: swapCoinParameters,
+        sendCoinCallback: ({required String depositAddress, required num amount}) async {
+          // DO NOTHING HERE
+        },
+        swapQuoteInfo: swapQuoteInfo,
+        ionSwapRequest: ionSwapRequest,
+      );
+
+      onSwapSuccess();
+    } catch (e, stackTrace) {
+      onSwapError();
+
+      await SentryService.logException(
+        e,
+        stackTrace: stackTrace,
+        tag: 'swap_coins_failure',
+      );
+
+      throw Exception(
+        'Failed to swap coins: $e',
+      );
+    }
+  }
+
+  Future<
+      ({
+        SwapQuoteInfo? swapQuoteInfo,
+        SwapCoinParameters swapCoinParameters,
+        NetworkData sellNetwork,
+        CoinInWalletData sellCoin,
+      })> _getData() async {
+    final sellNetwork = state.sellNetwork;
+    final buyNetwork = state.buyNetwork;
+    final sellCoinGroup = state.sellCoin;
+    final buyCoinGroup = state.buyCoin;
+    final amount = state.amount;
+    final swapQuoteInfo = state.swapQuoteInfo;
+
+    if (sellCoinGroup == null || buyCoinGroup == null || sellNetwork == null || buyNetwork == null) {
+      throw Exception('Sell coin group, buy coin group, sell network, buy network is required');
+    }
+
+    final sellCoin = sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+
+    if (sellCoin == null) {
+      throw Exception('Sell coin is required');
+    }
+
+    if (amount <= 0) {
+      throw Exception('Amount is required');
+    }
+
+    final swapCoinParameters = await _buildSwapCoinParameters(
+      sellCoinGroup: sellCoinGroup,
+      sellNetwork: sellNetwork,
+      buyCoinGroup: buyCoinGroup,
+      buyNetwork: buyNetwork,
+      amount: amount,
+    );
+
+    if (swapCoinParameters == null) {
+      throw Exception('Swap coin parameters is required');
+    }
+
+    return (
+      swapQuoteInfo: swapQuoteInfo,
+      swapCoinParameters: swapCoinParameters,
+      sellNetwork: sellNetwork,
+      sellCoin: sellCoin,
+    );
+  }
+}
+
+@riverpod
+class SwapCoinsWithIonBscSwap extends _$SwapCoinsWithIonBscSwap {
+  @override
+  FutureOr<void> build() {}
+
+  Future<void> run({
+    required UserActionSignerNew userActionSigner,
+    required VoidCallback onSwapSuccess,
+    required VoidCallback onSwapError,
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await ref.read(swapCoinsControllerProvider.notifier).swapCoinsWithIonBscSwap(
+            userActionSigner: userActionSigner,
+            onSwapSuccess: onSwapSuccess,
+            onSwapError: onSwapError,
+          );
+    });
   }
 }

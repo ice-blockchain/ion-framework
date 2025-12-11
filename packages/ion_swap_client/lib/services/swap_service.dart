@@ -38,7 +38,7 @@ class SwapService {
     IonSwapRequest? ionSwapRequest,
   }) async {
     try {
-      if (_isIonBscSwap(swapCoinData)) {
+      if (isIonBscSwap(swapCoinData)) {
         if (ionSwapRequest == null) {
           throw const IonSwapException('Ion swap request is required for on-chain swap');
         }
@@ -90,7 +90,7 @@ class SwapService {
     required SwapCoinParameters swapCoinData,
   }) async {
     try {
-      if (_isIonBscSwap(swapCoinData)) {
+      if (isIonBscSwap(swapCoinData)) {
         return _ionSwapService.getQuote(swapCoinData: swapCoinData);
       }
 
@@ -136,7 +136,7 @@ class SwapService {
     }
   }
 
-  bool _isIonBscSwap(SwapCoinParameters swapCoinData) {
+  bool isIonBscSwap(SwapCoinParameters swapCoinData) {
     return _ionSwapService.isSupportedPair(swapCoinData);
   }
 }

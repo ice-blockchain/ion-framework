@@ -31,11 +31,11 @@ Future<SwapService> ionSwapClient(Ref ref) async {
       EnvVariable.CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_AFFILIATE_ID,
     ),
     // TODO(ice-erebus): provide IONSwap contract address on BSC
-    ionSwapContractAddress: "",
+    ionSwapContractAddress: '0x4A04Ba2c7e11e929d62761165d863505bAf95C7F',
     // TODO(ice-erebus): provide ICE (v1) token address on BSC
     iceBscTokenAddress: '0xc335df7c25b72eec661d5aa32a7c2b7b2a1d1874',
     // TODO(ice-erebus): provide ION token address on BSC
-    ionBscTokenAddress: '0x2c73996BaBF1a06c2C057177353293f7cA0907c8',
+    ionBscTokenAddress: '0xE1ab61f7b093435204dF32F5b3A405de55445Ea8',
     interceptors: [
       if (logger != null) logger,
     ],

@@ -39,7 +39,7 @@ class IonSwapService {
     required SwapCoinParameters swapCoinData,
   }) async {
     return SwapQuoteInfo(
-      type: SwapQuoteInfoType.cexOrDex,
+      type: SwapQuoteInfoType.bridge,
       priceForSellTokenInBuyToken: 1,
       source: SwapQuoteInfoSource.ionOnchain,
     );
@@ -177,7 +177,7 @@ class IonSwapService {
     return result.first as BigInt;
   }
 
-  Future<int> _fetchDecimals(EthereumAddress token) async {
+  Future<BigInt> _fetchDecimals(EthereumAddress token) async {
     final decimalsFunction = _erc20ContractFor(token).function('decimals');
 
     final result = await _web3client.call(
@@ -186,11 +186,11 @@ class IonSwapService {
       params: const [],
     );
 
-    if (result.isEmpty || result.first is! int) {
+    if (result.isEmpty || result.first is! BigInt) {
       throw const IonSwapException('Failed to fetch token decimals');
     }
 
-    return result.first as int;
+    return result.first as BigInt;
   }
 
   _SwapDirection _getDirection(SwapCoinParameters swapCoinData) {
@@ -215,7 +215,7 @@ class IonSwapService {
     return candidate.toLowerCase() == expected.hex.toLowerCase();
   }
 
-  BigInt _parseAmount(String amount, int decimals) {
+  BigInt _parseAmount(String amount, BigInt decimals) {
     final sanitized = amount.trim();
     if (sanitized.isEmpty) {
       throw const IonSwapException('Invalid amount format');
@@ -225,8 +225,8 @@ class IonSwapService {
     final whole = parts[0].isEmpty ? '0' : parts[0];
     final fraction = parts.length > 1 ? parts[1] : '';
 
-    final fractionPadded = fraction.padRight(decimals, '0');
-    final fractionCropped = fractionPadded.substring(0, decimals);
+    final fractionPadded = fraction.padRight(decimals.toInt(), '0');
+    final fractionCropped = fractionPadded.substring(0, decimals.toInt());
 
     final normalized = '$whole$fractionCropped';
 
