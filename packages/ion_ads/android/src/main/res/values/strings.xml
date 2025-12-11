@@ -3,4 +3,7 @@
     <string name="facebook_app_id">your_facebook_app_id</string>
     <string name="facebook_login_protocol_scheme">your_facebook_login_protocol_scheme</string>
     <string name="facebook_client_token">your_facebook_client_token</string>
+
+    <string name="apd_native_custom_ad_attribution">Ad</string>
+    <string name="apd_native_custom_icon_description">Appodeal banner icon</string>
 </resources>
