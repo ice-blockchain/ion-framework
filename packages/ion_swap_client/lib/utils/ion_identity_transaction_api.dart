@@ -41,9 +41,6 @@ class IonIdentityTransactionApi {
     return _extractTransactionIdentifier(response);
   }
 
-
-
-
   Future<Wallet> _resolveWallet(IONIdentityClient client, String walletId) async {
     final wallets = await client.wallets.getWallets();
     final wallet = wallets.firstWhere(

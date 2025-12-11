@@ -37,7 +37,8 @@ class SwapControllerLocator {
     final okxRepository = apiRepositoryServiceLocator.getSwapOkxRepository(config: config);
     final relayApiRepository = apiRepositoryServiceLocator.getRelayApiRepository(config: config);
     final exolixRepository = apiRepositoryServiceLocator.getExolixRepository(config: config);
-    final letsExchangeRepository = apiRepositoryServiceLocator.getLetsExchangeRepository(config: config);
+    final letsExchangeRepository =
+        apiRepositoryServiceLocator.getLetsExchangeRepository(config: config);
 
     _swapCoinsController = SwapService(
       ionSwapService: IonSwapService(

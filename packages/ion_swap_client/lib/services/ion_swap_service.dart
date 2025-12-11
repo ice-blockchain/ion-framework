@@ -123,7 +123,8 @@ class IonSwapService {
   }
 
   bool isSupportedPair(SwapCoinParameters swapCoinData) {
-    final isBsc = swapCoinData.sellNetworkId.toLowerCase() == 'bsc' && swapCoinData.buyNetworkId.toLowerCase() == 'bsc';
+    final isBsc = swapCoinData.sellNetworkId.toLowerCase() == 'bsc' &&
+        swapCoinData.buyNetworkId.toLowerCase() == 'bsc';
 
     if (!isBsc) {
       return false;

@@ -231,7 +231,8 @@ class _SwapDetailsSection extends ConsumerWidget {
     final slippage = swapQuoteInfo?.slippage;
     final networkFee = swapQuoteInfo?.networkFee;
     final protocolFee = swapQuoteInfo?.protocolFee;
-    final isVisibleMoreButton = priceImpact != null || slippage != null || networkFee != null || protocolFee != null;
+    final isVisibleMoreButton =
+        priceImpact != null || slippage != null || networkFee != null || protocolFee != null;
 
     return Stack(
       clipBehavior: Clip.none,
