@@ -15,13 +15,12 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/native_custom_content"
         android:layout_width="match_parent"
-        android:layout_height="270dp">
+        android:layout_height="wrap_content">
 
         <com.appodeal.ads.nativead.NativeIconView
             android:id="@+id/native_custom_icon"
-            android:layout_width="@dimen/apd_native_custom_icon_w_h"
-            android:layout_height="30dp"
-            android:layout_marginTop="@dimen/apd_native_custom_icon_margin"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:background="@drawable/apd_native_custom_round_outline"
             android:contentDescription="@string/apd_native_custom_icon_description"
             app:layout_constraintTop_toTopOf="@+id/native_custom_content"
@@ -34,7 +33,7 @@
             android:layout_width="@dimen/apd_native_custom_title_w"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/apd_native_custom_title_margin"
-            android:layout_marginTop="@dimen/apd_native_custom_title_margin"
+            android:layout_marginTop="@dimen/apd_native_custom_icon_margin"
             android:layout_marginEnd="@dimen/apd_native_custom_title_margin"
             android:background="@android:color/transparent"
             android:ellipsize="end"
@@ -52,7 +51,6 @@
             android:id="@+id/native_custom_description"
             android:layout_width="@dimen/apd_native_custom_description_w"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/apd_native_custom_description_margin"
             android:ellipsize="marquee"
             android:marqueeRepeatLimit="marquee_forever"
             android:singleLine="true"
@@ -67,7 +65,6 @@
             android:layout_height="30dp"
             android:background="@drawable/apd_native_custom_round_outline"
             android:backgroundTint="#0156FF"
-            android:layout_marginTop="@dimen/apd_native_custom_icon_margin"
             android:fontFamily="sans-serif-medium"
             android:maxLines="1"
             android:paddingHorizontal="8dp"
@@ -75,13 +72,16 @@
             android:textAppearance="?android:textAppearanceSmall"
             android:textColor="#F8F8F8"
             app:layout_constraintEnd_toEndOf="@+id/native_custom_content"
-            app:layout_constraintTop_toTopOf="@+id/native_custom_content" />
+            app:layout_constraintTop_toTopOf="@+id/native_custom_content"
+            app:layout_constraintBottom_toBottomOf="@+id/native_custom_description" />
 
         <com.appodeal.ads.nativead.NativeMediaView
             android:id="@+id/native_custom_media"
-            android:layout_width="wrap_content"
-            android:layout_height="180dp"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
             android:layout_marginTop="12dp"
+            android:background="@drawable/apd_native_custom_round_outline"
+            app:layout_constraintDimensionRatio="H,16:9"
             app:layout_constraintStart_toStartOf="@+id/native_custom_content"
             app:layout_constraintEnd_toEndOf="@+id/native_custom_content"
             app:layout_constraintTop_toBottomOf="@+id/native_custom_description"
@@ -95,7 +95,6 @@
                 android:layout_marginStart="@dimen/apd_native_custom_content_margin_v"
                 android:layout_marginTop="@dimen/apd_native_custom_content_margin_v"
                 android:background="@color/apd_ad_attribution_background"
-                android:elevation="@dimen/apd_native_custom_ad_attribution_elevation"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:maxLines="1"
