@@ -20,7 +20,7 @@ class CreatorTokensCarouselSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return CarouselSlider.builder(
       options: CarouselOptions(
-        height: CreatorTokensCarousel.carouselHeight,
+        height: CreatorTokensCarousel.carouselHeight.s,
         viewportFraction: 0.75,
         enlargeCenterPage: true,
         enableInfiniteScroll: false,
@@ -45,8 +45,8 @@ class _CarouselCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
-    final primaryPlaceholder = colors.secondaryBackground.withValues(alpha: 0.25);
-    final secondaryPlaceholder = colors.primaryBackground.withValues(alpha: 0.3);
+    final primary = colors.secondaryBackground.withValues(alpha: 0.25);
+    final secondary = colors.primaryBackground.withValues(alpha: 0.3);
 
     return Container(
       decoration: BoxDecoration(
@@ -56,117 +56,54 @@ class _CarouselCardSkeleton extends StatelessWidget {
       child: ProfileBackground(
         colors: useAvatarFallbackColors,
         child: Padding(
-          padding: EdgeInsets.only(top: CreatorTokensCarousel.carouselTopPadding.s),
+          padding: EdgeInsets.symmetric(
+            horizontal: 32.0.s,
+            vertical: 37.0.s,
+          ),
           child: Skeleton(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(height: 20.0.s),
-                _SkeletonLine(
+                Container(
+                  width: 99.0.s,
+                  height: 99.0.s,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20.0.s),
+                    color: secondary,
+                  ),
+                ),
+                SizedBox(height: 25.0.s),
+                Container(
+                  width: 180.0.s,
+                  height: 20.0.s,
+                  decoration: BoxDecoration(
+                    color: primary,
+                    borderRadius: BorderRadius.circular(10.0.s),
+                  ),
+                ),
+                SizedBox(height: 7.0.s),
+                Container(
                   width: 140.0.s,
                   height: 16.0.s,
-                  color: primaryPlaceholder,
-                ),
-                SizedBox(height: 8.0.s),
-                _SkeletonLine(
-                  width: 110.0.s,
-                  height: 12.0.s,
-                  color: primaryPlaceholder,
-                ),
-                SizedBox(height: 12.0.s),
-                Container(
-                  width: 78.0.s,
-                  height: 24.0.s,
                   decoration: BoxDecoration(
-                    color: secondaryPlaceholder,
-                    borderRadius: BorderRadius.circular(12.0.s),
+                    color: primary,
+                    borderRadius: BorderRadius.circular(8.0.s),
                   ),
                 ),
                 SizedBox(height: 20.0.s),
-                _SkeletonStatsRow(
-                  color: secondaryPlaceholder,
-                  barColor: primaryPlaceholder,
+                Container(
+                  width: 200.0.s,
+                  height: 40.0.s,
+                  decoration: BoxDecoration(
+                    color: primary,
+                    borderRadius: BorderRadius.circular(12.0.s),
+                  ),
                 ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _SkeletonStatsRow extends StatelessWidget {
-  const _SkeletonStatsRow({
-    required this.color,
-    required this.barColor,
-  });
-
-  final Color color;
-  final Color barColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(12.0.s),
-      ),
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.0.s,
-        vertical: 10.0.s,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: List.generate(3, (index) {
-          return Padding(
-            padding: EdgeInsetsDirectional.only(end: index == 2 ? 0 : 16.0.s),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 20.0.s,
-                  height: 20.0.s,
-                  decoration: BoxDecoration(
-                    color: barColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                SizedBox(height: 6.0.s),
-                _SkeletonLine(
-                  width: 44.0.s,
-                  height: 8.0.s,
-                  color: barColor,
-                ),
-              ],
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}
-
-class _SkeletonLine extends StatelessWidget {
-  const _SkeletonLine({
-    required this.width,
-    required this.height,
-    required this.color,
-  });
-
-  final double width;
-  final double height;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(height / 2),
       ),
     );
   }
