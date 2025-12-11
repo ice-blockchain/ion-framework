@@ -15,8 +15,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/native_custom_content"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
+        android:layout_height="270dp">
 
         <com.appodeal.ads.nativead.NativeIconView
             android:id="@+id/native_custom_icon"
@@ -26,6 +25,7 @@
             android:background="@drawable/apd_native_custom_round_outline"
             android:contentDescription="@string/apd_native_custom_icon_description"
             app:layout_constraintTop_toTopOf="@+id/native_custom_content"
+            app:layout_constraintBottom_toBottomOf="@+id/native_custom_description"
             app:layout_constraintDimensionRatio="H,1:1"
             app:layout_constraintStart_toStartOf="@+id/native_custom_content" />
 
@@ -79,31 +79,32 @@
 
         <com.appodeal.ads.nativead.NativeMediaView
             android:id="@+id/native_custom_media"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="180dp"
+            android:layout_marginTop="12dp"
             app:layout_constraintStart_toStartOf="@+id/native_custom_content"
+            app:layout_constraintEnd_toEndOf="@+id/native_custom_content"
             app:layout_constraintTop_toBottomOf="@+id/native_custom_description"
             app:layout_constraintBottom_toBottomOf="@+id/native_custom_content">
 
             <TextView
                 android:id="@+id/native_custom_ad_attribution"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="24dp"
+                android:layout_height="18dp"
                 android:layout_gravity="start|top"
                 android:layout_marginStart="@dimen/apd_native_custom_content_margin_v"
                 android:layout_marginTop="@dimen/apd_native_custom_content_margin_v"
                 android:background="@color/apd_ad_attribution_background"
                 android:elevation="@dimen/apd_native_custom_ad_attribution_elevation"
                 android:fontFamily="sans-serif-medium"
-                android:foreground="@drawable/ad_mob_rounded_corners_shape"
                 android:gravity="center"
                 android:maxLines="1"
                 android:singleLine="true"
                 android:text="@string/apd_native_custom_ad_attribution"
                 android:textAppearance="?android:textAppearanceSmall"
                 android:textColor="@android:color/black"
-                android:textSize="@dimen/pob_dimen_11sp"
+                android:textStyle="bold"
+                android:textSize="11sp"
                 tools:ignore="SmallSp" />
         </com.appodeal.ads.nativead.NativeMediaView>
 

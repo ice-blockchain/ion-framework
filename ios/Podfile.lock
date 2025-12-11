@@ -1,4 +1,6 @@
 PODS:
+  - APDIABAdapter (3.10.0.0):
+    - Appodeal (= 3.10.0)
   - app_badge_plus (1.2.3):
     - Flutter
   - app_links (6.4.1):
@@ -13,6 +15,10 @@ PODS:
     - GoogleUtilities/Environment (~> 8.0)
     - GoogleUtilities/UserDefaults (~> 8.0)
     - PromisesObjC (~> 2.4)
+  - Appodeal (3.10.0):
+    - Protobuf (= 3.29.3)
+    - StackConsentManager (= 3.0.0)
+    - StackModules (= 3.3.0)
   - appsflyer_sdk (6.16.2):
     - AppsFlyerFramework (= 6.16.2)
     - Flutter
@@ -267,6 +273,7 @@ PODS:
     - AppCheckCore (~> 11.0)
     - GTMAppAuth (< 5.0, >= 4.1.1)
     - GTMSessionFetcher/Core (~> 3.3)
+  - GoogleUserMessagingPlatform (2.7.0)
   - GoogleUtilities (8.1.0):
     - GoogleUtilities/AppDelegateSwizzler (= 8.1.0)
     - GoogleUtilities/Environment (= 8.1.0)
@@ -320,6 +327,11 @@ PODS:
   - image_cropper (0.0.4):
     - Flutter
     - TOCropViewController (~> 2.8.0)
+  - ion_ads (3.10.0):
+    - APDIABAdapter (= 3.10.0.0)
+    - Appodeal (= 3.10.0)
+    - Flutter
+    - SwiftSVG
   - ion_content_labeler (0.0.1):
     - Flutter
   - ion_screenshot_detector (0.0.1):
@@ -336,6 +348,7 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
+  - OMSDK_Appodeal (1.5.2)
   - open_filex (0.0.2):
     - Flutter
   - OrderedSet (6.0.3)
@@ -353,6 +366,7 @@ PODS:
     - Flutter
     - FlutterMacOS
   - PromisesObjC (2.4.0)
+  - Protobuf (3.29.3)
   - qr_code_scanner_plus (0.2.6):
     - Flutter
     - MTBBarcodeScanner
@@ -404,6 +418,22 @@ PODS:
     - sqlite3/perf-threadsafe
     - sqlite3/rtree
     - sqlite3/session
+  - StackConsentManager (3.0.0):
+    - GoogleUserMessagingPlatform (~> 2.1)
+  - StackModules (3.3.0):
+    - StackModules/Static (= 3.3.0)
+  - StackModules/Core-Static (3.3.0)
+  - StackModules/ProductPresentation-Static (3.3.0):
+    - StackModules/Core-Static
+  - StackModules/Rendering-Static (3.3.0):
+    - OMSDK_Appodeal (= 1.5.2)
+    - StackModules/Core-Static
+    - StackModules/ProductPresentation-Static
+  - StackModules/Static (3.3.0):
+    - StackModules/Core-Static
+    - StackModules/ProductPresentation-Static
+    - StackModules/Rendering-Static
+  - SwiftSVG (2.3.2)
   - SwiftyGif (5.4.5)
   - TensorFlowLiteC (2.12.0):
     - TensorFlowLiteC/Core (= 2.12.0)
@@ -473,6 +503,7 @@ DEPENDENCIES:
   - GoogleUtilities
   - icloud_storage (from `.symlinks/plugins/icloud_storage/ios`)
   - image_cropper (from `.symlinks/plugins/image_cropper/ios`)
+  - ion_ads (from `.symlinks/plugins/ion_ads/ios`)
   - ion_content_labeler (from `.symlinks/plugins/ion_content_labeler/ios`)
   - ion_screenshot_detector (from `.symlinks/plugins/ion_screenshot_detector/ios`)
   - local_auth_crypto (from `.symlinks/plugins/local_auth_crypto/ios`)
@@ -513,8 +544,10 @@ SPEC REPOS:
     - BanubaVideoEditorSDK
     - BNBLicenseUtils
   https://github.com/CocoaPods/Specs.git:
+    - APDIABAdapter
     - AppAuth
     - AppCheckCore
+    - Appodeal
     - AppsFlyerFramework
     - DKImagePickerController
     - DKPhotoGallery
@@ -530,17 +563,23 @@ SPEC REPOS:
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleSignIn
+    - GoogleUserMessagingPlatform
     - GoogleUtilities
     - GTMAppAuth
     - GTMSessionFetcher
     - MTBBarcodeScanner
     - nanopb
+    - OMSDK_Appodeal
     - OrderedSet
     - PromisesObjC
+    - Protobuf
     - SDWebImage
     - SecureBiometricSwift
     - Sentry
     - sqlite3
+    - StackConsentManager
+    - StackModules
+    - SwiftSVG
     - SwiftyGif
     - TensorFlowLiteC
     - TensorFlowLiteSwift
@@ -609,6 +648,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/icloud_storage/ios"
   image_cropper:
     :path: ".symlinks/plugins/image_cropper/ios"
+  ion_ads:
+    :path: ".symlinks/plugins/ion_ads/ios"
   ion_content_labeler:
     :path: ".symlinks/plugins/ion_content_labeler/ios"
   ion_screenshot_detector:
@@ -659,10 +700,12 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/wakelock_plus/ios"
 
 SPEC CHECKSUMS:
+  APDIABAdapter: 1ebe6613420ec5c6b4318260a23e8ece3dd28887
   app_badge_plus: 0e3470f993dd08094e16463f57a7e0db04c6b587
   app_links: 3dbc685f76b1693c66a6d9dd1e9ab6f73d97dc0a
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
+  Appodeal: ed337a603b5d678686e2204e032c59ab939683a0
   appsflyer_sdk: 583722545afc0f208067ef5635061133d797a91c
   AppsFlyerFramework: fe5303bffcdfd941d5f570c2d21eaaea982e7bdc
   audio_waveforms: a6dde7fe7c0ea05f06ffbdb0f7c1b2b2ba6cedcf
@@ -720,17 +763,20 @@ SPEC CHECKSUMS:
   GoogleAppMeasurement: 36684bfb3ee034e2b42b4321eb19da3a1b81e65d
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleSignIn: ce8c89bb9b37fb624b92e7514cc67335d1e277e4
+  GoogleUserMessagingPlatform: a8b56893477f67212fbc8411c139e61d463349f5
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   icloud_storage: e55639f0c0d7cb2b0ba9c0b3d5968ccca9cd9aa2
   image_cropper: 64567491beea6cd1bc4b11948e2babb590de5826
+  ion_ads: 48c522c5dc22157e18a1b1175b2c38cb77980568
   ion_content_labeler: f7b0a605150742a6e41c82730110b008c582d788
   ion_screenshot_detector: 12965038c2274b1876c39ee328507e8bb9c7b794
   local_auth_crypto: 0f489ce05f51504fc091a53ce357e98313696085
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   MTBBarcodeScanner: f453b33c4b7dfe545d8c6484ed744d55671788cb
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
+  OMSDK_Appodeal: 066f9da2c77d560e319341c6bd4739828bc65842
   open_filex: 432f3cd11432da3e39f47fcc0df2b1603854eff1
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
@@ -739,6 +785,7 @@ SPEC CHECKSUMS:
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   photo_manager: 1d80ae07a89a67dfbcae95953a1e5a24af7c3e62
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  Protobuf: e2de96d939c642ce8da186343ff8929b35223212
   qr_code_scanner_plus: 7e087021bc69873140e0754750eb87d867bed755
   quill_native_bridge_ios: f47af4b14e7757968486641656c5d23250cee521
   SDWebImage: d0184764be51240d49c761c37f53dd017e1ccaaf
@@ -752,6 +799,9 @@ SPEC CHECKSUMS:
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   sqlite3: 73513155ec6979715d3904ef53a8d68892d4032b
   sqlite3_flutter_libs: 83f8e9f5b6554077f1d93119fe20ebaa5f3a9ef1
+  StackConsentManager: 80684e96361f88476985a2ed91a9299bc9196be8
+  StackModules: 0b77df5a1453951c9e6aa0e32cab0b055fbf68e1
+  SwiftSVG: ca7f64e403b8ea7ea8eba8c823b83ba4a059834c
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   TensorFlowLiteC: 20785a69299185a379ba9852b6625f00afd7984a
   TensorFlowLiteSwift: 3a4928286e9e35bdd3e17970f48e53c80d25e793

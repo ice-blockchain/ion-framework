@@ -155,7 +155,7 @@ class NativeAdOptions with AppodealPlatformArguments {
     final width = getWidgetWidth(context);
     switch (nativeAdType) {
       case NativeAdType.newsFeed:
-        return width * 0.146;
+        return width * 0.8;
       case NativeAdType.appWall:
         return width * 0.195;
       case NativeAdType.contentStream:
