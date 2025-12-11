@@ -2,30 +2,38 @@
 
 import 'dart:async';
 
-import 'package:convert/convert.dart';
-import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
+import 'package:ion_swap_client/utils/evm_tx_builder.dart';
+import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 import 'package:web3dart/web3dart.dart';
 
 class IonSwapService {
   factory IonSwapService({
     required IONSwapConfig config,
     required Web3Client web3client,
+    required EvmTxBuilder evmTxBuilder,
+    required IonIdentityTransactionApi ionIdentityClient,
   }) {
     return IonSwapService._(
       config: config,
       web3client: web3client,
+      evmTxBuilder: evmTxBuilder,
+      ionIdentityClient: ionIdentityClient,
     );
   }
 
   IonSwapService._({
     required IONSwapConfig config,
     required Web3Client web3client,
-  })  : _web3client = web3client,
+    required EvmTxBuilder evmTxBuilder,
+    required IonIdentityTransactionApi ionIdentityClient,
+  })  : _ionIdentityClient = ionIdentityClient,
+        _web3client = web3client,
+        _evmTxBuilder = evmTxBuilder,
         _ionSwapAddress = EthereumAddress.fromHex(config.ionSwapContractAddress),
         _iceTokenAddress = EthereumAddress.fromHex(config.iceBscTokenAddress),
         _ionTokenAddress = EthereumAddress.fromHex(config.ionBscTokenAddress);
@@ -34,6 +42,8 @@ class IonSwapService {
   final EthereumAddress _ionSwapAddress;
   final EthereumAddress _iceTokenAddress;
   final EthereumAddress _ionTokenAddress;
+  final EvmTxBuilder _evmTxBuilder;
+  final IonIdentityTransactionApi _ionIdentityClient;
 
   Future<SwapQuoteInfo> getQuote({
     required SwapCoinParameters swapCoinData,
@@ -68,32 +78,19 @@ class IonSwapService {
       token: direction.sellToken,
       amount: amountIn,
       request: request,
+      tokenDecimals: direction.isIceToIon ? 18 : 9,
     );
 
-    final swapTx = await _buildSwapTransaction(
+    await _swap(
       direction: direction,
       amountIn: amountIn,
       request: request,
     );
 
-    return swapTx;
+    return '';
   }
 
-  bool isSupportedPair(SwapCoinParameters swapCoinData) {
-    final isBsc = swapCoinData.sellNetworkId.toLowerCase() == 'bsc' &&
-        swapCoinData.buyNetworkId.toLowerCase() == 'bsc';
-
-    if (!isBsc) {
-      return false;
-    }
-
-    return _matchesAddress(swapCoinData.sellCoinContractAddress, _iceTokenAddress) &&
-            _matchesAddress(swapCoinData.buyCoinContractAddress, _ionTokenAddress) ||
-        _matchesAddress(swapCoinData.sellCoinContractAddress, _ionTokenAddress) &&
-            _matchesAddress(swapCoinData.buyCoinContractAddress, _iceTokenAddress);
-  }
-
-  Future<String> _buildSwapTransaction({
+  Future<String> _swap({
     required _SwapDirection direction,
     required BigInt amountIn,
     required IonSwapRequest request,
@@ -107,20 +104,35 @@ class IonSwapService {
       ],
     );
 
-    final tx = EvmBroadcastRequest.transactionJson(
-      transaction: EvmTransactionJson(
-        to: _ionSwapAddress.hexEip55,
-        data: hex.encode(data).with0x,
-        value: '0x0',
-        maxFeePerGas: _encodeQuantity(request.maxFeePerGas),
-        maxPriorityFeePerGas: _encodeQuantity(request.maxPriorityFeePerGas),
-      ),
+    final swapTx = _evmTxBuilder.wrapTransactionBytes(
+      bytes: data,
+      value: BigInt.zero,
+      to: _ionSwapAddress.hex,
+    );
+
+    final tx = _applyFees(
+      swapTx,
+      maxFeePerGas: BigInt.from(20000000000),
+      maxPriorityFeePerGas: BigInt.from(1000000000),
     );
 
     return _signAndBroadcast(
       request: request,
-      broadcastRequest: tx,
+      transaction: tx,
     );
+  }
+
+  bool isSupportedPair(SwapCoinParameters swapCoinData) {
+    final isBsc = swapCoinData.sellNetworkId.toLowerCase() == 'bsc' && swapCoinData.buyNetworkId.toLowerCase() == 'bsc';
+
+    if (!isBsc) {
+      return false;
+    }
+
+    return _matchesAddress(swapCoinData.sellCoinContractAddress, _iceTokenAddress) &&
+            _matchesAddress(swapCoinData.buyCoinContractAddress, _ionTokenAddress) ||
+        _matchesAddress(swapCoinData.sellCoinContractAddress, _ionTokenAddress) &&
+            _matchesAddress(swapCoinData.buyCoinContractAddress, _iceTokenAddress);
   }
 
   Future<void> _ensureAllowance({
@@ -128,53 +140,62 @@ class IonSwapService {
     required EthereumAddress token,
     required BigInt amount,
     required IonSwapRequest request,
+    required int tokenDecimals,
   }) async {
-    final allowance = await _getAllowance(owner: owner, token: token);
+    final allowance = await _evmTxBuilder.allowance(
+      token: token.hex,
+      owner: owner.hex,
+      spender: _ionSwapAddress.hex,
+    );
 
-    if (allowance >= amount) {
-      return;
+    if (allowance < amount) {
+      // Approve 1 Trillion tokens (10^12) with token decimals
+      final trillionAmount = BigInt.from(10).pow(12 + tokenDecimals);
+
+      final approvalTx = await _evmTxBuilder.encodeApprove(
+        token: token.hex,
+        spender: _ionSwapAddress.hex,
+        amount: trillionAmount,
+      );
+
+      final tx = _applyFees(
+        approvalTx,
+        maxFeePerGas: BigInt.from(20000000000),
+        maxPriorityFeePerGas: BigInt.from(1000000000),
+      );
+
+      await _signAndBroadcast(
+        request: request,
+        transaction: tx,
+      );
+
+      await Future<void>.delayed(const Duration(seconds: 3));
+
+      final allowance2 = await _evmTxBuilder.allowance(
+        token: token.hex,
+        owner: owner.hex,
+        spender: _ionSwapAddress.hex,
+      );
+
+      if (allowance2 < amount) {
+        throw const IonSwapException('Failed to approve token allowance');
+      }
     }
-
-    final approveFunction = _erc20ContractFor(token).function('approve');
-    final data = approveFunction.encodeCall(
-      [
-        _ionSwapAddress,
-        amount,
-      ],
-    );
-
-    final tx = EvmBroadcastRequest.transactionJson(
-      transaction: EvmTransactionJson(
-        to: token.hexEip55,
-        data: hex.encode(data).with0x,
-        value: '0x0',
-        maxFeePerGas: _encodeQuantity(request.maxFeePerGas),
-        maxPriorityFeePerGas: _encodeQuantity(request.maxPriorityFeePerGas),
-      ),
-    );
-
-    await _signAndBroadcast(
-      request: request,
-      broadcastRequest: tx,
-    );
   }
 
-  Future<BigInt> _getAllowance({
-    required EthereumAddress owner,
-    required EthereumAddress token,
-  }) async {
-    final allowanceFunction = _erc20ContractFor(token).function('allowance');
-    final result = await _web3client.call(
-      contract: _erc20ContractFor(token),
-      function: allowanceFunction,
-      params: [owner, _ionSwapAddress],
+  EvmTransaction _applyFees(
+    EvmTransaction transaction, {
+    required BigInt maxFeePerGas,
+    required BigInt maxPriorityFeePerGas,
+  }) {
+    return EvmTransaction(
+      kind: transaction.kind,
+      to: transaction.to,
+      data: transaction.data,
+      value: transaction.value,
+      maxFeePerGas: maxFeePerGas,
+      maxPriorityFeePerGas: maxPriorityFeePerGas,
     );
-
-    if (result.isEmpty || result.first is! BigInt) {
-      throw const IonSwapException('Invalid allowance response');
-    }
-
-    return result.first as BigInt;
   }
 
   Future<BigInt> _fetchDecimals(EthereumAddress token) async {
@@ -233,13 +254,6 @@ class IonSwapService {
     return BigInt.parse(normalized);
   }
 
-  String _encodeQuantity(BigInt value) {
-    if (value == BigInt.zero) {
-      return '0x0';
-    }
-    return '0x${value.toRadixString(16)}';
-  }
-
   EthereumAddress _toEthereumAddress(String? address) {
     if (address == null || address.isEmpty) {
       throw const IonSwapException('Wallet address is required for ion swap');
@@ -250,36 +264,26 @@ class IonSwapService {
 
   Future<String> _signAndBroadcast({
     required IonSwapRequest request,
-    required EvmBroadcastRequest broadcastRequest,
+    required EvmTransaction transaction,
   }) async {
-    final response = await request.identityClient.wallets.signAndBroadcast(
-      request.wallet,
-      broadcastRequest,
-      request.userActionSigner,
+    return _ionIdentityClient.signAndBroadcast(
+      walletId: request.wallet.id,
+      transaction: transaction,
+      userActionSigner: request.userActionSigner,
     );
-
-    return _extractTransactionIdentifier(response);
   }
 
-  String _extractTransactionIdentifier(Map<String, dynamic> response) {
-    final txHash = response['txHash'] as String?;
-    final id = response['id'] as String?;
-    final transferId = response['transferId'] as String?;
-    return txHash ??
-        id ??
-        transferId ??
-        (throw const IonSwapException('Ion Identity response did not include a transaction id'));
-  }
+  DeployedContract _erc20ContractFor(EthereumAddress address) => DeployedContract(
+        _erc20AbiParsed,
+        address,
+      );
 
   DeployedContract get _ionSwapContract => DeployedContract(
         _ionSwapAbiParsed,
         _ionSwapAddress,
       );
 
-  DeployedContract _erc20ContractFor(EthereumAddress address) => DeployedContract(
-        _erc20AbiParsed,
-        address,
-      );
+  static final ContractAbi _ionSwapAbiParsed = ContractAbi.fromJson(_ionSwapAbi, 'IONSwap');
 
   static const _ionSwapAbi = '''
 [
@@ -298,7 +302,6 @@ class IonSwapService {
 ]
 ''';
 
-  static final ContractAbi _ionSwapAbiParsed = ContractAbi.fromJson(_ionSwapAbi, 'IONSwap');
   static final ContractAbi _erc20AbiParsed = ContractAbi.fromJson(_erc20Abi, 'ERC20');
 }
 
@@ -312,8 +315,4 @@ class _SwapDirection {
   final bool isIceToIon;
   final EthereumAddress sellToken;
   final EthereumAddress buyToken;
-}
-
-extension on String {
-  String get with0x => startsWith('0x') ? this : '0x$this';
 }

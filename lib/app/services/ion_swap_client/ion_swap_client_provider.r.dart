@@ -3,6 +3,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
+import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/service_locator/swap_controller_locator.dart';
@@ -42,9 +43,11 @@ Future<SwapService> ionSwapClient(Ref ref) async {
   );
 
   final web3client = ref.watch(web3ClientProvider);
+  final ionIdentityClient = await ref.watch(ionIdentityClientProvider.future);
 
   final ionSwapClient = SwapControllerLocator().swapCoinsController(
     config: config,
+    ionIdentityClient: ionIdentityClient,
     web3client: web3client,
   );
 
