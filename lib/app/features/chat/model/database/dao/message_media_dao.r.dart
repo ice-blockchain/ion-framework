@@ -46,7 +46,8 @@ class MessageMediaDao extends DatabaseAccessor<ChatDatabase> with _$MessageMedia
 
   Stream<List<MessageMediaTableData>> watchByEventId(EventReference eventReference) {
     return (select(messageMediaTable)
-          ..where((t) => t.messageEventReference.equalsValue(eventReference)))
+          ..where((t) => t.messageEventReference.equalsValue(eventReference))
+          ..orderBy([(t) => OrderingTerm.asc(t.id)]))
         .watch()
         .map((messageMedia) {
       final mediaUrls = <String?>{};

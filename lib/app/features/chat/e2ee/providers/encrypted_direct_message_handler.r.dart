@@ -72,55 +72,85 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
     unawaited(_addMediaToDatabase(rumor));
   }
 
-  Future<void> _clearOldMedia({
+  Future<void> _clearRemovedMedia({
     required EventReference eventReference,
+    required Set<String> currentMediaUrls,
   }) async {
-    // Remove old media records and cached files for this message
+    // Get existing media records from database
     final existingMediaRecords = await (messageMediaDao.select(messageMediaDao.messageMediaTable)
           ..where((t) => t.messageEventReference.equalsValue(eventReference)))
         .get();
 
-    for (final mediaRecord in existingMediaRecords) {
+    // Find media that exists in DB but not in the current message (removed media)
+    final removedMediaRecords = existingMediaRecords.where((record) {
+      final remoteUrl = record.remoteUrl;
+      return remoteUrl != null && remoteUrl.isNotEmpty && !currentMediaUrls.contains(remoteUrl);
+    }).toList();
+
+    if (removedMediaRecords.isEmpty) {
+      return;
+    }
+
+    // Remove cached files for removed media
+    for (final mediaRecord in removedMediaRecords) {
       if (mediaRecord.remoteUrl?.isNotEmpty ?? false) {
         unawaited(fileCacheService.removeFile(mediaRecord.remoteUrl!));
       }
     }
 
-    await (messageMediaDao.delete(messageMediaDao.messageMediaTable)
-          ..where((t) => t.messageEventReference.equalsValue(eventReference)))
-        .go();
+    // Batch delete removed media records
+    final removedMediaIds = removedMediaRecords.map((r) => r.id).toList();
+    await messageMediaDao.batch((b) {
+      b.deleteWhere(
+        messageMediaDao.messageMediaTable,
+        (t) => t.id.isIn(removedMediaIds),
+      );
+    });
   }
 
   Future<void> _addMediaToDatabase(EventMessage rumor) async {
     final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
-    if (entity.data.media.isNotEmpty) {
-      final eventReference = entity.toEventReference();
+    final eventReference = entity.toEventReference();
 
-      await _clearOldMedia(eventReference: eventReference);
-
-      for (final media in entity.data.media.values) {
-        unawaited(
-          mediaEncryptionService
-              .getEncryptedMedia(
-            media,
-            authorPubkey: rumor.masterPubkey,
-          )
-              .then((_) async {
-            final isThumb =
-                entity.data.media.values.any((m) => m.url != media.url && m.thumb == media.url);
-
-            if (isThumb) {
-              return;
-            }
-
-            await messageMediaDao.add(
-              remoteUrl: media.url,
-              status: MessageMediaStatus.completed,
-              eventReference: eventReference,
-            );
-          }),
-        );
+    // Collect current media URLs (excluding thumbnails)
+    final currentMediaUrls = <String>{};
+    for (final media in entity.data.media.values) {
+      final isThumb =
+          entity.data.media.values.any((m) => m.url != media.url && m.thumb == media.url);
+      if (!isThumb && media.url.isNotEmpty) {
+        currentMediaUrls.add(media.url);
       }
+    }
+
+    // Clear only media that was removed (not in current message)
+    await _clearRemovedMedia(
+      eventReference: eventReference,
+      currentMediaUrls: currentMediaUrls,
+    );
+
+    // Add/update media that is in the message
+    for (final media in entity.data.media.values) {
+      unawaited(
+        mediaEncryptionService
+            .getEncryptedMedia(
+          media,
+          authorPubkey: rumor.masterPubkey,
+        )
+            .then((_) async {
+          final isThumb =
+              entity.data.media.values.any((m) => m.url != media.url && m.thumb == media.url);
+
+          if (isThumb) {
+            return;
+          }
+
+          await messageMediaDao.add(
+            remoteUrl: media.url,
+            status: MessageMediaStatus.completed,
+            eventReference: eventReference,
+          );
+        }),
+      );
     }
   }
 }
