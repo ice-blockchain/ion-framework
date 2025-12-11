@@ -6,6 +6,7 @@ import 'package:ion_swap_client/utils/evm_tx_builder.dart';
 
 typedef IonIdentityClientResolver = Future<IONIdentityClient> Function();
 
+// TODO(ice-erebus): move to separate package
 class IonIdentityTransactionApi {
   IonIdentityTransactionApi({
     required IonIdentityClientResolver clientResolver,

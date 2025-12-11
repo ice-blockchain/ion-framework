@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:web3dart/web3dart.dart';
 
+// TODO(ice-erebus): move to separate package
 class EvmTxBuilder {
   EvmTxBuilder({
     required this.contracts,
@@ -144,6 +145,7 @@ const _standardErc20Abi = '''
 ]
 ''';
 
+// TODO(ice-erebus): move to separate package
 class EvmTransaction {
   EvmTransaction({
     required this.kind,
