@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class SlippageAction extends ConsumerWidget {
@@ -16,13 +17,16 @@ class SlippageAction extends ConsumerWidget {
     final textStyles = context.theme.appTextThemes;
     final swapCoinsController = ref.watch(swapCoinsControllerProvider);
 
-    final slippage = swapCoinsController.swapQuoteInfo?.slippage;
-    if (slippage == null) {
+    if (swapCoinsController.sellCoin == null) {
       return const SizedBox.shrink();
     }
 
+    final slippage = swapCoinsController.slippage;
+
     return Button(
-      onPressed: () {},
+      onPressed: () {
+        SwapSlippageSettingsRoute().push<void>(context);
+      },
       type: ButtonType.outlined,
       tintColor: colors.onTertiaryFill,
       borderRadius: BorderRadius.circular(10.0.s),
@@ -31,7 +35,7 @@ class SlippageAction extends ConsumerWidget {
         size: 14.0.s,
       ),
       label: Text(
-        '$slippage%',
+        '${slippage.toStringAsFixed(1)}%',
         style: textStyles.body2.copyWith(
           color: colors.primaryText,
         ),

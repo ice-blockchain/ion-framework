@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/continue_button.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/conversion_info_row.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/slippage_action.dart';
@@ -54,6 +55,8 @@ class SwapCoinsModalPage extends HookConsumerWidget {
       amount,
     );
 
+    useResetSlippageOnClose(controller);
+
     return SheetContent(
       body: Column(
         mainAxisSize: MainAxisSize.min,
@@ -62,8 +65,11 @@ class SwapCoinsModalPage extends HookConsumerWidget {
             padding: EdgeInsets.symmetric(vertical: 8.0.s),
             child: NavigationAppBar.screen(
               title: Text(context.i18n.wallet_swap_coins),
-              actions: const [
-                SlippageAction(),
+              actions: [
+                const SlippageAction(),
+                SizedBox(
+                  width: 8.0.s,
+                ),
               ],
             ),
           ),
@@ -199,6 +205,18 @@ class SwapCoinsModalPage extends HookConsumerWidget {
         return null;
       },
       [quoteAmount, quoteController, amount],
+    );
+  }
+
+  void useResetSlippageOnClose(SwapCoinsController controller) {
+    useEffect(
+      () {
+        // Reset slippage to default when modal is closed
+        return () {
+          controller.setSlippage(SwapCoinData.defaultSlippage);
+        };
+      },
+      [controller],
     );
   }
 }

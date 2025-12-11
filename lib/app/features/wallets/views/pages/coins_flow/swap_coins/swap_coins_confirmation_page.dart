@@ -228,11 +228,10 @@ class _SwapDetailsSection extends ConsumerWidget {
     final sellCoin = swapCoinsController.sellCoin;
     final buyCoin = swapCoinsController.buyCoin;
     final priceImpact = swapQuoteInfo?.swapImpact;
-    final slippage = swapQuoteInfo?.slippage;
+    final slippage = swapCoinsController.slippage;
     final networkFee = swapQuoteInfo?.networkFee;
     final protocolFee = swapQuoteInfo?.protocolFee;
-    final isVisibleMoreButton =
-        priceImpact != null || slippage != null || networkFee != null || protocolFee != null;
+    final isVisibleMoreButton = priceImpact != null || networkFee != null || protocolFee != null;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -277,14 +276,12 @@ class _SwapDetailsSection extends ConsumerWidget {
                               value: '$priceImpact%',
                             ),
                           ],
-                          if (slippage != null) ...[
-                            _Divider(),
-                            _DetailRow(
-                              isVisible: showMoreDetails,
-                              label: context.i18n.wallet_swap_confirmation_slippage,
-                              value: slippage,
-                            ),
-                          ],
+                          _Divider(),
+                          _DetailRow(
+                            isVisible: showMoreDetails,
+                            label: context.i18n.wallet_swap_confirmation_slippage,
+                            value: '${slippage.toStringAsFixed(1)}%',
+                          ),
                           if (networkFee != null) ...[
                             _Divider(),
                             _DetailRow(

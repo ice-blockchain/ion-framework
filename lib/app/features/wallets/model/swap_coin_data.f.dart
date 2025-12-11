@@ -9,7 +9,7 @@ part 'swap_coin_data.f.freezed.dart';
 
 @freezed
 class SwapCoinData with _$SwapCoinData {
-  const factory SwapCoinData({
+  factory SwapCoinData({
     CoinsGroup? sellCoin,
     NetworkData? sellNetwork,
     CoinsGroup? buyCoin,
@@ -20,7 +20,9 @@ class SwapCoinData with _$SwapCoinData {
     @Default(0) double amount,
     BigInt? quoteAmount,
     Exception? quoteError,
+    @Default(SwapCoinData.defaultSlippage) double slippage,
   }) = _SwapCoinData;
-
   const SwapCoinData._();
+
+  static const double defaultSlippage = 3;
 }
