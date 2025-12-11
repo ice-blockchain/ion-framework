@@ -47,17 +47,20 @@ class RelevantFollowers extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    return Row(
-      children: [
-        FollowedByAvatars(pubkeys: pubkeys),
-        SizedBox(width: 10.0.s),
-        FollowedByText(
-          pubkey: pubkey,
-          firstFollowerPubkey: pubkeys.first,
-          isMoreFollowers: pubkeys.length > 1,
-          profileMode: profileMode,
-        ),
-      ],
+    return Padding(
+      padding: EdgeInsetsDirectional.only(bottom: 12.0.s),
+      child: Row(
+        children: [
+          FollowedByAvatars(pubkeys: pubkeys),
+          SizedBox(width: 10.0.s),
+          FollowedByText(
+            pubkey: pubkey,
+            firstFollowerPubkey: pubkeys.first,
+            isMoreFollowers: pubkeys.length > 1,
+            profileMode: profileMode,
+          ),
+        ],
+      ),
     );
   }
 }
