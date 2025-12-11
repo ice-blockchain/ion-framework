@@ -129,8 +129,8 @@ class _$SwapCoinParametersCopyWithImpl<$Res, $Val extends SwapCoinParameters>
 /// @nodoc
 abstract class _$$SwapCoinParametersImplCopyWith<$Res>
     implements $SwapCoinParametersCopyWith<$Res> {
-  factory _$$SwapCoinParametersImplCopyWith(
-          _$SwapCoinParametersImpl value, $Res Function(_$SwapCoinParametersImpl) then) =
+  factory _$$SwapCoinParametersImplCopyWith(_$SwapCoinParametersImpl value,
+          $Res Function(_$SwapCoinParametersImpl) then) =
       __$$SwapCoinParametersImplCopyWithImpl<$Res>;
   @override
   @useResult
@@ -152,8 +152,8 @@ abstract class _$$SwapCoinParametersImplCopyWith<$Res>
 class __$$SwapCoinParametersImplCopyWithImpl<$Res>
     extends _$SwapCoinParametersCopyWithImpl<$Res, _$SwapCoinParametersImpl>
     implements _$$SwapCoinParametersImplCopyWith<$Res> {
-  __$$SwapCoinParametersImplCopyWithImpl(
-      _$SwapCoinParametersImpl _value, $Res Function(_$SwapCoinParametersImpl) _then)
+  __$$SwapCoinParametersImplCopyWithImpl(_$SwapCoinParametersImpl _value,
+      $Res Function(_$SwapCoinParametersImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of SwapCoinParameters
@@ -239,15 +239,17 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
             (identical(other.userBuyAddress, userBuyAddress) ||
                 other.userBuyAddress == userBuyAddress) &&
             (identical(other.amount, amount) || other.amount == amount) &&
-            (identical(other.isBridge, isBridge) || other.isBridge == isBridge) &&
-            (identical(other.sellCoin, sellCoin) || other.sellCoin == sellCoin) &&
+            (identical(other.isBridge, isBridge) ||
+                other.isBridge == isBridge) &&
+            (identical(other.sellCoin, sellCoin) ||
+                other.sellCoin == sellCoin) &&
             (identical(other.buyCoin, buyCoin) || other.buyCoin == buyCoin));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, userSellAddress, userBuyAddress, amount, isBridge, sellCoin, buyCoin);
+  int get hashCode => Object.hash(runtimeType, userSellAddress, userBuyAddress,
+      amount, isBridge, sellCoin, buyCoin);
 
   /// Create a copy of SwapCoinParameters
   /// with the given fields replaced by the non-null parameter values.
@@ -255,7 +257,8 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
   @override
   @pragma('vm:prefer-inline')
   _$$SwapCoinParametersImplCopyWith<_$SwapCoinParametersImpl> get copyWith =>
-      __$$SwapCoinParametersImplCopyWithImpl<_$SwapCoinParametersImpl>(this, _$identity);
+      __$$SwapCoinParametersImplCopyWithImpl<_$SwapCoinParametersImpl>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
