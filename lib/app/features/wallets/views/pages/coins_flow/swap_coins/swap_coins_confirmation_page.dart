@@ -445,9 +445,9 @@ class _SwapButton extends ConsumerWidget {
           final notifier = ref.read(swapCoinsControllerProvider.notifier);
 
           final isIonBscSwap = await notifier.getIsIonBscSwap();
-          final isIonBridge = await notifier.getIsIonBridge();
+          final isIonBridgeBscToIon = await notifier.getIsIonBridgeBscToIon();
 
-          if (isIonBscSwap || isIonBridge) {
+          if (isIonBscSwap || isIonBridgeBscToIon) {
             if (context.mounted) {
               await guardPasskeyDialog(
                 context,

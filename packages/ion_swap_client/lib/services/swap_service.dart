@@ -73,6 +73,13 @@ class SwapService {
         return;
       }
 
+      if (isIonBridgeIonToBsc(swapCoinData)) {
+        await _ionBridgeService.bridgeIonToBsc(
+          swapCoinData: swapCoinData,
+        );
+        return;
+      }
+
       if (swapQuoteInfo == null) {
         throw const IonSwapException('Swap quote is required');
       }
@@ -118,6 +125,14 @@ class SwapService {
       }
 
       if (isIonBridgeBscToIon(swapCoinData)) {
+        return SwapQuoteInfo(
+          type: SwapQuoteInfoType.bridge,
+          priceForSellTokenInBuyToken: 1,
+          source: SwapQuoteInfoSource.ionOnchain,
+        );
+      }
+
+      if (isIonBridgeIonToBsc(swapCoinData)) {
         return SwapQuoteInfo(
           type: SwapQuoteInfoType.bridge,
           priceForSellTokenInBuyToken: 1,
@@ -173,5 +188,9 @@ class SwapService {
 
   bool isIonBridgeBscToIon(SwapCoinParameters swapCoinData) {
     return _ionBridgeService.isSupportedBscToIon(swapCoinData);
+  }
+
+  bool isIonBridgeIonToBsc(SwapCoinParameters swapCoinData) {
+    return _ionBridgeService.isSupportedIonToBsc(swapCoinData);
   }
 }

@@ -86,6 +86,31 @@ class IonBridgeService {
     return isBsc && isBscToken;
   }
 
+  /// Detects ION (native) -> BSC direction.
+  /// Requires sending a transaction on the ION chain; we do not sign/broadcast it here.
+  bool isSupportedIonToBsc(SwapCoinParameters swapCoinData) {
+    final isIon = swapCoinData.sellNetworkId.toLowerCase() == 'ion';
+    final isBsc = swapCoinData.buyNetworkId.toLowerCase() == 'bsc';
+    return isIon && isBsc;
+  }
+
+  /// Placeholder for ION -> BSC bridge.
+  /// The mobile client must send a transaction on the ION chain (TON-based) as per docs.
+  /// This SDK does not sign/broadcast TON transactions, so we surface a clear error.
+  Future<void> bridgeIonToBsc({
+    required SwapCoinParameters swapCoinData,
+  }) async {
+    if (!isSupportedIonToBsc(swapCoinData)) {
+      throw const IonSwapException('Unsupported token pair for ION bridge (ION -> BSC)');
+    }
+
+    throw const IonSwapException(
+      'ION -> BSC bridge requires an on-chain ION transaction '
+      '(send to IonBridge with payload swapTo#<evmAddress>); '
+      'provide a TON/ION signer and RPC to proceed.',
+    );
+  }
+
   Future<String> _burn({
     required BigInt amountIn,
     required TonAddress destination,
