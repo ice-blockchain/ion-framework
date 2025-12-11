@@ -38,12 +38,14 @@ mixin _$SwapQuoteInfo {
   /// Create a copy of SwapQuoteInfo
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $SwapQuoteInfoCopyWith<SwapQuoteInfo> get copyWith => throw _privateConstructorUsedError;
+  $SwapQuoteInfoCopyWith<SwapQuoteInfo> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $SwapQuoteInfoCopyWith<$Res> {
-  factory $SwapQuoteInfoCopyWith(SwapQuoteInfo value, $Res Function(SwapQuoteInfo) then) =
+  factory $SwapQuoteInfoCopyWith(
+          SwapQuoteInfo value, $Res Function(SwapQuoteInfo) then) =
       _$SwapQuoteInfoCopyWithImpl<$Res, SwapQuoteInfo>;
   @useResult
   $Res call(
@@ -198,7 +200,8 @@ class _$SwapQuoteInfoCopyWithImpl<$Res, $Val extends SwapQuoteInfo>
 }
 
 /// @nodoc
-abstract class _$$SwapQuoteInfoImplCopyWith<$Res> implements $SwapQuoteInfoCopyWith<$Res> {
+abstract class _$$SwapQuoteInfoImplCopyWith<$Res>
+    implements $SwapQuoteInfoCopyWith<$Res> {
   factory _$$SwapQuoteInfoImplCopyWith(
           _$SwapQuoteInfoImpl value, $Res Function(_$SwapQuoteInfoImpl) then) =
       __$$SwapQuoteInfoImplCopyWithImpl<$Res>;
@@ -354,18 +357,25 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
         (other.runtimeType == runtimeType &&
             other is _$SwapQuoteInfoImpl &&
             (identical(other.type, type) || other.type == type) &&
-            (identical(other.priceForSellTokenInBuyToken, priceForSellTokenInBuyToken) ||
-                other.priceForSellTokenInBuyToken == priceForSellTokenInBuyToken) &&
+            (identical(other.priceForSellTokenInBuyToken,
+                    priceForSellTokenInBuyToken) ||
+                other.priceForSellTokenInBuyToken ==
+                    priceForSellTokenInBuyToken) &&
             (identical(other.source, source) || other.source == source) &&
-            (identical(other.swapImpact, swapImpact) || other.swapImpact == swapImpact) &&
-            (identical(other.networkFee, networkFee) || other.networkFee == networkFee) &&
-            (identical(other.protocolFee, protocolFee) || other.protocolFee == protocolFee) &&
-            (identical(other.slippage, slippage) || other.slippage == slippage) &&
-            (identical(other.exolixQuote, exolixQuote) || other.exolixQuote == exolixQuote) &&
+            (identical(other.swapImpact, swapImpact) ||
+                other.swapImpact == swapImpact) &&
+            (identical(other.networkFee, networkFee) ||
+                other.networkFee == networkFee) &&
+            (identical(other.protocolFee, protocolFee) ||
+                other.protocolFee == protocolFee) &&
+            (identical(other.exolixQuote, exolixQuote) ||
+                other.exolixQuote == exolixQuote) &&
             (identical(other.letsExchangeQuote, letsExchangeQuote) ||
                 other.letsExchangeQuote == letsExchangeQuote) &&
-            (identical(other.okxQuote, okxQuote) || other.okxQuote == okxQuote) &&
-            (identical(other.relayQuote, relayQuote) || other.relayQuote == relayQuote) &&
+            (identical(other.okxQuote, okxQuote) ||
+                other.okxQuote == okxQuote) &&
+            (identical(other.relayQuote, relayQuote) ||
+                other.relayQuote == relayQuote) &&
             (identical(other.relayDepositAmount, relayDepositAmount) ||
                 other.relayDepositAmount == relayDepositAmount));
   }
@@ -416,7 +426,8 @@ abstract class _SwapQuoteInfo implements SwapQuoteInfo {
       final RelayQuote? relayQuote,
       final String? relayDepositAmount}) = _$SwapQuoteInfoImpl;
 
-  factory _SwapQuoteInfo.fromJson(Map<String, dynamic> json) = _$SwapQuoteInfoImpl.fromJson;
+  factory _SwapQuoteInfo.fromJson(Map<String, dynamic> json) =
+      _$SwapQuoteInfoImpl.fromJson;
 
   @override
   SwapQuoteInfoType get type;
