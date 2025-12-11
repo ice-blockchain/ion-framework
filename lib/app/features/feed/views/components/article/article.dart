@@ -193,6 +193,7 @@ class Article extends ConsumerWidget {
                             else if (!isReplied) ...[
                               UserInfo(
                                 pubkey: eventReference.masterPubkey,
+                                network: network,
                                 createdAt: entity.data.publishedAt.value,
                                 timeFormat: timeFormat,
                                 accentTheme: isAccentTheme,
