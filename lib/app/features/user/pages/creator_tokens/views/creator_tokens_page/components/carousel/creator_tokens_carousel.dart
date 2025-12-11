@@ -72,7 +72,7 @@ class _CarouselCard extends HookConsumerWidget {
         key: ValueKey(token.externalAddress),
         colors: colors,
         child: Padding(
-          padding: EdgeInsets.only(top: topPadding.s),
+          padding: EdgeInsetsDirectional.only(top: topPadding.s),
           child: Column(
             children: [
               Container(
