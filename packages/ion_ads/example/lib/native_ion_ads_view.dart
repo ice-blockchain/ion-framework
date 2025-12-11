@@ -166,7 +166,7 @@ class _NativeIonPageState extends State<NativeIonPage> {
                           ),
                           if (showContentStream)
                             SizedBox(
-                              height: 320,
+                              height: 380,
                               child: AppodealNativeAd(
                                 options: NativeAdOptions.contentStreamOptions(),
                               ),
