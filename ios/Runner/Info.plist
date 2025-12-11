@@ -31,7 +31,7 @@
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>https</string>
-		<string>totp</string>
+		<string>googleauthenticator</string>
 		<string>msauthv3</string>
 		<string>lastpassmfa</string>
 		<string>authy</string>
