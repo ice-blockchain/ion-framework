@@ -19,8 +19,9 @@ class CreatorTokensCarousel extends HookConsumerWidget {
     super.key,
   });
 
-  static const _carouselHeight = 303.0;
-  static const _carouselHorizontalPadding = 24.0;
+  static const carouselHeight = 303.0;
+  static const carouselHorizontalPadding = 24.0;
+  static const carouselTopPadding = _CarouselCard.topPadding;
 
   final List<CommunityToken> tokens;
   final void Function(CommunityToken) onItemChanged;
@@ -29,7 +30,7 @@ class CreatorTokensCarousel extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CarouselSlider.builder(
       options: CarouselOptions(
-        height: _carouselHeight.s,
+        height: carouselHeight.s,
         viewportFraction: 0.75,
         enlargeCenterPage: true,
         enableInfiniteScroll: false,
@@ -39,7 +40,7 @@ class CreatorTokensCarousel extends HookConsumerWidget {
       itemCount: tokens.length,
       itemBuilder: (context, index, realIndex) {
         return Padding(
-          padding: EdgeInsets.symmetric(horizontal: _carouselHorizontalPadding.s),
+          padding: EdgeInsets.symmetric(horizontal: carouselHorizontalPadding.s),
           child: _CarouselCard(token: tokens[index]),
         );
       },
@@ -52,7 +53,7 @@ class _CarouselCard extends HookConsumerWidget {
     required this.token,
   });
 
-  static const _topPadding = 23.0;
+  static const topPadding = 23.0;
 
   final CommunityToken token;
 
@@ -70,7 +71,7 @@ class _CarouselCard extends HookConsumerWidget {
         key: ValueKey(token.externalAddress),
         colors: colors,
         child: Padding(
-          padding: EdgeInsets.only(top: _topPadding.s),
+          padding: EdgeInsets.only(top: topPadding.s),
           child: Column(
             children: [
               Container(
