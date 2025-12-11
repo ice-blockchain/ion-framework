@@ -35,6 +35,7 @@ class CreatorTokensCarousel extends HookConsumerWidget {
         enlargeCenterPage: true,
         enableInfiniteScroll: false,
         enlargeStrategy: CenterPageEnlargeStrategy.zoom,
+        initialPage: tokens.length >= 3 ? 1 : 0,
         onPageChanged: (index, _) => onItemChanged(tokens[index]),
       ),
       itemCount: tokens.length,
