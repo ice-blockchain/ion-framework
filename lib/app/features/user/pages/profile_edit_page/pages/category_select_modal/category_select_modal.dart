@@ -29,7 +29,7 @@ class CategorySelectModal extends HookConsumerWidget {
       () {
         final query = searchValue.value.toLowerCase();
         return categories.values.where((category) {
-          return category.name.toLowerCase().contains(query);
+          return category.getName(context).toLowerCase().contains(query);
         }).toList();
       },
       [categories, searchValue.value],
@@ -80,7 +80,7 @@ class CategorySelectModal extends HookConsumerWidget {
                   constraints: const BoxConstraints(),
                   backgroundColor: context.theme.appColors.secondaryBackground,
                   onTap: () => Navigator.of(context).pop(category.key),
-                  title: Text(category.name, style: context.theme.appTextThemes.body),
+                  title: Text(category.getName(context), style: context.theme.appTextThemes.body),
                   trailing: selectedCategory == category.key
                       ? Assets.svg.iconBlockCheckboxOnblue.icon(
                           color: context.theme.appColors.success,
