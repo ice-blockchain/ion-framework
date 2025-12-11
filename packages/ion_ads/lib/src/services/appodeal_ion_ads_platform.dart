@@ -143,18 +143,19 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
   }
 
   Future<void> _checkAdAvailability() async {
-    final bannerReady = await Appodeal.canShow(AppodealAdType.Banner);
-    final interstitialReady = await Appodeal.canShow(AppodealAdType.Interstitial);
-    final rewardedReady = await Appodeal.canShow(AppodealAdType.RewardedVideo);
+    //final bannerReady = await Appodeal.canShow(AppodealAdType.Banner);
+    //final interstitialReady = await Appodeal.canShow(AppodealAdType.Interstitial);
+    // final rewardedReady = await Appodeal.canShow(AppodealAdType.RewardedVideo);
     final isNativeInitialized = await Appodeal.isInitialized(AppodealAdType.NativeAd);
     final canShowNative = await Appodeal.canShow(AppodealAdType.NativeAd);
-    log('isNativeInitialized :$isNativeInitialized, canShowNative:$canShowNative');
+    final nativeAd = await Appodeal.getNativeAd(1);
+    log('isNativeInitialized :$isNativeInitialized, canShowNative:$canShowNative, nativeAd:$nativeAd');
 
     await Appodeal.cache(AppodealAdType.NativeAd);
 
-    _isBannerLoaded = bannerReady ?? false;
-    _isInterstitialLoaded = interstitialReady ?? false;
-    _isRewardedLoaded = rewardedReady ?? false;
+    // _isBannerLoaded = bannerReady ?? false;
+    // _isInterstitialLoaded = interstitialReady ?? false;
+    // _isRewardedLoaded = rewardedReady ?? false;
     _isNativeLoaded = isNativeInitialized ?? false;
   }
 
