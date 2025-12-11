@@ -9,6 +9,7 @@ import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/repositories/relay_api_repository.dart';
 import 'package:ion_swap_client/services/swap_service.dart';
+import 'package:ion_swap_client/utils/crypto_amount_converter.dart';
 
 class BridgeService {
   BridgeService({
@@ -61,7 +62,7 @@ class BridgeService {
       throw const CoinPairNotFoundException();
     }
 
-    final swapAmount = _getSwapAmount(
+    final swapAmount = toBlockchainUnits(
       swapCoinData.amount,
       buyChain.currency.decimals,
     );
@@ -100,8 +101,4 @@ class BridgeService {
   }
 
   String get _nativeTokenAddress => '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
-
-  String _getSwapAmount(String amount, int decimals) {
-    return (BigInt.from(double.parse(amount)) * BigInt.from(10).pow(decimals)).toString();
-  }
 }
