@@ -12,10 +12,14 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/article/article.dart';
+import 'package:ion/app/features/feed/views/components/community_token_action/community_token_action.dart';
+import 'package:ion/app/features/feed/views/components/community_token_live/community_token_live.dart';
 import 'package:ion/app/features/feed/views/components/post/post.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 
@@ -55,7 +59,12 @@ class RepostListItem extends ConsumerWidget {
         RepostEntity() =>
           PostDetailsRoute(eventReference: repostEntity.data.eventReference.encode())
               .push<void>(context),
-        GenericRepostEntity() when repostEntity.data.kind == ModifiablePostEntity.kind =>
+        GenericRepostEntity()
+            when [
+              ModifiablePostEntity.kind,
+              CommunityTokenDefinitionEntity.kind,
+              CommunityTokenActionEntity.kind,
+            ].any((kind) => repostEntity.data.kind == kind) =>
           PostDetailsRoute(eventReference: repostEntity.data.eventReference.encode())
               .push<void>(context),
         GenericRepostEntity() when repostEntity.data.kind == ArticleEntity.kind =>
@@ -96,6 +105,17 @@ class RepostListItem extends ConsumerWidget {
                   showNotInterested: showNotInterested,
                   cache: false,
                 ),
+              ),
+            GenericRepostEntity()
+                when repostEntity.data.kind == CommunityTokenDefinitionEntity.kind =>
+              CommunityTokenLive(
+                eventReference: repostEntity.data.eventReference,
+                network: true,
+              ),
+            GenericRepostEntity() when repostEntity.data.kind == CommunityTokenActionEntity.kind =>
+              CommunityTokenAction(
+                eventReference: repostEntity.data.eventReference,
+                network: true,
               ),
             _ => const SizedBox.shrink(),
           },

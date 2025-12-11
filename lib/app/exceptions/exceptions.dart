@@ -708,3 +708,8 @@ class SolanaInsufficientBalanceException extends IONException {
 class SolanaInvalidRecipientException extends IONException {
   SolanaInvalidRecipientException() : super(10132, 'Solana invalid recipient exception');
 }
+
+class UnknownEventReferenceKind extends IONException {
+  UnknownEventReferenceKind(dynamic eventReference)
+      : super(10133, 'Unknown event reference kind: $eventReference');
+}

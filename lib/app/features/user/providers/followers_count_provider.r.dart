@@ -14,7 +14,11 @@ part 'followers_count_provider.r.g.dart';
 @riverpod
 class FollowersCount extends _$FollowersCount {
   @override
-  FutureOr<int?> build(String pubkey) async {
+  FutureOr<int?> build(
+    String pubkey, {
+    bool cache = true,
+    bool network = true,
+  }) async {
     final filters = [
       RequestFilter(
         kinds: const [FollowListEntity.kind],
@@ -30,6 +34,8 @@ class FollowersCount extends _$FollowersCount {
         requestData: EventCountRequestData(filters: filters),
         key: pubkey,
         type: EventCountResultType.followers,
+        cache: cache,
+        network: network,
       ).future,
     ) as FutureOr<int?>;
   }

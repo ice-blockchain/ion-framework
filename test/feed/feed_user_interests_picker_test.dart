@@ -26,6 +26,7 @@ void main() {
         topMaxAge: Duration(days: 1),
         trendingMaxAge: Duration(days: 1),
         exploreMaxAge: Duration(days: 1),
+        tokenizedCommunitiesMaxAge: Duration(days: 1),
         repostThrottleDelay: Duration(days: 1),
         concurrentRequests: 3,
         concurrentMediaDownloadsLimit: 3,

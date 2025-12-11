@@ -10,6 +10,7 @@ import 'package:ion/app/components/text_editor/utils/extract_tags.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/create_article/providers/draft_article_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_interests.f.dart';
@@ -33,6 +34,8 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_delete_file_n
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_builder_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/markdown/quill.dart';
@@ -303,8 +306,11 @@ class CreateArticle extends _$CreateArticle {
 
     final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
 
+    final tokenDefinition = await _buildArticleTokenDefinition(articleData);
+    final tokenDefinitionEvent = await ionNotifier.sign(tokenDefinition);
+
     await Future.wait([
-      ionNotifier.sendEvents([...fileEvents, articleEvent]),
+      ionNotifier.sendEvents([...fileEvents, articleEvent, tokenDefinitionEvent]),
       for (final pubkey in pubkeysToPublish)
         ionNotifier.sendEvent(
           articleEvent,
@@ -466,5 +472,23 @@ class CreateArticle extends _$CreateArticle {
       return EntityLabel(values: [language], namespace: EntityLabelNamespace.language);
     }
     return null;
+  }
+
+  Future<CommunityTokenDefinition> _buildArticleTokenDefinition(ArticleData articleData) async {
+    final currentPubkey = ref.read(currentPubkeySelectorProvider);
+
+    if (currentPubkey == null) {
+      throw UserMasterPubkeyNotFoundException();
+    }
+
+    final communityTokenDefinitionBuilder = ref.read(communityTokenDefinitionBuilderProvider);
+    return communityTokenDefinitionBuilder.build(
+      origEventReference: ReplaceableEventReference(
+        masterPubkey: currentPubkey,
+        kind: ArticleEntity.kind,
+        dTag: articleData.replaceableEventId.value,
+      ),
+      type: CommunityTokenDefinitionType.original,
+    );
   }
 }

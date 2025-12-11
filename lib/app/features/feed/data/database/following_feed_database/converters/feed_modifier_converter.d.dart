@@ -17,6 +17,7 @@ class FeedModifierConverter extends TypeConverter<FeedModifier?, int> {
       2 => FeedModifier.explore(ExploreModifierType.withAnyTopic),
       3 => FeedModifier.explore(ExploreModifierType.interests),
       4 => FeedModifier.explore(ExploreModifierType.any),
+      5 => FeedModifier.tokenizedCommunity(),
       _ => throw UnsupportedError('Unknown FeedModifier value: $fromDb'),
     };
   }
@@ -31,6 +32,7 @@ class FeedModifierConverter extends TypeConverter<FeedModifier?, int> {
           ExploreModifierType.interests => 3,
           ExploreModifierType.any => 4,
         },
+      FeedModifierTokenizedCommunity() => 5,
       null => -1
     };
   }

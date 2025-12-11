@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -14,8 +15,11 @@ import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.d
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -60,6 +64,16 @@ class RepostNotifier extends _$RepostNotifier {
             repostedEvent: await entity.toEntityEventMessage(),
             kind: ArticleEntity.kind,
           ),
+        CommunityTokenDefinitionEntity() => GenericRepostData(
+            eventReference: entity.toEventReference(),
+            repostedEvent: await entity.toEntityEventMessage(),
+            kind: CommunityTokenDefinitionEntity.kind,
+          ),
+        CommunityTokenActionEntity() => GenericRepostData(
+            eventReference: entity.toEventReference(),
+            repostedEvent: await entity.toEntityEventMessage(),
+            kind: CommunityTokenActionEntity.kind,
+          ),
         _ => throw UnsupportedRepostException(entity.toEventReference()),
       };
 
@@ -69,14 +83,18 @@ class RepostNotifier extends _$RepostNotifier {
 
       final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
 
+      final isOwnEntity = ref.watch(isCurrentUserSelectorProvider(entity.masterPubkey));
+
       final (repostEntity, _) = await (
         ionNotifier.sendEvent(repostEvent),
-        ionNotifier.sendEvent(
-          repostEvent,
-          actionSource: ActionSourceUser(eventReference.masterPubkey),
-          metadataBuilders: [userEventsMetadataBuilder],
-          cache: false,
-        )
+        !isOwnEntity
+            ? ionNotifier.sendEvent(
+                repostEvent,
+                actionSource: ActionSourceUser(eventReference.masterPubkey),
+                metadataBuilders: [userEventsMetadataBuilder],
+                cache: false,
+              )
+            : Future<void>.value(),
       ).wait;
 
       if (repostEntity == null) {
@@ -98,6 +116,8 @@ class RepostNotifier extends _$RepostNotifier {
       ModifiablePostEntity() => repostedEntity.data.relatedHashtags,
       PostEntity() => repostedEntity.data.relatedHashtags,
       ArticleEntity() => repostedEntity.data.relatedHashtags,
+      CommunityTokenDefinitionEntity() => <RelatedHashtag>[],
+      CommunityTokenActionEntity() => <RelatedHashtag>[],
       _ => throw UnsupportedEntityType(repostedEntity)
     };
 

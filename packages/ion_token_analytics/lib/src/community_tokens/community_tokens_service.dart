@@ -161,4 +161,8 @@ class IonCommunityTokensService {
   }) {
     return _categoryTokensRepository.subscribeToRealtimeUpdates(sessionId: sessionId, type: type);
   }
+
+  Future<Position?> getHolderPosition(String tokenExternalAddress, String holderExternalAddress) {
+    return _tokenInfoRepository.getHolderPosition(tokenExternalAddress, holderExternalAddress);
+  }
 }

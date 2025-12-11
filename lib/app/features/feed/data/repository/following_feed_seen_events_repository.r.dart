@@ -1,16 +1,26 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/dao/seen_events_dao.m.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/dao/seen_reposts_dao.m.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/following_feed_database.m.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_modifier.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'following_feed_seen_events_repository.r.g.dart';
+
+typedef EventPointer = ({EventReference eventReference, int createdAt});
 
 @Riverpod(keepAlive: true)
 FollowingFeedSeenEventsRepository followingFeedSeenEventsRepository(Ref ref) =>
@@ -34,6 +44,17 @@ class FollowingFeedSeenEventsRepository {
     required FeedType feedType,
     FeedModifier? feedModifier,
   }) async {
+    final kind = switch (entity) {
+      ArticleEntity() => ArticleEntity.kind,
+      ModifiablePostEntity() => ModifiablePostEntity.kind,
+      PostEntity() => PostEntity.kind,
+      CommunityTokenDefinitionEntity() => CommunityTokenDefinitionEntity.kind,
+      CommunityTokenActionEntity() => CommunityTokenActionEntity.kind,
+      GenericRepostEntity() => GenericRepostEntity.kind,
+      RepostEntity() => RepostEntity.kind,
+      _ => throw UnsupportedEntityType(entity),
+    };
+
     return _seenEventsDao.insert(
       SeenEvent(
         eventReference: entity.toEventReference(),
@@ -41,6 +62,7 @@ class FollowingFeedSeenEventsRepository {
         feedType: feedType,
         feedModifier: feedModifier,
         pubkey: entity.masterPubkey,
+        kind: kind,
       ),
     );
   }
@@ -59,7 +81,7 @@ class FollowingFeedSeenEventsRepository {
     );
   }
 
-  Future<({EventReference eventReference, int createdAt})?> getSeenSequenceEnd({
+  Future<EventPointer?> getSeenSequenceEnd({
     required EventReference eventReference,
     required FeedType feedType,
     FeedModifier? feedModifier,
@@ -72,7 +94,7 @@ class FollowingFeedSeenEventsRepository {
 
     if (seenEvent == null) return null;
     if (seenEvent.nextEventReference == null) {
-      return (createdAt: seenEvent.createdAt, eventReference: seenEvent.eventReference);
+      return _getEventPointer(seenEvent);
     }
 
     final seenSequenceEnd = await _seenEventsDao.getFirstWithoutNext(
@@ -82,13 +104,13 @@ class FollowingFeedSeenEventsRepository {
     );
 
     if (seenSequenceEnd == null) {
-      return (createdAt: seenEvent.createdAt, eventReference: seenEvent.eventReference);
+      return _getEventPointer(seenEvent);
     }
 
-    return (createdAt: seenSequenceEnd.createdAt, eventReference: seenSequenceEnd.eventReference);
+    return _getEventPointer(seenSequenceEnd);
   }
 
-  Future<List<({EventReference eventReference, int createdAt})>> getEventReferences({
+  Future<List<EventPointer>> getEventReferences({
     required FeedType feedType,
     required int limit,
     List<EventReference>? excludeReferences,
@@ -117,14 +139,10 @@ class FollowingFeedSeenEventsRepository {
             since: since,
             until: until,
           ));
-    return seenEvents
-        .map(
-          (event) => (eventReference: event.eventReference, createdAt: event.createdAt),
-        )
-        .toList();
+    return seenEvents.map(_getEventPointer).toList();
   }
 
-  Stream<List<({EventReference eventReference, int createdAt})>> watch({
+  Stream<List<EventPointer>> watch({
     Iterable<EventReference>? eventsReferences,
     FeedType? feedType,
     FeedModifier? feedModifier,
@@ -135,9 +153,7 @@ class FollowingFeedSeenEventsRepository {
       feedModifier: feedModifier,
     );
     return seenEventsStream.map(
-      (eventsList) => eventsList
-          .map((event) => (eventReference: event.eventReference, createdAt: event.createdAt))
-          .toList(),
+      (eventsList) => eventsList.map(_getEventPointer).toList(),
     );
   }
 
@@ -175,5 +191,18 @@ class FollowingFeedSeenEventsRepository {
   Future<bool> isSeen({required EventReference eventReference}) async {
     final seenEvent = await _seenEventsDao.getByReference(eventReference: eventReference);
     return seenEvent != null;
+  }
+
+  EventPointer _getEventPointer(SeenEvent seenEvent) {
+    final eventReference = seenEvent.eventReference;
+
+    if (eventReference is ImmutableEventReference && seenEvent.kind != null) {
+      return (
+        eventReference: eventReference.copyWith(kind: seenEvent.kind),
+        createdAt: seenEvent.createdAt
+      );
+    }
+
+    return (eventReference: eventReference, createdAt: seenEvent.createdAt);
   }
 }

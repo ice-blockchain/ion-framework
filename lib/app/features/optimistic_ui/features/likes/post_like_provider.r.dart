@@ -137,6 +137,10 @@ class ToggleLikeNotifier extends _$ToggleLikeNotifier {
 
     if (entity == null) throw EntityNotFoundException(eventReference);
 
+    if (entity is! ModifiablePostEntity && entity is! PostEntity && entity is! ArticleEntity) {
+      return;
+    }
+
     final hasParent = switch (entity) {
       ModifiablePostEntity() => entity.data.parentEvent != null,
       PostEntity() => entity.data.parentEvent != null,

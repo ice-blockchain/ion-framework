@@ -59,7 +59,8 @@ abstract class EventReference {
   static String separator = ':';
 }
 
-@Freezed(toStringOverride: false)
+@immutable
+@Freezed(toStringOverride: false, equal: false)
 class ImmutableEventReference with _$ImmutableEventReference implements EventReference {
   const factory ImmutableEventReference({
     required String masterPubkey,
@@ -114,6 +115,19 @@ class ImmutableEventReference with _$ImmutableEventReference implements EventRef
   String toString() {
     return eventId;
   }
+
+  @override
+  bool operator ==(Object other) {
+    // Do not take [kind] in consideration, because that is an optional info about the same event
+    return identical(this, other) ||
+        other is ImmutableEventReference &&
+            runtimeType == other.runtimeType &&
+            eventId == other.eventId &&
+            masterPubkey == other.masterPubkey;
+  }
+
+  @override
+  int get hashCode => Object.hash(eventId, masterPubkey);
 
   static bool hasValidLength(List<String> tag) {
     return tag.length <= maxTagLength;

@@ -12,6 +12,7 @@ class SeenEventsTable extends Table {
   TextColumn get eventReference => text().map(const EventReferenceConverter())();
   TextColumn get nextEventReference => text().map(const EventReferenceConverter()).nullable()();
   TextColumn get pubkey => text()();
+  IntColumn get kind => integer().nullable()();
   IntColumn get createdAt => integer()();
 
   @override

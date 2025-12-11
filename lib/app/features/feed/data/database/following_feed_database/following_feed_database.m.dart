@@ -65,7 +65,7 @@ class FollowingFeedDatabase extends _$FollowingFeedDatabase {
   final String pubkey;
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -90,6 +90,12 @@ class FollowingFeedDatabase extends _$FollowingFeedDatabase {
                 // No mapping for 'lastContentTime'
               },
             ),
+          );
+        },
+        from4To5: (Migrator m, Schema5 schema) async {
+          await m.addColumn(
+            schema.seenEventsTable,
+            schema.seenEventsTable.kind,
           );
         },
       ),
