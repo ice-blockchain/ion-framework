@@ -26,7 +26,6 @@ mixin _$SwapQuoteInfo {
   int? get swapImpact => throw _privateConstructorUsedError;
   String? get networkFee => throw _privateConstructorUsedError;
   String? get protocolFee => throw _privateConstructorUsedError;
-  String? get slippage => throw _privateConstructorUsedError;
   ExolixRate? get exolixQuote => throw _privateConstructorUsedError;
   LetsExchangeInfo? get letsExchangeQuote => throw _privateConstructorUsedError;
   SwapQuoteData? get okxQuote => throw _privateConstructorUsedError;
@@ -56,7 +55,6 @@ abstract class $SwapQuoteInfoCopyWith<$Res> {
       int? swapImpact,
       String? networkFee,
       String? protocolFee,
-      String? slippage,
       ExolixRate? exolixQuote,
       LetsExchangeInfo? letsExchangeQuote,
       SwapQuoteData? okxQuote,
@@ -90,7 +88,6 @@ class _$SwapQuoteInfoCopyWithImpl<$Res, $Val extends SwapQuoteInfo>
     Object? swapImpact = freezed,
     Object? networkFee = freezed,
     Object? protocolFee = freezed,
-    Object? slippage = freezed,
     Object? exolixQuote = freezed,
     Object? letsExchangeQuote = freezed,
     Object? okxQuote = freezed,
@@ -121,10 +118,6 @@ class _$SwapQuoteInfoCopyWithImpl<$Res, $Val extends SwapQuoteInfo>
       protocolFee: freezed == protocolFee
           ? _value.protocolFee
           : protocolFee // ignore: cast_nullable_to_non_nullable
-              as String?,
-      slippage: freezed == slippage
-          ? _value.slippage
-          : slippage // ignore: cast_nullable_to_non_nullable
               as String?,
       exolixQuote: freezed == exolixQuote
           ? _value.exolixQuote
@@ -221,7 +214,6 @@ abstract class _$$SwapQuoteInfoImplCopyWith<$Res>
       int? swapImpact,
       String? networkFee,
       String? protocolFee,
-      String? slippage,
       ExolixRate? exolixQuote,
       LetsExchangeInfo? letsExchangeQuote,
       SwapQuoteData? okxQuote,
@@ -257,7 +249,6 @@ class __$$SwapQuoteInfoImplCopyWithImpl<$Res>
     Object? swapImpact = freezed,
     Object? networkFee = freezed,
     Object? protocolFee = freezed,
-    Object? slippage = freezed,
     Object? exolixQuote = freezed,
     Object? letsExchangeQuote = freezed,
     Object? okxQuote = freezed,
@@ -288,10 +279,6 @@ class __$$SwapQuoteInfoImplCopyWithImpl<$Res>
       protocolFee: freezed == protocolFee
           ? _value.protocolFee
           : protocolFee // ignore: cast_nullable_to_non_nullable
-              as String?,
-      slippage: freezed == slippage
-          ? _value.slippage
-          : slippage // ignore: cast_nullable_to_non_nullable
               as String?,
       exolixQuote: freezed == exolixQuote
           ? _value.exolixQuote
@@ -327,7 +314,6 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
       this.swapImpact,
       this.networkFee,
       this.protocolFee,
-      this.slippage,
       this.exolixQuote,
       this.letsExchangeQuote,
       this.okxQuote,
@@ -350,8 +336,6 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
   @override
   final String? protocolFee;
   @override
-  final String? slippage;
-  @override
   final ExolixRate? exolixQuote;
   @override
   final LetsExchangeInfo? letsExchangeQuote;
@@ -364,7 +348,7 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
 
   @override
   String toString() {
-    return 'SwapQuoteInfo(type: $type, priceForSellTokenInBuyToken: $priceForSellTokenInBuyToken, source: $source, swapImpact: $swapImpact, networkFee: $networkFee, protocolFee: $protocolFee, slippage: $slippage, exolixQuote: $exolixQuote, letsExchangeQuote: $letsExchangeQuote, okxQuote: $okxQuote, relayQuote: $relayQuote, relayDepositAmount: $relayDepositAmount)';
+    return 'SwapQuoteInfo(type: $type, priceForSellTokenInBuyToken: $priceForSellTokenInBuyToken, source: $source, swapImpact: $swapImpact, networkFee: $networkFee, protocolFee: $protocolFee, exolixQuote: $exolixQuote, letsExchangeQuote: $letsExchangeQuote, okxQuote: $okxQuote, relayQuote: $relayQuote, relayDepositAmount: $relayDepositAmount)';
   }
 
   @override
@@ -384,8 +368,6 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
                 other.networkFee == networkFee) &&
             (identical(other.protocolFee, protocolFee) ||
                 other.protocolFee == protocolFee) &&
-            (identical(other.slippage, slippage) ||
-                other.slippage == slippage) &&
             (identical(other.exolixQuote, exolixQuote) ||
                 other.exolixQuote == exolixQuote) &&
             (identical(other.letsExchangeQuote, letsExchangeQuote) ||
@@ -408,7 +390,6 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
       swapImpact,
       networkFee,
       protocolFee,
-      slippage,
       exolixQuote,
       letsExchangeQuote,
       okxQuote,
@@ -439,7 +420,6 @@ abstract class _SwapQuoteInfo implements SwapQuoteInfo {
       final int? swapImpact,
       final String? networkFee,
       final String? protocolFee,
-      final String? slippage,
       final ExolixRate? exolixQuote,
       final LetsExchangeInfo? letsExchangeQuote,
       final SwapQuoteData? okxQuote,
@@ -461,8 +441,6 @@ abstract class _SwapQuoteInfo implements SwapQuoteInfo {
   String? get networkFee;
   @override
   String? get protocolFee;
-  @override
-  String? get slippage;
   @override
   ExolixRate? get exolixQuote;
   @override

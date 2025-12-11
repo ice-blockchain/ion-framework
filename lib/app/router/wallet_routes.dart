@@ -115,6 +115,7 @@ class WalletRoutes {
     TypedGoRoute<SwapSellSelectNetworkRoute>(path: 'swap-sell-select-network'),
     TypedGoRoute<SwapBuySelectNetworkRoute>(path: 'swap-buy-select-network'),
     TypedGoRoute<SwapCoinsConfirmationRoute>(path: 'swap-coins-confirmation'),
+    TypedGoRoute<SwapSlippageSettingsRoute>(path: 'swap-slippage-settings'),
   ];
 }
 
@@ -583,6 +584,14 @@ class SwapCoinsConfirmationRoute extends BaseRouteData with _$SwapCoinsConfirmat
   SwapCoinsConfirmationRoute()
       : super(
           child: const SwapCoinsConfirmationPage(),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class SwapSlippageSettingsRoute extends BaseRouteData with _$SwapSlippageSettingsRoute {
+  SwapSlippageSettingsRoute()
+      : super(
+          child: const SlippageSettingsPage(),
           type: IceRouteType.bottomSheet,
         );
 }

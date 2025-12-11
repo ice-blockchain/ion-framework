@@ -15,7 +15,6 @@ _$SwapQuoteInfoImpl _$$SwapQuoteInfoImplFromJson(Map<String, dynamic> json) =>
       swapImpact: (json['swapImpact'] as num?)?.toInt(),
       networkFee: json['networkFee'] as String?,
       protocolFee: json['protocolFee'] as String?,
-      slippage: json['slippage'] as String?,
       exolixQuote: json['exolixQuote'] == null
           ? null
           : ExolixRate.fromJson(json['exolixQuote'] as Map<String, dynamic>),
@@ -40,7 +39,6 @@ Map<String, dynamic> _$$SwapQuoteInfoImplToJson(_$SwapQuoteInfoImpl instance) =>
       'swapImpact': instance.swapImpact,
       'networkFee': instance.networkFee,
       'protocolFee': instance.protocolFee,
-      'slippage': instance.slippage,
       'exolixQuote': instance.exolixQuote,
       'letsExchangeQuote': instance.letsExchangeQuote,
       'okxQuote': instance.okxQuote,
