@@ -6,12 +6,15 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/model/paged.f.dart';
 import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/providers/counters/likes_count_provider.r.dart';
 import 'package:ion/app/features/feed/providers/replies_data_source_provider.r.dart';
+import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'replies_provider.r.g.dart';
@@ -44,7 +47,33 @@ class Replies extends _$Replies {
         fireImmediately: true,
       );
 
-    return entitiesPagedData;
+    return _sortReplies(entitiesPagedData);
+  }
+
+  EntitiesPagedDataState? _sortReplies(EntitiesPagedDataState? entitiesPagedData) {
+    // Sort the entities: most likes first, then verified accounts, then the rest
+    if (entitiesPagedData == null) return null;
+
+    final sortedData = switch (entitiesPagedData.data) {
+      PagedLoading(:final items, :final pagination) =>
+        Paged<IonConnectEntity, Map<ActionSource, PaginationParams>>.loading(
+          _sortEntities(items),
+          pagination: pagination,
+        ),
+      PagedData(:final items, :final pagination) =>
+        Paged<IonConnectEntity, Map<ActionSource, PaginationParams>>.data(
+          _sortEntities(items),
+          pagination: pagination,
+        ),
+      PagedError(:final items, :final error, :final pagination) =>
+        Paged<IonConnectEntity, Map<ActionSource, PaginationParams>>.error(
+          _sortEntities(items),
+          error: error,
+          pagination: pagination,
+        ),
+    };
+
+    return entitiesPagedData.copyWith(data: sortedData);
   }
 
   bool _isReply(IonConnectEntity entity, EventReference parentEventReference) {
@@ -120,5 +149,35 @@ class Replies extends _$Replies {
     final list = _pendingPollRefs.toList();
     _pendingPollRefs.clear();
     return list;
+  }
+
+  Set<IonConnectEntity>? _sortEntities(Set<IonConnectEntity>? entities) {
+    if (entities == null || entities.isEmpty) return entities;
+
+    final sortedList = entities.toList()..sort(_compareEntities);
+    return sortedList.toSet();
+  }
+
+  int _compareEntities(IonConnectEntity a, IonConnectEntity b) {
+    // Get like counts
+    final aLikes = ref.read(likesCountProvider(a.toEventReference()));
+    final bLikes = ref.read(likesCountProvider(b.toEventReference()));
+
+    // Get verified status
+    final aVerified = ref.read(isUserVerifiedProvider(a.masterPubkey));
+    final bVerified = ref.read(isUserVerifiedProvider(b.masterPubkey));
+
+    // Primary sort: by likes count (descending)
+    if (aLikes != bLikes) {
+      return bLikes.compareTo(aLikes);
+    }
+
+    // Secondary sort: verified accounts first
+    if (aVerified != bVerified) {
+      return bVerified ? 1 : -1;
+    }
+
+    // Tertiary sort: by creation time (newest first) to maintain consistent ordering
+    return b.createdAt.compareTo(a.createdAt);
   }
 }
