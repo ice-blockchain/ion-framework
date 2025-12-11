@@ -6,7 +6,7 @@ import 'package:ion/app/router/main_tabs/components/tab_item.dart';
 
 extension GoRouterStateExtension on GoRouterState {
   bool get isMainModalOpen =>
-      uri.toString().split('/').lastOrNull?.startsWith('main-modal') ?? false;
+      uri.toString().split('/').lastOrNull?.startsWith(AppRoutes.mainModalPath) ?? false;
   bool get shouldHideBottomBar => fullPath?.contains('fullstack') ?? false;
 
   TabItem get currentTab {

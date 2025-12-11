@@ -74,8 +74,9 @@ class StoryPreviewPage extends HookConsumerWidget {
             context.popUntil((route) {
               final isStoryRoute = route.path.startsWith('/${FeedRoutes.storyRoutePrefix}');
               final isShareRoute = route.path.startsWith('/${ChatRoutes.shareRoutePrefix}');
+              final isMainModalRoute = route.path == AppRoutes.mainModalPath;
 
-              return !isStoryRoute && !isShareRoute;
+              return !isStoryRoute && !isShareRoute && !isMainModalRoute;
             });
           }
         },
