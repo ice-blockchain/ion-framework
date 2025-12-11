@@ -97,12 +97,12 @@ class SwapCoinsController extends _$SwapCoinsController {
     );
   }
 
-  void setSellNetwork(NetworkData network) {
+  void setSellNetwork(NetworkData? network) {
     state = state.copyWith(
       sellNetwork: network,
     );
 
-    if (state.swapQuoteInfo == null) {
+    if (network != null && state.swapQuoteInfo == null) {
       _debouncedGetQuotes();
     }
   }
@@ -113,12 +113,14 @@ class SwapCoinsController extends _$SwapCoinsController {
     );
   }
 
-  void setBuyNetwork(NetworkData network) {
+  void setBuyNetwork(NetworkData? network) {
     state = state.copyWith(
       buyNetwork: network,
     );
 
-    _getQuotes();
+    if (network != null) {
+      _getQuotes();
+    }
   }
 
   void switchCoins() {
@@ -155,12 +157,18 @@ class SwapCoinsController extends _$SwapCoinsController {
       CoinSwapType.sell => state.sellCoin,
       CoinSwapType.buy => state.buyCoin,
     };
+    final previousNetwork = switch (type) {
+      CoinSwapType.sell => state.sellNetwork,
+      CoinSwapType.buy => state.buyNetwork,
+    };
 
     switch (type) {
       case CoinSwapType.sell:
         setSellCoin(coin);
+        setSellNetwork(null);
       case CoinSwapType.buy:
         setBuyCoin(coin);
+        setBuyNetwork(null);
     }
 
     final result = await selectNetworkRouteLocationBuilder();
@@ -171,19 +179,27 @@ class SwapCoinsController extends _$SwapCoinsController {
         case CoinSwapType.buy:
           setBuyNetwork(result);
       }
+      return (
+        coin: switch (type) {
+          CoinSwapType.sell => state.sellCoin,
+          CoinSwapType.buy => state.buyCoin
+        },
+        network: switch (type) {
+          CoinSwapType.sell => state.sellNetwork,
+          CoinSwapType.buy => state.buyNetwork
+        },
+      );
     } else {
       switch (type) {
         case CoinSwapType.sell:
           setSellCoin(previousCoin);
+          setSellNetwork(previousNetwork);
         case CoinSwapType.buy:
           setBuyCoin(previousCoin);
+          setBuyNetwork(previousNetwork);
       }
+      return (coin: null, network: null);
     }
-
-    return (
-      coin: state.sellCoin,
-      network: state.sellNetwork,
-    );
   }
 
   Future<SwapCoinParameters?> _buildSwapCoinParameters({
