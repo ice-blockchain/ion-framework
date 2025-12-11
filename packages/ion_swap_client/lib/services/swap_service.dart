@@ -65,11 +65,13 @@ class SwapService {
 
       if (swapCoinData.sellCoin.network.id == swapCoinData.buyCoin.network.id) {
         final success = await _okxService.tryToSwapDex(
+      if (swapCoinData.sellNetworkId == swapCoinData.buyNetworkId) {
+        final txData = await _okxService.tryToSwapDex(
           swapCoinData: swapCoinData,
           swapQuoteInfo: swapQuoteInfo,
         );
-
-        if (success) {
+        final isSuccessSwap = txData != null;
+        if (isSuccessSwap) {
           return;
         }
       }
