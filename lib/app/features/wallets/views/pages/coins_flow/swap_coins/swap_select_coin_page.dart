@@ -5,9 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
+import 'package:ion/app/features/wallets/providers/search_coins_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/select_coin_modal_page.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
-import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/filtered_swap_coins_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 
 // TODO(ice-erebus): add recent coins
@@ -26,7 +26,10 @@ class SwapSelectCoinPage extends ConsumerWidget {
     return SelectCoinModalPage(
       showBackButton: true,
       showCloseButton: false,
-      coinsProvider: filteredSwapCoinsProvider,
+      coinsProvider: searchCoinsNotifierProvider,
+      onQueryChanged: (query) {
+        ref.read(searchCoinsNotifierProvider.notifier).search(query: query);
+      },
       title: context.i18n.wallet_select_coin,
       onCoinSelected: (value) async {
         final result = await ref.read(swapCoinsControllerProvider.notifier).selectCoin(
