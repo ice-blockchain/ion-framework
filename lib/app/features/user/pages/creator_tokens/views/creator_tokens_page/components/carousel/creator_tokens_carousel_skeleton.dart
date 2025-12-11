@@ -25,6 +25,7 @@ class CreatorTokensCarouselSkeleton extends StatelessWidget {
         enlargeCenterPage: true,
         enableInfiniteScroll: false,
         enlargeStrategy: CenterPageEnlargeStrategy.zoom,
+        initialPage: itemsCount >= 2 ? 1 : 0,
       ),
       itemCount: itemsCount,
       itemBuilder: (context, index, realIndex) {
@@ -61,6 +62,8 @@ class _CarouselCardSkeleton extends StatelessWidget {
             vertical: 37.0.s,
           ),
           child: Skeleton(
+            baseColor: secondary.withValues(alpha: 0.35),
+            highlightColor: primary.withValues(alpha: 0.65),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
