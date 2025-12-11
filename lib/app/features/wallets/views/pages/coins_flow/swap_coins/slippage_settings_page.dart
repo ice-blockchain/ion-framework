@@ -18,7 +18,7 @@ class SlippageSettingsPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
-    final controller = ref.read(swapCoinsControllerProvider.notifier);
+    final controller = ref.watch(swapCoinsControllerProvider.notifier);
     final currentSlippage = ref.watch(swapCoinsControllerProvider).slippage;
 
     final slippageValue = useRef(currentSlippage);
