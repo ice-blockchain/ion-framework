@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -25,7 +26,10 @@ class UserFollowListWithMetadata extends _$UserFollowListWithMetadata {
     final followListEntity = await ref.watch(followListProvider(pubkey).future);
     final allPubkeys = followListEntity?.data.list.map((e) => e.pubkey).toList() ?? [];
 
-    final initialPubkeys = allPubkeys.take(_followListLimit).toList();
+    final currentCount = state.valueOrNull?.pubkeys.length ?? 0;
+    final limit = max(_followListLimit, currentCount);
+
+    final initialPubkeys = allPubkeys.take(limit).toList();
 
     _fetchMetadata(initialPubkeys);
 
