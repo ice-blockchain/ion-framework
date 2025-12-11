@@ -60,7 +60,6 @@ class CreatorTokensPage extends HookConsumerWidget {
       searchController.clear();
       globalSearchNotifier.search(
         query: '',
-        externalAddresses: const [], // TODO: handle external addresses
       );
     }
 
@@ -99,8 +98,6 @@ class CreatorTokensPage extends HookConsumerWidget {
         Future.microtask(() {
           globalSearchNotifier.search(
             query: debouncedQuery,
-            // TODO: handle external addresses
-            externalAddresses: [],
           );
         });
         return null;
@@ -267,15 +264,9 @@ class CreatorTokensPage extends HookConsumerWidget {
                       ),
                       LoadMoreBuilder(
                         hasMore: globalSearch.activeHasMore,
-                        onLoadMore: () => globalSearchNotifier.loadMore(
-                          // TODO: handle external addresses
-                          externalAddresses: const [],
-                        ),
+                        onLoadMore: globalSearchNotifier.loadMore,
                         builder: (context, slivers) => RefreshIndicator(
-                          onRefresh: () => globalSearchNotifier.refresh(
-                            // TODO: handle external addresses
-                            externalAddresses: const [],
-                          ),
+                          onRefresh: globalSearchNotifier.refresh,
                           child: CustomScrollView(
                             slivers: slivers,
                           ),
