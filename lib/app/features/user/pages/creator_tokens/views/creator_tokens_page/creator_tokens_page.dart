@@ -309,7 +309,7 @@ class CreatorTokensPage extends HookConsumerWidget {
                             items: globalSearch.activeItems,
                             isInitialLoading: globalSearch.activeIsInitialLoading,
                           ),
-                          SliverPadding(padding: EdgeInsets.only(bottom: 12.0.s)),
+                          SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 12.0.s)),
                         ],
                       ),
                     ],
