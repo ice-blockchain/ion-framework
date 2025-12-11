@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/views/pages/error_modal.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
@@ -140,7 +141,9 @@ class PostSubmitButton extends HookConsumerWidget {
             if (modifiedEvent != null) {
               unawaited(
                 notifier.modify(
-                  content: textEditorController.document.toDelta(),
+                  content: DeltaBridge.normalizeToAttributeFormat(
+                    textEditorController.document.toDelta(),
+                  ),
                   mediaFiles: filesToUpload,
                   mediaAttachments: mediaAttachments,
                   eventReference: modifiedEvent!,
@@ -153,7 +156,9 @@ class PostSubmitButton extends HookConsumerWidget {
             } else {
               unawaited(
                 notifier.create(
-                  content: textEditorController.document.toDelta(),
+                  content: DeltaBridge.normalizeToAttributeFormat(
+                    textEditorController.document.toDelta(),
+                  ),
                   parentEvent: parentEvent,
                   quotedEvent: quotedEvent,
                   mediaFiles: filesToUpload,
