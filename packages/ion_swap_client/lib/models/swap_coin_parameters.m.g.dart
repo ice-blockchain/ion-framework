@@ -6,7 +6,8 @@ part of 'swap_coin_parameters.m.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SwapCoinParametersImpl _$$SwapCoinParametersImplFromJson(Map<String, dynamic> json) =>
+_$SwapCoinParametersImpl _$$SwapCoinParametersImplFromJson(
+        Map<String, dynamic> json) =>
     _$SwapCoinParametersImpl(
       userSellAddress: json['userSellAddress'] as String?,
       userBuyAddress: json['userBuyAddress'] as String?,
@@ -16,7 +17,8 @@ _$SwapCoinParametersImpl _$$SwapCoinParametersImplFromJson(Map<String, dynamic> 
       buyCoin: SwapCoin.fromJson(json['buyCoin'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$SwapCoinParametersImplToJson(_$SwapCoinParametersImpl instance) =>
+Map<String, dynamic> _$$SwapCoinParametersImplToJson(
+        _$SwapCoinParametersImpl instance) =>
     <String, dynamic>{
       'userSellAddress': instance.userSellAddress,
       'userBuyAddress': instance.userBuyAddress,
