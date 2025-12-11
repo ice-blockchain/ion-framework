@@ -32,7 +32,7 @@ class SwapCoinsController extends _$SwapCoinsController {
   Timer? _debounceTimer;
 
   @override
-  SwapCoinData build() => const SwapCoinData();
+  SwapCoinData build() => SwapCoinData();
 
   void initSellCoin({
     required CoinsGroup? coin,
@@ -50,6 +50,10 @@ class SwapCoinsController extends _$SwapCoinsController {
         quoteAmount: null,
         quoteError: null,
       );
+
+  void setSlippage(double slippagePercent) {
+    state = state.copyWith(slippage: slippagePercent);
+  }
 
   void setAmount(double amount) {
     state = state.copyWith(

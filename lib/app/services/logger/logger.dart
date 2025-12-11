@@ -61,6 +61,10 @@ class Logger {
   static TalkerDioLogger? get talkerDioLogger => TalkerDioLogger(
         talker: talker,
         settings: TalkerDioLoggerSettings(
+          // Disable noisy API body logging in console
+          printRequestData: false,
+          printResponseData: false,
+          printResponseMessage: false,
           requestPen: AnsiPen()..cyan(),
           responsePen: AnsiPen()..green(),
           errorPen: AnsiPen()..red(),

@@ -9,6 +9,7 @@ import 'package:ion/app/features/wallets/providers/search_coins_notifier_provide
 import 'package:ion/app/features/wallets/views/components/select_coin_modal_page.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 
 // TODO(ice-erebus): add recent coins
 class SwapSelectCoinPage extends ConsumerWidget {
@@ -47,14 +48,29 @@ class SwapSelectCoinPage extends ConsumerWidget {
             );
 
         if (result.coin != null && result.network != null) {
-          await Future.delayed(
-            const Duration(milliseconds: 50),
-            () {
-              if (context.mounted) {
-                context.pop();
-              }
-            },
-          );
+          // Show slippage settings page when sell coin and network are selected
+          if (type == CoinSwapType.sell) {
+            if (context.mounted) {
+              await SwapSlippageSettingsRoute().push<void>(context);
+              await Future.delayed(
+                const Duration(milliseconds: 50),
+                () {
+                  if (context.mounted) {
+                    context.pop();
+                  }
+                },
+              );
+            }
+          } else {
+            await Future.delayed(
+              const Duration(milliseconds: 50),
+              () {
+                if (context.mounted) {
+                  context.pop();
+                }
+              },
+            );
+          }
         }
       },
     );

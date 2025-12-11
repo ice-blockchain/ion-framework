@@ -18,7 +18,6 @@ class SwapQuoteInfo with _$SwapQuoteInfo {
     int? swapImpact,
     String? networkFee,
     String? protocolFee,
-    String? slippage,
     ExolixRate? exolixQuote,
     LetsExchangeInfo? letsExchangeQuote,
     SwapQuoteData? okxQuote,
