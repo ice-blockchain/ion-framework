@@ -189,6 +189,12 @@ part 'wallet_routes.dart';
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'rootNav');
 final bottomBarNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'tabNav');
 
+class AppRoutes {
+  AppRoutes._();
+
+  static const mainModalPath = 'main-modal';
+}
+
 @TypedStatefulShellRoute<AppShellRouteData>(
   branches: [
     TypedStatefulShellBranch(
@@ -197,7 +203,7 @@ final bottomBarNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'tabNav');
           path: '/feed',
           routes: [
             ...FeedRoutes.routes,
-            TypedGoRoute<FeedMainModalRoute>(path: 'main-modal'),
+            TypedGoRoute<FeedMainModalRoute>(path: AppRoutes.mainModalPath),
           ],
         ),
       ],
@@ -208,7 +214,7 @@ final bottomBarNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'tabNav');
           path: '/chat',
           routes: [
             ...ChatRoutes.routes,
-            TypedGoRoute<ChatMainModalRoute>(path: 'main-modal'),
+            TypedGoRoute<ChatMainModalRoute>(path: AppRoutes.mainModalPath),
           ],
         ),
       ],
@@ -219,7 +225,7 @@ final bottomBarNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'tabNav');
           path: '/wallet',
           routes: [
             ...WalletRoutes.routes,
-            TypedGoRoute<WalletMainModalRoute>(path: 'main-modal'),
+            TypedGoRoute<WalletMainModalRoute>(path: AppRoutes.mainModalPath),
           ],
         ),
       ],
@@ -230,7 +236,7 @@ final bottomBarNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'tabNav');
           path: '/profile',
           routes: [
             ...ProfileRoutes.routes,
-            TypedGoRoute<ProfileMainModalRoute>(path: 'main-modal'),
+            TypedGoRoute<ProfileMainModalRoute>(path: AppRoutes.mainModalPath),
           ],
         ),
       ],
