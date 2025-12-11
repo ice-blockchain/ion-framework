@@ -18,10 +18,13 @@ class FeaturedTokensRepositoryImpl implements FeaturedTokensRepository {
       queryParameters: type != null ? {'type': type} : null,
     );
 
-    final stream = subscription.stream.map(
-      (jsonList) =>
-          jsonList.map((json) => CommunityToken.fromJson(json as Map<String, dynamic>)).toList(),
-    );
+    final stream = subscription.stream.map((jsonList) {
+      final tokens = jsonList
+          .map((json) => CommunityToken.fromJson(json as Map<String, dynamic>))
+          .toList();
+
+      return tokens;
+    });
 
     return NetworkSubscription<List<CommunityToken>>(stream: stream, close: subscription.close);
   }

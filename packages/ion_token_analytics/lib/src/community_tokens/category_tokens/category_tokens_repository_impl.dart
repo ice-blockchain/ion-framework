@@ -52,18 +52,18 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
       queryParameters: {'viewingSessionId': sessionId},
     );
 
-    final stream = subscription.stream.map<List<CommunityTokenBase>>((jsons) {
-      final list = <CommunityTokenBase>[];
-      for (final json in jsons) {
-        try {
-          final data = CommunityToken.fromJson(json as Map<String, dynamic>);
-          list.add(data);
-        } catch (_) {
-          final patch = CommunityTokenPatch.fromJson(json as Map<String, dynamic>);
-          list.add(patch);
-        }
+    final stream = subscription.stream.expand<CommunityTokenBase>((data) {
+      if (data.isEmpty) {
+        return const <CommunityTokenBase>[];
       }
-      return list;
+
+      return data.map((json) {
+        try {
+          return CommunityToken.fromJson(json as Map<String, dynamic>);
+        } catch (_) {
+          return CommunityTokenPatch.fromJson(json as Map<String, dynamic>);
+        }
+      });
     });
 
     return NetworkSubscription<List<CommunityTokenBase>>(stream: stream, close: subscription.close);

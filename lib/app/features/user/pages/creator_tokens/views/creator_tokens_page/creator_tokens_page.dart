@@ -17,6 +17,7 @@ import 'package:ion/app/features/tokenized_communities/providers/global_search_t
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel_skeleton.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_tab_content.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
@@ -71,6 +72,7 @@ class CreatorTokensPage extends HookConsumerWidget {
     );
 
     final isGlobalSearchVisible = useState<bool>(true);
+    final lastSearchQuery = useRef<String?>(null);
 
     useEffect(
       () {
@@ -88,17 +90,12 @@ class CreatorTokensPage extends HookConsumerWidget {
 
     // Get featured tokens
     final featuredTokensAsync = ref.watch(featuredTokensProvider);
-
-    // Get list of featured tokens
-    final featuredTokens = featuredTokensAsync.when<List<CommunityToken>>(
-      data: (List<CommunityToken> tokens) => tokens,
-      loading: () => <CommunityToken>[],
-      error: (_, __) => <CommunityToken>[],
-    );
+    final featuredTokens = featuredTokensAsync.valueOrNull ?? <CommunityToken>[];
 
     useEffect(
       () {
-        if (debouncedQuery == globalSearch.searchQuery) return null;
+        if (debouncedQuery == lastSearchQuery.value) return null;
+        lastSearchQuery.value = debouncedQuery;
         Future.microtask(() {
           globalSearchNotifier.search(
             query: debouncedQuery,
@@ -188,14 +185,19 @@ class CreatorTokensPage extends HookConsumerWidget {
                                 ),
                                 Opacity(
                                   opacity: 1 - opacity,
-                                  child: featuredTokens.isEmpty
-                                      ? const SizedBox.shrink()
-                                      : CreatorTokensCarousel(
-                                          tokens: featuredTokens,
-                                          onItemChanged: (token) {
-                                            selectedToken.value = token;
-                                          },
-                                        ),
+                                  child: featuredTokensAsync.when(
+                                    data: (tokens) {
+                                      if (tokens.isEmpty) return const SizedBox.shrink();
+                                      return CreatorTokensCarousel(
+                                        tokens: tokens,
+                                        onItemChanged: (token) {
+                                          selectedToken.value = token;
+                                        },
+                                      );
+                                    },
+                                    loading: () => const CreatorTokensCarouselSkeleton(),
+                                    error: (_, __) => const SizedBox.shrink(),
+                                  ),
                                 ),
                               ],
                             );

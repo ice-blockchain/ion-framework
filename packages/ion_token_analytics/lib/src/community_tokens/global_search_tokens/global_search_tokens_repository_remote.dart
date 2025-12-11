@@ -19,7 +19,7 @@ class GlobalSearchTokensRepositoryRemote implements GlobalSearchTokensRepository
     int offset = 0,
   }) async {
     final response = await _client.get<List<dynamic>>(
-      '/v1/community-tokens',
+      '/v1/community-tokens/',
       queryParameters: {
         'externalAddresses': externalAddresses,
         'limit': limit,

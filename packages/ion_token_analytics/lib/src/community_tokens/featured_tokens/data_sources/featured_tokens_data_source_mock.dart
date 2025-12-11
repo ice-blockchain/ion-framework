@@ -16,19 +16,18 @@ class FeaturedTokensDataSourceMock {
     // Initial mock JSON data (5-10 tokens)
     var tokensJson = _generateInitialMockJson();
 
-    // Emit the initial list asynchronously to ensure listeners are ready
-    Future.microtask(() {
-      if (!controller.isClosed) {
-        controller.add(tokensJson);
-      }
-    });
+    // Emit the initial list after a small delay to simulate loading in mocks.
+    Future.delayed(const Duration(seconds: 10), () {
+      if (controller.isClosed) return;
+      controller.add(tokensJson);
 
-    // Emit random updates every 1 second (full list each time)
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      tokensJson = _applyRandomUpdate(tokensJson);
-      if (!controller.isClosed) {
-        controller.add(List.unmodifiable(tokensJson));
-      }
+      // Emit random updates every 1 second (full list each time)
+      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        tokensJson = _applyRandomUpdate(tokensJson);
+        if (!controller.isClosed) {
+          controller.add(List.unmodifiable(tokensJson));
+        }
+      });
     });
 
     return controller.stream;
