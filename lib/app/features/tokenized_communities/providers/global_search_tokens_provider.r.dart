@@ -16,7 +16,6 @@ class GlobalSearchTokensNotifier extends _$GlobalSearchTokensNotifier {
 
   Future<void> search({
     required String query,
-    required List<String> externalAddresses,
     int? includeTopPlatformHolders,
   }) async {
     if (query.isEmpty) {
@@ -36,7 +35,7 @@ class GlobalSearchTokensNotifier extends _$GlobalSearchTokensNotifier {
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
       final page = await client.communityTokens.getGlobalSearchTokens(
-        externalAddresses: externalAddresses,
+        externalAddresses: const [],
         keyword: query,
         includeTopPlatformHolders: includeTopPlatformHolders,
         limit: _limit,
@@ -59,7 +58,6 @@ class GlobalSearchTokensNotifier extends _$GlobalSearchTokensNotifier {
   }
 
   Future<void> loadMore({
-    required List<String> externalAddresses,
     int? includeTopPlatformHolders,
   }) async {
     if (!state.searchHasMore || state.searchIsLoading || (state.searchQuery?.isEmpty ?? true)) {
@@ -71,7 +69,7 @@ class GlobalSearchTokensNotifier extends _$GlobalSearchTokensNotifier {
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
       final page = await client.communityTokens.getGlobalSearchTokens(
-        externalAddresses: externalAddresses,
+        externalAddresses: const [],
         keyword: state.searchQuery,
         includeTopPlatformHolders: includeTopPlatformHolders,
         limit: _limit,
@@ -91,7 +89,6 @@ class GlobalSearchTokensNotifier extends _$GlobalSearchTokensNotifier {
   }
 
   Future<void> refresh({
-    required List<String> externalAddresses,
     int? includeTopPlatformHolders,
   }) async {
     final currentQuery = state.searchQuery;
@@ -101,7 +98,6 @@ class GlobalSearchTokensNotifier extends _$GlobalSearchTokensNotifier {
     }
     await search(
       query: currentQuery,
-      externalAddresses: externalAddresses,
       includeTopPlatformHolders: includeTopPlatformHolders,
     );
   }
