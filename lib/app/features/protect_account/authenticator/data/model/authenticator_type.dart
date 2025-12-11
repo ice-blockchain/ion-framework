@@ -41,7 +41,7 @@ enum AuthenticatorType {
 
   String get iosAppUrlScheme {
     return switch (this) {
-      AuthenticatorType.google => 'totp://',
+      AuthenticatorType.google => 'googleauthenticator://',
       AuthenticatorType.microsoft => 'msauthv3://',
       AuthenticatorType.lastpass => 'lastpassmfa://',
       AuthenticatorType.authy => 'authy://',
