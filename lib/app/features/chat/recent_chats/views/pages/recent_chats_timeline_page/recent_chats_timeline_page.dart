@@ -20,6 +20,7 @@ import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/unread_message_count_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
+import 'package:ion/app/features/chat/recent_chats/providers/archive_tile_visibility_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/archived_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_skeleton/recent_chat_skeleton.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/archive_chat_tile.dart';
@@ -44,7 +45,6 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final archiveVisible = useState(false);
     final isOverscrolling = useState(false);
 
     useScrollTopOnTabPress(context, scrollController: scrollController);
@@ -57,10 +57,10 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
           void listener() {
             if (scrollController.position.userScrollDirection == ScrollDirection.forward &&
                 scrollController.offset < -60.0.s) {
-              archiveVisible.value = true;
+              ref.read(archiveTileVisibilityProvider.notifier).value = true;
             } else if (scrollController.position.userScrollDirection == ScrollDirection.reverse &&
                 scrollController.offset > 30.0.s) {
-              archiveVisible.value = false;
+              ref.read(archiveTileVisibilityProvider.notifier).value = false;
             }
           }
 
@@ -87,19 +87,19 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
             // User is overscrolling at the top
             if (notification.overscroll < 0) {
               isOverscrolling.value = true;
-              archiveVisible.value = true;
+              ref.read(archiveTileVisibilityProvider.notifier).value = true;
             }
           } else if (notification is ScrollUpdateNotification) {
             // Hide archive when scrolling down in normal content
             if (notification.scrollDelta != null &&
                 notification.scrollDelta! > 0 &&
                 !isOverscrolling.value) {
-              archiveVisible.value = false;
+              ref.read(archiveTileVisibilityProvider.notifier).value = false;
             }
           } else if (notification is ScrollEndNotification) {
             // If we end scroll and we're not overscrolling, hide archive
             if (!isOverscrolling.value || (notification.metrics.pixels > 0)) {
-              archiveVisible.value = false;
+              ref.read(archiveTileVisibilityProvider.notifier).value = false;
             }
           }
         }
@@ -130,10 +130,15 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
           ),
           if (scrollController.hasClients && !isArchivedConversationsEmpty)
             SliverToBoxAdapter(
-              child: AnimatedOpacity(
-                opacity: archiveVisible.value ? 1.0 : 0.0,
-                duration: 500.milliseconds,
-                child: archiveVisible.value ? const ArchiveChatTile() : const SizedBox.shrink(),
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final archiveVisible = ref.watch(archiveTileVisibilityProvider);
+                  return AnimatedOpacity(
+                    opacity: archiveVisible ? 1.0 : 0.0,
+                    duration: 500.milliseconds,
+                    child: archiveVisible ? const ArchiveChatTile() : const SizedBox.shrink(),
+                  );
+                },
               ),
             ),
           if (!isArchivedConversationsEmpty && conversations.isNotEmpty)
