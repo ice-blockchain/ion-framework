@@ -27,13 +27,11 @@ class ProfileUserInfo extends ConsumerWidget {
 
     final info = Column(
       children: [
-        if (!isCurrentUserProfile) ...[
+        if (!isCurrentUserProfile)
           RelevantFollowers(
             pubkey: pubkey,
             profileMode: profileMode,
           ),
-          SizedBox(height: 12.0.s),
-        ],
         UserAbout(
           pubkey: pubkey,
           padding: EdgeInsetsDirectional.only(bottom: 12.0.s),
