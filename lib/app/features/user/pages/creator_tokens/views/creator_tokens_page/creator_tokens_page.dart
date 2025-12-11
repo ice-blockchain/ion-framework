@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/inputs/hooks/use_node_focused.dart';
 import 'package:ion/app/components/inputs/search_input/search_input.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
@@ -43,6 +44,8 @@ class CreatorTokensPage extends HookConsumerWidget {
     final globalSearchNotifier = ref.read(globalSearchTokensNotifierProvider.notifier);
 
     final searchController = useTextEditingController();
+    final searchFocusNode = useFocusNode();
+    final searchFocused = useNodeFocused(searchFocusNode);
     final searchQuery = useState('');
     final debouncedQuery = useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '';
 
@@ -56,6 +59,34 @@ class CreatorTokensPage extends HookConsumerWidget {
       [searchController],
     );
 
+    final maxScroll =
+        _expandedHeaderHeight.s - NavigationAppBar.screenHeaderHeight - _tabBarHeight.s;
+
+    // Collapse header when search field is focused
+    useEffect(
+      () {
+        if (searchFocused.value) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (scrollController.hasClients) {
+              final currentOffset = scrollController.offset;
+              final targetOffset = maxScroll;
+
+              // Only scroll if not already collapsed (or close to collapsed)
+              if (currentOffset < targetOffset - 5) {
+                scrollController.animateTo(
+                  targetOffset,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
+                );
+              }
+            }
+          });
+        }
+        return null;
+      },
+      [searchFocused.value],
+    );
+
     void resetGlobalSearch() {
       searchController.clear();
       globalSearchNotifier.search(
@@ -63,8 +94,6 @@ class CreatorTokensPage extends HookConsumerWidget {
       );
     }
 
-    final maxScroll =
-        _expandedHeaderHeight.s - NavigationAppBar.screenHeaderHeight - _tabBarHeight.s;
     final (:opacity) = useAnimatedOpacityOnScroll(
       scrollController,
       topOffset: maxScroll,
@@ -234,6 +263,7 @@ class CreatorTokensPage extends HookConsumerWidget {
                                   child: ScreenSideOffset.small(
                                     child: SearchInput(
                                       controller: searchController,
+                                      focusNode: searchFocusNode,
                                       onCancelSearch: () {
                                         resetGlobalSearch();
                                         isGlobalSearchVisible.value = false;
