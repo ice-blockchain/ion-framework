@@ -70,7 +70,7 @@ class CreatorTokensPage extends HookConsumerWidget {
       topOffset: maxScroll,
     );
 
-    final isGlobalSearchVisible = useState<bool>(true);
+    final isGlobalSearchVisible = useState<bool>(false);
     final lastSearchQuery = useRef<String?>(null);
 
     useEffect(
@@ -93,6 +93,7 @@ class CreatorTokensPage extends HookConsumerWidget {
 
     useEffect(
       () {
+        if (!isGlobalSearchVisible.value) return null;
         if (debouncedQuery == lastSearchQuery.value) return null;
         lastSearchQuery.value = debouncedQuery;
         Future.microtask(() {
@@ -102,7 +103,7 @@ class CreatorTokensPage extends HookConsumerWidget {
         });
         return null;
       },
-      [debouncedQuery],
+      [debouncedQuery, isGlobalSearchVisible.value],
     );
 
     // Create stable identifier for the list (to avoid unnecessary useEffect triggers)
