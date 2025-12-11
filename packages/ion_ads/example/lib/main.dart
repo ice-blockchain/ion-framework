@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ion_ads/ion_ads.dart';
 import 'package:ion_ads_appodeal_example/native_ion_ads_view.dart';
@@ -51,7 +50,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 Future<void> _initializeAppodeal() async {
-  Appodeal.setTesting(!kReleaseMode); //only not release mode
+  Appodeal.setTesting(false); //only not release mode !kReleaseMode
   Appodeal.setLogLevel(Appodeal.LogLevelVerbose);
 
   Appodeal.setAutoCache(AppodealAdType.Interstitial, true);
