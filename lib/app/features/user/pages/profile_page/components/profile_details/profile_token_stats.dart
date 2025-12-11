@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
@@ -105,7 +106,10 @@ class ProfileTokenStats extends ConsumerWidget {
             onTap: () {
               showSimpleBottomSheet<void>(
                 context: context,
-                child: TradeCommunityTokenDialog(externalAddress: externalAddress),
+                child: TradeCommunityTokenDialog(
+                  externalAddress: externalAddress,
+                  mode: CommunityTokenTradeMode.buy,
+                ),
               );
             },
             child: BuyButton(externalAddress: externalAddress),

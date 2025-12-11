@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -42,7 +43,10 @@ class FloatingTradeIsland extends StatelessWidget {
               onTap: () {
                 showSimpleBottomSheet<void>(
                   context: context,
-                  child: TradeCommunityTokenDialog(externalAddress: externalAddress),
+                  child: TradeCommunityTokenDialog(
+                    externalAddress: externalAddress,
+                    mode: CommunityTokenTradeMode.buy,
+                  ),
                 );
               },
               flipIconUp: true,
@@ -52,6 +56,15 @@ class FloatingTradeIsland extends StatelessWidget {
               color: colors.lossRed,
               leading: Assets.svg.iconButtonReceive.icon(size: 20.0.s, color: Colors.white),
               label: i18n.trade_sell,
+              onTap: () {
+                showSimpleBottomSheet<void>(
+                  context: context,
+                  child: TradeCommunityTokenDialog(
+                    externalAddress: externalAddress,
+                    mode: CommunityTokenTradeMode.sell,
+                  ),
+                );
+              },
             ),
           ],
         ),

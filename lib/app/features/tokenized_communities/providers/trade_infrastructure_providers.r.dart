@@ -8,9 +8,12 @@ import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_t
 import 'package:ion/app/features/tokenized_communities/data/trade_community_token_api.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
+import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:web3dart/web3dart.dart';
@@ -22,8 +25,10 @@ Future<TradeCommunityTokenApi> tradeCommunityTokenApi(
   Ref ref,
 ) async {
   final configRepository = await ref.watch(configRepositoryProvider.future);
+  final analyticsClient = await ref.watch(ionTokenAnalyticsClientProvider.future);
   return TradeCommunityTokenApi(
     configRepository: configRepository,
+    analyticsClient: analyticsClient,
   );
 }
 
@@ -101,4 +106,17 @@ Future<List<CoinData>> supportedSwapTokens(Ref ref) async {
   }).toList();
 
   return supportedCoins;
+}
+
+@riverpod
+Future<CommunityToken> communityTokenInfo(
+  Ref ref,
+  String externalAddress,
+) async {
+  final token = await ref.watch(tokenMarketInfoProvider(externalAddress).future);
+
+  if (token == null) {
+    throw Exception('Token info not found for $externalAddress');
+  }
+  return token;
 }

@@ -26,6 +26,9 @@ class TokenCard extends ConsumerWidget {
     this.controller,
     this.onPercentageChanged,
     this.isReadOnly,
+    this.avatarWidget,
+    this.showSelectButton = true,
+    this.showArrow = true,
     super.key,
   });
 
@@ -36,6 +39,9 @@ class TokenCard extends ConsumerWidget {
   final TextEditingController? controller;
   final ValueChanged<int>? onPercentageChanged;
   final bool? isReadOnly;
+  final Widget? avatarWidget;
+  final bool showSelectButton;
+  final bool showArrow;
 
   void _onPercentageChanged(int percentage, WidgetRef ref) {
     final amount = coinsGroup?.totalAmount;
@@ -160,6 +166,21 @@ class TokenCard extends ConsumerWidget {
                         CoinIconWithNetwork.small(
                           iconUrl,
                           network: network!,
+                        )
+                      else
+                        SizedBox.square(
+                          dimension: 40.0.s,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0.s),
+                            child: Image.network(
+                              iconUrl,
+                              width: 40.0.s,
+                              height: 40.0.s,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  avatarWidget != null ? (_, __, ___) => avatarWidget! : null,
+                            ),
+                          ),
                         ),
                       Column(
                         spacing: 2.0.s,
@@ -173,32 +194,70 @@ class TokenCard extends ConsumerWidget {
                                   color: colors.primaryText,
                                 ),
                               ),
-                              SizedBox(width: 4.0.s),
-                              Assets.svg.iconArrowDown.icon(
-                                color: colors.primaryText,
-                                size: 6.0.s,
-                              ),
+                              if (showArrow) ...[
+                                SizedBox(width: 4.0.s),
+                                Assets.svg.iconArrowDown.icon(
+                                  color: colors.primaryText,
+                                  size: 6.0.s,
+                                ),
+                              ],
                             ],
                           ),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
-                            decoration: BoxDecoration(
-                              color: colors.attentionBlock,
-                              borderRadius: BorderRadius.circular(16.0.s),
-                            ),
-                            child: Text(
-                              network?.displayName ?? '',
-                              style: textStyles.caption3.copyWith(
-                                color: colors.quaternaryText,
-                                fontSize: 11.0.s,
+                          if (network != null)
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
+                              decoration: BoxDecoration(
+                                color: colors.attentionBlock,
+                                borderRadius: BorderRadius.circular(16.0.s),
+                              ),
+                              child: Text(
+                                network?.displayName ?? '',
+                                style: textStyles.caption3.copyWith(
+                                  color: colors.quaternaryText,
+                                  fontSize: 11.0.s,
+                                ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ],
                   )
-                else
+                else if (avatarWidget != null && coinsGroup != null)
+                  Row(
+                    spacing: 10.0.s,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      avatarWidget!,
+                      Column(
+                        spacing: 2.0.s,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            coinsGroup!.name,
+                            style: textStyles.body.copyWith(
+                              color: colors.primaryText,
+                            ),
+                          ),
+                          if (network != null)
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
+                              decoration: BoxDecoration(
+                                color: colors.attentionBlock,
+                                borderRadius: BorderRadius.circular(16.0.s),
+                              ),
+                              child: Text(
+                                network?.displayName ?? '',
+                                style: textStyles.caption3.copyWith(
+                                  color: colors.quaternaryText,
+                                  fontSize: 11.0.s,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  )
+                else if (showSelectButton)
                   Button(
                     onPressed: onTap,
                     type: ButtonType.outlined,

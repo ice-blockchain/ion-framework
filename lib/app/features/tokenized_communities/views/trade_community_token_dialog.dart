@@ -3,157 +3,123 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
 import 'package:ion/app/components/checkbox/labeled_checkbox.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
-import 'package:ion/app/features/tokenized_communities/providers/buy_community_token_notifier_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_trade_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
+import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog_hooks.dart';
+import 'package:ion/app/features/tokenized_communities/views/trade_community_token_state.f.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/continue_button.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/slippage_action.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/swap_button.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/token_card.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
-import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 
 class TradeCommunityTokenDialog extends HookConsumerWidget {
   const TradeCommunityTokenDialog({
     required this.externalAddress,
+    required this.mode,
     super.key,
   });
 
   final String externalAddress;
+  final CommunityTokenTradeMode mode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(tradeCommunityTokenControllerProvider(externalAddress));
-    final controller = ref.read(tradeCommunityTokenControllerProvider(externalAddress).notifier);
+    final params = (
+      externalAddress: externalAddress,
+      mode: mode,
+    );
+    final state = ref.watch(tradeCommunityTokenControllerProvider(params));
+    final controller = ref.read(tradeCommunityTokenControllerProvider(params).notifier);
 
-    final communityTokenAsync = ref.watch(tokenMarketInfoProvider(externalAddress));
+    final pubkey = CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
     final supportedTokensAsync = ref.watch(supportedSwapTokensProvider);
-    final userPreviewData = ref.watch(userPreviewDataProvider(externalAddress));
-
-    final amountController = useTextEditingController();
-    final quoteController = useTextEditingController();
     final shouldSharePost = useState(true);
-
-    useAmountListener(amountController, controller, state.amount);
-    useQuoteDisplay(quoteController, state.quoteAmount, isQuoting: state.isQuoting);
 
     ref
       ..displayErrors(
-        buyCommunityTokenNotifierProvider(externalAddress),
+        communityTokenTradeNotifierProvider(externalAddress),
         excludedExceptions: excludedPasskeyExceptions,
       )
-      ..listenSuccess<String?>(
-        buyCommunityTokenNotifierProvider(externalAddress),
-        (String? txHash) {
-          if (context.mounted) {
-            Navigator.of(context).pop();
-            final rootNavigator = Navigator.of(context, rootNavigator: true);
-            ScaffoldMessenger.of(rootNavigator.context).showSnackBar(
-              SnackBar(
-                content: Text('Buy transaction submitted${txHash != null ? ': $txHash' : ''}'),
-              ),
-            );
-          }
-        },
-      );
+      ..listenSuccess<String?>(communityTokenTradeNotifierProvider(externalAddress),
+          (String? txHash) {
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          final rootNavigator = Navigator.of(context, rootNavigator: true);
+          final message = mode == CommunityTokenTradeMode.buy
+              ? 'Buy transaction submitted${txHash != null ? ': $txHash' : ''}'
+              : 'Sell transaction submitted${txHash != null ? ': $txHash' : ''}';
+          ScaffoldMessenger.of(rootNavigator.context).showSnackBar(
+            SnackBar(content: Text(message)),
+          );
+        }
+      });
 
-    final tokenInfo = communityTokenAsync.valueOrNull;
-    final userData = userPreviewData.valueOrNull;
-
-    // Use token info if available, otherwise fallback to user data
-    final tokenTitle = tokenInfo?.title ??
-        userData?.data.trimmedDisplayName ??
-        userData?.data.name ??
-        externalAddress;
-    final communityAvatar = tokenInfo?.imageUrl ?? userData?.data.avatarUrl;
-
-    final communityCoinsGroup = CoinsGroup(
-      name: tokenTitle,
-      iconUrl: communityAvatar,
-      symbolGroup: tokenTitle,
-      abbreviation: tokenTitle,
-      coins: [],
-    );
+    final communityAvatarWidget = pubkey != null
+        ? StoryColoredProfileAvatar(
+            pubkey: pubkey,
+            size: 40.0.s,
+            borderRadius: BorderRadius.circular(8.0.s),
+          )
+        : null;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.0.s),
-          child: NavigationAppBar.screen(
-            title: Text(context.i18n.wallet_swap),
-            actions: const [
-              SlippageAction(),
-            ],
+        _AppBar(mode: mode),
+        if (state.communityCoinsGroup != null)
+          _TokenCards(
+            mode: mode,
+            state: state,
+            controller: controller,
+            communityCoinsGroup: state.communityCoinsGroup!,
+            supportedTokensAsync: supportedTokensAsync,
+            communityAvatarWidget: communityAvatarWidget,
+            onTokenTap: () => _showTokenSelectionSheet(
+              context,
+              controller,
+              supportedTokensAsync,
+            ),
           ),
-        ),
-        Stack(
-          children: [
-            Column(
-              children: [
-                TokenCard(
-                  type: CoinSwapType.sell,
-                  controller: amountController,
-                  coinsGroup: state.paymentCoinsGroup,
-                  network: state.targetNetwork,
-                  onTap: () => _showTokenSelectionSheet(
-                    context,
-                    controller,
-                    supportedTokensAsync,
-                  ),
-                  onPercentageChanged: controller.setAmountByPercentage,
-                ),
-                SizedBox(height: 10.0.s),
-                TokenCard(
-                  type: CoinSwapType.buy,
-                  coinsGroup: communityCoinsGroup,
-                  controller: quoteController,
-                  onTap: () {},
-                ),
-              ],
-            ),
-            PositionedDirectional(
-              top: 0,
-              start: 0,
-              end: 0,
-              bottom: 0,
-              child: SwapButton(
-                onTap: () {},
-              ),
-            ),
-          ],
-        ),
         SizedBox(height: 29.0.s),
-        LabeledCheckbox(
-          isChecked: shouldSharePost.value,
-          label: context.i18n.wallet_swap_confirmation_automatically_share_post_about_trade,
-          onChanged: (value) {
-            shouldSharePost.value = value;
-          },
-        ),
+        _SharePostCheckbox(shouldSharePost: shouldSharePost),
         SizedBox(height: 16.0.s),
         ContinueButton(
-          isEnabled: state.amount > 0 &&
-              state.targetWallet != null &&
-              !state.isQuoting &&
-              state.selectedPaymentToken != null,
-          onPressed: () => _handleBuyButtonPress(context, ref, externalAddress),
+          isEnabled: mode == CommunityTokenTradeMode.buy
+              ? _isBuyContinueButtonEnabled(state)
+              : _isSellContinueButtonEnabled(state),
+          onPressed: () => _handleButtonPress(context, ref, externalAddress, mode),
         ),
-        SizedBox(
-          height: 16.0.s,
-        ),
+        SizedBox(height: 16.0.s),
       ],
     );
+  }
+
+  bool _isBuyContinueButtonEnabled(TradeCommunityTokenState state) {
+    return state.amount > 0 &&
+        state.targetWallet != null &&
+        !state.isQuoting &&
+        state.selectedPaymentToken != null;
+  }
+
+  bool _isSellContinueButtonEnabled(TradeCommunityTokenState state) {
+    return state.amount > 0 &&
+        state.amount <= state.communityTokenBalance &&
+        state.targetWallet != null &&
+        !state.isQuoting &&
+        state.selectedPaymentToken != null &&
+        state.communityTokenCoinsGroup != null;
   }
 
   void _showTokenSelectionSheet(
@@ -206,80 +172,167 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     );
   }
 
-  Future<void> _handleBuyButtonPress(
+  Future<void> _handleButtonPress(
     BuildContext context,
     WidgetRef ref,
-    String communityPubkey,
+    String externalAddress,
+    CommunityTokenTradeMode mode,
   ) async {
-    final state = ref.read(tradeCommunityTokenControllerProvider(communityPubkey));
+    final params = (
+      externalAddress: externalAddress,
+      mode: mode,
+    );
+    final state = ref.read(tradeCommunityTokenControllerProvider(params));
+
     if (state.targetWallet == null || state.selectedPaymentToken == null) return;
 
     await guardPasskeyDialog(
       context,
       (child) => RiverpodUserActionSignerRequestBuilder(
-        provider: buyCommunityTokenNotifierProvider(communityPubkey),
+        provider: communityTokenTradeNotifierProvider(externalAddress),
         request: (signer) async {
-          await ref.read(buyCommunityTokenNotifierProvider(communityPubkey).notifier).buy(signer);
+          final notifier = ref.read(communityTokenTradeNotifierProvider(externalAddress).notifier);
+          if (mode == CommunityTokenTradeMode.buy) {
+            await notifier.buy(signer);
+          } else {
+            await notifier.sell(signer);
+          }
         },
         child: child,
       ),
     );
   }
+}
 
-  void useAmountListener(
-    TextEditingController amountController,
-    TradeCommunityTokenController controller,
-    double currentAmount,
-  ) {
-    final isUpdatingFromState = useRef(false);
+class _AppBar extends StatelessWidget {
+  const _AppBar({required this.mode});
 
-    useEffect(
-      () {
-        void listener() {
-          if (isUpdatingFromState.value) return;
+  final CommunityTokenTradeMode mode;
 
-          final val = parseAmount(amountController.text) ?? 0;
-          controller.setAmount(val);
-        }
-
-        amountController.addListener(listener);
-        return () => amountController.removeListener(listener);
-      },
-      [amountController, controller],
-    );
-
-    useEffect(
-      () {
-        final currentText = parseAmount(amountController.text) ?? 0;
-        if ((currentText - currentAmount).abs() > 0.0001) {
-          isUpdatingFromState.value = true;
-          amountController.text = currentAmount.toString();
-          isUpdatingFromState.value = false;
-        }
-        return null;
-      },
-      [currentAmount, amountController],
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.0.s),
+      child: NavigationAppBar.screen(
+        title: Text(
+          mode == CommunityTokenTradeMode.buy ? context.i18n.trade_buy : context.i18n.trade_sell,
+        ),
+        actions: const [
+          SlippageAction(),
+        ],
+      ),
     );
   }
+}
 
-  void useQuoteDisplay(
-    TextEditingController quoteController,
-    BigInt? quoteAmount, {
-    required bool isQuoting,
-  }) {
-    useEffect(
-      () {
-        if (quoteAmount != null && !isQuoting) {
-          final quoteValue = fromBlockchainUnits(quoteAmount.toString(), 18).toString();
-          if (quoteController.text != quoteValue) {
-            quoteController.text = quoteValue;
-          }
-        } else if (quoteAmount == null && quoteController.text.isNotEmpty) {
-          quoteController.clear();
-        }
-        return null;
+class _TokenCards extends HookConsumerWidget {
+  const _TokenCards({
+    required this.mode,
+    required this.state,
+    required this.controller,
+    required this.communityCoinsGroup,
+    required this.supportedTokensAsync,
+    required this.communityAvatarWidget,
+    required this.onTokenTap,
+  });
+
+  final CommunityTokenTradeMode mode;
+  final TradeCommunityTokenState state;
+  final TradeCommunityTokenController controller;
+  final CoinsGroup communityCoinsGroup;
+  final AsyncValue<List<CoinData>> supportedTokensAsync;
+  final Widget? communityAvatarWidget;
+  final VoidCallback onTokenTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final amountController = useTextEditingController();
+    final quoteController = useTextEditingController();
+
+    useAmountListener(amountController, controller, state.amount);
+    useQuoteDisplay(
+      quoteController,
+      state.quoteAmount,
+      isQuoting: state.isQuoting,
+      decimals:
+          mode == CommunityTokenTradeMode.sell ? state.selectedPaymentToken?.decimals ?? 18 : 18,
+    );
+    return Stack(
+      children: [
+        Column(
+          children: mode == CommunityTokenTradeMode.buy
+              ? [
+                  // Buy mode: payment token on top, community token on bottom
+                  TokenCard(
+                    type: CoinSwapType.sell,
+                    controller: amountController,
+                    coinsGroup: state.paymentCoinsGroup,
+                    network: state.targetNetwork,
+                    onTap: onTokenTap,
+                    onPercentageChanged: controller.setAmountByPercentage,
+                  ),
+                  SizedBox(height: 10.0.s),
+                  TokenCard(
+                    type: CoinSwapType.buy,
+                    coinsGroup: communityCoinsGroup,
+                    controller: quoteController,
+                    network: state.targetNetwork,
+                    avatarWidget: communityAvatarWidget,
+                    showSelectButton: false,
+                    showArrow: false,
+                    onTap: () {},
+                  ),
+                ]
+              : [
+                  // Sell mode: community token on top, payment token on bottom
+                  TokenCard(
+                    type: CoinSwapType.sell,
+                    controller: amountController,
+                    coinsGroup: state.communityTokenCoinsGroup,
+                    network: state.targetNetwork,
+                    avatarWidget: communityAvatarWidget,
+                    showSelectButton: false,
+                    showArrow: false,
+                    onTap: () {},
+                    onPercentageChanged: controller.setAmountByPercentage,
+                  ),
+                  SizedBox(height: 10.0.s),
+                  TokenCard(
+                    type: CoinSwapType.buy,
+                    controller: quoteController,
+                    coinsGroup: state.paymentCoinsGroup,
+                    network: state.targetNetwork,
+                    onTap: onTokenTap,
+                  ),
+                ],
+        ),
+        PositionedDirectional(
+          top: 0,
+          start: 0,
+          end: 0,
+          bottom: 0,
+          child: SwapButton(
+            onTap: () {},
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SharePostCheckbox extends StatelessWidget {
+  const _SharePostCheckbox({required this.shouldSharePost});
+
+  final ValueNotifier<bool> shouldSharePost;
+
+  @override
+  Widget build(BuildContext context) {
+    return LabeledCheckbox(
+      isChecked: shouldSharePost.value,
+      label: context.i18n.wallet_swap_confirmation_automatically_share_post_about_trade,
+      onChanged: (value) {
+        shouldSharePost.value = value;
       },
-      [quoteAmount, isQuoting, quoteController],
     );
   }
 }
