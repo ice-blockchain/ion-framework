@@ -449,6 +449,7 @@
   "error_swap_amount_too_low": "The amount provided is below the minimum threshold required for a quote.",
   "error_swap_chain_disabled": "The origin or destination chain is currently disabled or unsupported.",
   "error_swap_coin_pair_not_found": "Coin pair not found",
+  "error_swap_pair_unavailable": "Dieses Swap-Paar ist derzeit nicht verfügbar. Bitte versuchen Sie eine andere Kombination.",
   "error_swap_extra_txs_not_supported": "Extra transactions are not supported for this trade type.",
   "error_swap_forbidden": "User does not have the required role or permission.",
   "error_swap_insufficient_funds": "The user’s wallet does not have enough balance to perform the swap.",

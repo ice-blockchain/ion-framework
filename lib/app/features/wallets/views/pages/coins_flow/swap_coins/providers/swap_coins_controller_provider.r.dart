@@ -23,6 +23,7 @@ import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/exceptions/exolix_exceptions.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
+import 'package:ion_swap_client/exceptions/lets_exchange_exceptions.dart';
 import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
 import 'package:ion_swap_client/exceptions/relay_exception.dart';
 import 'package:ion_swap_client/models/ion_swap_request.dart';
@@ -256,6 +257,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     required CoinsGroup buyCoinGroup,
     required NetworkData buyNetwork,
     required double amount,
+    required String slippage,
   }) async {
     final sellAddress = await _getAddress(sellCoinGroup, sellNetwork);
     final buyAddress = await _getAddress(buyCoinGroup, buyNetwork);
@@ -270,6 +272,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     }
 
     return SwapCoinParameters(
+      slippage: slippage,
       buyCoin: SwapCoin(
         contractAddress: buyCoin.coin.contractAddress,
         network: SwapNetwork(
@@ -457,6 +460,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       buyCoinGroup: buyCoin,
       buyNetwork: buyNetwork,
       amount: amount,
+      slippage: state.slippage.toString(),
     );
 
     if (swapCoinParameters == null) {
@@ -499,7 +503,11 @@ class SwapCoinsController extends _$SwapCoinsController {
         return;
       }
 
-      if (e is OkxException || e is RelayException || e is ExolixException) {
+      if (e is OkxException ||
+          e is RelayException ||
+          e is ExolixException ||
+          e is LetsExchangeException ||
+          e is IonSwapException) {
         quoteError = e as Exception;
       }
 
@@ -679,6 +687,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       buyCoinGroup: buyCoinGroup,
       buyNetwork: buyNetwork,
       amount: amount,
+      slippage: state.slippage.toString(),
     );
 
     if (swapCoinParameters == null) {

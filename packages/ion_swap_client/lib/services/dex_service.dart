@@ -58,6 +58,7 @@ class DexService {
         toTokenAddress: buyTokenAddress,
         fromTokenAddress: sellTokenAddress,
         userWalletAddress: userSellAddress,
+        slippagePercent: swapCoinData.slippage,
       );
 
       // Send swap transaction to the blockchain, triggering the swap smart contract

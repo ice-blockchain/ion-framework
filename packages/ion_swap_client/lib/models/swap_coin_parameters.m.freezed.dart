@@ -26,6 +26,7 @@ mixin _$SwapCoinParameters {
   bool get isBridge => throw _privateConstructorUsedError;
   SwapCoin get sellCoin => throw _privateConstructorUsedError;
   SwapCoin get buyCoin => throw _privateConstructorUsedError;
+  String get slippage => throw _privateConstructorUsedError;
 
   /// Serializes this SwapCoinParameters to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -49,7 +50,8 @@ abstract class $SwapCoinParametersCopyWith<$Res> {
       String amount,
       bool isBridge,
       SwapCoin sellCoin,
-      SwapCoin buyCoin});
+      SwapCoin buyCoin,
+      String slippage});
 
   $SwapCoinCopyWith<$Res> get sellCoin;
   $SwapCoinCopyWith<$Res> get buyCoin;
@@ -76,6 +78,7 @@ class _$SwapCoinParametersCopyWithImpl<$Res, $Val extends SwapCoinParameters>
     Object? isBridge = null,
     Object? sellCoin = null,
     Object? buyCoin = null,
+    Object? slippage = null,
   }) {
     return _then(_value.copyWith(
       userSellAddress: freezed == userSellAddress
@@ -102,6 +105,10 @@ class _$SwapCoinParametersCopyWithImpl<$Res, $Val extends SwapCoinParameters>
           ? _value.buyCoin
           : buyCoin // ignore: cast_nullable_to_non_nullable
               as SwapCoin,
+      slippage: null == slippage
+          ? _value.slippage
+          : slippage // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 
@@ -140,7 +147,8 @@ abstract class _$$SwapCoinParametersImplCopyWith<$Res>
       String amount,
       bool isBridge,
       SwapCoin sellCoin,
-      SwapCoin buyCoin});
+      SwapCoin buyCoin,
+      String slippage});
 
   @override
   $SwapCoinCopyWith<$Res> get sellCoin;
@@ -167,6 +175,7 @@ class __$$SwapCoinParametersImplCopyWithImpl<$Res>
     Object? isBridge = null,
     Object? sellCoin = null,
     Object? buyCoin = null,
+    Object? slippage = null,
   }) {
     return _then(_$SwapCoinParametersImpl(
       userSellAddress: freezed == userSellAddress
@@ -193,6 +202,10 @@ class __$$SwapCoinParametersImplCopyWithImpl<$Res>
           ? _value.buyCoin
           : buyCoin // ignore: cast_nullable_to_non_nullable
               as SwapCoin,
+      slippage: null == slippage
+          ? _value.slippage
+          : slippage // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -206,7 +219,8 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
       required this.amount,
       required this.isBridge,
       required this.sellCoin,
-      required this.buyCoin});
+      required this.buyCoin,
+      required this.slippage});
 
   factory _$SwapCoinParametersImpl.fromJson(Map<String, dynamic> json) =>
       _$$SwapCoinParametersImplFromJson(json);
@@ -223,10 +237,12 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
   final SwapCoin sellCoin;
   @override
   final SwapCoin buyCoin;
+  @override
+  final String slippage;
 
   @override
   String toString() {
-    return 'SwapCoinParameters(userSellAddress: $userSellAddress, userBuyAddress: $userBuyAddress, amount: $amount, isBridge: $isBridge, sellCoin: $sellCoin, buyCoin: $buyCoin)';
+    return 'SwapCoinParameters(userSellAddress: $userSellAddress, userBuyAddress: $userBuyAddress, amount: $amount, isBridge: $isBridge, sellCoin: $sellCoin, buyCoin: $buyCoin, slippage: $slippage)';
   }
 
   @override
@@ -243,13 +259,15 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
                 other.isBridge == isBridge) &&
             (identical(other.sellCoin, sellCoin) ||
                 other.sellCoin == sellCoin) &&
-            (identical(other.buyCoin, buyCoin) || other.buyCoin == buyCoin));
+            (identical(other.buyCoin, buyCoin) || other.buyCoin == buyCoin) &&
+            (identical(other.slippage, slippage) ||
+                other.slippage == slippage));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, userSellAddress, userBuyAddress,
-      amount, isBridge, sellCoin, buyCoin);
+      amount, isBridge, sellCoin, buyCoin, slippage);
 
   /// Create a copy of SwapCoinParameters
   /// with the given fields replaced by the non-null parameter values.
@@ -275,7 +293,8 @@ abstract class _SwapCoinParameters implements SwapCoinParameters {
       required final String amount,
       required final bool isBridge,
       required final SwapCoin sellCoin,
-      required final SwapCoin buyCoin}) = _$SwapCoinParametersImpl;
+      required final SwapCoin buyCoin,
+      required final String slippage}) = _$SwapCoinParametersImpl;
 
   factory _SwapCoinParameters.fromJson(Map<String, dynamic> json) =
       _$SwapCoinParametersImpl.fromJson;
@@ -292,6 +311,8 @@ abstract class _SwapCoinParameters implements SwapCoinParameters {
   SwapCoin get sellCoin;
   @override
   SwapCoin get buyCoin;
+  @override
+  String get slippage;
 
   /// Create a copy of SwapCoinParameters
   /// with the given fields replaced by the non-null parameter values.

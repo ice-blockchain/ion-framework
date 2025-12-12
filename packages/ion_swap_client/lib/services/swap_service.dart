@@ -70,9 +70,7 @@ class SwapService {
         );
 
         final isSuccessSwap = txData != null;
-        if (isSuccessSwap) {
-          return;
-        }
+        if (isSuccessSwap) return;
       }
 
       await _cexService.tryToCexSwap(
