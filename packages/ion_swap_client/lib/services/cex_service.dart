@@ -287,11 +287,12 @@ class CexService {
       throw const IonSwapException('Exolix: Coins pair not found');
     }
 
+    // Some networks have a bit different names from our naming, like BNB and BNB Smart Chain (BEP20)
     final sellNetwork = sellCoin.networks.firstWhereOrNull(
-      (e) => e.name.toLowerCase() == swapCoinData.sellCoin.network.name.toLowerCase(),
+      (e) => e.name.toLowerCase().contains(swapCoinData.sellCoin.network.name.toLowerCase()),
     );
     final buyNetwork = buyCoin.networks.firstWhereOrNull(
-      (e) => e.name.toLowerCase() == swapCoinData.buyCoin.network.name.toLowerCase(),
+      (e) => e.name.toLowerCase().contains(swapCoinData.buyCoin.network.name.toLowerCase()),
     );
 
     if (sellNetwork == null || buyNetwork == null) {

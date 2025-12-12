@@ -37,11 +37,12 @@ class DexService {
 
       final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoin.contractAddress);
       final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoin.contractAddress);
+      final amount = toBlockchainUnits(swapCoinData.amount, int.parse(okxQuote.fromToken.decimal));
 
       final approveTransactionResponse = await _swapOkxRepository.approveTransaction(
         chainIndex: okxQuote.chainIndex,
         tokenContractAddress: sellTokenAddress,
-        amount: toBlockchainUnits(swapCoinData.amount, int.parse(okxQuote.fromToken.decimal)),
+        amount: amount,
       );
 
       _processOkxResponse(approveTransactionResponse);
@@ -52,8 +53,8 @@ class DexService {
       }
 
       final swapResponse = await _swapOkxRepository.swap(
+        amount: amount,
         chainIndex: okxQuote.chainIndex,
-        amount: swapCoinData.amount,
         toTokenAddress: buyTokenAddress,
         fromTokenAddress: sellTokenAddress,
         userWalletAddress: userSellAddress,
@@ -129,11 +130,12 @@ class DexService {
     final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoin.contractAddress);
 
     if (okxChain != null) {
+      final amount = toBlockchainUnits(swapCoinData.amount, swapCoinData.sellCoin.decimal);
       final quotesResponse = await _swapOkxRepository.getQuotes(
+        amount: amount,
         chainIndex: okxChain.chainIndex,
-        amount: swapCoinData.amount,
-        fromTokenAddress: sellTokenAddress,
         toTokenAddress: buyTokenAddress,
+        fromTokenAddress: sellTokenAddress,
       );
 
       final quotes = _processOkxResponse(quotesResponse);
