@@ -18,6 +18,331 @@ import 'package:ion/app/services/markdown/quill.dart';
 
 import '../../../test_utils.dart';
 
+/// Checks if a Delta contains an image operation.
+///
+/// [imageUrl]: If provided, only matches images with this specific URL.
+bool _hasImageInDelta(Delta delta, {String? imageUrl}) {
+  for (final op in delta.operations) {
+    if (op.key == 'insert' && op.data is Map) {
+      final data = op.data! as Map;
+      if (data.containsKey('text-editor-single-image')) {
+        if (imageUrl != null) {
+          final url = data['text-editor-single-image'] as String?;
+          if (url == imageUrl) {
+            return true;
+          }
+        } else {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/// Checks if a Delta contains text operations with specified formatting attributes.
+///
+/// [textSubstring]: If provided, only checks operations where text contains this substring.
+/// [attributeKeys]: If provided, checks that operation has ALL specified attributes.
+/// [attributeValues]: If provided, checks that operation attributes match the specified key-value pairs.
+bool _hasTextWithFormatting(
+  Delta delta, {
+  String? textSubstring,
+  List<String>? attributeKeys,
+  Map<String, dynamic>? attributeValues,
+}) {
+  for (final op in delta.operations) {
+    if (op.key == 'insert' && op.data is String) {
+      final text = op.data! as String;
+      final attrs = op.attributes;
+
+      // If textSubstring is provided, text must contain it
+      if (textSubstring != null && !text.contains(textSubstring)) {
+        continue;
+      }
+
+      // If attributeKeys are provided, check that ALL are present
+      if (attributeKeys != null && attributeKeys.isNotEmpty) {
+        final hasAllAttributes = attributeKeys.every(
+          (key) => attrs?.containsKey(key) ?? false,
+        );
+        if (!hasAllAttributes) {
+          continue;
+        }
+      }
+
+      // If attributeValues are provided, check that ALL match
+      if (attributeValues != null && attributeValues.isNotEmpty) {
+        final hasAllValues = attributeValues.entries.every(
+          (entry) => attrs?[entry.key] == entry.value,
+        );
+        if (!hasAllValues) {
+          continue;
+        }
+      }
+
+      // If we have attributeKeys or attributeValues, we've matched
+      if ((attributeKeys != null && attributeKeys.isNotEmpty) ||
+          (attributeValues != null && attributeValues.isNotEmpty)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/// Checks if a Delta contains operations with specified attributes (regardless of text content).
+///
+/// [attributeKeys]: Checks that operation has ALL specified attributes.
+/// [attributeValues]: If provided, checks that operation attributes match the specified key-value pairs.
+bool _hasAttributeInDelta(
+  Delta delta, {
+  required List<String> attributeKeys,
+  Map<String, dynamic>? attributeValues,
+}) {
+  for (final op in delta.operations) {
+    final attrs = op.attributes;
+    final hasAllAttributes = attributeKeys.every(
+      (key) => attrs?.containsKey(key) ?? false,
+    );
+
+    if (hasAllAttributes) {
+      // Also check attributeValues if provided
+      if (attributeValues != null && attributeValues.isNotEmpty) {
+        final hasAllValues = attributeValues.entries.every(
+          (entry) => attrs?[entry.key] == entry.value,
+        );
+        if (hasAllValues) {
+          return true;
+        }
+      } else {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/// Normalizes text for comparison by removing extra whitespace and normalizing image placeholders.
+/// Only use this for tests where markdown parser introduces unavoidable whitespace differences.
+String _normalizeTextForComparison(String text) {
+  return text
+      .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .replaceAll(RegExp(r'\s*\uFFFC\s*'), '\uFFFC')
+      .trim();
+}
+
+/// Counts formatting instances in a Delta by text content and attributes.
+///
+/// Returns a map with counts for 'italic', 'bold', and 'normal' formatting.
+/// [textFilter]: Optional function to filter which text operations to count.
+Map<String, int> _countFormattingInstances(
+  Delta delta, {
+  bool Function(String text)? textFilter,
+}) {
+  var italicCount = 0;
+  var boldCount = 0;
+  var normalCount = 0;
+
+  for (final op in delta.operations) {
+    if (op.key == 'insert' && op.data is String) {
+      final text = op.data! as String;
+      final attrs = op.attributes;
+
+      if (textFilter != null && !textFilter(text)) {
+        continue;
+      }
+
+      final hasItalic = attrs?.containsKey('italic') ?? false;
+      final hasBold = attrs?.containsKey('bold') ?? false;
+
+      if (hasItalic && !hasBold) {
+        italicCount++;
+      } else if (hasBold && !hasItalic) {
+        boldCount++;
+      } else if (!hasItalic && !hasBold) {
+        normalCount++;
+      }
+    }
+  }
+
+  return {
+    'italic': italicCount,
+    'bold': boldCount,
+    'normal': normalCount,
+  };
+}
+
+/// Counts formatting instances by text substring and specific attributes.
+///
+/// Returns counts for italic and bold formatting that match the given text patterns.
+Map<String, int> _countFormattingByTextPattern(
+  Delta delta,
+  List<String> textPatterns,
+  List<String> attributes,
+) {
+  var italicCount = 0;
+  var boldCount = 0;
+
+  for (final op in delta.operations) {
+    if (op.key == 'insert' && op.data is String) {
+      final text = op.data! as String;
+      final attrs = op.attributes;
+
+      final matchesPattern = textPatterns.any(text.contains);
+      if (!matchesPattern) {
+        continue;
+      }
+
+      for (final attr in attributes) {
+        if (attr == 'italic' && (attrs?.containsKey('italic') ?? false)) {
+          italicCount++;
+        }
+        if (attr == 'bold' && (attrs?.containsKey('bold') ?? false)) {
+          boldCount++;
+        }
+      }
+    }
+  }
+
+  return {
+    'italic': italicCount,
+    'bold': boldCount,
+  };
+}
+
+/// Counts headers by level in a Delta.
+///
+/// Returns a map with counts for each header level (1-6).
+Map<int, int> _countHeadersByLevel(Delta delta) {
+  final counts = <int, int>{};
+
+  for (final op in delta.operations) {
+    if (op.attributes?.containsKey('header') ?? false) {
+      final level = op.attributes!['header'] as int;
+      counts[level] = (counts[level] ?? 0) + 1;
+    }
+  }
+
+  return counts;
+}
+
+/// Counts list items by type in a Delta.
+///
+/// Returns a map with counts for 'bullet' and 'ordered' list types.
+Map<String, int> _countListItemsByType(Delta delta) {
+  var bulletCount = 0;
+  var orderedCount = 0;
+
+  for (final op in delta.operations) {
+    if (op.attributes?.containsKey('list') ?? false) {
+      final listType = op.attributes!['list'] as String;
+      if (listType == 'bullet') {
+        bulletCount++;
+      } else if (listType == 'ordered') {
+        orderedCount++;
+      }
+    }
+  }
+
+  return {
+    'bullet': bulletCount,
+    'ordered': orderedCount,
+  };
+}
+
+/// Performs a round-trip conversion test: Delta -> PMO -> Delta.
+///
+/// Returns the result Delta and PMO result for further assertions.
+Future<({Delta resultDelta, PmoConversionResult pmoResult})> _performRoundTripConversion(
+  Delta expectedDelta,
+) async {
+  final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+  final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
+  final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+
+  return (resultDelta: resultDelta, pmoResult: pmoResult);
+}
+
+/// Asserts that two Deltas have equivalent plain text content.
+void _assertDeltaTextEquals(Delta expected, Delta actual) {
+  final expectedText = Document.fromDelta(expected).toPlainText();
+  final actualText = Document.fromDelta(actual).toPlainText();
+  expect(actualText.trim(), equals(expectedText.trim()));
+}
+
+/// Creates an EventMessage for testing Posts (kind 1).
+EventMessage _createPostEventMessage({
+  required String content,
+  required EventSigner signer,
+  List<List<String>> tags = const [],
+}) {
+  return EventMessage(
+    id: 'test_id',
+    pubkey: signer.publicKey,
+    createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    kind: 1,
+    content: content,
+    tags: tags,
+    sig: 'test_sig',
+  );
+}
+
+/// Creates an EventMessage for testing ModifiablePosts (kind 30175).
+EventMessage _createModifiablePostEventMessage({
+  required String content,
+  required EventSigner signer,
+  List<List<String>> tags = const [],
+}) {
+  return EventMessage(
+    id: 'test_id',
+    pubkey: signer.publicKey,
+    createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    kind: 30175,
+    content: content,
+    tags: [
+      ReplaceableEventIdentifier.generate().toTag(),
+      EntityPublishedAt(
+        value: DateTime.now().microsecondsSinceEpoch,
+      ).toTag(),
+      ...tags,
+    ],
+    sig: 'test_sig',
+  );
+}
+
+/// Creates an EventMessage for testing Articles (kind 30023).
+EventMessage _createArticleEventMessage({
+  required String content,
+  required EventSigner signer,
+  List<List<String>> tags = const [],
+}) {
+  return EventMessage(
+    id: 'test_id',
+    pubkey: signer.publicKey,
+    createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    kind: 30023,
+    content: content,
+    tags: [
+      ReplaceableEventIdentifier.generate().toTag(),
+      EntityPublishedAt(
+        value: DateTime.now().microsecondsSinceEpoch,
+      ).toTag(),
+      ...tags,
+    ],
+    sig: 'test_sig',
+  );
+}
+
+/// Creates a RichText object from a Delta for testing.
+RichText _createRichTextFromDelta(Delta delta) {
+  return RichText(
+    protocol: 'quill_delta',
+    content: jsonEncode(delta.toJson()),
+  );
+}
+
 void main() {
   group('DeltaMarkdownConverter', () {
     late EventSigner signer;
@@ -412,23 +737,14 @@ void main() {
           final roundTripDelta = markdownToDelta(markdown);
 
           // Compare the Deltas
-          // Note: Markdown conversion may add extra newlines and handle images differently,
-          // so we normalize whitespace and image placeholders for comparison
-          String normalizeText(String text) {
-            return text
-                .replaceAll(RegExp(r'\n{3,}'), '\n\n')
-                .replaceAll(RegExp(r'\s+'), ' ')
-                .replaceAll(
-                  RegExp(r'\s*\uFFFC\s*'),
-                  '\uFFFC',
-                ) // Normalize image placeholder spacing
-                .trim();
-          }
+          // Note: Markdown parser may add extra newlines, so we normalize for this specific test
+          final originalText = _normalizeTextForComparison(
+            Document.fromDelta(originalDelta).toPlainText(),
+          );
+          final roundTripText = _normalizeTextForComparison(
+            Document.fromDelta(roundTripDelta).toPlainText(),
+          );
 
-          final originalText = normalizeText(Document.fromDelta(originalDelta).toPlainText());
-          final roundTripText = normalizeText(Document.fromDelta(roundTripDelta).toPlainText());
-
-          // Compare normalized text (allowing for minor whitespace differences)
           expect(
             roundTripText,
             equals(originalText),
@@ -513,19 +829,15 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final markdown = deltaToMarkdown(originalDelta);
           final roundTripDelta = markdownToDelta(markdown);
 
-          // Verify content preservation (normalize whitespace and image placeholders)
-          String normalizeText(String text) {
-            return text
-                .replaceAll(RegExp(r'\n{3,}'), '\n\n')
-                .replaceAll(RegExp(r'\s+'), ' ')
-                .replaceAll(RegExp(r'\s*\uFFFC\s*'), '\uFFFC')
-                .trim();
-          }
+          // Verify content preservation
+          // Note: Markdown parser may add extra newlines, so we normalize for this specific test
+          final originalText = _normalizeTextForComparison(
+            Document.fromDelta(originalDelta).toPlainText(),
+          );
+          final roundTripText = _normalizeTextForComparison(
+            Document.fromDelta(roundTripDelta).toPlainText(),
+          );
 
-          final originalText = normalizeText(Document.fromDelta(originalDelta).toPlainText());
-          final roundTripText = normalizeText(Document.fromDelta(roundTripDelta).toPlainText());
-
-          // Compare normalized text (allowing for minor whitespace differences)
           expect(
             roundTripText,
             equals(originalText),
@@ -593,15 +905,9 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final markdown = deltaToMarkdown(originalDelta);
           final roundTripDelta = markdownToDelta(markdown);
 
-          // Normalize whitespace for comparison
-          final originalText = Document.fromDelta(originalDelta)
-              .toPlainText()
-              .replaceAll(RegExp(r'\s+'), ' ')
-              .trim();
-          final roundTripText = Document.fromDelta(roundTripDelta)
-              .toPlainText()
-              .replaceAll(RegExp(r'\s+'), ' ')
-              .trim();
+          // Strict comparison - ensure exact preservation
+          final originalText = Document.fromDelta(originalDelta).toPlainText();
+          final roundTripText = Document.fromDelta(roundTripDelta).toPlainText();
 
           expect(roundTripText, equals(originalText));
         });
@@ -612,17 +918,11 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             final delta = markdownToDelta(markdown);
 
             // Verify bold attribute is present
-            var hasBold = false;
-            for (final op in delta.operations) {
-              if (op.key == 'insert' && op.data is String) {
-                final text = op.data! as String;
-                final attrs = op.attributes;
-                if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
-                  hasBold = true;
-                }
-              }
-            }
-            expect(hasBold, isTrue, reason: 'Bold formatting should be preserved from markdown');
+            expect(
+              _hasTextWithFormatting(delta, textSubstring: 'bold', attributeKeys: ['bold']),
+              isTrue,
+              reason: 'Bold formatting should be preserved from markdown',
+            );
           });
 
           test('preserves italic formatting from markdown', () {
@@ -630,18 +930,8 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             final delta = markdownToDelta(markdown);
 
             // Verify italic attribute is present
-            var hasItalic = false;
-            for (final op in delta.operations) {
-              if (op.key == 'insert' && op.data is String) {
-                final text = op.data! as String;
-                final attrs = op.attributes;
-                if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
-                  hasItalic = true;
-                }
-              }
-            }
             expect(
-              hasItalic,
+              _hasTextWithFormatting(delta, textSubstring: 'italic', attributeKeys: ['italic']),
               isTrue,
               reason: 'Italic formatting should be preserved from markdown',
             );
@@ -652,25 +942,13 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             final delta = markdownToDelta(markdown);
 
             // Verify both attributes are present
-            var hasBold = false;
-            var hasItalic = false;
-            for (final op in delta.operations) {
-              if (op.key == 'insert' && op.data is String) {
-                final text = op.data! as String;
-                final attrs = op.attributes;
-                if (text.contains('bolditalic')) {
-                  if (attrs?.containsKey('bold') ?? false) {
-                    hasBold = true;
-                  }
-                  if (attrs?.containsKey('italic') ?? false) {
-                    hasItalic = true;
-                  }
-                }
-              }
-            }
-            expect(hasBold, isTrue, reason: 'Bold formatting should be preserved in bold+italic');
             expect(
-              hasItalic,
+              _hasTextWithFormatting(delta, textSubstring: 'bolditalic', attributeKeys: ['bold']),
+              isTrue,
+              reason: 'Bold formatting should be preserved in bold+italic',
+            );
+            expect(
+              _hasTextWithFormatting(delta, textSubstring: 'bolditalic', attributeKeys: ['italic']),
               isTrue,
               reason: 'Italic formatting should be preserved in bold+italic',
             );
@@ -681,22 +959,16 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             final delta = markdownToDelta(markdown);
 
             // Verify both formatting types are present
-            var hasBold = false;
-            var hasItalic = false;
-            for (final op in delta.operations) {
-              if (op.key == 'insert' && op.data is String) {
-                final text = op.data! as String;
-                final attrs = op.attributes;
-                if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
-                  hasBold = true;
-                }
-                if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
-                  hasItalic = true;
-                }
-              }
-            }
-            expect(hasBold, isTrue, reason: 'Bold formatting should be preserved');
-            expect(hasItalic, isTrue, reason: 'Italic formatting should be preserved');
+            expect(
+              _hasTextWithFormatting(delta, textSubstring: 'bold', attributeKeys: ['bold']),
+              isTrue,
+              reason: 'Bold formatting should be preserved',
+            );
+            expect(
+              _hasTextWithFormatting(delta, textSubstring: 'italic', attributeKeys: ['italic']),
+              isTrue,
+              reason: 'Italic formatting should be preserved',
+            );
           });
         });
 
@@ -750,37 +1022,30 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 
           // Verify underline attributes are preserved in the result
           // (markdown parser should convert <u> tags back to underline attributes)
-          var hasUnderline = false;
-          var hasUnderlineBold = false;
-          var hasUnderlineItalic = false;
-
-          for (final op in resultOps) {
-            if (op.key == 'insert' && op.data is String) {
-              final text = op.data! as String;
-              final attrs = op.attributes;
-
-              if (text.contains('hello world underlined') &&
-                  (attrs?.containsKey('underline') ?? false)) {
-                hasUnderline = true;
-              }
-              if (text.contains('hello world bold') &&
-                  (attrs?.containsKey('underline') ?? false) &&
-                  (attrs?.containsKey('bold') ?? false)) {
-                hasUnderlineBold = true;
-              }
-              if (text.contains('hello world italic') &&
-                  (attrs?.containsKey('underline') ?? false) &&
-                  (attrs?.containsKey('italic') ?? false)) {
-                hasUnderlineItalic = true;
-              }
-            }
-          }
-
-          // Verify underline attributes are preserved in the round-trip conversion
-          expect(hasUnderline, isTrue, reason: 'Underline attribute should be preserved');
-          expect(hasUnderlineBold, isTrue, reason: 'Underline+bold attributes should be preserved');
           expect(
-            hasUnderlineItalic,
+            _hasTextWithFormatting(
+              resultDelta,
+              textSubstring: 'hello world underlined',
+              attributeKeys: ['underline'],
+            ),
+            isTrue,
+            reason: 'Underline attribute should be preserved',
+          );
+          expect(
+            _hasTextWithFormatting(
+              resultDelta,
+              textSubstring: 'hello world bold',
+              attributeKeys: ['underline', 'bold'],
+            ),
+            isTrue,
+            reason: 'Underline+bold attributes should be preserved',
+          );
+          expect(
+            _hasTextWithFormatting(
+              resultDelta,
+              textSubstring: 'hello world italic',
+              attributeKeys: ['underline', 'italic'],
+            ),
             isTrue,
             reason: 'Underline+italic attributes should be preserved',
           );
@@ -814,46 +1079,30 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           // Convert back from markdown to delta
           final resultDelta = markdownToDelta(markdown);
 
-          // Verify the text content matches
+          // Verify the text content matches - strict comparison
           // Images are represented as placeholders (￼) in plain text
-          // Normalize whitespace and image placeholder spacing for comparison
-          String normalizeText(String text) {
-            return text
-                .replaceAll(RegExp(r'\n+'), '\n') // Normalize multiple newlines
-                .replaceAll(
-                  RegExp(r'\s*\uFFFC\s*'),
-                  '\uFFFC',
-                ) // Normalize image placeholder spacing
-                .trim();
-          }
+          final expectedText = Document.fromDelta(expectedDelta).toPlainText();
+          final resultText = Document.fromDelta(resultDelta).toPlainText();
 
-          final expectedText = normalizeText(Document.fromDelta(expectedDelta).toPlainText());
-          final resultText = normalizeText(Document.fromDelta(resultDelta).toPlainText());
-
-          // Compare normalized text (allowing for minor whitespace differences around images)
           expect(resultText, equals(expectedText));
 
           // Verify images are preserved in the result
-          var hasImage1 = false;
-          var hasImage2 = false;
-
-          for (final op in resultDelta.operations) {
-            if (op.key == 'insert' && op.data is Map) {
-              final data = op.data! as Map;
-              if (data.containsKey('text-editor-single-image')) {
-                final imageUrl = data['text-editor-single-image'] as String?;
-                if (imageUrl == 'https://example.com/image1.png') {
-                  hasImage1 = true;
-                }
-                if (imageUrl == 'https://example.com/image2.jpg') {
-                  hasImage2 = true;
-                }
-              }
-            }
-          }
-
-          expect(hasImage1, isTrue, reason: 'First image should be preserved');
-          expect(hasImage2, isTrue, reason: 'Second image should be preserved');
+          expect(
+            _hasImageInDelta(
+              resultDelta,
+              imageUrl: 'https://example.com/image1.png',
+            ),
+            isTrue,
+            reason: 'First image should be preserved',
+          );
+          expect(
+            _hasImageInDelta(
+              resultDelta,
+              imageUrl: 'https://example.com/image2.jpg',
+            ),
+            isTrue,
+            reason: 'Second image should be preserved',
+          );
         });
       });
     });
@@ -863,24 +1112,12 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
       // which use PMO tags. Articles (kind 30023) use markdown directly, not PMO tags.
 
       test('round-trip with plain text (for Posts/ModifiablePosts)', () async {
-        // 1. Create expected Delta
         final expectedDelta = Delta()..insert('Hello world\n');
-
-        // 2. Call mapDeltaToPmo on expected
-        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
-
-        // 3. Call mapMarkdownToDelta on result
-        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
-
-        // 4. Compare expected with new result
-        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
-        final resultText = Document.fromDelta(resultDelta).toPlainText();
-        expect(resultText.trim(), equals(expectedText.trim()));
+        final result = await _performRoundTripConversion(expectedDelta);
+        _assertDeltaTextEquals(expectedDelta, result.resultDelta);
       });
 
       test('round-trip with bold and italic (for Posts/ModifiablePosts)', () async {
-        // 1. Create expected Delta
         final expectedDelta = Delta()
           ..insert('Hello ')
           ..insert('bold', {'bold': true})
@@ -888,35 +1125,27 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           ..insert('italic', {'italic': true})
           ..insert(' text\n');
 
-        // 2. Call mapDeltaToPmo on expected
-        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+        final result = await _performRoundTripConversion(expectedDelta);
+        _assertDeltaTextEquals(expectedDelta, result.resultDelta);
 
-        // 3. Call mapMarkdownToDelta on result
-        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
-
-        // 4. Compare expected with new result
-        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
-        final resultText = Document.fromDelta(resultDelta).toPlainText();
-        expect(resultText.trim(), equals(expectedText.trim()));
-
-        // Verify formatting is preserved
-        var hasBold = false;
-        var hasItalic = false;
-        for (final op in resultDelta.operations) {
-          if (op.key == 'insert' && op.data is String) {
-            final text = op.data! as String;
-            final attrs = op.attributes;
-            if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
-              hasBold = true;
-            }
-            if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
-              hasItalic = true;
-            }
-          }
-        }
-        expect(hasBold, isTrue, reason: 'Bold formatting should be preserved');
-        expect(hasItalic, isTrue, reason: 'Italic formatting should be preserved');
+        expect(
+          _hasTextWithFormatting(
+            result.resultDelta,
+            textSubstring: 'bold',
+            attributeKeys: ['bold'],
+          ),
+          isTrue,
+          reason: 'Bold formatting should be preserved',
+        );
+        expect(
+          _hasTextWithFormatting(
+            result.resultDelta,
+            textSubstring: 'italic',
+            attributeKeys: ['italic'],
+          ),
+          isTrue,
+          reason: 'Italic formatting should be preserved',
+        );
       });
 
       group('PMO tag normalization with spaces', () {
@@ -930,26 +1159,16 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
 
           // Verify italic formatting is preserved
-          var hasItalic = false;
-          var hasBold = false;
-          for (final op in resultDelta.operations) {
-            if (op.key == 'insert' && op.data is String) {
-              final text = op.data! as String;
-              final attrs = op.attributes;
-              if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
-                hasItalic = true;
-              }
-              if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
-                hasBold = true;
-              }
-            }
-          }
           expect(
-            hasItalic,
+            _hasTextWithFormatting(resultDelta, textSubstring: 'italic', attributeKeys: ['italic']),
             isTrue,
             reason: 'Italic formatting should be preserved even with trailing space',
           );
-          expect(hasBold, isTrue, reason: 'Bold formatting should be preserved');
+          expect(
+            _hasTextWithFormatting(resultDelta, textSubstring: 'bold', attributeKeys: ['bold']),
+            isTrue,
+            reason: 'Bold formatting should be preserved',
+          );
         });
 
         test('normalizes italic with leading space in PMO tags', () {
@@ -961,18 +1180,8 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
 
           // Verify italic formatting is preserved
-          var hasItalic = false;
-          for (final op in resultDelta.operations) {
-            if (op.key == 'insert' && op.data is String) {
-              final text = op.data! as String;
-              final attrs = op.attributes;
-              if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
-                hasItalic = true;
-              }
-            }
-          }
           expect(
-            hasItalic,
+            _hasTextWithFormatting(resultDelta, textSubstring: 'italic', attributeKeys: ['italic']),
             isTrue,
             reason: 'Italic formatting should be preserved even with leading space',
           );
@@ -987,18 +1196,8 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
 
           // Verify bold formatting is preserved
-          var hasBold = false;
-          for (final op in resultDelta.operations) {
-            if (op.key == 'insert' && op.data is String) {
-              final text = op.data! as String;
-              final attrs = op.attributes;
-              if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
-                hasBold = true;
-              }
-            }
-          }
           expect(
-            hasBold,
+            _hasTextWithFormatting(resultDelta, textSubstring: 'bold', attributeKeys: ['bold']),
             isTrue,
             reason: 'Bold formatting should be preserved even with trailing space',
           );
@@ -1013,18 +1212,8 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
 
           // Verify bold formatting is preserved
-          var hasBold = false;
-          for (final op in resultDelta.operations) {
-            if (op.key == 'insert' && op.data is String) {
-              final text = op.data! as String;
-              final attrs = op.attributes;
-              if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
-                hasBold = true;
-              }
-            }
-          }
           expect(
-            hasBold,
+            _hasTextWithFormatting(resultDelta, textSubstring: 'bold', attributeKeys: ['bold']),
             isTrue,
             reason: 'Bold formatting should be preserved even with leading space',
           );
@@ -1039,29 +1228,21 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
 
           // Verify both bold and italic formatting are preserved
-          var hasBold = false;
-          var hasItalic = false;
-          for (final op in resultDelta.operations) {
-            if (op.key == 'insert' && op.data is String) {
-              final text = op.data! as String;
-              final attrs = op.attributes;
-              if (text.contains('bolditalic')) {
-                if (attrs?.containsKey('bold') ?? false) {
-                  hasBold = true;
-                }
-                if (attrs?.containsKey('italic') ?? false) {
-                  hasItalic = true;
-                }
-              }
-            }
-          }
           expect(
-            hasBold,
+            _hasTextWithFormatting(
+              resultDelta,
+              textSubstring: 'bolditalic',
+              attributeKeys: ['bold'],
+            ),
             isTrue,
             reason: 'Bold formatting should be preserved in bold+italic with trailing space',
           );
           expect(
-            hasItalic,
+            _hasTextWithFormatting(
+              resultDelta,
+              textSubstring: 'bolditalic',
+              attributeKeys: ['italic'],
+            ),
             isTrue,
             reason: 'Italic formatting should be preserved in bold+italic with trailing space',
           );
@@ -1076,18 +1257,8 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
 
           // Verify italic formatting is preserved
-          var hasItalic = false;
-          for (final op in resultDelta.operations) {
-            if (op.key == 'insert' && op.data is String) {
-              final text = op.data! as String;
-              final attrs = op.attributes;
-              if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
-                hasItalic = true;
-              }
-            }
-          }
           expect(
-            hasItalic,
+            _hasTextWithFormatting(resultDelta, textSubstring: 'italic', attributeKeys: ['italic']),
             isTrue,
             reason: 'Italic formatting should be preserved even with multiple trailing spaces',
           );
@@ -1103,22 +1274,16 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
 
           // Verify both formatting types are preserved
-          var hasItalic = false;
-          var hasBold = false;
-          for (final op in resultDelta.operations) {
-            if (op.key == 'insert' && op.data is String) {
-              final text = op.data! as String;
-              final attrs = op.attributes;
-              if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
-                hasItalic = true;
-              }
-              if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
-                hasBold = true;
-              }
-            }
-          }
-          expect(hasItalic, isTrue, reason: 'Italic formatting should be preserved');
-          expect(hasBold, isTrue, reason: 'Bold formatting should be preserved');
+          expect(
+            _hasTextWithFormatting(resultDelta, textSubstring: 'italic', attributeKeys: ['italic']),
+            isTrue,
+            reason: 'Italic formatting should be preserved',
+          );
+          expect(
+            _hasTextWithFormatting(resultDelta, textSubstring: 'bold', attributeKeys: ['bold']),
+            isTrue,
+            reason: 'Bold formatting should be preserved',
+          );
         });
 
         test('does not break correctly formatted markdown', () {
@@ -1131,22 +1296,16 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
 
           // Verify formatting is preserved
-          var hasItalic = false;
-          var hasBold = false;
-          for (final op in resultDelta.operations) {
-            if (op.key == 'insert' && op.data is String) {
-              final text = op.data! as String;
-              final attrs = op.attributes;
-              if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
-                hasItalic = true;
-              }
-              if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
-                hasBold = true;
-              }
-            }
-          }
-          expect(hasItalic, isTrue, reason: 'Correctly formatted italic should still work');
-          expect(hasBold, isTrue, reason: 'Correctly formatted bold should still work');
+          expect(
+            _hasTextWithFormatting(resultDelta, textSubstring: 'italic', attributeKeys: ['italic']),
+            isTrue,
+            reason: 'Correctly formatted italic should still work',
+          );
+          expect(
+            _hasTextWithFormatting(resultDelta, textSubstring: 'bold', attributeKeys: ['bold']),
+            isTrue,
+            reason: 'Correctly formatted bold should still work',
+          );
         });
 
         test('handles same string repeated 3 times with normal, italic, bold pattern', () {
@@ -1174,42 +1333,23 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
 
           // Verify all formatting is preserved
-          var italicCount = 0;
-          var boldCount = 0;
-          var normalCount = 0;
-
-          for (final op in resultDelta.operations) {
-            if (op.key == 'insert' && op.data is String) {
-              final text = op.data! as String;
-              final attrs = op.attributes;
-
-              if (text == 'text' || text.contains('text')) {
-                final hasItalic = attrs?.containsKey('italic') ?? false;
-                final hasBold = attrs?.containsKey('bold') ?? false;
-
-                if (hasItalic && !hasBold) {
-                  italicCount++;
-                } else if (hasBold && !hasItalic) {
-                  boldCount++;
-                } else if (!hasItalic && !hasBold) {
-                  normalCount++;
-                }
-              }
-            }
-          }
+          final counts = _countFormattingInstances(
+            resultDelta,
+            textFilter: (text) => text == 'text' || text.contains('text'),
+          );
 
           expect(
-            italicCount,
+            counts['italic'],
             greaterThanOrEqualTo(3),
             reason: 'Should have at least 3 italic instances',
           );
           expect(
-            boldCount,
+            counts['bold'],
             greaterThanOrEqualTo(3),
             reason: 'Should have at least 3 bold instances',
           );
           expect(
-            normalCount,
+            counts['normal'],
             greaterThanOrEqualTo(3),
             reason: 'Should have at least 3 normal instances',
           );
@@ -1258,39 +1398,39 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           expect(resultText, contains('talll'), reason: 'Should contain "talll"');
 
           // Verify formatting is preserved
-          var hasItalic = false;
-          var hasBold = false;
-          var italicCount = 0;
-          var boldCount = 0;
-
-          for (final op in resultDelta.operations) {
-            if (op.key == 'insert' && op.data is String) {
-              final text = op.data! as String;
-              final attrs = op.attributes;
-              if (text.contains('italic') && (attrs?.containsKey('italic') ?? false)) {
-                hasItalic = true;
-                italicCount++;
-              }
-              if (text.contains('bold') && (attrs?.containsKey('bold') ?? false)) {
-                hasBold = true;
-                boldCount++;
-              }
-              if (text.contains('talll') && (attrs?.containsKey('italic') ?? false)) {
-                hasItalic = true;
-                italicCount++;
-              }
-            }
-          }
-
-          expect(hasItalic, isTrue, reason: 'Italic formatting should be preserved');
-          expect(hasBold, isTrue, reason: 'Bold formatting should be preserved');
           expect(
-            italicCount,
+            _hasTextWithFormatting(
+                  resultDelta,
+                  textSubstring: 'italic',
+                  attributeKeys: ['italic'],
+                ) ||
+                _hasTextWithFormatting(
+                  resultDelta,
+                  textSubstring: 'talll',
+                  attributeKeys: ['italic'],
+                ),
+            isTrue,
+            reason: 'Italic formatting should be preserved',
+          );
+          expect(
+            _hasTextWithFormatting(resultDelta, textSubstring: 'bold', attributeKeys: ['bold']),
+            isTrue,
+            reason: 'Bold formatting should be preserved',
+          );
+
+          // Count formatting instances
+          final counts = _countFormattingByTextPattern(
+            resultDelta,
+            ['italic', 'bold', 'talll'],
+            ['italic', 'bold'],
+          );
+          expect(
+            counts['italic'],
             greaterThanOrEqualTo(2),
             reason: 'Should have at least 2 italic instances (italic and talll)',
           );
           expect(
-            boldCount,
+            counts['bold'],
             greaterThanOrEqualTo(2),
             reason: 'Should have at least 2 bold instances',
           );
@@ -1315,7 +1455,6 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
       });
 
       test('round-trip with headers (for Posts/ModifiablePosts)', () async {
-        // 1. Create expected Delta
         final expectedDelta = Delta()
           ..insert('Header 1')
           ..insert('\n', {'header': 1})
@@ -1324,37 +1463,16 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           ..insert('Header 3')
           ..insert('\n', {'header': 3});
 
-        // 2. Call mapDeltaToPmo on expected
-        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+        final result = await _performRoundTripConversion(expectedDelta);
+        _assertDeltaTextEquals(expectedDelta, result.resultDelta);
 
-        // 3. Call mapMarkdownToDelta on result
-        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
-
-        // 4. Compare expected with new result
-        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
-        final resultText = Document.fromDelta(resultDelta).toPlainText();
-        expect(resultText.trim(), equals(expectedText.trim()));
-
-        // Verify headers are preserved
-        var header1Count = 0;
-        var header2Count = 0;
-        var header3Count = 0;
-        for (final op in resultDelta.operations) {
-          if (op.attributes?.containsKey('header') ?? false) {
-            final level = op.attributes!['header'] as int;
-            if (level == 1) header1Count++;
-            if (level == 2) header2Count++;
-            if (level == 3) header3Count++;
-          }
-        }
-        expect(header1Count, equals(1), reason: 'Should have one H1');
-        expect(header2Count, equals(1), reason: 'Should have one H2');
-        expect(header3Count, equals(1), reason: 'Should have one H3');
+        final headerCounts = _countHeadersByLevel(result.resultDelta);
+        expect(headerCounts[1], equals(1), reason: 'Should have one H1');
+        expect(headerCounts[2], equals(1), reason: 'Should have one H2');
+        expect(headerCounts[3], equals(1), reason: 'Should have one H3');
       });
 
       test('round-trip with lists (for Posts/ModifiablePosts)', () async {
-        // 1. Create expected Delta
         final expectedDelta = Delta()
           ..insert('Item 1')
           ..insert('\n', {'list': 'bullet'})
@@ -1367,34 +1485,15 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           ..insert('Second')
           ..insert('\n', {'list': 'ordered'});
 
-        // 2. Call mapDeltaToPmo on expected
-        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+        final result = await _performRoundTripConversion(expectedDelta);
+        _assertDeltaTextEquals(expectedDelta, result.resultDelta);
 
-        // 3. Call mapMarkdownToDelta on result
-        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
-
-        // 4. Compare expected with new result
-        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
-        final resultText = Document.fromDelta(resultDelta).toPlainText();
-        expect(resultText.trim(), equals(expectedText.trim()));
-
-        // Verify lists are preserved
-        var bulletListCount = 0;
-        var orderedListCount = 0;
-        for (final op in resultDelta.operations) {
-          if (op.attributes?.containsKey('list') ?? false) {
-            final listType = op.attributes!['list'] as String;
-            if (listType == 'bullet') bulletListCount++;
-            if (listType == 'ordered') orderedListCount++;
-          }
-        }
-        expect(bulletListCount, equals(3), reason: 'Should have 3 bullet list items');
-        expect(orderedListCount, equals(2), reason: 'Should have 2 ordered list items');
+        final listCounts = _countListItemsByType(result.resultDelta);
+        expect(listCounts['bullet'], equals(3), reason: 'Should have 3 bullet list items');
+        expect(listCounts['ordered'], equals(2), reason: 'Should have 2 ordered list items');
       });
 
       test('round-trip with code blocks (for Posts/ModifiablePosts)', () async {
-        // 1. Create expected Delta
         final expectedDelta = Delta()
           ..insert('Normal text\n')
           ..insert('code line 1')
@@ -1405,32 +1504,17 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           ..insert('\n', {'code-block': true})
           ..insert('Back to normal\n');
 
-        // 2. Call mapDeltaToPmo on expected
-        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+        final result = await _performRoundTripConversion(expectedDelta);
+        _assertDeltaTextEquals(expectedDelta, result.resultDelta);
 
-        // 3. Call mapMarkdownToDelta on result
-        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
-
-        // 4. Compare expected with new result
-        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
-        final resultText = Document.fromDelta(resultDelta).toPlainText();
-        expect(resultText.trim(), equals(expectedText.trim()));
-
-        // Verify code blocks are preserved
-        // Note: The markdown parser may add extra newlines, so we check that code blocks exist
-        var hasCodeBlock = false;
-        for (final op in resultDelta.operations) {
-          if (op.attributes?.containsKey('code-block') ?? false) {
-            hasCodeBlock = true;
-            break;
-          }
-        }
-        expect(hasCodeBlock, isTrue, reason: 'Should have code block lines');
+        expect(
+          _hasAttributeInDelta(result.resultDelta, attributeKeys: ['code-block']),
+          isTrue,
+          reason: 'Should have code block lines',
+        );
       });
 
       test('round-trip with links (for Posts/ModifiablePosts)', () async {
-        // 1. Create expected Delta
         final expectedDelta = Delta()
           ..insert('Visit ')
           ..insert('example.com', {'link': 'https://example.com'})
@@ -1438,121 +1522,71 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           ..insert('google.com', {'link': 'https://google.com'})
           ..insert('\n');
 
-        // 2. Call mapDeltaToPmo on expected
-        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+        final result = await _performRoundTripConversion(expectedDelta);
+        _assertDeltaTextEquals(expectedDelta, result.resultDelta);
 
-        // 3. Call mapMarkdownToDelta on result
-        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
-
-        // 4. Compare expected with new result
-        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
-        final resultText = Document.fromDelta(resultDelta).toPlainText();
-        expect(resultText.trim(), equals(expectedText.trim()));
-
-        // Verify links are preserved
-        var hasExampleLink = false;
-        var hasGoogleLink = false;
-        for (final op in resultDelta.operations) {
-          if (op.key == 'insert' && op.data is String) {
-            final text = op.data! as String;
-            final attrs = op.attributes;
-            if (text.contains('example.com') &&
-                (attrs?.containsKey('link') ?? false) &&
-                attrs!['link'] == 'https://example.com') {
-              hasExampleLink = true;
-            }
-            if (text.contains('google.com') &&
-                (attrs?.containsKey('link') ?? false) &&
-                attrs!['link'] == 'https://google.com') {
-              hasGoogleLink = true;
-            }
-          }
-        }
-        expect(hasExampleLink, isTrue, reason: 'Example link should be preserved');
-        expect(hasGoogleLink, isTrue, reason: 'Google link should be preserved');
+        expect(
+          _hasTextWithFormatting(
+            result.resultDelta,
+            textSubstring: 'example.com',
+            attributeValues: {'link': 'https://example.com'},
+          ),
+          isTrue,
+          reason: 'Example link should be preserved',
+        );
+        expect(
+          _hasTextWithFormatting(
+            result.resultDelta,
+            textSubstring: 'google.com',
+            attributeValues: {'link': 'https://google.com'},
+          ),
+          isTrue,
+          reason: 'Google link should be preserved',
+        );
       });
 
       test('round-trip with images', () async {
-        // 1. Create expected Delta
         final expectedDelta = Delta()
           ..insert('Text before\n')
           ..insert({'text-editor-single-image': 'https://example.com/image1.png'})
           ..insert('\n')
           ..insert('Text after\n');
 
-        // 2. Call mapDeltaToPmo on expected
-        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+        final result = await _performRoundTripConversion(expectedDelta);
+        _assertDeltaTextEquals(expectedDelta, result.resultDelta);
 
-        // 3. Call mapMarkdownToDelta on result
-        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
-
-        // 4. Compare expected with new result
-        // Normalize whitespace and image placeholders for comparison
-        String normalizeText(String text) {
-          return text
-              .replaceAll(RegExp(r'\n+'), '\n')
-              .replaceAll(RegExp(r'\s*\uFFFC\s*'), '\uFFFC')
-              .trim();
-        }
-
-        final expectedText = normalizeText(Document.fromDelta(expectedDelta).toPlainText());
-        final resultText = normalizeText(Document.fromDelta(resultDelta).toPlainText());
-        expect(resultText, equals(expectedText));
-
-        // Verify image is preserved
-        var hasImage = false;
-        for (final op in resultDelta.operations) {
-          if (op.key == 'insert' && op.data is Map) {
-            final data = op.data! as Map;
-            if (data.containsKey('text-editor-single-image')) {
-              final imageUrl = data['text-editor-single-image'] as String?;
-              if (imageUrl == 'https://example.com/image1.png') {
-                hasImage = true;
-              }
-            }
-          }
-        }
-        expect(hasImage, isTrue, reason: 'Image should be preserved');
+        expect(
+          _hasImageInDelta(
+            result.resultDelta,
+            imageUrl: 'https://example.com/image1.png',
+          ),
+          isTrue,
+          reason: 'Image should be preserved',
+        );
       });
 
       test('round-trip with underline formatting (for Posts/ModifiablePosts)', () async {
-        // 1. Create expected Delta
         final expectedDelta = Delta()
           ..insert('Hello ')
           ..insert('underlined', {'underline': true})
           ..insert(' world\n');
 
-        // 2. Call mapDeltaToPmo on expected
-        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
+        final result = await _performRoundTripConversion(expectedDelta);
+        _assertDeltaTextEquals(expectedDelta, result.resultDelta);
 
-        // 3. Call mapMarkdownToDelta on result
-        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
-
-        // 4. Compare expected with new result
-        final expectedText = Document.fromDelta(expectedDelta).toPlainText();
-        final resultText = Document.fromDelta(resultDelta).toPlainText();
-        expect(resultText.trim(), equals(expectedText.trim()));
-
-        // Verify underline is preserved
-        var hasUnderline = false;
-        for (final op in resultDelta.operations) {
-          if (op.key == 'insert' && op.data is String) {
-            final text = op.data! as String;
-            final attrs = op.attributes;
-            if (text.contains('underlined') && (attrs?.containsKey('underline') ?? false)) {
-              hasUnderline = true;
-            }
-          }
-        }
-        expect(hasUnderline, isTrue, reason: 'Underline formatting should be preserved');
+        expect(
+          _hasTextWithFormatting(
+            result.resultDelta,
+            textSubstring: 'underlined',
+            attributeKeys: ['underline'],
+          ),
+          isTrue,
+          reason: 'Underline formatting should be preserved',
+        );
       });
 
       test('round-trip with complex formatting (all features, for Posts/ModifiablePosts)',
           () async {
-        // 1. Create expected Delta with all features
         final expectedDelta = Delta()
           ..insert('Header')
           ..insert('\n', {'header': 1})
@@ -1580,29 +1614,10 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           ..insert({'text-editor-single-image': 'https://example.com/image.png'})
           ..insert('\n');
 
-        // 2. Call mapDeltaToPmo on expected
-        final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(expectedDelta.toJson());
-
-        // 3. Call mapMarkdownToDelta on result
-        final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
-
-        // 4. Compare expected with new result
-        // Note: Markdown conversion may add extra newlines and handle formatting differently,
-        // so we focus on verifying features are preserved rather than exact text matching
-        // Normalize whitespace and image placeholders for comparison
-        String normalizeText(String text) {
-          return text
-              .replaceAll(RegExp(r'\n{2,}'), '\n') // Normalize multiple newlines to single
-              .replaceAll(RegExp(r'\s*\uFFFC\s*'), '\uFFFC') // Normalize image placeholder spacing
-              .replaceAll(RegExp(r'[ \t]+'), ' ') // Normalize spaces
-              .replaceAll(RegExp('```'), '') // Remove code block fences for comparison
-              .trim();
-        }
-
-        final resultText = normalizeText(Document.fromDelta(resultDelta).toPlainText());
-
-        // Verify semantic content is preserved (allowing for markdown formatting differences)
+        final result = await _performRoundTripConversion(expectedDelta);
+        // Note: For complex formatting with multiple features, markdown parser may introduce
+        // formatting syntax in plain text, so we verify semantic content rather than exact text
+        final resultText = Document.fromDelta(result.resultDelta).toPlainText();
         expect(resultText.contains('Header'), isTrue);
         expect(resultText.contains('Paragraph'), isTrue);
         expect(resultText.contains('bold'), isTrue);
@@ -1614,47 +1629,36 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         expect(resultText.contains('Item 2'), isTrue);
 
         // Verify all features are preserved
-        var hasHeader = false;
-        var hasBold = false;
-        var hasItalic = false;
-        var hasUnderline = false;
-        var hasLink = false;
-        var hasCodeBlock = false;
-        var hasImage = false;
-
-        for (final op in resultDelta.operations) {
-          if (op.attributes?.containsKey('header') ?? false) {
-            hasHeader = true;
-          }
-          if (op.attributes?.containsKey('bold') ?? false) {
-            hasBold = true;
-          }
-          if (op.attributes?.containsKey('italic') ?? false) {
-            hasItalic = true;
-          }
-          if (op.attributes?.containsKey('underline') ?? false) {
-            hasUnderline = true;
-          }
-          if (op.attributes?.containsKey('link') ?? false) {
-            hasLink = true;
-          }
-          if (op.attributes?.containsKey('code-block') ?? false) {
-            hasCodeBlock = true;
-          }
-          if (op.key == 'insert' && op.data is Map) {
-            final data = op.data! as Map;
-            if (data.containsKey('text-editor-single-image')) {
-              hasImage = true;
-            }
-          }
-        }
-
-        expect(hasHeader, isTrue, reason: 'Header should be preserved');
-        expect(hasBold, isTrue, reason: 'Bold should be preserved');
-        expect(hasItalic, isTrue, reason: 'Italic should be preserved');
-        expect(hasUnderline, isTrue, reason: 'Underline should be preserved');
-        expect(hasLink, isTrue, reason: 'Link should be preserved');
-        expect(hasCodeBlock, isTrue, reason: 'Code block should be preserved');
+        expect(
+          _hasAttributeInDelta(result.resultDelta, attributeKeys: ['header']),
+          isTrue,
+          reason: 'Header should be preserved',
+        );
+        expect(
+          _hasAttributeInDelta(result.resultDelta, attributeKeys: ['bold']),
+          isTrue,
+          reason: 'Bold should be preserved',
+        );
+        expect(
+          _hasAttributeInDelta(result.resultDelta, attributeKeys: ['italic']),
+          isTrue,
+          reason: 'Italic should be preserved',
+        );
+        expect(
+          _hasAttributeInDelta(result.resultDelta, attributeKeys: ['underline']),
+          isTrue,
+          reason: 'Underline should be preserved',
+        );
+        expect(
+          _hasAttributeInDelta(result.resultDelta, attributeKeys: ['link']),
+          isTrue,
+          reason: 'Link should be preserved',
+        );
+        expect(
+          _hasAttributeInDelta(result.resultDelta, attributeKeys: ['code-block']),
+          isTrue,
+          reason: 'Code block should be preserved',
+        );
         // Note: Lists may be converted differently by markdown parser, so we check text content instead
         expect(
           resultText.contains('Item 1'),
@@ -1668,11 +1672,12 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         );
         // Note: Images may be converted differently by markdown parser when combined with other formatting
         // Check if image URL is present in the markdown or result text
-        final markdown = pmoResult.tags.map((t) => t.replacement).join(' ').toLowerCase();
+        final markdown =
+            result.pmoResult.tags.map<String>((t) => t.replacement).join(' ').toLowerCase();
         final hasImageInMarkdown = markdown.contains('example.com/image.png') ||
             markdown.contains('image.png') ||
             resultText.contains('image.png') ||
-            hasImage;
+            _hasImageInDelta(result.resultDelta);
         expect(
           hasImageInMarkdown,
           isTrue,
@@ -1695,14 +1700,10 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           ];
 
           // When: Reading the post (no richText tag)
-          final eventMessage = EventMessage(
-            id: 'test_id',
-            pubkey: signer.publicKey,
-            createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            kind: 1,
+          final eventMessage = _createPostEventMessage(
             content: plainText,
+            signer: signer,
             tags: pmoTags, // Only PMO tags, no richText
-            sig: 'test_sig',
           );
 
           final postData = PostData.fromEventMessage(eventMessage);
@@ -1712,8 +1713,11 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final delta = Delta.fromJson(jsonDecode(postData.richText!.content) as List);
 
           // Verify the Delta has the formatting
-          final hasBold = delta.operations.any((op) => op.attributes?.containsKey('bold') ?? false);
-          expect(hasBold, isTrue, reason: 'Delta should have bold formatting');
+          expect(
+            _hasAttributeInDelta(delta, attributeKeys: ['bold']),
+            isTrue,
+            reason: 'Delta should have bold formatting',
+          );
 
           // Verify plain text matches
           final plainTextFromDelta = Document.fromDelta(delta).toPlainText();
@@ -1746,9 +1750,11 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final delta = Delta.fromJson(jsonDecode(postData.richText!.content) as List);
 
           // Verify code block formatting exists
-          final hasCodeBlock =
-              delta.operations.any((op) => op.attributes?.containsKey('code-block') ?? false);
-          expect(hasCodeBlock, isTrue, reason: 'Delta should have code-block formatting');
+          expect(
+            _hasAttributeInDelta(delta, attributeKeys: ['code-block']),
+            isTrue,
+            reason: 'Delta should have code-block formatting',
+          );
         });
 
         test('should handle PMO tags with headers when no richText', () async {
@@ -1776,9 +1782,11 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final delta = Delta.fromJson(jsonDecode(postData.richText!.content) as List);
 
           // Verify header formatting exists
-          final hasHeader =
-              delta.operations.any((op) => op.attributes?.containsKey('header') ?? false);
-          expect(hasHeader, isTrue, reason: 'Delta should have header formatting');
+          expect(
+            _hasAttributeInDelta(delta, attributeKeys: ['header']),
+            isTrue,
+            reason: 'Delta should have header formatting',
+          );
         });
 
         test('should handle multiple PMO tags when no richText', () async {
@@ -1807,11 +1815,16 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           final delta = Delta.fromJson(jsonDecode(postData.richText!.content) as List);
 
           // Verify both formatting types exist
-          final hasBold = delta.operations.any((op) => op.attributes?.containsKey('bold') ?? false);
-          final hasItalic =
-              delta.operations.any((op) => op.attributes?.containsKey('italic') ?? false);
-          expect(hasBold, isTrue, reason: 'Delta should have bold formatting');
-          expect(hasItalic, isTrue, reason: 'Delta should have italic formatting');
+          expect(
+            _hasAttributeInDelta(delta, attributeKeys: ['bold']),
+            isTrue,
+            reason: 'Delta should have bold formatting',
+          );
+          expect(
+            _hasAttributeInDelta(delta, attributeKeys: ['italic']),
+            isTrue,
+            reason: 'Delta should have italic formatting',
+          );
         });
 
         test('should handle posts without PMO tags (legacy)', () async {
@@ -1844,10 +1857,7 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             ..insert('world', {'bold': true})
             ..insert('!\n');
 
-          final richText = RichText(
-            protocol: 'quill_delta',
-            content: jsonEncode(delta.toJson()),
-          );
+          final richText = _createRichTextFromDelta(delta);
 
           const plainText = 'Hello world!';
           final pmoTags = [
@@ -1855,17 +1865,13 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           ];
 
           // When: Reading the post (has richText tag)
-          final eventMessage = EventMessage(
-            id: 'test_id',
-            pubkey: signer.publicKey,
-            createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            kind: 1,
+          final eventMessage = _createPostEventMessage(
             content: plainText,
+            signer: signer,
             tags: [
               ...pmoTags,
               richText.toTag(), // richText exists
             ],
-            sig: 'test_sig',
           );
 
           final postData = PostData.fromEventMessage(eventMessage);
@@ -1888,14 +1894,9 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           // Content has markdown, no PMO tags, no richText
           const legacyContent = 'Hello **world**! Visit [example.com](https://example.com)';
 
-          final eventMessage = EventMessage(
-            id: 'test_id',
-            pubkey: signer.publicKey,
-            createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            kind: 1,
+          final eventMessage = _createPostEventMessage(
             content: legacyContent,
-            tags: const [],
-            sig: 'test_sig',
+            signer: signer,
           );
 
           final postData = PostData.fromEventMessage(eventMessage);
@@ -1912,24 +1913,15 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             ..insert('world', {'bold': true})
             ..insert('!\n');
 
-          final richText = RichText(
-            protocol: 'quill_delta',
-            content: jsonEncode(delta.toJson()),
-          );
+          final richText = _createRichTextFromDelta(delta);
 
           // Legacy content might be markdown
           const legacyMarkdownContent = 'Hello **world**!';
 
-          final eventMessage = EventMessage(
-            id: 'test_id',
-            pubkey: signer.publicKey,
-            createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            kind: 1,
+          final eventMessage = _createPostEventMessage(
             content: legacyMarkdownContent,
-            tags: [
-              richText.toTag(),
-            ],
-            sig: 'test_sig',
+            signer: signer,
+            tags: [richText.toTag()],
           );
 
           final postData = PostData.fromEventMessage(eventMessage);
@@ -1943,14 +1935,9 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           // Simple legacy post with just plain text
           const plainText = 'Just plain text content';
 
-          final eventMessage = EventMessage(
-            id: 'test_id',
-            pubkey: signer.publicKey,
-            createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            kind: 1,
+          final eventMessage = _createPostEventMessage(
             content: plainText,
-            tags: const [],
-            sig: 'test_sig',
+            signer: signer,
           );
 
           final postData = PostData.fromEventMessage(eventMessage);
@@ -1964,19 +1951,9 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         test('Legacy modifiable post with markdown in content', () async {
           const legacyContent = '# Title\n\n**Bold** text';
 
-          final eventMessage = EventMessage(
-            id: 'test_id',
-            pubkey: signer.publicKey,
-            createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            kind: 30175,
+          final eventMessage = _createModifiablePostEventMessage(
             content: legacyContent,
-            tags: [
-              ReplaceableEventIdentifier.generate().toTag(),
-              EntityPublishedAt(
-                value: DateTime.now().microsecondsSinceEpoch,
-              ).toTag(),
-            ],
-            sig: 'test_sig',
+            signer: signer,
           );
 
           final postData = ModifiablePostData.fromEventMessage(eventMessage);
@@ -1988,19 +1965,9 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         test('Legacy modifiable post with plain text', () async {
           const plainText = 'Simple text content';
 
-          final eventMessage = EventMessage(
-            id: 'test_id',
-            pubkey: signer.publicKey,
-            createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            kind: 30175,
+          final eventMessage = _createModifiablePostEventMessage(
             content: plainText,
-            tags: [
-              ReplaceableEventIdentifier.generate().toTag(),
-              EntityPublishedAt(
-                value: DateTime.now().microsecondsSinceEpoch,
-              ).toTag(),
-            ],
-            sig: 'test_sig',
+            signer: signer,
           );
 
           final postData = ModifiablePostData.fromEventMessage(eventMessage);
@@ -2014,19 +1981,9 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           // Legacy article might have plain text instead of markdown
           const plainText = 'This is plain text content, not markdown';
 
-          final eventMessage = EventMessage(
-            id: 'test_id',
-            pubkey: signer.publicKey,
-            createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            kind: 30023,
+          final eventMessage = _createArticleEventMessage(
             content: plainText,
-            tags: [
-              ReplaceableEventIdentifier.generate().toTag(),
-              EntityPublishedAt(
-                value: DateTime.now().microsecondsSinceEpoch,
-              ).toTag(),
-            ],
-            sig: 'test_sig',
+            signer: signer,
           );
 
           final articleData = ArticleData.fromEventMessage(eventMessage);
@@ -2041,27 +1998,14 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             ..insert('Article content')
             ..insert('\n', {'header': 1});
 
-          final richText = RichText(
-            protocol: 'quill_delta',
-            content: jsonEncode(delta.toJson()),
-          );
+          final richText = _createRichTextFromDelta(delta);
 
           const plainTextContent = 'Article content';
 
-          final eventMessage = EventMessage(
-            id: 'test_id',
-            pubkey: signer.publicKey,
-            createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            kind: 30023,
+          final eventMessage = _createArticleEventMessage(
             content: plainTextContent,
-            tags: [
-              ReplaceableEventIdentifier.generate().toTag(),
-              EntityPublishedAt(
-                value: DateTime.now().microsecondsSinceEpoch,
-              ).toTag(),
-              richText.toTag(),
-            ],
-            sig: 'test_sig',
+            signer: signer,
+            tags: [richText.toTag()],
           );
 
           final articleData = ArticleData.fromEventMessage(eventMessage);
@@ -2074,19 +2018,9 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           // Some legacy articles might already have markdown
           const markdownContent = '# Title\n\n**Bold** text';
 
-          final eventMessage = EventMessage(
-            id: 'test_id',
-            pubkey: signer.publicKey,
-            createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            kind: 30023,
+          final eventMessage = _createArticleEventMessage(
             content: markdownContent,
-            tags: [
-              ReplaceableEventIdentifier.generate().toTag(),
-              EntityPublishedAt(
-                value: DateTime.now().microsecondsSinceEpoch,
-              ).toTag(),
-            ],
-            sig: 'test_sig',
+            signer: signer,
           );
 
           final articleData = ArticleData.fromEventMessage(eventMessage);
@@ -2147,10 +2081,7 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             ..insert('Delta content')
             ..insert('\n');
 
-          final richText = RichText(
-            protocol: 'quill_delta',
-            content: jsonEncode(delta.toJson()),
-          );
+          final richText = _createRichTextFromDelta(delta);
 
           final postData = PostData(
             content: 'Legacy markdown **content**',
@@ -2682,22 +2613,18 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
       group('Round-trip edge cases', () {
         test('round-trip with empty Delta', () async {
           final delta = Delta();
-          final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
-          final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+          final result = await _performRoundTripConversion(delta);
 
-          expect(resultDelta, isNotNull);
-          final text = Document.fromDelta(resultDelta).toPlainText();
+          expect(result.resultDelta, isNotNull);
+          final text = Document.fromDelta(result.resultDelta).toPlainText();
           expect(text.trim(), isEmpty);
         });
 
         test('round-trip with only whitespace', () async {
           final delta = Delta()..insert('   \n');
-          final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
-          final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+          final result = await _performRoundTripConversion(delta);
 
-          expect(resultDelta, isNotNull);
+          expect(result.resultDelta, isNotNull);
         });
 
         test('round-trip with strikethrough', () async {
@@ -2705,12 +2632,10 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             ..insert('Hello ')
             ..insert('deleted', {'strike': true})
             ..insert(' world\n');
-          final pmoResult = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
-          final pmoTags = pmoResult.tags.map((t) => t.toTag()).toList();
-          final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(pmoResult.text, pmoTags);
+          final result = await _performRoundTripConversion(delta);
 
-          expect(resultDelta, isNotNull);
-          final text = Document.fromDelta(resultDelta).toPlainText();
+          expect(result.resultDelta, isNotNull);
+          final text = Document.fromDelta(result.resultDelta).toPlainText();
           expect(text.trim(), equals('Hello deleted world'));
         });
       });
