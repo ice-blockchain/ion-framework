@@ -12,6 +12,7 @@ class Header extends ConsumerWidget {
     required this.opacity,
     required this.showBackButton,
     this.textColor,
+    this.leadingPadding,
     super.key,
   });
 
@@ -19,12 +20,18 @@ class Header extends ConsumerWidget {
   final double opacity;
   final bool showBackButton;
   final Color? textColor;
+  final double? leadingPadding;
+
+  static const _defaultNoBackButtonSpacing = 16.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final effectiveLeadingPadding =
+        leadingPadding ?? (!showBackButton ? _defaultNoBackButtonSpacing : 0.0);
+
     return Row(
       children: [
-        if (!showBackButton) SizedBox(width: 16.0.s),
+        SizedBox(width: effectiveLeadingPadding.s),
         Expanded(
           child: UseListItem(
             pubkey: pubkey,
