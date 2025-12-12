@@ -713,3 +713,8 @@ class UnknownEventReferenceKind extends IONException {
   UnknownEventReferenceKind(dynamic eventReference)
       : super(10133, 'Unknown event reference kind: $eventReference');
 }
+
+class TokenInfoNotFoundException extends IONException {
+  TokenInfoNotFoundException(String externalAddress)
+      : super(10134, 'Token info not found for external address: $externalAddress');
+}
