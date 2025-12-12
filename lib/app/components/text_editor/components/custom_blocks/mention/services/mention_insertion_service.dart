@@ -2,8 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:ion/app/components/text_editor/attributes.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/models/mention_embed_data.f.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/text_editor_mention_embed_builder.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 
 // Service for inserting mention embeds into Quill documents.
 class MentionInsertionService {
@@ -35,5 +38,61 @@ class MentionInsertionService {
     );
 
     return newCursorPosition;
+  }
+
+  static String insertMentionAsText(
+    QuillController controller,
+    int tagStart,
+    int tagLength,
+    String pubkey,
+    String username,
+  ) {
+    final encodedRef = ReplaceableEventReference(
+      masterPubkey: pubkey,
+      kind: UserMetadataEntity.kind,
+    ).encode();
+
+    final mentionText = '$mentionPrefix$username';
+
+    controller
+      ..replaceText(tagStart, tagLength, mentionText, null)
+      ..formatText(
+        tagStart,
+        mentionText.length,
+        MentionAttribute.withValue(encodedRef),
+      )
+      ..replaceText(tagStart + mentionText.length, 0, ' ', null)
+      ..updateSelection(
+        TextSelection.collapsed(offset: tagStart + mentionText.length + 1),
+        ChangeSource.local,
+      );
+
+    return mentionText;
+  }
+
+  // Replaces the text mention (with mention attribute) with an embed widget.
+  // Validates document state and text match before replacing.
+  static void upgradeMentionToEmbed(
+    QuillController controller,
+    int start,
+    int mentionTextLength,
+    MentionEmbedData mentionData,
+    double marketCap,
+  ) {
+    final end = start + mentionTextLength;
+    if (start < 0 || end > controller.document.length) {
+      return;
+    }
+
+    // Verify text matches before replacing (prevents replacing wrong text if document was edited)
+    final documentText = controller.document.toPlainText();
+    final textAtPosition = documentText.substring(start, end);
+    if (textAtPosition != '$mentionPrefix${mentionData.username}') {
+      return;
+    }
+
+    controller
+      ..replaceText(start, mentionTextLength, '', null)
+      ..replaceText(start, 0, Embeddable(mentionEmbedKey, mentionData.toJson()), null);
   }
 }
