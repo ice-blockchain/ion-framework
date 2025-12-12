@@ -66,11 +66,52 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
   Future<void> _addDirectMessageToDatabase(EventMessage rumor) async {
     await conversationDao.add([rumor]);
     await conversationEventMessageDao.add(rumor);
+<<<<<<< HEAD
     await _addMediaToDatabase(rumor);
+=======
+    unawaited(_addMediaToDatabase(rumor));
+  }
+
+  Future<void> _clearRemovedMedia({
+    required EventReference eventReference,
+    required Set<String> currentMediaUrls,
+  }) async {
+    // Get existing media records from database
+    final existingMediaRecords = await (messageMediaDao.select(messageMediaDao.messageMediaTable)
+          ..where((t) => t.messageEventReference.equalsValue(eventReference)))
+        .get();
+
+    // Find media that exists in DB but not in the current message (removed media)
+    final removedMediaRecords = existingMediaRecords.where((record) {
+      final remoteUrl = record.remoteUrl;
+      return remoteUrl != null && remoteUrl.isNotEmpty && !currentMediaUrls.contains(remoteUrl);
+    }).toList();
+
+    if (removedMediaRecords.isEmpty) {
+      return;
+    }
+
+    // Remove cached files for removed media
+    for (final mediaRecord in removedMediaRecords) {
+      if (mediaRecord.remoteUrl?.isNotEmpty ?? false) {
+        unawaited(fileCacheService.removeFile(mediaRecord.remoteUrl!));
+      }
+    }
+
+    // Batch delete removed media records
+    final removedMediaIds = removedMediaRecords.map((r) => r.id).toList();
+    await messageMediaDao.batch((b) {
+      b.deleteWhere(
+        messageMediaDao.messageMediaTable,
+        (t) => t.id.isIn(removedMediaIds),
+      );
+    });
+>>>>>>> e65ad3de0 (fix: update clearing old media on receive message logic (#2756))
   }
 
   Future<void> _addMediaToDatabase(EventMessage rumor) async {
     final entity = ReplaceablePrivateDirectMessageEntity.fromEventMessage(rumor);
+<<<<<<< HEAD
     if (entity.data.media.isNotEmpty) {
       for (final media in entity.data.media.values) {
         await mediaEncryptionService.getEncryptedMedia(
@@ -88,7 +129,49 @@ class EncryptedDirectMessageHandler extends GlobalSubscriptionEncryptedEventMess
           status: MessageMediaStatus.completed,
           remoteUrl: media.url,
         );
+=======
+    final eventReference = entity.toEventReference();
+
+    // Collect current media URLs (excluding thumbnails)
+    final currentMediaUrls = <String>{};
+    for (final media in entity.data.media.values) {
+      final isThumb =
+          entity.data.media.values.any((m) => m.url != media.url && m.thumb == media.url);
+      if (!isThumb && media.url.isNotEmpty) {
+        currentMediaUrls.add(media.url);
+>>>>>>> e65ad3de0 (fix: update clearing old media on receive message logic (#2756))
       }
+    }
+
+    // Clear only media that was removed (not in current message)
+    await _clearRemovedMedia(
+      eventReference: eventReference,
+      currentMediaUrls: currentMediaUrls,
+    );
+
+    // Add/update media that is in the message
+    for (final media in entity.data.media.values) {
+      unawaited(
+        mediaEncryptionService
+            .getEncryptedMedia(
+          media,
+          authorPubkey: rumor.masterPubkey,
+        )
+            .then((_) async {
+          final isThumb =
+              entity.data.media.values.any((m) => m.url != media.url && m.thumb == media.url);
+
+          if (isThumb) {
+            return;
+          }
+
+          await messageMediaDao.add(
+            remoteUrl: media.url,
+            status: MessageMediaStatus.completed,
+            eventReference: eventReference,
+          );
+        }),
+      );
     }
   }
 }
