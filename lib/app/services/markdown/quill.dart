@@ -364,7 +364,6 @@ Delta restoreMentions(Delta delta, Map<String, String> usernameToPubkey) {
 
     for (final segment in segments) {
       if (segment.matcher is MentionMatcher) {
-        // This is a mention
         final mentionText = segment.text;
         // Remove @ prefix to get username
         final username = mentionText.startsWith('@') ? mentionText.substring(1) : mentionText;
