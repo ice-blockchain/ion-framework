@@ -554,14 +554,17 @@ class _SwapButton extends ConsumerWidget {
     );
 
     if (context.mounted) {
-      _pop(context);
+      await _pop(context);
     }
   }
 
-  void _pop(BuildContext context) {
-    Navigator.of(context).popUntil(
-      (route) => route.isFirst,
-    );
+  Future<void> _pop(BuildContext context) async {
+    context.maybePop();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    if (context.mounted) {
+      context.maybePop();
+    }
   }
 
   Future<void> _showErrorMessage(
