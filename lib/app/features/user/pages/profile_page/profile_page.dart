@@ -86,7 +86,7 @@ class ProfilePage extends HookConsumerWidget {
 
     final isTokenizedProfile = profileMode == ProfileMode.dark && eventReferenceString != null;
     final tokenInfo =
-        isTokenizedProfile ? ref.watch(tokenMarketInfoProvider(eventReferenceString!)) : null;
+        isTokenizedProfile ? ref.watch(tokenMarketInfoProvider(eventReferenceString)) : null;
     final hasToken = tokenInfo?.valueOrNull != null;
 
     final showTokenButton = isCurrentUserProfile && isTokenizedProfile && hasToken;
