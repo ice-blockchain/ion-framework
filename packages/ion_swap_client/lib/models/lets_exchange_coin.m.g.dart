@@ -6,7 +6,8 @@ part of 'lets_exchange_coin.m.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$LetsExchangeCoinImpl _$$LetsExchangeCoinImplFromJson(Map<String, dynamic> json) =>
+_$LetsExchangeCoinImpl _$$LetsExchangeCoinImplFromJson(
+        Map<String, dynamic> json) =>
     _$LetsExchangeCoinImpl(
       code: json['code'] as String,
       name: json['name'] as String,
@@ -16,7 +17,8 @@ _$LetsExchangeCoinImpl _$$LetsExchangeCoinImplFromJson(Map<String, dynamic> json
           .toList(),
     );
 
-Map<String, dynamic> _$$LetsExchangeCoinImplToJson(_$LetsExchangeCoinImpl instance) =>
+Map<String, dynamic> _$$LetsExchangeCoinImplToJson(
+        _$LetsExchangeCoinImpl instance) =>
     <String, dynamic>{
       'code': instance.code,
       'name': instance.name,

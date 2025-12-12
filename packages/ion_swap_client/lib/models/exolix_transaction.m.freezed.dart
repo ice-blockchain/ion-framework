@@ -31,7 +31,8 @@ mixin _$ExolixTransaction {
   /// Create a copy of ExolixTransaction
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ExolixTransactionCopyWith<ExolixTransaction> get copyWith => throw _privateConstructorUsedError;
+  $ExolixTransactionCopyWith<ExolixTransaction> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -40,7 +41,8 @@ abstract class $ExolixTransactionCopyWith<$Res> {
           ExolixTransaction value, $Res Function(ExolixTransaction) then) =
       _$ExolixTransactionCopyWithImpl<$Res, ExolixTransaction>;
   @useResult
-  $Res call({String id, num amount, TransactionStatus status, String depositAddress});
+  $Res call(
+      {String id, num amount, TransactionStatus status, String depositAddress});
 }
 
 /// @nodoc
@@ -85,21 +87,23 @@ class _$ExolixTransactionCopyWithImpl<$Res, $Val extends ExolixTransaction>
 }
 
 /// @nodoc
-abstract class _$$ExolixTransactionImplCopyWith<$Res> implements $ExolixTransactionCopyWith<$Res> {
-  factory _$$ExolixTransactionImplCopyWith(
-          _$ExolixTransactionImpl value, $Res Function(_$ExolixTransactionImpl) then) =
+abstract class _$$ExolixTransactionImplCopyWith<$Res>
+    implements $ExolixTransactionCopyWith<$Res> {
+  factory _$$ExolixTransactionImplCopyWith(_$ExolixTransactionImpl value,
+          $Res Function(_$ExolixTransactionImpl) then) =
       __$$ExolixTransactionImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String id, num amount, TransactionStatus status, String depositAddress});
+  $Res call(
+      {String id, num amount, TransactionStatus status, String depositAddress});
 }
 
 /// @nodoc
 class __$$ExolixTransactionImplCopyWithImpl<$Res>
     extends _$ExolixTransactionCopyWithImpl<$Res, _$ExolixTransactionImpl>
     implements _$$ExolixTransactionImplCopyWith<$Res> {
-  __$$ExolixTransactionImplCopyWithImpl(
-      _$ExolixTransactionImpl _value, $Res Function(_$ExolixTransactionImpl) _then)
+  __$$ExolixTransactionImplCopyWithImpl(_$ExolixTransactionImpl _value,
+      $Res Function(_$ExolixTransactionImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of ExolixTransaction
@@ -137,7 +141,10 @@ class __$$ExolixTransactionImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ExolixTransactionImpl implements _ExolixTransaction {
   _$ExolixTransactionImpl(
-      {required this.id, required this.amount, required this.status, required this.depositAddress});
+      {required this.id,
+      required this.amount,
+      required this.status,
+      required this.depositAddress});
 
   factory _$ExolixTransactionImpl.fromJson(Map<String, dynamic> json) =>
       _$$ExolixTransactionImplFromJson(json);
@@ -170,7 +177,8 @@ class _$ExolixTransactionImpl implements _ExolixTransaction {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, amount, status, depositAddress);
+  int get hashCode =>
+      Object.hash(runtimeType, id, amount, status, depositAddress);
 
   /// Create a copy of ExolixTransaction
   /// with the given fields replaced by the non-null parameter values.
@@ -178,7 +186,8 @@ class _$ExolixTransactionImpl implements _ExolixTransaction {
   @override
   @pragma('vm:prefer-inline')
   _$$ExolixTransactionImplCopyWith<_$ExolixTransactionImpl> get copyWith =>
-      __$$ExolixTransactionImplCopyWithImpl<_$ExolixTransactionImpl>(this, _$identity);
+      __$$ExolixTransactionImplCopyWithImpl<_$ExolixTransactionImpl>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -195,7 +204,8 @@ abstract class _ExolixTransaction implements ExolixTransaction {
       required final TransactionStatus status,
       required final String depositAddress}) = _$ExolixTransactionImpl;
 
-  factory _ExolixTransaction.fromJson(Map<String, dynamic> json) = _$ExolixTransactionImpl.fromJson;
+  factory _ExolixTransaction.fromJson(Map<String, dynamic> json) =
+      _$ExolixTransactionImpl.fromJson;
 
   @override
   String get id;

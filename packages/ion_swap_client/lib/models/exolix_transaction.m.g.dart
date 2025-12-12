@@ -6,7 +6,8 @@ part of 'exolix_transaction.m.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ExolixTransactionImpl _$$ExolixTransactionImplFromJson(Map<String, dynamic> json) =>
+_$ExolixTransactionImpl _$$ExolixTransactionImplFromJson(
+        Map<String, dynamic> json) =>
     _$ExolixTransactionImpl(
       id: json['id'] as String,
       amount: json['amount'] as num,
@@ -14,7 +15,8 @@ _$ExolixTransactionImpl _$$ExolixTransactionImplFromJson(Map<String, dynamic> js
       depositAddress: json['depositAddress'] as String,
     );
 
-Map<String, dynamic> _$$ExolixTransactionImplToJson(_$ExolixTransactionImpl instance) =>
+Map<String, dynamic> _$$ExolixTransactionImplToJson(
+        _$ExolixTransactionImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'amount': instance.amount,

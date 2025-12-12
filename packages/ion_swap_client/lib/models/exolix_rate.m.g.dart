@@ -6,7 +6,8 @@ part of 'exolix_rate.m.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ExolixRateImpl _$$ExolixRateImplFromJson(Map<String, dynamic> json) => _$ExolixRateImpl(
+_$ExolixRateImpl _$$ExolixRateImplFromJson(Map<String, dynamic> json) =>
+    _$ExolixRateImpl(
       fromAmount: json['fromAmount'] as num,
       toAmount: json['toAmount'] as num,
       rate: json['rate'] as num,
@@ -16,7 +17,8 @@ _$ExolixRateImpl _$$ExolixRateImplFromJson(Map<String, dynamic> json) => _$Exoli
       maxAmount: json['maxAmount'] as num,
     );
 
-Map<String, dynamic> _$$ExolixRateImplToJson(_$ExolixRateImpl instance) => <String, dynamic>{
+Map<String, dynamic> _$$ExolixRateImplToJson(_$ExolixRateImpl instance) =>
+    <String, dynamic>{
       'fromAmount': instance.fromAmount,
       'toAmount': instance.toAmount,
       'rate': instance.rate,

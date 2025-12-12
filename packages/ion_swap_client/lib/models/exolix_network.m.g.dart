@@ -6,7 +6,8 @@ part of 'exolix_network.m.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ExolixNetworkImpl _$$ExolixNetworkImplFromJson(Map<String, dynamic> json) => _$ExolixNetworkImpl(
+_$ExolixNetworkImpl _$$ExolixNetworkImplFromJson(Map<String, dynamic> json) =>
+    _$ExolixNetworkImpl(
       network: json['network'] as String,
       name: json['name'] as String,
       shortName: json['shortName'] as String,
@@ -14,7 +15,8 @@ _$ExolixNetworkImpl _$$ExolixNetworkImplFromJson(Map<String, dynamic> json) => _
       contract: json['contract'] as String?,
     );
 
-Map<String, dynamic> _$$ExolixNetworkImplToJson(_$ExolixNetworkImpl instance) => <String, dynamic>{
+Map<String, dynamic> _$$ExolixNetworkImplToJson(_$ExolixNetworkImpl instance) =>
+    <String, dynamic>{
       'network': instance.network,
       'name': instance.name,
       'shortName': instance.shortName,

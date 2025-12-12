@@ -6,7 +6,8 @@ part of 'approve_transaction_data.m.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ApproveTransactionDataImpl _$$ApproveTransactionDataImplFromJson(Map<String, dynamic> json) =>
+_$ApproveTransactionDataImpl _$$ApproveTransactionDataImplFromJson(
+        Map<String, dynamic> json) =>
     _$ApproveTransactionDataImpl(
       data: json['data'] as String,
       dexContractAddress: json['dexContractAddress'] as String,
@@ -14,7 +15,8 @@ _$ApproveTransactionDataImpl _$$ApproveTransactionDataImplFromJson(Map<String, d
       gasPrice: json['gasPrice'] as String,
     );
 
-Map<String, dynamic> _$$ApproveTransactionDataImplToJson(_$ApproveTransactionDataImpl instance) =>
+Map<String, dynamic> _$$ApproveTransactionDataImplToJson(
+        _$ApproveTransactionDataImpl instance) =>
     <String, dynamic>{
       'data': instance.data,
       'dexContractAddress': instance.dexContractAddress,
