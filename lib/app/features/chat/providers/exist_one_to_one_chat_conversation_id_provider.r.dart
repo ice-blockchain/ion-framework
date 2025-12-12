@@ -2,7 +2,7 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
-import 'package:ion/app/features/chat/model/participiant_keys.f.dart';
+import 'package:ion/app/features/chat/model/participants_keys.f.dart';
 import 'package:ion/app/services/uuid/generate_conversation_id.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -15,7 +15,7 @@ Future<String> existOneToOneChatConversationId(Ref ref, ParticipantKeys particip
   if (conversationId == null) {
     return generateConversationId(
       conversationType: ConversationType.oneToOne,
-      receiverMasterPubkeys: participantKeys.keys,
+      participantsMasterPubkeys: participantKeys.keys,
     );
   }
   return conversationId;

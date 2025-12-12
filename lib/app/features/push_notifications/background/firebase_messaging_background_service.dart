@@ -13,7 +13,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
-import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
@@ -242,7 +241,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
 
   // Skip notifications from muted users or muted conversations
-  if (_shouldSkipMutedNotification(
+  if (await _shouldSkipMutedNotification(
     data: data,
     currentPubkey: currentUserPubkeyFromStorage,
     backgroundContainer: backgroundContainer,
@@ -352,11 +351,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 /// Check if notification should be skipped because user/conversation is muted
-bool _shouldSkipMutedNotification({
+FutureOr<bool> _shouldSkipMutedNotification({
   required IonConnectPushDataPayload data,
   required String? currentPubkey,
   required ProviderContainer backgroundContainer,
-}) {
+}) async {
   // Check if this is a gift wrap (chat) notification
   if (data.event.kind != IonConnectGiftWrapEntity.kind) {
     return false;
@@ -384,18 +383,10 @@ bool _shouldSkipMutedNotification({
 
   try {
     // Check if sender is muted
-    final mutedUsers = mutedCheckContainer.read(cachedMutedUsersProvider)?.data.masterPubkeys ?? [];
+    // For one-to-one chats it is enough to check if sender is muted
+    final mutedUsers = await mutedCheckContainer.read(mutedUsersProvider.future);
     if (mutedUsers.contains(senderPubkey)) {
       return true;
-    }
-
-    // Check if conversation is muted
-    final mutedConversations = mutedCheckContainer.read(mutedConversationsProvider).valueOrNull;
-    if (mutedConversations != null) {
-      final mutedPubkeys = mutedConversations.data.masterPubkeys;
-      if (mutedPubkeys.contains(senderPubkey)) {
-        return true;
-      }
     }
 
     return false;

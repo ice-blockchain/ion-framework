@@ -6,43 +6,49 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/mute_set.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/user_mute/model/database/user_mute_database.m.dart';
+import 'package:ion/app/features/user_mute/model/entities/user_mute_entity.f.dart';
+import 'package:ion/app/features/user_mute/providers/user_mute_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'muted_users_notifier.r.g.dart';
 
 @riverpod
-class MutedUsers extends _$MutedUsers {
-  @override
-  FutureOr<void> build() async {}
+Future<MuteUserService> muteUserService(Ref ref) async {
+  keepAliveWhenAuthenticated(ref);
+  return MuteUserService(
+    userMuteService: await ref.watch(userMuteServiceProvider.future),
+    currentUserMasterPubkey: ref.watch(currentPubkeySelectorProvider),
+    mutedUsersMasterPubkeys: await ref.watch(mutedUsersProvider.future),
+  );
+}
 
-  Future<void> toggleMutedMasterPubkey(String masterPubkey) async {
-    state = const AsyncValue.loading();
+class MuteUserService {
+  MuteUserService({
+    required this.userMuteService,
+    required this.currentUserMasterPubkey,
+    required this.mutedUsersMasterPubkeys,
+  });
 
-    state = await AsyncValue.guard(() async {
-      final existingMutedMasterPubkeys =
-          ref.read(cachedMutedUsersProvider)?.data.masterPubkeys ?? [];
+  final UserMuteService userMuteService;
+  final String? currentUserMasterPubkey;
+  final List<String> mutedUsersMasterPubkeys;
 
-      final newMutedMasterPubkeys = existingMutedMasterPubkeys.contains(masterPubkey)
-          ? existingMutedMasterPubkeys.where((p) => p != masterPubkey).toList()
-          : [...existingMutedMasterPubkeys, masterPubkey];
+  Future<void> toggleMutedUser(String masterPubkey) async {
+    final mutedUsersList = List<String>.from(mutedUsersMasterPubkeys);
 
-      final MuteSetData muteSetData;
+    if (mutedUsersList.contains(masterPubkey)) {
+      mutedUsersList.remove(masterPubkey);
+    } else {
+      mutedUsersList.add(masterPubkey);
+    }
 
-      muteSetData = MuteSetData(
-        type: MuteSetType.notInterested,
-        masterPubkeys: newMutedMasterPubkeys,
-      );
-
-      await ref.read(ionConnectNotifierProvider.notifier).sendEntityData<MuteSetEntity>(
-            muteSetData,
-          );
-    });
+    await userMuteService.sendUserMuteEvent(mutedUsersList);
   }
 }
 
 @riverpod
-MuteSetEntity? cachedMutedUsers(Ref ref) {
+MuteSetEntity? cachedMuteSet(Ref ref) {
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
 
   if (currentUserMasterPubkey == null) {
@@ -52,8 +58,8 @@ MuteSetEntity? cachedMutedUsers(Ref ref) {
   return ref.watch(
     ionConnectSyncEntityProvider(
       eventReference: ReplaceableEventReference(
-        masterPubkey: currentUserMasterPubkey,
         kind: MuteSetEntity.kind,
+        masterPubkey: currentUserMasterPubkey,
         dTag: MuteSetType.notInterested.dTagName,
       ),
     ),
@@ -61,10 +67,24 @@ MuteSetEntity? cachedMutedUsers(Ref ref) {
 }
 
 @riverpod
-bool isUserMuted(Ref ref, String pubkey) {
-  return ref.watch(
-    cachedMutedUsersProvider.select(
-      (mutedUsers) => mutedUsers?.data.masterPubkeys.contains(pubkey) ?? false,
-    ),
-  );
+Stream<List<String>> mutedUsers(Ref ref) {
+  keepAliveWhenAuthenticated(ref);
+
+  final mutedUsersEvent = ref.watch(userMuteEventDaoProvider).watchLatestMuteEvent();
+
+  return mutedUsersEvent.map((event) {
+    if (event == null) {
+      return <String>[];
+    }
+
+    final entity = UserMuteEntity.fromEventMessage(event);
+    return entity.data.mutedMasterPubkeys;
+  });
+}
+
+@riverpod
+bool isUserMuted(Ref ref, String masterPubkey) {
+  final mutedPubkeys = ref.watch(mutedUsersProvider).valueOrNull ?? [];
+
+  return mutedPubkeys.contains(masterPubkey);
 }

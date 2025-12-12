@@ -12,7 +12,7 @@ import 'package:ion/app/features/chat/community/models/entities/tags/master_pubk
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
-import 'package:ion/app/features/chat/model/participiant_keys.f.dart';
+import 'package:ion/app/features/chat/model/participants_keys.f.dart';
 import 'package:ion/app/features/chat/providers/conversation_pubkeys_provider.r.dart';
 import 'package:ion/app/features/chat/providers/exist_one_to_one_chat_conversation_id_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';

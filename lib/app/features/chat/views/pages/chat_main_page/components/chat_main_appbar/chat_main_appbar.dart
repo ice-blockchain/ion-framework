@@ -20,9 +20,9 @@ class ChatMainAppBar extends ConsumerWidget implements PreferredSizeWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final editMode = ref.watch(conversationsEditModeProvider);
     final hasConversations = ref
-            .watch(conversationsProvider)
+            .watch(notArchivedConversationsProvider)
             .valueOrNull
-            ?.where((c) => !c.isArchived && c.latestMessage != null)
+            ?.where((c) => c.latestMessage != null)
             .toList()
             .isNotEmpty ??
         false;

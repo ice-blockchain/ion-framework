@@ -27,7 +27,7 @@ class MessagingContextMenu extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMuted =
-        ref.watch(mutedConversationIdsProvider).valueOrNull?.contains(conversationId) ?? false;
+        ref.watch(mutedConversationsProvider).valueOrNull?.contains(conversationId) ?? false;
 
     ref.displayErrors(reportNotifierProvider);
 

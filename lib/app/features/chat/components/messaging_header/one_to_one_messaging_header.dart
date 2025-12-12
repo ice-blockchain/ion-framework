@@ -128,10 +128,11 @@ class OneToOneMessagingHeader extends ConsumerWidget {
           ),
           OneToOneMessagingContextMenu(
             isBlocked: isBlocked,
-            onToggleMute: () {
-              ref
-                  .read(mutedConversationsProvider.notifier)
-                  .toggleMutedMasterPubkey(receiverMasterPubkey);
+            onToggleMute: () async {
+              final mutedConversationService =
+                  await ref.read(muteConversationServiceProvider.future);
+
+              await mutedConversationService.toggleMutedConversation(receiverMasterPubkey);
             },
             conversationId: conversationId,
             receiverMasterPubkey: receiverMasterPubkey,
