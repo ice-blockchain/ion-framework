@@ -22,9 +22,6 @@ class FeedConfig with _$FeedConfig implements AppConfigWithVersion {
     @DurationMillisecondsConverter() required Duration topMaxAge,
     @DurationMillisecondsConverter() required Duration trendingMaxAge,
     @DurationMillisecondsConverter() required Duration exploreMaxAge,
-    @DurationMillisecondsConverter()
-    @Default(Duration(days: 5))
-    Duration tokenizedCommunitiesMaxAge,
     @DurationMillisecondsConverter() required Duration repostThrottleDelay,
     required bool excludeUnclassifiedFromExplore,
     required double forYouMaxRetriesMultiplier,
@@ -35,6 +32,9 @@ class FeedConfig with _$FeedConfig implements AppConfigWithVersion {
     @Default(true) bool allowNewRegistrations,
     @Default(false) bool enableEarlyAccessRegistrations,
     @Default(true) bool forceSecurityEnabled,
+    @DurationMillisecondsConverter()
+    @Default(Duration(days: 5))
+    Duration tokenizedCommunitiesMaxAge,
   }) = _FeedConfig;
 
   const FeedConfig._();
