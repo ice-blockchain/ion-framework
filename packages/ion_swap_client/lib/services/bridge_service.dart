@@ -51,10 +51,10 @@ class BridgeService {
 
     final chains = await _relayApiRepository.getChains();
     final sellChain = chains.firstWhereOrNull(
-      (chain) => chain.name.toLowerCase() == swapCoinData.sellNetworkId.toLowerCase(),
+      (chain) => chain.name.toLowerCase() == swapCoinData.sellCoin.network.id.toLowerCase(),
     );
     final buyChain = chains.firstWhereOrNull(
-      (chain) => chain.name.toLowerCase() == swapCoinData.buyNetworkId.toLowerCase(),
+      (chain) => chain.name.toLowerCase() == swapCoinData.buyCoin.network.id.toLowerCase(),
     );
 
     if (sellChain == null || buyChain == null) {
@@ -70,8 +70,8 @@ class BridgeService {
         amount: swapAmount,
         user: sellAddress,
         recipient: buyAddress,
-        originCurrency: _getTokenAddress(swapCoinData.sellCoinContractAddress),
-        destinationCurrency: _getTokenAddress(swapCoinData.buyCoinContractAddress),
+        originCurrency: _getTokenAddress(swapCoinData.sellCoin.contractAddress),
+        destinationCurrency: _getTokenAddress(swapCoinData.buyCoin.contractAddress),
         originChainId: sellChain.id,
         destinationChainId: buyChain.id,
       );
