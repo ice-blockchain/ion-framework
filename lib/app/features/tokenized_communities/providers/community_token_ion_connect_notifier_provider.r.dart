@@ -5,11 +5,14 @@ import 'dart:math';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -169,6 +172,44 @@ class CommunityTokenIonConnectService {
     if (tokenInfo == null) {
       throw TokenInfoNotFoundException(externalAddress);
     }
+
+    final creatorIonConnectAddress = tokenInfo.creator.addresses?.ionConnect;
+
+    if (creatorIonConnectAddress == null) {
+      throw TokenCreatorIonAddressNotFoundException(externalAddress);
+    }
+
+    final creatorEventReference = ReplaceableEventReference.fromString(creatorIonConnectAddress);
+
+    final tags = switch (tokenInfo.addresses) {
+      Addresses(ionConnect: final String ionConnectAddress) => {
+          '#a': [ionConnectAddress],
+          '!#t': [communityTokenActionTopic],
+        },
+      Addresses(twitter: final String twitterAddress) => {
+          '#h': [twitterAddress],
+        },
+      _ => throw TokenAddressNotFoundException(externalAddress),
+    };
+
+    final communityTokenDefinition =
+        await _ionConnectNotifier.requestEntity<CommunityTokenDefinitionEntity>(
+      RequestMessage()
+        ..addFilter(
+          RequestFilter(
+            kinds: const [CommunityTokenDefinitionEntity.kind],
+            authors: [creatorEventReference.masterPubkey],
+            tags: tags,
+          ),
+        ),
+      actionSource: ActionSource.user(creatorEventReference.masterPubkey),
+    );
+
+    if (communityTokenDefinition == null) {
+      throw TokenDefinitionNotFoundException(externalAddress);
+    }
+
+    return communityTokenDefinition;
   }
 
   //TODO: pass all required data
