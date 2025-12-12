@@ -22,6 +22,7 @@ class FeedConfig with _$FeedConfig implements AppConfigWithVersion {
     @DurationMillisecondsConverter() required Duration topMaxAge,
     @DurationMillisecondsConverter() required Duration trendingMaxAge,
     @DurationMillisecondsConverter() required Duration exploreMaxAge,
+    @DurationMillisecondsConverter() required Duration tokenizedCommunitiesMaxAge,
     @DurationMillisecondsConverter() required Duration repostThrottleDelay,
     required bool excludeUnclassifiedFromExplore,
     required double forYouMaxRetriesMultiplier,
@@ -29,9 +30,6 @@ class FeedConfig with _$FeedConfig implements AppConfigWithVersion {
     required double nsfwBlockThreshold,
     required double langDetectScoreThreshold,
     required String cdnBaseUrl,
-    @DurationMillisecondsConverter()
-    @Default(Duration(days: 5))
-    Duration tokenizedCommunitiesMaxAge,
     @Default(true) bool allowNewRegistrations,
     @Default(false) bool enableEarlyAccessRegistrations,
     @Default(true) bool forceSecurityEnabled,
