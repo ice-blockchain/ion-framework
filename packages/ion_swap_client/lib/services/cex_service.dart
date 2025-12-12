@@ -182,7 +182,7 @@ class CexService {
       withdrawalAddress: withdrawalAddress,
       affiliateId: _config.letsExchangeAffiliateId,
       rateId: letsExchangeInfo.rateId,
-      withdrawalExtraId: swapCoinData.buyExtraId,
+      withdrawalExtraId: swapCoinData.buyCoin.extraId,
     );
 
     await sendCoinCallback(
@@ -235,7 +235,8 @@ class CexService {
       networkTo: buyNetwork.network,
       amount: swapCoinData.amount,
       withdrawalAddress: withdrawalAddress,
-      withdrawalExtraId: swapCoinData.buyExtraId.isNotEmpty ? swapCoinData.buyExtraId : null,
+      withdrawalExtraId:
+          swapCoinData.buyCoin.extraId.isNotEmpty ? swapCoinData.buyCoin.extraId : null,
     );
 
     await sendCoinCallback(
@@ -270,27 +271,27 @@ class CexService {
     required SwapCoinParameters swapCoinData,
   }) async {
     final sellCoins = await _exolixRepository.getCoins(
-      coinCode: swapCoinData.sellCoinCode,
+      coinCode: swapCoinData.sellCoin.code,
     );
 
     final buyCoins = await _exolixRepository.getCoins(
-      coinCode: swapCoinData.buyCoinCode,
+      coinCode: swapCoinData.buyCoin.code,
     );
 
     final sellCoin = sellCoins
-        .firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.sellCoinCode.toLowerCase());
+        .firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.sellCoin.code.toLowerCase());
     final buyCoin = buyCoins
-        .firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.buyCoinCode.toLowerCase());
+        .firstWhereOrNull((e) => e.code.toLowerCase() == swapCoinData.buyCoin.code.toLowerCase());
 
     if (sellCoin == null || buyCoin == null) {
       throw const IonSwapException('Exolix: Coins pair not found');
     }
 
     final sellNetwork = sellCoin.networks.firstWhereOrNull(
-      (e) => e.name.toLowerCase() == swapCoinData.sellCoinNetworkName.toLowerCase(),
+      (e) => e.name.toLowerCase() == swapCoinData.sellCoin.network.name.toLowerCase(),
     );
     final buyNetwork = buyCoin.networks.firstWhereOrNull(
-      (e) => e.name.toLowerCase() == swapCoinData.buyCoinNetworkName.toLowerCase(),
+      (e) => e.name.toLowerCase() == swapCoinData.buyCoin.network.name.toLowerCase(),
     );
 
     if (sellNetwork == null || buyNetwork == null) {
@@ -307,15 +308,15 @@ class CexService {
     final coins = await _letsExchangeRepository.getCoins();
     final activeCoins = coins.where((e) => e.isCoinActive);
 
-    final sellCoin = activeCoins.firstWhereOrNull((e) => e.code == swapCoinData.sellCoinCode);
-    final buyCoin = activeCoins.firstWhereOrNull((e) => e.code == swapCoinData.buyCoinCode);
+    final sellCoin = activeCoins.firstWhereOrNull((e) => e.code == swapCoinData.sellCoin.code);
+    final buyCoin = activeCoins.firstWhereOrNull((e) => e.code == swapCoinData.buyCoin.code);
 
     if (sellCoin == null || buyCoin == null) {
       throw const IonSwapException("Let's Exchnage: Coins pair not found");
     }
 
     final sellTokenAddress = _getTokenAddressForLetsExchange(
-      swapCoinData.sellCoinContractAddress,
+      swapCoinData.sellCoin.contractAddress,
     );
 
     final sellNetwork = sellCoin.networks.firstWhereOrNull(
@@ -324,7 +325,8 @@ class CexService {
 
     final buyNetwork = buyCoin.networks.firstWhereOrNull(
       (e) =>
-          e.contractAddress == _getTokenAddressForLetsExchange(swapCoinData.buyCoinContractAddress),
+          e.contractAddress ==
+          _getTokenAddressForLetsExchange(swapCoinData.buyCoin.contractAddress),
     );
 
     if (sellNetwork == null || buyNetwork == null) {
