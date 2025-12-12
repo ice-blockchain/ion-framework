@@ -29,7 +29,6 @@ import 'package:ion_swap_client/models/swap_coin.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_network.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
-import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'swap_coins_controller_provider.r.g.dart';
@@ -256,7 +255,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         decimal: sellCoin.coin.decimals,
       ),
       isBridge: buyCoinGroup == sellCoinGroup,
-      amount: toBlockchainUnits(amount, sellCoin.coin.decimals).toString(),
+      amount: amount.toString(),
       userBuyAddress: buyAddress,
       userSellAddress: sellAddress,
     );
@@ -431,7 +430,9 @@ class SwapCoinsController extends _$SwapCoinsController {
       );
 
       final isValidAmount = _validateAmount(swapCoinParameters.amount, swapQuoteInfo);
-      if (!isValidAmount) return;
+      if (!isValidAmount) {
+        return;
+      }
 
       state = state.copyWith(
         isQuoteLoading: false,
@@ -492,6 +493,38 @@ class SwapCoinsController extends _$SwapCoinsController {
     }
 
     return null;
+  }
+
+  bool _validateAmount(String userAmountStr, SwapQuoteInfo quoteInfo) {
+    final userAmount = double.tryParse(userAmountStr);
+    if (userAmount == null) return true;
+
+    final (minAmountValue, minAmountStr) = switch (quoteInfo.source) {
+      SwapQuoteInfoSource.exolix when quoteInfo.exolixQuote != null => (
+          quoteInfo.exolixQuote!.minAmount,
+          quoteInfo.exolixQuote!.minAmount.toString(),
+        ),
+      SwapQuoteInfoSource.letsExchange when quoteInfo.letsExchangeQuote != null => (
+          double.tryParse(quoteInfo.letsExchangeQuote!.minAmount),
+          quoteInfo.letsExchangeQuote!.minAmount,
+        ),
+      _ => (null, '0'),
+    };
+
+    if (minAmountValue == null || userAmount >= minAmountValue) {
+      return true;
+    }
+
+    state = state.copyWith(
+      swapQuoteInfo: null,
+      isQuoteLoading: false,
+      quoteError: AmountBelowMinimumException(
+        minAmount: minAmountStr,
+        symbol: (state.sellCoin?.abbreviation ?? '').toUpperCase(),
+      ),
+    );
+
+    return false;
   }
 
   Future<bool> getIsIonBscSwap() async {
@@ -631,37 +664,5 @@ class SwapCoinsWithIonBscSwap extends _$SwapCoinsWithIonBscSwap {
             onSwapError: onSwapError,
           );
     });
-  }
-
-  bool _validateAmount(String userAmountStr, SwapQuoteInfo quoteInfo) {
-    final userAmount = double.tryParse(userAmountStr);
-    if (userAmount == null) return true;
-
-    final (minAmountValue, minAmountStr) = switch (quoteInfo.source) {
-      SwapQuoteInfoSource.exolix when quoteInfo.exolixQuote != null => (
-          quoteInfo.exolixQuote!.minAmount,
-          quoteInfo.exolixQuote!.minAmount.toString(),
-        ),
-      SwapQuoteInfoSource.letsExchange when quoteInfo.letsExchangeQuote != null => (
-          double.tryParse(quoteInfo.letsExchangeQuote!.minAmount),
-          quoteInfo.letsExchangeQuote!.minAmount,
-        ),
-      _ => (null, '0'),
-    };
-
-    if (minAmountValue == null || userAmount >= minAmountValue) {
-      return true;
-    }
-
-    state = state.copyWith(
-      swapQuoteInfo: null,
-      isQuoteLoading: false,
-      quoteError: AmountBelowMinimumException(
-        minAmount: minAmountStr,
-        symbol: (state.sellCoin?.abbreviation ?? '').toUpperCase(),
-      ),
-    );
-
-    return false;
   }
 }
