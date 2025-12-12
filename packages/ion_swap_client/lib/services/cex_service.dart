@@ -82,6 +82,7 @@ class CexService {
           priceForSellTokenInBuyToken: exolixRateDouble,
           source: SwapQuoteInfoSource.exolix,
           exolixQuote: exolixRate,
+          // Note: Exolix API doesn't provide fee breakdown or price impact in rate response
         );
       }
 
@@ -90,6 +91,9 @@ class CexService {
         priceForSellTokenInBuyToken: letsExchangeRateDouble,
         source: SwapQuoteInfoSource.letsExchange,
         letsExchangeQuote: letsExchangeRate,
+        networkFee: letsExchangeRate.withdrawalFee,
+        protocolFee: letsExchangeRate.fee,
+        // Note: LetsExchange API doesn't provide price impact in the response
       );
     } else if (exolixRate != null) {
       final exolixRateDouble = exolixRate.rate.toDouble();
@@ -99,6 +103,7 @@ class CexService {
         priceForSellTokenInBuyToken: exolixRateDouble,
         source: SwapQuoteInfoSource.exolix,
         exolixQuote: exolixRate,
+        // Note: Exolix API doesn't provide fee breakdown or price impact in rate response
       );
     } else if (letsExchangeRate != null) {
       final letsExchangeRateDouble = num.parse(letsExchangeRate.rate).toDouble();
@@ -108,6 +113,9 @@ class CexService {
         priceForSellTokenInBuyToken: letsExchangeRateDouble,
         source: SwapQuoteInfoSource.letsExchange,
         letsExchangeQuote: letsExchangeRate,
+        networkFee: letsExchangeRate.withdrawalFee,
+        protocolFee: letsExchangeRate.fee,
+        // Note: LetsExchange API doesn't provide price impact in the response
       );
     }
 

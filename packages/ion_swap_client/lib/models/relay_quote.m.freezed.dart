@@ -22,6 +22,8 @@ RelayQuote _$RelayQuoteFromJson(Map<String, dynamic> json) {
 mixin _$RelayQuote {
   RelayQuoteDetails get details => throw _privateConstructorUsedError;
   List<RelayStep> get steps => throw _privateConstructorUsedError;
+  @JsonKey(name: 'fees')
+  Map<String, dynamic>? get fees => throw _privateConstructorUsedError;
 
   /// Serializes this RelayQuote to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -39,7 +41,10 @@ abstract class $RelayQuoteCopyWith<$Res> {
           RelayQuote value, $Res Function(RelayQuote) then) =
       _$RelayQuoteCopyWithImpl<$Res, RelayQuote>;
   @useResult
-  $Res call({RelayQuoteDetails details, List<RelayStep> steps});
+  $Res call(
+      {RelayQuoteDetails details,
+      List<RelayStep> steps,
+      @JsonKey(name: 'fees') Map<String, dynamic>? fees});
 
   $RelayQuoteDetailsCopyWith<$Res> get details;
 }
@@ -61,6 +66,7 @@ class _$RelayQuoteCopyWithImpl<$Res, $Val extends RelayQuote>
   $Res call({
     Object? details = null,
     Object? steps = null,
+    Object? fees = freezed,
   }) {
     return _then(_value.copyWith(
       details: null == details
@@ -71,6 +77,10 @@ class _$RelayQuoteCopyWithImpl<$Res, $Val extends RelayQuote>
           ? _value.steps
           : steps // ignore: cast_nullable_to_non_nullable
               as List<RelayStep>,
+      fees: freezed == fees
+          ? _value.fees
+          : fees // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ) as $Val);
   }
 
@@ -93,7 +103,10 @@ abstract class _$$RelayQuoteImplCopyWith<$Res>
       __$$RelayQuoteImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({RelayQuoteDetails details, List<RelayStep> steps});
+  $Res call(
+      {RelayQuoteDetails details,
+      List<RelayStep> steps,
+      @JsonKey(name: 'fees') Map<String, dynamic>? fees});
 
   @override
   $RelayQuoteDetailsCopyWith<$Res> get details;
@@ -114,6 +127,7 @@ class __$$RelayQuoteImplCopyWithImpl<$Res>
   $Res call({
     Object? details = null,
     Object? steps = null,
+    Object? fees = freezed,
   }) {
     return _then(_$RelayQuoteImpl(
       details: null == details
@@ -124,6 +138,10 @@ class __$$RelayQuoteImplCopyWithImpl<$Res>
           ? _value._steps
           : steps // ignore: cast_nullable_to_non_nullable
               as List<RelayStep>,
+      fees: freezed == fees
+          ? _value._fees
+          : fees // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ));
   }
 }
@@ -132,8 +150,11 @@ class __$$RelayQuoteImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$RelayQuoteImpl implements _RelayQuote {
   _$RelayQuoteImpl(
-      {required this.details, required final List<RelayStep> steps})
-      : _steps = steps;
+      {required this.details,
+      required final List<RelayStep> steps,
+      @JsonKey(name: 'fees') final Map<String, dynamic>? fees})
+      : _steps = steps,
+        _fees = fees;
 
   factory _$RelayQuoteImpl.fromJson(Map<String, dynamic> json) =>
       _$$RelayQuoteImplFromJson(json);
@@ -148,9 +169,20 @@ class _$RelayQuoteImpl implements _RelayQuote {
     return EqualUnmodifiableListView(_steps);
   }
 
+  final Map<String, dynamic>? _fees;
+  @override
+  @JsonKey(name: 'fees')
+  Map<String, dynamic>? get fees {
+    final value = _fees;
+    if (value == null) return null;
+    if (_fees is EqualUnmodifiableMapView) return _fees;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   String toString() {
-    return 'RelayQuote(details: $details, steps: $steps)';
+    return 'RelayQuote(details: $details, steps: $steps, fees: $fees)';
   }
 
   @override
@@ -159,13 +191,17 @@ class _$RelayQuoteImpl implements _RelayQuote {
         (other.runtimeType == runtimeType &&
             other is _$RelayQuoteImpl &&
             (identical(other.details, details) || other.details == details) &&
-            const DeepCollectionEquality().equals(other._steps, _steps));
+            const DeepCollectionEquality().equals(other._steps, _steps) &&
+            const DeepCollectionEquality().equals(other._fees, _fees));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType, details, const DeepCollectionEquality().hash(_steps));
+      runtimeType,
+      details,
+      const DeepCollectionEquality().hash(_steps),
+      const DeepCollectionEquality().hash(_fees));
 
   /// Create a copy of RelayQuote
   /// with the given fields replaced by the non-null parameter values.
@@ -185,8 +221,10 @@ class _$RelayQuoteImpl implements _RelayQuote {
 
 abstract class _RelayQuote implements RelayQuote {
   factory _RelayQuote(
-      {required final RelayQuoteDetails details,
-      required final List<RelayStep> steps}) = _$RelayQuoteImpl;
+          {required final RelayQuoteDetails details,
+          required final List<RelayStep> steps,
+          @JsonKey(name: 'fees') final Map<String, dynamic>? fees}) =
+      _$RelayQuoteImpl;
 
   factory _RelayQuote.fromJson(Map<String, dynamic> json) =
       _$RelayQuoteImpl.fromJson;
@@ -195,6 +233,9 @@ abstract class _RelayQuote implements RelayQuote {
   RelayQuoteDetails get details;
   @override
   List<RelayStep> get steps;
+  @override
+  @JsonKey(name: 'fees')
+  Map<String, dynamic>? get fees;
 
   /// Create a copy of RelayQuote
   /// with the given fields replaced by the non-null parameter values.

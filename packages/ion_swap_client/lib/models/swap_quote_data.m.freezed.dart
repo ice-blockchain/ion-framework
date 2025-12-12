@@ -25,6 +25,12 @@ mixin _$SwapQuoteData {
   String get toTokenAmount => throw _privateConstructorUsedError;
   OkxTokenInfo get fromToken => throw _privateConstructorUsedError;
   OkxTokenInfo get toToken => throw _privateConstructorUsedError;
+  @JsonKey(name: 'priceImpactPercent')
+  String? get priceImpactPercent => throw _privateConstructorUsedError;
+  @JsonKey(name: 'estimateGasFee')
+  String? get estimateGasFee => throw _privateConstructorUsedError;
+  @JsonKey(name: 'tradeFee')
+  String? get tradeFee => throw _privateConstructorUsedError;
 
   /// Serializes this SwapQuoteData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -47,7 +53,10 @@ abstract class $SwapQuoteDataCopyWith<$Res> {
       String fromTokenAmount,
       String toTokenAmount,
       OkxTokenInfo fromToken,
-      OkxTokenInfo toToken});
+      OkxTokenInfo toToken,
+      @JsonKey(name: 'priceImpactPercent') String? priceImpactPercent,
+      @JsonKey(name: 'estimateGasFee') String? estimateGasFee,
+      @JsonKey(name: 'tradeFee') String? tradeFee});
 
   $OkxTokenInfoCopyWith<$Res> get fromToken;
   $OkxTokenInfoCopyWith<$Res> get toToken;
@@ -73,6 +82,9 @@ class _$SwapQuoteDataCopyWithImpl<$Res, $Val extends SwapQuoteData>
     Object? toTokenAmount = null,
     Object? fromToken = null,
     Object? toToken = null,
+    Object? priceImpactPercent = freezed,
+    Object? estimateGasFee = freezed,
+    Object? tradeFee = freezed,
   }) {
     return _then(_value.copyWith(
       chainIndex: null == chainIndex
@@ -95,6 +107,18 @@ class _$SwapQuoteDataCopyWithImpl<$Res, $Val extends SwapQuoteData>
           ? _value.toToken
           : toToken // ignore: cast_nullable_to_non_nullable
               as OkxTokenInfo,
+      priceImpactPercent: freezed == priceImpactPercent
+          ? _value.priceImpactPercent
+          : priceImpactPercent // ignore: cast_nullable_to_non_nullable
+              as String?,
+      estimateGasFee: freezed == estimateGasFee
+          ? _value.estimateGasFee
+          : estimateGasFee // ignore: cast_nullable_to_non_nullable
+              as String?,
+      tradeFee: freezed == tradeFee
+          ? _value.tradeFee
+          : tradeFee // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 
@@ -132,7 +156,10 @@ abstract class _$$SwapQuoteDataImplCopyWith<$Res>
       String fromTokenAmount,
       String toTokenAmount,
       OkxTokenInfo fromToken,
-      OkxTokenInfo toToken});
+      OkxTokenInfo toToken,
+      @JsonKey(name: 'priceImpactPercent') String? priceImpactPercent,
+      @JsonKey(name: 'estimateGasFee') String? estimateGasFee,
+      @JsonKey(name: 'tradeFee') String? tradeFee});
 
   @override
   $OkxTokenInfoCopyWith<$Res> get fromToken;
@@ -158,6 +185,9 @@ class __$$SwapQuoteDataImplCopyWithImpl<$Res>
     Object? toTokenAmount = null,
     Object? fromToken = null,
     Object? toToken = null,
+    Object? priceImpactPercent = freezed,
+    Object? estimateGasFee = freezed,
+    Object? tradeFee = freezed,
   }) {
     return _then(_$SwapQuoteDataImpl(
       chainIndex: null == chainIndex
@@ -180,6 +210,18 @@ class __$$SwapQuoteDataImplCopyWithImpl<$Res>
           ? _value.toToken
           : toToken // ignore: cast_nullable_to_non_nullable
               as OkxTokenInfo,
+      priceImpactPercent: freezed == priceImpactPercent
+          ? _value.priceImpactPercent
+          : priceImpactPercent // ignore: cast_nullable_to_non_nullable
+              as String?,
+      estimateGasFee: freezed == estimateGasFee
+          ? _value.estimateGasFee
+          : estimateGasFee // ignore: cast_nullable_to_non_nullable
+              as String?,
+      tradeFee: freezed == tradeFee
+          ? _value.tradeFee
+          : tradeFee // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -192,7 +234,10 @@ class _$SwapQuoteDataImpl implements _SwapQuoteData {
       required this.fromTokenAmount,
       required this.toTokenAmount,
       required this.fromToken,
-      required this.toToken});
+      required this.toToken,
+      @JsonKey(name: 'priceImpactPercent') this.priceImpactPercent,
+      @JsonKey(name: 'estimateGasFee') this.estimateGasFee,
+      @JsonKey(name: 'tradeFee') this.tradeFee});
 
   factory _$SwapQuoteDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$SwapQuoteDataImplFromJson(json);
@@ -207,10 +252,19 @@ class _$SwapQuoteDataImpl implements _SwapQuoteData {
   final OkxTokenInfo fromToken;
   @override
   final OkxTokenInfo toToken;
+  @override
+  @JsonKey(name: 'priceImpactPercent')
+  final String? priceImpactPercent;
+  @override
+  @JsonKey(name: 'estimateGasFee')
+  final String? estimateGasFee;
+  @override
+  @JsonKey(name: 'tradeFee')
+  final String? tradeFee;
 
   @override
   String toString() {
-    return 'SwapQuoteData(chainIndex: $chainIndex, fromTokenAmount: $fromTokenAmount, toTokenAmount: $toTokenAmount, fromToken: $fromToken, toToken: $toToken)';
+    return 'SwapQuoteData(chainIndex: $chainIndex, fromTokenAmount: $fromTokenAmount, toTokenAmount: $toTokenAmount, fromToken: $fromToken, toToken: $toToken, priceImpactPercent: $priceImpactPercent, estimateGasFee: $estimateGasFee, tradeFee: $tradeFee)';
   }
 
   @override
@@ -226,13 +280,27 @@ class _$SwapQuoteDataImpl implements _SwapQuoteData {
                 other.toTokenAmount == toTokenAmount) &&
             (identical(other.fromToken, fromToken) ||
                 other.fromToken == fromToken) &&
-            (identical(other.toToken, toToken) || other.toToken == toToken));
+            (identical(other.toToken, toToken) || other.toToken == toToken) &&
+            (identical(other.priceImpactPercent, priceImpactPercent) ||
+                other.priceImpactPercent == priceImpactPercent) &&
+            (identical(other.estimateGasFee, estimateGasFee) ||
+                other.estimateGasFee == estimateGasFee) &&
+            (identical(other.tradeFee, tradeFee) ||
+                other.tradeFee == tradeFee));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, chainIndex, fromTokenAmount,
-      toTokenAmount, fromToken, toToken);
+  int get hashCode => Object.hash(
+      runtimeType,
+      chainIndex,
+      fromTokenAmount,
+      toTokenAmount,
+      fromToken,
+      toToken,
+      priceImpactPercent,
+      estimateGasFee,
+      tradeFee);
 
   /// Create a copy of SwapQuoteData
   /// with the given fields replaced by the non-null parameter values.
@@ -256,7 +324,10 @@ abstract class _SwapQuoteData implements SwapQuoteData {
       required final String fromTokenAmount,
       required final String toTokenAmount,
       required final OkxTokenInfo fromToken,
-      required final OkxTokenInfo toToken}) = _$SwapQuoteDataImpl;
+      required final OkxTokenInfo toToken,
+      @JsonKey(name: 'priceImpactPercent') final String? priceImpactPercent,
+      @JsonKey(name: 'estimateGasFee') final String? estimateGasFee,
+      @JsonKey(name: 'tradeFee') final String? tradeFee}) = _$SwapQuoteDataImpl;
 
   factory _SwapQuoteData.fromJson(Map<String, dynamic> json) =
       _$SwapQuoteDataImpl.fromJson;
@@ -271,6 +342,15 @@ abstract class _SwapQuoteData implements SwapQuoteData {
   OkxTokenInfo get fromToken;
   @override
   OkxTokenInfo get toToken;
+  @override
+  @JsonKey(name: 'priceImpactPercent')
+  String? get priceImpactPercent;
+  @override
+  @JsonKey(name: 'estimateGasFee')
+  String? get estimateGasFee;
+  @override
+  @JsonKey(name: 'tradeFee')
+  String? get tradeFee;
 
   /// Create a copy of SwapQuoteData
   /// with the given fields replaced by the non-null parameter values.

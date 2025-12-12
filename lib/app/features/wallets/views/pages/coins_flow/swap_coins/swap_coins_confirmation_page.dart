@@ -14,10 +14,13 @@ import 'package:ion/app/features/components/verify_identity/verify_identity_prom
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
+import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
+import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
@@ -227,11 +230,32 @@ class _SwapDetailsSection extends ConsumerWidget {
     final swapQuoteInfo = swapCoinsController.swapQuoteInfo;
     final sellCoin = swapCoinsController.sellCoin;
     final buyCoin = swapCoinsController.buyCoin;
+    final buyNetwork = swapCoinsController.buyNetwork;
     final priceImpact = swapQuoteInfo?.swapImpact;
     final slippage = swapCoinsController.slippage;
     final networkFee = swapQuoteInfo?.networkFee;
     final protocolFee = swapQuoteInfo?.protocolFee;
     final isVisibleMoreButton = priceImpact != null || networkFee != null || protocolFee != null;
+
+    // Format fees based on API source
+    String? formattedNetworkFee;
+    String? formattedProtocolFee;
+
+    if (networkFee != null) {
+      formattedNetworkFee = _formatNetworkFee(
+        fee: networkFee,
+        source: swapQuoteInfo?.source,
+        network: buyNetwork,
+      );
+    }
+
+    if (protocolFee != null) {
+      formattedProtocolFee = _formatProtocolFee(
+        fee: protocolFee,
+        source: swapQuoteInfo?.source,
+        coin: buyCoin,
+      );
+    }
 
     return Stack(
       clipBehavior: Clip.none,
@@ -245,10 +269,6 @@ class _SwapDetailsSection extends ConsumerWidget {
           decoration: BoxDecoration(
             color: colors.tertiaryBackground,
             borderRadius: BorderRadius.circular(16.0.s),
-            border: Border.all(
-              color: colors.onTertiaryFill,
-              width: 0.5,
-            ),
           ),
           child: Column(
             children: [
@@ -282,20 +302,20 @@ class _SwapDetailsSection extends ConsumerWidget {
                             label: context.i18n.wallet_swap_confirmation_slippage,
                             value: '${slippage.toStringAsFixed(1)}%',
                           ),
-                          if (networkFee != null) ...[
+                          if (formattedNetworkFee != null) ...[
                             _Divider(),
                             _DetailRow(
                               isVisible: showMoreDetails,
                               label: context.i18n.wallet_swap_confirmation_network_fee,
-                              value: networkFee,
+                              value: formattedNetworkFee,
                             ),
                           ],
-                          if (protocolFee != null) ...[
+                          if (formattedProtocolFee != null) ...[
                             _Divider(),
                             _DetailRow(
                               isVisible: showMoreDetails,
                               label: context.i18n.wallet_swap_confirmation_protocol_fee,
-                              value: protocolFee,
+                              value: formattedProtocolFee,
                             ),
                           ],
                         ],
@@ -307,45 +327,59 @@ class _SwapDetailsSection extends ConsumerWidget {
         ),
         if (isVisibleMoreButton)
           Positioned.fill(
-            bottom: -10.0.s,
+            bottom: -25.0.s,
             child: Container(
               width: double.infinity,
               alignment: Alignment.bottomCenter,
-              height: 21.0.s,
               child: GestureDetector(
                 onTap: onToggleDetails,
                 child: Container(
-                  width: 75.0.s,
+                  // Invisible padding to expand tap area
                   padding: EdgeInsets.symmetric(
-                    horizontal: 12.0.s,
-                    vertical: 4.0.s,
+                    horizontal: 8.0.s,
+                    vertical: 8.0.s,
                   ),
-                  decoration: BoxDecoration(
-                    color: colors.tertiaryBackground,
-                    borderRadius: BorderRadius.circular(9.0.s),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        showMoreDetails
-                            ? context.i18n.wallet_swap_confirmation_less
-                            : context.i18n.wallet_swap_confirmation_more,
-                        style: textStyles.caption2.copyWith(
-                          color: colors.primaryText,
-                        ),
+                  color: Colors.transparent,
+                  child: Container(
+                    padding: EdgeInsets.all(3.0.s),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(9.0.s),
+                      color: colors.secondaryBackground,
+                    ),
+                    child: Container(
+                      height: 21.0.s,
+                      width: 75.0.s,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.0.s,
                       ),
-                      SizedBox(width: 4.0.s),
-                      AnimatedRotation(
-                        turns: showMoreDetails ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        child: Assets.svg.iconArrowDown.icon(
-                          color: colors.primaryText,
-                          size: 16.0.s,
-                        ),
+                      decoration: BoxDecoration(
+                        color: colors.tertiaryBackground,
+                        borderRadius: BorderRadius.circular(9.0.s),
                       ),
-                    ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            showMoreDetails
+                                ? context.i18n.wallet_swap_confirmation_less
+                                : context.i18n.wallet_swap_confirmation_more,
+                            style: textStyles.caption2.copyWith(
+                              color: colors.primaryText,
+                            ),
+                          ),
+                          SizedBox(width: 4.0.s),
+                          AnimatedRotation(
+                            turns: showMoreDetails ? 0.5 : 0.0,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: Assets.svg.iconArrowDown.icon(
+                              color: colors.primaryText,
+                              size: 16.0.s,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -353,6 +387,105 @@ class _SwapDetailsSection extends ConsumerWidget {
           ),
       ],
     );
+  }
+
+  /// Formats network fee based on API source:
+  /// - OKX: Converts from wei to native token (ETH/BNB)
+  /// - Relay: Already formatted, returns as-is
+  /// - LetsExchange: Formats with destination currency
+  String? _formatNetworkFee({
+    required String? fee,
+    required SwapQuoteInfoSource? source,
+    required NetworkData? network,
+  }) {
+    if (fee == null || fee.isEmpty) return null;
+
+    // Relay API already provides formatted fees with currency
+    if (source == SwapQuoteInfoSource.relay) {
+      return fee;
+    }
+
+    // For LetsExchange: withdrawal_fee is in destination currency
+    // Note: Network fee formatting for LetsExchange would need coin info
+    // but withdrawal_fee is already a formatted string in destination currency
+    if (source == SwapQuoteInfoSource.letsExchange) {
+      return fee;
+    }
+
+    try {
+      final feeValue = double.tryParse(fee);
+      if (feeValue == null) return fee;
+
+      // For OKX API: estimateGasFee is in wei
+      if (source == SwapQuoteInfoSource.okx) {
+        // Convert from wei to native token (18 decimals)
+        final convertedFee = fromBlockchainUnits(fee, 18);
+        final nativeTokenSymbol = _getNativeTokenSymbol(network);
+        return formatCrypto(convertedFee, nativeTokenSymbol);
+      }
+
+      // Default: return as-is
+      return fee;
+    } catch (e) {
+      // If parsing fails, return original value
+      return fee;
+    }
+  }
+
+  /// Formats protocol fee based on API source:
+  /// - OKX: Formats as USD (tradeFee is estimated network fee in USD)
+  /// - Relay: Already formatted, returns as-is
+  /// - LetsExchange: Formats with destination currency
+  String? _formatProtocolFee({
+    required String? fee,
+    required SwapQuoteInfoSource? source,
+    required CoinsGroup? coin,
+  }) {
+    if (fee == null || fee.isEmpty) return null;
+
+    // Relay API already provides formatted fees with currency
+    if (source == SwapQuoteInfoSource.relay) {
+      return fee;
+    }
+
+    try {
+      final feeValue = double.tryParse(fee);
+      if (feeValue == null) return fee;
+
+      // For OKX API: tradeFee is estimated network fee in USD
+      if (source == SwapQuoteInfoSource.okx) {
+        return formatToCurrency(feeValue);
+      }
+
+      // For LetsExchange: fee is in destination currency units
+      if (source == SwapQuoteInfoSource.letsExchange) {
+        if (coin == null) return fee;
+        return formatCrypto(feeValue, coin.abbreviation);
+      }
+
+      // Default: format with currency
+      if (coin == null) return fee;
+      return formatCrypto(feeValue, coin.abbreviation);
+    } catch (e) {
+      // If parsing fails, return original value
+      return fee;
+    }
+  }
+
+  /// Gets the native token symbol for the network (ETH, BNB, etc.)
+  String _getNativeTokenSymbol(NetworkData? network) {
+    if (network == null) return 'ETH';
+    // Check network to determine native token
+    final networkId = network.id.toLowerCase();
+    return switch (networkId) {
+      'bsc' => 'BNB',
+      'ethereum' => 'ETH',
+      'polygon' => 'MATIC',
+      'avalanche' => 'AVAX',
+      'arbitrum' => 'ETH',
+      'optimism' => 'ETH',
+      _ => 'ETH', // Default to ETH
+    };
   }
 }
 
