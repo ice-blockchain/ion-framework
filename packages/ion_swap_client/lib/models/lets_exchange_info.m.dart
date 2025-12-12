@@ -19,6 +19,5 @@ class LetsExchangeInfo with _$LetsExchangeInfo {
     @JsonKey(name: 'extra_fee_amount') required String extraFeeAmount,
   }) = _LetsExchangeInfo;
 
-  factory LetsExchangeInfo.fromJson(Map<String, dynamic> json) =>
-      _$LetsExchangeInfoFromJson(json);
+  factory LetsExchangeInfo.fromJson(Map<String, dynamic> json) => _$LetsExchangeInfoFromJson(json);
 }

@@ -12,6 +12,5 @@ class OkxSwapResponse with _$OkxSwapResponse {
     required OkxSwapTransaction tx,
   }) = _OkxSwapResponse;
 
-  factory OkxSwapResponse.fromJson(Map<String, dynamic> json) =>
-      _$OkxSwapResponseFromJson(json);
+  factory OkxSwapResponse.fromJson(Map<String, dynamic> json) => _$OkxSwapResponseFromJson(json);
 }
