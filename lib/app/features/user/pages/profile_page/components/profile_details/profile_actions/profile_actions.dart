@@ -41,20 +41,24 @@ class ProfileActions extends ConsumerWidget {
     final canSendMessage =
         ref.watch(canSendMessageProvider(pubkey, cache: false)).valueOrNull ?? false;
 
+    final shouldShowPaymentButton = !hasPrivateWallets && canSendMessage;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: 12.0.s,
       children: [
         if (profileMode != ProfileMode.dark) FollowUserButton(pubkey: pubkey),
         if (!isCurrentUser) ...[
-          ProfileAction(
-            onPressed: () {
-              BookmarksRoute().push<void>(context);
-            },
-            assetName: Assets.svg.iconBookmarks,
-            profileMode: profileMode,
-          ),
-          if (!hasPrivateWallets && canSendMessage)
+          // Don't show bookmark button together with payment button
+          if (!shouldShowPaymentButton)
+            ProfileAction(
+              onPressed: () {
+                BookmarksRoute().push<void>(context);
+              },
+              assetName: Assets.svg.iconBookmarks,
+              profileMode: profileMode,
+            ),
+          if (shouldShowPaymentButton)
             ProfileAction(
               onPressed: () async {
                 final needToEnable2FA =
