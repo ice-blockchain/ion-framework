@@ -442,6 +442,7 @@
   "error_swap_82112": "The value difference from this transaction's quote route is higher, which may cause asset loss, It can be adjusted using the string age.",
   "error_swap_82116": "callData exceeds the maximum limit. Try again in 5 minutes.",
   "error_swap_82130": "The chain does not require authorized transactions and can be exchanged directly.",
+  "error_swap_amount_below_min": "Минималната сума за обмен между мрежи е {amount} {symbol}.",
   "error_swap_amount_too_low": "The amount provided is below the minimum threshold required for a quote.",
   "error_swap_chain_disabled": "The origin or destination chain is currently disabled or unsupported.",
   "error_swap_coin_pair_not_found": "Coin pair not found",
