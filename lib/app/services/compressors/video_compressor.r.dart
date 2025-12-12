@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:ffmpeg_kit_flutter/ffmpeg_session.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:flutter/services.dart';
@@ -100,6 +101,27 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
 
   static const MethodChannel _channel = MethodChannel('ion/video_compression');
 
+  /// Checks if the current device is an OPPO or OnePlus device.
+  /// These devices have known issues with native video compression,
+  /// so we use FFmpeg (software) compression instead.
+  Future<bool> _isOppoDevice() async {
+    if (!Platform.isAndroid) {
+      return false;
+    }
+    try {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      final manufacturer = androidInfo.manufacturer.toLowerCase();
+      final brand = androidInfo.brand.toLowerCase();
+      return manufacturer == 'oppo' ||
+          brand == 'oppo' ||
+          manufacturer == 'oneplus' ||
+          brand == 'oneplus';
+    } catch (e) {
+      Logger.warning('Failed to detect device manufacturer: $e');
+      return false;
+    }
+  }
+
   String _formatBytes(int bytes) {
     final megabytes = bytes / (1024 * 1024);
     return '${megabytes.toStringAsFixed(2)} MB';
@@ -144,15 +166,55 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     final videoInfo = await videoInfoService.getVideoInformation(file.path);
     final duration = videoInfo.duration.inSeconds;
 
-    if (duration > hardwareCompressionThreshold.inSeconds) {
+    // Check if video is AV1 - FFmpeg can't decode AV1 on some devices (e.g., OPPO)
+    // so we must use native compression for AV1 videos
+    final isAV1 = await videoCodecDetector.isAV1Video(file.path);
+
+    // Check if device is OPPO/OnePlus - use FFmpeg compression for these devices
+    // to avoid native compression issues, EXCEPT for AV1 videos
+    final isOppo = await _isOppoDevice();
+
+    // Use native compression for:
+    // 1. AV1 videos on non-OPPO devices (FFmpeg can't decode AV1 on some devices)
+    // 2. Long videos on non-OPPO devices
+    // For AV1 videos on OPPO devices, native compression fails during encoding,
+    // so we skip compression and use the original file
+    if (isAV1 && isOppo) {
+      Logger.log('AV1 video on OPPO device - skipping compression due to encoder incompatibility');
+      // Return original file with dimensions populated to ensure upload works
+      return file.copyWith(
+        width: videoInfo.width,
+        height: videoInfo.height,
+        duration: duration,
+      );
+    }
+
+    if (isAV1 || (!isOppo && duration > hardwareCompressionThreshold.inSeconds)) {
+      Logger.log(
+        'Using native compression - isAV1: $isAV1, isOppo: $isOppo, duration: ${duration}s',
+      );
       final nativeSettings = Platform.isAndroid
           ? AndroidNativeVideoCompressionSettings.balanced
           : IosNativeVideoCompressionSettings.balanced;
 
-      return nativeVideoCompressor.compress(
-        file,
-        settings: nativeSettings,
-      );
+      try {
+        return await nativeVideoCompressor.compress(
+          file,
+          settings: nativeSettings,
+        );
+      } catch (e) {
+        // If native compression fails for AV1, fall back to original file
+        if (isAV1) {
+          Logger.warning('Native compression failed for AV1 video, using original file: $e');
+          // Return original file with dimensions populated to ensure upload works
+          return file.copyWith(
+            width: videoInfo.width,
+            height: videoInfo.height,
+            duration: duration,
+          );
+        }
+        rethrow;
+      }
     }
 
     settings ??= VideoCompressionSettings.balanced;

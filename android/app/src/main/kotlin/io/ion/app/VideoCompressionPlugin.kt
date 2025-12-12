@@ -190,7 +190,49 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
             muxer.setOrientationHint(metadata.rotation)
 
             val encoderConfig = createEncoderConfig(metadata, codec, quality)
-            videoEncoder = createVideoEncoder(encoderConfig)
+            
+            // Copy color space information from source video to encoder format
+            // This prevents color inversion issues when transcoding
+            val sourceFormat = metadata.format
+            val encoderFormat = createEncoderFormat(encoderConfig)
+            
+            // Copy color space parameters from source to encoder to maintain color accuracy
+            // If missing, use standard defaults (especially important for OPPO devices)
+            // For OPPO devices, always set explicit values to prevent color inversion
+            val colorRange = if (sourceFormat.containsKey(MediaFormat.KEY_COLOR_RANGE)) {
+                sourceFormat.getInteger(MediaFormat.KEY_COLOR_RANGE)
+            } else {
+                // Default to LIMITED range (TV range 16-235) for compatibility
+                // Most videos use LIMITED range, and this works best on OPPO devices
+                MediaFormat.COLOR_RANGE_LIMITED
+            }
+            encoderFormat.setInteger(MediaFormat.KEY_COLOR_RANGE, colorRange)
+            Log.d(TAG, "Set color range: $colorRange (from source: ${sourceFormat.containsKey(MediaFormat.KEY_COLOR_RANGE)})")
+            
+            val colorStandard = if (sourceFormat.containsKey(MediaFormat.KEY_COLOR_STANDARD)) {
+                sourceFormat.getInteger(MediaFormat.KEY_COLOR_STANDARD)
+            } else {
+                // Default to BT.709 for modern videos (most common standard)
+                MediaFormat.COLOR_STANDARD_BT709
+            }
+            encoderFormat.setInteger(MediaFormat.KEY_COLOR_STANDARD, colorStandard)
+            Log.d(TAG, "Set color standard: $colorStandard (from source: ${sourceFormat.containsKey(MediaFormat.KEY_COLOR_STANDARD)})")
+            
+            val colorTransfer = if (sourceFormat.containsKey(MediaFormat.KEY_COLOR_TRANSFER)) {
+                sourceFormat.getInteger(MediaFormat.KEY_COLOR_TRANSFER)
+            } else {
+                // Default to SDR video transfer (standard for most videos)
+                MediaFormat.COLOR_TRANSFER_SDR_VIDEO
+            }
+            encoderFormat.setInteger(MediaFormat.KEY_COLOR_TRANSFER, colorTransfer)
+            Log.d(TAG, "Set color transfer: $colorTransfer (from source: ${sourceFormat.containsKey(MediaFormat.KEY_COLOR_TRANSFER)})")
+            
+            // For OPPO devices, log color space info for debugging
+            if (isOppoDevice) {
+                Log.d(TAG, "OPPO device: Color space configured - Range: $colorRange, Standard: $colorStandard, Transfer: $colorTransfer")
+            }
+            
+            videoEncoder = createVideoEncoderWithFormat(encoderConfig, encoderFormat)
 
             val encoderSurface = videoEncoder.createInputSurface()
             videoEncoder.start()
@@ -368,13 +410,18 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
     }
 
     private fun createVideoEncoder(config: EncoderConfig): MediaCodec {
+        val format = createEncoderFormat(config)
+        return createVideoEncoderWithFormat(config, format)
+    }
+    
+    private fun createVideoEncoderWithFormat(config: EncoderConfig, format: MediaFormat): MediaCodec {
         // Try hardware encoder first with fallback to software encoder
         return try {
-            createHardwareEncoder(config)
+            createHardwareEncoderWithFormat(config, format)
         } catch (e: MediaCodec.CodecException) {
             Log.w(TAG, "Hardware encoder failed (${e.errorCode}), trying software encoder", e)
             try {
-                createSoftwareEncoder(config)
+                createSoftwareEncoderWithFormat(config, format)
             } catch (e2: Exception) {
                 Log.e(TAG, "Software encoder also failed", e2)
                 throw RuntimeException("Failed to create video encoder: ${e.message}", e)
@@ -382,7 +429,7 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         } catch (e: Exception) {
             Log.e(TAG, "Unexpected error creating encoder, trying software fallback", e)
             try {
-                createSoftwareEncoder(config)
+                createSoftwareEncoderWithFormat(config, format)
             } catch (e2: Exception) {
                 Log.e(TAG, "Software encoder fallback failed", e2)
                 throw RuntimeException("Failed to create video encoder: ${e.message}", e)
@@ -392,7 +439,10 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
     
     private fun createHardwareEncoder(config: EncoderConfig): MediaCodec {
         val format = createEncoderFormat(config)
-        
+        return createHardwareEncoderWithFormat(config, format)
+    }
+    
+    private fun createHardwareEncoderWithFormat(config: EncoderConfig, format: MediaFormat): MediaCodec {
         val codecList = android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
         val encoderName = codecList.findEncoderForFormat(format)
 
@@ -401,18 +451,33 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         }
 
         Log.d(TAG, "Using hardware encoder: $encoderName")
+        Log.d(TAG, "Device detection: MANUFACTURER=${Build.MANUFACTURER}, BRAND=${Build.BRAND}, isOppoDevice=$isOppoDevice")
+        
+        // For OPPO devices, force CBR mode before applying capabilities
+        if (isOppoDevice && config.codec == "h264") {
+            val codecInfo = codecList.codecInfos.find { it.name == encoderName }
+            val capabilities = codecInfo?.getCapabilitiesForType(config.mime)?.encoderCapabilities
+            if (capabilities != null && capabilities.isBitrateModeSupported(MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR)) {
+                Log.d(TAG, "Forcing CBR mode for OPPO device before configuration")
+                format.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR)
+            }
+        }
+        
         val encoder = MediaCodec.createByCodecName(encoderName)
         
-        // Try to configure with retry logic for profile fallback
+        // Try to configure with retry logic for profile fallback and bitrate mode
         try {
-            applyEncoderCapabilities(encoderName, config.mime, format)
+            // Only apply capabilities if we haven't already set bitrate mode for OPPO devices
+            if (!isOppoDevice || !format.containsKey(MediaFormat.KEY_BITRATE_MODE)) {
+                applyEncoderCapabilities(encoderName, config.mime, format)
+            }
             encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
         } catch (e: MediaCodec.CodecException) {
             encoder.release()
-            // If configuration fails, try with lower profile
+            // If configuration fails, try with different configurations
             if (config.codec == "h264" && e.errorCode == ERROR_BAD_VALUE) {
-                Log.w(TAG, "Encoder configuration failed, retrying with lower profile")
-                return createHardwareEncoderWithProfileFallback(config, encoderName)
+                Log.w(TAG, "Encoder configuration failed, retrying with alternative configurations")
+                return createHardwareEncoderWithFallback(config, encoderName, format)
             }
             throw e
         }
@@ -420,50 +485,178 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         return encoder
     }
     
-    private fun createHardwareEncoderWithProfileFallback(
+    private fun createHardwareEncoderWithFallback(
         config: EncoderConfig,
-        encoderName: String
+        encoderName: String,
+        baseFormat: MediaFormat
     ): MediaCodec {
         val profiles = listOf(
             MediaCodecInfo.CodecProfileLevel.AVCProfileMain to "MAIN",
             MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline to "BASELINE"
         )
         
-        for ((profile, profileName) in profiles) {
-            try {
-                val format = createEncoderFormat(config)
-                format.setInteger(MediaFormat.KEY_PROFILE, profile)
-                
-                val encoder = MediaCodec.createByCodecName(encoderName)
-                applyEncoderCapabilities(encoderName, config.mime, format)
-                encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
-                Log.d(TAG, "Successfully configured encoder with $profileName profile")
-                return encoder
-            } catch (e: MediaCodec.CodecException) {
-                Log.w(TAG, "Failed to configure with $profileName profile: ${e.errorCode}")
-                // Continue to next profile
-            }
-        }
-        
-        throw RuntimeException("Failed to configure encoder with any profile")
-    }
-    
-    private fun createSoftwareEncoder(config: EncoderConfig): MediaCodec {
-        Log.d(TAG, "Using software encoder")
-        val format = createEncoderFormat(config)
-        
-        // For software encoder, use BASELINE profile which is most compatible
-        if (config.codec == "h264") {
-            format.setInteger(
-                MediaFormat.KEY_PROFILE,
-                MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
+        // For OPPO devices, prioritize CBR mode
+        val bitrateModes = if (isOppoDevice) {
+            listOf(
+                MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR to "CBR",
+                null to "NONE" // Try without bitrate mode as last resort
+            )
+        } else {
+            listOf(
+                MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR to "CBR",
+                null to "NONE" // Try without bitrate mode
             )
         }
         
-        val encoder = MediaCodec.createEncoderByType(config.mime)
-        encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+        // Try all combinations of profile and bitrate mode
+        for ((profile, profileName) in profiles) {
+            for ((bitrateMode, modeName) in bitrateModes) {
+                try {
+                    // Create format copy to preserve color space from original format
+                    val format = MediaFormat()
+                    format.setString(MediaFormat.KEY_MIME, config.mime)
+                    format.setInteger(MediaFormat.KEY_WIDTH, config.width)
+                    format.setInteger(MediaFormat.KEY_HEIGHT, config.height)
+                    format.setInteger(MediaFormat.KEY_BIT_RATE, baseFormat.getInteger(MediaFormat.KEY_BIT_RATE))
+                    format.setInteger(MediaFormat.KEY_FRAME_RATE, DEFAULT_FRAME_RATE)
+                    format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, DEFAULT_I_FRAME_INTERVAL)
+                    format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
+                    
+                    // Copy color space parameters from base format to prevent color inversion
+                    // Use defaults if missing (important for OPPO devices)
+                    val colorRange = if (baseFormat.containsKey(MediaFormat.KEY_COLOR_RANGE)) {
+                        baseFormat.getInteger(MediaFormat.KEY_COLOR_RANGE)
+                    } else {
+                        MediaFormat.COLOR_RANGE_LIMITED
+                    }
+                    format.setInteger(MediaFormat.KEY_COLOR_RANGE, colorRange)
+                    
+                    val colorStandard = if (baseFormat.containsKey(MediaFormat.KEY_COLOR_STANDARD)) {
+                        baseFormat.getInteger(MediaFormat.KEY_COLOR_STANDARD)
+                    } else {
+                        MediaFormat.COLOR_STANDARD_BT709
+                    }
+                    format.setInteger(MediaFormat.KEY_COLOR_STANDARD, colorStandard)
+                    
+                    val colorTransfer = if (baseFormat.containsKey(MediaFormat.KEY_COLOR_TRANSFER)) {
+                        baseFormat.getInteger(MediaFormat.KEY_COLOR_TRANSFER)
+                    } else {
+                        MediaFormat.COLOR_TRANSFER_SDR_VIDEO
+                    }
+                    format.setInteger(MediaFormat.KEY_COLOR_TRANSFER, colorTransfer)
+                    
+                    format.setInteger(MediaFormat.KEY_PROFILE, profile)
+                    
+                    if (bitrateMode != null) {
+                        format.setInteger(MediaFormat.KEY_BITRATE_MODE, bitrateMode)
+                    }
+                    // Don't call applyEncoderCapabilities as we're setting bitrate mode manually
+                    
+                    val encoder = MediaCodec.createByCodecName(encoderName)
+                    encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+                    Log.d(TAG, "Successfully configured encoder with $profileName profile and $modeName bitrate mode")
+                    return encoder
+                } catch (e: MediaCodec.CodecException) {
+                    Log.w(TAG, "Failed to configure with $profileName profile and $modeName bitrate mode: ${e.errorCode}")
+                    // Continue to next combination
+                }
+            }
+        }
         
-        return encoder
+        throw RuntimeException("Failed to configure encoder with any profile/bitrate combination")
+    }
+    
+    private fun createSoftwareEncoder(config: EncoderConfig): MediaCodec {
+        val format = createEncoderFormat(config)
+        return createSoftwareEncoderWithFormat(config, format)
+    }
+    
+    private fun createSoftwareEncoderWithFormat(config: EncoderConfig, baseFormat: MediaFormat): MediaCodec {
+        Log.d(TAG, "Using software encoder")
+        
+        // Extract bitrate from base format or calculate it
+        val bitrate = if (baseFormat.containsKey(MediaFormat.KEY_BIT_RATE)) {
+            baseFormat.getInteger(MediaFormat.KEY_BIT_RATE)
+        } else {
+            val baseBitrate = calculateTargetBitrate(config.width, config.height, DEFAULT_FRAME_RATE, config.quality)
+            if (isOppoDevice) {
+                (baseBitrate * 0.85).toInt() // Reduce bitrate by 15% for OPPO devices
+            } else {
+                baseBitrate
+            }
+        }
+        
+        // Try multiple configurations with increasing compatibility
+        val configurations = listOf(
+            // Configuration 1: BASELINE profile, CBR mode (most compatible)
+            { format: MediaFormat ->
+                if (config.codec == "h264") {
+                    format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline)
+                }
+                format.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR)
+            },
+            // Configuration 2: BASELINE profile, no bitrate mode
+            { format: MediaFormat ->
+                if (config.codec == "h264") {
+                    format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline)
+                }
+                // Don't set bitrate mode - let encoder choose
+            },
+            // Configuration 3: No profile, CBR mode
+            { format: MediaFormat ->
+                format.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR)
+                // Don't set profile - let encoder choose
+            },
+            // Configuration 4: Minimal configuration (no profile, no bitrate mode)
+            { format: MediaFormat ->
+                // Minimal configuration - only basic settings from baseFormat
+            }
+        )
+        
+        for ((index, configModifier) in configurations.withIndex()) {
+            try {
+                // Create a copy of the base format for this configuration
+                val format = MediaFormat()
+                format.setString(MediaFormat.KEY_MIME, config.mime)
+                format.setInteger(MediaFormat.KEY_WIDTH, config.width)
+                format.setInteger(MediaFormat.KEY_HEIGHT, config.height)
+                format.setInteger(MediaFormat.KEY_BIT_RATE, bitrate)
+                format.setInteger(MediaFormat.KEY_FRAME_RATE, DEFAULT_FRAME_RATE)
+                format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, DEFAULT_I_FRAME_INTERVAL)
+                format.setInteger(
+                    MediaFormat.KEY_COLOR_FORMAT,
+                    MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
+                )
+                
+                // Copy color space parameters from base format to prevent color inversion
+                if (baseFormat.containsKey(MediaFormat.KEY_COLOR_RANGE)) {
+                    format.setInteger(MediaFormat.KEY_COLOR_RANGE, baseFormat.getInteger(MediaFormat.KEY_COLOR_RANGE))
+                }
+                if (baseFormat.containsKey(MediaFormat.KEY_COLOR_STANDARD)) {
+                    format.setInteger(MediaFormat.KEY_COLOR_STANDARD, baseFormat.getInteger(MediaFormat.KEY_COLOR_STANDARD))
+                }
+                if (baseFormat.containsKey(MediaFormat.KEY_COLOR_TRANSFER)) {
+                    format.setInteger(MediaFormat.KEY_COLOR_TRANSFER, baseFormat.getInteger(MediaFormat.KEY_COLOR_TRANSFER))
+                }
+                
+                // Apply configuration-specific settings
+                configModifier(format)
+                
+                val encoder = MediaCodec.createEncoderByType(config.mime)
+                encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+                Log.d(TAG, "Software encoder configured successfully with config ${index + 1}")
+                return encoder
+            } catch (e: MediaCodec.CodecException) {
+                Log.w(TAG, "Software encoder config ${index + 1} failed: ${e.errorCode}")
+                if (index == configurations.size - 1) {
+                    // Last attempt failed, throw the exception
+                    throw e
+                }
+                // Continue to next configuration
+            }
+        }
+        
+        throw RuntimeException("All software encoder configurations failed")
     }
     
     private fun createEncoderFormat(config: EncoderConfig): MediaFormat {
@@ -487,8 +680,15 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
 
         when (config.codec) {
             "h264" -> {
-                val supportedProfile = getSupportedH264Profile(config.mime, config.width, config.height)
-                format.setInteger(MediaFormat.KEY_PROFILE, supportedProfile)
+                // For OPPO devices, force MAIN profile to avoid configuration failures
+                // OPPO encoders often fail with HIGH profile even if they claim to support it
+                val profile = if (isOppoDevice) {
+                    Log.d(TAG, "Forcing MAIN profile for OPPO device")
+                    MediaCodecInfo.CodecProfileLevel.AVCProfileMain
+                } else {
+                    getSupportedH264Profile(config.mime, config.width, config.height)
+                }
+                format.setInteger(MediaFormat.KEY_PROFILE, profile)
             }
 
             "hevc" -> format.setInteger(
@@ -512,16 +712,31 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         val capabilities = codecInfo.getCapabilitiesForType(mime)?.encoderCapabilities ?: return
 
         val supportsVbr = capabilities.isBitrateModeSupported(MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR)
+        val supportsCbr = capabilities.isBitrateModeSupported(MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR)
 
+        // For OPPO devices, force CBR mode to avoid configuration failures
+        // OPPO encoders often reject VBR mode even if they claim to support it
         val bitrateMode = when {
+            isOppoDevice -> {
+                if (supportsCbr) {
+                    Log.d(TAG, "Forcing Constant Bitrate (CBR) mode for OPPO device")
+                    MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR
+                } else {
+                    Log.w(TAG, "OPPO device doesn't support CBR, skipping bitrate mode setting")
+                    return // Don't set bitrate mode if CBR is not supported
+                }
+            }
             supportsVbr -> {
                 Log.d(TAG, "Selecting Variable Bitrate (VBR) mode")
                 MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR
             }
-
-            else -> {
+            supportsCbr -> {
                 Log.d(TAG, "Selecting Constant Bitrate (CBR) mode")
                 MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR
+            }
+            else -> {
+                Log.w(TAG, "No supported bitrate mode found, skipping bitrate mode setting")
+                return // Don't set bitrate mode if neither is supported
             }
         }
         format.setInteger(MediaFormat.KEY_BITRATE_MODE, bitrateMode)
