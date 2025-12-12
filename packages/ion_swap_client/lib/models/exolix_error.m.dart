@@ -14,6 +14,5 @@ class ExolixError with _$ExolixError {
     required num minAmount,
   }) = _ExolixError;
 
-  factory ExolixError.fromJson(Map<String, dynamic> json) =>
-      _$ExolixErrorFromJson(json);
+  factory ExolixError.fromJson(Map<String, dynamic> json) => _$ExolixErrorFromJson(json);
 }

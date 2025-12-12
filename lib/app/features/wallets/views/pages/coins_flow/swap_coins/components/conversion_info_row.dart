@@ -134,7 +134,7 @@ class _ErrorState extends StatelessWidget {
         ),
       InsufficientBalanceException() => context.i18n.error_swap_82000,
       final AmountBelowMinimumException ex =>
-          context.i18n.error_swap_amount_below_min(ex.minAmount, ex.symbol),
+        context.i18n.error_swap_amount_below_min(ex.minAmount, ex.symbol),
       _ => context.i18n.error_getting_swap_quote,
     };
   }
