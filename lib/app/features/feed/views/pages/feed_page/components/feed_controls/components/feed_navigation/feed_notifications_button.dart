@@ -16,6 +16,8 @@ class FeedNotificationsButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // List on NotificationTab page is destroyed when we leave the page,
+    // but we have to keep blocked users entities for quick access
     return ListCachedObjectsWrapper(
       child: Stack(
         clipBehavior: Clip.none,
