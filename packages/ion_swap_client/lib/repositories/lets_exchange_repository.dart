@@ -54,9 +54,7 @@ class LetsExchangeRepository {
           final letsExchangeError = LetsExchangeError.fromJson(errorData);
 
           // Check if error message indicates pair unavailability
-          // TODO: Improve the error identification
-          if (!letsExchangeError.success &&
-              letsExchangeError.error.toLowerCase().contains('unavailable')) {
+          if (letsExchangeError.error.toLowerCase().contains('unavailable')) {
             throw LetsExchangePairUnavailableException(
               fromCoin: from,
               toCoin: to,
@@ -65,9 +63,6 @@ class LetsExchangeRepository {
               message: letsExchangeError.error,
             );
           }
-
-          // Other LetsExchange errors
-          throw LetsExchangeException(letsExchangeError.error);
         } catch (e) {
           // If parsing fails, rethrow as generic exception
           if (e is LetsExchangeException) rethrow;

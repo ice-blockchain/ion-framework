@@ -54,10 +54,13 @@ class ExolixRepository {
       if (e.response?.statusCode == 422 && e.response?.data != null) {
         final errorData = e.response!.data as Map<String, dynamic>;
         final exolixError = ExolixError.fromJson(errorData);
-        throw ExolixBelowMinimumException(
-          minAmount: exolixError.minAmount,
-          message: exolixError.message,
-        );
+
+        if (exolixError.message.toLowerCase().contains('below the possible min')) {
+          throw ExolixBelowMinimumException(
+            minAmount: exolixError.minAmount,
+            message: exolixError.message,
+          );
+        }
       }
       rethrow;
     }

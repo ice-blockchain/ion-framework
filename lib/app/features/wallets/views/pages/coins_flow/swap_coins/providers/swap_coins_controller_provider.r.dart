@@ -23,9 +23,6 @@ import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/exceptions/exolix_exceptions.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
-import 'package:ion_swap_client/exceptions/lets_exchange_exceptions.dart';
-import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
-import 'package:ion_swap_client/exceptions/relay_exception.dart';
 import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/swap_coin.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
@@ -479,9 +476,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       );
 
       final isValidAmount = _validateAmount(swapCoinParameters.amount, swapQuoteInfo);
-      if (!isValidAmount) {
-        return;
-      }
+      if (!isValidAmount) return;
 
       state = state.copyWith(
         isQuoteLoading: false,
@@ -489,8 +484,6 @@ class SwapCoinsController extends _$SwapCoinsController {
         quoteError: null,
       );
     } catch (e, stackTrace) {
-      Exception? quoteError;
-
       if (e is ExolixBelowMinimumException) {
         state = state.copyWith(
           isQuoteLoading: false,
@@ -503,20 +496,13 @@ class SwapCoinsController extends _$SwapCoinsController {
         return;
       }
 
-      if (e is OkxException ||
-          e is RelayException ||
-          e is ExolixException ||
-          e is LetsExchangeException ||
-          e is IonSwapException) {
-        quoteError = e as Exception;
-      }
-
       state = state.copyWith(
         isQuoteLoading: false,
         swapQuoteInfo: null,
-        quoteError: quoteError,
+        quoteError: e as Exception,
       );
 
+      // Avoid logging expected exceptions
       if (e is! IonSwapException) {
         await SentryService.logException(
           e,
