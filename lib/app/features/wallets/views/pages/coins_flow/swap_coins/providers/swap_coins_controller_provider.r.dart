@@ -19,6 +19,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/excep
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
+import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
 import 'package:ion_swap_client/exceptions/relay_exception.dart';
@@ -36,6 +37,7 @@ typedef OnVerifyIdentitySwapCallback = Future<void> Function(SendAssetFormData);
 @Riverpod(keepAlive: true)
 class SwapCoinsController extends _$SwapCoinsController {
   Timer? _debounceTimer;
+  static const _lastSellCoinKey = 'Swap:lastSellCoinSymbolGroup';
 
   @override
   SwapCoinData build() => SwapCoinData();
@@ -45,8 +47,10 @@ class SwapCoinsController extends _$SwapCoinsController {
     required NetworkData? network,
   }) =>
       state = state.copyWith(
-        sellCoin: coin,
-        sellNetwork: network,
+        sellCoin: coin ?? _resolveDefaultSellCoin(),
+        sellNetwork: coin != null
+            ? network ?? coin.coins.firstOrNull?.coin.network
+            : network ?? _resolveDefaultSellNetwork(),
         buyCoin: null,
         buyNetwork: null,
         swapQuoteInfo: null,
@@ -105,6 +109,10 @@ class SwapCoinsController extends _$SwapCoinsController {
     state = state.copyWith(
       sellCoin: coin,
     );
+
+    if (coin != null) {
+      _persistLastSellCoin(coin.symbolGroup);
+    }
   }
 
   void setSellNetwork(NetworkData? network) {
@@ -189,6 +197,9 @@ class SwapCoinsController extends _$SwapCoinsController {
         case CoinSwapType.buy:
           setBuyNetwork(result);
       }
+      if (type == CoinSwapType.sell) {
+        _persistLastSellCoin(coin.symbolGroup);
+      }
       return (
         coin: switch (type) {
           CoinSwapType.sell => state.sellCoin,
@@ -210,6 +221,33 @@ class SwapCoinsController extends _$SwapCoinsController {
       }
       return (coin: null, network: null);
     }
+  }
+
+  CoinsGroup? _resolveDefaultSellCoin() {
+    final localStorage = ref.read(localStorageProvider);
+    final lastSymbolGroup = localStorage.getString(_lastSellCoinKey);
+
+    final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
+    final coinGroups = walletView?.coinGroups;
+    if (coinGroups == null || coinGroups.isEmpty) return null;
+
+    // Try last used sell coin first
+    final lastUsed = coinGroups.firstWhereOrNull(
+      (group) => group.symbolGroup == lastSymbolGroup,
+    );
+    if (lastUsed != null) return lastUsed;
+
+    // Otherwise pick the coin with the highest balance
+    return maxBy<CoinsGroup, double>(coinGroups, (g) => g.totalAmount);
+  }
+
+  NetworkData? _resolveDefaultSellNetwork() {
+    final sellCoin = _resolveDefaultSellCoin();
+    return sellCoin?.coins.firstOrNull?.coin.network;
+  }
+
+  void _persistLastSellCoin(String symbolGroup) {
+    ref.read(localStorageProvider).setString(_lastSellCoinKey, symbolGroup);
   }
 
   Future<SwapCoinParameters?> _buildSwapCoinParameters({
