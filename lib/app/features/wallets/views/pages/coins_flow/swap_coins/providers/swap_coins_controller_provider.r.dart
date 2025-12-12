@@ -55,6 +55,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         isQuoteLoading: false,
         quoteAmount: null,
         quoteError: null,
+        isSwapLoading: false,
       );
 
   void setSlippage(double slippagePercent) {
@@ -280,8 +281,10 @@ class SwapCoinsController extends _$SwapCoinsController {
     required OnVerifyIdentitySwapCallback onVerifyIdentitySwapCallback,
     required VoidCallback onSwapSuccess,
     required VoidCallback onSwapError,
+    required VoidCallback onSwapStart,
   }) async {
     try {
+      state = state.copyWith(isSwapLoading: true);
       final (:swapQuoteInfo, :swapCoinParameters, :sellNetwork, :sellCoin) = await _getData();
       final swapController = await ref.read(ionSwapClientProvider.future);
 
@@ -293,6 +296,8 @@ class SwapCoinsController extends _$SwapCoinsController {
           required num amount,
         }) async {
           try {
+            onSwapStart();
+
             final sellAddress = swapCoinParameters.userSellAddress;
             if (sellAddress == null) {
               onSwapError();
@@ -328,6 +333,8 @@ class SwapCoinsController extends _$SwapCoinsController {
       throw Exception(
         'Failed to swap coins: $e',
       );
+    } finally {
+      state = state.copyWith(isSwapLoading: false);
     }
   }
 
@@ -489,6 +496,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     required UserActionSignerNew userActionSigner,
     required VoidCallback onSwapSuccess,
     required VoidCallback onSwapError,
+    required VoidCallback onSwapStart,
   }) async {
     final swapController = await ref.read(ionSwapClientProvider.future);
     final (:swapQuoteInfo, :swapCoinParameters, :sellNetwork, :sellCoin) = await _getData();
@@ -519,6 +527,8 @@ class SwapCoinsController extends _$SwapCoinsController {
     );
 
     try {
+      onSwapStart();
+
       await swapController.swapCoins(
         swapCoinData: swapCoinParameters,
         sendCoinCallback: ({required String depositAddress, required num amount}) async {
@@ -606,6 +616,7 @@ class SwapCoinsWithIonBscSwap extends _$SwapCoinsWithIonBscSwap {
     required UserActionSignerNew userActionSigner,
     required VoidCallback onSwapSuccess,
     required VoidCallback onSwapError,
+    required VoidCallback onSwapStart,
   }) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
@@ -613,6 +624,7 @@ class SwapCoinsWithIonBscSwap extends _$SwapCoinsWithIonBscSwap {
             userActionSigner: userActionSigner,
             onSwapSuccess: onSwapSuccess,
             onSwapError: onSwapError,
+            onSwapStart: onSwapStart,
           );
     });
   }

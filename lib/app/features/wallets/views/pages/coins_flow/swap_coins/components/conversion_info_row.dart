@@ -56,9 +56,11 @@ class ConversionInfoRow extends HookConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            '1 ${sellCoin.name} = ${swapQuoteInfo.priceForSellTokenInBuyToken.formatMax6} ${buyCoin.name}',
-            style: textStyles.body2.copyWith(),
+          Expanded(
+            child: Text(
+              '1 ${sellCoin.name} = ${swapQuoteInfo.priceForSellTokenInBuyToken.formatMax6} ${buyCoin.name}',
+              style: textStyles.body2.copyWith(),
+            ),
           ),
           Row(
             spacing: 4.0.s,

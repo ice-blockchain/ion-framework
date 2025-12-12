@@ -10,6 +10,7 @@ part 'swap_coin_data.f.freezed.dart';
 @freezed
 class SwapCoinData with _$SwapCoinData {
   factory SwapCoinData({
+    @Default(false) bool isSwapLoading,
     CoinsGroup? sellCoin,
     NetworkData? sellNetwork,
     CoinsGroup? buyCoin,

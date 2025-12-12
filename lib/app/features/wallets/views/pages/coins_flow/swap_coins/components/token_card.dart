@@ -223,59 +223,61 @@ class TokenCard extends ConsumerWidget {
                       ),
                     ),
                   ),
-                SizedBox(
-                  width: 150.0.s,
-                  child: TextFormField(
-                    controller: controller,
-                    readOnly: isReadOnly ?? coinsGroup == null,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    autovalidateMode: AutovalidateMode.always,
-                    style: textStyles.headline2.copyWith(
-                      color: colors.primaryText,
-                    ),
-                    inputFormatters: [
-                      CoinInputFormatter(),
-                    ],
-                    textAlign: TextAlign.end,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: '0.00',
-                      hintStyle: textStyles.headline2.copyWith(
-                        color: colors.tertiaryText,
+                Expanded(
+                  child: SizedBox(
+                    width: 150.0.s,
+                    child: TextFormField(
+                      controller: controller,
+                      readOnly: isReadOnly ?? coinsGroup == null,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      autovalidateMode: AutovalidateMode.always,
+                      style: textStyles.headline2.copyWith(
+                        color: colors.primaryText,
                       ),
-                      isDense: true,
-                      errorStyle: textStyles.caption2.copyWith(
-                        color: colors.attentionRed,
+                      inputFormatters: [
+                        CoinInputFormatter(),
+                      ],
+                      textAlign: TextAlign.end,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: '0.00',
+                        hintStyle: textStyles.headline2.copyWith(
+                          color: colors.tertiaryText,
+                        ),
+                        isDense: true,
+                        errorStyle: textStyles.caption2.copyWith(
+                          color: colors.attentionRed,
+                        ),
                       ),
-                    ),
-                    validator: (value) {
-                      final trimmedValue = value?.trim() ?? '';
-                      if (trimmedValue.isEmpty) return null;
+                      validator: (value) {
+                        final trimmedValue = value?.trim() ?? '';
+                        if (trimmedValue.isEmpty) return null;
 
-                      final parsed = parseAmount(trimmedValue);
-                      if (parsed == null) return '';
+                        final parsed = parseAmount(trimmedValue);
+                        if (parsed == null) return '';
 
-                      final maxValue = coinsGroup?.totalAmount;
-                      if (maxValue != null && (parsed > maxValue || parsed < 0)) {
-                        return context.i18n.wallet_coin_amount_insufficient_funds;
-                      } else if (parsed < 0) {
-                        return context.i18n.wallet_coin_amount_must_be_positive;
-                      }
-
-                      // If we know decimals for the selected network, enforce min amount check
-                      final coinForNetwork = coinsGroup?.coins.firstWhereOrNull(
-                        (CoinInWalletData c) => c.coin.network.id == network?.id,
-                      );
-                      final decimals = coinForNetwork?.coin.decimals;
-                      if (decimals != null) {
-                        final amount = toBlockchainUnits(parsed, decimals);
-                        if (amount == BigInt.zero && parsed > 0) {
-                          return context.i18n.wallet_coin_amount_too_low_for_sending;
+                        final maxValue = coinsGroup?.totalAmount;
+                        if (maxValue != null && (parsed > maxValue || parsed < 0)) {
+                          return context.i18n.wallet_coin_amount_insufficient_funds;
+                        } else if (parsed < 0) {
+                          return context.i18n.wallet_coin_amount_must_be_positive;
                         }
-                      }
 
-                      return null;
-                    },
+                        // If we know decimals for the selected network, enforce min amount check
+                        final coinForNetwork = coinsGroup?.coins.firstWhereOrNull(
+                          (CoinInWalletData c) => c.coin.network.id == network?.id,
+                        );
+                        final decimals = coinForNetwork?.coin.decimals;
+                        if (decimals != null) {
+                          final amount = toBlockchainUnits(parsed, decimals);
+                          if (amount == BigInt.zero && parsed > 0) {
+                            return context.i18n.wallet_coin_amount_too_low_for_sending;
+                          }
+                        }
+
+                        return null;
+                      },
+                    ),
                   ),
                 ),
               ],
