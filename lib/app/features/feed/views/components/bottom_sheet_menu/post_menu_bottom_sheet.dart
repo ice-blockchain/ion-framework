@@ -74,9 +74,7 @@ class PostMenuBottomSheet extends ConsumerWidget {
     // Not Interested menu item
     if (showNotInterested) {
       menuItemsComplainGroup.add(
-        _NotInterestedMenuItem(
-          pubkey: eventReference.masterPubkey,
-        ),
+        _NotInterestedMenuItem(masterPubkey: eventReference.masterPubkey),
       );
     }
     // Block/Unblock menu item
@@ -285,17 +283,21 @@ class _BlockUserMenuItem extends ConsumerWidget {
 
 class _NotInterestedMenuItem extends ConsumerWidget {
   const _NotInterestedMenuItem({
-    required this.pubkey,
+    required this.masterPubkey,
   });
 
-  final String pubkey;
+  final String masterPubkey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListItem(
-      onTap: () {
-        Navigator.of(context).pop();
-        ref.read(mutedUsersProvider.notifier).toggleMutedMasterPubkey(pubkey);
+      onTap: () async {
+        final muteUserService = await ref.read(muteUserServiceProvider.future);
+        unawaited(muteUserService.toggleMutedUser(masterPubkey));
+
+        if (context.mounted) {
+          context.pop();
+        }
       },
       leading: OutlinedIcon(
         icon: Assets.svg.iconNotinterested.icon(

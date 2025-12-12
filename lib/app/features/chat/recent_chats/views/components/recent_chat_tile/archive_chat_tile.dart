@@ -39,7 +39,7 @@ class ArchiveChatTile extends HookConsumerWidget {
       [conversations],
     );
 
-    final mutedConversationIds = ref.watch(mutedConversationIdsProvider).valueOrNull;
+    final mutedConversationIds = ref.watch(mutedConversationsProvider).valueOrNull;
     final hasMutedConversation = useMemoized(
       () {
         final archiveConversationIds = conversations.map((e) => e.conversationId).toList();

@@ -33,11 +33,7 @@ class UserArchiveEventDao extends DatabaseAccessor<UserArchiveDatabase>
       ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
       ..limit(1);
 
-    return query.watch().map(
-          (rows) => rows.map((row) {
-            return row.toEventMessage();
-          }).firstOrNull,
-        );
+    return query.watchSingleOrNull().map((row) => row?.toEventMessage());
   }
 
   Future<bool> hasAnyArchiveEvent() async {

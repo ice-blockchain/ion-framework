@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:collection/collection.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -39,11 +40,9 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
     final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
     final receiverMasterPubkey = conversation.receiverMasterPubkey(currentUserMasterPubkey);
 
-    final isMuted = ref
-            .watch(mutedConversationIdsProvider)
-            .valueOrNull
-            ?.contains(conversation.conversationId) ??
-        false;
+    final isMuted =
+        ref.watch(mutedConversationsProvider).valueOrNull?.contains(conversation.conversationId) ??
+            false;
 
     final isBlocked = receiverMasterPubkey == null
         ? false
@@ -87,20 +86,22 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
                           .icon(size: iconSize, color: context.theme.appColors.quaternaryText)
                       : Assets.svg.iconChannelMute
                           .icon(size: iconSize, color: context.theme.appColors.quaternaryText),
-                  onPressed: () {
-                    final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
-                    final receiverPubkey = ReplaceablePrivateDirectMessageData.fromEventMessage(
-                      conversation.latestMessage!,
-                    ).relatedPubkeys?.firstWhereOrNull((p) => p.value != currentUserPubkey)?.value;
+                  onPressed: () async {
+                    final receiverMasterPubkey =
+                        conversation.receiverMasterPubkey(currentUserMasterPubkey);
 
-                    if (receiverPubkey == null) {
-                      return;
+                    if (receiverMasterPubkey == null) return;
+
+                    final muteConversationService =
+                        await ref.read(muteConversationServiceProvider.future);
+
+                    unawaited(
+                      muteConversationService.toggleMutedConversation(receiverMasterPubkey),
+                    );
+
+                    if (context.mounted) {
+                      context.pop();
                     }
-
-                    ref
-                        .read(mutedConversationsProvider.notifier)
-                        .toggleMutedMasterPubkey(receiverPubkey);
-                    Navigator.of(context).pop();
                   },
                 ),
                 if (isBlocked != null && currentUserMasterPubkey != null)
