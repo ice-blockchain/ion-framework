@@ -12,6 +12,7 @@ class RelayQuote with _$RelayQuote {
   factory RelayQuote({
     required RelayQuoteDetails details,
     required List<RelayStep> steps,
+    @JsonKey(name: 'fees') Map<String, dynamic>? fees,
   }) = _RelayQuote;
 
   factory RelayQuote.fromJson(Map<String, dynamic> json) => _$RelayQuoteFromJson(json);

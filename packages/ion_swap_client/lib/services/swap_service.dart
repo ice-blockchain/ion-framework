@@ -98,12 +98,44 @@ class SwapService {
       if (swapCoinData.isBridge) {
         final quote = await _bridgeService.getQuote(swapCoinData);
 
+        // Extract fees from Relay API response
+        String? networkFee;
+        String? protocolFee;
+        int? swapImpact;
+
+        if (quote.fees != null) {
+          // Extract network fee from fees.gas
+          final gasFee = quote.fees!['gas'] as Map<String, dynamic>?;
+          if (gasFee != null) {
+            networkFee = gasFee['amountFormatted'] as String? ?? gasFee['amount']?.toString();
+          }
+
+          // Extract protocol fee from fees.relayer or fees.relayerService
+          final relayerFee = quote.fees!['relayer'] as Map<String, dynamic>?;
+          final relayerServiceFee = quote.fees!['relayerService'] as Map<String, dynamic>?;
+          if (relayerFee != null) {
+            protocolFee =
+                relayerFee['amountFormatted'] as String? ?? relayerFee['amount']?.toString();
+          } else if (relayerServiceFee != null) {
+            protocolFee = relayerServiceFee['amountFormatted'] as String? ??
+                relayerServiceFee['amount']?.toString();
+          }
+        }
+
+        // Extract price impact from details if available
+        if (quote.details.priceImpact != null) {
+          swapImpact = int.tryParse(quote.details.priceImpact!);
+        }
+
         return SwapQuoteInfo(
           type: SwapQuoteInfoType.bridge,
           priceForSellTokenInBuyToken: double.parse(quote.details.rate),
           source: SwapQuoteInfoSource.relay,
           relayQuote: quote,
           relayDepositAmount: swapCoinData.amount,
+          swapImpact: swapImpact,
+          networkFee: networkFee,
+          protocolFee: protocolFee,
         );
       }
 
@@ -118,6 +150,10 @@ class SwapService {
           priceForSellTokenInBuyToken: quote.priceForSellTokenInBuyToken,
           source: SwapQuoteInfoSource.okx,
           okxQuote: quote,
+          swapImpact:
+              quote.priceImpactPercent != null ? int.tryParse(quote.priceImpactPercent!) : null,
+          networkFee: quote.estimateGasFee,
+          protocolFee: quote.tradeFee,
         );
       }
 

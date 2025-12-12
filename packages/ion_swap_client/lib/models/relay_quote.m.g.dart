@@ -13,10 +13,12 @@ _$RelayQuoteImpl _$$RelayQuoteImplFromJson(Map<String, dynamic> json) =>
       steps: (json['steps'] as List<dynamic>)
           .map((e) => RelayStep.fromJson(e as Map<String, dynamic>))
           .toList(),
+      fees: json['fees'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$$RelayQuoteImplToJson(_$RelayQuoteImpl instance) =>
     <String, dynamic>{
       'details': instance.details,
       'steps': instance.steps,
+      'fees': instance.fees,
     };
