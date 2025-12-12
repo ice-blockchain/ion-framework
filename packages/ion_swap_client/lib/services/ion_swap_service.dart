@@ -82,7 +82,6 @@ class IonSwapService {
       tokenDecimals: swapCoinData.sellCoin.decimal,
     );
 
-
     final txHash = await _swap(
       direction: direction,
       amountIn: amountIn,

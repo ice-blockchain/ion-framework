@@ -82,7 +82,9 @@ class TokenCard extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                type == CoinSwapType.sell ? context.i18n.wallet_swap_coins_sell : context.i18n.wallet_swap_coins_buy,
+                type == CoinSwapType.sell
+                    ? context.i18n.wallet_swap_coins_sell
+                    : context.i18n.wallet_swap_coins_buy,
                 style: textStyles.subtitle3.copyWith(
                   color: colors.onTertiaryBackground,
                 ),
@@ -175,7 +177,8 @@ class TokenCard extends ConsumerWidget {
                               width: 40.0.s,
                               height: 40.0.s,
                               fit: BoxFit.cover,
-                              errorBuilder: avatarWidget != null ? (_, __, ___) => avatarWidget! : null,
+                              errorBuilder:
+                                  avatarWidget != null ? (_, __, ___) => avatarWidget! : null,
                             ),
                           ),
                         ),
@@ -357,7 +360,9 @@ class TokenCard extends ConsumerWidget {
                     ),
                     Flexible(
                       child: Text(
-                        coinsGroup != null ? '${coinsGroup!.totalAmount} ${coinsGroup!.abbreviation}' : '0.00',
+                        coinsGroup != null
+                            ? '${coinsGroup!.totalAmount} ${coinsGroup!.abbreviation}'
+                            : '0.00',
                         style: textStyles.caption2.copyWith(
                           color: colors.tertiaryText,
                         ),
