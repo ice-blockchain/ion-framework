@@ -51,7 +51,6 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_builder_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/features/user/providers/verified_user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -341,7 +340,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
 
     // We don't create a token definition for replies and stories
     if (parentEntity == null && postData.expiration == null) {
-      final tokenDefinition = await _buildPostTokenDefinition(postData);
+      final tokenDefinition = _buildPostTokenDefinition(postData);
       final tokenDefinitionEvent = await ionNotifier.sign(tokenDefinition);
       ownEventsToPublish.add(tokenDefinitionEvent);
     }
@@ -605,21 +604,21 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         .updateInterests(interaction, interactionCategories);
   }
 
-  Future<CommunityTokenDefinition> _buildPostTokenDefinition(ModifiablePostData postData) async {
+  CommunityTokenDefinition _buildPostTokenDefinition(ModifiablePostData postData) {
     final currentPubkey = ref.read(currentPubkeySelectorProvider);
 
     if (currentPubkey == null) {
       throw UserMasterPubkeyNotFoundException();
     }
 
-    final communityTokenDefinitionBuilder = ref.read(communityTokenDefinitionBuilderProvider);
-    return communityTokenDefinitionBuilder.build(
-      origEventReference: ReplaceableEventReference(
+    return CommunityTokenDefinitionIon.fromEventReference(
+      eventReference: ReplaceableEventReference(
         masterPubkey: currentPubkey,
-        kind: PostEntity.kind,
+        kind: ModifiablePostEntity.kind,
         dTag: postData.replaceableEventId.value,
       ),
-      type: CommunityTokenDefinitionType.original,
+      kind: ModifiablePostEntity.kind,
+      type: CommunityTokenDefinitionIonType.original,
     );
   }
 }

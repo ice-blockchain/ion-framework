@@ -16,7 +16,6 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.da
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_builder_provider.r.dart';
 import 'package:ion/app/features/user/model/badges/profile_badges.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/interest_set.f.dart';
@@ -90,7 +89,7 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
 
         final followList = _buildFollowList(updateUserSocialProfileResponse.referralMasterKey);
 
-        final userTokenDefinition = await _buildUserTokenDefinition();
+        final userTokenDefinition = _buildUserTokenDefinition();
 
         await ref.read(ionConnectNotifierProvider.notifier).sendEntitiesData(
           [
@@ -250,18 +249,18 @@ class OnboardingCompleteNotifier extends _$OnboardingCompleteNotifier {
     return (interestSetData: interestSetData, interestsData: interestsData);
   }
 
-  Future<CommunityTokenDefinition> _buildUserTokenDefinition() async {
+  CommunityTokenDefinition _buildUserTokenDefinition() {
     final currentPubkey = ref.read(currentPubkeySelectorProvider);
 
     if (currentPubkey == null) {
       throw UserMasterPubkeyNotFoundException();
     }
 
-    final communityTokenDefinitionBuilder = ref.read(communityTokenDefinitionBuilderProvider);
-    return communityTokenDefinitionBuilder.build(
-      origEventReference:
+    return CommunityTokenDefinitionIon.fromEventReference(
+      eventReference:
           ReplaceableEventReference(masterPubkey: currentPubkey, kind: UserMetadataEntity.kind),
-      type: CommunityTokenDefinitionType.original,
+      kind: UserMetadataEntity.kind,
+      type: CommunityTokenDefinitionIonType.original,
     );
   }
 

@@ -19,17 +19,15 @@ class CommunityTokenLiveBody extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenAsync = ref.watch(TokenMarketInfoProvider(entity.data.tokenAddress));
+    final tokenMarketInfo =
+        ref.watch(tokenMarketInfoProvider(entity.data.externalAddress)).valueOrNull;
     final height = 329.s;
 
-    if (tokenAsync.valueOrNull == null) {
-      return SizedBox(
-        height: height,
-      );
+    if (tokenMarketInfo == null) {
+      return SizedBox(height: height);
     }
 
-    final token = tokenAsync.valueOrNull!;
-    final avatarColors = useImageColors(token.imageUrl);
+    final avatarColors = useImageColors(tokenMarketInfo.imageUrl);
 
     return SizedBox(
       height: height,
@@ -42,7 +40,7 @@ class CommunityTokenLiveBody extends HookConsumerWidget {
             child: Center(
               child: TokenHeader(
                 type: TokenHeaderType.feed,
-                token: token,
+                token: tokenMarketInfo,
               ),
             ),
           ),

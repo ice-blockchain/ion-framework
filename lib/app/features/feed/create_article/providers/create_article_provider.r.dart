@@ -35,7 +35,6 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_builder_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/markdown/quill.dart';
@@ -306,7 +305,7 @@ class CreateArticle extends _$CreateArticle {
 
     final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
 
-    final tokenDefinition = await _buildArticleTokenDefinition(articleData);
+    final tokenDefinition = _buildArticleTokenDefinition(articleData);
     final tokenDefinitionEvent = await ionNotifier.sign(tokenDefinition);
 
     await Future.wait([
@@ -474,21 +473,21 @@ class CreateArticle extends _$CreateArticle {
     return null;
   }
 
-  Future<CommunityTokenDefinition> _buildArticleTokenDefinition(ArticleData articleData) async {
+  CommunityTokenDefinition _buildArticleTokenDefinition(ArticleData articleData) {
     final currentPubkey = ref.read(currentPubkeySelectorProvider);
 
     if (currentPubkey == null) {
       throw UserMasterPubkeyNotFoundException();
     }
 
-    final communityTokenDefinitionBuilder = ref.read(communityTokenDefinitionBuilderProvider);
-    return communityTokenDefinitionBuilder.build(
-      origEventReference: ReplaceableEventReference(
+    return CommunityTokenDefinitionIon.fromEventReference(
+      eventReference: ReplaceableEventReference(
         masterPubkey: currentPubkey,
         kind: ArticleEntity.kind,
         dTag: articleData.replaceableEventId.value,
       ),
-      type: CommunityTokenDefinitionType.original,
+      kind: ArticleEntity.kind,
+      type: CommunityTokenDefinitionIonType.original,
     );
   }
 }

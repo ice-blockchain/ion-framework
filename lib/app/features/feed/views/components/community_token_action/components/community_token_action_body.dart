@@ -37,13 +37,13 @@ class CommunityTokenActionBody extends HookConsumerWidget {
         .watch(ionConnectEntityProvider(eventReference: entity.data.definitionReference))
         .valueOrNull as CommunityTokenDefinitionEntity?;
 
-    final tokenAddress = definitionEntity?.data.tokenAddress;
+    final externalAddress = definitionEntity?.data.externalAddress;
 
-    if (tokenAddress == null) {
+    if (externalAddress == null) {
       return const SizedBox.shrink();
     }
 
-    final tokenMarketInfo = ref.watch(tokenMarketInfoProvider(tokenAddress)).valueOrNull;
+    final tokenMarketInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
 
     final tokenImageUrl = tokenMarketInfo?.imageUrl;
 
@@ -64,7 +64,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
     final position = ref
         .watch(
           tokenHolderPositionProvider(
-            tokenAddress,
+            externalAddress,
             ReplaceableEventReference(
               masterPubkey: entity.masterPubkey,
               kind: UserMetadataEntity.kind,
@@ -152,7 +152,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
                           ),
                           SizedBox(height: 16.0.s),
                           ProfileTokenStatsInfo(
-                            externalAddress: tokenAddress,
+                            externalAddress: externalAddress,
                           ),
                           SizedBox(height: 10.0.s),
                           if (definitionEntity != null)
