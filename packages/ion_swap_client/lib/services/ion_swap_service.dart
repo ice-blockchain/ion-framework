@@ -131,7 +131,7 @@ class IonSwapService {
 
   Future<TransactionReceipt> _waitForConfirmation(
     String txHash, {
-    int maxTries = 40,
+    int maxTries = 20,
     Duration pollInterval = const Duration(seconds: 3),
   }) async {
     for (var i = 0; i < maxTries; i++) {
