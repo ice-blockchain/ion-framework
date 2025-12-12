@@ -110,7 +110,7 @@ ion.WalletAsset? _getSendableAsset(List<ion.WalletAsset> assets, CoinData? trans
   }
 
   final result = assets.firstWhereOrNull(
-    (asset) => asset.symbol.toLowerCase() == transferredCoin.abbreviation.toLowerCase(),
+    (asset) => asset.symbol?.toLowerCase() == transferredCoin.abbreviation.toLowerCase(),
   );
   // Can be native token of the testnet, if result is null
   return result ?? nativeAsset();

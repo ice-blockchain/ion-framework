@@ -8,6 +8,7 @@ import 'package:ion/app/features/tokenized_communities/enums/community_token_tra
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class FloatingTradeIsland extends StatelessWidget {
   const FloatingTradeIsland({
@@ -45,6 +46,7 @@ class FloatingTradeIsland extends StatelessWidget {
                   context: context,
                   child: TradeCommunityTokenDialog(
                     externalAddress: externalAddress,
+                    type: CommunityTokenType.profile,
                     mode: CommunityTokenTradeMode.buy,
                   ),
                 );
@@ -61,6 +63,7 @@ class FloatingTradeIsland extends StatelessWidget {
                   context: context,
                   child: TradeCommunityTokenDialog(
                     externalAddress: externalAddress,
+                    type: CommunityTokenType.profile,
                     mode: CommunityTokenTradeMode.sell,
                   ),
                 );

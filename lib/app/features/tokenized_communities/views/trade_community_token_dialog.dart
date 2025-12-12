@@ -22,21 +22,25 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/compo
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/token_card.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class TradeCommunityTokenDialog extends HookConsumerWidget {
   const TradeCommunityTokenDialog({
     required this.externalAddress,
+    required this.type,
     required this.mode,
     super.key,
   });
 
   final String externalAddress;
+  final CommunityTokenType type;
   final CommunityTokenTradeMode mode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final params = (
       externalAddress: externalAddress,
+      type: type,
       mode: mode,
     );
     final state = ref.watch(tradeCommunityTokenControllerProvider(params));
@@ -48,10 +52,10 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 
     ref
       ..displayErrors(
-        communityTokenTradeNotifierProvider(externalAddress),
+        communityTokenTradeNotifierProvider(externalAddress, type),
         excludedExceptions: excludedPasskeyExceptions,
       )
-      ..listenSuccess<String?>(communityTokenTradeNotifierProvider(externalAddress),
+      ..listenSuccess<String?>(communityTokenTradeNotifierProvider(externalAddress, type),
           (String? txHash) {
         if (context.mounted) {
           Navigator.of(context).pop();
@@ -73,17 +77,19 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
           )
         : null;
 
+    final communityGroup = state.communityTokenCoinsGroup;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _AppBar(mode: mode),
-        if (state.communityCoinsGroup != null)
+        if (communityGroup != null)
           _TokenCards(
             mode: mode,
             state: state,
             controller: controller,
-            communityCoinsGroup: state.communityCoinsGroup!,
+            communityTokenGroup: communityGroup,
             supportedTokensAsync: supportedTokensAsync,
             communityAvatarWidget: communityAvatarWidget,
             onTokenTap: () => _showTokenSelectionSheet(
@@ -180,6 +186,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   ) async {
     final params = (
       externalAddress: externalAddress,
+      type: type,
       mode: mode,
     );
     final state = ref.read(tradeCommunityTokenControllerProvider(params));
@@ -189,9 +196,10 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     await guardPasskeyDialog(
       context,
       (child) => RiverpodUserActionSignerRequestBuilder(
-        provider: communityTokenTradeNotifierProvider(externalAddress),
+        provider: communityTokenTradeNotifierProvider(externalAddress, type),
         request: (signer) async {
-          final notifier = ref.read(communityTokenTradeNotifierProvider(externalAddress).notifier);
+          final notifier =
+              ref.read(communityTokenTradeNotifierProvider(externalAddress, type).notifier);
           if (mode == CommunityTokenTradeMode.buy) {
             await notifier.buy(signer);
           } else {
@@ -214,9 +222,7 @@ class _AppBar extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
       child: NavigationAppBar.screen(
-        title: Text(
-          mode == CommunityTokenTradeMode.buy ? context.i18n.trade_buy : context.i18n.trade_sell,
-        ),
+        title: Text(context.i18n.wallet_swap),
         actions: const [
           SlippageAction(),
         ],
@@ -230,7 +236,7 @@ class _TokenCards extends HookConsumerWidget {
     required this.mode,
     required this.state,
     required this.controller,
-    required this.communityCoinsGroup,
+    required this.communityTokenGroup,
     required this.supportedTokensAsync,
     required this.communityAvatarWidget,
     required this.onTokenTap,
@@ -239,7 +245,7 @@ class _TokenCards extends HookConsumerWidget {
   final CommunityTokenTradeMode mode;
   final TradeCommunityTokenState state;
   final TradeCommunityTokenController controller;
-  final CoinsGroup communityCoinsGroup;
+  final CoinsGroup communityTokenGroup;
   final AsyncValue<List<CoinData>> supportedTokensAsync;
   final Widget? communityAvatarWidget;
   final VoidCallback onTokenTap;
@@ -274,12 +280,13 @@ class _TokenCards extends HookConsumerWidget {
                   SizedBox(height: 10.0.s),
                   TokenCard(
                     type: CoinSwapType.buy,
-                    coinsGroup: communityCoinsGroup,
+                    coinsGroup: communityTokenGroup,
                     controller: quoteController,
                     network: state.targetNetwork,
                     avatarWidget: communityAvatarWidget,
                     showSelectButton: false,
                     showArrow: false,
+                    skipValidation: true,
                     onTap: () {},
                   ),
                 ]
@@ -293,8 +300,8 @@ class _TokenCards extends HookConsumerWidget {
                     avatarWidget: communityAvatarWidget,
                     showSelectButton: false,
                     showArrow: false,
-                    onTap: () {},
                     onPercentageChanged: controller.setAmountByPercentage,
+                    onTap: () {},
                   ),
                   SizedBox(height: 10.0.s),
                   TokenCard(
@@ -302,6 +309,7 @@ class _TokenCards extends HookConsumerWidget {
                     controller: quoteController,
                     coinsGroup: state.paymentCoinsGroup,
                     network: state.targetNetwork,
+                    skipValidation: true,
                     onTap: onTokenTap,
                   ),
                 ],

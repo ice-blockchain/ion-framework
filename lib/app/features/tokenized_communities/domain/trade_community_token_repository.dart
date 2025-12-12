@@ -3,6 +3,7 @@
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_tx_builder.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_transaction_api.dart';
 import 'package:ion/app/features/tokenized_communities/data/trade_community_token_api.dart';
+import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
 import 'package:ion/app/features/tokenized_communities/models/evm_transaction.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
@@ -57,7 +58,7 @@ class TradeCommunityTokenRepository {
     );
   }
 
-  Future<String> approve({
+  Future<TransactionResult> approve({
     required String walletId,
     required String tokenAddress,
     required BigInt amount,
@@ -85,7 +86,7 @@ class TradeCommunityTokenRepository {
     );
   }
 
-  Future<String> swapCommunityToken({
+  Future<TransactionResult> swapCommunityToken({
     required String walletId,
     required List<int> fromTokenIdentifier,
     required List<int> toTokenIdentifier,

@@ -16,6 +16,7 @@ import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class ProfileTokenStatsInfo extends ConsumerWidget {
   const ProfileTokenStatsInfo({
@@ -115,6 +116,7 @@ class ProfileTokenStats extends ConsumerWidget {
                 context: context,
                 child: TradeCommunityTokenDialog(
                   externalAddress: externalAddress,
+                  type: CommunityTokenType.profile,
                   mode: CommunityTokenTradeMode.buy,
                 ),
               );
@@ -407,6 +409,7 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
               context: context,
               child: TradeCommunityTokenDialog(
                 externalAddress: externalAddress,
+                type: CommunityTokenType.profile,
                 mode: CommunityTokenTradeMode.buy,
               ),
             ),

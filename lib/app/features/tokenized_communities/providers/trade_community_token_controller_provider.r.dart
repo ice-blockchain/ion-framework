@@ -27,6 +27,7 @@ part 'trade_community_token_controller_provider.r.g.dart';
 
 typedef TradeCommunityTokenControllerParams = ({
   String externalAddress,
+  CommunityTokenType type,
   CommunityTokenTradeMode mode,
 });
 
@@ -38,6 +39,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   TradeCommunityTokenState build(TradeCommunityTokenControllerParams params) {
     final externalAddress = params.externalAddress;
     final mode = params.mode;
+    state = const TradeCommunityTokenState();
 
     final pubkey = CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
 
@@ -45,24 +47,20 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       ..listen(currentWalletViewDataProvider, (_, __) => _updateDerivedState())
       ..listen(walletsNotifierProvider, (_, __) => _updateDerivedState())
       ..listen(tokenMarketInfoProvider(externalAddress), (_, __) {
-        if (mode == CommunityTokenTradeMode.sell) {
-          _updateCommunityTokenBalance();
-        } else {
-          _updateCommunityCoinsGroup();
-        }
+        unawaited(_updateCommunityTokenState());
       });
     if (pubkey != null && mode == CommunityTokenTradeMode.buy) {
-      ref.listen(userPreviewDataProvider(pubkey), (_, __) => _updateCommunityCoinsGroup());
+      ref.listen(userPreviewDataProvider(pubkey), (_, __) {
+        unawaited(_updateCommunityTokenState());
+      });
     }
-    ref.onDispose(() => _debounceTimer?.cancel());
+    ref.onDispose(() {
+      _debounceTimer?.cancel();
+    });
 
     _initialize();
-    if (mode == CommunityTokenTradeMode.sell) {
-      _updateCommunityTokenBalance();
-    } else {
-      _updateCommunityCoinsGroup();
-    }
-    return const TradeCommunityTokenState();
+    unawaited(_updateCommunityTokenState());
+    return state;
   }
 
   Future<void> _initialize() async {
@@ -79,31 +77,13 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     }
   }
 
-  Future<void> _updateCommunityTokenBalance() async {
+  Future<void> _updateCommunityTokenState() async {
     final externalAddress = params.externalAddress;
     final tokenAsync = ref.read(
       tokenMarketInfoProvider(externalAddress),
     );
-    final token = tokenAsync.valueOrNull;
-
-    final balance = token?.marketData.position?.amount ?? 0.0;
-    final communityTokenCoinsGroup = await _deriveCommunityTokenCoinsGroup(token);
-
-    state = state.copyWith(
-      communityTokenBalance: balance,
-      communityTokenCoinsGroup: communityTokenCoinsGroup,
-    );
-
-    // Update target wallet and network for sell mode
-    if (params.mode == CommunityTokenTradeMode.sell) {
-      await _updateDerivedStateForSell();
-    }
-  }
-
-  void _updateCommunityCoinsGroup() {
-    final externalAddress = params.externalAddress;
-    final tokenAsync = ref.read(tokenMarketInfoProvider(externalAddress));
     final tokenInfo = tokenAsync.valueOrNull;
+    final balance = tokenInfo?.marketData.position?.amount ?? 0.0;
 
     final pubkey = CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
     final userData = pubkey == null ? null : ref.read(userPreviewDataProvider(pubkey)).valueOrNull;
@@ -116,15 +96,35 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
     final communityAvatar = tokenInfo?.imageUrl ?? userData?.data.avatarUrl;
 
-    final communityCoinsGroup = CoinsGroup(
-      name: tokenTitle,
-      iconUrl: communityAvatar,
-      symbolGroup: tokenTitle,
-      abbreviation: tokenTitle,
-      coins: [],
+    state = state.copyWith(
+      communityTokenBalance: balance,
+      communityTokenCoinsGroup: CoinsGroup(
+        name: tokenTitle,
+        iconUrl: communityAvatar,
+        symbolGroup: tokenTitle,
+        abbreviation: tokenTitle,
+        coins: const [],
+      ),
     );
 
-    state = state.copyWith(communityCoinsGroup: communityCoinsGroup);
+    final derivedCoinsGroup = await _deriveCommunityTokenCoinsGroup(tokenInfo);
+
+    final updatedCommunityTokenCoinsGroup = derivedCoinsGroup?.copyWith(
+          name: tokenTitle,
+          iconUrl: communityAvatar ?? derivedCoinsGroup.iconUrl,
+          symbolGroup: tokenTitle,
+          abbreviation: tokenTitle,
+        ) ??
+        state.communityTokenCoinsGroup;
+
+    state = state.copyWith(
+      communityTokenBalance: balance,
+      communityTokenCoinsGroup: updatedCommunityTokenCoinsGroup,
+    );
+
+    if (params.mode == CommunityTokenTradeMode.sell) {
+      await _updateDerivedStateForSell();
+    }
   }
 
   Future<CoinsGroup?> _deriveCommunityTokenCoinsGroup(CommunityToken? token) async {
@@ -317,6 +317,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
     final quote = await service.getQuote(
       externalAddress: params.externalAddress,
+      type: params.type,
       amountIn: amountIn,
       baseTokenAddress: token.contractAddress,
     );
@@ -337,6 +338,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
     final quote = await service.getSellQuote(
       externalAddress: params.externalAddress,
+      type: params.type,
       amountIn: amountIn,
       paymentTokenAddress: token.contractAddress,
     );

@@ -15,6 +15,7 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_deta
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class ProfileUserInfo extends ConsumerWidget {
   const ProfileUserInfo({
@@ -80,6 +81,7 @@ class ProfileUserInfo extends ConsumerWidget {
                             context: context,
                             child: TradeCommunityTokenDialog(
                               externalAddress: eventReferenceString,
+                              type: CommunityTokenType.profile,
                               mode: CommunityTokenTradeMode.buy,
                             ),
                           );
