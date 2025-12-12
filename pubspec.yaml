@@ -254,6 +254,7 @@ flutter:
     - assets/images/qr_code/
     - assets/images/notifications/
     - assets/images/invite_friends/
+    - assets/images/tokenized_communities/
     - assets/emoji_data_sets/emojis-by-group.json
     - assets/emoji_data_sets/emoji-keywords.json
     - assets/ion_identity/coins.json

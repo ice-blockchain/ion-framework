@@ -9,6 +9,7 @@ Future<T?> showSimpleBottomSheet<T>({
   required Widget child,
   bool useRootNavigator = true,
   bool isDismissible = true,
+  Color? backgroundColor,
   PopInvokedWithResultCallback<T>? onPopInvokedWithResult,
 }) {
   return showModalBottomSheet<T>(
@@ -27,7 +28,10 @@ Future<T?> showSimpleBottomSheet<T>({
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             SheetDragHandle(),
-            SheetShape(child: child),
+            SheetShape(
+              backgroundColor: backgroundColor,
+              child: child,
+            ),
           ],
         ),
       );
