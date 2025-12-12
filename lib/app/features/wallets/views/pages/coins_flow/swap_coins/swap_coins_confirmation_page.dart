@@ -380,21 +380,24 @@ class _DetailRow extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Text(
-                  label,
-                  style: textStyles.body2.copyWith(
-                    color: colors.quaternaryText,
-                  ),
+            Expanded(
+              child: Text(
+                label,
+                style: textStyles.body2.copyWith(
+                  color: colors.quaternaryText,
                 ),
-              ],
+              ),
             ),
-            Text(
-              value,
-              style: textStyles.body2.copyWith(
-                color: colors.primaryText,
-                fontWeight: FontWeight.w600,
+            SizedBox(width: 12.0.s),
+            Expanded(
+              flex: 3,
+              child: Text(
+                value,
+                style: textStyles.body2.copyWith(
+                  color: colors.primaryText,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.end,
               ),
             ),
           ],
@@ -424,22 +427,13 @@ class _SwapButton extends ConsumerWidget {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
     final messageNotificationNotifier = ref.read(messageNotificationNotifierProvider.notifier);
+    final isDisabled = ref.watch(swapCoinsControllerProvider).isSwapLoading;
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
+        disabled: isDisabled,
         onPressed: () async {
-          unawaited(
-            _showMessage(
-              messageNotificationNotifier,
-              message: context.i18n.wallet_swapping_coins,
-              icon: Assets.svg.iconSwap.icon(
-                color: colors.secondaryBackground,
-                size: 24.0.s,
-              ),
-            ),
-          );
-
           final notifier = ref.read(swapCoinsControllerProvider.notifier);
 
           final isIonBscSwap = await notifier.getIsIonBscSwap();
@@ -458,6 +452,9 @@ class _SwapButton extends ConsumerWidget {
                           },
                           onSwapError: () {
                             _showErrorMessage(messageNotificationNotifier, context);
+                          },
+                          onSwapStart: () {
+                            _showStartMessage(messageNotificationNotifier, context);
                           },
                         );
                   },
@@ -495,6 +492,9 @@ class _SwapButton extends ConsumerWidget {
             onSwapSuccess: () {
               _showSuccessMessage(messageNotificationNotifier, context);
             },
+            onSwapStart: () {
+              _showStartMessage(messageNotificationNotifier, context);
+            },
           );
         },
         label: Text(
@@ -520,6 +520,24 @@ class _SwapButton extends ConsumerWidget {
     );
   }
 
+  Future<void> _showStartMessage(
+    MessageNotificationNotifier messageNotificationNotifier,
+    BuildContext context,
+  ) async {
+    final colors = context.theme.appColors;
+
+    unawaited(
+      _showMessage(
+        messageNotificationNotifier,
+        message: context.i18n.wallet_swapping_coins,
+        icon: Assets.svg.iconSwap.icon(
+          color: colors.secondaryBackground,
+          size: 24.0.s,
+        ),
+      ),
+    );
+  }
+
   Future<void> _showSuccessMessage(
     MessageNotificationNotifier messageNotificationNotifier,
     BuildContext context,
@@ -533,6 +551,16 @@ class _SwapButton extends ConsumerWidget {
         size: 24.0.s,
       ),
       state: MessageNotificationState.success,
+    );
+
+    if (context.mounted) {
+      _pop(context);
+    }
+  }
+
+  void _pop(BuildContext context) {
+    Navigator.of(context).popUntil(
+      (route) => route.isFirst,
     );
   }
 
