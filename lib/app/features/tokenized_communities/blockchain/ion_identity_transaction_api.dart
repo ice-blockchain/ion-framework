@@ -13,7 +13,7 @@ class IonIdentityTransactionApi {
 
   final IonIdentityClientResolver _clientResolver;
 
-  Future<String> signAndBroadcast({
+  Future<Map<String, dynamic>> signAndBroadcast({
     required String walletId,
     required EvmTransaction transaction,
     required UserActionSignerNew userActionSigner,
@@ -37,7 +37,7 @@ class IonIdentityTransactionApi {
       userActionSigner,
     );
 
-    return _extractTransactionIdentifier(response);
+    return response;
   }
 
   Future<Wallet> _resolveWallet(IONIdentityClient client, String walletId) async {
@@ -47,16 +47,6 @@ class IonIdentityTransactionApi {
       orElse: () => throw WalletNotFoundException(walletAddress: walletId),
     );
     return wallet;
-  }
-
-  String _extractTransactionIdentifier(Map<String, dynamic> response) {
-    final txHash = response['txHash'] as String?;
-    final id = response['id'] as String?;
-    final transferId = response['transferId'] as String?;
-    return txHash ??
-        id ??
-        transferId ??
-        (throw StateError('Ion Identity response did not include a transaction identifier'));
   }
 
   String _encodeQuantity(BigInt value) {
