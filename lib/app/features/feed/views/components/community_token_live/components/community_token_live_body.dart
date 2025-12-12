@@ -19,7 +19,7 @@ class CommunityTokenLiveBody extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenAsync = ref.watch(TokenMarketInfoProvider(entity.data.eventReference.toString()));
+    final tokenAsync = ref.watch(TokenMarketInfoProvider(entity.data.tokenAddress));
     final height = 329.s;
 
     if (tokenAsync.valueOrNull == null) {

@@ -37,7 +37,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
         .watch(ionConnectEntityProvider(eventReference: entity.data.definitionReference))
         .valueOrNull as CommunityTokenDefinitionEntity?;
 
-    final tokenAddress = definitionEntity?.data.eventReference.toString();
+    final tokenAddress = definitionEntity?.data.tokenAddress;
 
     if (tokenAddress == null) {
       return const SizedBox.shrink();
