@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
@@ -9,6 +11,7 @@ import 'package:ion/app/components/text_editor/components/custom_blocks/mention/
 import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_typing_listener.dart';
 import 'package:ion/app/features/feed/providers/suggestions/suggestions_notifier_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/user_token_market_cap_provider.r.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 
 class MentionsHashtagsHandler extends TextEditorTypingListener {
@@ -21,6 +24,8 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
 
   // Track last processed text to avoid heavy reformat on selection-only changes
   String? _lastProcessedText;
+
+  static const int _invalidTagStart = -1;
 
   @override
   void onTextChanged(
@@ -57,26 +62,45 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
   ) async {
     final fullText = controller.document.toPlainText();
     final cursorIndex = controller.selection.baseOffset;
-    final tags = _extractTags(fullText);
-    final tag = tags.lastWhere(
-      (t) => t.start < cursorIndex && t.start + t.length >= cursorIndex - 1,
-      orElse: () => _TagInfo(start: -1, length: 0, text: '', tagChar: ''),
-    );
-    if (tag.start == -1) return;
+    final tag = _findTagAtCursor(fullText, cursorIndex);
+    if (tag.start == _invalidTagStart) return;
 
     final mentionData = MentionEmbedData(
       pubkey: pubkeyUsernamePair.pubkey,
       username: pubkeyUsernamePair.username,
     );
 
+    // Check cache first (non-blocking) - if available, insert as embed immediately
+    final cachedMarketCap = _getCachedMarketCap(pubkeyUsernamePair.pubkey);
+
     controller.removeListener(editorListener);
     try {
-      MentionInsertionService.insertMention(
-        controller,
-        tag.start,
-        tag.length,
-        mentionData,
-      );
+      if (cachedMarketCap != null) {
+        // Insert as embed (widget) immediately - even if marketCap is 0
+        MentionInsertionService.insertMention(
+          controller,
+          tag.start,
+          tag.length,
+          mentionData,
+        );
+      } else {
+        // Insert as text + mention attribute (colored text) immediately, then upgrade when data arrives
+        final mentionText = MentionInsertionService.insertMentionAsText(
+          controller,
+          tag.start,
+          tag.length,
+          pubkeyUsernamePair.pubkey,
+          pubkeyUsernamePair.username,
+        );
+
+        unawaited(
+          _tryUpgradeMentionToEmbed(
+            start: tag.start,
+            mentionTextLength: mentionText.length,
+            mentionData: mentionData,
+          ),
+        );
+      }
     } finally {
       controller.addListener(editorListener);
     }
@@ -86,17 +110,43 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
     ref.invalidate(suggestionsNotifierProvider);
   }
 
+  // Gets cached market cap value (non-blocking for optimistic behavior, returns null if not cached).
+  double? _getCachedMarketCap(String pubkey) {
+    final asyncValue = ref.read(userTokenMarketCapProvider(pubkey));
+    return asyncValue.hasValue ? asyncValue.value : null;
+  }
+
+  Future<double?> _getMarketCap(String pubkey) async {
+    return ref.read(userTokenMarketCapProvider(pubkey).future);
+  }
+
+  Future<void> _tryUpgradeMentionToEmbed({
+    required int start,
+    required int mentionTextLength,
+    required MentionEmbedData mentionData,
+  }) async {
+    final marketCap = await _getMarketCap(mentionData.pubkey);
+    if (marketCap == null) return;
+
+    controller.removeListener(editorListener);
+    try {
+      MentionInsertionService.upgradeMentionToEmbed(
+        controller,
+        start,
+        mentionTextLength,
+        mentionData,
+        marketCap,
+      );
+    } finally {
+      controller.addListener(editorListener);
+    }
+  }
+
   void onSuggestionSelected(String suggestion) {
     final fullText = controller.document.toPlainText();
     final cursorIndex = controller.selection.baseOffset;
-
-    final tags = _extractTags(fullText);
-    final tag = tags.lastWhere(
-      (t) => t.start < cursorIndex && t.start + t.length >= cursorIndex - 1,
-      orElse: () => _TagInfo(start: -1, length: 0, text: '', tagChar: ''),
-    );
-
-    if (tag.start == -1) return;
+    final tag = _findTagAtCursor(fullText, cursorIndex);
+    if (tag.start == _invalidTagStart) return;
 
     final attribute = _getAttribute(tag.tagChar);
 
@@ -176,6 +226,14 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
           ..formatText(tag.start, tag.length, attribute);
       }
     }
+  }
+
+  _TagInfo _findTagAtCursor(String fullText, int cursorIndex) {
+    final tags = _extractTags(fullText);
+    return tags.lastWhere(
+      (t) => t.start < cursorIndex && t.start + t.length >= cursorIndex - 1,
+      orElse: () => _TagInfo(start: _invalidTagStart, length: 0, text: '', tagChar: ''),
+    );
   }
 
   _TagInfo? _findActiveTagNearCursor(String text, int cursorIndex) {
