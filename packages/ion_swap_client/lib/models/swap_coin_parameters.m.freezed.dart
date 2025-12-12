@@ -250,9 +250,6 @@ class _$SwapCoinParametersImpl implements _SwapCoinParameters {
   @override
   int get hashCode => Object.hash(runtimeType, userSellAddress, userBuyAddress,
       amount, isBridge, sellCoin, buyCoin);
-  @override
-  @pragma('vm:prefer-inline')
-      __$$SwapCoinParametersImplCopyWithImpl<_$SwapCoinParametersImpl>(this, _$identity);
 
   /// Create a copy of SwapCoinParameters
   /// with the given fields replaced by the non-null parameter values.
