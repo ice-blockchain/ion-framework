@@ -32,15 +32,22 @@ mixin _$ExolixNetwork {
   /// Create a copy of ExolixNetwork
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ExolixNetworkCopyWith<ExolixNetwork> get copyWith => throw _privateConstructorUsedError;
+  $ExolixNetworkCopyWith<ExolixNetwork> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $ExolixNetworkCopyWith<$Res> {
-  factory $ExolixNetworkCopyWith(ExolixNetwork value, $Res Function(ExolixNetwork) then) =
+  factory $ExolixNetworkCopyWith(
+          ExolixNetwork value, $Res Function(ExolixNetwork) then) =
       _$ExolixNetworkCopyWithImpl<$Res, ExolixNetwork>;
   @useResult
-  $Res call({String network, String name, String shortName, bool isDefault, String? contract});
+  $Res call(
+      {String network,
+      String name,
+      String shortName,
+      bool isDefault,
+      String? contract});
 }
 
 /// @nodoc
@@ -90,13 +97,19 @@ class _$ExolixNetworkCopyWithImpl<$Res, $Val extends ExolixNetwork>
 }
 
 /// @nodoc
-abstract class _$$ExolixNetworkImplCopyWith<$Res> implements $ExolixNetworkCopyWith<$Res> {
+abstract class _$$ExolixNetworkImplCopyWith<$Res>
+    implements $ExolixNetworkCopyWith<$Res> {
   factory _$$ExolixNetworkImplCopyWith(
           _$ExolixNetworkImpl value, $Res Function(_$ExolixNetworkImpl) then) =
       __$$ExolixNetworkImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String network, String name, String shortName, bool isDefault, String? contract});
+  $Res call(
+      {String network,
+      String name,
+      String shortName,
+      bool isDefault,
+      String? contract});
 }
 
 /// @nodoc
@@ -179,14 +192,18 @@ class _$ExolixNetworkImpl implements _ExolixNetwork {
             other is _$ExolixNetworkImpl &&
             (identical(other.network, network) || other.network == network) &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.shortName, shortName) || other.shortName == shortName) &&
-            (identical(other.isDefault, isDefault) || other.isDefault == isDefault) &&
-            (identical(other.contract, contract) || other.contract == contract));
+            (identical(other.shortName, shortName) ||
+                other.shortName == shortName) &&
+            (identical(other.isDefault, isDefault) ||
+                other.isDefault == isDefault) &&
+            (identical(other.contract, contract) ||
+                other.contract == contract));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, network, name, shortName, isDefault, contract);
+  int get hashCode =>
+      Object.hash(runtimeType, network, name, shortName, isDefault, contract);
 
   /// Create a copy of ExolixNetwork
   /// with the given fields replaced by the non-null parameter values.
@@ -212,7 +229,8 @@ abstract class _ExolixNetwork implements ExolixNetwork {
       required final bool isDefault,
       required final String? contract}) = _$ExolixNetworkImpl;
 
-  factory _ExolixNetwork.fromJson(Map<String, dynamic> json) = _$ExolixNetworkImpl.fromJson;
+  factory _ExolixNetwork.fromJson(Map<String, dynamic> json) =
+      _$ExolixNetworkImpl.fromJson;
 
   @override
   String get network;

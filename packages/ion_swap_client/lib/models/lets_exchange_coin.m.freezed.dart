@@ -32,12 +32,14 @@ mixin _$LetsExchangeCoin {
   /// Create a copy of LetsExchangeCoin
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $LetsExchangeCoinCopyWith<LetsExchangeCoin> get copyWith => throw _privateConstructorUsedError;
+  $LetsExchangeCoinCopyWith<LetsExchangeCoin> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $LetsExchangeCoinCopyWith<$Res> {
-  factory $LetsExchangeCoinCopyWith(LetsExchangeCoin value, $Res Function(LetsExchangeCoin) then) =
+  factory $LetsExchangeCoinCopyWith(
+          LetsExchangeCoin value, $Res Function(LetsExchangeCoin) then) =
       _$LetsExchangeCoinCopyWithImpl<$Res, LetsExchangeCoin>;
   @useResult
   $Res call(
@@ -89,9 +91,10 @@ class _$LetsExchangeCoinCopyWithImpl<$Res, $Val extends LetsExchangeCoin>
 }
 
 /// @nodoc
-abstract class _$$LetsExchangeCoinImplCopyWith<$Res> implements $LetsExchangeCoinCopyWith<$Res> {
-  factory _$$LetsExchangeCoinImplCopyWith(
-          _$LetsExchangeCoinImpl value, $Res Function(_$LetsExchangeCoinImpl) then) =
+abstract class _$$LetsExchangeCoinImplCopyWith<$Res>
+    implements $LetsExchangeCoinCopyWith<$Res> {
+  factory _$$LetsExchangeCoinImplCopyWith(_$LetsExchangeCoinImpl value,
+          $Res Function(_$LetsExchangeCoinImpl) then) =
       __$$LetsExchangeCoinImplCopyWithImpl<$Res>;
   @override
   @useResult
@@ -106,8 +109,8 @@ abstract class _$$LetsExchangeCoinImplCopyWith<$Res> implements $LetsExchangeCoi
 class __$$LetsExchangeCoinImplCopyWithImpl<$Res>
     extends _$LetsExchangeCoinCopyWithImpl<$Res, _$LetsExchangeCoinImpl>
     implements _$$LetsExchangeCoinImplCopyWith<$Res> {
-  __$$LetsExchangeCoinImplCopyWithImpl(
-      _$LetsExchangeCoinImpl _value, $Res Function(_$LetsExchangeCoinImpl) _then)
+  __$$LetsExchangeCoinImplCopyWithImpl(_$LetsExchangeCoinImpl _value,
+      $Res Function(_$LetsExchangeCoinImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of LetsExchangeCoin
@@ -181,14 +184,15 @@ class _$LetsExchangeCoinImpl implements _LetsExchangeCoin {
             other is _$LetsExchangeCoinImpl &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.isActive, isActive) || other.isActive == isActive) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive) &&
             const DeepCollectionEquality().equals(other._networks, _networks));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, code, name, isActive, const DeepCollectionEquality().hash(_networks));
+  int get hashCode => Object.hash(runtimeType, code, name, isActive,
+      const DeepCollectionEquality().hash(_networks));
 
   /// Create a copy of LetsExchangeCoin
   /// with the given fields replaced by the non-null parameter values.
@@ -196,7 +200,8 @@ class _$LetsExchangeCoinImpl implements _LetsExchangeCoin {
   @override
   @pragma('vm:prefer-inline')
   _$$LetsExchangeCoinImplCopyWith<_$LetsExchangeCoinImpl> get copyWith =>
-      __$$LetsExchangeCoinImplCopyWithImpl<_$LetsExchangeCoinImpl>(this, _$identity);
+      __$$LetsExchangeCoinImplCopyWithImpl<_$LetsExchangeCoinImpl>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -208,12 +213,14 @@ class _$LetsExchangeCoinImpl implements _LetsExchangeCoin {
 
 abstract class _LetsExchangeCoin implements LetsExchangeCoin {
   factory _LetsExchangeCoin(
-      {required final String code,
-      required final String name,
-      @JsonKey(name: 'is_active') required final int isActive,
-      required final List<LetsExchangeNetwork> networks}) = _$LetsExchangeCoinImpl;
+          {required final String code,
+          required final String name,
+          @JsonKey(name: 'is_active') required final int isActive,
+          required final List<LetsExchangeNetwork> networks}) =
+      _$LetsExchangeCoinImpl;
 
-  factory _LetsExchangeCoin.fromJson(Map<String, dynamic> json) = _$LetsExchangeCoinImpl.fromJson;
+  factory _LetsExchangeCoin.fromJson(Map<String, dynamic> json) =
+      _$LetsExchangeCoinImpl.fromJson;
 
   @override
   String get code;

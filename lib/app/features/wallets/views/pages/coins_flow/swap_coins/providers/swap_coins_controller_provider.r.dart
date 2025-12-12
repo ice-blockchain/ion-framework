@@ -21,7 +21,6 @@ import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
-import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/exceptions/exolix_exceptions.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/exceptions/okx_exceptions.dart';

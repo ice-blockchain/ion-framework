@@ -6,7 +6,8 @@ part of 'exolix_coin.m.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ExolixCoinImpl _$$ExolixCoinImplFromJson(Map<String, dynamic> json) => _$ExolixCoinImpl(
+_$ExolixCoinImpl _$$ExolixCoinImplFromJson(Map<String, dynamic> json) =>
+    _$ExolixCoinImpl(
       code: json['code'] as String,
       name: json['name'] as String,
       networks: (json['networks'] as List<dynamic>)
@@ -14,7 +15,8 @@ _$ExolixCoinImpl _$$ExolixCoinImplFromJson(Map<String, dynamic> json) => _$Exoli
           .toList(),
     );
 
-Map<String, dynamic> _$$ExolixCoinImplToJson(_$ExolixCoinImpl instance) => <String, dynamic>{
+Map<String, dynamic> _$$ExolixCoinImplToJson(_$ExolixCoinImpl instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'name': instance.name,
       'networks': instance.networks,

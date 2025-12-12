@@ -94,8 +94,8 @@ class _$LetsExchangeNetworkCopyWithImpl<$Res, $Val extends LetsExchangeNetwork>
 /// @nodoc
 abstract class _$$LetsExchangeNetworkImplCopyWith<$Res>
     implements $LetsExchangeNetworkCopyWith<$Res> {
-  factory _$$LetsExchangeNetworkImplCopyWith(
-          _$LetsExchangeNetworkImpl value, $Res Function(_$LetsExchangeNetworkImpl) then) =
+  factory _$$LetsExchangeNetworkImplCopyWith(_$LetsExchangeNetworkImpl value,
+          $Res Function(_$LetsExchangeNetworkImpl) then) =
       __$$LetsExchangeNetworkImplCopyWithImpl<$Res>;
   @override
   @useResult
@@ -110,8 +110,8 @@ abstract class _$$LetsExchangeNetworkImplCopyWith<$Res>
 class __$$LetsExchangeNetworkImplCopyWithImpl<$Res>
     extends _$LetsExchangeNetworkCopyWithImpl<$Res, _$LetsExchangeNetworkImpl>
     implements _$$LetsExchangeNetworkImplCopyWith<$Res> {
-  __$$LetsExchangeNetworkImplCopyWithImpl(
-      _$LetsExchangeNetworkImpl _value, $Res Function(_$LetsExchangeNetworkImpl) _then)
+  __$$LetsExchangeNetworkImplCopyWithImpl(_$LetsExchangeNetworkImpl _value,
+      $Res Function(_$LetsExchangeNetworkImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of LetsExchangeNetwork
@@ -180,14 +180,16 @@ class _$LetsExchangeNetworkImpl implements _LetsExchangeNetwork {
             other is _$LetsExchangeNetworkImpl &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.isActive, isActive) || other.isActive == isActive) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive) &&
             (identical(other.contractAddress, contractAddress) ||
                 other.contractAddress == contractAddress));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, code, name, isActive, contractAddress);
+  int get hashCode =>
+      Object.hash(runtimeType, code, name, isActive, contractAddress);
 
   /// Create a copy of LetsExchangeNetwork
   /// with the given fields replaced by the non-null parameter values.
@@ -195,7 +197,8 @@ class _$LetsExchangeNetworkImpl implements _LetsExchangeNetwork {
   @override
   @pragma('vm:prefer-inline')
   _$$LetsExchangeNetworkImplCopyWith<_$LetsExchangeNetworkImpl> get copyWith =>
-      __$$LetsExchangeNetworkImplCopyWithImpl<_$LetsExchangeNetworkImpl>(this, _$identity);
+      __$$LetsExchangeNetworkImplCopyWithImpl<_$LetsExchangeNetworkImpl>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -207,11 +210,11 @@ class _$LetsExchangeNetworkImpl implements _LetsExchangeNetwork {
 
 abstract class _LetsExchangeNetwork implements LetsExchangeNetwork {
   factory _LetsExchangeNetwork(
-          {required final String code,
-          required final String name,
-          @JsonKey(name: 'is_active') required final int isActive,
-          @JsonKey(name: 'contract_address') required final String? contractAddress}) =
-      _$LetsExchangeNetworkImpl;
+      {required final String code,
+      required final String name,
+      @JsonKey(name: 'is_active') required final int isActive,
+      @JsonKey(name: 'contract_address')
+      required final String? contractAddress}) = _$LetsExchangeNetworkImpl;
 
   factory _LetsExchangeNetwork.fromJson(Map<String, dynamic> json) =
       _$LetsExchangeNetworkImpl.fromJson;

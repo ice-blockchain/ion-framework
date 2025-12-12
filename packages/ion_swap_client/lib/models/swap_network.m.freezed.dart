@@ -29,12 +29,14 @@ mixin _$SwapNetwork {
   /// Create a copy of SwapNetwork
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $SwapNetworkCopyWith<SwapNetwork> get copyWith => throw _privateConstructorUsedError;
+  $SwapNetworkCopyWith<SwapNetwork> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $SwapNetworkCopyWith<$Res> {
-  factory $SwapNetworkCopyWith(SwapNetwork value, $Res Function(SwapNetwork) then) =
+  factory $SwapNetworkCopyWith(
+          SwapNetwork value, $Res Function(SwapNetwork) then) =
       _$SwapNetworkCopyWithImpl<$Res, SwapNetwork>;
   @useResult
   $Res call({String id, String name});
@@ -72,7 +74,8 @@ class _$SwapNetworkCopyWithImpl<$Res, $Val extends SwapNetwork>
 }
 
 /// @nodoc
-abstract class _$$SwapNetworkImplCopyWith<$Res> implements $SwapNetworkCopyWith<$Res> {
+abstract class _$$SwapNetworkImplCopyWith<$Res>
+    implements $SwapNetworkCopyWith<$Res> {
   factory _$$SwapNetworkImplCopyWith(
           _$SwapNetworkImpl value, $Res Function(_$SwapNetworkImpl) then) =
       __$$SwapNetworkImplCopyWithImpl<$Res>;
@@ -85,7 +88,8 @@ abstract class _$$SwapNetworkImplCopyWith<$Res> implements $SwapNetworkCopyWith<
 class __$$SwapNetworkImplCopyWithImpl<$Res>
     extends _$SwapNetworkCopyWithImpl<$Res, _$SwapNetworkImpl>
     implements _$$SwapNetworkImplCopyWith<$Res> {
-  __$$SwapNetworkImplCopyWithImpl(_$SwapNetworkImpl _value, $Res Function(_$SwapNetworkImpl) _then)
+  __$$SwapNetworkImplCopyWithImpl(
+      _$SwapNetworkImpl _value, $Res Function(_$SwapNetworkImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of SwapNetwork
@@ -114,7 +118,8 @@ class __$$SwapNetworkImplCopyWithImpl<$Res>
 class _$SwapNetworkImpl implements _SwapNetwork {
   _$SwapNetworkImpl({required this.id, required this.name});
 
-  factory _$SwapNetworkImpl.fromJson(Map<String, dynamic> json) => _$$SwapNetworkImplFromJson(json);
+  factory _$SwapNetworkImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SwapNetworkImplFromJson(json);
 
   @override
   final String id;
@@ -156,9 +161,11 @@ class _$SwapNetworkImpl implements _SwapNetwork {
 }
 
 abstract class _SwapNetwork implements SwapNetwork {
-  factory _SwapNetwork({required final String id, required final String name}) = _$SwapNetworkImpl;
+  factory _SwapNetwork({required final String id, required final String name}) =
+      _$SwapNetworkImpl;
 
-  factory _SwapNetwork.fromJson(Map<String, dynamic> json) = _$SwapNetworkImpl.fromJson;
+  factory _SwapNetwork.fromJson(Map<String, dynamic> json) =
+      _$SwapNetworkImpl.fromJson;
 
   @override
   String get id;
@@ -169,5 +176,6 @@ abstract class _SwapNetwork implements SwapNetwork {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SwapNetworkImplCopyWith<_$SwapNetworkImpl> get copyWith => throw _privateConstructorUsedError;
+  _$$SwapNetworkImplCopyWith<_$SwapNetworkImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }
