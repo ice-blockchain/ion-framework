@@ -82,9 +82,7 @@ class TokenCard extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                type == CoinSwapType.sell
-                    ? context.i18n.wallet_swap_coins_sell
-                    : context.i18n.wallet_swap_coins_buy,
+                type == CoinSwapType.sell ? context.i18n.wallet_swap_coins_sell : context.i18n.wallet_swap_coins_buy,
                 style: textStyles.subtitle3.copyWith(
                   color: colors.onTertiaryBackground,
                 ),
@@ -177,8 +175,7 @@ class TokenCard extends ConsumerWidget {
                               width: 40.0.s,
                               height: 40.0.s,
                               fit: BoxFit.cover,
-                              errorBuilder:
-                                  avatarWidget != null ? (_, __, ___) => avatarWidget! : null,
+                              errorBuilder: avatarWidget != null ? (_, __, ___) => avatarWidget! : null,
                             ),
                           ),
                         ),
@@ -282,59 +279,61 @@ class TokenCard extends ConsumerWidget {
                       ),
                     ),
                   ),
-                SizedBox(
-                  width: 150.0.s,
-                  child: TextFormField(
-                    controller: controller,
-                    readOnly: isReadOnly ?? coinsGroup == null,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    autovalidateMode: AutovalidateMode.always,
-                    style: textStyles.headline2.copyWith(
-                      color: colors.primaryText,
-                    ),
-                    inputFormatters: [
-                      CoinInputFormatter(),
-                    ],
-                    textAlign: TextAlign.end,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: '0.00',
-                      hintStyle: textStyles.headline2.copyWith(
-                        color: colors.tertiaryText,
+                Expanded(
+                  child: SizedBox(
+                    width: 150.0.s,
+                    child: TextFormField(
+                      controller: controller,
+                      readOnly: isReadOnly ?? coinsGroup == null,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      autovalidateMode: AutovalidateMode.always,
+                      style: textStyles.headline2.copyWith(
+                        color: colors.primaryText,
                       ),
-                      isDense: true,
-                      errorStyle: textStyles.caption2.copyWith(
-                        color: colors.attentionRed,
+                      inputFormatters: [
+                        CoinInputFormatter(),
+                      ],
+                      textAlign: TextAlign.end,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: '0.00',
+                        hintStyle: textStyles.headline2.copyWith(
+                          color: colors.tertiaryText,
+                        ),
+                        isDense: true,
+                        errorStyle: textStyles.caption2.copyWith(
+                          color: colors.attentionRed,
+                        ),
                       ),
-                    ),
-                    validator: (value) {
-                      final trimmedValue = value?.trim() ?? '';
-                      if (trimmedValue.isEmpty) return null;
+                      validator: (value) {
+                        final trimmedValue = value?.trim() ?? '';
+                        if (trimmedValue.isEmpty) return null;
 
-                      final parsed = parseAmount(trimmedValue);
-                      if (parsed == null) return '';
+                        final parsed = parseAmount(trimmedValue);
+                        if (parsed == null) return '';
 
-                      final maxValue = coinsGroup?.totalAmount;
-                      if (maxValue != null && (parsed > maxValue || parsed < 0)) {
-                        return context.i18n.wallet_coin_amount_insufficient_funds;
-                      } else if (parsed < 0) {
-                        return context.i18n.wallet_coin_amount_must_be_positive;
-                      }
-
-                      // If we know decimals for the selected network, enforce min amount check
-                      final coinForNetwork = coinsGroup?.coins.firstWhereOrNull(
-                        (CoinInWalletData c) => c.coin.network.id == network?.id,
-                      );
-                      final decimals = coinForNetwork?.coin.decimals;
-                      if (decimals != null) {
-                        final amount = toBlockchainUnits(parsed, decimals);
-                        if (amount == BigInt.zero && parsed > 0) {
-                          return context.i18n.wallet_coin_amount_too_low_for_sending;
+                        final maxValue = coinsGroup?.totalAmount;
+                        if (maxValue != null && (parsed > maxValue || parsed < 0)) {
+                          return context.i18n.wallet_coin_amount_insufficient_funds;
+                        } else if (parsed < 0) {
+                          return context.i18n.wallet_coin_amount_must_be_positive;
                         }
-                      }
 
-                      return null;
-                    },
+                        // If we know decimals for the selected network, enforce min amount check
+                        final coinForNetwork = coinsGroup?.coins.firstWhereOrNull(
+                          (CoinInWalletData c) => c.coin.network.id == network?.id,
+                        );
+                        final decimals = coinForNetwork?.coin.decimals;
+                        if (decimals != null) {
+                          final amount = toBlockchainUnits(parsed, decimals);
+                          if (amount == BigInt.zero && parsed > 0) {
+                            return context.i18n.wallet_coin_amount_too_low_for_sending;
+                          }
+                        }
+
+                        return null;
+                      },
+                    ),
                   ),
                 ),
               ],
@@ -358,9 +357,7 @@ class TokenCard extends ConsumerWidget {
                     ),
                     Flexible(
                       child: Text(
-                        coinsGroup != null
-                            ? '${coinsGroup!.totalAmount} ${coinsGroup!.abbreviation}'
-                            : '0.00',
+                        coinsGroup != null ? '${coinsGroup!.totalAmount} ${coinsGroup!.abbreviation}' : '0.00',
                         style: textStyles.caption2.copyWith(
                           color: colors.tertiaryText,
                         ),

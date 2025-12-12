@@ -82,13 +82,20 @@ class IonSwapService {
       tokenDecimals: swapCoinData.sellCoin.decimal,
     );
 
-    await _swap(
+
+    final txHash = await _swap(
       direction: direction,
       amountIn: amountIn,
       request: request,
     );
 
-    return '';
+    if (!_isBscTxHash(txHash)) {
+      throw const IonSwapException('Swap failed on-chain');
+    }
+
+    await _waitForConfirmation(txHash);
+
+    return txHash;
   }
 
   Future<String> _swap({
@@ -121,6 +128,26 @@ class IonSwapService {
       request: request,
       transaction: tx,
     );
+  }
+
+  Future<TransactionReceipt> _waitForConfirmation(
+    String txHash, {
+    int maxTries = 40,
+    Duration pollInterval = const Duration(seconds: 3),
+  }) async {
+    for (var i = 0; i < maxTries; i++) {
+      final receipt = await _web3client.getTransactionReceipt(txHash);
+      if (receipt != null) {
+        if (receipt.status ?? false) return receipt;
+        throw const IonSwapException('Swap failed on-chain');
+      }
+      await Future<void>.delayed(pollInterval);
+    }
+    throw const IonSwapException('Timed out waiting for confirmation');
+  }
+
+  bool _isBscTxHash(String txHash) {
+    return txHash.startsWith('0x') && txHash.length == 66;
   }
 
   bool isSupportedPair(SwapCoinParameters swapCoinData) {
