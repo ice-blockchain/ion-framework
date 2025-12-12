@@ -9,6 +9,7 @@ part 'relay_quote_details.m.g.dart';
 class RelayQuoteDetails with _$RelayQuoteDetails {
   factory RelayQuoteDetails({
     required String rate,
+    @JsonKey(name: 'priceImpact') String? priceImpact,
   }) = _RelayQuoteDetails;
 
   factory RelayQuoteDetails.fromJson(Map<String, dynamic> json) =>

@@ -21,6 +21,8 @@ RelayQuoteDetails _$RelayQuoteDetailsFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$RelayQuoteDetails {
   String get rate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'priceImpact')
+  String? get priceImpact => throw _privateConstructorUsedError;
 
   /// Serializes this RelayQuoteDetails to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -38,7 +40,7 @@ abstract class $RelayQuoteDetailsCopyWith<$Res> {
           RelayQuoteDetails value, $Res Function(RelayQuoteDetails) then) =
       _$RelayQuoteDetailsCopyWithImpl<$Res, RelayQuoteDetails>;
   @useResult
-  $Res call({String rate});
+  $Res call({String rate, @JsonKey(name: 'priceImpact') String? priceImpact});
 }
 
 /// @nodoc
@@ -57,12 +59,17 @@ class _$RelayQuoteDetailsCopyWithImpl<$Res, $Val extends RelayQuoteDetails>
   @override
   $Res call({
     Object? rate = null,
+    Object? priceImpact = freezed,
   }) {
     return _then(_value.copyWith(
       rate: null == rate
           ? _value.rate
           : rate // ignore: cast_nullable_to_non_nullable
               as String,
+      priceImpact: freezed == priceImpact
+          ? _value.priceImpact
+          : priceImpact // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -75,7 +82,7 @@ abstract class _$$RelayQuoteDetailsImplCopyWith<$Res>
       __$$RelayQuoteDetailsImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String rate});
+  $Res call({String rate, @JsonKey(name: 'priceImpact') String? priceImpact});
 }
 
 /// @nodoc
@@ -92,12 +99,17 @@ class __$$RelayQuoteDetailsImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? rate = null,
+    Object? priceImpact = freezed,
   }) {
     return _then(_$RelayQuoteDetailsImpl(
       rate: null == rate
           ? _value.rate
           : rate // ignore: cast_nullable_to_non_nullable
               as String,
+      priceImpact: freezed == priceImpact
+          ? _value.priceImpact
+          : priceImpact // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -105,17 +117,21 @@ class __$$RelayQuoteDetailsImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$RelayQuoteDetailsImpl implements _RelayQuoteDetails {
-  _$RelayQuoteDetailsImpl({required this.rate});
+  _$RelayQuoteDetailsImpl(
+      {required this.rate, @JsonKey(name: 'priceImpact') this.priceImpact});
 
   factory _$RelayQuoteDetailsImpl.fromJson(Map<String, dynamic> json) =>
       _$$RelayQuoteDetailsImplFromJson(json);
 
   @override
   final String rate;
+  @override
+  @JsonKey(name: 'priceImpact')
+  final String? priceImpact;
 
   @override
   String toString() {
-    return 'RelayQuoteDetails(rate: $rate)';
+    return 'RelayQuoteDetails(rate: $rate, priceImpact: $priceImpact)';
   }
 
   @override
@@ -123,12 +139,14 @@ class _$RelayQuoteDetailsImpl implements _RelayQuoteDetails {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RelayQuoteDetailsImpl &&
-            (identical(other.rate, rate) || other.rate == rate));
+            (identical(other.rate, rate) || other.rate == rate) &&
+            (identical(other.priceImpact, priceImpact) ||
+                other.priceImpact == priceImpact));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, rate);
+  int get hashCode => Object.hash(runtimeType, rate, priceImpact);
 
   /// Create a copy of RelayQuoteDetails
   /// with the given fields replaced by the non-null parameter values.
@@ -148,7 +166,9 @@ class _$RelayQuoteDetailsImpl implements _RelayQuoteDetails {
 }
 
 abstract class _RelayQuoteDetails implements RelayQuoteDetails {
-  factory _RelayQuoteDetails({required final String rate}) =
+  factory _RelayQuoteDetails(
+          {required final String rate,
+          @JsonKey(name: 'priceImpact') final String? priceImpact}) =
       _$RelayQuoteDetailsImpl;
 
   factory _RelayQuoteDetails.fromJson(Map<String, dynamic> json) =
@@ -156,6 +176,9 @@ abstract class _RelayQuoteDetails implements RelayQuoteDetails {
 
   @override
   String get rate;
+  @override
+  @JsonKey(name: 'priceImpact')
+  String? get priceImpact;
 
   /// Create a copy of RelayQuoteDetails
   /// with the given fields replaced by the non-null parameter values.
