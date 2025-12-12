@@ -39,6 +39,7 @@ class QuillTextUtils {
 
   /// Trims bio Delta JSON by collapsing all multiple newlines to single newlines.
   /// Bios only allow single line breaks, not multiple empty lines.
+  /// Also trims whitespace on individual lines.
   static String? trimBioDeltaJson(String? jsonDelta) {
     if (jsonDelta == null || jsonDelta.trim().isEmpty) return null;
 
@@ -46,7 +47,11 @@ class QuillTextUtils {
       final raw = jsonDecode(jsonDelta);
       if (raw is! List) return jsonDelta;
 
-      final doc = Document.fromJson(raw.cast<Map<String, dynamic>>());
+      final delta = Delta.fromJson(raw);
+
+      final trimmedDelta = trimLineWhitespaceInDelta(delta);
+
+      final doc = Document.fromDelta(trimmedDelta);
       final plain = doc.toPlainText();
 
       if (plain.trim().isEmpty) return null;
@@ -56,9 +61,9 @@ class QuillTextUtils {
       if (trimmedPlain.isEmpty) return null;
 
       final textForDelta = trimmedPlain.endsWith('\n') ? trimmedPlain : '$trimmedPlain\n';
-      final trimmedDelta = Delta()..insert(textForDelta);
-      final trimmedDoc = Document.fromDelta(trimmedDelta);
-      return jsonEncode(trimmedDoc.toDelta().toJson());
+      final finalDelta = Delta()..insert(textForDelta);
+      final finalDoc = Document.fromDelta(finalDelta);
+      return jsonEncode(finalDoc.toDelta().toJson());
     } catch (_) {
       return jsonDelta;
     }
