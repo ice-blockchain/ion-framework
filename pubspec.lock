@@ -1254,8 +1254,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: a0d2559ff1202ac62bee2c31cf29bc87e96aca67
-      resolved-ref: a0d2559ff1202ac62bee2c31cf29bc87e96aca67
+      ref: f0f5957509ad73f60a99bd0e9870e95866cf4e96
+      resolved-ref: f0f5957509ad73f60a99bd0e9870e95866cf4e96
       url: "https://github.com/ice-blockchain/flutter-quill.git"
     source: git
     version: "11.4.2"
