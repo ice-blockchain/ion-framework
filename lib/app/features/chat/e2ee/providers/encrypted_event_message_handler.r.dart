@@ -20,6 +20,7 @@ import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_encrypted_event_message_handler.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_event_handler.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
+import 'package:ion/app/features/user_archive/providers/encrypted_user_archive_handler.r.dart';
 import 'package:ion/app/features/user_block/providers/encrypted_blocked_users_handler.r.dart';
 import 'package:ion/app/features/wallets/providers/fund_request_handler.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_asset_handler.r.dart';
@@ -142,6 +143,7 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
 Future<EncryptedMessageEventHandler> encryptedMessageEventHandler(Ref ref) async {
   keepAliveWhenAuthenticated(ref);
   final handlers = [
+    ref.watch(encryptedUserArchiveHandlerProvider),
     ref.watch(encryptedDirectMessageStatusHandlerProvider),
     await ref.watch(encryptedDirectMessageHandlerProvider.future),
     ref.watch(encryptedDirectMessageReactionHandlerProvider),

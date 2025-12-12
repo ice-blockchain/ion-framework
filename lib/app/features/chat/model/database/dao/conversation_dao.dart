@@ -164,14 +164,13 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
 
     return query.watch().map((rows) {
       return rows.map((row) {
-        final conv = row.readTable(conversationTable);
+        final conversation = row.readTable(conversationTable);
         final event = row.readTableOrNull(eventMessageTable);
 
         return ConversationListItem(
-          type: conv.type,
-          joinedAt: conv.joinedAt,
-          conversationId: conv.id,
-          isArchived: conv.isArchived,
+          type: conversation.type,
+          joinedAt: conversation.joinedAt,
+          conversationId: conversation.id,
           latestMessage: event?.toEventMessage(),
         );
       }).toList();
@@ -218,38 +217,6 @@ class ConversationDao extends DatabaseAccessor<ChatDatabase> with _$Conversation
 
     final row = await query.getSingleOrNull();
     return row != null;
-  }
-
-  /// Set the archived status of a conversation
-  ///
-  /// Takes a conversation [conversationId] and an optional [isArchived] boolean parameter
-  /// Updates the conversation's archived status in the database.
-  ///
-  Future<void> setArchived(List<String> conversationIds, {bool isArchived = true}) async {
-    await (update(conversationTable)..where((t) => t.id.isIn(conversationIds)))
-        .write(ConversationTableCompanion(isArchived: Value(isArchived)));
-  }
-
-  /// Update the archived status of a list of conversations
-  ///
-  /// Takes a list of [archivedConversationIds] and updates the archived status of all conversations.
-  /// Conversations with IDs in the list will be marked as archived (isArchived = true).
-  /// All other conversations will be marked as not archived (isArchived = false).
-  ///
-  Future<void> updateArchivedConversations(List<String> archivedConversationIds) async {
-    await batch((b) {
-      b
-        ..update(
-          conversationTable,
-          const ConversationTableCompanion(isArchived: Value(true)),
-          where: (t) => t.id.isIn(archivedConversationIds),
-        )
-        ..update(
-          conversationTable,
-          const ConversationTableCompanion(isArchived: Value(false)),
-          where: (t) => t.id.isNotIn(archivedConversationIds),
-        );
-    });
   }
 
   Future<ConversationType?> getConversationType(String conversationId) async {
