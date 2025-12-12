@@ -9,10 +9,8 @@ class ExolixException extends IonSwapException {
 class ExolixBelowMinimumException extends ExolixException {
   const ExolixBelowMinimumException({
     required this.minAmount,
-    required this.message,
+    required String message,
   }) : super(message);
 
   final num minAmount;
-  @override
-  final String message;
 }
