@@ -102,7 +102,6 @@
 
 # ### PROJECT CONFIG & ROOT LEVEL FILES ###
 /pubspec.yaml @ice-orion @ice-hades
-/pubspec.lock @ice-orion
 /build.yaml @ice-damocles
 /analysis_options.yaml @ice-hades
 /README.md @ice-orion
