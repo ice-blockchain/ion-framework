@@ -13,7 +13,6 @@ class ConversationListItem with _$ConversationListItem {
     required String conversationId,
     required ConversationType type,
     required int joinedAt,
-    required bool isArchived,
     EventMessage? latestMessage,
   }) = _ConversationListItem;
 }

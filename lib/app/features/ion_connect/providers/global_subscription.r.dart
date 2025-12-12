@@ -27,6 +27,9 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.da
 import 'package:ion/app/features/ion_connect/providers/ion_connect_subscription_provider.r.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
+import 'package:ion/app/features/user_archive/model/entities/user_archive_entity.f.dart';
+import 'package:ion/app/features/user_archive/providers/user_archive_provider.r.dart';
+import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -47,10 +50,12 @@ class GlobalSubscription {
     required this.globalSubscriptionNotifier,
     required this.eventsManagementService,
     required this.eventBackfillService,
+    required this.userArchiveService,
   });
 
   final String currentUserMasterPubkey;
   final String devicePubkey;
+  final UserArchiveService? userArchiveService;
   final GlobalSubscriptionLatestEventTimestampService latestEventTimestampService;
   final IonConnectNotifier ionConnectNotifier;
   final GlobalSubscriptionNotifier globalSubscriptionNotifier;
@@ -83,7 +88,8 @@ class GlobalSubscription {
     // subscribe to encrypted delete events to ensure we process them before
     // any other encrypted events that might arrive later but were created earlier.
     // This prevents processing events that were deleted later on.
-    await _subscribeToEncryptedDeleteEvents();
+    await _subscribeToPriorityEvents();
+    await userArchiveService?.checkArchiveMigrated();
 
     Logger.log('[GLOBAL_SUBSCRIPTION] init fetched encrypted delete events)');
 
@@ -330,7 +336,7 @@ class GlobalSubscription {
     }
   }
 
-  Future<void> _subscribeToEncryptedDeleteEvents() async {
+  Future<void> _subscribeToPriorityEvents() async {
     final completer = Completer<void>();
 
     // If we have an encrypted timestamp in storage, we subtract 2 days to account
@@ -354,6 +360,8 @@ class GlobalSubscription {
               ],
               '#k': [
                 [DeletionRequestEntity.kind.toString()],
+                [UserArchiveEntity.kind.toString()],
+                [BlockedUserEntity.kind.toString()],
               ],
             },
             since: encryptedLatestTimestampFromStorage,
@@ -529,6 +537,7 @@ GlobalSubscription? globalSubscription(Ref ref) {
   final globalSubscriptionNotifier = ref.watch(globalSubscriptionNotifierProvider.notifier);
   final eventsManagementService = ref.watch(eventsManagementServiceProvider).valueOrNull;
   final eventBackfillService = ref.watch(eventBackfillServiceProvider);
+  final userArchiveService = ref.watch(userArchiveServiceProvider).valueOrNull;
 
   if (latestEventTimestampService == null || eventsManagementService == null) {
     return null;
@@ -542,5 +551,6 @@ GlobalSubscription? globalSubscription(Ref ref) {
     globalSubscriptionNotifier: globalSubscriptionNotifier,
     eventsManagementService: eventsManagementService,
     eventBackfillService: eventBackfillService,
+    userArchiveService: userArchiveService,
   );
 }

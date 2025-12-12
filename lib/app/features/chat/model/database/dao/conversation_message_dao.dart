@@ -6,6 +6,7 @@ part of '../chat_database.m.dart';
 ConversationMessageDao conversationMessageDao(Ref ref) => ConversationMessageDao(
       ref.watch(chatDatabaseProvider),
       masterPubkey: ref.watch(currentPubkeySelectorProvider),
+      userArchiveEventDao: ref.watch(userArchiveEventDaoProvider),
       fileCacheService: ref.watch(ionConnectFileCacheServiceProvider),
       eventSigner: ref.watch(currentUserIonConnectEventSignerProvider).valueOrNull,
     );
@@ -27,11 +28,13 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
     required this.eventSigner,
     required this.masterPubkey,
     required this.fileCacheService,
+    required this.userArchiveEventDao,
   });
 
   final String? masterPubkey;
   final EventSigner? eventSigner;
   final FileCacheService fileCacheService;
+  final UserArchiveEventDao userArchiveEventDao;
 
   /// Returns `true` if there is a kind 5 (deletion request) event newer than the given [entity]'s createdAt for the message,
   /// otherwise returns `false`.
@@ -75,28 +78,36 @@ class ConversationMessageDao extends DatabaseAccessor<ChatDatabase>
     return query.watchSingle().map((row) => row.read(countExp) ?? 0).distinct();
   }
 
-  Stream<int> getAllUnreadMessagesCountInArchive(
-    String currentUserMasterPubkey,
-  ) {
-    final query = select(messageStatusTable).join([
-      innerJoin(
-        conversationMessageTable,
-        conversationMessageTable.messageEventReference
-            .equalsExp(messageStatusTable.messageEventReference),
-      ),
-      innerJoin(
-        conversationTable,
-        conversationTable.id.equalsExp(conversationMessageTable.conversationId),
-      ),
-    ])
-      ..where(conversationTable.isArchived.equals(true))
-      ..where(messageStatusTable.masterPubkey.equals(currentUserMasterPubkey))
-      ..where(
-        messageStatusTable.status.equals(MessageDeliveryStatus.received.index),
-      )
-      ..groupBy([messageStatusTable.messageEventReference]);
+  Stream<int> getAllUnreadMessagesCountInArchive(String currentUserMasterPubkey) {
+    return userArchiveEventDao.watchLatestArchiveEvent().asyncMap((event) {
+      return event == null
+          ? <String>[]
+          : UserArchiveEntity.fromEventMessage(event).data.archivedConversations;
+    }).asyncExpand((archivedIds) {
+      if (archivedIds.isEmpty) {
+        return Stream.value(0);
+      }
 
-    return query.watch().map((rows) => rows.length).distinct();
+      final query = select(messageStatusTable).join([
+        innerJoin(
+          conversationMessageTable,
+          conversationMessageTable.messageEventReference
+              .equalsExp(messageStatusTable.messageEventReference),
+        ),
+        innerJoin(
+          conversationTable,
+          conversationTable.id.equalsExp(conversationMessageTable.conversationId) &
+              conversationTable.id.isIn(archivedIds),
+        ),
+      ])
+        ..where(messageStatusTable.masterPubkey.equals(currentUserMasterPubkey))
+        ..where(
+          messageStatusTable.status.equals(MessageDeliveryStatus.received.index),
+        )
+        ..groupBy([messageStatusTable.messageEventReference]);
+
+      return query.watch().map((rows) => rows.length).distinct();
+    }).distinct();
   }
 
   Stream<int> getAllUnreadMessagesCount(

@@ -29,6 +29,8 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
+import 'package:ion/app/features/user_archive/model/database/user_archive_database.m.dart';
+import 'package:ion/app/features/user_archive/model/entities/user_archive_entity.f.dart';
 import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
 import 'package:ion/app/utils/directory.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -90,7 +92,7 @@ class ChatDatabase extends _$ChatDatabase {
   final String? appGroupId;
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   static QueryExecutor _openConnection(String pubkey, String? appGroupId) {
     final databaseName = 'conversation_database_$pubkey';
@@ -205,6 +207,9 @@ class ChatDatabase extends _$ChatDatabase {
               WHERE status = 5
             );
           ''');
+        },
+        from5To6: (Migrator m, Schema6 schema) async {
+          await m.dropColumn(schema.conversationTable, 'is_archived');
         },
       ),
     );
