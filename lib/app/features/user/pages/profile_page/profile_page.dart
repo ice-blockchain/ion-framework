@@ -12,6 +12,7 @@ import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/tab_entity_type.dart';
@@ -30,7 +31,6 @@ import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_icon_button.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 
 class ProfilePage extends HookConsumerWidget {
   const ProfilePage({
@@ -86,7 +86,7 @@ class ProfilePage extends HookConsumerWidget {
 
     final isTokenizedProfile = profileMode == ProfileMode.dark && eventReferenceString != null;
     final tokenInfo =
-        isTokenizedProfile ? ref.watch(tokenMarketInfoProvider(eventReferenceString!)) : null;
+        isTokenizedProfile ? ref.watch(tokenMarketInfoProvider(eventReferenceString)) : null;
     final hasToken = tokenInfo?.valueOrNull != null;
 
     final showTokenButton = isCurrentUserProfile && isTokenizedProfile && hasToken;
