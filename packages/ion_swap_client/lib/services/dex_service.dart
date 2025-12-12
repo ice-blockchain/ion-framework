@@ -33,8 +33,8 @@ class DexService {
         throw const IonSwapException('OKX: Quote is required');
       }
 
-      final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoinContractAddress);
-      final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoinContractAddress);
+      final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoin.contractAddress);
+      final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoin.contractAddress);
 
       final approveTransactionResponse = await _swapOkxRepository.approveTransaction(
         chainIndex: okxQuote.chainIndex,
@@ -116,9 +116,9 @@ class DexService {
   }
 
   Future<SwapQuoteData?> getQuotes(SwapCoinParameters swapCoinData) async {
-    final okxChain = await _getOkxChain(swapCoinData.sellCoinNetworkName);
-    final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoinContractAddress);
-    final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoinContractAddress);
+    final okxChain = await _getOkxChain(swapCoinData.sellCoin.network.name);
+    final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoin.contractAddress);
+    final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoin.contractAddress);
 
     if (okxChain != null) {
       final quotesResponse = await _swapOkxRepository.getQuotes(

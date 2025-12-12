@@ -56,4 +56,5 @@ const _$SwapQuoteInfoSourceEnumMap = {
   SwapQuoteInfoSource.letsExchange: 'letsExchange',
   SwapQuoteInfoSource.okx: 'okx',
   SwapQuoteInfoSource.relay: 'relay',
+  SwapQuoteInfoSource.ionOnchain: 'ionOnchain',
 };
