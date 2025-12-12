@@ -112,7 +112,17 @@ String _convertDeltaToPlainText(String? value) {
   try {
     final deltaJson = jsonDecode(value) as List<dynamic>;
     final delta = Delta.fromJson(deltaJson);
-    final document = Document.fromDelta(delta);
+
+    final filteredDelta = Delta();
+    for (final op in delta.operations) {
+      // exclude links from the plain text
+      if (op.attributes?.containsKey(Attribute.link.key) ?? false) {
+        continue;
+      }
+      filteredDelta.push(op);
+    }
+
+    final document = Document.fromDelta(filteredDelta);
     return document.toPlainText().trim();
   } catch (e) {
     return '';
