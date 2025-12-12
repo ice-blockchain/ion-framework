@@ -22,9 +22,8 @@ class LetsExchangePairUnavailableException extends LetsExchangeException {
 
   @override
   String toString() {
-    final networkInfo = fromNetwork != null && toNetwork != null
-        ? ' ($fromNetwork -> $toNetwork)'
-        : '';
+    final networkInfo =
+        fromNetwork != null && toNetwork != null ? ' ($fromNetwork -> $toNetwork)' : '';
     return 'LetsExchangePairUnavailableException: Pair $fromCoin-$toCoin$networkInfo is unavailable. ${message ?? ""}';
   }
 }
