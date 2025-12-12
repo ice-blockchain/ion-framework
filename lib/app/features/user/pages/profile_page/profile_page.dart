@@ -90,7 +90,6 @@ class ProfilePage extends HookConsumerWidget {
     final hasToken = tokenInfo?.valueOrNull != null;
 
     final showTokenButton = isCurrentUserProfile && isTokenizedProfile && hasToken;
-    final eventRefForButton = showTokenButton ? eventReferenceString : null;
 
     final onRefresh = useCallback(
       () {
@@ -142,10 +141,10 @@ class ProfilePage extends HookConsumerWidget {
                 : null,
           );
         },
-        leadingActionsBuilder: eventRefForButton != null
+        leadingActionsBuilder: showTokenButton
             ? () => NavigationIconButton(
                   onPress: () => TokenizedCommunityRoute(
-                    externalAddress: eventRefForButton!,
+                    externalAddress: eventReferenceString,
                   ).push<void>(context),
                   icon: Assets.svg.iconProfileTokenpage.icon(
                     size: NavigationIconButton.iconSize,
