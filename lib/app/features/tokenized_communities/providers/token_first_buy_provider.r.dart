@@ -13,6 +13,7 @@ Future<CommunityTokenActionEntity?> tokenFirstBuy(
   Ref ref,
   CommunityTokenDefinitionEntity tokenDefinitionEntity,
 ) async {
+  //TODO: impl
   final firstBuyCacheKey = CommunityTokenActionEntity.cacheKeyBuilder(
     definitionReference: tokenDefinitionEntity.toEventReference().toString(),
   );

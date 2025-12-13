@@ -2,105 +2,184 @@
 
 import 'dart:math';
 
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_builder_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_reference_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'community_token_ion_connect_notifier_provider.r.g.dart';
 
-@riverpod
-class CommunityTokenIonConnectNotifier extends _$CommunityTokenIonConnectNotifier {
-  @override
-  FutureOr<String?> build(EventReference origEventReference) => null;
+class CommunityTokenIonConnectService {
+  CommunityTokenIonConnectService({
+    required IonConnectNotifier ionConnectNotifier,
+    required CommunityTokenDefinitionRepository communityTokenDefinitionRepository,
+    required UserEventsMetadataBuilder userEventsMetadataBuilder,
+    required bool Function(String masterPubkey) isCurrentUserSelector,
+  })  : _ionConnectNotifier = ionConnectNotifier,
+        _communityTokenDefinitionRepository = communityTokenDefinitionRepository,
+        _userEventsMetadataBuilder = userEventsMetadataBuilder,
+        _isCurrentUserSelector = isCurrentUserSelector;
 
-  // TODO:pass buy transaction data
-  Future<void> sendBuyAction({
+  final IonConnectNotifier _ionConnectNotifier;
+
+  final CommunityTokenDefinitionRepository _communityTokenDefinitionRepository;
+
+  final UserEventsMetadataBuilder _userEventsMetadataBuilder;
+
+  final bool Function(String masterPubkey) _isCurrentUserSelector;
+
+  Future<void> sendBuyEvents({
+    required String externalAddress,
     required bool firstBuy,
   }) async {
-    if (state.isLoading) return;
+    final communityTokenDefinition =
+        await _fetchCommunityTokenDefinition(externalAddress: externalAddress);
 
-    state = const AsyncValue.loading();
+    final communityTokenAction = await _buildCommunityTokenAction(
+      communityTokenDefinition: communityTokenDefinition,
+      type: CommunityTokenActionType.buy,
+    );
 
-    state = await AsyncValue.guard(() async {
-      final ionConnectNotifier = ref.read(ionConnectNotifierProvider.notifier);
-      final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
-      final communityTokenDefinitionBuilder = ref.read(communityTokenDefinitionBuilderProvider);
-      final communityTokenAction =
-          await _buildCommunityTokenAction(type: CommunityTokenActionType.buy);
-      final communityTokenFirstBuyAction = await communityTokenDefinitionBuilder.build(
-        origEventReference: origEventReference,
-        type: CommunityTokenDefinitionType.firstBuyAction,
+    final communityTokenDefinitionData = communityTokenDefinition.data;
+
+    if (communityTokenDefinitionData is CommunityTokenDefinitionExternal) {
+      return _sendExternalBuyEvents(
+        communityTokenDefinition: communityTokenDefinition,
+        communityTokenAction: communityTokenAction,
       );
-      final isOwnToken = ref.read(isCurrentUserSelectorProvider(origEventReference.masterPubkey));
+    } else if (communityTokenDefinitionData is CommunityTokenDefinitionIon) {
+      return _sendIonBuyEvents(
+        communityTokenDefinition: communityTokenDefinition,
+        communityTokenAction: communityTokenAction,
+        firstBuy: firstBuy,
+      );
+    } else {
+      throw StateError(
+        'Unsupported CommunityTokenDefinitionData type: ${communityTokenDefinition.data.runtimeType}',
+      );
+    }
+  }
 
-      await Future.wait([
-        ionConnectNotifier.sendEntitiesData(
+  Future<void> sendSellEvents({
+    required String externalAddress,
+  }) async {
+    final communityTokenDefinition =
+        await _fetchCommunityTokenDefinition(externalAddress: externalAddress);
+
+    final communityTokenAction = await _buildCommunityTokenAction(
+      communityTokenDefinition: communityTokenDefinition,
+      type: CommunityTokenActionType.sell,
+    );
+
+    return _sendSellEvents(
+      communityTokenDefinition: communityTokenDefinition,
+      communityTokenAction: communityTokenAction,
+    );
+  }
+
+  /// For external tokens (X), we don't create "first buy" definition events
+  /// and it can't be the user's own token, because external token definitions
+  /// are created by internal backend users.
+  Future<void> _sendExternalBuyEvents({
+    required CommunityTokenDefinitionEntity communityTokenDefinition,
+    required CommunityTokenActionData communityTokenAction,
+  }) async {
+    await Future.wait([
+      _ionConnectNotifier.sendEntityData(communityTokenAction),
+      _ionConnectNotifier.sendEntityData(
+        communityTokenAction,
+        actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
+        metadataBuilders: [_userEventsMetadataBuilder],
+        cache: false,
+      ),
+    ]);
+  }
+
+  /// For Ion tokens, if this is a first token buy action,
+  /// "first-buy" definition event must be sent to the profile / content
+  /// owner’s relays.
+  Future<void> _sendIonBuyEvents({
+    required CommunityTokenDefinitionEntity communityTokenDefinition,
+    required CommunityTokenActionData communityTokenAction,
+    required bool firstBuy,
+  }) async {
+    final communityTokenDefinitionData = communityTokenDefinition.data;
+
+    if (communityTokenDefinitionData is! CommunityTokenDefinitionIon) {
+      throw StateError(
+        'communityTokenDefinitionData must be of type CommunityTokenDefinitionIon',
+      );
+    }
+
+    final isOwnToken = _isCurrentUserSelector(communityTokenDefinition.masterPubkey);
+    final communityTokenFirstBuyAction = await _buildCommunityTokenFirstBuyAction(
+      communityTokenDefinition: communityTokenDefinitionData,
+    );
+    await Future.wait([
+      _ionConnectNotifier.sendEntitiesData(
+        [
+          communityTokenAction,
+          if (firstBuy && isOwnToken) communityTokenFirstBuyAction,
+        ],
+      ),
+      if (!isOwnToken)
+        _ionConnectNotifier.sendEntitiesData(
           [
             communityTokenAction,
-            if (firstBuy && isOwnToken) communityTokenFirstBuyAction,
+            if (firstBuy) communityTokenFirstBuyAction,
           ],
+          actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
+          metadataBuilders: [_userEventsMetadataBuilder],
           cache: false,
         ),
-        if (!isOwnToken)
-          ionConnectNotifier.sendEntitiesData(
-            [
-              communityTokenAction,
-              if (firstBuy) communityTokenFirstBuyAction,
-            ],
-            actionSource: ActionSource.user(origEventReference.masterPubkey),
-            metadataBuilders: [userEventsMetadataBuilder],
-            cache: false,
-          ),
-      ]);
-
-      return null;
-    });
+    ]);
   }
 
-  // TODO:pass sell transaction data
-  Future<void> sendSellAction() async {
-    if (state.isLoading) return;
-
-    state = const AsyncValue.loading();
-
-    state = await AsyncValue.guard(() async {
-      final ionConnectNotifier = ref.read(ionConnectNotifierProvider.notifier);
-      final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
-      final communityTokenAction =
-          await _buildCommunityTokenAction(type: CommunityTokenActionType.sell);
-      final isOwnToken = ref.read(isCurrentUserSelectorProvider(origEventReference.masterPubkey));
-
-      await Future.wait([
-        ionConnectNotifier.sendEntityData(communityTokenAction, cache: false),
-        if (!isOwnToken)
-          ionConnectNotifier.sendEntityData(
-            communityTokenAction,
-            actionSource: ActionSource.user(origEventReference.masterPubkey),
-            metadataBuilders: [userEventsMetadataBuilder],
-            cache: false,
-          ),
-      ]);
-
-      return null;
-    });
+  /// For sell actions, we create only community token action events.
+  Future<void> _sendSellEvents({
+    required CommunityTokenDefinitionEntity communityTokenDefinition,
+    required CommunityTokenActionData communityTokenAction,
+  }) async {
+    final isOwnToken = _isCurrentUserSelector(communityTokenDefinition.masterPubkey);
+    await Future.wait([
+      _ionConnectNotifier.sendEntityData(communityTokenAction, cache: false),
+      if (!isOwnToken)
+        _ionConnectNotifier.sendEntityData(
+          communityTokenAction,
+          actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
+          metadataBuilders: [_userEventsMetadataBuilder],
+          cache: false,
+        ),
+    ]);
   }
 
-  // TODO:pass transaction data
+  Future<CommunityTokenDefinitionEntity> _fetchCommunityTokenDefinition({
+    required String externalAddress,
+  }) async {
+    final communityTokenDefinition = await _communityTokenDefinitionRepository.getTokenDefinition(
+      externalAddress: externalAddress,
+    );
+
+    if (communityTokenDefinition == null) {
+      throw TokenDefinitionNotFoundException(externalAddress);
+    }
+
+    return communityTokenDefinition;
+  }
+
+  //TODO: pass all required data
   Future<CommunityTokenActionData> _buildCommunityTokenAction({
+    required CommunityTokenDefinitionEntity communityTokenDefinition,
     required CommunityTokenActionType type,
   }) async {
-    final communityTokenDefinitionReference = await ref.read(
-      communityTokenDefinitionReferenceProvider(origEventReference: origEventReference).future,
-    );
     return CommunityTokenActionData.fromData(
-      definitionReference: communityTokenDefinitionReference,
+      definitionReference: communityTokenDefinition.toEventReference(),
       network: 'foo',
       bondingCurveAddress: 'bar',
       tokenAddress: 'baz',
@@ -111,4 +190,32 @@ class CommunityTokenIonConnectNotifier extends _$CommunityTokenIonConnectNotifie
       currency: 'ION',
     );
   }
+
+  Future<CommunityTokenDefinitionIon> _buildCommunityTokenFirstBuyAction({
+    required CommunityTokenDefinitionIon communityTokenDefinition,
+  }) async {
+    return CommunityTokenDefinitionIon.fromEventReference(
+      eventReference: communityTokenDefinition.eventReference,
+      kind: communityTokenDefinition.kind,
+      type: CommunityTokenDefinitionIonType.firstBuyAction,
+    );
+  }
+}
+
+@riverpod
+Future<CommunityTokenIonConnectService> communityTokenIonConnectService(Ref ref) async {
+  final ionConnectNotifier = ref.watch(ionConnectNotifierProvider.notifier);
+  final communityTokenDefinitionRepository =
+      await ref.watch(communityTokenDefinitionRepositoryProvider.future);
+  final userEventsMetadataBuilder = await ref.watch(userEventsMetadataBuilderProvider.future);
+  bool isCurrentUserSelector(String masterPubkey) {
+    return ref.read(isCurrentUserSelectorProvider(masterPubkey));
+  }
+
+  return CommunityTokenIonConnectService(
+    ionConnectNotifier: ionConnectNotifier,
+    communityTokenDefinitionRepository: communityTokenDefinitionRepository,
+    userEventsMetadataBuilder: userEventsMetadataBuilder,
+    isCurrentUserSelector: isCurrentUserSelector,
+  );
 }

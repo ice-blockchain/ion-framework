@@ -713,3 +713,32 @@ class UnknownEventReferenceKind extends IONException {
   UnknownEventReferenceKind(dynamic eventReference)
       : super(10133, 'Unknown event reference kind: $eventReference');
 }
+
+class TokenInfoNotFoundException extends IONException {
+  TokenInfoNotFoundException(String externalAddress)
+      : super(10134, 'Token info not found for external address: $externalAddress');
+}
+
+class TokenCreatorIonAddressNotFoundException extends IONException {
+  TokenCreatorIonAddressNotFoundException(String externalAddress)
+      : super(
+          10135,
+          'Token info creator Ion address not found for external address: $externalAddress',
+        );
+}
+
+class TokenDefinitionNotFoundException extends IONException {
+  TokenDefinitionNotFoundException(String externalAddress)
+      : super(
+          10136,
+          'Token definition not found for external address: $externalAddress',
+        );
+}
+
+class TokenAddressNotFoundException extends IONException {
+  TokenAddressNotFoundException(String externalAddress)
+      : super(
+          10137,
+          'Token address not found for external address: $externalAddress',
+        );
+}
