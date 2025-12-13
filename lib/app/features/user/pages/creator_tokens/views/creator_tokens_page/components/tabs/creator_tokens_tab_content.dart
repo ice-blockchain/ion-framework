@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
+import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/features/tokenized_communities/providers/category_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
@@ -47,9 +48,10 @@ class CreatorTokensTabContent extends HookConsumerWidget {
     return LoadMoreBuilder(
       hasMore: state.activeHasMore,
       onLoadMore: () => _loadMore(ref),
-      builder: (context, slivers) => RefreshIndicator(
+      builder: (context, slivers) => PullToRefreshBuilder(
         onRefresh: () => _refresh(ref),
-        child: CustomScrollView(slivers: slivers),
+        builder: (_, slivers) => CustomScrollView(slivers: slivers),
+        slivers: slivers,
       ),
       slivers: [
         CreatorTokensList(
