@@ -21,11 +21,15 @@ Future<CommunityContentTokenType?> getTokenType(
   CommunityContentTokenType? type;
 
   final communityTokenDefinition =
-      await ref.watch(communityTokenDefinitionProvider(externalAddress: externalAddress).future);
+      ref.watch(communityTokenDefinitionProvider(externalAddress: externalAddress));
 
-  if (communityTokenDefinition?.data.platform == CommunityTokenPlatform.x) {
+  if (communityTokenDefinition.valueOrNull == null) {
+    return null;
+  }
+
+  if (communityTokenDefinition.valueOrNull!.data.platform == CommunityTokenPlatform.x) {
     type = CommunityContentTokenType.twitter;
-  } else if (communityTokenDefinition
+  } else if (communityTokenDefinition.valueOrNull!
       case CommunityTokenDefinitionEntity(data: final CommunityTokenDefinitionIon ionData)) {
     final originEntity = ref
         .watch(ionConnectEntityProvider(eventReference: ionData.eventReference, network: false))
