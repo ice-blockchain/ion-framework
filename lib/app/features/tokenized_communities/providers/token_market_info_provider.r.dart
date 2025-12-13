@@ -8,10 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'token_market_info_provider.r.g.dart';
 
 @riverpod
-Stream<CommunityToken?> tokenMarketInfo(
-  Ref ref,
-  String externalAddress,
-) async* {
+Stream<CommunityToken?> tokenMarketInfo(Ref ref, String externalAddress) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
 
   // 1. Fetch initial data via REST

@@ -48,10 +48,7 @@ class RepostListItem extends ConsumerWidget {
             return entity;
           }),
         ) ??
-        ListCachedObjects.maybeObjectOf<IonConnectEntity>(
-          context,
-          eventReference,
-        );
+        ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, eventReference);
 
     if (repostEntity == null) {
       return const Skeleton(child: PostSkeleton());
@@ -59,22 +56,20 @@ class RepostListItem extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () => switch (repostEntity) {
-        RepostEntity() => PostDetailsRoute(
-            eventReference: repostEntity.data.eventReference.encode(),
-          ).push<void>(context),
+        RepostEntity() =>
+          PostDetailsRoute(eventReference: repostEntity.data.eventReference.encode())
+              .push<void>(context),
         GenericRepostEntity()
             when [
               ModifiablePostEntity.kind,
               CommunityTokenDefinitionEntity.kind,
               CommunityTokenActionEntity.kind,
             ].any((kind) => repostEntity.data.kind == kind) =>
-          PostDetailsRoute(
-            eventReference: repostEntity.data.eventReference.encode(),
-          ).push<void>(context),
+          PostDetailsRoute(eventReference: repostEntity.data.eventReference.encode())
+              .push<void>(context),
         GenericRepostEntity() when repostEntity.data.kind == ArticleEntity.kind =>
-          ArticleDetailsRoute(
-            eventReference: repostEntity.data.eventReference.encode(),
-          ).push<void>(context),
+          ArticleDetailsRoute(eventReference: repostEntity.data.eventReference.encode())
+              .push<void>(context),
         _ => null,
       },
       behavior: HitTestBehavior.opaque,

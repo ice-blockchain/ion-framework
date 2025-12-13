@@ -58,13 +58,9 @@ class CommunityTokenDefinitionEntity
   const CommunityTokenDefinitionEntity._();
 
   /// https://github.com/ice-blockchain/subzero/blob/master/.ion-connect-protocol/ICIP-11000.md#community-token-definition-event
-  factory CommunityTokenDefinitionEntity.fromEventMessage(
-    EventMessage eventMessage,
-  ) {
+  factory CommunityTokenDefinitionEntity.fromEventMessage(EventMessage eventMessage) {
     if (eventMessage.kind != kind) {
-      throw Exception(
-        'Incorrect event kind ${eventMessage.kind}, expected $kind',
-      );
+      throw Exception('Incorrect event kind ${eventMessage.kind}, expected $kind');
     }
 
     return CommunityTokenDefinitionEntity(
@@ -88,6 +84,7 @@ abstract class CommunityTokenDefinition implements ReplaceableEntityData, EventS
 
   factory CommunityTokenDefinition.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
+
     final kind = tags[EventKind.tagName]?.map(EventKind.fromTag).firstOrNull?.value;
     final dTag = tags[ReplaceableEventIdentifier.tagName]
         ?.map(ReplaceableEventIdentifier.fromTag)
