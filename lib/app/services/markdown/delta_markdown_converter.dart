@@ -68,6 +68,58 @@ abstract class DeltaMarkdownConverter {
     return (text: buffer.toString(), tags: pmoTags);
   }
 
+  /// Maps a Delta JSON list to [PmoConversionResult] for posts.
+  ///
+  /// Simplified version that only supports bold and italic formatting.
+  /// Skips all block-level markdown (headers, lists, blockquotes, code blocks)
+  /// and other inline formatting (code, strike, underline, links).
+  static Future<PmoConversionResult> mapDeltaToPmoForPosts(List<dynamic> deltaJson) async {
+    return compute(_mapDeltaToPmoForPosts, deltaJson);
+  }
+
+  /// Internal static function for use with [compute] for posts.
+  static PmoConversionResult _mapDeltaToPmoForPosts(List<dynamic> deltaJson) {
+    final delta = Delta.fromJson(deltaJson);
+    final buffer = StringBuffer();
+    final pmoTags = <PmoTag>[];
+
+    var currentIndex = 0;
+
+    for (final op in delta.operations) {
+      if (op.key == 'insert') {
+        final data = op.data;
+        final attributes = op.attributes;
+
+        if (data is String) {
+          // Process inline attributes for posts (only bold and italic)
+          if (attributes != null && attributes.isNotEmpty) {
+            _processInlineAttributesForPosts(
+              content: data,
+              attributes: attributes,
+              currentIndex: currentIndex,
+              pmoTags: pmoTags,
+            );
+          }
+
+          buffer.write(data);
+          currentIndex += data.length;
+        } else if (data is Map) {
+          // Handle image embeds for posts
+          final placeholder = _processEmbedForPosts(
+            data: data,
+            currentIndex: currentIndex,
+            pmoTags: pmoTags,
+          );
+
+          buffer.write(placeholder);
+          currentIndex += placeholder.length;
+        }
+      }
+    }
+
+    return (text: buffer.toString(), tags: pmoTags);
+  }
+
   /// Maps markdown content to plain text and PMO tags.
   ///
   /// This converts markdown → Delta → plain text + PMO tags.
@@ -252,6 +304,93 @@ abstract class DeltaMarkdownConverter {
     }
   }
 
+  /// Processes inline attributes for posts (only bold, italic, and image links).
+  ///
+  /// Only supports bold and italic formatting, and image links (spaces with link attribute).
+  /// Uses HTML tags instead of markdown syntax.
+  static void _processInlineAttributesForPosts({
+    required String content,
+    required Map<String, dynamic> attributes,
+    required int currentIndex,
+    required List<PmoTag> pmoTags,
+  }) {
+    final hasLink = attributes.containsKey('link');
+
+    // Handle image links (spaces with link attribute represent images in posts)
+    if (hasLink && content.trim().isEmpty) {
+      final imageUrl = attributes['link'] ?? '';
+      final replacement = '<img src="$imageUrl" />';
+      pmoTags.add(
+        PmoTag(
+          start: currentIndex,
+          end: currentIndex + content.length,
+          replacement: replacement,
+        ),
+      );
+      return;
+    }
+
+    if (content.trim().isEmpty) {
+      return; // Skip empty or whitespace-only content without links
+    }
+
+    final hasBold = attributes.containsKey('bold');
+    final hasItalic = attributes.containsKey('italic');
+
+    // Only process if we have bold or italic
+    if (!hasBold && !hasItalic) {
+      return;
+    }
+
+    var replacement = content;
+
+    // Handle bold and italic together (must be before individual checks)
+    // Use HTML tags instead of markdown syntax
+    if (hasBold && hasItalic) {
+      replacement = '<b><i>$replacement</i></b>';
+    } else if (hasBold) {
+      replacement = '<b>$replacement</b>';
+    } else if (hasItalic) {
+      replacement = '<i>$replacement</i>';
+    }
+
+    if (replacement != content) {
+      pmoTags.add(
+        PmoTag(
+          start: currentIndex,
+          end: currentIndex + content.length,
+          replacement: replacement,
+        ),
+      );
+    }
+  }
+
+  /// Processes embed data for posts (only images).
+  ///
+  /// Only handles image embeds, ignoring other embed types.
+  /// Uses HTML img tag instead of markdown syntax.
+  static String _processEmbedForPosts({
+    required Map<dynamic, dynamic> data,
+    required int currentIndex,
+    required List<PmoTag> pmoTags,
+  }) {
+    if (data.containsKey('text-editor-single-image')) {
+      final imageUrl = data['text-editor-single-image'] ?? '';
+      const placeholder = ' ';
+      final replacement = '<img src="$imageUrl" />';
+      _addEmbedPmoTag(
+        currentIndex: currentIndex,
+        placeholder: placeholder,
+        replacement: replacement,
+        pmoTags: pmoTags,
+      );
+      return placeholder;
+    }
+
+    // Fallback: empty placeholder if embed type is unknown or not supported
+    return '';
+  }
+
   /// Creates a PMO tag for an embed placeholder.
   static void _addEmbedPmoTag({
     required int currentIndex,
@@ -345,17 +484,137 @@ abstract class DeltaMarkdownConverter {
         tag.start <= tag.end;
   }
 
+  /// Maps HTML tags (via PMO tags) directly to Delta for posts.
+  ///
+  /// Converts HTML tags like <b>, <i>, <img> directly to Delta without markdown parsing.
+  ///
+  /// Parameters:
+  /// - [plainText]: The plain text content from the event
+  /// - [pmoTags]: List of PMO tags in format ['pmo', 'start:end', 'HTML replacement']
+  ///
+  /// Returns: Delta mapped from HTML tags in PMO tags
+  static Delta mapPmoTagsToDeltaForPosts(String plainText, List<List<String>> pmoTags) {
+    if (pmoTags.isEmpty) {
+      return Delta()..insert('$plainText\n');
+    }
+
+    final parsedTags = _parsePmoTags(pmoTags);
+    final delta = Delta();
+    var currentPos = 0;
+
+    for (final tag in parsedTags) {
+      if (!_isValidPmoTag(
+        tag: tag,
+        currentPos: currentPos,
+        textLength: plainText.length,
+      )) {
+        continue;
+      }
+
+      // Write any plain text before this tag
+      if (tag.start > currentPos) {
+        final textBefore = plainText.substring(currentPos, tag.start);
+        delta.insert(textBefore);
+      }
+
+      // Parse HTML replacement and convert to Delta operations
+      _parseHtmlReplacementToDelta(tag.replacement, delta);
+      currentPos = tag.end;
+    }
+
+    // Write any remaining plain text after the last tag
+    if (currentPos < plainText.length) {
+      final textAfter = plainText.substring(currentPos);
+      delta.insert(textAfter);
+    }
+
+    // Ensure delta ends with newline
+    if (delta.operations.isNotEmpty) {
+      final lastOp = delta.operations.last;
+      if (lastOp.key == 'insert' && lastOp.data is String) {
+        final text = lastOp.data! as String;
+        if (!text.endsWith('\n')) {
+          delta.insert('\n');
+        }
+      } else {
+        delta.insert('\n');
+      }
+    }
+
+    return delta;
+  }
+
+  /// Parses HTML replacement string and adds corresponding Delta operations.
+  ///
+  /// Handles <b>, <i>, <b><i>, and <img> tags.
+  static void _parseHtmlReplacementToDelta(String replacement, Delta delta) {
+    // Match HTML tags: <b>text</b>, <i>text</i>, <b><i>text</i></b>, <img src="url" />
+    final boldItalicPattern = RegExp('<b><i>(.*?)</i></b>');
+    final boldPattern = RegExp('<b>(.*?)</b>');
+    final italicPattern = RegExp('<i>(.*?)</i>');
+    final imgPattern = RegExp(r'<img\s+src="([^"]+)"\s*/>');
+
+    // Check for image first
+    // In posts, images are stored as links with a space, not as embeds
+    final imgMatch = imgPattern.firstMatch(replacement);
+    if (imgMatch != null) {
+      final imageUrl = imgMatch.group(1) ?? '';
+      delta.insert(' ', {'link': imageUrl});
+      return;
+    }
+
+    // Check for bold+italic
+    final boldItalicMatch = boldItalicPattern.firstMatch(replacement);
+    if (boldItalicMatch != null) {
+      final text = boldItalicMatch.group(1) ?? '';
+      delta.insert(text, {'bold': true, 'italic': true});
+      return;
+    }
+
+    // Check for bold
+    final boldMatch = boldPattern.firstMatch(replacement);
+    if (boldMatch != null) {
+      final text = boldMatch.group(1) ?? '';
+      delta.insert(text, {'bold': true});
+      return;
+    }
+
+    // Check for italic
+    final italicMatch = italicPattern.firstMatch(replacement);
+    if (italicMatch != null) {
+      final text = italicMatch.group(1) ?? '';
+      delta.insert(text, {'italic': true});
+      return;
+    }
+
+    // Fallback: insert as plain text
+    delta.insert(replacement);
+  }
+
   /// Maps markdown (via PMO tags) to Delta.
   ///
   /// Used for backward compatibility when reading posts/articles
   /// that have PMO tags but no richText Delta.
   ///
+  /// Automatically detects if PMO tags contain HTML (for posts) or markdown (for articles).
+  ///
   /// Parameters:
   /// - [plainText]: The plain text content from the event
-  /// - [pmoTags]: List of PMO tags in format ['pmo', 'start:end', 'markdown replacement']
+  /// - [pmoTags]: List of PMO tags in format ['pmo', 'start:end', 'markdown/HTML replacement']
   ///
-  /// Returns: Delta mapped from the markdown created by applying PMO tags
+  /// Returns: Delta mapped from the markdown/HTML created by applying PMO tags
   static Delta mapMarkdownToDelta(String plainText, List<List<String>> pmoTags) {
+    // Check if any PMO tag contains HTML tags (for posts) instead of markdown
+    final hasHtmlTags = pmoTags.any((tag) {
+      if (tag.length < 3 || tag[0] != PmoTag.tagName) return false;
+      final replacement = tag[2];
+      return replacement.contains(RegExp('<(b|i|img)'));
+    });
+
+    if (hasHtmlTags) {
+      // Use HTML tag parser for posts
+      return mapPmoTagsToDeltaForPosts(plainText, pmoTags);
+    }
     if (pmoTags.isEmpty) {
       return Delta()..insert('$plainText\n');
     }
