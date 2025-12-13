@@ -55,7 +55,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
       amount,
     );
 
-    useResetSlippageOnClose(controller);
+    useResetSwapStateOnClose(controller);
 
     return SheetContent(
       body: Column(
@@ -208,12 +208,17 @@ class SwapCoinsModalPage extends HookConsumerWidget {
     );
   }
 
-  void useResetSlippageOnClose(SwapCoinsController controller) {
+  void useResetSwapStateOnClose(SwapCoinsController controller) {
     useEffect(
       () {
-        // Reset slippage to default when modal is closed
+        // Clear buy coin immediately when modal opens
+
+        // Reset slippage and clear buy coin when modal is closed
         return () {
-          controller.setSlippage(SwapCoinData.defaultSlippage);
+          controller
+            ..setSlippage(SwapCoinData.defaultSlippage)
+            ..setBuyCoin(null)
+            ..setBuyNetwork(null);
         };
       },
       [controller],
