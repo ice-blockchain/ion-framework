@@ -30,19 +30,22 @@ mixin _$ExolixCoin {
   /// Create a copy of ExolixCoin
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ExolixCoinCopyWith<ExolixCoin> get copyWith => throw _privateConstructorUsedError;
+  $ExolixCoinCopyWith<ExolixCoin> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $ExolixCoinCopyWith<$Res> {
-  factory $ExolixCoinCopyWith(ExolixCoin value, $Res Function(ExolixCoin) then) =
+  factory $ExolixCoinCopyWith(
+          ExolixCoin value, $Res Function(ExolixCoin) then) =
       _$ExolixCoinCopyWithImpl<$Res, ExolixCoin>;
   @useResult
   $Res call({String code, String name, List<ExolixNetwork> networks});
 }
 
 /// @nodoc
-class _$ExolixCoinCopyWithImpl<$Res, $Val extends ExolixCoin> implements $ExolixCoinCopyWith<$Res> {
+class _$ExolixCoinCopyWithImpl<$Res, $Val extends ExolixCoin>
+    implements $ExolixCoinCopyWith<$Res> {
   _$ExolixCoinCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -77,8 +80,10 @@ class _$ExolixCoinCopyWithImpl<$Res, $Val extends ExolixCoin> implements $Exolix
 }
 
 /// @nodoc
-abstract class _$$ExolixCoinImplCopyWith<$Res> implements $ExolixCoinCopyWith<$Res> {
-  factory _$$ExolixCoinImplCopyWith(_$ExolixCoinImpl value, $Res Function(_$ExolixCoinImpl) then) =
+abstract class _$$ExolixCoinImplCopyWith<$Res>
+    implements $ExolixCoinCopyWith<$Res> {
+  factory _$$ExolixCoinImplCopyWith(
+          _$ExolixCoinImpl value, $Res Function(_$ExolixCoinImpl) then) =
       __$$ExolixCoinImplCopyWithImpl<$Res>;
   @override
   @useResult
@@ -86,9 +91,11 @@ abstract class _$$ExolixCoinImplCopyWith<$Res> implements $ExolixCoinCopyWith<$R
 }
 
 /// @nodoc
-class __$$ExolixCoinImplCopyWithImpl<$Res> extends _$ExolixCoinCopyWithImpl<$Res, _$ExolixCoinImpl>
+class __$$ExolixCoinImplCopyWithImpl<$Res>
+    extends _$ExolixCoinCopyWithImpl<$Res, _$ExolixCoinImpl>
     implements _$$ExolixCoinImplCopyWith<$Res> {
-  __$$ExolixCoinImplCopyWithImpl(_$ExolixCoinImpl _value, $Res Function(_$ExolixCoinImpl) _then)
+  __$$ExolixCoinImplCopyWithImpl(
+      _$ExolixCoinImpl _value, $Res Function(_$ExolixCoinImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of ExolixCoin
@@ -121,10 +128,13 @@ class __$$ExolixCoinImplCopyWithImpl<$Res> extends _$ExolixCoinCopyWithImpl<$Res
 @JsonSerializable()
 class _$ExolixCoinImpl implements _ExolixCoin {
   _$ExolixCoinImpl(
-      {required this.code, required this.name, required final List<ExolixNetwork> networks})
+      {required this.code,
+      required this.name,
+      required final List<ExolixNetwork> networks})
       : _networks = networks;
 
-  factory _$ExolixCoinImpl.fromJson(Map<String, dynamic> json) => _$$ExolixCoinImplFromJson(json);
+  factory _$ExolixCoinImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ExolixCoinImplFromJson(json);
 
   @override
   final String code;
@@ -155,8 +165,8 @@ class _$ExolixCoinImpl implements _ExolixCoin {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, code, name, const DeepCollectionEquality().hash(_networks));
+  int get hashCode => Object.hash(
+      runtimeType, code, name, const DeepCollectionEquality().hash(_networks));
 
   /// Create a copy of ExolixCoin
   /// with the given fields replaced by the non-null parameter values.
@@ -180,7 +190,8 @@ abstract class _ExolixCoin implements ExolixCoin {
       required final String name,
       required final List<ExolixNetwork> networks}) = _$ExolixCoinImpl;
 
-  factory _ExolixCoin.fromJson(Map<String, dynamic> json) = _$ExolixCoinImpl.fromJson;
+  factory _ExolixCoin.fromJson(Map<String, dynamic> json) =
+      _$ExolixCoinImpl.fromJson;
 
   @override
   String get code;
@@ -193,5 +204,6 @@ abstract class _ExolixCoin implements ExolixCoin {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ExolixCoinImplCopyWith<_$ExolixCoinImpl> get copyWith => throw _privateConstructorUsedError;
+  _$$ExolixCoinImplCopyWith<_$ExolixCoinImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

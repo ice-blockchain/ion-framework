@@ -15,6 +15,7 @@ _$SwapCoinParametersImpl _$$SwapCoinParametersImplFromJson(
       isBridge: json['isBridge'] as bool,
       sellCoin: SwapCoin.fromJson(json['sellCoin'] as Map<String, dynamic>),
       buyCoin: SwapCoin.fromJson(json['buyCoin'] as Map<String, dynamic>),
+      slippage: json['slippage'] as String,
     );
 
 Map<String, dynamic> _$$SwapCoinParametersImplToJson(
@@ -26,4 +27,5 @@ Map<String, dynamic> _$$SwapCoinParametersImplToJson(
       'isBridge': instance.isBridge,
       'sellCoin': instance.sellCoin,
       'buyCoin': instance.buyCoin,
+      'slippage': instance.slippage,
     };

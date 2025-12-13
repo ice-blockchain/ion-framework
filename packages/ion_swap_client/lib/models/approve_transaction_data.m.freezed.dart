@@ -14,7 +14,8 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-ApproveTransactionData _$ApproveTransactionDataFromJson(Map<String, dynamic> json) {
+ApproveTransactionData _$ApproveTransactionDataFromJson(
+    Map<String, dynamic> json) {
   return _ApproveTransactionData.fromJson(json);
 }
 
@@ -37,15 +38,20 @@ mixin _$ApproveTransactionData {
 
 /// @nodoc
 abstract class $ApproveTransactionDataCopyWith<$Res> {
-  factory $ApproveTransactionDataCopyWith(
-          ApproveTransactionData value, $Res Function(ApproveTransactionData) then) =
+  factory $ApproveTransactionDataCopyWith(ApproveTransactionData value,
+          $Res Function(ApproveTransactionData) then) =
       _$ApproveTransactionDataCopyWithImpl<$Res, ApproveTransactionData>;
   @useResult
-  $Res call({String data, String dexContractAddress, String gasLimit, String gasPrice});
+  $Res call(
+      {String data,
+      String dexContractAddress,
+      String gasLimit,
+      String gasPrice});
 }
 
 /// @nodoc
-class _$ApproveTransactionDataCopyWithImpl<$Res, $Val extends ApproveTransactionData>
+class _$ApproveTransactionDataCopyWithImpl<$Res,
+        $Val extends ApproveTransactionData>
     implements $ApproveTransactionDataCopyWith<$Res> {
   _$ApproveTransactionDataCopyWithImpl(this._value, this._then);
 
@@ -89,19 +95,26 @@ class _$ApproveTransactionDataCopyWithImpl<$Res, $Val extends ApproveTransaction
 abstract class _$$ApproveTransactionDataImplCopyWith<$Res>
     implements $ApproveTransactionDataCopyWith<$Res> {
   factory _$$ApproveTransactionDataImplCopyWith(
-          _$ApproveTransactionDataImpl value, $Res Function(_$ApproveTransactionDataImpl) then) =
+          _$ApproveTransactionDataImpl value,
+          $Res Function(_$ApproveTransactionDataImpl) then) =
       __$$ApproveTransactionDataImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String data, String dexContractAddress, String gasLimit, String gasPrice});
+  $Res call(
+      {String data,
+      String dexContractAddress,
+      String gasLimit,
+      String gasPrice});
 }
 
 /// @nodoc
 class __$$ApproveTransactionDataImplCopyWithImpl<$Res>
-    extends _$ApproveTransactionDataCopyWithImpl<$Res, _$ApproveTransactionDataImpl>
+    extends _$ApproveTransactionDataCopyWithImpl<$Res,
+        _$ApproveTransactionDataImpl>
     implements _$$ApproveTransactionDataImplCopyWith<$Res> {
   __$$ApproveTransactionDataImplCopyWithImpl(
-      _$ApproveTransactionDataImpl _value, $Res Function(_$ApproveTransactionDataImpl) _then)
+      _$ApproveTransactionDataImpl _value,
+      $Res Function(_$ApproveTransactionDataImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of ApproveTransactionData
@@ -169,21 +182,25 @@ class _$ApproveTransactionDataImpl implements _ApproveTransactionData {
             (identical(other.data, data) || other.data == data) &&
             (identical(other.dexContractAddress, dexContractAddress) ||
                 other.dexContractAddress == dexContractAddress) &&
-            (identical(other.gasLimit, gasLimit) || other.gasLimit == gasLimit) &&
-            (identical(other.gasPrice, gasPrice) || other.gasPrice == gasPrice));
+            (identical(other.gasLimit, gasLimit) ||
+                other.gasLimit == gasLimit) &&
+            (identical(other.gasPrice, gasPrice) ||
+                other.gasPrice == gasPrice));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, data, dexContractAddress, gasLimit, gasPrice);
+  int get hashCode =>
+      Object.hash(runtimeType, data, dexContractAddress, gasLimit, gasPrice);
 
   /// Create a copy of ApproveTransactionData
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$ApproveTransactionDataImplCopyWith<_$ApproveTransactionDataImpl> get copyWith =>
-      __$$ApproveTransactionDataImplCopyWithImpl<_$ApproveTransactionDataImpl>(this, _$identity);
+  _$$ApproveTransactionDataImplCopyWith<_$ApproveTransactionDataImpl>
+      get copyWith => __$$ApproveTransactionDataImplCopyWithImpl<
+          _$ApproveTransactionDataImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -216,6 +233,6 @@ abstract class _ApproveTransactionData implements ApproveTransactionData {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ApproveTransactionDataImplCopyWith<_$ApproveTransactionDataImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$ApproveTransactionDataImplCopyWith<_$ApproveTransactionDataImpl>
+      get copyWith => throw _privateConstructorUsedError;
 }

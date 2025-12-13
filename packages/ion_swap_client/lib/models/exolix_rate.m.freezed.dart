@@ -34,12 +34,14 @@ mixin _$ExolixRate {
   /// Create a copy of ExolixRate
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ExolixRateCopyWith<ExolixRate> get copyWith => throw _privateConstructorUsedError;
+  $ExolixRateCopyWith<ExolixRate> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $ExolixRateCopyWith<$Res> {
-  factory $ExolixRateCopyWith(ExolixRate value, $Res Function(ExolixRate) then) =
+  factory $ExolixRateCopyWith(
+          ExolixRate value, $Res Function(ExolixRate) then) =
       _$ExolixRateCopyWithImpl<$Res, ExolixRate>;
   @useResult
   $Res call(
@@ -53,7 +55,8 @@ abstract class $ExolixRateCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$ExolixRateCopyWithImpl<$Res, $Val extends ExolixRate> implements $ExolixRateCopyWith<$Res> {
+class _$ExolixRateCopyWithImpl<$Res, $Val extends ExolixRate>
+    implements $ExolixRateCopyWith<$Res> {
   _$ExolixRateCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -108,8 +111,10 @@ class _$ExolixRateCopyWithImpl<$Res, $Val extends ExolixRate> implements $Exolix
 }
 
 /// @nodoc
-abstract class _$$ExolixRateImplCopyWith<$Res> implements $ExolixRateCopyWith<$Res> {
-  factory _$$ExolixRateImplCopyWith(_$ExolixRateImpl value, $Res Function(_$ExolixRateImpl) then) =
+abstract class _$$ExolixRateImplCopyWith<$Res>
+    implements $ExolixRateCopyWith<$Res> {
+  factory _$$ExolixRateImplCopyWith(
+          _$ExolixRateImpl value, $Res Function(_$ExolixRateImpl) then) =
       __$$ExolixRateImplCopyWithImpl<$Res>;
   @override
   @useResult
@@ -124,9 +129,11 @@ abstract class _$$ExolixRateImplCopyWith<$Res> implements $ExolixRateCopyWith<$R
 }
 
 /// @nodoc
-class __$$ExolixRateImplCopyWithImpl<$Res> extends _$ExolixRateCopyWithImpl<$Res, _$ExolixRateImpl>
+class __$$ExolixRateImplCopyWithImpl<$Res>
+    extends _$ExolixRateCopyWithImpl<$Res, _$ExolixRateImpl>
     implements _$$ExolixRateImplCopyWith<$Res> {
-  __$$ExolixRateImplCopyWithImpl(_$ExolixRateImpl _value, $Res Function(_$ExolixRateImpl) _then)
+  __$$ExolixRateImplCopyWithImpl(
+      _$ExolixRateImpl _value, $Res Function(_$ExolixRateImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of ExolixRate
@@ -187,7 +194,8 @@ class _$ExolixRateImpl implements _ExolixRate {
       required this.withdrawMin,
       required this.maxAmount});
 
-  factory _$ExolixRateImpl.fromJson(Map<String, dynamic> json) => _$$ExolixRateImplFromJson(json);
+  factory _$ExolixRateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ExolixRateImplFromJson(json);
 
   @override
   final num fromAmount;
@@ -214,19 +222,24 @@ class _$ExolixRateImpl implements _ExolixRate {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$ExolixRateImpl &&
-            (identical(other.fromAmount, fromAmount) || other.fromAmount == fromAmount) &&
-            (identical(other.toAmount, toAmount) || other.toAmount == toAmount) &&
+            (identical(other.fromAmount, fromAmount) ||
+                other.fromAmount == fromAmount) &&
+            (identical(other.toAmount, toAmount) ||
+                other.toAmount == toAmount) &&
             (identical(other.rate, rate) || other.rate == rate) &&
             (identical(other.message, message) || other.message == message) &&
-            (identical(other.minAmount, minAmount) || other.minAmount == minAmount) &&
-            (identical(other.withdrawMin, withdrawMin) || other.withdrawMin == withdrawMin) &&
-            (identical(other.maxAmount, maxAmount) || other.maxAmount == maxAmount));
+            (identical(other.minAmount, minAmount) ||
+                other.minAmount == minAmount) &&
+            (identical(other.withdrawMin, withdrawMin) ||
+                other.withdrawMin == withdrawMin) &&
+            (identical(other.maxAmount, maxAmount) ||
+                other.maxAmount == maxAmount));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, fromAmount, toAmount, rate, message, minAmount, withdrawMin, maxAmount);
+  int get hashCode => Object.hash(runtimeType, fromAmount, toAmount, rate,
+      message, minAmount, withdrawMin, maxAmount);
 
   /// Create a copy of ExolixRate
   /// with the given fields replaced by the non-null parameter values.
@@ -254,7 +267,8 @@ abstract class _ExolixRate implements ExolixRate {
       required final num withdrawMin,
       required final num maxAmount}) = _$ExolixRateImpl;
 
-  factory _ExolixRate.fromJson(Map<String, dynamic> json) = _$ExolixRateImpl.fromJson;
+  factory _ExolixRate.fromJson(Map<String, dynamic> json) =
+      _$ExolixRateImpl.fromJson;
 
   @override
   num get fromAmount;
@@ -275,5 +289,6 @@ abstract class _ExolixRate implements ExolixRate {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ExolixRateImplCopyWith<_$ExolixRateImpl> get copyWith => throw _privateConstructorUsedError;
+  _$$ExolixRateImplCopyWith<_$ExolixRateImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

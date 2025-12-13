@@ -30,12 +30,14 @@ mixin _$SwapChainData {
   /// Create a copy of SwapChainData
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $SwapChainDataCopyWith<SwapChainData> get copyWith => throw _privateConstructorUsedError;
+  $SwapChainDataCopyWith<SwapChainData> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $SwapChainDataCopyWith<$Res> {
-  factory $SwapChainDataCopyWith(SwapChainData value, $Res Function(SwapChainData) then) =
+  factory $SwapChainDataCopyWith(
+          SwapChainData value, $Res Function(SwapChainData) then) =
       _$SwapChainDataCopyWithImpl<$Res, SwapChainData>;
   @useResult
   $Res call({int chainIndex, String chainName, String dexTokenApproveAddress});
@@ -78,7 +80,8 @@ class _$SwapChainDataCopyWithImpl<$Res, $Val extends SwapChainData>
 }
 
 /// @nodoc
-abstract class _$$SwapChainDataImplCopyWith<$Res> implements $SwapChainDataCopyWith<$Res> {
+abstract class _$$SwapChainDataImplCopyWith<$Res>
+    implements $SwapChainDataCopyWith<$Res> {
   factory _$$SwapChainDataImplCopyWith(
           _$SwapChainDataImpl value, $Res Function(_$SwapChainDataImpl) then) =
       __$$SwapChainDataImplCopyWithImpl<$Res>;
@@ -125,7 +128,9 @@ class __$$SwapChainDataImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$SwapChainDataImpl implements _SwapChainData {
   _$SwapChainDataImpl(
-      {required this.chainIndex, required this.chainName, required this.dexTokenApproveAddress});
+      {required this.chainIndex,
+      required this.chainName,
+      required this.dexTokenApproveAddress});
 
   factory _$SwapChainDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$SwapChainDataImplFromJson(json);
@@ -147,15 +152,18 @@ class _$SwapChainDataImpl implements _SwapChainData {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$SwapChainDataImpl &&
-            (identical(other.chainIndex, chainIndex) || other.chainIndex == chainIndex) &&
-            (identical(other.chainName, chainName) || other.chainName == chainName) &&
+            (identical(other.chainIndex, chainIndex) ||
+                other.chainIndex == chainIndex) &&
+            (identical(other.chainName, chainName) ||
+                other.chainName == chainName) &&
             (identical(other.dexTokenApproveAddress, dexTokenApproveAddress) ||
                 other.dexTokenApproveAddress == dexTokenApproveAddress));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, chainIndex, chainName, dexTokenApproveAddress);
+  int get hashCode =>
+      Object.hash(runtimeType, chainIndex, chainName, dexTokenApproveAddress);
 
   /// Create a copy of SwapChainData
   /// with the given fields replaced by the non-null parameter values.
@@ -179,7 +187,8 @@ abstract class _SwapChainData implements SwapChainData {
       required final String chainName,
       required final String dexTokenApproveAddress}) = _$SwapChainDataImpl;
 
-  factory _SwapChainData.fromJson(Map<String, dynamic> json) = _$SwapChainDataImpl.fromJson;
+  factory _SwapChainData.fromJson(Map<String, dynamic> json) =
+      _$SwapChainDataImpl.fromJson;
 
   @override
   int get chainIndex;

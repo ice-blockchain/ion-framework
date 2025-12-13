@@ -26,7 +26,6 @@ import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/model/transfer_result.f.dart';
-import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -57,8 +56,6 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
-      final form = ref.read(sendAssetFormControllerProvider);
-
       final coinAssetData = _extractCoinAssetData(form);
       final (senderWallet, sendableAsset, selectedOption) =
           _validateFormComponents(form, coinAssetData);
