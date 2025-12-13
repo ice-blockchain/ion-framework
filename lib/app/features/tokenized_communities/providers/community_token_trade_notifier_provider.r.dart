@@ -5,10 +5,10 @@ import 'package:ion/app/features/tokenized_communities/providers/token_market_in
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'community_token_trade_notifier_provider.r.g.dart';
@@ -16,7 +16,7 @@ part 'community_token_trade_notifier_provider.r.g.dart';
 @riverpod
 class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
   @override
-  FutureOr<String?> build(String externalAddress, CommunityTokenType type) => null;
+  FutureOr<String?> build(String externalAddress, ExternalAddressType externalAddressType) => null;
 
   Future<void> buy(UserActionSignerNew signer) async {
     if (state.isLoading) return;
@@ -26,7 +26,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     state = await AsyncValue.guard(() async {
       final params = (
         externalAddress: externalAddress,
-        type: type,
+        externalAddressType: externalAddressType,
         mode: CommunityTokenTradeMode.buy,
       );
       final formState = ref.read(tradeCommunityTokenControllerProvider(params));
@@ -52,7 +52,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
 
       final response = await service.buyCommunityToken(
         externalAddress: externalAddress,
-        type: type,
+        externalAddressType: externalAddressType,
         amountIn: amountIn,
         walletId: wallet.id,
         walletAddress: wallet.address!,
@@ -77,7 +77,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     state = await AsyncValue.guard(() async {
       final params = (
         externalAddress: externalAddress,
-        type: type,
+        externalAddressType: externalAddressType,
         mode: CommunityTokenTradeMode.sell,
       );
       final formState = ref.read(tradeCommunityTokenControllerProvider(params));
