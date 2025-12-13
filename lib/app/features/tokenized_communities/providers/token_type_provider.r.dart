@@ -14,7 +14,7 @@ part 'token_type_provider.r.g.dart';
 enum CommunityContentTokenType { twitter, profile, postText, postImage, postVideo, article }
 
 @riverpod
-Future<CommunityContentTokenType?> getTokenType(
+Future<CommunityContentTokenType?> tokenType(
   Ref ref,
   String externalAddress,
 ) async {

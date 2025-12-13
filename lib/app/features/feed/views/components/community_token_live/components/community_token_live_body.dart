@@ -18,7 +18,7 @@ class CommunityTokenLiveBody extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final type = ref.watch(getTokenTypeProvider(entity.data.externalAddress)).valueOrNull;
+    final type = ref.watch(tokenTypeProvider(entity.data.externalAddress)).valueOrNull;
 
     if (type == null) {
       return const SizedBox.shrink();

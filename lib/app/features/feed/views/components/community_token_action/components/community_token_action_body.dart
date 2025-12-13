@@ -72,7 +72,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
         )
         .valueOrNull;
 
-    final tokenType = ref.watch(getTokenTypeProvider(externalAddress)).valueOrNull;
+    final tokenType = ref.watch(tokenTypeProvider(externalAddress)).valueOrNull;
 
     return Stack(
       alignment: Alignment.center,
