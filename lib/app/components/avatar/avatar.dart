@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/components/avatar/avatar_constants.dart';
 import 'package:ion/app/components/avatar/default_avatar.dart';
 import 'package:ion/app/components/image/ion_network_image.dart';
 import 'package:ion/app/components/shapes/hexagon_path.dart';
@@ -17,7 +18,8 @@ class Avatar extends StatelessWidget {
     this.hexagon = false,
     BoxFit? fit,
     this.defaultAvatar,
-  })  : borderRadius = borderRadius ?? BorderRadius.circular(size * 0.3),
+  })  : borderRadius =
+            borderRadius ?? BorderRadius.circular(size * AvatarConstants.borderRadiusRatio),
         fit = fit ?? BoxFit.fitWidth,
         assert(
           imageUrl == null || imageWidget == null,
