@@ -144,8 +144,8 @@ class ProfileContextMenu extends HookConsumerWidget {
         ),
         if (following)
           ContextMenuItem(
-            label: context.i18n.profile_notifications_popup_title,
-            iconAsset: Assets.svg.iconProfileNotifications,
+            label: context.i18n.notifications_title,
+            iconAsset: Assets.svg.iconProfileNotificationOff,
             onPressed: () {
               closeMenu();
               showSimpleBottomSheet<void>(
