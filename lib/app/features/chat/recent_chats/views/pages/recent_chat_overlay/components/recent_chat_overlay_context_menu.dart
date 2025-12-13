@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:collection/collection.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,7 +10,7 @@ import 'package:ion/app/components/overlay_menu/components/overlay_menu_item_sep
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/toggle_archive_conversation_provider.r.dart';
@@ -38,11 +39,9 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
     final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
     final receiverMasterPubkey = conversation.receiverMasterPubkey(currentUserMasterPubkey);
 
-    final isMuted = ref
-            .watch(mutedConversationIdsProvider)
-            .valueOrNull
-            ?.contains(conversation.conversationId) ??
-        false;
+    final isMuted =
+        ref.watch(mutedConversationsProvider).valueOrNull?.contains(conversation.conversationId) ??
+            false;
 
     final isBlocked = receiverMasterPubkey == null
         ? false
@@ -60,7 +59,8 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
             child: Column(
               children: [
                 OverlayMenuItem(
-                  label: conversation.isArchived
+                  label: ref.watch(archivedConversationsProvider).value?.contains(conversation) ??
+                          false
                       ? context.i18n.common_unarchive_single
                       : context.i18n.common_add_to_archive,
                   icon: Assets.svg.iconChatArchive.icon(
@@ -70,7 +70,7 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
                   onPressed: () {
                     ref
                         .read(toggleArchivedConversationsProvider.notifier)
-                        .toggleConversations([conversation]);
+                        .toggleConversations([conversation.conversationId]);
                     Navigator.of(context).pop();
                   },
                   minWidth: 128.0.s,
@@ -85,20 +85,22 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
                           .icon(size: iconSize, color: context.theme.appColors.quaternaryText)
                       : Assets.svg.iconChannelMute
                           .icon(size: iconSize, color: context.theme.appColors.quaternaryText),
-                  onPressed: () {
-                    final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
-                    final receiverPubkey = ReplaceablePrivateDirectMessageData.fromEventMessage(
-                      conversation.latestMessage!,
-                    ).relatedPubkeys?.firstWhereOrNull((p) => p.value != currentUserPubkey)?.value;
+                  onPressed: () async {
+                    final receiverMasterPubkey =
+                        conversation.receiverMasterPubkey(currentUserMasterPubkey);
 
-                    if (receiverPubkey == null) {
-                      return;
+                    if (receiverMasterPubkey == null) return;
+
+                    final muteConversationService =
+                        await ref.read(muteConversationServiceProvider.future);
+
+                    unawaited(
+                      muteConversationService.toggleMutedConversation(receiverMasterPubkey),
+                    );
+
+                    if (context.mounted) {
+                      context.pop();
                     }
-
-                    ref
-                        .read(mutedConversationsProvider.notifier)
-                        .toggleMutedMasterPubkey(receiverPubkey);
-                    Navigator.of(context).pop();
                   },
                 ),
                 if (isBlocked != null && currentUserMasterPubkey != null)

@@ -6,7 +6,6 @@ class ConversationTable extends Table {
   late final id = text()();
   late final type = intEnum<ConversationType>()();
   late final joinedAt = integer()();
-  late final isArchived = boolean().withDefault(const Constant(false))();
   late final isHidden = boolean().withDefault(const Constant(false))();
 
   @override

@@ -62,11 +62,9 @@ class RecentChatTile extends HookConsumerWidget {
     final isEditMode = ref.watch(conversationsEditModeProvider);
     final selectedConversations = ref.watch(selectedConversationsProvider);
 
-    final isMuted = ref
-            .watch(mutedConversationIdsProvider)
-            .valueOrNull
-            ?.contains(conversation.conversationId) ??
-        false;
+    final isMuted =
+        ref.watch(mutedConversationsProvider).valueOrNull?.contains(conversation.conversationId) ??
+            false;
 
     final messageItemKey = useMemoized(GlobalKey.new);
 

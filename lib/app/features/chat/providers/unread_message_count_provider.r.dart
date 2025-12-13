@@ -44,7 +44,7 @@ Stream<int> getAllUnreadMessagesCount(Ref ref) async* {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  final mutedConversationIds = await ref.watch(mutedConversationIdsProvider.future);
+  final mutedConversationIds = await ref.watch(mutedConversationsProvider.future);
 
   yield* ref
       .watch(conversationMessageDaoProvider)

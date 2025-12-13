@@ -11,8 +11,6 @@ import 'package:ion/app/features/feed/providers/feed_current_filter_provider.m.d
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/invite_friends_list_item.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
-import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -21,11 +19,6 @@ class FeedPostsList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Prefetching mute list here so it can be used later with sync provider
-    useOnInit(() {
-      ref.read(cachedMutedUsersProvider);
-    });
-
     final entities = ref.watch(feedPostsProvider.select((state) => state.items));
 
     if (entities == null) {
