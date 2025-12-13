@@ -158,7 +158,7 @@ abstract class CommunityTokenDefinition implements ReplaceableEntityData, EventS
 /// Ion-based Community Token Definition
 /// It might be a token for a user or a post or any other Ion Connect event.
 /// It always has [eventReference] pointing to the original Ion Connect event.
-/// It also has [type] defining the if this is a "first-buy" or "original" definition.
+/// It also has [type] defining whether this is a "first-buy" or "original" definition.
 @freezed
 class CommunityTokenDefinitionIon
     with _$CommunityTokenDefinitionIon
@@ -242,7 +242,7 @@ class CommunityTokenDefinitionIon
 }
 
 /// External Community Token Definition
-/// It might be a token some external platform, for example for x platform.
+/// It might be a token for some external platform, for example for x platform.
 /// It always has [externalId] that holds the external platform token identifier.
 /// It is always "original" type definition (we don't have "first-buy" for external tokens).
 @freezed
