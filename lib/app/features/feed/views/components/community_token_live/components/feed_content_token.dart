@@ -11,6 +11,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_creator_tile.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
@@ -216,6 +217,7 @@ class ContentTokenHeader extends HookWidget {
                     context: context,
                     child: TradeCommunityTokenDialog(
                       externalAddress: externalAddress,
+                      externalAddressType: const ExternalAddressType.ionConnectUser(),
                       mode: CommunityTokenTradeMode.buy,
                     ),
                   ),

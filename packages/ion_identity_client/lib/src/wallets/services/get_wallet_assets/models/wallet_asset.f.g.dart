@@ -9,10 +9,11 @@ part of 'wallet_asset.f.dart';
 _$WalletAssetNativeImpl _$$WalletAssetNativeImplFromJson(
         Map<String, dynamic> json) =>
     _$WalletAssetNativeImpl(
-      symbol: json['symbol'] as String,
       decimals: (json['decimals'] as num).toInt(),
       balance: const StringOrIntConverter().fromJson(json['balance']),
       kind: json['kind'] as String,
+      symbol: json['symbol'] as String?,
+      contract: json['contract'] as String?,
       verified: json['verified'] as bool?,
       name: json['name'] as String?,
     );
@@ -20,12 +21,13 @@ _$WalletAssetNativeImpl _$$WalletAssetNativeImplFromJson(
 Map<String, dynamic> _$$WalletAssetNativeImplToJson(
         _$WalletAssetNativeImpl instance) =>
     <String, dynamic>{
-      'symbol': instance.symbol,
       'decimals': instance.decimals,
       if (const StringOrIntConverter().toJson(instance.balance)
           case final value?)
         'balance': value,
       'kind': instance.kind,
+      if (instance.symbol case final value?) 'symbol': value,
+      if (instance.contract case final value?) 'contract': value,
       if (instance.verified case final value?) 'verified': value,
       if (instance.name case final value?) 'name': value,
     };
@@ -33,11 +35,11 @@ Map<String, dynamic> _$$WalletAssetNativeImplToJson(
 _$WalletAssetErc20Impl _$$WalletAssetErc20ImplFromJson(
         Map<String, dynamic> json) =>
     _$WalletAssetErc20Impl(
-      symbol: json['symbol'] as String,
       decimals: (json['decimals'] as num).toInt(),
       balance: const StringOrIntConverter().fromJson(json['balance']),
       kind: json['kind'] as String,
       verified: json['verified'] as bool?,
+      symbol: json['symbol'] as String?,
       contract: json['contract'] as String?,
       name: json['name'] as String?,
     );
@@ -45,13 +47,13 @@ _$WalletAssetErc20Impl _$$WalletAssetErc20ImplFromJson(
 Map<String, dynamic> _$$WalletAssetErc20ImplToJson(
         _$WalletAssetErc20Impl instance) =>
     <String, dynamic>{
-      'symbol': instance.symbol,
       'decimals': instance.decimals,
       if (const StringOrIntConverter().toJson(instance.balance)
           case final value?)
         'balance': value,
       'kind': instance.kind,
       if (instance.verified case final value?) 'verified': value,
+      if (instance.symbol case final value?) 'symbol': value,
       if (instance.contract case final value?) 'contract': value,
       if (instance.name case final value?) 'name': value,
     };
@@ -59,11 +61,11 @@ Map<String, dynamic> _$$WalletAssetErc20ImplToJson(
 _$WalletAssetAsaImpl _$$WalletAssetAsaImplFromJson(Map<String, dynamic> json) =>
     _$WalletAssetAsaImpl(
       assetId: json['assetId'] as String,
-      symbol: json['symbol'] as String,
       decimals: (json['decimals'] as num).toInt(),
       verified: json['verified'] as bool,
       balance: const StringOrIntConverter().fromJson(json['balance']),
       kind: json['kind'] as String,
+      symbol: json['symbol'] as String?,
       name: json['name'] as String?,
     );
 
@@ -71,23 +73,23 @@ Map<String, dynamic> _$$WalletAssetAsaImplToJson(
         _$WalletAssetAsaImpl instance) =>
     <String, dynamic>{
       'assetId': instance.assetId,
-      'symbol': instance.symbol,
       'decimals': instance.decimals,
       'verified': instance.verified,
       if (const StringOrIntConverter().toJson(instance.balance)
           case final value?)
         'balance': value,
       'kind': instance.kind,
+      if (instance.symbol case final value?) 'symbol': value,
       if (instance.name case final value?) 'name': value,
     };
 
 _$WalletAssetSplImpl _$$WalletAssetSplImplFromJson(Map<String, dynamic> json) =>
     _$WalletAssetSplImpl(
       mint: json['mint'] as String,
-      symbol: json['symbol'] as String,
       decimals: (json['decimals'] as num).toInt(),
       balance: const StringOrIntConverter().fromJson(json['balance']),
       kind: json['kind'] as String,
+      symbol: json['symbol'] as String?,
       name: json['name'] as String?,
     );
 
@@ -95,12 +97,12 @@ Map<String, dynamic> _$$WalletAssetSplImplToJson(
         _$WalletAssetSplImpl instance) =>
     <String, dynamic>{
       'mint': instance.mint,
-      'symbol': instance.symbol,
       'decimals': instance.decimals,
       if (const StringOrIntConverter().toJson(instance.balance)
           case final value?)
         'balance': value,
       'kind': instance.kind,
+      if (instance.symbol case final value?) 'symbol': value,
       if (instance.name case final value?) 'name': value,
     };
 
@@ -253,10 +255,10 @@ Map<String, dynamic> _$$WalletAssetAip21ImplToJson(
 _$WalletAssetUnknownImpl _$$WalletAssetUnknownImplFromJson(
         Map<String, dynamic> json) =>
     _$WalletAssetUnknownImpl(
-      symbol: json['symbol'] as String,
       decimals: (json['decimals'] as num).toInt(),
       balance: const StringOrIntConverter().fromJson(json['balance']),
       kind: json['kind'] as String,
+      symbol: json['symbol'] as String?,
       contract: json['contract'] as String?,
       master: json['master'] as String?,
       name: json['name'] as String?,
@@ -269,12 +271,12 @@ _$WalletAssetUnknownImpl _$$WalletAssetUnknownImplFromJson(
 Map<String, dynamic> _$$WalletAssetUnknownImplToJson(
         _$WalletAssetUnknownImpl instance) =>
     <String, dynamic>{
-      'symbol': instance.symbol,
       'decimals': instance.decimals,
       if (const StringOrIntConverter().toJson(instance.balance)
           case final value?)
         'balance': value,
       'kind': instance.kind,
+      if (instance.symbol case final value?) 'symbol': value,
       if (instance.contract case final value?) 'contract': value,
       if (instance.master case final value?) 'master': value,
       if (instance.name case final value?) 'name': value,

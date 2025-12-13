@@ -29,6 +29,7 @@ class TokenCard extends ConsumerWidget {
     this.avatarWidget,
     this.showSelectButton = true,
     this.showArrow = true,
+    this.skipValidation = false,
     super.key,
   });
 
@@ -42,6 +43,7 @@ class TokenCard extends ConsumerWidget {
   final Widget? avatarWidget;
   final bool showSelectButton;
   final bool showArrow;
+  final bool skipValidation;
 
   void _onPercentageChanged(int percentage, WidgetRef ref) {
     final amount = coinsGroup?.totalAmount;
@@ -309,6 +311,8 @@ class TokenCard extends ConsumerWidget {
                         ),
                       ),
                       validator: (value) {
+                        if (skipValidation) return null;
+
                         final trimmedValue = value?.trim() ?? '';
                         if (trimmedValue.isEmpty) return null;
 
