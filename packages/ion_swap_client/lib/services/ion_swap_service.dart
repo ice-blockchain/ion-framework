@@ -7,11 +7,17 @@ import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
+import 'package:ion_swap_client/utils/erc20_contract.dart';
 import 'package:ion_swap_client/utils/evm_tx_builder.dart';
 import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 import 'package:ion_swap_client/utils/numb.dart';
+import 'package:ion_swap_client/utils/swap_constants.dart';
 import 'package:web3dart/web3dart.dart';
 
+/// Service for swapping ICE BSC to ION BSC and vice versa.
+///
+/// The flow follows the reference implementation documented at:
+/// https://github.com/ice-blockchain/bridge/blob/ion-mainnet/documentation/ice-wrapped-ice-swap-flow.md
 class IonSwapService {
   factory IonSwapService({
     required IONSwapConfig config,
@@ -119,8 +125,8 @@ class IonSwapService {
 
     final tx = _applyFees(
       swapTx,
-      maxFeePerGas: BigInt.from(20000000000),
-      maxPriorityFeePerGas: BigInt.from(1000000000),
+      maxFeePerGas: SwapConstants.maxFeePerGas,
+      maxPriorityFeePerGas: SwapConstants.maxPriorityFeePerGas,
     );
 
     return _signAndBroadcast(
@@ -188,8 +194,8 @@ class IonSwapService {
 
       final tx = _applyFees(
         approvalTx,
-        maxFeePerGas: BigInt.from(20000000000),
-        maxPriorityFeePerGas: BigInt.from(1000000000),
+        maxFeePerGas: SwapConstants.maxFeePerGas,
+        maxPriorityFeePerGas: SwapConstants.maxPriorityFeePerGas,
       );
 
       await _signAndBroadcast(
@@ -197,7 +203,7 @@ class IonSwapService {
         transaction: tx,
       );
 
-      await Future<void>.delayed(const Duration(seconds: 3));
+      await Future<void>.delayed(SwapConstants.delayAfterApproveDuration);
 
       final allowance2 = await _evmTxBuilder.allowance(
         token: token.hex,
@@ -227,10 +233,10 @@ class IonSwapService {
   }
 
   Future<BigInt> _fetchDecimals(EthereumAddress token) async {
-    final decimalsFunction = _erc20ContractFor(token).function('decimals');
+    final decimalsFunction = Erc20Contract.contractFor(token).function('decimals');
 
     final result = await _web3client.call(
-      contract: _erc20ContractFor(token),
+      contract: Erc20Contract.contractFor(token),
       function: decimalsFunction,
       params: const [],
     );
@@ -276,17 +282,17 @@ class IonSwapService {
     required IonSwapRequest request,
     required EvmTransaction transaction,
   }) async {
+    final userActionSigner = request.userActionSigner;
+    if (userActionSigner == null) {
+      throw const IonSwapException('User action signer is required for ion swap');
+    }
+
     return _ionIdentityClient.signAndBroadcast(
       walletId: request.wallet.id,
       transaction: transaction,
-      userActionSigner: request.userActionSigner,
+      userActionSigner: userActionSigner,
     );
   }
-
-  DeployedContract _erc20ContractFor(EthereumAddress address) => DeployedContract(
-        _erc20AbiParsed,
-        address,
-      );
 
   DeployedContract get _ionSwapContract => DeployedContract(
         _ionSwapAbiParsed,
@@ -303,16 +309,6 @@ class IonSwapService {
   {"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"getOtherAmountOut","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}
 ]
 ''';
-
-  static const _erc20Abi = '''
-[
-  {"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"type":"function"},
-  {"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"type":"function"},
-  {"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"}
-]
-''';
-
-  static final ContractAbi _erc20AbiParsed = ContractAbi.fromJson(_erc20Abi, 'ERC20');
 
   static const _bscNetworkId = 'bsc';
 }
