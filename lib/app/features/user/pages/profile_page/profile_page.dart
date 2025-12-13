@@ -12,6 +12,7 @@ import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/tab_entity_type.dart';
@@ -28,6 +29,7 @@ import 'package:ion/app/features/user/pages/profile_page/profile_skeleton.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/router/components/navigation_app_bar/navigation_icon_button.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ProfilePage extends HookConsumerWidget {
@@ -80,6 +82,14 @@ class ProfilePage extends HookConsumerWidget {
     }
 
     final avatarUrl = userMetadata.valueOrNull?.data.avatarUrl;
+    final eventReferenceString = userMetadata.valueOrNull?.toEventReference().toString();
+
+    final isTokenizedProfile = profileMode == ProfileMode.dark && eventReferenceString != null;
+    final tokenInfo =
+        isTokenizedProfile ? ref.watch(tokenMarketInfoProvider(eventReferenceString)) : null;
+    final hasToken = tokenInfo?.valueOrNull != null;
+
+    final showTokenButton = isCurrentUserProfile && isTokenizedProfile && hasToken;
 
     final onRefresh = useCallback(
       () {
@@ -119,13 +129,29 @@ class ProfilePage extends HookConsumerWidget {
         newUiMode: profileMode == ProfileMode.dark,
         imageUrl: avatarUrl,
         tabs: UserContentType.values,
-        collapsedHeaderBuilder: (opacity) => Header(
-          opacity: opacity,
-          pubkey: masterPubkey,
-          showBackButton: !isCurrentUserProfile,
-          textColor:
-              profileMode == ProfileMode.dark ? context.theme.appColors.secondaryBackground : null,
-        ),
+        collapsedHeaderBuilder: (opacity) {
+          final leadingPadding = showTokenButton ? 40.0.s : (!isCurrentUserProfile ? 0.0 : 16.0.s);
+          return Header(
+            opacity: opacity,
+            pubkey: masterPubkey,
+            showBackButton: !isCurrentUserProfile,
+            leadingPadding: leadingPadding,
+            textColor: profileMode == ProfileMode.dark
+                ? context.theme.appColors.secondaryBackground
+                : null,
+          );
+        },
+        leadingActionsBuilder: showTokenButton
+            ? () => NavigationIconButton(
+                  onPress: () => TokenizedCommunityRoute(
+                    externalAddress: eventReferenceString,
+                  ).push<void>(context),
+                  icon: Assets.svg.iconProfileTokenpage.icon(
+                    size: NavigationIconButton.iconSize,
+                    color: context.theme.appColors.secondaryBackground,
+                  ),
+                )
+            : null,
         tabBarViews: TabEntityType.values
             .map(
               (type) => type == TabEntityType.replies

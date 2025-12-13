@@ -30,6 +30,7 @@ class CollapsingHeaderTabsLayout extends HookWidget {
     this.backgroundColor,
     this.applySafeAreaBottomPadding = true,
     this.onBackButtonPressed,
+    this.leadingActionsBuilder,
     super.key,
   });
 
@@ -41,6 +42,7 @@ class CollapsingHeaderTabsLayout extends HookWidget {
   final List<Widget> tabBarViews;
   final Widget Function(double opacity) collapsedHeaderBuilder;
   final Widget Function(OverlayMenuCloseSignal menuCloseSignal) headerActionsBuilder;
+  final Widget Function()? leadingActionsBuilder;
   final Color? backgroundColor;
   final bool applySafeAreaBottomPadding;
   final VoidCallback? onBackButtonPressed;
@@ -157,6 +159,17 @@ class CollapsingHeaderTabsLayout extends HookWidget {
               ),
             ),
           ),
+          if (leadingActionsBuilder != null)
+            Align(
+              alignment: AlignmentDirectional.topStart,
+              child: Padding(
+                padding: EdgeInsetsDirectional.only(top: statusBarHeight),
+                child: SizedBox(
+                  height: NavigationAppBar.screenHeaderHeight,
+                  child: leadingActionsBuilder!(),
+                ),
+              ),
+            ),
           if (showBackButton)
             PositionedDirectional(
               top: statusBarHeight,
