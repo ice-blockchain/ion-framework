@@ -40,7 +40,8 @@ class FeedContentToken extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final token = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final token =
+        ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
 
     if (token == null) {
       return _Skeleton(type: type);
@@ -149,7 +150,8 @@ class ContentTokenHeader extends HookWidget {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.15),
+                color: context.theme.appColors.secondaryBackground
+                    .withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12.5.s),
               ),
               padding: EdgeInsets.symmetric(horizontal: 16.0.s),
@@ -206,9 +208,9 @@ class ContentTokenHeader extends HookWidget {
                   width: 4.s,
                   decoration: BoxDecoration(
                     color: colors?.first,
-                    borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(12.5.s),
-                      bottomRight: Radius.circular(12.5.s),
+                    borderRadius: BorderRadiusDirectional.only(
+                      topEnd: Radius.circular(12.5.s),
+                      bottomEnd: Radius.circular(12.5.s),
                     ),
                   ),
                 ),
@@ -292,7 +294,8 @@ class _Skeleton extends StatelessWidget {
                 ],
               ),
             ),
-          if (type != CommunityContentTokenType.postText) SizedBox(height: 16.s),
+          if (type != CommunityContentTokenType.postText)
+            SizedBox(height: 16.s),
           Stack(
             alignment: Alignment.bottomCenter,
             clipBehavior: Clip.none,
@@ -303,7 +306,8 @@ class _Skeleton extends StatelessWidget {
                   color: context.theme.appColors.onPrimaryAccent,
                   borderRadius: BorderRadius.circular(16.0.s),
                 ),
-                padding: EdgeInsetsDirectional.fromSTEB(16.s, 20.s, 16.s, 27.5.s),
+                padding:
+                    EdgeInsetsDirectional.fromSTEB(16.s, 20.s, 16.s, 27.5.s),
                 child: Skeleton(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -456,7 +460,7 @@ class _Skeleton extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
+              PositionedDirectional(
                 bottom: -11.5.s,
                 child: Skeleton(
                   baseColor: context.theme.appColors.attentionBlock,

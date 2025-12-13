@@ -25,7 +25,8 @@ class FeedProfileToken extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final token = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final token =
+        ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
 
     if (token == null) {
       return _Skeleton();
@@ -304,7 +305,7 @@ class _Skeleton extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
+              PositionedDirectional(
                 bottom: -11.5.s,
                 child: Skeleton(
                   baseColor: context.theme.appColors.attentionBlock,
