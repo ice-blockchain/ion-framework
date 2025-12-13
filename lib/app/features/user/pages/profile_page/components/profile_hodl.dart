@@ -24,24 +24,30 @@ class ProfileHODL extends ConsumerWidget {
     if (firstBuy == null) {
       return const SizedBox.shrink();
     }
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SvgPicture.asset(
-          Assets.svg.iconCreatecoinHold,
-          width: 14.0.s,
-          height: 14.0.s,
-        ),
-        SizedBox(width: 4.0.s),
-        Text(
-          context.i18n.hodl_for(
-            formatCompactHodlSince(firstBuy.createdAt.toDateTime),
+
+    return Padding(
+      padding: EdgeInsetsDirectional.only(top: 8.s),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgPicture.asset(
+            Assets.svg.iconCreatecoinHold,
+            width: 14.0.s,
+            height: 14.0.s,
           ),
-          style: context.theme.appTextThemes.caption2.copyWith(
-            color: context.theme.appColors.secondaryBackground,
+          SizedBox(width: 4.0.s),
+          Text(
+            context.i18n.hodl_for(
+              formatCompactHodlSince(
+                firstBuy.createdAt.toDateTime,
+              ),
+            ),
+            style: context.theme.appTextThemes.caption2.copyWith(
+              color: context.theme.appColors.secondaryBackground,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

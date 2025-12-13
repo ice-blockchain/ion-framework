@@ -2,12 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_content_token.dart';
+import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_profile_token.dart';
+import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_twitter_token.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/views/components/token_header.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
-import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 
 class CommunityTokenLiveBody extends HookConsumerWidget {
   const CommunityTokenLiveBody({
@@ -19,33 +18,30 @@ class CommunityTokenLiveBody extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenMarketInfo =
-        ref.watch(tokenMarketInfoProvider(entity.data.externalAddress)).valueOrNull;
-    final height = 329.s;
+    final type = ref.watch(tokenTypeProvider(entity.data.externalAddress)).valueOrNull;
 
-    if (tokenMarketInfo == null) {
-      return SizedBox(height: height);
+    if (type == null) {
+      return const SizedBox.shrink();
     }
 
-    final avatarColors = useImageColors(tokenMarketInfo.imageUrl);
+    if (type == CommunityContentTokenType.profile) {
+      return FeedProfileToken(
+        externalAddress: entity.data.externalAddress,
+      );
+    } else if (type == CommunityContentTokenType.twitter) {
+      return FeedTwitterToken(
+        externalAddress: entity.data.externalAddress,
+      );
+    } else if (type == CommunityContentTokenType.postText ||
+        type == CommunityContentTokenType.postImage ||
+        type == CommunityContentTokenType.postVideo ||
+        type == CommunityContentTokenType.article) {
+      return FeedContentToken(
+        type: type,
+        externalAddress: entity.data.externalAddress,
+      );
+    }
 
-    return SizedBox(
-      height: height,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.0.s),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12.0.s),
-          child: ProfileBackground(
-            colors: avatarColors,
-            child: Center(
-              child: TokenHeader(
-                type: TokenHeaderType.feed,
-                token: tokenMarketInfo,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    return const SizedBox.shrink();
   }
 }
