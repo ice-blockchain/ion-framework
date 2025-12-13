@@ -7,8 +7,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/core/model/feature_flags.dart';
-import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
+//TODO: Commented out for RC/production release - Buy, Sell functionality not ready yet
+// import 'package:ion/app/features/core/model/feature_flags.dart';
+// import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
@@ -115,14 +116,17 @@ class WalletMainModalPage extends HookConsumerWidget {
   }
 }
 
+// ignore: unused_element
 class _Header extends ConsumerWidget {
   const _Header();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final showBuySellButtons = ref
+    //TODO: Commented out for RC/production release - Buy, Sell functionality not ready yet
+    const showBuySellButtons =
+        false; /*ref
         .read(featureFlagsProvider.notifier)
-        .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
+        .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);*/
 
     if (!showBuySellButtons) {
       return NavigationAppBar.modal(
@@ -131,6 +135,7 @@ class _Header extends ConsumerWidget {
       );
     }
 
+    // ignore: dead_code
     return Column(
       children: [
         SizedBox(height: 24.s),
