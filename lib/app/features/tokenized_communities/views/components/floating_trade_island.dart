@@ -5,10 +5,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class FloatingTradeIsland extends StatelessWidget {
   const FloatingTradeIsland({
@@ -46,7 +46,7 @@ class FloatingTradeIsland extends StatelessWidget {
                   context: context,
                   child: TradeCommunityTokenDialog(
                     externalAddress: externalAddress,
-                    type: CommunityTokenType.profile,
+                    externalAddressType: const ExternalAddressType.ionConnectUser(),
                     mode: CommunityTokenTradeMode.buy,
                   ),
                 );
@@ -63,7 +63,7 @@ class FloatingTradeIsland extends StatelessWidget {
                   context: context,
                   child: TradeCommunityTokenDialog(
                     externalAddress: externalAddress,
-                    type: CommunityTokenType.profile,
+                    externalAddressType: const ExternalAddressType.ionConnectUser(),
                     mode: CommunityTokenTradeMode.sell,
                   ),
                 );

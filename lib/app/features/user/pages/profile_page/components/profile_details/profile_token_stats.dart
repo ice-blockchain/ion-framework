@@ -8,6 +8,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
@@ -16,7 +17,6 @@ import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class ProfileTokenStatsInfo extends ConsumerWidget {
   const ProfileTokenStatsInfo({
@@ -116,7 +116,7 @@ class ProfileTokenStats extends ConsumerWidget {
                 context: context,
                 child: TradeCommunityTokenDialog(
                   externalAddress: externalAddress,
-                  type: CommunityTokenType.profile,
+                  externalAddressType: const ExternalAddressType.ionConnectUser(),
                   mode: CommunityTokenTradeMode.buy,
                 ),
               );
@@ -409,7 +409,7 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
               context: context,
               child: TradeCommunityTokenDialog(
                 externalAddress: externalAddress,
-                type: CommunityTokenType.profile,
+                externalAddressType: const ExternalAddressType.ionConnectUser(),
                 mode: CommunityTokenTradeMode.buy,
               ),
             ),

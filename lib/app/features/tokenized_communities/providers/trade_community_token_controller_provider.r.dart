@@ -9,6 +9,7 @@ import 'package:ion/app/features/tokenized_communities/providers/token_market_in
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_state.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
@@ -27,7 +28,7 @@ part 'trade_community_token_controller_provider.r.g.dart';
 
 typedef TradeCommunityTokenControllerParams = ({
   String externalAddress,
-  CommunityTokenType type,
+  ExternalAddressType externalAddressType,
   CommunityTokenTradeMode mode,
 });
 
@@ -317,7 +318,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
     final quote = await service.getQuote(
       externalAddress: params.externalAddress,
-      type: params.type,
+      externalAddressType: params.externalAddressType,
       amountIn: amountIn,
       baseTokenAddress: token.contractAddress,
     );
@@ -338,7 +339,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
     final quote = await service.getSellQuote(
       externalAddress: params.externalAddress,
-      type: params.type,
+      externalAddressType: params.externalAddressType,
       amountIn: amountIn,
       paymentTokenAddress: token.contractAddress,
     );

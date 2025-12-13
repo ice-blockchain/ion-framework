@@ -8,6 +8,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/user/user_about/user_about.dart';
 import 'package:ion/app/features/components/user/user_info_summary/user_info_summary.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
@@ -15,7 +16,6 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_deta
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class ProfileUserInfo extends ConsumerWidget {
   const ProfileUserInfo({
@@ -81,7 +81,7 @@ class ProfileUserInfo extends ConsumerWidget {
                             context: context,
                             child: TradeCommunityTokenDialog(
                               externalAddress: eventReferenceString,
-                              type: CommunityTokenType.profile,
+                              externalAddressType: const ExternalAddressType.ionConnectUser(),
                               mode: CommunityTokenTradeMode.buy,
                             ),
                           );

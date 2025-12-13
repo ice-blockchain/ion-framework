@@ -12,6 +12,7 @@ import 'package:ion/app/features/tokenized_communities/providers/community_token
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog_hooks.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_state.f.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
@@ -22,25 +23,24 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/compo
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/token_card.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class TradeCommunityTokenDialog extends HookConsumerWidget {
   const TradeCommunityTokenDialog({
     required this.externalAddress,
-    required this.type,
+    required this.externalAddressType,
     required this.mode,
     super.key,
   });
 
   final String externalAddress;
-  final CommunityTokenType type;
+  final ExternalAddressType externalAddressType;
   final CommunityTokenTradeMode mode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final params = (
       externalAddress: externalAddress,
-      type: type,
+      externalAddressType: externalAddressType,
       mode: mode,
     );
     final state = ref.watch(tradeCommunityTokenControllerProvider(params));
@@ -52,10 +52,11 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 
     ref
       ..displayErrors(
-        communityTokenTradeNotifierProvider(externalAddress, type),
+        communityTokenTradeNotifierProvider(externalAddress, externalAddressType),
         excludedExceptions: excludedPasskeyExceptions,
       )
-      ..listenSuccess<String?>(communityTokenTradeNotifierProvider(externalAddress, type),
+      ..listenSuccess<String?>(
+          communityTokenTradeNotifierProvider(externalAddress, externalAddressType),
           (String? txHash) {
         if (context.mounted) {
           Navigator.of(context).pop();
@@ -186,7 +187,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   ) async {
     final params = (
       externalAddress: externalAddress,
-      type: type,
+      externalAddressType: externalAddressType,
       mode: mode,
     );
     final state = ref.read(tradeCommunityTokenControllerProvider(params));
@@ -196,10 +197,11 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     await guardPasskeyDialog(
       context,
       (child) => RiverpodUserActionSignerRequestBuilder(
-        provider: communityTokenTradeNotifierProvider(externalAddress, type),
+        provider: communityTokenTradeNotifierProvider(externalAddress, externalAddressType),
         request: (signer) async {
-          final notifier =
-              ref.read(communityTokenTradeNotifierProvider(externalAddress, type).notifier);
+          final notifier = ref.read(
+            communityTokenTradeNotifierProvider(externalAddress, externalAddressType).notifier,
+          );
           if (mode == CommunityTokenTradeMode.buy) {
             await notifier.buy(signer);
           } else {
