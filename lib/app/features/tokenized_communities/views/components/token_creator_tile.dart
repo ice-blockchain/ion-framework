@@ -92,8 +92,7 @@ class _CreatorDetails extends StatelessWidget {
         ),
         Text(
           prefixUsername(username: handle, context: context),
-          style: texts.caption
-              .copyWith(color: handleColor ?? colors.quaternaryText),
+          style: texts.caption.copyWith(color: handleColor ?? colors.quaternaryText),
         ),
       ],
     );

@@ -88,7 +88,6 @@ abstract class CommunityTokenDefinition implements ReplaceableEntityData, EventS
 
   factory CommunityTokenDefinition.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
-
     final kind = tags[EventKind.tagName]?.map(EventKind.fromTag).firstOrNull?.value;
     final dTag = tags[ReplaceableEventIdentifier.tagName]
         ?.map(ReplaceableEventIdentifier.fromTag)

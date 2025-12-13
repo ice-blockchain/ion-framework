@@ -28,8 +28,7 @@ class FeedTwitterTokenAction extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final token =
-        ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final token = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
     if (token == null) {
       return _Skeleton();
     }
@@ -151,8 +150,7 @@ class TwitterTokenHeader extends StatelessWidget {
                     horizontal: 4.s,
                   ),
                   decoration: BoxDecoration(
-                    color: context.theme.appColors.secondaryBackground
-                        .withValues(alpha: 0.1),
+                    color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6.0.s),
                   ),
                   child: Row(

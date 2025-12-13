@@ -19,8 +19,7 @@ class ProfileHODL extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final firstBuy =
-        ref.watch(tokenFirstBuyProvider(definitionEntity)).valueOrNull;
+    final firstBuy = ref.watch(tokenFirstBuyProvider(definitionEntity)).valueOrNull;
 
     if (firstBuy == null) {
       return const SizedBox.shrink();

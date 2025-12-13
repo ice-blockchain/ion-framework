@@ -28,8 +28,7 @@ class ProfileTokenStatsInfo extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final marketData = ref.watch(
-      tokenMarketInfoProvider(externalAddress)
-          .select((t) => t.valueOrNull?.marketData),
+      tokenMarketInfoProvider(externalAddress).select((t) => t.valueOrNull?.marketData),
     );
     if (marketData == null) {
       return const SizedBox.shrink();
@@ -51,8 +50,7 @@ class ProfileTokenStatsInfo extends ConsumerWidget {
           children: [
             TokenStatItem(
               icon: Assets.svg.iconMemeMarketcap,
-              text:
-                  MarketDataFormatter.formatCompactNumber(marketData.marketCap),
+              text: MarketDataFormatter.formatCompactNumber(marketData.marketCap),
               onTap: () => showSimpleBottomSheet<void>(
                 context: context,
                 child: const InfoModal(infoType: InfoType.marketCap),
@@ -263,8 +261,7 @@ class BuyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final padding =
-        this.padding ?? EdgeInsetsDirectional.symmetric(horizontal: 10.0.s);
+    final padding = this.padding ?? EdgeInsetsDirectional.symmetric(horizontal: 10.0.s);
     return Container(
       height: height.s,
       padding: padding,
@@ -313,8 +310,7 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo =
-        ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
     if (tokenInfo == null) {
       return const SizedBox.shrink();
     }
@@ -326,8 +322,7 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
       children: [
         Container(
           decoration: ShapeDecoration(
-            color: context.theme.appColors.primaryBackground
-                .withValues(alpha: 0.1),
+            color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.s),
             ),
@@ -350,8 +345,7 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
                   ),
                 ),
                 GradientHorizontalDivider(
-                  margin:
-                      EdgeInsetsDirectional.only(top: 6.3.s, bottom: 13.8.s),
+                  margin: EdgeInsetsDirectional.only(top: 6.3.s, bottom: 13.8.s),
                 ),
               ],
               Padding(
