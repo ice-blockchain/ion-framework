@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
@@ -40,7 +39,7 @@ class CollapsingHeaderTabsLayout extends HookWidget {
   final List<TabType> tabs;
   final List<Widget> tabBarViews;
   final Widget Function(double opacity) collapsedHeaderBuilder;
-  final Widget Function(OverlayMenuCloseSignal menuCloseSignal) headerActionsBuilder;
+  final List<Widget> Function(OverlayMenuCloseSignal menuCloseSignal) headerActionsBuilder;
   final Color? backgroundColor;
   final bool applySafeAreaBottomPadding;
   final VoidCallback? onBackButtonPressed;
@@ -63,8 +62,6 @@ class CollapsingHeaderTabsLayout extends HookWidget {
       flipForRtl: true,
       color: newUiMode ? context.theme.appColors.onPrimaryAccent : null,
     );
-
-    final statusBarHeight = MediaQuery.paddingOf(context).top;
 
     useScrollTopOnTabPress(
       context,
@@ -144,28 +141,19 @@ class CollapsingHeaderTabsLayout extends HookWidget {
                         )
                     : null,
                 title: collapsedHeaderBuilder(opacity),
+                actions: headerActionsBuilder(menuCloseSignal).asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final action = entry.value;
+                  if (index == 0) return action;
+                  return Padding(
+                    padding: EdgeInsetsDirectional.only(start: 8.0.s, end: 16.0.s),
+                    child: action,
+                  );
+                }).toList(),
+                onBackPress: onBackButtonPressed,
               ),
             ),
           ),
-          Align(
-            alignment: AlignmentDirectional.topEnd,
-            child: Padding(
-              padding: EdgeInsetsDirectional.only(end: 16.s, top: statusBarHeight),
-              child: SizedBox(
-                height: NavigationAppBar.screenHeaderHeight,
-                child: headerActionsBuilder(menuCloseSignal),
-              ),
-            ),
-          ),
-          if (showBackButton)
-            PositionedDirectional(
-              top: statusBarHeight,
-              start: 0,
-              child: NavigationBackButton(
-                onBackButtonPressed ?? context.pop,
-                icon: backButtonIcon,
-              ),
-            ),
         ],
       ),
     );

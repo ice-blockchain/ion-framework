@@ -179,34 +179,30 @@ class ProfilePage extends HookConsumerWidget {
             ),
           ],
         ),
-        headerActionsBuilder: (menuCloseSignal) => Row(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 8.0.s,
-          children: [
-            if (profileMode == ProfileMode.dark) ...[
-              ProfileActions(
-                pubkey: masterPubkey,
-                profileMode: profileMode,
-              ),
-            ],
-            if (isMultiAccountsEnabled) ...[
-              GestureDetector(
-                onTap: () => SwitchAccountRoute().push<void>(context),
-                child: Assets.svg.iconSwitchProfile.icon(
-                  size: profileMode == ProfileMode.dark ? 21.0.s : 24.0.s,
-                  color: profileMode == ProfileMode.dark
-                      ? context.theme.appColors.secondaryBackground
-                      : null,
-                ),
-              ),
-            ],
-            ProfileContextMenu(
+        headerActionsBuilder: (menuCloseSignal) => [
+          if (profileMode == ProfileMode.dark) ...[
+            ProfileActions(
               pubkey: masterPubkey,
-              closeSignal: menuCloseSignal,
               profileMode: profileMode,
             ),
           ],
-        ),
+          if (isMultiAccountsEnabled) ...[
+            GestureDetector(
+              onTap: () => SwitchAccountRoute().push<void>(context),
+              child: Assets.svg.iconSwitchProfile.icon(
+                size: profileMode == ProfileMode.dark ? 21.0.s : 24.0.s,
+                color: profileMode == ProfileMode.dark
+                    ? context.theme.appColors.secondaryBackground
+                    : null,
+              ),
+            ),
+          ],
+          ProfileContextMenu(
+            pubkey: masterPubkey,
+            closeSignal: menuCloseSignal,
+            profileMode: profileMode,
+          ),
+        ],
       ),
     );
   }
