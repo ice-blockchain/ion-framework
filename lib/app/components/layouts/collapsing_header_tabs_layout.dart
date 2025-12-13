@@ -110,7 +110,7 @@ class CollapsingHeaderTabsLayout extends HookWidget {
                       ),
                       PinnedHeaderSliver(
                         child: ColoredBox(
-                          color: newUiMode ? context.theme.appColors.primaryText : backgroundColor,
+                          color: newUiMode ? context.theme.appColors.forest : backgroundColor,
                           child: TabsHeader(
                             tabs: tabs,
                           ),
