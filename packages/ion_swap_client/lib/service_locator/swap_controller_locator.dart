@@ -55,6 +55,9 @@ class SwapControllerLocator {
       ),
       ionToBscBridgeService: IonToBscBridgeService(
         config: config,
+        ionIdentityClient: IonIdentityTransactionApi(
+          clientResolver: ionIdentityClient,
+        ),
       ),
       ionSwapService: IonSwapService(
         ionIdentityClient: IonIdentityTransactionApi(

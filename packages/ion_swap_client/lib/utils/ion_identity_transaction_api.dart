@@ -12,6 +12,16 @@ class IonIdentityTransactionApi {
 
   final IONIdentityClient _clientResolver;
 
+  Future<String> sign({
+    required String walletId,
+    required String message,
+    required UserActionSignerNew userActionSigner,
+  }) async {
+    final wallet = await _resolveWallet(_clientResolver, walletId);
+    final response = await _clientResolver.wallets.sign(wallet, message, userActionSigner);
+    return '';
+  }
+
   Future<String> signAndBroadcast({
     required String walletId,
     required EvmTransaction transaction,

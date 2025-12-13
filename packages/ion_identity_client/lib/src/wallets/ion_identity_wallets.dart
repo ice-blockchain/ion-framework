@@ -11,6 +11,7 @@ import 'package:ion_identity_client/src/wallets/services/get_wallet_transfer_req
 import 'package:ion_identity_client/src/wallets/services/get_wallets/get_wallets_service.dart';
 import 'package:ion_identity_client/src/wallets/services/make_transfer/make_transfer_service.dart';
 import 'package:ion_identity_client/src/wallets/services/sign_and_broadcast/sign_and_broadcast_service.dart';
+import 'package:ion_identity_client/src/wallets/services/sign_and_broadcast/sign_service.dart';
 import 'package:ion_identity_client/src/wallets/services/wallet_views/wallet_views_service.dart';
 
 /// A class that handles operations related to user wallets, such as listing the wallets
@@ -36,6 +37,7 @@ class IONIdentityWallets {
     required ExtractUserIdService extractUserIdService,
     required MakeTransferService makeTransferService,
     required SignAndBroadcastService signAndBroadcastService,
+    required SignService signService,
   })  : _createWalletService = createWalletService,
         _getWalletsService = getWalletsService,
         _getWalletAssetsService = getWalletAssetsService,
@@ -46,7 +48,8 @@ class IONIdentityWallets {
         _walletViewsService = walletViewsService,
         _extractUserIdService = extractUserIdService,
         _makeTransferService = makeTransferService,
-        _signAndBroadcastService = signAndBroadcastService;
+        _signAndBroadcastService = signAndBroadcastService,
+        _signService = signService;
 
   final String username;
 
@@ -61,6 +64,7 @@ class IONIdentityWallets {
   final ExtractUserIdService _extractUserIdService;
   final MakeTransferService _makeTransferService;
   final SignAndBroadcastService _signAndBroadcastService;
+  final SignService _signService;
 
   Future<Wallet> createWallet({
     required String network,
@@ -228,6 +232,17 @@ class IONIdentityWallets {
       _signAndBroadcastService.signAndBroadcast(
         wallet: wallet,
         request: request,
+        signer: signer,
+      );
+
+  Future<Map<String, dynamic>> sign(
+    Wallet wallet,
+    String message,
+    UserActionSignerNew signer,
+  ) =>
+      _signService.sign(
+        wallet: wallet,
+        message: message,
         signer: signer,
       );
 }

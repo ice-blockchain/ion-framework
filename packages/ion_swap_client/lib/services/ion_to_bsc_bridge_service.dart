@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion_identity_client/ion_identity.dart';
+import 'package:ion_swap_client/blockchain/ton_clien.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
+import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 import 'package:ion_swap_client/utils/numb.dart';
 
 /// Bridges native ION on the ION chain to wION on BSC by sending ION to the bridge contract.
@@ -18,9 +21,17 @@ import 'package:ion_swap_client/utils/numb.dart';
 class IonToBscBridgeService {
   IonToBscBridgeService({
     required IONSwapConfig config,
-  }) : _wIonTokenAddress = config.ionBscTokenAddress.toLowerCase();
+    required IonIdentityTransactionApi ionIdentityClient,
+  })  : _wIonTokenAddress = config.ionBscTokenAddress.toLowerCase(),
+        _tonClient = TonClient(
+          // TODO(ice-erebus): url
+          url: '',
+        ),
+        _ionIdentityClient = ionIdentityClient;
 
   final String _wIonTokenAddress;
+  final TonClient _tonClient;
+  final IonIdentityTransactionApi _ionIdentityClient;
 
   Future<SwapQuoteInfo> getQuote({
     required SwapCoinParameters swapCoinData,
@@ -65,6 +76,7 @@ class IonToBscBridgeService {
       amount: amountIn,
       destination: bscDestination,
       userAddress: userAddress,
+      userActionSigner: request.userActionSigner,
     );
 
     // // Step 2: Wait for transaction confirmation on ION chain
@@ -100,8 +112,15 @@ class IonToBscBridgeService {
     required BigInt amount,
     required String destination,
     required String userAddress,
+    required UserActionSignerNew userActionSigner,
   }) async {
     // TODO(ice-erebus): Implement transaction to ION(Ton) manually
+    final message = 'swapTo#$destination';
+    final signature = await _ionIdentityClient.sign(
+      walletId: userAddress,
+      message: message,
+      userActionSigner: userActionSigner,
+    );
   }
 
   bool isSupportedPair(SwapCoinParameters swapCoinData) {
