@@ -16,6 +16,7 @@ import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/model/replaceable_event_identifier.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 
@@ -44,7 +45,7 @@ enum CommunityTokenDefinitionIonType {
 @Freezed(equal: false)
 class CommunityTokenDefinitionEntity
     with IonConnectEntity, CacheableEntity, ReplaceableEntity, _$CommunityTokenDefinitionEntity
-    implements EntityEventSerializable {
+    implements EntityEventSerializable, DbCacheableEntity {
   const factory CommunityTokenDefinitionEntity({
     required String id,
     required String pubkey,
