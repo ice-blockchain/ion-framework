@@ -2,8 +2,7 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
@@ -37,24 +36,17 @@ Future<CommunityContentTokenType?> getTokenType(
 
     if (originEntity is UserMetadataEntity) {
       type = CommunityContentTokenType.profile;
-    } else if (originEntity is ModifiablePostEntity) {
-      if (originEntity.data.hasVideo) {
-        type = CommunityContentTokenType.postVideo;
-      } else if (originEntity.data.visualMedias.isNotEmpty) {
-        type = CommunityContentTokenType.postImage;
-      } else {
-        type = CommunityContentTokenType.postText;
-      }
-    } else if (originEntity is PostEntity) {
-      if (originEntity.data.hasVideo) {
-        type = CommunityContentTokenType.postVideo;
-      } else if (originEntity.data.visualMedias.isNotEmpty) {
-        type = CommunityContentTokenType.postImage;
-      } else {
-        type = CommunityContentTokenType.postText;
-      }
-    } else if (originEntity is ArticleEntity) {
+    } else if (ionConnectEntity is ArticleEntity) {
       type = CommunityContentTokenType.article;
+    } else if (ionConnectEntity is EntityDataWithMediaContent) {
+      final entity = ionConnectEntity as EntityDataWithMediaContent;
+      if (entity.hasVideo) {
+        type = CommunityContentTokenType.postVideo;
+      } else if (entity.visualMedias.isNotEmpty) {
+        type = CommunityContentTokenType.postImage;
+      } else {
+        type = CommunityContentTokenType.postText;
+      }
     }
   }
 
