@@ -10,9 +10,9 @@ import 'package:ion/app/features/protect_account/backup/providers/create_recover
 import 'package:ion/app/features/protect_account/backup/views/pages/create_recover_key_page/components/create_recovery_key_error_state.dart';
 import 'package:ion/app/features/protect_account/backup/views/pages/create_recover_key_page/components/create_recovery_key_loading_state.dart';
 import 'package:ion/app/features/protect_account/backup/views/pages/create_recover_key_page/components/create_recovery_key_success_state.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/show_close_button_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
-import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -43,9 +43,7 @@ class _NavBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return NavigationAppBar.modal(
-      actions: const [
-        NavigationCloseButton(),
-      ],
+      showCloseButton: ref.watch(showCloseButtonProvider),
     );
   }
 }

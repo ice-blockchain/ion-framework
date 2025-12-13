@@ -2,6 +2,7 @@
 
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
@@ -11,19 +12,19 @@ import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_h
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_header_icon.dart';
 import 'package:ion/app/features/protect_account/authenticator/data/model/authenticator_type.dart';
 import 'package:ion/app/features/protect_account/components/secure_account_option.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/show_close_button_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
-import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class AuthenticatorSetupOptionsPage extends StatelessWidget {
+class AuthenticatorSetupOptionsPage extends ConsumerWidget {
   const AuthenticatorSetupOptionsPage({
     super.key,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     const authenticatorTypes = AuthenticatorType.values;
 
     return SheetContent(
@@ -32,9 +33,7 @@ class AuthenticatorSetupOptionsPage extends StatelessWidget {
           SliverAppBar(
             primary: false,
             flexibleSpace: NavigationAppBar.modal(
-              actions: const [
-                NavigationCloseButton(),
-              ],
+              showCloseButton: ref.watch(showCloseButtonProvider),
             ),
             automaticallyImplyLeading: false,
             toolbarHeight: NavigationAppBar.modalHeaderHeight,

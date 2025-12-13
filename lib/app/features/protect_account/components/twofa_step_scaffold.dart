@@ -5,8 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_header.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_header_icon.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/show_close_button_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
-import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 
 class TwoFAStepScaffold extends ConsumerWidget {
@@ -38,9 +38,7 @@ class TwoFAStepScaffold extends ConsumerWidget {
           AppBar(
             primary: false,
             flexibleSpace: NavigationAppBar.modal(
-              actions: const [
-                NavigationCloseButton(),
-              ],
+              showCloseButton: ref.watch(showCloseButtonProvider),
               onBackPress: onBackPress,
             ),
             toolbarHeight: NavigationAppBar.modalHeaderHeight,
