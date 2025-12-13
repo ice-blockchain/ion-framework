@@ -144,7 +144,11 @@ class _FollowCounterCellWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = isLoading ? const _FollowCounterLoadingCell() : child;
+    final content = isLoading
+        ? _FollowCounterLoadingCell(
+            color: context.theme.appColors.onTertiaryFill.withValues(alpha: 0.5),
+          )
+        : child;
 
     if (!isExpanded) {
       return content;
@@ -156,11 +160,16 @@ class _FollowCounterCellWrapper extends StatelessWidget {
 }
 
 class _FollowCounterLoadingCell extends StatelessWidget {
-  const _FollowCounterLoadingCell();
+  const _FollowCounterLoadingCell({
+    required this.color,
+  });
+
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Skeleton(
+      baseColor: color,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -170,7 +179,7 @@ class _FollowCounterLoadingCell extends StatelessWidget {
             width: 16.0.s,
             height: 16.0.s,
             decoration: BoxDecoration(
-              color: context.theme.appColors.secondaryBackground,
+              color: color,
               borderRadius: BorderRadius.circular(2.0.s),
             ),
           ),
@@ -180,7 +189,7 @@ class _FollowCounterLoadingCell extends StatelessWidget {
             width: 24.0.s,
             height: 16.0.s,
             decoration: BoxDecoration(
-              color: context.theme.appColors.secondaryBackground,
+              color: color,
               borderRadius: BorderRadius.circular(4.0.s),
             ),
           ),
@@ -190,7 +199,7 @@ class _FollowCounterLoadingCell extends StatelessWidget {
             width: 40.0.s,
             height: 16.0.s,
             decoration: BoxDecoration(
-              color: context.theme.appColors.secondaryBackground,
+              color: color,
               borderRadius: BorderRadius.circular(4.0.s),
             ),
           ),
