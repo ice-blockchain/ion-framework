@@ -33,7 +33,7 @@ class SwapSelectCoinPage extends ConsumerWidget {
     final buyCoin = swapState.buyCoin;
     final buyNetwork = swapState.buyNetwork;
 
-    // special filter for ceases of internal coins
+    // special filter for cases of internal coins
     AsyncValue<List<CoinsGroup>> selector(AsyncValue<List<CoinsGroup>> coinGroups) {
       final otherCoin = switch (type) {
         CoinSwapType.sell => buyCoin,
