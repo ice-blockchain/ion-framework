@@ -146,8 +146,7 @@ class _FollowCounterCellWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final content = isLoading
         ? _FollowCounterLoadingCell(
-            baseColor: context.theme.appColors.onTertiaryFill.withValues(alpha: 0.5),
-            shimmerColor: context.theme.appColors.onTertiaryFill.withValues(alpha: 0.5),
+            color: context.theme.appColors.onTertiaryFill.withValues(alpha: 0.5),
           )
         : child;
 
@@ -162,17 +161,15 @@ class _FollowCounterCellWrapper extends StatelessWidget {
 
 class _FollowCounterLoadingCell extends StatelessWidget {
   const _FollowCounterLoadingCell({
-    required this.baseColor,
-    required this.shimmerColor,
+    required this.color,
   });
 
-  final Color baseColor;
-  final Color shimmerColor;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Skeleton(
-      baseColor: baseColor,
+      baseColor: color,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -182,7 +179,7 @@ class _FollowCounterLoadingCell extends StatelessWidget {
             width: 16.0.s,
             height: 16.0.s,
             decoration: BoxDecoration(
-              color: shimmerColor,
+              color: color,
               borderRadius: BorderRadius.circular(2.0.s),
             ),
           ),
@@ -192,7 +189,7 @@ class _FollowCounterLoadingCell extends StatelessWidget {
             width: 24.0.s,
             height: 16.0.s,
             decoration: BoxDecoration(
-              color: shimmerColor,
+              color: color,
               borderRadius: BorderRadius.circular(4.0.s),
             ),
           ),
@@ -202,7 +199,7 @@ class _FollowCounterLoadingCell extends StatelessWidget {
             width: 40.0.s,
             height: 16.0.s,
             decoration: BoxDecoration(
-              color: shimmerColor,
+              color: color,
               borderRadius: BorderRadius.circular(4.0.s),
             ),
           ),
