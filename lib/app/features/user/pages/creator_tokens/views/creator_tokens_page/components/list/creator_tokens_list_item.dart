@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/avatar_with_badge.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -35,6 +36,10 @@ class CreatorTokensListItem extends ConsumerWidget {
         ),
         //TODO (ice-kreios): fix this
         masterPubkey: token.externalAddress,
+        leading: AvatarWithIndicator(
+          masterPubkey: token.externalAddress,
+          tokenType: token.type,
+        ),
       ),
     );
   }
