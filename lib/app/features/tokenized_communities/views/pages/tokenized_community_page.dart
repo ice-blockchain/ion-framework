@@ -126,7 +126,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                 } else {
                   return Padding(
                     padding: EdgeInsetsDirectional.only(
-                      top: t == CommunityContentTokenType.postText ? 26 : 0,
+                      top: t == CommunityContentTokenType.postText ? 26.s : 0,
                     ),
                     child: ContentTokenHeader(
                       type: t,

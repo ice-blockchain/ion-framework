@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -14,17 +13,6 @@ Stream<CommunityToken?> tokenMarketInfo(
   String externalAddress,
 ) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
-
-  final latestTokens = await client.communityTokens.getLatestTokens();
-  final token = latestTokens.items.firstWhereOrNull(
-    (token) =>
-        token.type == CommunityTokenType.profile && token.creator.addresses?.ionConnect != null,
-  );
-
-  if (token != null) {
-    yield token;
-  }
-  return;
 
   // 1. Fetch initial data via REST
   final currentToken = await client.communityTokens.getTokenInfo(externalAddress);
