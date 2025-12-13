@@ -18,10 +18,10 @@ import 'package:ion/app/features/chat/community/providers/community_metadata_pro
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
+import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/providers/unread_message_count_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/archive_tile_visibility_provider.r.dart';
-import 'package:ion/app/features/chat/recent_chats/providers/archived_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_skeleton/recent_chat_skeleton.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/archive_chat_tile.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_tile.dart';
@@ -48,8 +48,8 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     final isOverscrolling = useState(false);
 
     useScrollTopOnTabPress(context, scrollController: scrollController);
-    final archivedConversations = ref.watch(archivedConversationsProvider);
-    final isArchivedConversationsEmpty = archivedConversations.valueOrNull?.isEmpty ?? true;
+    final archivedConversations = ref.watch(archivedConversationsProvider).valueOrNull ?? [];
+    final isArchivedConversationsEmpty = archivedConversations.isEmpty;
 
     useEffect(
       () {
@@ -145,7 +145,11 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
             const SliverToBoxAdapter(
               child: HorizontalSeparator(),
             ),
-          ConversationList(conversations: conversations.where((c) => !c.isArchived).toList()),
+          ConversationList(
+            conversations: conversations
+                .where((conversation) => !archivedConversations.contains(conversation))
+                .toList(),
+          ),
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsetsDirectional.only(bottom: 12.0.s),
