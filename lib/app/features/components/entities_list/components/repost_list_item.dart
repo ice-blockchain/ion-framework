@@ -40,7 +40,8 @@ class RepostListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final repostEntity = ref.watch(
-          ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
+          ionConnectEntityWithCountersProvider(eventReference: eventReference)
+              .select((value) {
             final entity = value.valueOrNull;
             if (entity != null) {
               ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
@@ -48,7 +49,10 @@ class RepostListItem extends ConsumerWidget {
             return entity;
           }),
         ) ??
-        ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, eventReference);
+        ListCachedObjects.maybeObjectOf<IonConnectEntity>(
+          context,
+          eventReference,
+        );
 
     if (repostEntity == null) {
       return const Skeleton(child: PostSkeleton());
@@ -56,20 +60,23 @@ class RepostListItem extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () => switch (repostEntity) {
-        RepostEntity() =>
-          PostDetailsRoute(eventReference: repostEntity.data.eventReference.encode())
-              .push<void>(context),
+        RepostEntity() => PostDetailsRoute(
+            eventReference: repostEntity.data.eventReference.encode(),
+          ).push<void>(context),
         GenericRepostEntity()
             when [
               ModifiablePostEntity.kind,
               CommunityTokenDefinitionEntity.kind,
               CommunityTokenActionEntity.kind,
             ].any((kind) => repostEntity.data.kind == kind) =>
-          PostDetailsRoute(eventReference: repostEntity.data.eventReference.encode())
-              .push<void>(context),
-        GenericRepostEntity() when repostEntity.data.kind == ArticleEntity.kind =>
-          ArticleDetailsRoute(eventReference: repostEntity.data.eventReference.encode())
-              .push<void>(context),
+          PostDetailsRoute(
+            eventReference: repostEntity.data.eventReference.encode(),
+          ).push<void>(context),
+        GenericRepostEntity()
+            when repostEntity.data.kind == ArticleEntity.kind =>
+          ArticleDetailsRoute(
+            eventReference: repostEntity.data.eventReference.encode(),
+          ).push<void>(context),
         _ => null,
       },
       behavior: HitTestBehavior.opaque,
@@ -88,7 +95,9 @@ class RepostListItem extends ConsumerWidget {
                 cache: false,
                 plainInlineStyles: plainInlineStyles,
               ),
-            GenericRepostEntity() when repostEntity.data.kind == ModifiablePostEntity.kind => Post(
+            GenericRepostEntity()
+                when repostEntity.data.kind == ModifiablePostEntity.kind =>
+              Post(
                 eventReference: repostEntity.data.eventReference,
                 repostEventReference: eventReference,
                 onVideoTap: onVideoTap,
@@ -96,7 +105,9 @@ class RepostListItem extends ConsumerWidget {
                 cache: false,
                 plainInlineStyles: plainInlineStyles,
               ),
-            GenericRepostEntity() when repostEntity.data.kind == ArticleEntity.kind => Padding(
+            GenericRepostEntity()
+                when repostEntity.data.kind == ArticleEntity.kind =>
+              Padding(
                 padding: EdgeInsetsDirectional.symmetric(vertical: 12.0.s) +
                     EdgeInsetsDirectional.only(end: 16.0.s),
                 child: Article(
@@ -107,12 +118,15 @@ class RepostListItem extends ConsumerWidget {
                 ),
               ),
             GenericRepostEntity()
-                when repostEntity.data.kind == CommunityTokenDefinitionEntity.kind =>
+                when repostEntity.data.kind ==
+                    CommunityTokenDefinitionEntity.kind =>
               CommunityTokenLive(
                 eventReference: repostEntity.data.eventReference,
                 network: true,
               ),
-            GenericRepostEntity() when repostEntity.data.kind == CommunityTokenActionEntity.kind =>
+            GenericRepostEntity()
+                when repostEntity.data.kind ==
+                    CommunityTokenActionEntity.kind =>
               CommunityTokenAction(
                 eventReference: repostEntity.data.eventReference,
                 network: true,

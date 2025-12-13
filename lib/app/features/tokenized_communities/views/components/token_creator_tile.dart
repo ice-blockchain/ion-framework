@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -29,7 +29,14 @@ class TokenCreatorTile extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              HolderAvatar(imageUrl: creator.avatar),
+              TokenAvatar(
+                imageUrl: creator.avatar,
+                containerSize: Size.square(30.s),
+                imageSize: Size.square(30.s),
+                innerBorderRadius: 10.s,
+                outerBorderRadius: 10.s,
+                borderWidth: 0,
+              ),
               SizedBox(width: 8.0.s),
               _CreatorDetails(
                 name: creator.display,
@@ -85,7 +92,8 @@ class _CreatorDetails extends StatelessWidget {
         ),
         Text(
           prefixUsername(username: handle, context: context),
-          style: texts.caption.copyWith(color: handleColor ?? colors.quaternaryText),
+          style: texts.caption
+              .copyWith(color: handleColor ?? colors.quaternaryText),
         ),
       ],
     );

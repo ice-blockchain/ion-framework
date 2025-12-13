@@ -27,8 +27,10 @@ class ProfileTokenStatsInfo extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final marketData = ref
-        .watch(tokenMarketInfoProvider(externalAddress).select((t) => t.valueOrNull?.marketData));
+    final marketData = ref.watch(
+      tokenMarketInfoProvider(externalAddress)
+          .select((t) => t.valueOrNull?.marketData),
+    );
     if (marketData == null) {
       return const SizedBox.shrink();
     }
@@ -47,15 +49,16 @@ class ProfileTokenStatsInfo extends ConsumerWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _StatItem(
+            TokenStatItem(
               icon: Assets.svg.iconMemeMarketcap,
-              text: MarketDataFormatter.formatCompactNumber(marketData.marketCap),
+              text:
+                  MarketDataFormatter.formatCompactNumber(marketData.marketCap),
               onTap: () => showSimpleBottomSheet<void>(
                 context: context,
                 child: const InfoModal(infoType: InfoType.marketCap),
               ),
             ),
-            _StatItem(
+            TokenStatItem(
               icon: Assets.svg.iconMemeMarkers,
               text: MarketDataFormatter.formatPrice(marketData.priceUSD),
               onTap: () => showSimpleBottomSheet<void>(
@@ -63,7 +66,7 @@ class ProfileTokenStatsInfo extends ConsumerWidget {
                 child: const InfoModal(infoType: InfoType.volume),
               ),
             ),
-            _StatItem(
+            TokenStatItem(
               icon: Assets.svg.iconSearchGroups,
               text: MarketDataFormatter.formatCompactNumber(marketData.volume),
               onTap: () => showSimpleBottomSheet<void>(
@@ -82,6 +85,7 @@ class ProfileTokenStats extends ConsumerWidget {
   const ProfileTokenStats({
     required this.externalAddress,
     this.mainAxisAlignment = MainAxisAlignment.spaceBetween,
+    this.spacing,
     this.leading,
     super.key,
   });
@@ -89,6 +93,7 @@ class ProfileTokenStats extends ConsumerWidget {
   final String externalAddress;
   final MainAxisAlignment mainAxisAlignment;
   final Widget? leading;
+  final double? spacing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -123,8 +128,9 @@ class ProfileTokenStats extends ConsumerWidget {
     }
     return Row(
       mainAxisAlignment: mainAxisAlignment,
+      spacing: spacing ?? 0,
       children: [
-        _StatItem(
+        TokenStatItem(
           icon: Assets.svg.iconMemeMarketcap,
           text: MarketDataFormatter.formatCompactNumber(marketData.marketCap),
           onTap: () => showSimpleBottomSheet<void>(
@@ -132,7 +138,7 @@ class ProfileTokenStats extends ConsumerWidget {
             child: const InfoModal(infoType: InfoType.marketCap),
           ),
         ),
-        _StatItem(
+        TokenStatItem(
           icon: Assets.svg.iconMemeMarkers,
           text: MarketDataFormatter.formatPrice(marketData.priceUSD),
           onTap: () => showSimpleBottomSheet<void>(
@@ -140,7 +146,7 @@ class ProfileTokenStats extends ConsumerWidget {
             child: const InfoModal(infoType: InfoType.volume),
           ),
         ),
-        _StatItem(
+        TokenStatItem(
           icon: Assets.svg.iconSearchGroups,
           text: MarketDataFormatter.formatCompactNumber(marketData.volume),
           onTap: () => showSimpleBottomSheet<void>(
@@ -154,16 +160,17 @@ class ProfileTokenStats extends ConsumerWidget {
   }
 }
 
-class _StatItem extends StatelessWidget {
-  const _StatItem({
+class TokenStatItem extends StatelessWidget {
+  const TokenStatItem({
     required this.icon,
     required this.text,
-    required this.onTap,
+    this.onTap,
+    super.key,
   });
 
   final String icon;
   final String text;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -211,7 +218,12 @@ class _BuyHint extends StatelessWidget {
       height: 24.0.s,
       child: Container(
         height: 24.0.s,
-        padding: EdgeInsetsDirectional.only(top: 4.0.s, bottom: 4.0.s, start: 12.0.s, end: 12.0.s),
+        padding: EdgeInsetsDirectional.only(
+          top: 4.0.s,
+          bottom: 4.0.s,
+          start: 12.0.s,
+          end: 12.0.s,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -251,7 +263,8 @@ class BuyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final padding = this.padding ?? EdgeInsetsDirectional.symmetric(horizontal: 10.0.s);
+    final padding =
+        this.padding ?? EdgeInsetsDirectional.symmetric(horizontal: 10.0.s);
     return Container(
       height: height.s,
       padding: padding,
@@ -291,115 +304,124 @@ class BuyButton extends StatelessWidget {
 class ProfileTokenStatsFeed extends ConsumerWidget {
   const ProfileTokenStatsFeed({
     required this.externalAddress,
+    this.showFollowCounters = true,
     super.key,
   });
 
   final String externalAddress;
+  final bool showFollowCounters;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final tokenInfo =
+        ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
     if (tokenInfo == null) {
       return const SizedBox.shrink();
     }
     final marketData = tokenInfo.marketData;
 
-    final showFollowCounters = tokenInfo.creator.addresses?.ionConnect != null;
-    return ConstrainedBox(
-      constraints: BoxConstraints(minWidth: 259.s),
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: AlignmentDirectional.bottomCenter,
-        children: [
-          Container(
-            decoration: ShapeDecoration(
-              color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.53.s),
-              ),
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: AlignmentDirectional.bottomCenter,
+      children: [
+        Container(
+          decoration: ShapeDecoration(
+            color: context.theme.appColors.primaryBackground
+                .withValues(alpha: 0.1),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.s),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (showFollowCounters) ...[
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 34.0.s,
-                    ),
-                    child: FollowCounters(
-                      padding: EdgeInsetsDirectional.only(top: 9.s),
-                      enableDecoration: false,
-                      profileMode: ProfileMode.dark,
-                      pubkey: ReplaceableEventReference.fromString(
-                        tokenInfo.creator.addresses!.ionConnect!,
-                      ).masterPubkey,
-                    ),
-                  ),
-                  GradientHorizontalDivider(
-                    margin: EdgeInsetsDirectional.only(top: 6.3.s, bottom: 13.8.s),
-                  ),
-                ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (showFollowCounters) ...[
                 Padding(
-                  padding: EdgeInsetsDirectional.only(
-                    top: showFollowCounters ? 0 : 22.s,
-                    start: 34.0.s,
-                    end: 34.0.s,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 34.0.s,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _StatItem(
-                        icon: Assets.svg.iconMemeMarketcap,
-                        text: MarketDataFormatter.formatCompactNumber(marketData.marketCap),
-                        onTap: () => showSimpleBottomSheet<void>(
-                          context: context,
-                          child: const InfoModal(infoType: InfoType.marketCap),
-                        ),
-                      ),
-                      _StatItem(
-                        icon: Assets.svg.iconMemeMarkers,
-                        text: MarketDataFormatter.formatPrice(marketData.priceUSD),
-                        onTap: () => showSimpleBottomSheet<void>(
-                          context: context,
-                          child: const InfoModal(infoType: InfoType.volume),
-                        ),
-                      ),
-                      _StatItem(
-                        icon: Assets.svg.iconSearchGroups,
-                        text: MarketDataFormatter.formatCompactNumber(marketData.volume),
-                        onTap: () => showSimpleBottomSheet<void>(
-                          context: context,
-                          child: const InfoModal(infoType: InfoType.holders),
-                        ),
-                      ),
-                    ],
+                  child: FollowCounters(
+                    padding: EdgeInsetsDirectional.only(top: 9.s),
+                    enableDecoration: false,
+                    profileMode: ProfileMode.dark,
+                    pubkey: ReplaceableEventReference.fromString(
+                      tokenInfo.creator.addresses!.ionConnect!,
+                    ).masterPubkey,
                   ),
                 ),
-                SizedBox(
-                  height: 25.s,
+                GradientHorizontalDivider(
+                  margin:
+                      EdgeInsetsDirectional.only(top: 6.3.s, bottom: 13.8.s),
                 ),
               ],
-            ),
-          ),
-          PositionedDirectional(
-            bottom: -11.5.s,
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => showSimpleBottomSheet<void>(
-                context: context,
-                child: TradeCommunityTokenDialog(
-                  externalAddress: externalAddress,
-                  mode: CommunityTokenTradeMode.buy,
+              Padding(
+                padding: EdgeInsetsDirectional.only(
+                  top: showFollowCounters ? 0 : 22.s,
+                  start: 20.0.s,
+                  end: 20.0.s,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  spacing: 25.s,
+                  children: [
+                    TokenStatItem(
+                      icon: Assets.svg.iconMemeMarketcap,
+                      text: MarketDataFormatter.formatCompactNumber(
+                        marketData.marketCap,
+                      ),
+                      onTap: () => showSimpleBottomSheet<void>(
+                        context: context,
+                        child: const InfoModal(infoType: InfoType.marketCap),
+                      ),
+                    ),
+                    TokenStatItem(
+                      icon: Assets.svg.iconMemeMarkers,
+                      text: MarketDataFormatter.formatPrice(
+                        marketData.priceUSD,
+                      ),
+                      onTap: () => showSimpleBottomSheet<void>(
+                        context: context,
+                        child: const InfoModal(infoType: InfoType.volume),
+                      ),
+                    ),
+                    TokenStatItem(
+                      icon: Assets.svg.iconSearchGroups,
+                      text: MarketDataFormatter.formatCompactNumber(
+                        marketData.volume,
+                      ),
+                      onTap: () => showSimpleBottomSheet<void>(
+                        context: context,
+                        child: const InfoModal(infoType: InfoType.holders),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: BuyButton(
-                padding: EdgeInsetsDirectional.symmetric(horizontal: 22.s),
+              SizedBox(
+                height: 25.s,
+              ),
+            ],
+          ),
+        ),
+        PositionedDirectional(
+          bottom: -11.5.s,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => showSimpleBottomSheet<void>(
+              context: context,
+              child: TradeCommunityTokenDialog(
                 externalAddress: externalAddress,
+                mode: CommunityTokenTradeMode.buy,
               ),
             ),
+            child: BuyButton(
+              padding: EdgeInsetsDirectional.symmetric(horizontal: 22.s),
+              externalAddress: externalAddress,
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

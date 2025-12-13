@@ -13,16 +13,16 @@ enum ProfileChartType {
 
 class ProfileChart extends StatelessWidget {
   const ProfileChart({
-    required this.type,
     required this.amount,
     super.key,
   });
 
-  final ProfileChartType type;
   final double amount;
 
   @override
   Widget build(BuildContext context) {
+    final type =
+        amount > 0 ? ProfileChartType.raising : ProfileChartType.falling;
     final color = switch (type) {
       ProfileChartType.raising => context.theme.appColors.profitGreen,
       ProfileChartType.falling => context.theme.appColors.lossRed,

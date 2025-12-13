@@ -63,8 +63,9 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
       () {
         void onScroll() {
           final offset = scrollController.offset;
-          final maxScroll =
-              expandedHeaderHeight - NavigationAppBar.screenHeaderHeight - _tabBarHeight;
+          final maxScroll = expandedHeaderHeight -
+              NavigationAppBar.screenHeaderHeight -
+              _tabBarHeight;
           final progress = (offset / maxScroll).clamp(0.0, 1.0);
 
           collapseProgress.value = progress;
@@ -79,7 +80,8 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
     final sections = sectionsBuilder(sectionKeys);
 
     return Scaffold(
-      backgroundColor: backgroundColor ?? context.theme.appColors.secondaryBackground,
+      backgroundColor:
+          backgroundColor ?? context.theme.appColors.secondaryBackground,
       floatingActionButton: floatingActionButton,
       body: ScrollToTopWrapper(
         scrollController: scrollController,

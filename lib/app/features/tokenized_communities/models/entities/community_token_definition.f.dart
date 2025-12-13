@@ -58,9 +58,13 @@ class CommunityTokenDefinitionEntity
   const CommunityTokenDefinitionEntity._();
 
   /// https://github.com/ice-blockchain/subzero/blob/master/.ion-connect-protocol/ICIP-11000.md#community-token-definition-event
-  factory CommunityTokenDefinitionEntity.fromEventMessage(EventMessage eventMessage) {
+  factory CommunityTokenDefinitionEntity.fromEventMessage(
+    EventMessage eventMessage,
+  ) {
     if (eventMessage.kind != kind) {
-      throw Exception('Incorrect event kind ${eventMessage.kind}, expected $kind');
+      throw Exception(
+        'Incorrect event kind ${eventMessage.kind}, expected $kind',
+      );
     }
 
     return CommunityTokenDefinitionEntity(

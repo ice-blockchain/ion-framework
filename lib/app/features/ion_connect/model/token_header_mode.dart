@@ -1,0 +1,1 @@
+enum TokenHeaderMode { definition, action }

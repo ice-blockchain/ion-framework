@@ -7,10 +7,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/layouts/collapsing_header_scroll_links_layout.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_content_token.dart';
+import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_profile_token.dart';
+import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_twitter_token.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/section_visibility_controller.dart';
 import 'package:ion/app/features/tokenized_communities/models/trading_stats_formatted.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_trading_stats_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/timeframe_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/trading_stats_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
@@ -18,12 +22,10 @@ import 'package:ion/app/features/tokenized_communities/views/components/chart_st
 import 'package:ion/app/features/tokenized_communities/views/components/comments_section_compact.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/community_token_image.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/floating_trade_island.dart';
-import 'package:ion/app/features/tokenized_communities/views/components/token_header.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/your_position_card.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/top_holders/top_holders.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_card.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
-
 import 'package:ion/generated/assets.gen.dart';
 
 enum TokenizedCommunityTabType implements TabType {
@@ -62,19 +64,25 @@ class TokenizedCommunityPage extends HookConsumerWidget {
 
   final String externalAddress;
 
-  static double get _expandedHeaderHeight => 316.0.s;
+  static double get _expandedHeaderHeight => 350.0.s;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress));
+
     final token = tokenInfo.valueOrNull;
 
     if (token == null) {
       return const SizedBox.shrink();
     }
 
+    final typeAsync = ref.watch(getTokenTypeProvider(externalAddress));
+
     final sectionKeys = useMemoized(
-      () => List.generate(TokenizedCommunityTabType.values.length, (_) => GlobalKey()),
+      () => List.generate(
+        TokenizedCommunityTabType.values.length,
+        (_) => GlobalKey(),
+      ),
     );
     final tabCount = TokenizedCommunityTabType.values.length;
 
@@ -89,8 +97,6 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       [visibilityState, sectionKeys],
     );
 
-    final statusBarHeight = MediaQuery.viewPaddingOf(context).top;
-
     return CollapsingHeaderScrollLinksLayout(
       backgroundColor: context.theme.appColors.secondaryBackground,
       tabs: TokenizedCommunityTabType.values,
@@ -100,11 +106,37 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       expandedHeaderHeight: _expandedHeaderHeight,
       expandedHeader: Column(
         children: [
-          SizedBox(height: statusBarHeight),
-          TokenHeader(
-            type: TokenHeaderType.tokenizedCommunity,
-            token: token,
-          ),
+          SizedBox(height: MediaQuery.viewPaddingOf(context).top),
+          if (typeAsync.valueOrNull != null)
+            Builder(
+              builder: (context) {
+                final t = typeAsync.valueOrNull!;
+
+                if (t == CommunityContentTokenType.profile) {
+                  return ProfileTokenHeader(
+                    token: token,
+                    externalAddress: externalAddress,
+                    minimal: true,
+                  );
+                } else if (t == CommunityContentTokenType.twitter) {
+                  return TwitterTokenHeader(
+                    token: token,
+                    showBuyButton: false,
+                  );
+                } else {
+                  return Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      top: t == CommunityContentTokenType.postText ? 26 : 0,
+                    ),
+                    child: ContentTokenHeader(
+                      type: t,
+                      token: token,
+                      externalAddress: externalAddress,
+                    ),
+                  );
+                }
+              },
+            ),
         ],
       ),
       imageUrl: token.imageUrl,
@@ -232,7 +264,10 @@ class TokenizedCommunityPage extends HookConsumerWidget {
 }
 
 class _TokenChart extends HookConsumerWidget {
-  const _TokenChart({required this.externalAddress, required this.onTitleVisibilityChanged});
+  const _TokenChart({
+    required this.externalAddress,
+    required this.onTitleVisibilityChanged,
+  });
 
   final String externalAddress;
   final ValueChanged<double>? onTitleVisibilityChanged;

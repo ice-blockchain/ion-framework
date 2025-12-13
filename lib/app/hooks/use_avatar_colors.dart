@@ -99,8 +99,9 @@ AvatarColors? useImageColors(String? avatarUrl) {
         palette.mutedColor?.color;
   } else if (palette.lightVibrantColor != null) {
     // Pair light vibrant with dark vibrant for good contrast
-    color2 =
-        palette.darkVibrantColor?.color ?? palette.vibrantColor?.color ?? palette.mutedColor?.color;
+    color2 = palette.darkVibrantColor?.color ??
+        palette.vibrantColor?.color ??
+        palette.mutedColor?.color;
   } else {
     // Fallback: use complementary palette colors
     color2 = palette.lightMutedColor?.color ??
