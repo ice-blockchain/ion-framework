@@ -50,12 +50,12 @@ class SwapControllerLocator {
           web3Client: web3client,
         ),
         ionIdentityClient: IonIdentityTransactionApi(
-          clientResolver: () async => ionIdentityClient,
+          clientResolver: ionIdentityClient,
         ),
       ),
       ionSwapService: IonSwapService(
         ionIdentityClient: IonIdentityTransactionApi(
-          clientResolver: () async => ionIdentityClient,
+          clientResolver: ionIdentityClient,
         ),
         config: config,
         web3client: web3client,
