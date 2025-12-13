@@ -17,19 +17,19 @@ class GradientHorizontalDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final defaultColor = context.theme.appColors.onTertiaryFill;
+
     return Container(
       margin: margin,
       height: height,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          stops: const [0, 0.25, 0.5, 0.75, 1.0], // Adjusted stops to make the middle section wider
+          stops: const [0.0529, 0.5, 0.9471],
           colors: colors ??
               [
-                Colors.transparent,
-                context.theme.appColors.onTertiaryFill,
-                context.theme.appColors.onTertiaryFill,
-                context.theme.appColors.onTertiaryFill,
-                Colors.transparent,
+                defaultColor.withValues(alpha: 0),
+                defaultColor,
+                defaultColor.withValues(alpha: 0),
               ],
         ),
       ),

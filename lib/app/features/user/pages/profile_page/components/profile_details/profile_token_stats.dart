@@ -336,21 +336,22 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
                     horizontal: 34.0.s,
                   ),
                   child: FollowCounters(
-                    padding: EdgeInsetsDirectional.only(top: 9.s),
+                    padding: EdgeInsetsDirectional.only(top: 6.s),
                     enableDecoration: false,
                     profileMode: ProfileMode.dark,
+                    height: 44.s,
                     pubkey: ReplaceableEventReference.fromString(
                       tokenInfo.creator.addresses!.ionConnect!,
                     ).masterPubkey,
                   ),
                 ),
                 GradientHorizontalDivider(
-                  margin: EdgeInsetsDirectional.only(top: 6.3.s, bottom: 13.8.s),
+                  margin: EdgeInsetsDirectional.only(top: 0.s, bottom: 4.s),
                 ),
               ],
               Padding(
                 padding: EdgeInsetsDirectional.only(
-                  top: showFollowCounters ? 0 : 22.s,
+                  top: showFollowCounters ? 10.s : 22.s,
                   start: 20.0.s,
                   end: 20.0.s,
                 ),
