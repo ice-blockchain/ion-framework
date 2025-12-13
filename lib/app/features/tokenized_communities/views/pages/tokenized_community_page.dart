@@ -134,7 +134,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
             children: [
               SimpleSeparator(height: 4.0.s),
               YourPositionCard(
-                externalAddress: externalAddress,
+                token: token,
                 trailing: SimpleSeparator(height: 4.0.s),
               ),
               _TokenChart(
