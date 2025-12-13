@@ -6,6 +6,26 @@ import 'package:ion/app/features/ion_connect/model/pmo_tag.f.dart';
 import 'package:ion/app/services/markdown/delta_markdown_converter.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 
+/// Trims leading and trailing whitespace on each line in Delta operations.
+/// This modifies the Delta by trimming whitespace in string insert operations.
+Delta trimLineWhitespaceInDelta(Delta delta) {
+  final trimmedDelta = Delta();
+
+  for (final op in delta.operations) {
+    if (op.key == 'insert' && op.data is String) {
+      final text = op.data! as String;
+      final lines = text.split('\n');
+      final trimmedLines = lines.map((line) => line.trim()).toList();
+      final trimmedText = trimmedLines.join('\n');
+      trimmedDelta.insert(trimmedText, op.attributes);
+    } else {
+      trimmedDelta.push(op);
+    }
+  }
+
+  return trimmedDelta;
+}
+
 /// Trims extra empty lines from text according to the rules:
 /// - Removes empty lines at the start
 /// - Removes empty lines at the end
@@ -107,7 +127,11 @@ Future<({String contentToSign, List<List<String>> pmoTags})> convertDeltaToPmoTa
   List<dynamic> deltaJson,
 ) async {
   try {
-    final result = await DeltaMarkdownConverter.mapDeltaToPmo(deltaJson);
+    final delta = Delta.fromJson(deltaJson);
+    final trimmedDelta = trimLineWhitespaceInDelta(delta);
+
+    final result = await DeltaMarkdownConverter.mapDeltaToPmo(trimmedDelta.toJson());
+
     final trimResult = trimEmptyLines(result.text);
     final adjustedTags = adjustPmoTagPositions(result.tags, trimResult.adjustPosition);
     final pmoTags = adjustedTags.map((t) => t.toTag()).toList();
@@ -129,10 +153,14 @@ Future<({String contentToSign, List<List<String>> pmoTags})> convertDeltaToPmoTa
 
 /// Converts Delta to markdown content.
 ///
+/// Applies trimming to remove extra empty lines and trim whitespace on individual lines.
 /// Throws [ContentConversionException] if conversion fails.
 String convertDeltaToMarkdown(Delta delta) {
   try {
-    return deltaToMarkdown(delta);
+    final trimmedDelta = trimLineWhitespaceInDelta(delta);
+    final markdown = deltaToMarkdown(trimmedDelta);
+    final trimResult = trimEmptyLines(markdown);
+    return trimResult.trimmedText;
   } catch (e) {
     throw ContentConversionException(e, conversionType: 'Delta to markdown');
   }
