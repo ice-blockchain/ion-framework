@@ -59,7 +59,6 @@ class SwapService {
         await _ionToBscBridgeService.bridgeToBsc(
           swapCoinData: swapCoinData,
           request: ionSwapRequest,
-          onVerifyIdentity: onVerifyIdentity,
         );
         return;
       }

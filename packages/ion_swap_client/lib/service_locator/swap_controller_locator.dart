@@ -40,7 +40,6 @@ class SwapControllerLocator {
     final relayApiRepository = apiRepositoryServiceLocator.getRelayApiRepository(config: config);
     final exolixRepository = apiRepositoryServiceLocator.getExolixRepository(config: config);
     final letsExchangeRepository = apiRepositoryServiceLocator.getLetsExchangeRepository(config: config);
-    final ionBridgeApiRepository = apiRepositoryServiceLocator.getIonBridgeApiRepository(config: config);
 
     _swapCoinsController = SwapService(
       ionBscToIonBridgeService: IonBscToIonBridgeService(
@@ -56,15 +55,6 @@ class SwapControllerLocator {
       ),
       ionToBscBridgeService: IonToBscBridgeService(
         config: config,
-        web3client: web3client,
-        evmTxBuilder: EvmTxBuilder(
-          contracts: EvmContractProviders(),
-          web3Client: web3client,
-        ),
-        ionIdentityClient: IonIdentityTransactionApi(
-          clientResolver: ionIdentityClient,
-        ),
-        bridgeApiRepository: ionBridgeApiRepository,
       ),
       ionSwapService: IonSwapService(
         ionIdentityClient: IonIdentityTransactionApi(
