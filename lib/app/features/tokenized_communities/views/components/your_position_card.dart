@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/position_formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/community_token_image.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
@@ -13,26 +12,19 @@ import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class YourPositionCard extends HookConsumerWidget {
-  const YourPositionCard({required this.externalAddress, this.trailing, super.key});
+  const YourPositionCard({
+    required this.token,
+    this.trailing,
+    super.key,
+  });
 
-  final String externalAddress;
+  final CommunityToken token;
   final Widget? trailing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final token = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
-
-    if (token == null) {
-      return const SizedBox();
-    }
-
-    final position = token.marketData.position;
-
-    if (position == null) {
-      return const SizedBox();
-    }
-
     final avatarColors = useImageColors(token.imageUrl);
+    final position = token.marketData.position;
 
     return Column(
       children: [
@@ -65,11 +57,11 @@ class YourPositionCard extends HookConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const _YourPositionCardTitle(),
-                            _ProfitDetails(position: position),
+                            if (position != null) _ProfitDetails(position: position),
                           ],
                         ),
                         const Spacer(),
-                        _AmountDetails(position: position),
+                        if (position != null) _AmountDetails(position: position),
                       ],
                     ),
                   ),

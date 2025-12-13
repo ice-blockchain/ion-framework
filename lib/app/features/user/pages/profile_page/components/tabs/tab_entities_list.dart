@@ -14,6 +14,7 @@ import 'package:ion/app/features/components/entities_list/entity_list_item.f.dar
 import 'package:ion/app/features/feed/providers/user_posts_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/your_position_card.dart';
 import 'package:ion/app/features/user/model/tab_entity_type.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/empty_state.dart';
@@ -72,6 +73,11 @@ class TabEntitiesList extends HookConsumerWidget {
     final entities = tabData.items ?? [];
 
     final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
+    final externalAddress = userMetadata?.toEventReference().toString();
+    final token = externalAddress != null
+        ? ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull
+        : null;
+    final hasPosition = token?.marketData.position != null;
 
     return LoadMoreBuilder(
       onLoadMore: () async {
@@ -86,13 +92,13 @@ class TabEntitiesList extends HookConsumerWidget {
       },
       hasMore: tabData.hasMore,
       slivers: [
-        if (userMetadata != null && type == TabEntityType.posts)
+        if (token != null && hasPosition && type == TabEntityType.posts)
           SliverToBoxAdapter(
             child: Column(
               children: [
                 SectionSeparator(height: 4.s),
                 YourPositionCard(
-                  externalAddress: userMetadata.toEventReference().toString(),
+                  token: token,
                 ),
                 SectionSeparator(height: 8.s),
               ],
