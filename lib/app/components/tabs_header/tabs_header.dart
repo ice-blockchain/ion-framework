@@ -9,14 +9,16 @@ import 'package:ion/app/features/user/model/tab_type_interface.dart';
 class TabsHeader extends ConsumerWidget {
   const TabsHeader({
     required this.tabs,
+    this.trailing,
     super.key,
   });
 
   final List<TabType> tabs;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return TabBar(
+    final tabBar = TabBar(
       padding: EdgeInsets.symmetric(
         horizontal: 6.0.s,
       ),
@@ -32,6 +34,20 @@ class TabsHeader extends ConsumerWidget {
       }).toList(),
       indicatorColor: context.theme.appColors.primaryAccent,
       dividerHeight: 0,
+    );
+
+    if (trailing == null) {
+      return tabBar;
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: tabBar,
+        ),
+        trailing!,
+      ],
     );
   }
 }

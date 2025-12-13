@@ -39,7 +39,7 @@ class LatestTokensRepositoryImpl implements LatestTokensRepository {
     String? keyword,
     String? type,
   }) async {
-    final subscription = await _client.subscribeSse<List<dynamic>>(
+    final subscription = await _client.subscribeSse<Map<String, dynamic>>(
       '/v1sse/community-tokens/latest',
       queryParameters: {
         if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
@@ -47,16 +47,14 @@ class LatestTokensRepositoryImpl implements LatestTokensRepository {
       },
     );
 
-    final stream = subscription.stream.map<List<CommunityTokenBase>>((jsons) {
+    final stream = subscription.stream.map<List<CommunityTokenBase>>((data) {
       final list = <CommunityTokenBase>[];
-      for (final json in jsons) {
-        try {
-          final data = CommunityToken.fromJson(json as Map<String, dynamic>);
-          list.add(data);
-        } catch (_) {
-          final patch = CommunityTokenPatch.fromJson(json as Map<String, dynamic>);
-          list.add(patch);
-        }
+      try {
+        final token = CommunityToken.fromJson(data);
+        list.add(token);
+      } catch (_) {
+        final patch = CommunityTokenPatch.fromJson(data);
+        list.add(patch);
       }
       return list;
     });

@@ -2,17 +2,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/inputs/hooks/use_node_focused.dart';
+import 'package:ion/app/components/inputs/search_input/search_input.dart';
+import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
+import 'package:ion/app/components/scroll_view/load_more_builder.dart';
+import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/tabs_header/tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/category_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/featured_tokens_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/global_search_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel_skeleton.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_tab_content.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
@@ -27,15 +36,73 @@ class CreatorTokensPage extends HookConsumerWidget {
     super.key,
   });
 
-  double get paddingTop => 60.0.s;
+  static const _expandedHeaderHeight = 375.0;
+  static const _tabBarHeight = 48.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statusBarHeight = MediaQuery.paddingOf(context).top;
-
     final scrollController = useScrollController();
+    final globalSearch = ref.watch(globalSearchTokensNotifierProvider);
+    final globalSearchNotifier = ref.read(globalSearchTokensNotifierProvider.notifier);
 
-    final (:opacity) = useAnimatedOpacityOnScroll(scrollController, topOffset: paddingTop);
+    final searchController = useTextEditingController();
+    final searchFocusNode = useFocusNode();
+    final searchFocused = useNodeFocused(searchFocusNode);
+    final searchQuery = useState('');
+    final debouncedQuery = useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '';
+
+    useEffect(
+      () {
+        void listener() => searchQuery.value = searchController.text;
+        searchController.addListener(listener);
+
+        return () => searchController.removeListener(listener);
+      },
+      [searchController],
+    );
+
+    final maxScroll =
+        _expandedHeaderHeight.s - NavigationAppBar.screenHeaderHeight - _tabBarHeight.s;
+
+    // Collapse header when search field is focused
+    useEffect(
+      () {
+        if (searchFocused.value) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (scrollController.hasClients) {
+              final currentOffset = scrollController.offset;
+              final targetOffset = maxScroll;
+
+              // Only scroll if not already collapsed (or close to collapsed)
+              if (currentOffset < targetOffset - 5) {
+                scrollController.animateTo(
+                  targetOffset,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
+                );
+              }
+            }
+          });
+        }
+        return null;
+      },
+      [searchFocused.value],
+    );
+
+    void resetGlobalSearch() {
+      searchController.clear();
+      globalSearchNotifier.search(
+        query: '',
+      );
+    }
+
+    final (:opacity) = useAnimatedOpacityOnScroll(
+      scrollController,
+      topOffset: maxScroll,
+    );
+
+    final isGlobalSearchVisible = useState<bool>(false);
+    final lastSearchQuery = useRef<String?>(null);
 
     useEffect(
       () {
@@ -53,12 +120,21 @@ class CreatorTokensPage extends HookConsumerWidget {
 
     // Get featured tokens
     final featuredTokensAsync = ref.watch(featuredTokensProvider);
+    final featuredTokens = featuredTokensAsync.valueOrNull ?? <CommunityToken>[];
 
-    // Get list of featured tokens
-    final featuredTokens = featuredTokensAsync.when<List<CommunityToken>>(
-      data: (List<CommunityToken> tokens) => tokens,
-      loading: () => <CommunityToken>[],
-      error: (_, __) => <CommunityToken>[],
+    useEffect(
+      () {
+        if (!isGlobalSearchVisible.value) return null;
+        if (debouncedQuery == lastSearchQuery.value) return null;
+        lastSearchQuery.value = debouncedQuery;
+        Future.microtask(() {
+          globalSearchNotifier.search(
+            query: debouncedQuery,
+          );
+        });
+        return null;
+      },
+      [debouncedQuery, isGlobalSearchVisible.value],
     );
 
     // Create stable identifier for the list (to avoid unnecessary useEffect triggers)
@@ -102,94 +178,173 @@ class CreatorTokensPage extends HookConsumerWidget {
     return Scaffold(
       backgroundColor: backgroundColor,
       extendBodyBehindAppBar: true,
-      body: ScrollToTopWrapper(
-        scrollController: scrollController,
-        child: Stack(
-          alignment: Alignment.topCenter,
-          children: [
-            SafeArea(
-              left: false,
-              right: false,
-              top: false,
-              child: DefaultTabController(
+      body: KeyboardDismissOnTap(
+        child: ScrollToTopWrapper(
+          scrollController: scrollController,
+          child: Stack(
+            alignment: Alignment.topCenter,
+            children: [
+              DefaultTabController(
                 length: CreatorTokensTabType.values.length,
                 child: NestedScrollView(
                   controller: scrollController,
                   headerSliverBuilder: (context, innerBoxIsScrolled) {
                     return [
-                      SliverToBoxAdapter(
-                        child: Stack(
-                          children: [
-                            Positioned.fill(
-                              child: ProfileBackground(
-                                colors: avatarColors,
+                      SliverAppBar(
+                        pinned: true,
+                        expandedHeight: _expandedHeaderHeight.s,
+                        toolbarHeight: NavigationAppBar.screenHeaderHeight,
+                        backgroundColor: Colors.transparent,
+                        surfaceTintColor: Colors.transparent,
+                        elevation: 0,
+                        leading: NavigationBackButton(
+                          context.pop,
+                          icon: backButtonIcon,
+                        ),
+                        flexibleSpace: Builder(
+                          builder: (context) {
+                            return Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                ProfileBackground(
+                                  colors: avatarColors,
+                                ),
+                                Opacity(
+                                  opacity: 1 - opacity,
+                                  child: featuredTokensAsync.when(
+                                    data: (tokens) {
+                                      if (tokens.isEmpty) return const SizedBox.shrink();
+                                      return CreatorTokensCarousel(
+                                        tokens: tokens,
+                                        onItemChanged: (token) {
+                                          selectedToken.value = token;
+                                        },
+                                      );
+                                    },
+                                    loading: () => const CreatorTokensCarouselSkeleton(),
+                                    error: (_, __) => const SizedBox.shrink(),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        bottom: PreferredSize(
+                          preferredSize: Size.fromHeight(_tabBarHeight.s),
+                          child: ColoredBox(
+                            color: context.theme.appColors.primaryText,
+                            child: TabsHeader(
+                              tabs: CreatorTokensTabType.values,
+                              trailing: _SearchIconButton(
+                                onPressed: () {
+                                  final nextVisible = !isGlobalSearchVisible.value;
+                                  isGlobalSearchVisible.value = nextVisible;
+                                  if (!nextVisible) {
+                                    resetGlobalSearch();
+                                  }
+                                },
                               ),
                             ),
-                            Padding(
-                              padding: EdgeInsetsDirectional.only(top: 70.0.s, bottom: 44.0.s),
-                              child: featuredTokens.isEmpty
-                                  ? const SizedBox.shrink()
-                                  : CreatorTokensCarousel(
-                                      tokens: featuredTokens,
-                                      onItemChanged: (token) {
-                                        selectedToken.value = token;
-                                      },
-                                    ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      PinnedHeaderSliver(
-                        child: ColoredBox(
-                          color: context.theme.appColors.primaryText,
-                          child: const TabsHeader(
-                            tabs: CreatorTokensTabType.values,
                           ),
                         ),
                       ),
                       const SliverToBoxAdapter(
                         child: SectionSeparator(),
                       ),
+                      PinnedHeaderSliver(
+                        child: AnimatedSize(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeInOut,
+                          child: isGlobalSearchVisible.value
+                              ? ColoredBox(
+                                  color: context.theme.appColors.onPrimaryAccent,
+                                  child: Padding(
+                                    padding: EdgeInsetsDirectional.only(
+                                      top: 12.0.s,
+                                      bottom: 8.0.s,
+                                    ),
+                                    child: ScreenSideOffset.small(
+                                      child: SearchInput(
+                                        controller: searchController,
+                                        focusNode: searchFocusNode,
+                                        onCancelSearch: () {
+                                          resetGlobalSearch();
+                                          isGlobalSearchVisible.value = false;
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                      ),
                     ];
                   },
-                  body: TabBarView(
-                    children: CreatorTokensTabType.values.map(
-                      (tabType) {
-                        return CreatorTokensTabContent(
-                          tabType: tabType,
-                        );
-                      },
-                    ).toList(),
+                  body: IndexedStack(
+                    index: searchQuery.value.isNotEmpty ? 1 : 0,
+                    children: [
+                      TabBarView(
+                        children: CreatorTokensTabType.values.map(
+                          (tabType) {
+                            return CreatorTokensTabContent(
+                              tabType: tabType,
+                            );
+                          },
+                        ).toList(),
+                      ),
+                      LoadMoreBuilder(
+                        hasMore: globalSearch.activeHasMore,
+                        onLoadMore: globalSearchNotifier.loadMore,
+                        builder: (context, slivers) => PullToRefreshBuilder(
+                          onRefresh: globalSearchNotifier.refresh,
+                          builder: (_, slivers) => MediaQuery.removePadding(
+                            context: context,
+                            removeBottom: true,
+                            child: CustomScrollView(
+                              slivers: slivers,
+                            ),
+                          ),
+                          slivers: slivers,
+                        ),
+                        slivers: [
+                          CreatorTokensList(
+                            items: globalSearch.activeItems,
+                            isInitialLoading: globalSearch.activeIsInitialLoading,
+                          ),
+                          SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 12.0.s)),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-            IgnorePointer(
-              ignoring: opacity <= 0.5,
-              child: Opacity(
-                opacity: opacity,
-                child: NavigationAppBar(
-                  useScreenTopOffset: true,
-                  extendBehindStatusBar: true,
-                  backButtonIcon: backButtonIcon,
-                  scrollController: scrollController,
-                  horizontalPadding: 0,
-                  backgroundBuilder: () => ProfileBackground(
-                    colors: avatarColors,
-                    disableDarkGradient: true,
-                  ),
-                ),
-              ),
-            ),
-            PositionedDirectional(
-              top: statusBarHeight,
-              start: 0,
-              child: NavigationBackButton(
-                context.pop,
-                icon: backButtonIcon,
-              ),
-            ),
-          ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchIconButton extends StatelessWidget {
+  const _SearchIconButton({
+    required this.onPressed,
+  });
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: 4.0.s,
+        horizontal: 16.0.s,
+      ),
+      child: TextButton(
+        onPressed: onPressed,
+        child: Assets.svg.iconFieldSearch.icon(
+          color: context.theme.appColors.tertiaryText,
+          size: 18.0.s,
         ),
       ),
     );
