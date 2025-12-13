@@ -32,13 +32,25 @@ class CacheEntry {
 
 @Riverpod(keepAlive: true)
 class IonConnectCache extends _$IonConnectCache {
+  final List<DbCacheableEntity> _pendingDbEntities = [];
+  Timer? _batchSaveTimer;
+  static const _batchSaveDelay = Duration(milliseconds: 500);
+  static const _batchSize = 50;
+
   @override
   Map<String, CacheEntry> build() {
+    ref.onDispose(() {
+      _batchSaveTimer?.cancel();
+    });
     onLogout(ref, () {
       state = {};
+      _pendingDbEntities.clear();
+      _batchSaveTimer?.cancel();
     });
     onUserSwitch(ref, () {
       state = {};
+      _pendingDbEntities.clear();
+      _batchSaveTimer?.cancel();
     });
     return {};
   }
@@ -56,10 +68,33 @@ class IonConnectCache extends _$IonConnectCache {
     }
 
     if (entity is DbCacheableEntity) {
-      return ref
-          .read(ionConnectDatabaseCacheProvider.notifier)
-          .saveEntity(entity as DbCacheableEntity);
+      _pendingDbEntities.add(entity as DbCacheableEntity);
+
+      if (_pendingDbEntities.length >= _batchSize) {
+        _flushPendingEntities();
+      } else {
+        _scheduleBatchSave();
+      }
     }
+  }
+
+  void _scheduleBatchSave() {
+    _batchSaveTimer?.cancel();
+    _batchSaveTimer = Timer(_batchSaveDelay, _flushPendingEntities);
+  }
+
+  void _flushPendingEntities() {
+    if (_pendingDbEntities.isEmpty) {
+      return;
+    }
+
+    final entitiesToSave = List<DbCacheableEntity>.from(_pendingDbEntities);
+    _pendingDbEntities.clear();
+    _batchSaveTimer?.cancel();
+
+    unawaited(
+      ref.read(ionConnectDatabaseCacheProvider.notifier).saveAllEntities(entitiesToSave),
+    );
   }
 
   void remove(String key) {

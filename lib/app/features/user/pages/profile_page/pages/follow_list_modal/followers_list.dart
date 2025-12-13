@@ -49,14 +49,18 @@ class FollowersList extends HookConsumerWidget {
       else if (masterPubkeys.isEmpty)
         const NothingIsFound()
       else
-        SliverList.builder(
-          itemCount: masterPubkeys.length,
-          itemBuilder: (context, index) => ScreenSideOffset.small(
-            child: FollowListItem(
-              key: ValueKey(masterPubkeys[index]),
-              pubkey: masterPubkeys[index],
-              follower: isCurrentUserFollowers ? true : null,
+        SliverFixedExtentList(
+          itemExtent: FollowListItem.itemHeight + 16.0.s,
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => ScreenSideOffset.small(
+              child: FollowListItem(
+                key: ValueKey(masterPubkeys[index]),
+                pubkey: masterPubkeys[index],
+                follower: isCurrentUserFollowers ? true : null,
+              ),
             ),
+            childCount: masterPubkeys.length,
+            addAutomaticKeepAlives: false,
           ),
         ),
       SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 32.0.s)),
@@ -73,6 +77,10 @@ class FollowersList extends HookConsumerWidget {
             ).notifier,
           )
           .loadMore(),
+      builder: (context, slivers) => CustomScrollView(
+        cacheExtent: 500,
+        slivers: slivers,
+      ),
     );
   }
 }
