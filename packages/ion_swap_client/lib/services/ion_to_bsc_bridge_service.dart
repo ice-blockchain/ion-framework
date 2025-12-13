@@ -9,6 +9,7 @@ import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 import 'package:ion_swap_client/utils/numb.dart';
+import 'package:tonutils/dataformat.dart';
 
 /// Bridges native ION on the ION chain to wION on BSC by sending ION to the bridge contract.
 ///
@@ -27,11 +28,13 @@ class IonToBscBridgeService {
           // TODO(ice-erebus): url
           url: '',
         ),
-        _ionIdentityClient = ionIdentityClient;
+        _ionIdentityClient = ionIdentityClient,
+        _ionBridgeContractAddress = config.ionBridgeContractAddress;
 
   final String _wIonTokenAddress;
   final TonClient _tonClient;
   final IonIdentityTransactionApi _ionIdentityClient;
+  final String _ionBridgeContractAddress;
 
   Future<SwapQuoteInfo> getQuote({
     required SwapCoinParameters swapCoinData,
@@ -75,7 +78,7 @@ class IonToBscBridgeService {
     await _sendTransactionToIon(
       amount: amountIn,
       destination: bscDestination,
-      userAddress: userAddress,
+      walletId: request.wallet.id,
       userActionSigner: request.userActionSigner,
     );
 
@@ -111,16 +114,34 @@ class IonToBscBridgeService {
   Future<void> _sendTransactionToIon({
     required BigInt amount,
     required String destination,
-    required String userAddress,
+    required String walletId,
     required UserActionSignerNew userActionSigner,
   }) async {
-    // TODO(ice-erebus): Implement transaction to ION(Ton) manually
-    final message = 'swapTo#$destination';
+    final messageBody = comment('swapTo#$destination');
+
+    // Build external-in message
+    // Note: The external() function may not support value directly
+    // You may need to use internal() or build manually
+    final destinationAddress = SiaString(_ionBridgeContractAddress);
+
+    // For external-in messages with value, you might need to build it manually
+    // or use internal() if the wallet contract supports it
+    final externalMessage = external(
+      to: destinationAddress,
+      body: messageBody,
+    );
+
+    // Convert to BoC hex string
+    final bocBytes = externalMessage.body.toBoc();
+    final bocHex = '0x${bocBytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join()}';
+
     final signature = await _ionIdentityClient.sign(
-      walletId: userAddress,
-      message: message,
+      walletId: walletId,
+      message: bocHex,
       userActionSigner: userActionSigner,
     );
+
+    // TODO(ice-erebus): Implement transaction to ION(Ton) manually
   }
 
   bool isSupportedPair(SwapCoinParameters swapCoinData) {

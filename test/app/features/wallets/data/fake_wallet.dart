@@ -23,6 +23,7 @@ class FakeWallet {
         scheme: scheme,
         curve: curve,
         publicKey: publicKey ?? 'key_$id',
+        id: 'key_$id',
       ),
     );
   }

@@ -257,9 +257,6 @@ class IonBscToIonBridgeService {
     required EvmTransaction transaction,
   }) async {
     final userActionSigner = request.userActionSigner;
-    if (userActionSigner == null) {
-      throw const IonSwapException('User action signer is required for ion bridge');
-    }
 
     return _ionIdentityTransactionApi.signAndBroadcast(
       walletId: request.wallet.id,
@@ -273,8 +270,7 @@ class IonBscToIonBridgeService {
         _ionBridgeRouterAddress,
       );
 
-  static final ContractAbi _ionBridgeRouterAbiParsed =
-      ContractAbi.fromJson(_ionBridgeRouterAbi, 'IONBridgeRouter');
+  static final ContractAbi _ionBridgeRouterAbiParsed = ContractAbi.fromJson(_ionBridgeRouterAbi, 'IONBridgeRouter');
 
   static const _ionBridgeRouterAbi = '''
 [

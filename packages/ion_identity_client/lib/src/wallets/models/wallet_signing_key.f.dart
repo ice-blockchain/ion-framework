@@ -11,6 +11,7 @@ class WalletSigningKey with _$WalletSigningKey {
     required String scheme,
     required String curve,
     required String publicKey,
+    required String id,
   }) = _WalletSigningKey;
 
   factory WalletSigningKey.fromJson(Map<String, dynamic> json) => _$WalletSigningKeyFromJson(json);

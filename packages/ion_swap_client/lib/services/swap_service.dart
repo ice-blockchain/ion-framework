@@ -45,15 +45,11 @@ class SwapService {
     required SendCoinCallback sendCoinCallback,
     SwapQuoteInfo? swapQuoteInfo,
     IonSwapRequest? ionSwapRequest,
-    OnVerifyIdentity<Map<String, dynamic>>? onVerifyIdentity,
   }) async {
     try {
       if (_ionToBscBridgeService.isSupportedPair(swapCoinData)) {
         if (ionSwapRequest == null) {
           throw const IonSwapException('Ion swap request is required for ION → BSC bridge');
-        }
-        if (onVerifyIdentity == null) {
-          throw const IonSwapException('OnVerifyIdentity callback is required for ION → BSC bridge');
         }
 
         await _ionToBscBridgeService.bridgeToBsc(
