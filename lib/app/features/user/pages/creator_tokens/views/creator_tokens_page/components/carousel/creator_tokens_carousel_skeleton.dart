@@ -69,8 +69,8 @@ class _CarouselCardSkeleton extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 99.0.s,
-                  height: 99.0.s,
+                  width: 98.0.s,
+                  height: 98.0.s,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20.0.s),
                     color: secondary,

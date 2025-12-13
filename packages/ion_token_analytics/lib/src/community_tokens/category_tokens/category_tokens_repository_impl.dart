@@ -60,6 +60,11 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
       }
     });
 
-    return NetworkSubscription<List<CommunityTokenBase>>(stream: stream, close: subscription.close);
+    // TODO: migrate later to use stream of tokens, not list of tokens
+    final listStream = stream.map((token) => [token]);
+    return NetworkSubscription<List<CommunityTokenBase>>(
+      stream: listStream,
+      close: subscription.close,
+    );
   }
 }
