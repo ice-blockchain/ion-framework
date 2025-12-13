@@ -13,18 +13,34 @@ class FeaturedTokensRepositoryImpl implements FeaturedTokensRepository {
   Future<NetworkSubscription<List<CommunityToken>>> subscribeToFeaturedTokens({
     String? type,
   }) async {
-    final subscription = await _client.subscribeSse<List<dynamic>>(
+    final subscription = await _client.subscribeSse<Map<String, dynamic>>(
       '/v1sse/community-tokens/featured',
       queryParameters: type != null ? {'type': type} : null,
     );
 
-    final stream = subscription.stream.map((jsonList) {
-      final tokens = jsonList
-          .map((json) => CommunityToken.fromJson(json as Map<String, dynamic>))
-          .toList();
+    final accumulatedTokens = <CommunityToken>[];
 
-      return tokens;
-    });
+    final stream = subscription.stream
+        .map((data) {
+          try {
+            final token = CommunityToken.fromJson(data);
+            final existingIndex = accumulatedTokens.indexWhere(
+              (t) => t.addresses.ionConnect == token.addresses.ionConnect,
+            );
+            if (existingIndex >= 0) {
+              accumulatedTokens[existingIndex] = token;
+            } else {
+              accumulatedTokens.add(token);
+            }
+          } catch (e) {
+            // Skip invalid tokens
+          }
+
+          return List<CommunityToken>.from(accumulatedTokens);
+        })
+        .handleError((Object error, StackTrace stackTrace) {
+          return List<CommunityToken>.from(accumulatedTokens);
+        });
 
     return NetworkSubscription<List<CommunityToken>>(stream: stream, close: subscription.close);
   }
