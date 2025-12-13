@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -17,7 +18,11 @@ class SlippageAction extends ConsumerWidget {
     final textStyles = context.theme.appTextThemes;
     final swapCoinsController = ref.watch(swapCoinsControllerProvider);
 
-    if (swapCoinsController.sellCoin == null) {
+    if (swapCoinsController.sellCoin == null ||
+        SwapCoinIdentifier.isInternalCoin(
+          swapCoinsController.sellCoin,
+          swapCoinsController.sellNetwork,
+        )) {
       return const SizedBox.shrink();
     }
 
