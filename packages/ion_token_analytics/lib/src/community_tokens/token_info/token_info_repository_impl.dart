@@ -15,7 +15,11 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
     try {
       final tokensRawData = await client.get<List<dynamic>>(
         '/v1/community-tokens/',
-        queryParameters: {'externalAddresses': externalAddress},
+        // kreios
+        queryParameters: {
+          'externalAddresses':
+              '0:ca5932380e6f402da8919641767ac87c6a4715eb3af5a0e8ed03aa025c122b46:',
+        },
       );
 
       final tokenRawData = tokensRawData.firstOrNull;

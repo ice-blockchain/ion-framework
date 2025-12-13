@@ -8,8 +8,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_creator_tile.dart';
@@ -40,47 +40,41 @@ class FeedContentToken extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final token = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
-
-    if (token == null) {
-      return _Skeleton(type: type);
-    }
-
-    final colors = useImageColors(token.imageUrl);
-
-    if (colors == null) {
-      return _Skeleton(type: type);
-    }
-
-    return SizedBox(
-      width: double.infinity,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.0.s),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12.0.s),
-          child: ProfileBackground(
-            colors: useImageColors(token.imageUrl),
-            child: Padding(
-              padding: EdgeInsetsDirectional.only(
-                top: 24.0.s,
-                bottom: showBuyButton ? 34.0.s : 12.0.s,
-              ),
-              child: Column(
-                children: [
-                  ContentTokenHeader(
-                    type: type,
-                    token: token,
-                    pnl: pnl,
-                    externalAddress: externalAddress,
-                    showBuyButton: showBuyButton,
+    return TokenCardBuilder(
+      externalAddress: externalAddress,
+      skeleton: _Skeleton(type: type),
+      builder: (token, colors) {
+        return SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0.s),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12.0.s),
+              child: ProfileBackground(
+                colors: useImageColors(token.imageUrl),
+                child: Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    top: 24.0.s,
+                    bottom: showBuyButton ? 34.0.s : 12.0.s,
                   ),
-                  if (hodl != null) hodl!,
-                ],
+                  child: Column(
+                    children: [
+                      ContentTokenHeader(
+                        type: type,
+                        token: token,
+                        pnl: pnl,
+                        externalAddress: externalAddress,
+                        showBuyButton: showBuyButton,
+                      ),
+                      if (hodl != null) hodl!,
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

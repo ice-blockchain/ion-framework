@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
@@ -29,44 +29,38 @@ class FeedTwitterToken extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final token = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
-
-    if (token == null) {
-      return _Skeleton();
-    }
-
-    final colors = useImageColors(token.imageUrl);
-
-    if (colors == null) {
-      return _Skeleton();
-    }
-
-    return SizedBox(
-      width: double.infinity,
-      child: Padding(
-        padding: EdgeInsetsDirectional.only(
-          start: 16.0.s,
-          end: 16.0.s,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12.0.s),
-          child: ProfileBackground(
-            colors: useImageColors(token.imageUrl),
-            child: SizedBox(
-              width: double.infinity,
-              child: Column(
-                children: [
-                  SizedBox(height: 24.0.s),
-                  TwitterTokenHeader(
-                    token: token,
+    return TokenCardBuilder(
+      externalAddress: externalAddress,
+      skeleton: _Skeleton(),
+      builder: (token, colors) {
+        return SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(
+              start: 16.0.s,
+              end: 16.0.s,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12.0.s),
+              child: ProfileBackground(
+                colors: useImageColors(token.imageUrl),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    children: [
+                      SizedBox(height: 24.0.s),
+                      TwitterTokenHeader(
+                        token: token,
+                      ),
+                      SizedBox(height: 34.s),
+                    ],
                   ),
-                  SizedBox(height: 34.s),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

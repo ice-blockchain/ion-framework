@@ -86,14 +86,16 @@ class CommunityTokenDefinitionRepository {
     final entity = await _ionConnectNotifier.requestEntity<CommunityTokenDefinitionEntity>(
       RequestMessage()
         ..addFilter(
-          RequestFilter(
-            kinds: const [CommunityTokenDefinitionEntity.kind],
-            authors: [creatorEventReference.masterPubkey],
-            tags: tags,
-            search: search,
+          const RequestFilter(
+            kinds: [CommunityTokenDefinitionEntity.kind],
+            // kreios
+            authors: ['9f5601d4f81ce1209c4ca49e3ca943ad9ccdd8085200458ff8b2e127655d870d'],
           ),
         ),
-      actionSource: ActionSource.user(creatorEventReference.masterPubkey),
+      //kreios
+      actionSource: const ActionSource.user(
+        '9f5601d4f81ce1209c4ca49e3ca943ad9ccdd8085200458ff8b2e127655d870d',
+      ),
     );
 
     if (entity != null) {
