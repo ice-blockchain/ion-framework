@@ -26,6 +26,7 @@ import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -122,17 +123,14 @@ class CreatorTokensPage extends HookConsumerWidget {
     final featuredTokensAsync = ref.watch(featuredTokensProvider);
     final featuredTokens = featuredTokensAsync.valueOrNull ?? <CommunityToken>[];
 
-    useEffect(
+    useOnInit(
       () {
-        if (!isGlobalSearchVisible.value) return null;
-        if (debouncedQuery == lastSearchQuery.value) return null;
+        if (!isGlobalSearchVisible.value) return;
+        if (debouncedQuery == lastSearchQuery.value) return;
         lastSearchQuery.value = debouncedQuery;
-        Future.microtask(() {
-          globalSearchNotifier.search(
-            query: debouncedQuery,
-          );
-        });
-        return null;
+        globalSearchNotifier.search(
+          query: debouncedQuery,
+        );
       },
       [debouncedQuery, isGlobalSearchVisible.value],
     );
@@ -144,7 +142,7 @@ class CreatorTokensPage extends HookConsumerWidget {
     final selectedToken = useState<CommunityToken?>(initialToken);
 
     // Update selectedToken when featuredTokens list actually changes
-    useEffect(
+    useOnInit(
       () {
         if (featuredTokens.isNotEmpty) {
           // If no token is selected, or selected token is no longer in the list, select first
@@ -158,7 +156,6 @@ class CreatorTokensPage extends HookConsumerWidget {
           // If list becomes empty, clear selection to avoid showing stale data
           selectedToken.value = null;
         }
-        return null;
       },
       [tokensIdentifier],
     );
