@@ -54,7 +54,7 @@ class _CarouselCard extends HookConsumerWidget {
     required this.token,
   });
 
-  static const topPadding = 23.0;
+  static const topPadding = 22.0;
 
   final CommunityToken token;
 
