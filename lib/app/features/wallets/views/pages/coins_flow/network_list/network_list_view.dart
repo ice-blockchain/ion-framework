@@ -244,6 +244,14 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
 
     final filteredCoins = coinsFilteredByWallet.where(
       (coin) {
+        //todo remove after release,
+        //filters out ICE ETH
+        if ([NetworkListViewType.swapBuy, NetworkListViewType.swapSell].contains(type)) {
+          if (SwapCoinIdentifier.isEthNetwork(coin.coin.network.id)) {
+            return false;
+          }
+        }
+
         if (otherCoin == null || otherNetwork == null) return true;
 
         // Filter out networks that match the other side of the swap

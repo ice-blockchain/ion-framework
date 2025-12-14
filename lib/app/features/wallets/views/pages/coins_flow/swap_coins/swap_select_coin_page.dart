@@ -44,21 +44,25 @@ class SwapSelectCoinPage extends ConsumerWidget {
         CoinSwapType.buy => sellNetwork,
       };
 
-      if (otherCoin == null || otherNetwork == null) {
-        return coinGroups;
-      }
-
-      if (type == CoinSwapType.sell && !SwapCoinIdentifier.isInternalCoin(buyCoin, buyNetwork)) {
-        return coinGroups;
-      }
-      if (type == CoinSwapType.buy && !SwapCoinIdentifier.isInternalCoin(sellCoin, sellNetwork)) {
-        return coinGroups;
-      }
+      //todo restricts swap coins to ION/ICE only, needed for release, remove after
+      // if (otherCoin == null || otherNetwork == null) {
+      //   return coinGroups;
+      // }
+      //
+      // if (type == CoinSwapType.sell && !SwapCoinIdentifier.isInternalCoin(buyCoin, buyNetwork)) {
+      //   return coinGroups;
+      // }
+      // if (type == CoinSwapType.buy && !SwapCoinIdentifier.isInternalCoin(sellCoin, sellNetwork)) {
+      //   return coinGroups;
+      // }
 
       return coinGroups.whenData((coinList) {
         return coinList.where((coin) {
           if (!SwapCoinIdentifier.isInternalCoinGroup(coin)) {
             return false;
+          }
+          if (otherCoin == null || otherNetwork == null) {
+            return true;
           }
           //in case of ice BSC coin there is no coin in ICE we can swap for
           if (SwapCoinIdentifier.isIceCoinGroup(coin) &&
