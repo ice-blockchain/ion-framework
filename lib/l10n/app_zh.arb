@@ -874,6 +874,7 @@
   "tokenized_community_comments_tab": "评论",
   "tokenized_community_holders_tab": "持有者",
   "tokenized_community_trades_tab": "交易",
+  "tokenized_community_bonding_curve": "绑定曲线",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "添加链接",
   "top_holders_empty": "成为第一位持有者",
