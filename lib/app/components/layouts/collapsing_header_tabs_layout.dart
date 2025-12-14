@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:ion/app/components/layout/measure_size.dart';
 import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
@@ -53,6 +54,7 @@ class CollapsingHeaderTabsLayout extends HookWidget {
 
     final imageColors = useImageColors(imageUrl);
     final backgroundColor = this.backgroundColor ?? context.theme.appColors.secondaryBackground;
+    final expandedHeaderHeight = useState<double>(0);
 
     final showAppBarBackground = opacity > 0.5;
 
@@ -94,25 +96,56 @@ class CollapsingHeaderTabsLayout extends HookWidget {
                   controller: scrollController,
                   headerSliverBuilder: (context, innerBoxIsScrolled) {
                     return [
-                      SliverToBoxAdapter(
-                        child: Stack(
-                          children: [
-                            if (newUiMode)
-                              Positioned.fill(
-                                child: ProfileBackground(
-                                  colors: imageColors,
+                      if (newUiMode)
+                        SliverToBoxAdapter(
+                          child: MeasureSize(
+                            onChange: (size) => expandedHeaderHeight.value = size.height,
+                            child: Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: ProfileBackground(
+                                    colors: imageColors,
+                                  ),
                                 ),
-                              ),
-                            expandedHeader,
-                          ],
-                        ),
-                      ),
-                      PinnedHeaderSliver(
-                        child: ColoredBox(
-                          color: newUiMode ? context.theme.appColors.forest : backgroundColor,
-                          child: TabsHeader(
-                            tabs: tabs,
+                                expandedHeader,
+                              ],
+                            ),
                           ),
+                        )
+                      else
+                        SliverToBoxAdapter(
+                          child: expandedHeader,
+                        ),
+                      PinnedHeaderSliver(
+                        child: SizedBox(
+                          height: 48.0.s,
+                          child: newUiMode
+                              ? Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: ProfileGradientBackground(
+                                        colors: imageColors ?? useAvatarFallbackColors,
+                                        disableDarkGradient: false,
+                                        translateY: -expandedHeaderHeight.value,
+                                      ),
+                                    ),
+                                    Align(
+                                      alignment: AlignmentDirectional.bottomStart,
+                                      child: TabsHeader(
+                                        tabs: tabs,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : ColoredBox(
+                                  color: backgroundColor,
+                                  child: Align(
+                                    alignment: AlignmentDirectional.bottomStart,
+                                    child: TabsHeader(
+                                      tabs: tabs,
+                                    ),
+                                  ),
+                                ),
                         ),
                       ),
                       const SliverToBoxAdapter(child: SectionSeparator()),

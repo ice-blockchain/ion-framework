@@ -56,10 +56,12 @@ class CreatorTokensHeader extends ConsumerWidget {
       flexibleSpace: Builder(
         builder: (context) {
           return Stack(
-            alignment: Alignment.center,
+            fit: StackFit.expand,
             children: [
-              ProfileBackground(
-                colors: avatarColors,
+              Positioned.fill(
+                child: ProfileBackground(
+                  colors: avatarColors,
+                ),
               ),
               Opacity(
                 opacity: 1 - opacity,
@@ -83,8 +85,8 @@ class CreatorTokensHeader extends ConsumerWidget {
       ),
       bottom: PreferredSize(
         preferredSize: Size.fromHeight(tabBarHeight.s),
-        child: ColoredBox(
-          color: context.theme.appColors.primaryText,
+        child: Align(
+          alignment: AlignmentDirectional.bottomStart,
           child: TabsHeader(
             tabs: CreatorTokensTabType.values,
             trailing: _SearchIconButton(

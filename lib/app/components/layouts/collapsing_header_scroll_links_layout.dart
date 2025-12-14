@@ -50,8 +50,7 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
 
   final ValueChanged<int>? onTabTapped;
 
-  double get _expandedHeaderContentOffset => -30.0.s;
-  double get _tabBarHeight => 48.0.s;
+  double get _tabBarHeight => 40.0.s;
 
   @override
   Widget build(BuildContext context) {
@@ -127,10 +126,13 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
                       Opacity(
                         opacity: 1 - progress, // Fade out as header collapses
                         child: Transform.translate(
-                          offset: Offset(0, _expandedHeaderContentOffset),
+                          offset: Offset(0, -_tabBarHeight),
                           child: SafeArea(
                             bottom: false,
-                            child: expandedHeader,
+                            child: SingleChildScrollView(
+                              physics: const NeverScrollableScrollPhysics(),
+                              child: expandedHeader,
+                            ),
                           ),
                         ),
                       ),
@@ -140,13 +142,10 @@ class CollapsingHeaderScrollLinksLayout extends HookWidget {
               ),
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(_tabBarHeight),
-                child: ColoredBox(
-                  color: context.theme.appColors.primaryText,
-                  child: ScrollLinksTabsHeader(
-                    tabs: tabs,
-                    activeIndex: activeIndex,
-                    onTabTapped: onTabTapped,
-                  ),
+                child: ScrollLinksTabsHeader(
+                  tabs: tabs,
+                  activeIndex: activeIndex,
+                  onTabTapped: onTabTapped,
                 ),
               ),
             ),
