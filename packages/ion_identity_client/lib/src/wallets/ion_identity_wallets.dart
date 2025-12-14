@@ -10,7 +10,6 @@ import 'package:ion_identity_client/src/wallets/services/get_wallet_nfts/get_wal
 import 'package:ion_identity_client/src/wallets/services/get_wallet_transfer_requests/get_wallet_transfer_requests_service.dart';
 import 'package:ion_identity_client/src/wallets/services/get_wallets/get_wallets_service.dart';
 import 'package:ion_identity_client/src/wallets/services/make_transfer/make_transfer_service.dart';
-import 'package:ion_identity_client/src/wallets/services/sign_and_broadcast/models/evm_broadcast_request.f.dart';
 import 'package:ion_identity_client/src/wallets/services/sign_and_broadcast/sign_and_broadcast_service.dart';
 import 'package:ion_identity_client/src/wallets/services/wallet_views/wallet_views_service.dart';
 
