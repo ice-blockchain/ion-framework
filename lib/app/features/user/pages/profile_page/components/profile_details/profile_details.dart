@@ -6,6 +6,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters.dart';
@@ -50,7 +51,10 @@ class ProfileDetails extends ConsumerWidget {
             behavior: HitTestBehavior.translucent,
             onTap: () {
               if (eventReferenceString != null && token != null) {
-                TokenizedCommunityRoute(externalAddress: eventReferenceString).push<void>(context);
+                TokenizedCommunityRoute(
+                  externalAddress: eventReferenceString,
+                  externalAddressType: const ExternalAddressType.ionConnectUser().toString(),
+                ).push<void>(context);
               }
             },
             child: UserNameTile(

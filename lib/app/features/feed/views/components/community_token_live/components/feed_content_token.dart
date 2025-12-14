@@ -308,7 +308,7 @@ class _BuyButton extends ConsumerWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: () => TradeCommunityTokenProfileRoute(
+      onTap: () => TradeCommunityTokenRoute(
         externalAddress: tokenDefinition.data.externalAddress,
         externalAddressType: externalAddressType.prefix,
         initialMode: CommunityTokenTradeMode.buy,
@@ -317,7 +317,6 @@ class _BuyButton extends ConsumerWidget {
         padding: EdgeInsetsDirectional.symmetric(
           horizontal: 22.s,
         ),
-        externalAddress: tokenDefinition.data.externalAddress,
       ),
     );
   }

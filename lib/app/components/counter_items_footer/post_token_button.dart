@@ -97,8 +97,10 @@ class _TokenDefinitionButton extends StatelessWidget {
     return _TokenButton(
       padding: padding,
       child: const _RocketIcon(),
-      onTap: () =>
-          TokenizedCommunityRoute(externalAddress: entity.data.externalAddress).push<void>(context),
+      onTap: () => TokenizedCommunityRoute(
+        externalAddress: entity.data.externalAddress,
+        externalAddressType: entity.externalAddressType?.prefix ?? '',
+      ).push<void>(context),
     );
   }
 }
@@ -122,8 +124,10 @@ class _TokenActionButton extends ConsumerWidget {
     return _TokenButton(
       padding: padding,
       child: const _RocketIcon(),
-      onTap: () => TokenizedCommunityRoute(externalAddress: tokenDefinition.data.externalAddress)
-          .push<void>(context),
+      onTap: () => TokenizedCommunityRoute(
+        externalAddress: tokenDefinition.data.externalAddress,
+        externalAddressType: tokenDefinition.externalAddressType?.prefix ?? '',
+      ).push<void>(context),
     );
   }
 }
@@ -150,9 +154,12 @@ class _ContentEntityButton extends ConsumerWidget {
           hasToken ? _MarketCap(externalAddress: eventReference.toString()) : const _RocketIcon(),
       onTap: () {
         if (hasToken) {
-          TokenizedCommunityRoute(externalAddress: eventReference.toString()).push<void>(context);
+          TokenizedCommunityRoute(
+            externalAddress: eventReference.toString(),
+            externalAddressType: externalAddressType?.prefix ?? '',
+          ).push<void>(context);
         } else if (externalAddressType != null) {
-          TradeCommunityTokenProfileRoute(
+          TradeCommunityTokenRoute(
             externalAddress: eventReference.toString(),
             externalAddressType: externalAddressType.prefix,
           ).push<void>(context);

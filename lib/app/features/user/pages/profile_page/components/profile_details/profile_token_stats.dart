@@ -6,7 +6,6 @@ import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
@@ -111,12 +110,11 @@ class ProfileTokenStats extends ConsumerWidget {
           const _BuyHint(),
           SizedBox(width: 8.0.s),
           GestureDetector(
-            onTap: () => TradeCommunityTokenProfileRoute(
+            onTap: () => TokenizedCommunityRoute(
               externalAddress: externalAddress,
               externalAddressType: const ExternalAddressType.ionConnectUser().prefix,
-              initialMode: CommunityTokenTradeMode.buy,
             ).push<void>(context),
-            child: BuyButton(externalAddress: externalAddress),
+            child: const BuyButton(),
           ),
         ],
       );
@@ -246,13 +244,11 @@ class _BuyHint extends StatelessWidget {
 
 class BuyButton extends StatelessWidget {
   const BuyButton({
-    required this.externalAddress,
     this.height = 23.0,
     this.padding,
     super.key,
   });
 
-  final String externalAddress;
   final double height;
   final EdgeInsetsDirectional? padding;
 
@@ -398,14 +394,12 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
           bottom: -11.5.s,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
-            onTap: () => TradeCommunityTokenProfileRoute(
+            onTap: () => TokenizedCommunityRoute(
               externalAddress: externalAddress,
               externalAddressType: const ExternalAddressType.ionConnectUser().prefix,
-              initialMode: CommunityTokenTradeMode.buy,
             ).push<void>(context),
             child: BuyButton(
               padding: EdgeInsetsDirectional.symmetric(horizontal: 22.s),
-              externalAddress: externalAddress,
             ),
           ),
         ),

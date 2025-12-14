@@ -17,6 +17,7 @@ import 'package:ion/app/features/tokenized_communities/providers/community_token
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/timeframe_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/trading_stats_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
@@ -62,9 +63,14 @@ enum TokenizedCommunityTabType implements TabType {
 }
 
 class TokenizedCommunityPage extends HookConsumerWidget {
-  const TokenizedCommunityPage({required this.externalAddress, super.key});
+  const TokenizedCommunityPage({
+    required this.externalAddress,
+    required this.externalAddressType,
+    super.key,
+  });
 
   final String externalAddress;
+  final ExternalAddressType externalAddressType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -127,7 +133,10 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingTradeIsland(externalAddress: externalAddress),
+      floatingActionButton: FloatingTradeIsland(
+        externalAddress: externalAddress,
+        externalAddressType: externalAddressType,
+      ),
       headerActionsBuilder: (OverlayMenuCloseSignal menuCloseSignal) => [
         IconButton(
           onPressed: () {
