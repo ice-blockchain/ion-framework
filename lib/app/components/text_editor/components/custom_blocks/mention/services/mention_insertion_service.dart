@@ -95,4 +95,102 @@ class MentionInsertionService {
       ..replaceText(start, mentionTextLength, '', null)
       ..replaceText(start, 0, Embeddable(mentionEmbedKey, mentionData.toJson()), null);
   }
+
+  // Converts a mention embed back to text with mention attribute.
+  // Used when market cap is not available (for proper text editing behavior).
+  static void downgradeMentionEmbedToText(
+    QuillController controller,
+    int embedPosition,
+    MentionEmbedData mentionData,
+  ) {
+    if (embedPosition < 0 || embedPosition >= controller.document.length) {
+      return;
+    }
+
+    final encodedRef = ReplaceableEventReference(
+      masterPubkey: mentionData.pubkey,
+      kind: UserMetadataEntity.kind,
+    ).encode();
+
+    final mentionText = '$mentionPrefix${mentionData.username}';
+
+    // Replace embed (length = 1) with text
+    controller
+      ..replaceText(embedPosition, 1, mentionText, null)
+      ..formatText(
+        embedPosition,
+        mentionText.length,
+        MentionAttribute.withValue(encodedRef),
+      );
+  }
+
+  // Removes a mention embed from the document.
+  // Finds the embed position and deletes it along with any trailing space.
+  static void removeMentionEmbed(
+    QuillController controller,
+    Embed embedNode,
+  ) {
+    // Parse the embed node data to get mention info
+    final nodeMentionData = _parseMentionDataFromNode(embedNode.value.data);
+    if (nodeMentionData == null) return;
+
+    final delta = controller.document.toDelta();
+    var embedIndex = -1; // Will store the position of the embed we're looking for
+    var currentIndex = 0; // Tracks our position as we iterate through operations
+
+    // Find the position of the embed in the document
+    for (final operation in delta.operations) {
+      final length = operation.length ?? 1;
+
+      if (operation.isInsert && operation.data is Map<String, dynamic>) {
+        final data = operation.data! as Map<String, dynamic>;
+        if (data.containsKey(mentionEmbedKey)) {
+          // Parse the mention data from delta operation
+          final opMentionData = MentionEmbedData.fromJson(
+            Map<String, dynamic>.from(data[mentionEmbedKey] as Map),
+          );
+
+          // Check if this is the embed we're looking for by comparing pubkey and username
+          if (opMentionData.pubkey == nodeMentionData.pubkey &&
+              opMentionData.username == nodeMentionData.username) {
+            embedIndex = currentIndex;
+            break;
+          }
+        }
+      }
+      currentIndex += length;
+    }
+
+    if (embedIndex != -1) {
+      // Delete the embed (length 1) and check for trailing space
+      var deleteLength = 1;
+
+      // Check if there's a trailing space after the embed
+      if (embedIndex + 1 < controller.document.length &&
+          controller.document.toPlainText()[embedIndex + 1] == ' ') {
+        deleteLength = 2; // Delete embed + space
+      }
+
+      controller
+        ..replaceText(embedIndex, deleteLength, '', null)
+
+        // Update cursor position to where the embed was
+        ..updateSelection(
+          TextSelection.collapsed(offset: embedIndex),
+          ChangeSource.local,
+        );
+    }
+  }
+
+  // Helper to parse mention data from embed node value data
+  static MentionEmbedData? _parseMentionDataFromNode(dynamic data) {
+    try {
+      if (data is Map<String, dynamic>) {
+        return MentionEmbedData.fromJson(data);
+      }
+    } catch (_) {
+      // Invalid data
+    }
+    return null;
+  }
 }

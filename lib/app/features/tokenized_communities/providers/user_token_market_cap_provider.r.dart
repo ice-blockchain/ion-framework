@@ -10,7 +10,7 @@ part 'user_token_market_cap_provider.r.g.dart';
 
 @riverpod
 Future<double?> userTokenMarketCap(Ref ref, String pubkey) async {
-  final userMetadata = await ref.watch(
+  final userMetadata = await ref.read(
     userMetadataProvider(pubkey, network: false).future,
   );
   if (userMetadata == null) return null;
@@ -19,6 +19,7 @@ Future<double?> userTokenMarketCap(Ref ref, String pubkey) async {
   // TODO: move to extension
   // Strip the 'a' prefix for API calls (prefix is only for blockchain operations)
   final apiAddress = externalAddress.substring(1);
+
   final tokenInfo = await ref.watch(tokenMarketInfoProvider(apiAddress).future);
   return tokenInfo?.marketData.marketCap;
 }

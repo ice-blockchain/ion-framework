@@ -74,8 +74,8 @@ class MentionInlineWidget extends StatelessWidget {
           top: -6.0.s,
           right: -10.0.s,
           child: GestureDetector(
-            onTap: onClose,
             behavior: HitTestBehavior.opaque,
+            onTap: onClose,
             child: Container(
               width: 20.0.s,
               height: 20.0.s,

@@ -16,6 +16,7 @@ import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/services/markdown/mention_decoration_service.dart';
 
 class PostContent extends HookConsumerWidget {
   const PostContent({
@@ -43,22 +44,28 @@ class PostContent extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    // Decorate mentions with market cap suffix when available (cached only).
+    final decoratedContent = MentionDecorationService.decorateMentionsWithMarketCap(
+      currentContent,
+      ref,
+    );
+
     final isExpanded = ref.watch(expandedPostsStateProvider).contains(entity.id);
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final truncResult = maxLines != null && !isExpanded
             ? _truncateForMaxLines(
-                currentContent,
+                decoratedContent,
                 context.theme.appTextThemes.body2,
                 constraints.maxWidth,
                 maxLines!,
                 MediaQuery.textScalerOf(context),
               )
-            : _TruncationResult(delta: currentContent, hasOverflow: false);
+            : _TruncationResult(delta: decoratedContent, hasOverflow: false);
 
         final hasOverflow = truncResult.hasOverflow;
-        final displayDelta = hasOverflow ? truncResult.delta : currentContent;
+        final displayDelta = hasOverflow ? truncResult.delta : decoratedContent;
 
         return AnimatedSize(
           duration: 300.ms,

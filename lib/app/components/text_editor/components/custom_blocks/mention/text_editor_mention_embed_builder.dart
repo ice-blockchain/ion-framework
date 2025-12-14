@@ -5,6 +5,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/mention_inline_widget.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/models/mention_embed_data.f.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/mention/services/mention_insertion_service.dart';
 import 'package:ion/app/features/tokenized_communities/extensions/replaceable_entity.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -54,6 +55,8 @@ class TextEditorMentionEmbedBuilder extends EmbedBuilder {
     return _MentionInlineWidgetWithMarketCap(
       pubkey: mentionData.pubkey,
       username: mentionData.username,
+      controller: embedContext.controller,
+      embedNode: embedContext.node,
     );
   }
 
@@ -76,10 +79,14 @@ class _MentionInlineWidgetWithMarketCap extends ConsumerWidget {
   const _MentionInlineWidgetWithMarketCap({
     required this.pubkey,
     required this.username,
+    required this.controller,
+    required this.embedNode,
   });
 
   final String pubkey;
   final String username;
+  final QuillController controller;
+  final Embed embedNode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -99,6 +106,9 @@ class _MentionInlineWidgetWithMarketCap extends ConsumerWidget {
     return MentionInlineWidget(
       username: username,
       marketCap: marketCap ?? 0,
+      onClose: () {
+        MentionInsertionService.removeMentionEmbed(controller, embedNode);
+      },
     );
   }
 }
