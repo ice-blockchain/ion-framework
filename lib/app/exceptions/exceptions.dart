@@ -742,3 +742,11 @@ class TokenAddressNotFoundException extends IONException {
           'Token address not found for external address: $externalAddress',
         );
 }
+
+class TokenPricingNotFoundException extends IONException {
+  TokenPricingNotFoundException(String externalAddress)
+      : super(
+          10138,
+          'Token pricing not found for external address: $externalAddress',
+        );
+}

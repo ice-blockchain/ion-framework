@@ -139,6 +139,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     return state.amount > 0 &&
         state.targetWallet != null &&
         !state.isQuoting &&
+        state.quotePricing != null &&
         state.selectedPaymentToken != null;
   }
 
@@ -147,6 +148,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         state.amount <= state.communityTokenBalance &&
         state.targetWallet != null &&
         !state.isQuoting &&
+        state.quotePricing != null &&
         state.selectedPaymentToken != null &&
         state.communityTokenCoinsGroup != null;
   }
@@ -287,6 +289,7 @@ class _TokenCards extends HookConsumerWidget {
                     network: state.targetNetwork,
                     onTap: onTokenTap,
                     onPercentageChanged: controller.setAmountByPercentage,
+                    skipAmountFormatting: true,
                   ),
                   SizedBox(height: 10.0.s),
                   TokenCard(
@@ -298,6 +301,7 @@ class _TokenCards extends HookConsumerWidget {
                     showSelectButton: false,
                     showArrow: false,
                     skipValidation: true,
+                    enabled: false,
                     onTap: () {},
                   ),
                 ]
@@ -312,6 +316,7 @@ class _TokenCards extends HookConsumerWidget {
                     showSelectButton: false,
                     showArrow: false,
                     onPercentageChanged: controller.setAmountByPercentage,
+                    skipAmountFormatting: true,
                     onTap: () {},
                   ),
                   SizedBox(height: 10.0.s),
@@ -321,6 +326,7 @@ class _TokenCards extends HookConsumerWidget {
                     coinsGroup: state.paymentCoinsGroup,
                     network: state.targetNetwork,
                     skipValidation: true,
+                    enabled: false,
                     onTap: onTokenTap,
                   ),
                 ],

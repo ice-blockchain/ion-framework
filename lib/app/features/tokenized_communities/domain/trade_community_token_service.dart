@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
+import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_ion_connect_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
@@ -34,7 +35,7 @@ class TradeCommunityTokenService {
     required String baseTokenTicker,
     required int tokenDecimals,
     required UserActionSignerNew userActionSigner,
-    BigInt? expectedOutQuote,
+    required PricingResponse expectedPricing,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
     BigInt? maxFeePerGas,
     BigInt? maxPriorityFeePerGas,
@@ -48,16 +49,19 @@ class TradeCommunityTokenService {
       tokenAddress: existingTokenAddress,
     );
 
-    final (:transaction, :quote) = await _performSwap(
+    final transaction = await _performSwap(
+      externalAddress: externalAddress,
       fromTokenAddress: baseTokenAddress,
       toTokenBytes: toTokenBytes,
       amountIn: amountIn,
-      expectedOutQuote: expectedOutQuote,
+      pricing: expectedPricing,
       slippagePercent: slippagePercent,
       walletId: walletId,
       walletAddress: walletAddress,
       allowanceTokenAddress: baseTokenAddress,
       tokenDecimals: tokenDecimals,
+      mode: CommunityTokenTradeMode.buy,
+      quoteDecimals: tokenDecimals,
       maxFeePerGas: maxFeePerGas ?? TokenizedCommunitiesConstants.defaultMaxFeePerGas,
       maxPriorityFeePerGas:
           maxPriorityFeePerGas ?? TokenizedCommunitiesConstants.defaultMaxPriorityFeePerGas,
@@ -68,7 +72,7 @@ class TradeCommunityTokenService {
       externalAddress: externalAddress,
       firstBuy: firstBuy,
       transaction: transaction,
-      quote: quote,
+      pricing: expectedPricing,
       amountIn: amountIn,
       walletNetwork: walletNetwork,
       baseTokenTicker: baseTokenTicker,
@@ -92,7 +96,7 @@ class TradeCommunityTokenService {
     required String communityTokenAddress,
     required int tokenDecimals,
     required UserActionSignerNew userActionSigner,
-    BigInt? expectedOutQuote,
+    required PricingResponse expectedPricing,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
     BigInt? maxFeePerGas,
     BigInt? maxPriorityFeePerGas,
@@ -100,16 +104,19 @@ class TradeCommunityTokenService {
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
     final toTokenBytes = _getBytesFromAddress(paymentTokenAddress);
 
-    final (:transaction, :quote) = await _performSwap(
+    final transaction = await _performSwap(
+      externalAddress: externalAddress,
       fromTokenAddress: communityTokenAddress,
       toTokenBytes: toTokenBytes,
       amountIn: amountIn,
-      expectedOutQuote: expectedOutQuote,
+      pricing: expectedPricing,
       slippagePercent: slippagePercent,
       walletId: walletId,
       walletAddress: walletAddress,
       allowanceTokenAddress: communityTokenAddress,
       tokenDecimals: tokenDecimals,
+      mode: CommunityTokenTradeMode.sell,
+      quoteDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
       maxFeePerGas: maxFeePerGas ?? TokenizedCommunitiesConstants.defaultMaxFeePerGas,
       maxPriorityFeePerGas:
           maxPriorityFeePerGas ?? TokenizedCommunitiesConstants.defaultMaxPriorityFeePerGas,
@@ -119,7 +126,7 @@ class TradeCommunityTokenService {
     await _trySendSellEvents(
       externalAddress: externalAddress,
       transaction: transaction,
-      quote: quote,
+      pricing: expectedPricing,
       amountIn: amountIn,
       walletNetwork: walletNetwork,
       communityTokenAddress: communityTokenAddress,
@@ -131,75 +138,38 @@ class TradeCommunityTokenService {
     return transaction;
   }
 
-  Future<BigInt> getQuote({
+  Future<PricingResponse> getQuote({
     required String externalAddress,
-    required ExternalAddressType externalAddressType,
-    required BigInt amountIn,
-    required String baseTokenAddress,
+    required CommunityTokenTradeMode mode,
+    required String amount,
   }) async {
-    final fromTokenBytes = _getBytesFromAddress(baseTokenAddress);
-    final toTokenBytes = await _resolveTokenBytes(externalAddress, externalAddressType);
-
-    return repository.fetchQuote(
-      fromTokenIdentifier: fromTokenBytes,
-      toTokenIdentifier: toTokenBytes,
-      amountIn: amountIn,
+    return repository.fetchPricing(
+      externalAddress: externalAddress,
+      type: mode.apiType,
+      amount: amount,
     );
   }
 
-  Future<BigInt> getSellQuote({
+  Future<TransactionResult> _performSwap({
     required String externalAddress,
-    required ExternalAddressType externalAddressType,
-    required BigInt amountIn,
-    required String paymentTokenAddress,
-  }) async {
-    final fromTokenBytes = await _resolveTokenBytes(externalAddress, externalAddressType);
-    final toTokenBytes = _getBytesFromAddress(paymentTokenAddress);
-
-    return repository.fetchQuote(
-      fromTokenIdentifier: fromTokenBytes,
-      toTokenIdentifier: toTokenBytes,
-      amountIn: amountIn,
-    );
-  }
-
-  /// Resolves token identifier to bytes.
-  /// Returns contract address bytes if token exists, otherwise returns FatAddress bytes.
-  Future<List<int>> _resolveTokenBytes(
-    String externalAddress,
-    ExternalAddressType externalAddressType,
-  ) async {
-    final tokenInfo = await repository.fetchTokenInfo(externalAddress);
-    final tokenAddress = tokenInfo?.addresses.blockchain;
-    if (tokenAddress != null) {
-      return _getBytesFromAddress(tokenAddress);
-    }
-
-    return _buildFatAddress(externalAddress, externalAddressType);
-  }
-
-  Future<({TransactionResult transaction, BigInt quote})> _performSwap({
     required String fromTokenAddress,
     required List<int> toTokenBytes,
     required BigInt amountIn,
-    required BigInt? expectedOutQuote,
+    required PricingResponse pricing,
     required double slippagePercent,
     required String walletId,
     required String walletAddress,
     required String allowanceTokenAddress,
     required int tokenDecimals,
+    required CommunityTokenTradeMode mode,
+    required int quoteDecimals,
     required BigInt maxFeePerGas,
     required BigInt maxPriorityFeePerGas,
     required UserActionSignerNew userActionSigner,
   }) async {
     final fromTokenBytes = _getBytesFromAddress(fromTokenAddress);
 
-    final quote = expectedOutQuote ??
-        await repository.fetchQuote(
-          fromTokenIdentifier: fromTokenBytes,
-          toTokenIdentifier: toTokenBytes,
-          amountIn: amountIn,
-        );
+    final quote = BigInt.parse(pricing.amount);
 
     final minReturn = _calculateMinReturn(
       expectedOut: quote,
@@ -227,14 +197,14 @@ class TradeCommunityTokenService {
       maxPriorityFeePerGas: maxPriorityFeePerGas,
       userActionSigner: userActionSigner,
     );
-    return (transaction: transaction, quote: quote);
+    return transaction;
   }
 
   Future<void> _trySendBuyEvents({
     required String externalAddress,
     required bool firstBuy,
     required TransactionResult transaction,
-    required BigInt quote,
+    required PricingResponse pricing,
     required BigInt amountIn,
     required String walletNetwork,
     required String baseTokenTicker,
@@ -260,15 +230,19 @@ class TradeCommunityTokenService {
 
     final baseTokenAmountValue = fromBlockchainUnits(amountIn.toString(), tokenDecimals);
 
-    final communityTokenAmountValue = fromBlockchainUnits(quote.toString(), communityTokenDecimals);
+    final communityTokenAmountValue = fromBlockchainUnits(pricing.amount, communityTokenDecimals);
 
-    // TODO(ion): Replace with PricingResponse.amountUSD from pricing API.
-    const usdAmountValue = 1.0;
+    final usdAmountValue = pricing.amountUSD;
 
-    final amountBase = TransactionAmount(value: baseTokenAmountValue, currency: baseTokenTicker);
-    final amountQuote =
-        TransactionAmount(value: communityTokenAmountValue, currency: externalAddress);
-    const amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
+    final amountBase = TransactionAmount(
+      value: baseTokenAmountValue,
+      currency: baseTokenTicker,
+    );
+    final amountQuote = TransactionAmount(
+      value: communityTokenAmountValue,
+      currency: externalAddress,
+    );
+    final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
 
     try {
       await ionConnectService.sendBuyEvents(
@@ -290,7 +264,7 @@ class TradeCommunityTokenService {
   Future<void> _trySendSellEvents({
     required String externalAddress,
     required TransactionResult transaction,
-    required BigInt quote,
+    required PricingResponse pricing,
     required BigInt amountIn,
     required String walletNetwork,
     required String communityTokenAddress,
@@ -308,16 +282,17 @@ class TradeCommunityTokenService {
 
     final communityTokenAmountValue =
         fromBlockchainUnits(amountIn.toString(), communityTokenDecimals);
-    final paymentTokenAmountValue = fromBlockchainUnits(quote.toString(), paymentTokenDecimals);
+    final paymentTokenAmountValue = fromBlockchainUnits(pricing.amount, paymentTokenDecimals);
 
-    // TODO(ion): Replace with PricingResponse.amountUSD from pricing API.
-    const usdAmountValue = 1.0;
+    final usdAmountValue = pricing.amountUSD;
 
     final amountBase =
         TransactionAmount(value: communityTokenAmountValue, currency: externalAddress);
-    final amountQuote =
-        TransactionAmount(value: paymentTokenAmountValue, currency: paymentTokenTicker);
-    const amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
+    final amountQuote = TransactionAmount(
+      value: paymentTokenAmountValue,
+      currency: paymentTokenTicker,
+    );
+    final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
 
     try {
       await ionConnectService.sendSellEvents(

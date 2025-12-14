@@ -44,10 +44,13 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         throw Exception('Wallet address is missing');
       }
 
-      final amountIn =
-          toBlockchainUnits(amount, TokenizedCommunitiesConstants.creatorTokenDecimals);
+      final amountIn = toBlockchainUnits(amount, token.decimals);
       final service = await ref.read(tradeCommunityTokenServiceProvider.future);
-      final expectedOutQuote = !formState.isQuoting ? formState.quoteAmount : null;
+      final expectedPricing = formState.quotePricing;
+
+      if (formState.isQuoting || expectedPricing == null) {
+        throw StateError('Quote is not ready yet');
+      }
 
       final response = await service.buyCommunityToken(
         externalAddress: externalAddress,
@@ -58,8 +61,8 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         walletNetwork: wallet.network,
         baseTokenAddress: token.contractAddress,
         baseTokenTicker: token.abbreviation,
-        tokenDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
-        expectedOutQuote: expectedOutQuote,
+        tokenDecimals: token.decimals,
+        expectedPricing: expectedPricing,
         userActionSigner: signer,
       );
       // Invalidate token market info to refresh balance
@@ -107,7 +110,11 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       final amountIn =
           toBlockchainUnits(amount, TokenizedCommunitiesConstants.creatorTokenDecimals);
       final service = await ref.read(tradeCommunityTokenServiceProvider.future);
-      final expectedOutQuote = !formState.isQuoting ? formState.quoteAmount : null;
+      final expectedPricing = formState.quotePricing;
+
+      if (formState.isQuoting || expectedPricing == null) {
+        throw StateError('Quote is not ready yet');
+      }
 
       final response = await service.sellCommunityToken(
         externalAddress: externalAddress,
@@ -120,7 +127,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         paymentTokenDecimals: token.decimals,
         communityTokenAddress: communityTokenAddress,
         tokenDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
-        expectedOutQuote: expectedOutQuote,
+        expectedPricing: expectedPricing,
         userActionSigner: signer,
       );
 

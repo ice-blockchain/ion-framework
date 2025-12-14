@@ -6,6 +6,7 @@ import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion_identity_client/ion_identity.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 part 'trade_community_token_state.f.freezed.dart';
 
@@ -14,7 +15,7 @@ class TradeCommunityTokenState with _$TradeCommunityTokenState {
   const factory TradeCommunityTokenState({
     @Default(CommunityTokenTradeMode.buy) CommunityTokenTradeMode mode,
     @Default(0) double amount,
-    BigInt? quoteAmount,
+    PricingResponse? quotePricing,
     @Default(false) bool isQuoting,
     CoinData? selectedPaymentToken,
     CoinsGroup? paymentCoinsGroup,
@@ -24,4 +25,12 @@ class TradeCommunityTokenState with _$TradeCommunityTokenState {
     @Default(0) double communityTokenBalance,
     CoinsGroup? communityTokenCoinsGroup,
   }) = _TradeCommunityTokenState;
+
+  const TradeCommunityTokenState._();
+
+  BigInt? get quoteAmount {
+    final pricing = quotePricing;
+    if (pricing == null) return null;
+    return BigInt.tryParse(pricing.amount);
+  }
 }
