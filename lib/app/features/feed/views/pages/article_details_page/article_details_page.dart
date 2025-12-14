@@ -18,6 +18,7 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
+import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_post_menu_bottom_sheet.dart';
 import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
 import 'package:ion/app/features/feed/views/components/deleted_entity/deleted_entity.dart';
@@ -31,7 +32,6 @@ import 'package:ion/app/features/feed/views/pages/article_details_page/component
 import 'package:ion/app/features/feed/views/pages/article_details_page/hooks/use_scroll_indicator.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
-import 'package:ion/app/services/markdown/quill.dart';
 
 class ArticleDetailsPage extends HookConsumerWidget {
   const ArticleDetailsPage({
@@ -55,13 +55,10 @@ class ArticleDetailsPage extends HookConsumerWidget {
     final scrollController = useScrollController();
     final progress = useScrollIndicator(scrollController);
 
-    final delta = useMemoized(
-      () => parseAndConvertDelta(
-        articleEntity.data.richText?.content,
-        articleEntity.data.content,
-      ),
-      [articleEntity.data.richText?.content, articleEntity.data.content],
+    final parsedMedia = ref.watch(
+      parsedMediaWithMentionsProvider(articleEntity.data),
     );
+    final delta = parsedMedia.content;
 
     final topics = articleEntity.data.topics;
     final availableSubcategories = ref.watch(
