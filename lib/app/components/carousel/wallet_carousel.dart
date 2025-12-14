@@ -84,7 +84,7 @@ class WalletCarousel extends StatelessWidget {
           WalletCarouselItem(
             title: context.i18n.wallet_carousel_creator_tokens_title,
             description: context.i18n.wallet_carousel_creator_tokens_description,
-            icon: Assets.svg.walletIconProfileCoininwallet.icon(size: 80.s),
+            icon: Assets.svg.walletIconProfileCoininwalletCarousel.icon(size: 80.s),
             onTap: () => CreatorTokensRoute().push<void>(context),
           ),
           WalletCarouselItem(
