@@ -37,6 +37,10 @@ class SwapCoinIdentifier {
     return ['Bsc', 'Ion'].contains(id);
   }
 
+  static bool isEthNetwork(String id) {
+    return 'Ethereum' == id;
+  }
+
   static bool isIceCoinGroup(CoinsGroup coinGroup) {
     return coinGroup.abbreviation == 'ICE';
   }
