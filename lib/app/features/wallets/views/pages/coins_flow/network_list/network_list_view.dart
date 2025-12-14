@@ -23,6 +23,7 @@ import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_
 import 'package:ion/app/features/wallets/views/pages/coins_flow/network_list/network_item.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/receive_coins_form_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:ion/app/features/wallets/views/utils/network_validator.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -223,23 +224,30 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
             : coinsState.value!)
         : <CoinInWalletData>[];
 
-    final coinsFilteredByOtherCoin = coinsFilteredByWallet.where(
+    final filteredCoins = coinsFilteredByWallet.where(
       (coin) {
         if (otherCoin == null || otherNetwork == null) return true;
 
+        // Filter out networks that match the other side of the swap
         final isSameCoin = coin.coin.symbolGroup == otherCoin.symbolGroup;
+        if (isSameCoin) {
+          final isSameNetwork = coin.coin.network.id == otherNetwork.id;
+          if (isSameNetwork) return false;
+        }
 
-        if (!isSameCoin) return true;
+        // Filter by swap rules for buy network selection
+        if ([NetworkListViewType.swapBuy, NetworkListViewType.swapSell].contains(type)) {
+          return SwapCoinIdentifier.isInternalNetwork(coin.coin.network.id);
+        }
 
-        final isSameNetwork = coin.coin.network.id == otherNetwork.id;
-        return !isSameNetwork;
+        return true;
       },
     ).toList();
 
     return _NetworksList(
-      itemCount: coinsFilteredByOtherCoin.length,
+      itemCount: filteredCoins.length,
       itemBuilder: (BuildContext context, int index) {
-        final coin = coinsFilteredByOtherCoin[index];
+        final coin = filteredCoins[index];
         final network = coin.coin.network;
         return NetworkItem(
           coinInWallet: coin,
