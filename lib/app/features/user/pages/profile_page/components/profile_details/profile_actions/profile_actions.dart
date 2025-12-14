@@ -46,15 +46,7 @@ class ProfileActions extends ConsumerWidget {
       spacing: 12.0.s,
       children: [
         if (profileMode != ProfileMode.dark) FollowUserButton(pubkey: pubkey),
-        if (isCurrentUser)
-          ProfileAction(
-            onPressed: () {
-              BookmarksRoute().push<void>(context);
-            },
-            assetName: Assets.svg.iconBookmarks,
-            profileMode: profileMode,
-          )
-        else ...[
+        if (!isCurrentUser) ...[
           if (!hasPrivateWallets && canSendMessage)
             ProfileAction(
               onPressed: () async {
