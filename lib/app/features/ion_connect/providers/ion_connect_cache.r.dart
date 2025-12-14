@@ -34,7 +34,7 @@ class CacheEntry {
 class IonConnectCache extends _$IonConnectCache {
   final List<DbCacheableEntity> _pendingDbEntities = [];
   Timer? _batchSaveTimer;
-  static const _batchSaveDelay = Duration(milliseconds: 500);
+  static const _batchSaveDelay = Duration(milliseconds: 1000);
   static const _batchSize = 50;
 
   @override
