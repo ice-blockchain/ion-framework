@@ -57,6 +57,9 @@ class CreatorTokensPage extends HookConsumerWidget {
     final maxScroll =
         _expandedHeaderHeight.s - NavigationAppBar.screenHeaderHeight - _tabBarHeight.s;
 
+    final isGlobalSearchVisible = useState<bool>(false);
+    final lastSearchQuery = useRef<String?>(null);
+
     // Collapse header when search field is focused
     useOnInit(
       () {
@@ -80,7 +83,10 @@ class CreatorTokensPage extends HookConsumerWidget {
     );
 
     void resetGlobalSearch() {
+      searchFocusNode.unfocus();
       searchController.clear();
+      searchQuery.value = '';
+      lastSearchQuery.value = null;
       globalSearchNotifier.search(
         query: '',
       );
@@ -90,9 +96,6 @@ class CreatorTokensPage extends HookConsumerWidget {
       scrollController,
       topOffset: maxScroll,
     );
-
-    final isGlobalSearchVisible = useState<bool>(false);
-    final lastSearchQuery = useRef<String?>(null);
 
     useEffect(
       () {
@@ -209,6 +212,7 @@ class CreatorTokensPage extends HookConsumerWidget {
                   },
                   body: CreatorTokensBody(
                     searchQuery: searchQuery.value,
+                    isGlobalSearchVisible: isGlobalSearchVisible.value,
                   ),
                 ),
               ),

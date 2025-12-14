@@ -13,10 +13,12 @@ import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_
 class CreatorTokensBody extends ConsumerWidget {
   const CreatorTokensBody({
     required this.searchQuery,
+    required this.isGlobalSearchVisible,
     super.key,
   });
 
   final String searchQuery;
+  final bool isGlobalSearchVisible;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,7 +26,7 @@ class CreatorTokensBody extends ConsumerWidget {
     final globalSearchNotifier = ref.watch(globalSearchTokensNotifierProvider.notifier);
 
     return IndexedStack(
-      index: searchQuery.isNotEmpty ? 1 : 0,
+      index: searchQuery.isNotEmpty && isGlobalSearchVisible ? 1 : 0,
       children: [
         TabBarView(
           children: CreatorTokensTabType.values.map(
