@@ -110,6 +110,7 @@ dependencies:
   googleapis: ^13.2.0
   gradient_borders: ^1.0.2
   hooks_riverpod: ^2.6.1
+  http: ^1.6.0
   icloud_storage: ^2.2.0
   image: ^4.5.4
   image_cropper: ^11.0.0
@@ -157,6 +158,7 @@ dependencies:
   pinenacl: ^0.6.0
   qr_code_scanner_plus: ^2.0.10+1
   qr_flutter: ^4.1.0
+  riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1
   rxdart: ^0.28.0
   screenshot: ^3.0.0
@@ -185,6 +187,7 @@ dependencies:
   video_player_win: ^2.3.11
   visibility_detector: ^0.4.0+2
   wakelock_plus: ^1.2.11
+  web3dart: ^2.7.3
   window_manager: ^0.4.2
 
 dev_dependencies:
