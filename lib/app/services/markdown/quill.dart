@@ -317,7 +317,13 @@ Delta parseAndConvertDelta(String? deltaContent, String fallbackMarkdown) {
   }
 
   // Fallback to markdown if delta parsing failed
-  return delta ?? markdownToDelta(fallbackMarkdown);
+  if (delta != null) {
+    return delta;
+  }
+
+  // Ensure hashtags are processed when falling back to markdown
+  final markdownDelta = markdownToDelta(fallbackMarkdown);
+  return processDeltaMatches(markdownDelta);
 }
 
 Delta processDeltaMatches(Delta delta) {
