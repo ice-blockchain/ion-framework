@@ -46,7 +46,7 @@ class FollowListItem extends ConsumerWidget {
           duration: const Duration(milliseconds: 200),
           child: isLoading
               ? Padding(
-                  padding: EdgeInsets.only(bottom: 4.0.s),
+                  padding: EdgeInsetsDirectional.only(bottom: 4.0.s),
                   child: SkeletonBox(width: 120.0.s, height: 16.0.s),
                 )
               : Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
