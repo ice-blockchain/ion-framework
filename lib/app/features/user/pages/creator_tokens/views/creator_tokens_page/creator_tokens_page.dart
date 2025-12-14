@@ -7,8 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/inputs/hooks/use_node_focused.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
-import 'package:ion/app/components/scroll_view/load_more_builder.dart';
-import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/category_tokens_provider.r.dart';
@@ -16,10 +14,9 @@ import 'package:ion/app/features/tokenized_communities/providers/featured_tokens
 import 'package:ion/app/features/tokenized_communities/providers/global_search_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_body.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_header.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_search_bar.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_tab_content.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
@@ -39,7 +36,6 @@ class CreatorTokensPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
-    final globalSearch = ref.watch(globalSearchTokensNotifierProvider);
     final globalSearchNotifier = ref.watch(globalSearchTokensNotifierProvider.notifier);
 
     final searchController = useTextEditingController();
@@ -211,41 +207,8 @@ class CreatorTokensPage extends HookConsumerWidget {
                       ),
                     ];
                   },
-                  body: IndexedStack(
-                    index: searchQuery.value.isNotEmpty ? 1 : 0,
-                    children: [
-                      TabBarView(
-                        children: CreatorTokensTabType.values.map(
-                          (tabType) {
-                            return CreatorTokensTabContent(
-                              tabType: tabType,
-                            );
-                          },
-                        ).toList(),
-                      ),
-                      LoadMoreBuilder(
-                        hasMore: globalSearch.activeHasMore,
-                        onLoadMore: globalSearchNotifier.loadMore,
-                        builder: (context, slivers) => PullToRefreshBuilder(
-                          onRefresh: globalSearchNotifier.refresh,
-                          builder: (_, slivers) => MediaQuery.removePadding(
-                            context: context,
-                            removeBottom: true,
-                            child: CustomScrollView(
-                              slivers: slivers,
-                            ),
-                          ),
-                          slivers: slivers,
-                        ),
-                        slivers: [
-                          CreatorTokensList(
-                            items: globalSearch.activeItems,
-                            isInitialLoading: globalSearch.activeIsInitialLoading,
-                          ),
-                          SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 12.0.s)),
-                        ],
-                      ),
-                    ],
+                  body: CreatorTokensBody(
+                    searchQuery: searchQuery.value,
                   ),
                 ),
               ),
