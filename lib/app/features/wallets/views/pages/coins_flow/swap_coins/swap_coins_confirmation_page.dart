@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -18,6 +19,7 @@ import 'package:ion/app/features/wallets/views/components/coin_icon_with_network
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
@@ -185,6 +187,14 @@ class _TokenRow extends StatelessWidget {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
 
+    final coinInWallet = coinsGroup.coins.firstWhereOrNull(
+      (coin) => coin.coin.network.id == network.id,
+    );
+
+    final amountDouble = double.tryParse(amount.replaceAll(',', '')) ?? 0.0;
+    final usdEquivalent = coinInWallet != null ? amountDouble * coinInWallet.coin.priceUSD : 0.0;
+    final usdEquivalentFormatted = formatToCurrency(usdEquivalent);
+
     return Row(
       children: [
         CoinIconWithNetwork.small(
@@ -200,6 +210,12 @@ class _TokenRow extends StatelessWidget {
                 '$amount ${coinsGroup.name}',
                 style: textStyles.headline2.copyWith(
                   color: colors.primaryText,
+                ),
+              ),
+              Text(
+                usdEquivalentFormatted,
+                style: textStyles.caption2.copyWith(
+                  color: colors.tertiaryText,
                 ),
               ),
             ],
