@@ -60,7 +60,6 @@ class FollowingList extends HookConsumerWidget {
           await ref.read(userFollowListWithMetadataProvider(pubkey).notifier).fetchEntities();
         }
       },
-      builder: (context, slivers) => CustomScrollView(cacheExtent: 500, slivers: slivers),
       slivers: [
         FollowAppBar(
           title: FollowType.following.getTitleWithCounter(context, totalPubkeysCount ?? 0),

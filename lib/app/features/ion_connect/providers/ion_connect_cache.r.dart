@@ -55,7 +55,7 @@ class IonConnectCache extends _$IonConnectCache {
     return {};
   }
 
-  Future<void> cache(IonConnectEntity entity) async {
+  Future<void> cache(IonConnectEntity entity, {bool waitForSave = false}) async {
     if (entity is CacheableEntity) {
       final entry = CacheEntry(
         entity: entity,
@@ -71,9 +71,17 @@ class IonConnectCache extends _$IonConnectCache {
       _pendingDbEntities.add(entity as DbCacheableEntity);
 
       if (_pendingDbEntities.length >= _batchSize) {
-        _flushPendingEntities();
+        if (waitForSave) {
+          await _flushPendingEntitiesSync();
+        } else {
+          _flushPendingEntities();
+        }
       } else {
-        _scheduleBatchSave();
+        if (waitForSave) {
+          await _flushPendingEntitiesSync();
+        } else {
+          _scheduleBatchSave();
+        }
       }
     }
   }
@@ -95,6 +103,18 @@ class IonConnectCache extends _$IonConnectCache {
     unawaited(
       ref.read(ionConnectDatabaseCacheProvider.notifier).saveAllEntities(entitiesToSave),
     );
+  }
+
+  Future<void> _flushPendingEntitiesSync() async {
+    if (_pendingDbEntities.isEmpty) {
+      return;
+    }
+
+    final entitiesToSave = List<DbCacheableEntity>.from(_pendingDbEntities);
+    _pendingDbEntities.clear();
+    _batchSaveTimer?.cancel();
+
+    await ref.read(ionConnectDatabaseCacheProvider.notifier).saveAllEntities(entitiesToSave);
   }
 
   void remove(String key) {

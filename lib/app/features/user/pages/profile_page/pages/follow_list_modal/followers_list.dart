@@ -77,10 +77,6 @@ class FollowersList extends HookConsumerWidget {
             ).notifier,
           )
           .loadMore(),
-      builder: (context, slivers) => CustomScrollView(
-        cacheExtent: 500,
-        slivers: slivers,
-      ),
     );
   }
 }
