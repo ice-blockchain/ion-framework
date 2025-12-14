@@ -77,9 +77,6 @@ class IonService {
     required EvmTransaction transaction,
   }) async {
     final userActionSigner = request.userActionSigner;
-    if (userActionSigner == null) {
-      throw const IonSwapException('User action signer is required for ion swap');
-    }
 
     return _ionIdentityClient.signAndBroadcast(
       walletId: request.wallet.id,

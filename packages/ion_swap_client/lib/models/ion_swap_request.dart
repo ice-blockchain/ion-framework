@@ -13,5 +13,5 @@ class IonSwapRequest {
 
   final IONIdentityClient identityClient;
   final Wallet wallet;
-  final UserActionSignerNew? userActionSigner;
+  final UserActionSignerNew userActionSigner;
 }
