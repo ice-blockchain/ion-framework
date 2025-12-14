@@ -41,4 +41,3 @@ class MarketCapBadge extends StatelessWidget {
     );
   }
 }
-
