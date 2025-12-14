@@ -6,8 +6,6 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/inputs/hooks/use_node_focused.dart';
-import 'package:ion/app/components/inputs/search_input/search_input.dart';
-import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
@@ -19,6 +17,7 @@ import 'package:ion/app/features/tokenized_communities/providers/global_search_t
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_header.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_search_bar.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_tab_content.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
@@ -201,32 +200,14 @@ class CreatorTokensPage extends HookConsumerWidget {
                       const SliverToBoxAdapter(
                         child: SectionSeparator(),
                       ),
-                      PinnedHeaderSliver(
-                        child: AnimatedSize(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeInOut,
-                          child: isGlobalSearchVisible.value
-                              ? ColoredBox(
-                                  color: context.theme.appColors.onPrimaryAccent,
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.only(
-                                      top: 12.0.s,
-                                      bottom: 8.0.s,
-                                    ),
-                                    child: ScreenSideOffset.small(
-                                      child: SearchInput(
-                                        controller: searchController,
-                                        focusNode: searchFocusNode,
-                                        onCancelSearch: () {
-                                          resetGlobalSearch();
-                                          isGlobalSearchVisible.value = false;
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              : const SizedBox.shrink(),
-                        ),
+                      CreatorTokensSearchBar(
+                        isVisible: isGlobalSearchVisible.value,
+                        searchController: searchController,
+                        searchFocusNode: searchFocusNode,
+                        onCancelSearch: () {
+                          resetGlobalSearch();
+                          isGlobalSearchVisible.value = false;
+                        },
                       ),
                     ];
                   },
