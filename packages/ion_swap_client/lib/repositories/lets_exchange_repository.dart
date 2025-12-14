@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:dio/dio.dart';
+import 'package:ion_swap_client/exceptions/lets_exchange_exceptions.dart';
 import 'package:ion_swap_client/models/lets_exchange_coin.m.dart';
+import 'package:ion_swap_client/models/lets_exchange_error.m.dart';
 import 'package:ion_swap_client/models/lets_exchange_info.m.dart';
 import 'package:ion_swap_client/models/lets_exchange_transaction.m.dart';
 
@@ -29,20 +31,47 @@ class LetsExchangeRepository {
     required String amount,
     required String affiliateId,
   }) async {
-    final response = await _dio.post<dynamic>(
-      '/v1/info',
-      data: {
-        'from': from,
-        'to': to,
-        'network_from': networkFrom,
-        'network_to': networkTo,
-        'amount': amount,
-        'affiliate_id': affiliateId,
-      },
-    );
+    try {
+      final response = await _dio.post<dynamic>(
+        '/v1/info',
+        data: {
+          'from': from,
+          'to': to,
+          'network_from': networkFrom,
+          'network_to': networkTo,
+          'amount': amount,
+          'affiliate_id': affiliateId,
+        },
+      );
 
-    final data = response.data as Map<String, dynamic>;
-    return LetsExchangeInfo.fromJson(data);
+      final data = response.data as Map<String, dynamic>;
+      return LetsExchangeInfo.fromJson(data);
+    } on DioException catch (e) {
+      // Handle error responses from LetsExchange API
+      if (e.response?.statusCode == 404 && e.response?.data != null) {
+        try {
+          final errorData = e.response!.data as Map<String, dynamic>;
+          final letsExchangeError = LetsExchangeError.fromJson(errorData);
+
+          // Check if error message indicates pair unavailability
+          if (letsExchangeError.error.toLowerCase().contains('unavailable')) {
+            throw LetsExchangePairUnavailableException(
+              fromCoin: from,
+              toCoin: to,
+              fromNetwork: networkFrom,
+              toNetwork: networkTo,
+              message: letsExchangeError.error,
+            );
+          }
+        } catch (e) {
+          // If parsing fails, rethrow as generic exception
+          if (e is LetsExchangeException) rethrow;
+          throw LetsExchangeException('Failed to parse error response: $e');
+        }
+      }
+
+      rethrow;
+    }
   }
 
   Future<LetsExchangeTransaction> createTransaction({
@@ -65,7 +94,7 @@ class LetsExchangeRepository {
         'network_to': networkTo,
         'deposit_amount': depositAmount,
         'affiliate_id': affiliateId,
-        'withdrawal_address': withdrawalAddress,
+        'withdrawal': withdrawalAddress,
         'rate_id': rateId,
         'withdrawal_extra_id': withdrawalExtraId,
       },

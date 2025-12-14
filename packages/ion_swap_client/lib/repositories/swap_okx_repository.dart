@@ -3,6 +3,7 @@
 import 'package:dio/dio.dart';
 import 'package:ion_swap_client/models/approve_transaction_data.m.dart';
 import 'package:ion_swap_client/models/okx_api_response.m.dart';
+import 'package:ion_swap_client/models/okx_swap_response.m.dart';
 import 'package:ion_swap_client/models/swap_chain_data.m.dart';
 import 'package:ion_swap_client/models/swap_quote_data.m.dart';
 
@@ -85,14 +86,15 @@ class SwapOkxRepository {
     );
   }
 
-  Future<void> swap({
+  Future<OkxApiResponse<List<OkxSwapResponse>>> swap({
     required String chainIndex,
     required String amount,
     required String toTokenAddress,
     required String fromTokenAddress,
     required String userWalletAddress,
+    required String slippagePercent,
   }) async {
-    await _dio.get<dynamic>(
+    final response = await _dio.get<dynamic>(
       '$_aggregatorBaseUrl/swap',
       queryParameters: {
         'chainIndex': chainIndex,
@@ -101,7 +103,19 @@ class SwapOkxRepository {
         'fromTokenAddress': fromTokenAddress,
         'toTokenAddress': toTokenAddress,
         'userWalletAddress': userWalletAddress,
+        'slippagePercent': slippagePercent,
       },
+    );
+
+    return OkxApiResponse.fromJson(
+      response.data as Map<String, dynamic>,
+      (json) =>
+          (json as List<dynamic>?)
+              ?.map(
+                (e) => OkxSwapResponse.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
     );
   }
 
