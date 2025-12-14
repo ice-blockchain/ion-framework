@@ -453,9 +453,7 @@ class _SwapButton extends ConsumerWidget {
                           onSwapError: () {
                             _showErrorMessage(messageNotificationNotifier, context);
                           },
-                          onSwapStart: () {
-                            _showStartMessage(messageNotificationNotifier, context);
-                          },
+                          onSwapStart: () {},
                         );
                   },
                   child: child,
