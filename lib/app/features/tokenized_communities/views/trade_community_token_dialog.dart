@@ -11,6 +11,7 @@ import 'package:ion/app/features/tokenized_communities/enums/community_token_tra
 import 'package:ion/app/features/tokenized_communities/providers/community_token_trade_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog_hooks.dart';
@@ -22,29 +23,39 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/compo
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/swap_button.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/token_card.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 
 class TradeCommunityTokenDialog extends HookConsumerWidget {
   const TradeCommunityTokenDialog({
     required this.externalAddress,
     required this.externalAddressType,
-    required this.mode,
+    this.initialMode,
     super.key,
   });
 
   final String externalAddress;
   final ExternalAddressType externalAddressType;
-  final CommunityTokenTradeMode mode;
+  final CommunityTokenTradeMode? initialMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final params = (
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,
-      mode: mode,
     );
     final state = ref.watch(tradeCommunityTokenControllerProvider(params));
     final controller = ref.read(tradeCommunityTokenControllerProvider(params).notifier);
+
+    final initialMode = this.initialMode;
+    useOnInit(
+      () {
+        if (initialMode != null) {
+          controller.setMode(initialMode);
+        }
+      },
+      [controller, initialMode],
+    );
 
     final pubkey = CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
     final supportedTokensAsync = ref.watch(supportedSwapTokensProvider);
@@ -61,7 +72,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         if (context.mounted) {
           Navigator.of(context).pop();
           final rootNavigator = Navigator.of(context, rootNavigator: true);
-          final message = mode == CommunityTokenTradeMode.buy
+          final message = state.mode == CommunityTokenTradeMode.buy
               ? 'Buy transaction submitted${txHash != null ? ': $txHash' : ''}'
               : 'Sell transaction submitted${txHash != null ? ': $txHash' : ''}';
           ScaffoldMessenger.of(rootNavigator.context).showSnackBar(
@@ -84,10 +95,9 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _AppBar(mode: mode),
+        const _AppBar(),
         if (communityGroup != null)
           _TokenCards(
-            mode: mode,
             state: state,
             controller: controller,
             communityTokenGroup: communityGroup,
@@ -103,10 +113,15 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         _SharePostCheckbox(shouldSharePost: shouldSharePost),
         SizedBox(height: 16.0.s),
         ContinueButton(
-          isEnabled: mode == CommunityTokenTradeMode.buy
+          isEnabled: state.mode == CommunityTokenTradeMode.buy
               ? _isBuyContinueButtonEnabled(state)
               : _isSellContinueButtonEnabled(state),
-          onPressed: () => _handleButtonPress(context, ref, externalAddress, mode),
+          onPressed: () => _handleButtonPress(
+            context,
+            ref,
+            externalAddress,
+            state.mode,
+          ),
         ),
         SizedBox(height: 16.0.s),
       ],
@@ -188,19 +203,26 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     final params = (
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,
-      mode: mode,
     );
     final state = ref.read(tradeCommunityTokenControllerProvider(params));
 
-    if (state.targetWallet == null || state.selectedPaymentToken == null) return;
+    if (state.targetWallet == null || state.selectedPaymentToken == null) {
+      return;
+    }
 
     await guardPasskeyDialog(
       context,
       (child) => RiverpodUserActionSignerRequestBuilder(
-        provider: communityTokenTradeNotifierProvider(externalAddress, externalAddressType),
+        provider: communityTokenTradeNotifierProvider(
+          externalAddress,
+          externalAddressType,
+        ),
         request: (signer) async {
           final notifier = ref.read(
-            communityTokenTradeNotifierProvider(externalAddress, externalAddressType).notifier,
+            communityTokenTradeNotifierProvider(
+              externalAddress,
+              externalAddressType,
+            ).notifier,
           );
           if (mode == CommunityTokenTradeMode.buy) {
             await notifier.buy(signer);
@@ -215,9 +237,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 }
 
 class _AppBar extends StatelessWidget {
-  const _AppBar({required this.mode});
-
-  final CommunityTokenTradeMode mode;
+  const _AppBar();
 
   @override
   Widget build(BuildContext context) {
@@ -235,7 +255,6 @@ class _AppBar extends StatelessWidget {
 
 class _TokenCards extends HookConsumerWidget {
   const _TokenCards({
-    required this.mode,
     required this.state,
     required this.controller,
     required this.communityTokenGroup,
@@ -244,7 +263,6 @@ class _TokenCards extends HookConsumerWidget {
     required this.onTokenTap,
   });
 
-  final CommunityTokenTradeMode mode;
   final TradeCommunityTokenState state;
   final TradeCommunityTokenController controller;
   final CoinsGroup communityTokenGroup;
@@ -254,6 +272,8 @@ class _TokenCards extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final mode = state.mode;
+    const creatorTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
     final amountController = useTextEditingController();
     final quoteController = useTextEditingController();
 
@@ -262,8 +282,9 @@ class _TokenCards extends HookConsumerWidget {
       quoteController,
       state.quoteAmount,
       isQuoting: state.isQuoting,
-      decimals:
-          mode == CommunityTokenTradeMode.sell ? state.selectedPaymentToken?.decimals ?? 18 : 18,
+      decimals: mode == CommunityTokenTradeMode.sell
+          ? state.selectedPaymentToken?.decimals ?? creatorTokenDecimals
+          : creatorTokenDecimals,
     );
     return Stack(
       children: [
@@ -322,7 +343,7 @@ class _TokenCards extends HookConsumerWidget {
           end: 0,
           bottom: 0,
           child: SwapButton(
-            onTap: () {},
+            onTap: controller.toggleMode,
           ),
         ),
       ],

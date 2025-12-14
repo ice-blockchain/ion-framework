@@ -82,7 +82,7 @@ class ProfileUserInfo extends ConsumerWidget {
                             child: TradeCommunityTokenDialog(
                               externalAddress: eventReferenceString,
                               externalAddressType: const ExternalAddressType.ionConnectUser(),
-                              mode: CommunityTokenTradeMode.buy,
+                              initialMode: CommunityTokenTradeMode.buy,
                             ),
                           );
                         },

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
@@ -27,7 +26,6 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       final params = (
         externalAddress: externalAddress,
         externalAddressType: externalAddressType,
-        mode: CommunityTokenTradeMode.buy,
       );
       final formState = ref.read(tradeCommunityTokenControllerProvider(params));
 
@@ -78,14 +76,12 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       final params = (
         externalAddress: externalAddress,
         externalAddressType: externalAddressType,
-        mode: CommunityTokenTradeMode.sell,
       );
       final formState = ref.read(tradeCommunityTokenControllerProvider(params));
 
       final token = formState.selectedPaymentToken;
       final wallet = formState.targetWallet;
       final amount = formState.amount;
-      final communityTokenCoinsGroup = formState.communityTokenCoinsGroup;
 
       if (token == null || wallet == null || amount <= 0) {
         throw StateError('Invalid form state: token, wallet, or amount is missing');
@@ -98,12 +94,11 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         throw Exception('Wallet address is missing');
       }
 
-      if (communityTokenCoinsGroup == null || communityTokenCoinsGroup.coins.isEmpty) {
-        throw StateError('Community token coins group is missing');
+      final tokenInfo = ref.read(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+      final communityTokenAddress = tokenInfo?.addresses.blockchain;
+      if (communityTokenAddress == null || communityTokenAddress.isEmpty) {
+        throw StateError('Community token contract address is missing');
       }
-
-      final communityTokenCoin = communityTokenCoinsGroup.coins.first.coin;
-      final communityTokenAddress = communityTokenCoin.contractAddress;
 
       final amountIn =
           toBlockchainUnits(amount, TokenizedCommunitiesConstants.creatorTokenDecimals);
